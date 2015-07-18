@@ -1,0 +1,8 @@
+{
+	"services":{
+		"designer":{
+			"servicename":"designer_service",
+			"publicdir":"static/designer_prod/designer"
+		}
+	}
+}
