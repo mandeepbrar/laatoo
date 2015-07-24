@@ -15,14 +15,20 @@ func init() {
 	Logger = log.New()
 }
 
-func ConfigLogger(conf config.Config) {
+//configures logging level and returns true if its set to debug
+func ConfigLogger(conf config.Config) bool {
 	//read configuration
 	loggingLevel, err := log.ParseLevel(conf.GetConfig(CONF_LOGGINGLEVEL))
 	if err == nil {
 		//set logger level
 		Logger.Level = loggingLevel
+		if loggingLevel == log.DebugLevel {
+			return true
+		}
+		return false
 	} else {
 		Logger.Level = log.InfoLevel
 		Logger.Errorf("Logger: Invalid logging level %s", err)
+		return false
 	}
 }

@@ -1,0 +1,60 @@
+{
+	"services":{
+		"user_storer":{
+			"servicename":"mongo_data_service",
+			"connectionstring":"localhost",
+			"database":"Users",
+			"collection":"Users",
+			"object":"default_user"
+		},
+		"auth":{
+			"servicename":"auth_service",
+			"user_data_svc":"user_storer",
+			"path":"/auth"
+		},
+		"pageservice":{
+			"servicename":"page_service",
+			"publicdir":"static/publish_prod/pages",
+			"path":"",
+			"pages":{
+				"home":{
+					"path":"/home",
+					"type":"file",
+					"destination":"home.html",
+					"authentication":"true",
+					"permission":"",
+					"params": {
+					}
+				},
+				"articles":{
+					"path":"/articles",
+					"type":"file",
+					"destination":"articles.html",
+					"authentication":"true",
+					"permission":"",
+					"params": {
+					}
+				},
+				"login":{
+					"path":"/login",
+					"type":"file",
+					"destination":"login.html",
+					"authentication":"true",
+					"permission":"",
+					"params": {
+						"LocalAuthServer":"http://localhost:8080/auth/login",
+						"SuccessRedirect":"http://google.com",
+						"AuthToken":"Auth-Token"
+					}
+				},
+				"logout":{
+					"path":"/logout",
+					"type":"redirect",
+					"destination":"/auth/logout",
+					"params": {
+					}
+				}
+			}
+		}
+	}
+}

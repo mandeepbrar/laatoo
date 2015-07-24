@@ -12,7 +12,7 @@ type ModuleHelper struct {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (mods *ModuleHelper) InitializeModules(ctx interface{}) error {
+func (mods *ModuleHelper) InitializeModules(ctx ServiceContext) error {
 	for name, moduleInt := range mods.RegisteredModules {
 		module := moduleInt.(Service)
 		log.Logger.Infoln("ModuleHelper: Initializing module ", name)

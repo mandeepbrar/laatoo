@@ -4,14 +4,18 @@ package service
 type Service interface {
 	//Provides the name of the service
 	GetName() string
-	//Provides the alias of the service
-	GetAlias() string
 	//Initialize the service. Consumer of a service passes the data
-	Initialize(ctx interface{}) error
+	Initialize(ctx ServiceContext) error
 	//The service starts serving when this method is called
 	Serve() error
 	//Type of service
 	GetServiceType() string
+}
+
+//service context object for initializing services
+type ServiceContext interface {
+	GetService(alias string) (Service, error)
+	CreateObject(objName string, confData map[string]interface{}) (interface{}, error)
 }
 
 const (

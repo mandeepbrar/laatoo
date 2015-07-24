@@ -6,8 +6,9 @@
 	"environments": [
 		{
 			"name":"designer_prod",
-			"conf":"designer_prod"		,
-			"path":"/designer"
+			"conf":"designer_prod",
+			"domain":"localhost:8080",
+			"path":""
 		}
 	]
 }

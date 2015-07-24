@@ -1,8 +1,21 @@
 {
 	"services":{
-		"designer":{
-			"servicename":"designer_service",
-			"publicdir":"static/designer_prod/designer"
+		"user_storer":{
+			"servicename":"mongo_data_service",
+			"connectionstring":"localhost",
+			"database":"Users",
+			"collection":"Users",
+			"object":"default_user"
+		},
+		"auth":{
+			"servicename":"auth_service",
+			"user_data_svc":"user_storer",
+			"path":"/auth"
+		},
+		"login":{
+			"servicename":"login_service",
+			"publicdir":"static/designer_prod/login",
+			"path":""
 		}
 	}
 }

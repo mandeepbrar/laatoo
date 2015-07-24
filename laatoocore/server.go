@@ -1,9 +1,10 @@
 package laatoocore
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
 	"laatoosdk/config"
+	"laatoosdk/errors"
 	"laatoosdk/log"
 	"net/http"
 )
@@ -37,9 +38,14 @@ func (server *Server) InitServer(configName string) {
 	//read config for standalone
 	server.Config = config.NewConfigFromFile(configName)
 	//config logger
-	log.ConfigLogger(server.Config)
+	debug := log.ConfigLogger(server.Config)
 	//initialize router
-	router := gin.Default()
+	router := echo.New()
+	// Middleware
+	router.Use(mw.Logger())
+	router.Use(mw.Recover())
+	router.SetDebug(debug)
+
 	log.Logger.Debugf("Getting environments")
 	//read config
 	envs := server.Config.GetArray(CONF_ENVIRONMENTS)
@@ -52,14 +58,19 @@ func (server *Server) InitServer(configName string) {
 		log.Logger.Debugf("Creating environment", envName)
 		environment, err := newEnvironment(envName, envConf, router.Group(envPath))
 		if err != nil {
-			log.Logger.Errorf("Environment %s could not be started: %s", envName, err)
+			errors.RethrowError(CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 		}
 		server.Applications[envName] = environment
 	}
 	//Initializes application environments to be hosted on this server
-	for _, app := range server.Applications {
-		app.InitializeEnvironment()
+	for envName, app := range server.Applications {
+		err := app.InitializeEnvironment()
+		if err != nil {
+			errors.RethrowError(CORE_ENVIRONMENT_NOT_INITIALIZED, err, envName)
+		}
 	}
+	log.Logger.Debugf("Router %v", router)
+
 	http.Handle("/", router)
 }
 
@@ -81,7 +92,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		//find the address to bind from the server
 		address := server.Config.GetConfig(CONF_SERVERTYPE_HOSTNAME)
 		if address == "" {
-			return nil, fmt.Errorf("Could not get the hostname for standalone server")
+			return nil, errors.ThrowError(CORE_SERVERADD_NOT_FOUND)
 		}
 		//start listening
 		http.ListenAndServe(address, nil)

@@ -1,4 +1,4 @@
-package authentication
+package laatooauthentication
 
 import (
 	"bytes"
@@ -10,8 +10,8 @@ import (
 )
 
 // SendMail uses the currently configured mailer to deliver e-mails.
-func (app *App) SendMail(data Email) error {
-	return app.Mailer.Send(data)
+func (svc *AuthService) SendMail(data Email) error {
+	return svc.Mailer.Send(data)
 }
 
 // Mailer is a type that is capable of sending an e-mail.

@@ -1,0 +1,14 @@
+{
+	"hostname": "localhost:7070",
+	"logging": {
+		"level":"debug"
+	},
+	"environments": [
+		{
+			"name":"publish_prod",
+			"conf":"publish_prod",
+			"domain":"localhost:8080",
+			"path":""
+		}
+	]
+}

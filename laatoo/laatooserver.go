@@ -1,8 +1,10 @@
 package main
 
 import (
+	_ "laatooauthentication"
 	"laatoocore"
-	_ "laatoodesigner"
+	_ "laatoodata"
+	_ "laatoologin"
 	"laatoosdk/log"
 	"os"
 )

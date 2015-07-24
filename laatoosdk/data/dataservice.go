@@ -9,7 +9,7 @@ type DataService interface {
 	//Delete an object by id
 	Delete(id string) error
 	//Get an object by id
-	GetById(id string, storable Storable) error
+	GetById(id string) (interface{}, error)
 	//Get all object with given conditions
 	Get(interface{}) (interface{}, error)
 	//Get a list of all items
