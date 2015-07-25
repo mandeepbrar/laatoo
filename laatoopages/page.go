@@ -20,7 +20,7 @@ const (
 	CONF_PAGE_TYPE_REDIRECT = "redirect"
 )
 
-func createPage(conf map[string]interface{}, router *echo.Group, publicDir string) error {
+func createPage(conf map[string]interface{}, router *echo.Group, pagesDir string) error {
 	var pagePath, pageDest string
 	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE
@@ -56,7 +56,7 @@ func createPage(conf map[string]interface{}, router *echo.Group, publicDir strin
 	}
 
 	if pageType == CONF_PAGE_TYPE_FILE {
-		dest := fmt.Sprint(publicDir, "/", pageDest)
+		dest := fmt.Sprint(pagesDir, "/", pageDest)
 		router.ServeFile(pagePath, dest)
 
 		params, ok := conf[CONF_PAGE_PARAMS]
@@ -66,7 +66,6 @@ func createPage(conf map[string]interface{}, router *echo.Group, publicDir strin
 				return errors.RethrowError(PAGE_ERROR_WRONG_PARAMS, err)
 			}
 			confPage := fmt.Sprint(pagePath, "/conf")
-			log.Logger.Infof("Conf page %s", confPage)
 			log.Logger.Infof("JSON %s", string(jsonObj))
 
 			router.Get(confPage, func(ctx *echo.Context) error {

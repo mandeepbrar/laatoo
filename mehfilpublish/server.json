@@ -7,7 +7,7 @@
 		{
 			"name":"publish_prod",
 			"conf":"publish_prod",
-			"domain":"localhost:8080",
+			"domain":"localhost:7070",
 			"path":""
 		}
 	]

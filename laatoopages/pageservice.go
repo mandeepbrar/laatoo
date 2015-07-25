@@ -11,7 +11,7 @@ import (
 
 const (
 	CONF_PAGE_SERVICENAME = "page_service"
-	CONF_PAGE_PUBLICDIR   = "publicdir"
+	CONF_PAGE_PAGESDIR    = "pagesdir"
 	CONF_PAGE_PAGES       = "pages"
 )
 
@@ -31,9 +31,9 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	if !ok {
 		return nil, errors.ThrowError(PAGE_ERROR_MISSING_ROUTER)
 	}
-	publicdir, ok := conf[CONF_PAGE_PUBLICDIR]
+	pagesdir, ok := conf[CONF_PAGE_PAGESDIR]
 	if !ok {
-		return nil, errors.ThrowError(PAGE_ERROR_MISSING_PUBLICDIR)
+		return nil, errors.ThrowError(PAGE_ERROR_MISSING_PAGESDIR)
 	}
 	router := routerInt.(*echo.Group)
 	log.Logger.Infof("Router %s", router)
@@ -51,11 +51,8 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		//get the service name to be created for the alias
 		log.Logger.Info("Creating page %s", name)
 		//create page with provided conf
-		createPage(pageConf, router, publicdir.(string))
+		createPage(pageConf, router, pagesdir.(string))
 	}
-
-	log.Logger.Infof("Designer service starting with page path %s", publicdir)
-	router.Static("/", publicdir.(string))
 
 	return svc, nil
 }

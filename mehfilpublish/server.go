@@ -7,6 +7,7 @@ import (
 	_ "laatoologin"
 	_ "laatoopages"
 	"laatoosdk/log"
+	_ "laatoostatic"
 	"os"
 )
 

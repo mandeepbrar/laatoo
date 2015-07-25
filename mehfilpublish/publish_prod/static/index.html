@@ -1,0 +1,8 @@
+<!doctype html><html><head><meta charset="utf-8"><title>main</title><meta name="description" content=""><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="styles/vendor.css"><link rel="stylesheet" href="styles/app.css"><script src="scripts/vendor.js"></script><script src="scripts/app.js"></script></head><body><!--[if lt IE 10]>
+ <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+ <![endif]--><div ui-view=""></div><page><login></login></page><script>
+  var pageConf = {};
+						pageConf.LocalAuthServer = "http://localhost:8080/auth/login";
+						pageConf.SuccessRedirect="http://google.com";
+						pageConf.AuthToken="Auth-Token";
+    </script></body></html>

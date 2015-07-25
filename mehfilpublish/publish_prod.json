@@ -12,9 +12,14 @@
 			"user_data_svc":"user_storer",
 			"path":"/auth"
 		},
+		"public":{
+			"servicename":"static_file_service",
+			"publicdir":"publish_prod/static",
+			"path":""
+		},
 		"pageservice":{
 			"servicename":"page_service",
-			"publicdir":"static/publish_prod/pages",
+			"pagesdir":"publish_prod/pageservice",
 			"path":"",
 			"pages":{
 				"home":{
@@ -42,8 +47,8 @@
 					"authentication":"true",
 					"permission":"",
 					"params": {
-						"LocalAuthServer":"http://localhost:8080/auth/login",
-						"SuccessRedirect":"http://google.com",
+						"LocalAuthServer":"http://localhost:7070/auth/login",
+						"SuccessRedirect":"/articles",
 						"AuthToken":"Auth-Token"
 					}
 				},
