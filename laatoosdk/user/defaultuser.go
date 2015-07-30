@@ -47,7 +47,7 @@ func (usr *DefaultUser) LoadPermissions(roleStorer data.DataService) error {
 	roles := usr.Roles
 	usr.Permissions = utils.NewStringSet([]string{})
 	for k, _ := range roles {
-		roleInt, err := roleStorer.GetById(k)
+		roleInt, err := roleStorer.GetById(CONF_DEFAULT_USER, k)
 		if err == nil {
 			role := roleInt.(RbacRole)
 			usr.Permissions.Join(role.GetPermissions())

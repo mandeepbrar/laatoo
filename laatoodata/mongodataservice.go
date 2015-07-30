@@ -6,23 +6,22 @@ import (
 	"laatoocore"
 	"laatoosdk/data"
 	"laatoosdk/errors"
+	"laatoosdk/log"
 	"laatoosdk/service"
 )
 
 type mongoDataService struct {
 	name       string
 	connection *mgo.Session
-	collection string
 	database   string
-	object     string
+	objects    map[string]string
 	context    service.ServiceContext
 }
 
 const (
 	CONF_MONGO_CONNECTIONSTRING = "connectionstring"
 	CONF_MONGO_DATABASE         = "database"
-	CONF_MONGO_COLLECTION       = "collection"
-	CONF_MONGO_OBJECT           = "object"
+	CONF_MONGO_OBJECTS          = "objects"
 	CONF_MONGO_SERVICENAME      = "mongo_data_service"
 )
 
@@ -43,15 +42,21 @@ func MongoServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	if !ok {
 		return nil, errors.ThrowError(DATA_ERROR_MISSING_DATABASE)
 	}
-	collectionInt, ok := conf[CONF_MONGO_COLLECTION]
+	objectsInt, ok := conf[CONF_MONGO_OBJECTS]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
 	}
-	objectInt, ok := conf[CONF_MONGO_OBJECT]
+	objs, ok := objectsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECT)
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
 	}
-	mongoSvc := &mongoDataService{name: "Mongo Data Service", collection: collectionInt.(string), object: objectInt.(string), connection: sess, database: databaseInt.(string)}
+
+	mongoSvc := &mongoDataService{name: "Mongo Data Service", connection: sess, database: databaseInt.(string)}
+	mongoSvc.objects = make(map[string]string, 50)
+	for obj, collection := range objs {
+		mongoSvc.objects[obj] = collection.(string)
+	}
+
 	return mongoSvc, nil
 }
 
@@ -79,20 +84,46 @@ func (svc *mongoDataService) Serve() error {
 	return nil
 }
 
-func (ms *mongoDataService) Put(id string, item interface{}) error {
+func (ms *mongoDataService) Save(objectType string, item interface{}) error {
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
-	err := connCopy.DB(ms.database).C(ms.collection).Insert(item)
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
+	}
+	err := connCopy.DB(ms.database).C(collection).Insert(item)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ms *mongoDataService) GetById(id string) (interface{}, error) {
-	object, err := ms.context.CreateObject(ms.object, nil)
+func (ms *mongoDataService) Put(objectType string, id string, item interface{}) error {
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
+	}
+	condition := bson.M{}
+	stor := item.(data.Storable)
+	idkey := stor.GetIdField()
+	condition[idkey] = id
+	err := connCopy.DB(ms.database).C(collection).Update(condition, item)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, error) {
+	object, err := ms.context.CreateObject(objectType, nil)
 	if err != nil {
 		return nil, err
+	}
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -100,21 +131,58 @@ func (ms *mongoDataService) GetById(id string) (interface{}, error) {
 	idkey := stor.GetIdField()
 	condition := bson.M{}
 	condition[idkey] = id
-	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
+	err = connCopy.DB(ms.database).C(collection).Find(condition).One(object)
 	if err != nil {
+		if err.Error() == "not found" {
+			return nil, nil
+		}
+		log.Logger.Debugf("Error in getting object with id %s %s", id, err)
 		return nil, err
 	}
+	log.Logger.Debugf("Got the object with id %s", id)
 	return object, nil
 }
 
-func (ms *mongoDataService) Get(conditions interface{}) (interface{}, error) {
-	return nil, errors.ThrowError(DATA_ERROR_NOT_IMPLEMENTED)
+func (ms *mongoDataService) Get(objectType string, conditions interface{}) (interface{}, error) {
+	results, err := ms.context.CreateCollection(objectType)
+	if err != nil {
+		return nil, err
+	}
+	log.Logger.Debugf("Got the object ", results)
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
+	}
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	condition := bson.M{}
+	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
-func (ms *mongoDataService) Delete(id string) error {
+func (ms *mongoDataService) Delete(objectType string, id string) error {
 	return nil
 }
 
-func (ms *mongoDataService) GetList() (interface{}, error) {
-	return nil, nil
+func (ms *mongoDataService) GetList(objectType string) (interface{}, error) {
+	results, err := ms.context.CreateCollection(objectType)
+	if err != nil {
+		return nil, err
+	}
+	log.Logger.Debugf("Got the object ", results)
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION)
+	}
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	condition := bson.M{}
+	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }

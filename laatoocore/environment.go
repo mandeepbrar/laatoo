@@ -13,6 +13,7 @@ const (
 	CONF_ENV_SERVICES     = "services"
 	CONF_ENV_SERVICENAME  = "servicename"
 	CONF_ENV_ROUTER       = "router"
+	CONF_ENV_CONTEXT      = "context"
 	CONF_SERVICE_BINDPATH = "path"
 )
 
@@ -56,6 +57,8 @@ func (env *Environment) createServices() error {
 			//router to be passed in the configuration
 			serviceConfig[CONF_ENV_ROUTER] = env.Router.Group(svcBindPath.(string))
 		}
+
+		serviceConfig[CONF_ENV_CONTEXT] = env
 
 		//get the service with a given name alias and config
 		svcInt, err := CreateObject(svcName, serviceConfig)
@@ -102,6 +105,14 @@ func (env *Environment) GetService(alias string) (service.Service, error) {
 //creates a named object if the factory has been registered with environment
 func (env *Environment) CreateObject(objName string, confData map[string]interface{}) (interface{}, error) {
 	return CreateObject(objName, confData)
+}
+
+func (env *Environment) CreateEmptyObject(objName string) (interface{}, error) {
+	return CreateEmptyObject(objName)
+}
+
+func (env *Environment) CreateCollection(objName string) (interface{}, error) {
+	return CreateCollection(objName)
 }
 
 //start services

@@ -44,7 +44,10 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		return nil, errors.ThrowError(PAGE_ERROR_PAGES_NOT_PROVIDED)
 	}
 
-	pages := pagesInt.(map[string]interface{})
+	pages, ok := pagesInt.(map[string]interface{})
+	if !ok {
+		return nil, errors.ThrowError(PAGE_ERROR_PAGES_NOT_PROVIDED)
+	}
 	for name, val := range pages {
 		//get the config for the page with given alias
 		pageConf := val.(map[string]interface{})

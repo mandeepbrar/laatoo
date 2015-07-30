@@ -16,6 +16,8 @@ type Service interface {
 type ServiceContext interface {
 	GetService(alias string) (Service, error)
 	CreateObject(objName string, confData map[string]interface{}) (interface{}, error)
+	CreateEmptyObject(objName string) (interface{}, error)
+	CreateCollection(objName string) (interface{}, error)
 }
 
 const (

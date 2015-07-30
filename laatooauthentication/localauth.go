@@ -86,7 +86,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	id := usr.GetId()
 
 	//get the tested user from database
-	testedUser, err := localauth.authService.UserDataService.GetById(id)
+	testedUser, err := localauth.authService.GetUserById(id)
 	if err != nil {
 		return errors.RethrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx, err)
 	}

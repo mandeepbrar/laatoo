@@ -104,3 +104,11 @@ func (svc *AuthService) Logout(ctx *echo.Context) error {
 func (svc *AuthService) CreateUser() (interface{}, error) {
 	return svc.Context.CreateObject(svc.UserObject, nil)
 }
+
+func (svc *AuthService) GetUserById(id string) (interface{}, error) {
+	user, err := svc.UserDataService.GetById(svc.UserObject, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

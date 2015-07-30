@@ -4,8 +4,9 @@ import (
 	_ "laatooauthentication"
 	"laatoocore"
 	_ "laatoodata"
-	_ "laatoologin"
+	_ "laatoopages"
 	"laatoosdk/log"
+	_ "laatoostatic"
 	"os"
 )
 

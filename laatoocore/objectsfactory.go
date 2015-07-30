@@ -4,12 +4,15 @@ import (
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/utils"
+	"reflect"
 )
 
 var (
 	//global provider register
 	//objects factory register exists for every server
 	ObjectsFactoryRegister = utils.NewMemoryStorer()
+	ObjectCollections      = utils.NewMemoryStorer()
+	EmptyObjects           = utils.NewMemoryStorer()
 )
 
 //every object that needs to be created by configuration should register a factory func
@@ -23,8 +26,52 @@ func RegisterObjectProvider(objectName string, factory ObjectFactory) {
 	ObjectsFactoryRegister.PutObject(objectName, factory)
 }
 
+func CreateEmptyObject(objectName string) (interface{}, error) {
+	typeInt, err := EmptyObjects.GetObject(objectName)
+	if err == nil {
+		log.Logger.Infof("Returning object ", typeInt)
+		return reflect.New(typeInt.(reflect.Type)).Interface(), nil
+	} else {
+		objectPtr, err := createObject(objectName, nil)
+		if err != nil {
+			return nil, err
+		}
+		typeVal := reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface())
+		log.Logger.Infof("Creating object   %s", typeVal)
+		EmptyObjects.PutObject(objectName, typeVal)
+		return objectPtr, nil
+	}
+}
+
+func CreateCollection(objectName string) (interface{}, error) {
+	typeInt, err := ObjectCollections.GetObject(objectName)
+	if err == nil {
+		log.Logger.Infof("Returning collection ", typeInt)
+		return reflect.New(typeInt.(reflect.Type)).Interface(), nil
+	} else {
+		objectPtr, err := createObject(objectName, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		collectionType := reflect.SliceOf(reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface()))
+		log.Logger.Infof("Creating collectionType   %s", collectionType)
+		ObjectCollections.PutObject(objectName, collectionType)
+		return reflect.New(collectionType).Interface(), nil
+	}
+}
+
 //Provides a object with a given name
 func CreateObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
+	if confdata == nil {
+		return CreateEmptyObject(objectName)
+	} else {
+		return createObject(objectName, confdata)
+	}
+}
+
+//Provides a object with a given name
+func createObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
 	log.Logger.Debugf("Getting object %s", objectName)
 
 	//get the factory from the register

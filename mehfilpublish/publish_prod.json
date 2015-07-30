@@ -4,8 +4,17 @@
 			"servicename":"mongo_data_service",
 			"connectionstring":"localhost",
 			"database":"Users",
-			"collection":"Users",
-			"object":"default_user"
+			"objects": {
+				"default_user":"Users"
+			}
+		},
+		"publish_prod":{
+			"servicename":"mongo_data_service",
+			"connectionstring":"localhost",
+			"database":"publish_prod",
+			"objects": {
+				"article":"Articles"
+			}
 		},
 		"auth":{
 			"servicename":"auth_service",
@@ -57,6 +66,66 @@
 					"type":"redirect",
 					"destination":"/auth/logout",
 					"params": {
+					}
+				}
+			}
+		},
+		"articleservice":{
+			"servicename":"articleservice",
+			"path":"/article",
+			"entityname":"article",
+			"data_svc":"publish_prod",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"list":{
+					"path":"",
+					"method":"list",
+					"permission":""
+				},
+				"get":{
+					"path":"/:id",
+					"method":"get",
+					"permission":""
+				},
+				"post":{
+					"path":"",
+					"method":"post",
+					"permission":""
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put",
+					"permission":""
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete",
+					"permission":""
+				}
+			},
+			"fields": {
+				"Id":"string",
+				"Title":"string"
+			}
+		},
+		"viewservice":{
+			"servicename":"view_service",
+			"data_svc":"publish_prod",
+			"path":"/view",
+			"views": {
+				"articles":{
+					"name":"view_articles",
+					"path":"/articles",
+					"type":"entitylist",
+					"entities":"article",
+					"joins":{
+					},
+					"conditions":{
+					},
+					"permission":"",
+					"fields": {
+						"title":"Title"
 					}
 				}
 			}

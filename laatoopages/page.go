@@ -66,7 +66,6 @@ func createPage(conf map[string]interface{}, router *echo.Group, pagesDir string
 				return errors.RethrowError(PAGE_ERROR_WRONG_PARAMS, err)
 			}
 			confPage := fmt.Sprint(pagePath, "/conf")
-			log.Logger.Infof("JSON %s", string(jsonObj))
 
 			router.Get(confPage, func(ctx *echo.Context) error {
 				ctx.String(http.StatusOK, string(jsonObj))

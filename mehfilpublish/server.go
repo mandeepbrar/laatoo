@@ -1,13 +1,15 @@
 package main
 
 import (
+	_ "entities/publish_prod"
 	_ "laatooauthentication"
 	"laatoocore"
 	_ "laatoodata"
-	_ "laatoologin"
+	_ "laatooentities"
 	_ "laatoopages"
 	"laatoosdk/log"
 	_ "laatoostatic"
+	_ "laatooview"
 	"os"
 )
 
@@ -23,6 +25,7 @@ func main() {
 	} else {
 		configName = "server"
 	}
+
 	//create a server with config name
 	_, err := laatoocore.NewServer(configName, laatoocore.CONF_SERVERTYPE_STANDALONE)
 	if err != nil {
