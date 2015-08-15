@@ -10,6 +10,8 @@ type Service interface {
 	Serve() error
 	//Type of service
 	GetServiceType() string
+	//Execute method
+	Execute(string, map[string]interface{}) (map[string]interface{}, error)
 }
 
 //service context object for initializing services

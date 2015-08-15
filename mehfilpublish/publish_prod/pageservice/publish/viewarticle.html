@@ -1,0 +1,10 @@
+<page>	
+	<entity name="article" id="{{params.id}}">
+		<h1>{{$parent.entitydata.Title}}</h1>
+		<h3>Body</h3>
+		<div class="container">{{$parent.entitydata.BodyGur}}</div>
+		<h3>Summary</h3>
+		<div class="container">{{$parent.entitydata.SummaryGur}}</div>
+		<textarea data-provide="markdown"></textarea>
+	</entity>
+</page>	

@@ -176,3 +176,8 @@ func (svc *AuthService) Serve() error {
 func (svc *AuthService) GetServiceType() string {
 	return service.SERVICE_TYPE_APP
 }
+
+//Execute method
+func (svc *AuthService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}

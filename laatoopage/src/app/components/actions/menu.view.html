@@ -1,0 +1,8 @@
+<div class="navbar navbar-default">
+    <ul class="nav navbar-nav">
+		<li ng-repeat="item in items">
+			<a ng-href="{{item.route}}" ng-if="item.actiontype!='openpartialpage'">{{item.heading}}</a>
+			<a ui-sref="{{item.heading}}" ng-if="item.actiontype==='openpartialpage'">{{item.heading}}</a>
+		</li>
+    </ul>
+</div>

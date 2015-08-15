@@ -186,3 +186,8 @@ func (ms *mongoDataService) GetList(objectType string) (interface{}, error) {
 	}
 	return results, nil
 }
+
+//Execute method
+func (svc *mongoDataService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}

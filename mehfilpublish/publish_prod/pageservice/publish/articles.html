@@ -1,0 +1,47 @@
+<page name="articles">
+	<h1>Articles</h1>
+	<div class="row">
+		<action class="pull-right" widget="button" label="Create Article" name="Create Article">
+		</action>
+	</div>
+	<div class="row">
+		<view name="view_articles">
+			<table class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							Title
+						</th>
+						<th>
+							Updated By
+						</th>
+						<th>
+							Updated On
+						</th>
+						<th>
+						</th>
+						<th>
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:40%">
+						<a href="#/article/view/{{viewrow.Id}}">{{viewrow.Title}}</a>
+					</td>
+					<td>
+						{{viewrow.UpdatedBy}} 
+					</td>
+					<td>
+						{{viewrow.UpdatedOn}} 
+					</td>
+					<td>
+						<a href="#/article/edit/{{viewrow.Id}}">edit</a>
+					</td>
+					<td>
+						<a href="#/article/delete/{{viewrow.Id}}">delete</a>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>

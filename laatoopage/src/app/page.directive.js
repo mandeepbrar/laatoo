@@ -21,7 +21,9 @@
     return directive;
 
     /** @ngInject */
-    function PageCtrl($scope, $element, $attrs ) {
+    function PageCtrl($scope, $element, $attrs, $stateParams ) {
+	  $scope.params = $stateParams;	
+	console.log("assigned");
       var name = $attrs.name;
       $scope.confUrl = document.location.href + "/conf";
       if($attrs.class) {

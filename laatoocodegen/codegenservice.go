@@ -54,3 +54,8 @@ func (svc *CodegenService) Serve() error {
 func (svc *CodegenService) GetServiceType() string {
 	return service.SERVICE_TYPE_WEB
 }
+
+//Execute method
+func (svc *CodegenService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}

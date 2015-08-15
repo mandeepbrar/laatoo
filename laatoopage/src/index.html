@@ -48,13 +48,16 @@
     <login>
 
     </login>
-
+	<view name="view_articles">
+	Hello
+	</view>
   </page>
   <script>
   var pageConf = {};
-						pageConf.LocalAuthServer = "http://localhost:8080/auth/login";
+						pageConf.LocalAuthServer = "http://localhost:7070/auth/login";
 						pageConf.SuccessRedirect="http://google.com";
 						pageConf.AuthToken="Auth-Token";
+						pageConf.ViewsServer = "http://localhost:7070/view";
     </script>
 
   </body>

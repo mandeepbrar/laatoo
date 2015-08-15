@@ -1,26 +1,29 @@
 package laatoopages
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo"
+	"io/ioutil"
+	"laatoosdk/entities"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"net/http"
 )
 
 const (
-	CONF_PAGE_PATH          = "path"
-	CONF_PAGE_TYPE          = "type"
-	CONF_PAGE_DEST          = "destination"
-	CONF_PAGE_AUTH          = "authentication"
-	CONF_PAGE_PERM          = "permission"
-	CONF_PAGE_PARAMS        = "params"
-	CONF_PAGE_TYPE_FILE     = "file"
-	CONF_PAGE_TYPE_REDIRECT = "redirect"
+	CONF_PAGE_PATH            = "path"
+	CONF_PAGE_TYPE            = "type"
+	CONF_PAGE_DEST            = "destination"
+	CONF_PAGE_AUTH            = "authentication"
+	CONF_PAGE_PERM            = "permission"
+	CONF_PAGE_PARTIALS        = "partials"
+	CONF_PAGE_PARTIALPATH     = "path"
+	CONF_PAGE_PARTIALTEMPLATE = "template"
+	CONF_PAGE_TYPE_FILE       = "file"
+	CONF_PAGE_TYPE_REDIRECT   = "redirect"
 )
 
-func createPage(conf map[string]interface{}, router *echo.Group, pagesDir string) error {
+func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Group, pagesDir string) error {
 	var pagePath, pageDest string
 	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE
@@ -59,16 +62,48 @@ func createPage(conf map[string]interface{}, router *echo.Group, pagesDir string
 		dest := fmt.Sprint(pagesDir, "/", pageDest)
 		router.ServeFile(pagePath, dest)
 
-		params, ok := conf[CONF_PAGE_PARAMS]
+		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
 		if ok {
-			jsonObj, err := json.Marshal(params)
-			if err != nil {
-				return errors.RethrowError(PAGE_ERROR_WRONG_PARAMS, err)
+			log.Logger.Infof("partialsInt %s", partialsInt)
+			partialsConf, ok := partialsInt.(map[string]interface{})
+			if !ok {
+				return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALS)
 			}
-			confPage := fmt.Sprint(pagePath, "/conf")
+			partialPages := make([]*entities.Partial, len(partialsConf))
+			i := 0
+			for partialPageName, val := range partialsConf {
+				//get the config for the page with given alias
+				partialConf := val.(map[string]interface{})
+				obj := new(entities.Partial)
+				obj.Name = partialPageName
+				obj.Path, ok = partialConf[CONF_PAGE_PARTIALPATH].(string)
+				if !ok {
+					return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALPATH)
+				}
+				templateFile, ok := partialConf[CONF_PAGE_PARTIALTEMPLATE].(string)
+				if !ok {
+					return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALFILE)
+				}
+				content, err := ioutil.ReadFile(templateFile)
+				if err != nil {
+					return errors.RethrowError(PAGE_ERROR_WRONG_PARTIALS, err, CONF_PAGE_SERVICENAME, partialPageName)
+				} else {
+					obj.Template = string(content)
+				}
+				partialPages[i] = obj
+				i++
+			}
 
-			router.Get(confPage, func(ctx *echo.Context) error {
-				ctx.String(http.StatusOK, string(jsonObj))
+			confURL := fmt.Sprint(pagePath, "/conf")
+			log.Logger.Infof("partialsURL %s", confURL)
+
+			router.Get(confURL, func(ctx *echo.Context) error {
+				config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
+				if err != nil {
+					return err
+				}
+				config["partials"] = partialPages
+				ctx.JSON(http.StatusOK, config)
 				return nil
 			})
 		}

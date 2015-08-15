@@ -86,6 +86,7 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 					if err != nil {
 						return err
 					}
+					log.Logger.Debugf("  ", ctx.Request().Header)
 					err = ctx.Bind(ent)
 					if err != nil {
 						return err

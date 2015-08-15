@@ -61,3 +61,8 @@ func (svc *StaticService) Serve() error {
 func (svc *StaticService) GetServiceType() string {
 	return service.SERVICE_TYPE_WEB
 }
+
+//Execute method
+func (svc *StaticService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}

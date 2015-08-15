@@ -98,3 +98,8 @@ func (svc *EntityService) Serve() error {
 func (svc *EntityService) GetServiceType() string {
 	return service.SERVICE_TYPE_WEB
 }
+
+//Execute method
+func (svc *EntityService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}

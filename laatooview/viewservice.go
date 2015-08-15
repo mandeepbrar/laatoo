@@ -24,6 +24,7 @@ type ViewService struct {
 	DataStore   data.DataService
 	Router      *echo.Group
 	dataSvcName string
+	Views       map[string]data.View
 }
 
 //Initialize service, register provider with laatoo
@@ -59,7 +60,7 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	if !ok {
 		return nil, errors.ThrowError(VIEW_ERROR_MISSING_VIEWS, CONF_VIEW_SERVICENAME)
 	}
-
+	svc.Views = make(map[string]data.View, len(views))
 	for name, val := range views {
 
 		viewConfig, ok := val.(map[string]interface{})
@@ -89,10 +90,25 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 			router.Get(path, func(ctx *echo.Context) error {
 				return view.Execute(svc.DataStore, ctx)
 			})
+			log.Logger.Debugf("Registering view", name)
+			svc.Views[name] = view
 		}
 	}
+	router.Get("", svc.GetView)
 
 	return svc, nil
+}
+
+func (svc *ViewService) GetView(ctx *echo.Context) error {
+	name := ctx.Query("viewname")
+	if name == "" {
+		return errors.ThrowError(VIEW_ERROR_MISSING_VIEW)
+	}
+	view, ok := svc.Views[name]
+	if !ok {
+		return errors.ThrowError(VIEW_ERROR_MISSING_VIEW, name)
+	}
+	return view.Execute(svc.DataStore, ctx)
 }
 
 //Provides the name of the service
@@ -120,4 +136,9 @@ func (svc *ViewService) Serve() error {
 //Type of service
 func (svc *ViewService) GetServiceType() string {
 	return service.SERVICE_TYPE_WEB
+}
+
+//Execute method
+func (svc *ViewService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
 }

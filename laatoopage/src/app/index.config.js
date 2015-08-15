@@ -1,14 +1,14 @@
 (function() {
   'use strict';
 
-  angular
+  var mainapp = angular
     .module('main')
     .config(config);
 
   /** @ngInject */
-  function config($logProvider) {
-    // Enable log
-    //$logProvider.debugEnabled(true);
+  function config($stateProvider, $urlRouterProvider, $httpProvider) {
+	mainapp.stateProvider = $stateProvider;
+	mainapp.urlRouteProvider = $urlRouterProvider;
   }
 
 })();

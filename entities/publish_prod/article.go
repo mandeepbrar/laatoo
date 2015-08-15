@@ -2,6 +2,7 @@ package publish_prod
 
 import (
 	"github.com/labstack/echo"
+	"github.com/twinj/uuid"
 	"laatoocore"
 	"laatoosdk/data"
 	"laatoosdk/entities"
@@ -72,15 +73,29 @@ func (svc *ArticleService) GetDataStore() data.DataService {
 	return svc.DataStore
 }
 
+//Execute method
+func (svc *ArticleService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+	return nil, nil
+}
+
 type Article struct {
-	Id        string `json:"Id" bson:"Id"`
-	CreatedBy string
-	UpdatedBy string
-	Title     string `json:"Title" bson:"Title"`
+	Id         string `json:"Id" bson:"Id"`
+	CreatedBy  string `json:"CreatedBy" bson:"CreatedBy"`
+	UpdatedBy  string `json:"UpdatedBy" bson:"UpdatedBy"`
+	UpdatedOn  string `json:"UpdatedOn" bson:"UpdatedOn"`
+	Title      string `json:"Title" bson:"Title"`
+	BodyGur    string `json:"BodyGur" bson:"BodyGur"`
+	SummaryGur string `json:"SummaryGur" bson:"SummaryGur"`
+	BodyEng    string `json:"BodyEng" bson:"BodyEng"`
+	SummaryEng string `json:"SummaryEng" bson:"SummaryEng"`
+	TitleEng   string `json:"TitleEng" bson:"TitleEng"`
+	Image      string `json:"Image" bson:"Image"`
 }
 
 func NewArticle(conf map[string]interface{}) (interface{}, error) {
-	return &Article{}, nil
+	art := &Article{}
+	art.Id = uuid.NewV4().String()
+	return art, nil
 }
 
 func (ent *Article) GetId() string {

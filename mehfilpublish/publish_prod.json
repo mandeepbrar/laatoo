@@ -29,24 +29,36 @@
 		"pageservice":{
 			"servicename":"page_service",
 			"pagesdir":"publish_prod/pageservice",
+			"actionservice":"actionservice",
 			"path":"",
 			"pages":{
 				"home":{
 					"path":"/home",
 					"type":"file",
-					"destination":"home.html",
+					"destination":"publish.html",
 					"authentication":"true",
 					"permission":"",
-					"params": {
-					}
-				},
-				"articles":{
-					"path":"/articles",
-					"type":"file",
-					"destination":"articles.html",
-					"authentication":"true",
-					"permission":"",
-					"params": {
+					"partials": {
+						"home": {
+							"path":"home.html",
+							"template":"publish_prod/pageservice/publish/home.html"
+						},
+						"articles": {
+							"path":"articleslist.html",
+							"template":"publish_prod/pageservice/publish/articles.html"
+						},
+						"articleedit":{
+							"path":"articleedit.html",
+							"template":"publish_prod/pageservice/publish/articleedit.html"
+						},
+						"createarticle":{
+							"path":"createarticle.html",
+							"template":"publish_prod/pageservice/publish/createarticle.html"
+						},
+						"viewarticle":{
+							"path":"viewarticle.html",
+							"template":"publish_prod/pageservice/publish/viewarticle.html"
+						}
 					}
 				},
 				"login":{
@@ -54,19 +66,12 @@
 					"type":"file",
 					"destination":"login.html",
 					"authentication":"true",
-					"permission":"",
-					"params": {
-						"LocalAuthServer":"http://localhost:7070/auth/login",
-						"SuccessRedirect":"/articles",
-						"AuthToken":"Auth-Token"
-					}
+					"permission":""
 				},
 				"logout":{
 					"path":"/logout",
 					"type":"redirect",
-					"destination":"/auth/logout",
-					"params": {
-					}
+					"destination":"/auth/logout"
 				}
 			}
 		},
@@ -103,10 +108,6 @@
 					"method":"delete",
 					"permission":""
 				}
-			},
-			"fields": {
-				"Id":"string",
-				"Title":"string"
 			}
 		},
 		"viewservice":{
@@ -123,10 +124,33 @@
 					},
 					"conditions":{
 					},
-					"permission":"",
-					"fields": {
-						"title":"Title"
-					}
+					"permission":""
+				}
+			}
+		},
+		"actionservice": {
+			"servicename":"action_service",
+			"path":"/actions",
+			"actions": {
+				"Home": {
+					"actiontype":"openpartialpage",
+					"viewmode":"link",
+					"path":"/"
+				},
+				"View Articles": {
+					"actiontype":"openpartialpage",
+					"viewmode":"link",
+					"path":"/articles"
+				},
+				"View Article": {
+					"actiontype":"openpartialpage",
+					"viewmode":"link",
+					"path":"/article?id"
+				},
+				"Edit Article": {
+					"actiontype":"openpartialpage",
+					"viewmode":"link",
+					"path":"/article/edit?id"
 				}
 			}
 		}

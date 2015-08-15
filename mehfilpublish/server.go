@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "entities/publish_prod"
+	_ "laatooactions"
 	_ "laatooauthentication"
 	"laatoocore"
 	_ "laatoodata"
