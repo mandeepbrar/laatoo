@@ -68,9 +68,177 @@ var pageConf = {
 					"fields": [
 						{
 							"key":"Image",
-							"type":"input",
+							"type":"media",
 							"templateOptions": {
 					        		"label": "Image "
+							}
+						}
+					]
+				}
+			]
+		},		
+		"mehfil": {
+			"url": "http://localhost:7070/mehfil",
+			"tabbed": true,
+			"model" : {},
+			"options": {},
+			"tabs": [
+				{
+					"label":"Gurmukhi",
+					"fields": [
+						{
+							"key":"Title",
+							"type":"input",
+							"templateOptions": {
+					        		"label": "Title"
+							}
+						},
+						{
+							"key":"BodyGur",
+							"type":"ckeditor",
+							"templateOptions": {
+					        		"label": "Body "
+							}
+						},
+						{
+							"key":"SummaryGur",
+							"type":"textarea",
+							"templateOptions": {
+					        		"label": "Summary "
+							}
+						}
+					]					
+				},
+				{
+					"label":"English",
+					"fields": [
+						{
+							"key":"TitleEng",
+							"type":"input",
+							"templateOptions": {
+					        		"label": "Title"
+							}
+						},
+						{
+							"key":"BodyEng",
+							"type":"ckeditor",
+							"templateOptions": {
+					        		"label": "Body ",
+							},
+						},
+						{
+							"key":"SummaryEng",
+							"type":"textarea",
+							"templateOptions": {
+					        		"label": "Summary "
+							}
+						}
+					]					
+				},
+				{
+					"label":"Others",
+					"fields": [
+						{
+							"key":"Image",
+							"type":"media",
+							"templateOptions": {
+					        		"label": "Image",
+								"mediatype":"image"									
+							}
+						}
+					]
+				}
+			]	
+		},
+		"word": {
+			"url": "http://localhost:7070/word",
+			"model" : {},
+			"options": {},
+			"fields": [
+				{
+					"key":"WordGur",
+					"type":"input",
+					"templateOptions": {
+			        		"label": "Gurmukhi",
+					}
+				},
+				{
+					"key":"WordEng",
+					"type":"input",
+					"templateOptions": {
+			        		"label": "English",
+					}
+				}
+				
+			]
+		},
+		"video": {
+			"url": "http://localhost:7070/video",
+			"tabbed": true,
+			"model" : {},
+			"options": {},
+			"tabs": [
+				{
+					"label":"Gurmukhi",
+					"fields": [
+						{
+							"key":"Title",
+							"type":"input",
+							"templateOptions": {
+					        		"label": "Title"
+							}
+						},
+						{
+							"key":"BodyGur",
+							"type":"ckeditor",
+							"templateOptions": {
+					        		"label": "Body "
+							}
+						},
+						{
+							"key":"SummaryGur",
+							"type":"textarea",
+							"templateOptions": {
+					        		"label": "Summary "
+							}
+						}
+					]					
+				},
+				{
+					"label":"English",
+					"fields": [
+						{
+							"key":"TitleEng",
+							"type":"input",
+							"templateOptions": {
+					        		"label": "Title"
+							}
+						},
+						{
+							"key":"BodyEng",
+							"type":"ckeditor",
+							"templateOptions": {
+					        		"label": "Body ",
+							},
+						},
+						{
+							"key":"SummaryEng",
+							"type":"textarea",
+							"templateOptions": {
+					        		"label": "Summary "
+							}
+						}
+					]					
+				},
+				{
+					"label":"Others",
+					"fields": [
+						{
+							"key":"Video",
+							"type":"media",
+							"templateOptions": {
+					        		"label": "Video",
+								"mediatype":"video"									
 							}
 						}
 					]
@@ -113,6 +281,90 @@ var pageConf = {
 			"viewmode":"link",
 			"view":"mainview",
 			"templatepath":"createarticle.html"
+		},		
+		"View Mehfils": {
+			"url":"/mehfils",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"mehfilslist.html"
+		},
+		"View Mehfil": {
+			"url":"/mehfil/view/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"viewmehfil.html"
+		},
+		"Edit Mehfil": {
+			"url":"/mehfil/edit/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"mehfiledit.html"
+		},
+		"Create Mehfil": {
+			"url":"/mehfil/create",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"createmehfil.html"
+		},		
+		"View Video": {
+			"url":"/video/view/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"viewvideo.html"
+		},
+		"Edit Video": {
+			"url":"/video/edit/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"videoedit.html"
+		},
+		"Create Video": {
+			"url":"/video/create",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"createvideo.html"
+		},		
+		"View Videos": {
+			"url":"/videos",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"videoslist.html"
+		},
+		"View Words": {
+			"url":"/words",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"words.html"
+		},
+		"New Words": {
+			"url":"/newwords",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"newwords.html"
+		},
+		"Review Words": {
+			"url":"/reviewwords",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"reviewwords.html"
+		},
+		"Create Word": {
+			"url":"/word/create",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"createword.html"
 		}		
 	},
 	"actionset": {
@@ -124,6 +376,18 @@ var pageConf = {
 			"Articles": {
 				"action":"View Articles",
 				"label":"Articles"
+			},
+			"Mehfils": {
+				"action":"View Mehfils",
+				"label":"Mehfils"
+			},
+			"Videos": {
+				"action":"View Videos",
+				"label":"Videos"
+			},
+			"Words": {
+				"action":"View Words",
+				"label":"Words"
 			}
 		}
 	}

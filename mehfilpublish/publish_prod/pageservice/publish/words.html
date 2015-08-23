@@ -1,0 +1,46 @@
+<page name="words">
+	<h1>Words</h1>
+	<div class="row-fluid">
+		<action class="margin10 pull-right" widget="button" label="New Words" name="New Words">
+		</action>
+		<action class="margin10 pull-right" widget="button" label="Review Words" name="Review Words">
+		</action>
+		<action class="margin10 pull-right" widget="button" label="Create Word" name="Create Word">
+		</action>
+	</div>
+	<div class="row-fluid">
+		<view name="view_entities" args='{"entity":"word"}'>
+			<table class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							Gurmukhi
+						</th>
+						<th>
+							English
+						</th>
+						<th>
+						</th>
+						<th>
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:30%">
+						{{viewrow.WordGur}}
+					</td>
+					<td style="width:30%">
+						{{viewrow.WordEng}}
+					</td>
+					<td>
+						<a href="#/word/edit/{{viewrow.Id}}">edit</a>
+					</td>
+					<td>
+						<a href="#/word/delete/{{viewrow.Id}}">delete</a>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>
+

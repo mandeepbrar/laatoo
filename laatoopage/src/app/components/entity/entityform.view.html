@@ -1,13 +1,14 @@
 <form>
-	<formly-form model="entity.model" fields="entity.fields" ng-if="entity.tabbed!=true">
-	</formly-form>
-	
-	<tabset ng-if="entity.tabbed==true">
-        <tab ng-repeat="tab in entity.tabs" heading="{{tab.label}}">
-				<formly-form model="entity.model" fields="tab.fields">
-				</formly-form>
-		</tab>
-	</tabset>	
+	<div class="row">
+		<formly-form model="entity.model" fields="entity.fields" ng-if="entity.tabbed!=true">
+		</formly-form>
+		<tabset ng-if="entity.tabbed==true">
+	        <tab ng-repeat="tab in entity.tabs" heading="{{tab.label}}">
+					<formly-form model="entity.model" fields="tab.fields">
+					</formly-form>
+			</tab>
+		</tabset>	
+	</div>
 	<formly-form model="entity.model">
 	  <button type="submit" class="btn btn-default" ng-click="onSubmit()">{{submitText}}</button>
 	</formly-form>

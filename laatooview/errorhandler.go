@@ -13,6 +13,7 @@ const (
 	VIEW_ERROR_MISSING_VIEWNAME    = "View_Error_Incorrect_Viewname"
 	VIEW_ERROR_MISSING_VIEWPATH    = "View_Error_Incorrect_Viewpath"
 	VIEW_ERROR_MISSING_VIEW        = "View_Error_Incorrect_View"
+	VIEW_ERROR_MISSING_ARG         = "View_Error_Missing_Arg"
 )
 
 func init() {
@@ -23,4 +24,5 @@ func init() {
 	errors.RegisterCode(VIEW_ERROR_MISSING_VIEWNAME, errors.PANIC, fmt.Errorf("Name not provided for view."))
 	errors.RegisterCode(VIEW_ERROR_MISSING_VIEWPATH, errors.PANIC, fmt.Errorf("Path not provided for view."))
 	errors.RegisterCode(VIEW_ERROR_MISSING_VIEW, errors.PANIC, fmt.Errorf("No such view."))
+	errors.RegisterCode(VIEW_ERROR_MISSING_ARG, errors.PANIC, fmt.Errorf("Missing argument."))
 }

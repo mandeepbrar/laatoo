@@ -1,7 +1,7 @@
 (function() {
 
     'use strict';
-    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'login', 'view', 'actions', 'entity']);
+    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'login', 'view', 'actions', 'entity', 'media']);
 
     bootstrapApplication();
 

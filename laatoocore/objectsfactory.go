@@ -43,22 +43,30 @@ func CreateEmptyObject(objectName string) (interface{}, error) {
 	}
 }
 
-func CreateCollection(objectName string) (interface{}, error) {
+//returns collection type for given object
+func GetCollectionType(objectName string) (reflect.Type, error) {
+	//find the collection type from memory
 	typeInt, err := ObjectCollections.GetObject(objectName)
 	if err == nil {
-		log.Logger.Infof("Returning collection ", typeInt)
-		return reflect.New(typeInt.(reflect.Type)).Interface(), nil
+		return typeInt.(reflect.Type), nil
 	} else {
 		objectPtr, err := createObject(objectName, nil)
 		if err != nil {
 			return nil, err
 		}
-
 		collectionType := reflect.SliceOf(reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface()))
 		log.Logger.Infof("Creating collectionType   %s", collectionType)
 		ObjectCollections.PutObject(objectName, collectionType)
-		return reflect.New(collectionType).Interface(), nil
+		return collectionType, nil
 	}
+}
+
+func CreateCollection(objectName string) (interface{}, error) {
+	collectionType, err := GetCollectionType(objectName)
+	if err != nil {
+		return nil, err
+	}
+	return reflect.New(collectionType).Interface(), nil
 }
 
 //Provides a object with a given name

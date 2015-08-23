@@ -3,12 +3,14 @@ package entities
 import (
 	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"net/http"
+	"reflect"
 )
 
-func ParseConfig(conf map[string]interface{}, svc EntityService, entityName string, entityCreator laatoocore.ObjectFactory) (string, *echo.Group, error) {
+func ParseConfig(conf map[string]interface{}, svc EntityService, entityName string) (string, *echo.Group, error) {
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
 		return "", nil, errors.ThrowError(ENTITY_ERROR_MISSING_ROUTER)
@@ -64,7 +66,7 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "post":
 				router.Post(path, func(ctx *echo.Context) error {
-					ent, err := entityCreator(nil)
+					ent, err := laatoocore.CreateEmptyObject(entityName)
 					if err != nil {
 						return err
 					}
@@ -82,11 +84,10 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				router.Put(path, func(ctx *echo.Context) error {
 					id := ctx.P(0)
 					log.Logger.Debugf("Updating entity %s", id)
-					ent, err := entityCreator(nil)
+					ent, err := laatoocore.CreateEmptyObject(entityName)
 					if err != nil {
 						return err
 					}
-					log.Logger.Debugf("  ", ctx.Request().Header)
 					err = ctx.Bind(ent)
 					if err != nil {
 						return err
@@ -94,6 +95,30 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 					err = svc.GetDataStore().Put(entityName, id, ent)
 					if err != nil {
 						return err
+					}
+					return nil
+				})
+			case "putbulk":
+				router.Put(path, func(ctx *echo.Context) error {
+					typ, err := laatoocore.GetCollectionType(entityName)
+					if err != nil {
+						return err
+					}
+					arrPtr := reflect.New(typ)
+					log.Logger.Debugf("Binding entities with collection %s", entityName)
+					err = ctx.Bind(arrPtr.Interface())
+					if err != nil {
+						return err
+					}
+					arr := arrPtr.Elem()
+					length := arr.Len()
+					log.Logger.Debugf("Saving bulk entities %s", entityName)
+					for i := 0; i < length; i++ {
+						entity := arr.Index(i).Addr().Interface().(data.Storable)
+						err = svc.GetDataStore().Put(entityName, entity.GetId(), entity)
+						if err != nil {
+							return err
+						}
 					}
 					return nil
 				})

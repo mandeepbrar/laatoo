@@ -12,29 +12,29 @@ import (
 )
 
 const (
-	ENTITY_ARTICLE_NAME         = "article"
-	ENTITY_ARTICLE_SERVICE_NAME = "articleservice"
+	ENTITY_MEHFIL_NAME         = "mehfil"
+	ENTITY_MEHFIL_SERVICE_NAME = "mehfilservice"
 )
 
-type ArticleService struct {
+type MehfilService struct {
 	DataStore   data.DataService
 	Router      *echo.Group
 	dataSvcName string
 }
 
 func init() {
-	laatoocore.RegisterObjectProvider(ENTITY_ARTICLE_SERVICE_NAME, NewArticleService)
-	laatoocore.RegisterObjectProvider(ENTITY_ARTICLE_NAME, NewArticle)
+	laatoocore.RegisterObjectProvider(ENTITY_MEHFIL_SERVICE_NAME, NewMehfilService)
+	laatoocore.RegisterObjectProvider(ENTITY_MEHFIL_NAME, NewMehfil)
 }
 
-func NewArticleService(conf map[string]interface{}) (interface{}, error) {
+func NewMehfilService(conf map[string]interface{}) (interface{}, error) {
 
-	log.Logger.Infof("Creating entity service", ENTITY_ARTICLE_SERVICE_NAME)
+	log.Logger.Infof("Creating entity service", ENTITY_MEHFIL_SERVICE_NAME)
 
-	svc := &ArticleService{}
-	dataSvc, router, err := entities.ParseConfig(conf, svc, ENTITY_ARTICLE_NAME)
+	svc := &MehfilService{}
+	dataSvc, router, err := entities.ParseConfig(conf, svc, ENTITY_MEHFIL_NAME)
 	if err != nil {
-		return nil, errors.RethrowError(entities.ENTITY_ERROR_CONF_INCORRECT, err, ENTITY_ARTICLE_SERVICE_NAME)
+		return nil, errors.RethrowError(entities.ENTITY_ERROR_CONF_INCORRECT, err, ENTITY_MEHFIL_SERVICE_NAME)
 	}
 	svc.Router = router
 	svc.dataSvcName = dataSvc
@@ -42,16 +42,16 @@ func NewArticleService(conf map[string]interface{}) (interface{}, error) {
 }
 
 //Provides the name of the service
-func (svc *ArticleService) GetName() string {
-	return ENTITY_ARTICLE_SERVICE_NAME
+func (svc *MehfilService) GetName() string {
+	return ENTITY_MEHFIL_SERVICE_NAME
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *ArticleService) Initialize(ctx service.ServiceContext) error {
+func (svc *MehfilService) Initialize(ctx service.ServiceContext) error {
 
 	dataSvc, err := ctx.GetService(svc.dataSvcName)
 	if err != nil {
-		return errors.RethrowError(entities.ENTITY_ERROR_MISSING_DATASVC, err, ENTITY_ARTICLE_SERVICE_NAME)
+		return errors.RethrowError(entities.ENTITY_ERROR_MISSING_DATASVC, err, ENTITY_MEHFIL_SERVICE_NAME)
 	}
 
 	svc.DataStore = dataSvc.(data.DataService)
@@ -60,25 +60,25 @@ func (svc *ArticleService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *ArticleService) Serve() error {
+func (svc *MehfilService) Serve() error {
 	return nil
 }
 
 //Type of service
-func (svc *ArticleService) GetServiceType() string {
+func (svc *MehfilService) GetServiceType() string {
 	return service.SERVICE_TYPE_WEB
 }
 
-func (svc *ArticleService) GetDataStore() data.DataService {
+func (svc *MehfilService) GetDataStore() data.DataService {
 	return svc.DataStore
 }
 
 //Execute method
-func (svc *ArticleService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *MehfilService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }
 
-type Article struct {
+type Mehfil struct {
 	Id         string `json:"Id" bson:"Id"`
 	CreatedBy  string `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy  string `json:"UpdatedBy" bson:"UpdatedBy"`
@@ -92,19 +92,19 @@ type Article struct {
 	Image      string `json:"Image" bson:"Image"`
 }
 
-func NewArticle(conf map[string]interface{}) (interface{}, error) {
-	art := &Article{}
+func NewMehfil(conf map[string]interface{}) (interface{}, error) {
+	art := &Mehfil{}
 	art.Id = uuid.NewV4().String()
 	return art, nil
 }
 
-func (ent *Article) GetId() string {
+func (ent *Mehfil) GetId() string {
 	return ent.Id
 }
-func (ent *Article) SetId(id string) {
+func (ent *Mehfil) SetId(id string) {
 	ent.Id = id
 }
 
-func (ent *Article) GetIdField() string {
+func (ent *Mehfil) GetIdField() string {
 	return "Id"
 }

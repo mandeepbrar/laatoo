@@ -1,7 +1,7 @@
 <page>	
-	<entity name="article" id="{{params.id}}">
+	<entity name="video" id="{{params.id}}">
 		<h1>{{$parent.entitydata.Title}}</h1>
-		<media source="{{$parent.entitydata.Image}}" height="100px"></media>
+		<media source="{{$parent.entitydata.Video}}" type="video" height="100px"></media>
 		<h3>Body</h3>
 		<div class="container">{{$parent.entitydata.BodyGur}}</div>
 		<h3>Summary</h3>

@@ -17,6 +17,7 @@
 	"angular-formly-templates-bootstrap":"*",
 	"angular-ui-router-tabs":"*",
 	"angular-ckeditor": "latest",
+	"angular-file-upload":"*",
     "angular": "~1.4.0"
   },
   "devDependencies": {

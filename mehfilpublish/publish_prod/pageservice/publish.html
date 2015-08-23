@@ -4,28 +4,29 @@
 		<meta charset="utf-8">
 		<title></title>
 		<meta name="viewport" content="width=device-width">
-		<link rel="stylesheet" href="/styles/vendor.css" />
-		<link rel="stylesheet" href="/styles/app.css">
-		<script src="publish.conf.js"></script>
+		<link rel="stylesheet" href="/static/styles/vendor.css" />
+		<link rel="stylesheet" href="/static/styles/app.css">
+		<script src="/static/publish.conf.js"></script>
 	</head>
-	<body class="container">
+	<body class="container-fluid" >
 		<div class="col-xs-12" style="min-height: 150px; background-color: #222 !important;">
-			<div class="row" >
+			<div class="row-fluid" >
 				<div>
-					<img src="virsalogo.png" style="margin: 40px 0px 0px 30px"/>
+					<img src="/static/virsalogo.png" style="margin: 40px 0px 0px 30px"/>
 				</div>
 			</div>
 		</div>
 		<div class="col-xs-12" style="height:30px;"></div>
-		<div class="row">
+		<div class="row-fluid">
 			<div>
-				<actionset class="col-xs-2 nav-stacked" name="menu" widget="pills">
+				<actionset class="padding10 col-xs-2 nav-stacked" name="menu" widget="pills">
 				</actionset>
 			</div>
-			<div class="col-xs-10" ui-view="mainview"></div>
+			<div class="padding10 col-xs-10" ui-view="mainview"></div>
 		</div>
-		<script src="/scripts/vendor.js"></script>
-		<script src="/scripts/app.js"></script>
+		<script src="/static/scripts/vendor.js"></script>
+		<script src="/static/scripts/app.js"></script>
 		<script src="//cdn.ckeditor.com/4.5.2/standard/ckeditor.js"></script>
+		
 	</body>
 </html>

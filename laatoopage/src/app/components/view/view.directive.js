@@ -29,12 +29,40 @@
     return directive;
 
     /** @ngInject */
-    function ViewCtrl($scope, $element, $attrs, ViewService ) {
+    function ViewCtrl($scope, $element, $attrs, ViewService, $http) {
       var name = $attrs.name;
+	  var queryStr = {};
+	  var modelname = 'viewrows';
       if($attrs.class) {
-        $scope.class = "class="+$attrs.class;
+      	$scope.class = "class="+$attrs.class;
       }
-	  $scope.viewrows = ViewService.query({viewname: name});	  
+  	  if($attrs.args) {
+		queryStr = angular.fromJson($attrs.args);
+	  }
+  	  if($attrs.modelname) {
+		modelname = $attrs.modelname;
+	  }
+      if($attrs.editable) {
+      	$scope.editable = ($attrs.editable == 'true');
+		$scope.submitText = "Save";
+		var actionUrl = "";
+	  	if($attrs.action) {
+			actionUrl = $attrs.action;
+	  	}
+		$scope.onSubmit = function() {
+			console.log("submit view");
+			$http.put(actionUrl, $scope[modelname]).then(
+		       function(response) {
+					console.log(response);
+		       },
+		       function(errorResponse) {
+		         	console.log("error communicating with server");
+		       }
+		   );
+		};
+      }
+	  queryStr['viewname'] = name;
+	  $scope[modelname] = ViewService.query(queryStr);	  
     }
   }
 

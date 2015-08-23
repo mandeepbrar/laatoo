@@ -13,7 +13,10 @@
 			"connectionstring":"localhost",
 			"database":"publish_prod",
 			"objects": {
-				"article":"Articles"
+				"article":"Articles",
+				"video":"Video",
+				"mehfil":"Mehfil",
+				"word":"Word"
 			}
 		},
 		"auth":{
@@ -24,7 +27,7 @@
 		"public":{
 			"servicename":"static_file_service",
 			"publicdir":"publish_prod/static",
-			"path":""
+			"path":"/static"
 		},
 		"pageservice":{
 			"servicename":"page_service",
@@ -43,6 +46,14 @@
 							"path":"home.html",
 							"template":"publish_prod/pageservice/publish/home.html"
 						},
+						"videos": {
+							"path":"videoslist.html",
+							"template":"publish_prod/pageservice/publish/videos.html"
+						},
+						"mehfils": {
+							"path":"mehfilslist.html",
+							"template":"publish_prod/pageservice/publish/mehfils.html"
+						},
 						"articles": {
 							"path":"articleslist.html",
 							"template":"publish_prod/pageservice/publish/articles.html"
@@ -55,9 +66,49 @@
 							"path":"createarticle.html",
 							"template":"publish_prod/pageservice/publish/createarticle.html"
 						},
+						"viewmehfil":{
+							"path":"viewmehfil.html",
+							"template":"publish_prod/pageservice/publish/viewmehfil.html"
+						},
+						"mehfiledit":{
+							"path":"mehfiledit.html",
+							"template":"publish_prod/pageservice/publish/mehfiledit.html"
+						},
+						"createmehfil":{
+							"path":"createmehfil.html",
+							"template":"publish_prod/pageservice/publish/createmehfil.html"
+						},
 						"viewarticle":{
 							"path":"viewarticle.html",
 							"template":"publish_prod/pageservice/publish/viewarticle.html"
+						},
+						"videoedit":{
+							"path":"videoedit.html",
+							"template":"publish_prod/pageservice/publish/videoedit.html"
+						},
+						"createvideo":{
+							"path":"createvideo.html",
+							"template":"publish_prod/pageservice/publish/createvideo.html"
+						},
+						"viewvideo":{
+							"path":"viewvideo.html",
+							"template":"publish_prod/pageservice/publish/viewvideo.html"
+						},
+						"words":{
+							"path":"words.html",
+							"template":"publish_prod/pageservice/publish/words.html"
+						},
+						"newwords":{
+							"path":"newwords.html",
+							"template":"publish_prod/pageservice/publish/newwords.html"
+						},
+						"reviewwords":{
+							"path":"reviewwords.html",
+							"template":"publish_prod/pageservice/publish/reviewwords.html"
+						},
+						"createword":{
+							"path":"createword.html",
+							"template":"publish_prod/pageservice/publish/createword.html"
 						}
 					}
 				},
@@ -83,11 +134,6 @@
 			"type":"core",
 			"id":"Id",
 			"methods": {
-				"list":{
-					"path":"",
-					"method":"list",
-					"permission":""
-				},
 				"get":{
 					"path":"/:id",
 					"method":"get",
@@ -110,21 +156,118 @@
 				}
 			}
 		},
+		"mehfilservice":{
+			"servicename":"mehfilservice",
+			"path":"/mehfil",
+			"entityname":"mehfil",
+			"data_svc":"publish_prod",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"get":{
+					"path":"/:id",
+					"method":"get",
+					"permission":""
+				},
+				"post":{
+					"path":"",
+					"method":"post",
+					"permission":""
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put",
+					"permission":""
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete",
+					"permission":""
+				}
+			}
+		},
+		"word":{
+			"servicename":"wordservice",
+			"path":"/word",
+			"entityname":"word",
+			"data_svc":"publish_prod",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"get":{
+					"path":"/:id",
+					"method":"get",
+					"permission":""
+				},
+				"post":{
+					"path":"",
+					"method":"post",
+					"permission":""
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put",
+					"permission":""
+				},
+				"putbulk":{
+					"path":"",
+					"method":"putbulk",
+					"permission":""
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete",
+					"permission":""
+				}
+			}
+		},
+		"videoservice":{
+			"servicename":"videoservice",
+			"path":"/video",
+			"entityname":"video",
+			"data_svc":"publish_prod",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"get":{
+					"path":"/:id",
+					"method":"get",
+					"permission":""
+				},
+				"post":{
+					"path":"",
+					"method":"post",
+					"permission":""
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put",
+					"permission":""
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete",
+					"permission":""
+				}
+			}
+		},
+		"files":{
+			"servicename":"file_service",
+			"path":"/upload",
+			"filesurl":"/static/assets",
+			"filesdir":"publish_prod/static/assets",
+			"type":"core",
+			"id":"Id"
+		},
 		"viewservice":{
 			"servicename":"view_service",
 			"data_svc":"publish_prod",
 			"path":"/view",
 			"views": {
 				"articles":{
-					"name":"view_articles",
-					"path":"/articles",
-					"type":"entitylist",
-					"entities":"article",
-					"joins":{
-					},
-					"conditions":{
-					},
-					"permission":""
+					"name":"view_entities",
+					"path":"/entities",
+					"type":"entitylist"
 				}
 			}
 		},
@@ -151,6 +294,11 @@
 					"actiontype":"openpartialpage",
 					"viewmode":"link",
 					"path":"/article/edit?id"
+				},
+				"View Videos": {
+					"actiontype":"openpartialpage",
+					"viewmode":"link",
+					"path":"/videos"
 				}
 			}
 		}
