@@ -31,16 +31,16 @@
     /** @ngInject */
     function ViewCtrl($scope, $element, $attrs, ViewService, $http) {
       var name = $attrs.name;
-	  var queryStr = {};
-	  var modelname = 'viewrows';
+	  $scope.params = {};
+	  $scope.modelname = 'viewrows';
       if($attrs.class) {
       	$scope.class = "class="+$attrs.class;
       }
   	  if($attrs.args) {
-		queryStr = angular.fromJson($attrs.args);
+		$scope.params = angular.fromJson($attrs.args);
 	  }
   	  if($attrs.modelname) {
-		modelname = $attrs.modelname;
+		$scope.modelname = $attrs.modelname;
 	  }
       if($attrs.editable) {
       	$scope.editable = ($attrs.editable == 'true');
@@ -51,7 +51,7 @@
 	  	}
 		$scope.onSubmit = function() {
 			console.log("submit view");
-			$http.put(actionUrl, $scope[modelname]).then(
+			$http.put(actionUrl, $scope[$scope.modelname]).then(
 		       function(response) {
 					console.log(response);
 		       },
@@ -61,8 +61,11 @@
 		   );
 		};
       }
-	  queryStr['viewname'] = name;
-	  $scope[modelname] = ViewService.query(queryStr);	  
+	  $scope.params['viewname'] = name;
+	  $scope.refreshView = function() {
+		  $scope[$scope.modelname] = ViewService.query($scope.params);	  		
+	  };
+	  $scope.refreshView();
     }
   }
 

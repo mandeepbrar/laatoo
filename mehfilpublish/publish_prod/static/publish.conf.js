@@ -1,8 +1,10 @@
 var pageConf = {
+	"AuthPage":"http://localhost:7070/login",
 	"LocalAuthServer":"http://localhost:7070/auth/login",
 	"ViewsServer": "http://localhost:7070/view",
 	"LinksServer": "http://localhost:7070/links",
 	"SuccessRedirect":"/home",
+	"AuthRequired":true,
 	"AuthToken":"Auth-Token",
 	"entities":{
 		"article": {
@@ -359,6 +361,13 @@ var pageConf = {
 			"view":"mainview",
 			"templatepath":"reviewwords.html"
 		},
+		"Edit Word": {
+			"url":"/word/edit/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"wordedit.html"
+		},		
 		"Create Word": {
 			"url":"/word/create",
 			"actiontype":"openpartialpage",

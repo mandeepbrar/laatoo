@@ -1,10 +1,12 @@
 package publish_prod
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/data"
 	"laatoosdk/errors"
+	"laatoosdk/log"
 	views "laatooview"
 	"net/http"
 )
@@ -12,6 +14,7 @@ import (
 const (
 	VIEW_NAME   = "view_entities"
 	VIEW_ENTITY = "entity"
+	VIEW_ARGS   = "args"
 )
 
 type EntitiesView struct {
@@ -31,7 +34,19 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 	if entity == "" {
 		return errors.ThrowHttpError(views.VIEW_ERROR_MISSING_ARG, ctx, VIEW_ENTITY)
 	}
-	entities, err := dataStore.Get(entity, nil)
+	args := ctx.Query(VIEW_ARGS)
+	log.Logger.Debugf("Executing entity view %s with args %s", entity, args)
+
+	var argsMap map[string]interface{}
+
+	if len(args) > 0 {
+		byt := []byte(args)
+		if err := json.Unmarshal(byt, &argsMap); err != nil {
+			return err
+		}
+	}
+
+	entities, err := dataStore.Get(entity, argsMap)
 	if err != nil {
 		return err
 	}

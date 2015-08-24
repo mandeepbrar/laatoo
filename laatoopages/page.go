@@ -63,13 +63,14 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		router.ServeFile(pagePath, dest)
 
 		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
+		var partialPages []*entities.Partial
 		if ok {
 			log.Logger.Infof("partialsInt %s", partialsInt)
 			partialsConf, ok := partialsInt.(map[string]interface{})
 			if !ok {
 				return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALS)
 			}
-			partialPages := make([]*entities.Partial, len(partialsConf))
+			partialPages = make([]*entities.Partial, len(partialsConf))
 			i := 0
 			for partialPageName, val := range partialsConf {
 				//get the config for the page with given alias
@@ -93,20 +94,21 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 				partialPages[i] = obj
 				i++
 			}
-
-			confURL := fmt.Sprint(pagePath, "/conf")
-			log.Logger.Infof("partialsURL %s", confURL)
-
-			router.Get(confURL, func(ctx *echo.Context) error {
-				config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
-				if err != nil {
-					return err
-				}
-				config["partials"] = partialPages
-				ctx.JSON(http.StatusOK, config)
-				return nil
-			})
 		}
+
+		confURL := fmt.Sprint(pagePath, "/conf")
+
+		router.Get(confURL, func(ctx *echo.Context) error {
+			config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
+			if err != nil {
+				return err
+			}
+			if partialPages != nil {
+				config["partials"] = partialPages
+			}
+			ctx.JSON(http.StatusOK, config)
+			return nil
+		})
 	}
 
 	log.Logger.Infof("pagePerm %s", pagePerm)

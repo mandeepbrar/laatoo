@@ -5,7 +5,7 @@
   app.controller('LoginController', LoginController);
 
   /** @ngInject */ 
-  function LoginController ($scope, $state, $location, $localStorage, AuthenticationService) {
+  function LoginController ($scope, $state, $location, AuthenticationService) {
       $scope.login = function() {
 		var id = $scope.username;
 		var pass = $scope.password;

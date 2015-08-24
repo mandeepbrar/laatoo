@@ -143,7 +143,7 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 	return object, nil
 }
 
-func (ms *mongoDataService) Get(objectType string, conditions interface{}) (interface{}, error) {
+func (ms *mongoDataService) Get(objectType string, queryCond interface{}) (interface{}, error) {
 	results, err := ms.context.CreateCollection(objectType)
 	if err != nil {
 		return nil, err
@@ -155,8 +155,13 @@ func (ms *mongoDataService) Get(objectType string, conditions interface{}) (inte
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
-	condition := bson.M{}
-	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	var conditions map[string]interface{}
+	if queryCond != nil {
+		conditions = queryCond.(map[string]interface{})
+	} else {
+		conditions = bson.M{}
+	}
+	err = connCopy.DB(ms.database).C(collection).Find(conditions).All(results)
 	if err != nil {
 		return nil, err
 	}

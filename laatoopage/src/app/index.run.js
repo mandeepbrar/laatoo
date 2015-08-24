@@ -7,9 +7,11 @@
 
   /** @ngInject */
   function runBlock($log, $templateCache) {
-	for(var i=0; i<window.pageConf.partials.length;i++ ) {
-		var partial = window.pageConf.partials[i];
-		$templateCache.put(partial.Path, partial.Template);	
+	if(window.pageConf.partials) {
+		for(var i=0; i<window.pageConf.partials.length;i++ ) {
+			var partial = window.pageConf.partials[i];
+			$templateCache.put(partial.Path, partial.Template);	
+		}		
 	}
 
 	try {

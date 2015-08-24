@@ -106,6 +106,10 @@
 							"path":"reviewwords.html",
 							"template":"publish_prod/pageservice/publish/reviewwords.html"
 						},
+						"wordedit":{
+							"path":"wordedit.html",
+							"template":"publish_prod/pageservice/publish/wordedit.html"
+						},
 						"createword":{
 							"path":"createword.html",
 							"template":"publish_prod/pageservice/publish/createword.html"
@@ -121,8 +125,10 @@
 				},
 				"logout":{
 					"path":"/logout",
-					"type":"redirect",
-					"destination":"/auth/logout"
+					"type":"file",
+					"destination":"logout.html",
+					"authentication":"true",
+					"permission":""
 				}
 			}
 		},

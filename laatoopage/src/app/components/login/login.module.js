@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-   angular.module('login', ['ngResource', 'ngStorage', 'ui.router', 'ui.bootstrap']);
+   angular.module('login', ['ngResource', 'ui.router', 'ui.bootstrap']);
 
 
 })();
