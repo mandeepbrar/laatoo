@@ -1,7 +1,7 @@
 (function() {
 
     'use strict';
-    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'login', 'view', 'actions', 'entity', 'media']);
+    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'login', 'view', 'actions', 'entity', 'media', 'smart-table', 'uigrid']);
 
     bootstrapApplication();
 	
@@ -12,29 +12,31 @@
 	};
 
     function bootstrapApplication() {
+        var initInjector = angular.injector(["ng"]);
+        var $httpProvider = initInjector.get("$http");
 		if(window.pageConf.AuthRequired) {
 			var token = localStorage.auth;
 			if(token && token!=null && token.length > 0) {				
-				startApplication();
+				startApplication($httpProvider, token);
 			}			
 			else {
 				window.location.href = window.pageConf.AuthPage;				
 			}
 		}
 		else {
-			startApplication();
+			startApplication($httpProvider, '');
 		}
 	}
-    function startApplication() {
-        var initInjector = angular.injector(["ng"]);
-        var $http = initInjector.get("$http");
+    function startApplication($http, token) {
 		var docUrl = document.location.href;
 		var loc = docUrl.indexOf("#");
 		if(loc >0) {
 			docUrl = docUrl.substring(0, loc);
 		}
         var confUrl = docUrl + "/conf";
-        return $http.get(confUrl).then(
+		var authheaders = {};
+		authheaders[window.pageConf.AuthToken] = token;
+        return $http.get(confUrl, {headers: authheaders}).then(
             function(response) {
 				if(response.data.partials) {
 					window.pageConf.partials = response.data.partials;					
@@ -46,6 +48,10 @@
 		        });
             },
             function(errorResponse) {
+			  console.log(errorResponse);
+			  if(errorResponse.status == 401) {
+				window.location.href = window.pageConf.AuthPage;								
+			  }
               console.log("error communicating with server");
             }
         );

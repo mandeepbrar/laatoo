@@ -7,18 +7,10 @@ import (
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
-	"laatoosdk/user"
-	"laatoosdk/utils"
 )
 
 const (
 	CONF_AUTHSERVICE_SERVICENAME = "auth_service"
-	//header set by the service
-	CONF_AUTHSERVICE_AUTHHEADER = "auth_header"
-	//secret key for jwt
-	CONF_AUTHSERVICE_JWTSECRETKEY = "jwtsecretkey"
-	//name of the user object. if not provided, default user is used
-	CONF_AUTHSERVICE_USEROBJECT = "user_object"
 	//alias of rthe user data service
 	CONF_AUTHSERVICE_USERDATASERVICE = "user_data_svc"
 	//authentication mode for the service
@@ -81,28 +73,10 @@ func AuthServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	jwtSecretInt, ok := svc.Configuration[CONF_AUTHSERVICE_JWTSECRETKEY]
-	if ok {
-		svc.JWTSecret = jwtSecretInt.(string)
-	} else {
-		svc.JWTSecret = utils.RandomString(15)
-	}
+	svc.JWTSecret, _ = conf[laatoocore.CONF_ENV_JWTSECRETKEY].(string)
 
 	//check if auth header to be set has been provided, otherwise set default token
-	authTokenInt, ok := svc.Configuration[CONF_AUTHSERVICE_AUTHHEADER]
-	if ok {
-		svc.AuthHeader = authTokenInt.(string)
-	} else {
-		svc.AuthHeader = "Auth-Token"
-	}
-
-	//check if auth header to be set has been provided, otherwise set default token
-	userObjectInt, ok := svc.Configuration[CONF_AUTHSERVICE_USEROBJECT]
-	if ok {
-		svc.UserObject = userObjectInt.(string)
-	} else {
-		svc.UserObject = user.CONF_DEFAULT_USER
-	}
+	svc.AuthHeader, _ = conf[laatoocore.CONF_ENV_AUTHHEADER].(string)
 
 	//set the router object from configuration
 	routerInt, ok := svc.Configuration[laatoocore.CONF_ENV_ROUTER]
@@ -161,6 +135,10 @@ func (svc *AuthService) Initialize(ctx service.ServiceContext) error {
 		log.Logger.Debug("User storer set for authenticaion")
 		//get and set the data service for accessing users
 		svc.UserDataService = userDataService
+
+		//check if user service name to be used has been provided, otherwise set default name
+		svc.UserObject = ctx.GetConfig().GetString(laatoocore.CONF_ENV_USER)
+
 	} else {
 		return errors.ThrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}

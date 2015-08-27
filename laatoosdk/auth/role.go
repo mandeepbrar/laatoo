@@ -1,10 +1,10 @@
-package user
+package auth
 
 import (
 	"laatoosdk/utils"
 )
 
-type RbacRole interface {
+type Role interface {
 	GetId() string
 	SetId(string)
 	GetIdField() string

@@ -1,4 +1,4 @@
-package user
+package laatooauthentication
 
 import (
 	"laatoocore"

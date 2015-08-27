@@ -1,5 +1,9 @@
 package service
 
+import (
+	"laatoosdk/config"
+)
+
 //Service interface that needs to be implemented by any service of a system
 type Service interface {
 	//Provides the name of the service
@@ -20,6 +24,7 @@ type ServiceContext interface {
 	CreateObject(objName string, confData map[string]interface{}) (interface{}, error)
 	CreateEmptyObject(objName string) (interface{}, error)
 	CreateCollection(objName string) (interface{}, error)
+	GetConfig() config.Config
 }
 
 const (

@@ -18,7 +18,7 @@ func init() {
 //configures logging level and returns true if its set to debug
 func ConfigLogger(conf config.Config) bool {
 	//read configuration
-	loggingLevel, err := log.ParseLevel(conf.GetConfig(CONF_LOGGINGLEVEL))
+	loggingLevel, err := log.ParseLevel(conf.GetString(CONF_LOGGINGLEVEL))
 	if err == nil {
 		//set logger level
 		Logger.Level = loggingLevel

@@ -7,7 +7,6 @@
 
   /** @ngInject */
   function config($sceDelegateProvider, formlyConfigProvider) {
-	console.log("whitelisting");
 	$sceDelegateProvider.resourceUrlWhitelist([
 	    'self',
 	    'http://youtube.com/**',
@@ -23,15 +22,9 @@
 	formlyConfigProvider.templateManipulators.preWrapper.push(function(template, options, scope) {
 		if(options.type == "media") {
 			scope.haslabel = false;
-			console.log("formly");
-			console.log(scope);
-			console.log(options);
 			scope.field = options.key;
 			scope.$watch('model', function (newValue) {
 					try {
-						console.log(scope);
-						console.log("value set");
-						console.log(newValue);
 						scope.mediasource = newValue[options.key];
 						scope.label = options.templateOptions.label;
 					}catch(ex){}
@@ -44,8 +37,6 @@
   /** @ngInject */
   function mediaEditcontroller($scope, $modal) {
 		$scope.field = "";
-		console.log("decider");
-		console.log($scope);
 		if($scope.options.templateOptions.mediatype) {
 			$scope.mediatype = $scope.options.templateOptions.mediatype;
 		} else {
@@ -95,7 +86,6 @@
 		$modalInstance.dismiss("closed");
 	}
 	$scope.fileSelected = function(url) {
-		console.log(url);
 		if(url.length != 0) {
 			$modalInstance.close(url);
 		}

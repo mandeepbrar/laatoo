@@ -24,12 +24,10 @@ func (ms *MemoryStorer) PutObject(id string, item interface{}) error {
 
 //Get an item from memory
 func (ms *MemoryStorer) GetObject(id string) (interface{}, error) {
-	fmt.Println("getting object ", id)
 	item, ok := ms.Get(id)
 	if !ok {
 		return nil, fmt.Errorf("Object %s not found", id)
 	}
-	fmt.Println("got object ", id)
 	return item, nil
 }
 

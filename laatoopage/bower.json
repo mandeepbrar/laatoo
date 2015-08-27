@@ -18,6 +18,7 @@
 	"angular-ui-router-tabs":"*",
 	"angular-ckeditor": "latest",
 	"angular-file-upload":"*",
+	"angular-smart-table":"*",
     "angular": "~1.4.0"
   },
   "devDependencies": {

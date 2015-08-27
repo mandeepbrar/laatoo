@@ -47,8 +47,12 @@ func NewConfigFromJSON(json string) *ConfigImpl {
 }
 */
 //Get string configuration value
-func (conf *ConfigImpl) GetConfig(configurationName string) string {
-	return conf.GetString(configurationName)
+func (conf *ConfigImpl) GetString(configurationName string) string {
+	val := conf.Get(configurationName)
+	if val != nil {
+		return val.(string)
+	}
+	return ""
 }
 
 func (conf *ConfigImpl) GetArray(configurationName string) []interface{} {
@@ -63,14 +67,14 @@ func (conf *ConfigImpl) GetMap(configurationName string) map[string]interface{} 
 }
 
 //Set string configuration value
-func (conf *ConfigImpl) SetConfig(configurationName string, configurationValue string) {
+func (conf *ConfigImpl) SetString(configurationName string, configurationValue string) {
 	conf.Set(configurationName, configurationValue)
 }
 
 //Config Interface used by Laatoo
 type Config interface {
-	GetConfig(configurationName string) string
+	GetString(configurationName string) string
 	GetMap(configurationName string) map[string]interface{}
 	GetArray(configurationName string) []interface{}
-	SetConfig(configurationName string, configurationValue string)
+	SetString(configurationName string, configurationValue string)
 }

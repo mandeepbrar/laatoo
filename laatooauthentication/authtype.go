@@ -3,9 +3,9 @@ package laatooauthentication
 import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"laatoosdk/auth"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/user"
 	"laatoosdk/utils"
 	"net/http"
 	"time"
@@ -70,7 +70,7 @@ func (svc *AuthService) initializeAuthType(authType AuthType) error {
 			if userInt == nil {
 				return errors.ThrowHttpError(AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, ctx)
 			}
-			user := userInt.(user.User)
+			user := userInt.(auth.User)
 			token := jwt.New(jwt.SigningMethodHS256)
 			user.SetJWTClaims(token)
 			token.Claims["UserId"] = user.GetId()
@@ -83,6 +83,7 @@ func (svc *AuthService) initializeAuthType(authType AuthType) error {
 				return errors.RethrowHttpError(AUTH_ERROR_JWT_CREATION, ctx, err)
 			}
 			ctx.Response().Header().Set(svc.AuthHeader, tokenString)
+
 			utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGIN_COMPLETE, ctx})
 			ctx.JSON(http.StatusOK, user)
 			return nil

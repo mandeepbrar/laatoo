@@ -1,14 +1,11 @@
-package user
+package laatooauthentication
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"laatoocore"
+	"laatoosdk/auth"
 	"laatoosdk/data"
 	"laatoosdk/utils"
-)
-
-const (
-	CONF_DEFAULT_USER = "default_user"
 )
 
 type DefaultUser struct {
@@ -47,9 +44,9 @@ func (usr *DefaultUser) LoadPermissions(roleStorer data.DataService) error {
 	roles := usr.Roles
 	usr.Permissions = utils.NewStringSet([]string{})
 	for k, _ := range roles {
-		roleInt, err := roleStorer.GetById(CONF_DEFAULT_USER, k)
+		roleInt, err := roleStorer.GetById(laatoocore.DEFAULT_USER, k)
 		if err == nil {
-			role := roleInt.(RbacRole)
+			role := roleInt.(auth.Role)
 			usr.Permissions.Join(role.GetPermissions())
 		}
 	}
@@ -73,7 +70,7 @@ func (usr *DefaultUser) LoadJWTClaims(*jwt.Token) {
 }
 
 func init() {
-	laatoocore.RegisterObjectProvider(CONF_DEFAULT_USER, NewUser)
+	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_USER, NewUser)
 }
 
 func NewUser(conf map[string]interface{}) (interface{}, error) {

@@ -23,7 +23,6 @@
     /** @ngInject */
     function MediaCtrl($scope, $element, $attrs, $http ) {
 	  if($attrs.type) {
-		console.log("setting type");
 		$scope.type = $attrs.type;
 	  }		
       if($attrs.class) {
@@ -41,13 +40,10 @@
       } 
 	  $attrs.$observe('source', function(passedval) {
 		passedval = passedval.replace("watch?v=", "v/");
-		console.log("setting source");
-		console.log(passedval);
 		  $scope.source = passedval;
 		
       });		
 	  $attrs.$observe('type', function(passedval) {
-		console.log("setting type " + passedval);
 		  $scope.type = passedval;
 		
       });		

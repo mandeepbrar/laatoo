@@ -74,6 +74,24 @@ var pageConf = {
 							"templateOptions": {
 					        		"label": "Image "
 							}
+						},
+						{
+							"key":"Type",
+							"type":"ui-grid",
+							"templateOptions": {
+					        		"label": "Article Type",
+								"griditems":[
+									{
+										"Type":"Boli"
+									},
+									{
+										"Type":"Lekh"
+									}
+								],
+								"columns":[
+									{"name":"Type"}
+								]
+							}
 						}
 					]
 				}

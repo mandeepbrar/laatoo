@@ -3,9 +3,10 @@ package laatooauthentication
 import (
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
+	"laatoocore"
+	"laatoosdk/auth"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/user"
 )
 
 const (
@@ -72,7 +73,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	//create the user
 	usrInt, err := localauth.authService.CreateUser()
 	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
+		return errors.RethrowHttpError(laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
 	}
 
 	//ctx.Request().Body
@@ -82,7 +83,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	}
 
 	//get the ide of the user to be tested
-	usr := usrInt.(user.LocalAuthUser)
+	usr := usrInt.(auth.LocalAuthUser)
 	id := usr.GetId()
 
 	//get the tested user from database
@@ -92,7 +93,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	}
 
 	//compare the user requested with the user from database
-	existingUser := testedUser.(user.LocalAuthUser)
+	existingUser := testedUser.(auth.LocalAuthUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	if err != nil {
 		return errors.RethrowHttpError(AUTH_ERROR_WRONG_PASSWORD, ctx, err)

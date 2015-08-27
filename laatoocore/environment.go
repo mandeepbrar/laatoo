@@ -1,7 +1,9 @@
 package laatoocore
 
 import (
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
+	"laatoosdk/auth"
 	"laatoosdk/config"
 	"laatoosdk/errors"
 	"laatoosdk/log"
@@ -10,11 +12,18 @@ import (
 )
 
 const (
-	CONF_ENV_SERVICES     = "services"
-	CONF_ENV_SERVICENAME  = "servicename"
+	CONF_ENV_SERVICES    = "services"
+	CONF_ENV_SERVICENAME = "servicename"
+	CONF_ENV_USER        = "user_object"
+	//header set by the service
+	CONF_ENV_AUTHHEADER = "auth_header"
+	//secret key for jwt
+	CONF_ENV_JWTSECRETKEY = "jwtsecretkey"
+	DEFAULT_USER          = "default_user"
 	CONF_ENV_ROUTER       = "router"
 	CONF_ENV_CONTEXT      = "context"
 	CONF_SERVICE_BINDPATH = "path"
+	CONF_SERVICE_AUTH     = "authenticate"
 )
 
 //Environment hosting an application
@@ -39,13 +48,36 @@ func newEnvironment(envName string, conf string, router *echo.Group) (*Environme
 }
 
 func (env *Environment) createServices() error {
+
+	//check if user service name to be used has been provided, otherwise set default name
+	userObject := env.Config.GetString(CONF_ENV_USER)
+	if len(userObject) == 0 {
+		userObject = DEFAULT_USER
+		env.Config.SetString(CONF_ENV_USER, DEFAULT_USER)
+	}
+
+	jwtSecret := utils.RandomString(15)
+	authHeader := "Auth-Token"
+
+	//check if jwt secret key has been provided, otherwise create a key from random numbers
+	jwtSecretInt := env.Config.GetString(CONF_ENV_JWTSECRETKEY)
+	if len(jwtSecret) > 0 {
+		jwtSecret = jwtSecretInt
+	}
+
+	//check if auth header to be set has been provided, otherwise set default token
+	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
+	if len(authTokenInt) > 0 {
+		authHeader = authTokenInt
+	}
+
 	//get a map of all the services
 	svcs := env.Config.GetMap(CONF_ENV_SERVICES)
 	for alias, val := range svcs {
 		//get the config for the service with given alias
 		serviceConfig := val.(map[string]interface{})
 		//get the service name to be created for the alias
-		log.Logger.Info("Creating service %s", alias)
+		log.Logger.Infof("Creating service %s", alias)
 
 		svcName, ok := serviceConfig[CONF_ENV_SERVICENAME].(string)
 		if !ok {
@@ -55,7 +87,58 @@ func (env *Environment) createServices() error {
 		svcBindPath, ok := serviceConfig[CONF_SERVICE_BINDPATH]
 		if ok {
 			//router to be passed in the configuration
-			serviceConfig[CONF_ENV_ROUTER] = env.Router.Group(svcBindPath.(string))
+			router := env.Router.Group(svcBindPath.(string))
+			router.Use(func(ctx *echo.Context) error {
+				ctx.Set(CONF_ENV_CONTEXT, env)
+				return nil
+			})
+			authenticate := true
+			//authentication required by default unless explicitly turned off
+			authInt, ok := serviceConfig[CONF_SERVICE_AUTH]
+			if ok {
+				authenticate = (authInt == "true")
+			}
+			if authenticate {
+				log.Logger.Infof("Using authentication middleware for service %s", alias)
+				router.Use(func(ctx *echo.Context) error {
+					headerVal := ctx.Request().Header.Get(authHeader)
+
+					if headerVal != "" {
+						token, err := jwt.Parse(headerVal, func(token *jwt.Token) (interface{}, error) {
+							// Don't forget to validate the alg is what you expect:
+							if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+								return nil, errors.ThrowError(AUTH_ERROR_WRONG_SIGNING_METHOD)
+							}
+							return []byte(jwtSecret), nil
+						})
+						if err == nil && token.Valid {
+							userInt, err := CreateEmptyObject(userObject)
+							if err != nil {
+								return errors.RethrowHttpError(AUTH_ERROR_WRONG_SIGNING_METHOD, ctx, err)
+							}
+							user, ok := userInt.(auth.User)
+							if !ok {
+								return errors.ThrowHttpError(AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx)
+							}
+							user.LoadJWTClaims(token)
+							user.SetId(token.Claims["UserId"].(string))
+							ctx.Set("User", userInt)
+							ctx.Set("JWT_Token", token)
+							utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
+							return nil
+						} else {
+							if !token.Valid {
+								return errors.RethrowHttpError(AUTH_ERROR_INVALID_TOKEN, ctx, err)
+							}
+							return err
+						}
+					}
+					return errors.ThrowHttpError(AUTH_ERROR_HEADER_NOT_FOUND, ctx)
+				})
+			}
+			serviceConfig[CONF_ENV_ROUTER] = router
+			serviceConfig[CONF_ENV_JWTSECRETKEY] = jwtSecret
+			serviceConfig[CONF_ENV_AUTHHEADER] = authHeader
 		}
 
 		serviceConfig[CONF_ENV_CONTEXT] = env
@@ -113,6 +196,10 @@ func (env *Environment) CreateEmptyObject(objName string) (interface{}, error) {
 
 func (env *Environment) CreateCollection(objName string) (interface{}, error) {
 	return CreateCollection(objName)
+}
+
+func (env *Environment) GetConfig() config.Config {
+	return env.Config
 }
 
 //start services

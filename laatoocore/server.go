@@ -90,7 +90,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	//listen if server type is standalone
 	if serverType == CONF_SERVERTYPE_STANDALONE {
 		//find the address to bind from the server
-		address := server.Config.GetConfig(CONF_SERVERTYPE_HOSTNAME)
+		address := server.Config.GetString(CONF_SERVERTYPE_HOSTNAME)
 		if address == "" {
 			return nil, errors.ThrowError(CORE_SERVERADD_NOT_FOUND)
 		}

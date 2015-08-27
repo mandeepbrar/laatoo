@@ -90,6 +90,7 @@ type Article struct {
 	SummaryEng string `json:"SummaryEng" bson:"SummaryEng"`
 	TitleEng   string `json:"TitleEng" bson:"TitleEng"`
 	Image      string `json:"Image" bson:"Image"`
+	Type       []string
 }
 
 func NewArticle(conf map[string]interface{}) (interface{}, error) {
