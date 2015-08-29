@@ -50,6 +50,16 @@ func (set StringSet) ToString() string {
 	return string(b[:n])
 }
 
+func (set StringSet) Values() []string {
+	keys := make([]string, 0, len(set))
+	i := 0
+	for k := range set {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
 func (set StringSet) Add(val string) {
 	set[val] = true
 }

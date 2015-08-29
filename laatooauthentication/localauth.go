@@ -12,13 +12,9 @@ import (
 const (
 	//login path to be used for local and oauth authentication
 	CONF_AUTHSERVICE_LOGINPATH = "login_path"
-	//encryption cost for local password encryption, if not provided, default is used
-	CONF_AUTHSERVICE_BCRYPTCOST = "bcrypt_cost"
 )
 
 type localAuthType struct {
-	// BCryptCost is the cost of the bcrypt password hashing function.
-	bCryptCost int
 	//login path to register for local authentication
 	loginpath string
 	//method called in case of callback
@@ -40,14 +36,6 @@ func NewLocalAuth(conf map[string]interface{}, svc *AuthService) (*localAuthType
 	loginpath, ok := conf[CONF_AUTHSERVICE_LOGINPATH]
 	if ok {
 		localauth.loginpath = loginpath.(string)
-	}
-
-	//get the bcryptcost from conf
-	bcryptcost, ok := conf[CONF_AUTHSERVICE_BCRYPTCOST]
-	if ok {
-		localauth.bCryptCost = bcryptcost.(int)
-	} else {
-		localauth.bCryptCost = bcrypt.DefaultCost
 	}
 	return localauth, nil
 }

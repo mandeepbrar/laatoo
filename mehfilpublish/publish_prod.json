@@ -6,7 +6,8 @@
 			"database":"Users",
 			"authenticate":"true",
 			"objects": {
-				"default_user":"Users"
+				"default_user":"Users",
+				"default_role":"Roles"				
 			}
 		},
 		"publish_prod":{
@@ -26,6 +27,18 @@
 			"authenticate":"false",
 			"user_data_svc":"user_storer",
 			"path":"/auth"
+		},
+		"users":{
+			"servicename":"user_service",
+			"authenticate":"true",
+			"user_data_svc":"user_storer",
+			"path":"/user"
+		},
+		"roles":{
+			"servicename":"role_service",
+			"authenticate":"true",
+			"user_data_svc":"user_storer",
+			"path":"/role"
 		},
 		"public":{
 			"servicename":"static_file_service",
@@ -118,6 +131,30 @@
 						"createword":{
 							"path":"createword.html",
 							"template":"publish_prod/pageservice/publish/createword.html"
+						},
+						"useredit":{
+							"path":"useredit.html",
+							"template":"publish_prod/pageservice/publish/useredit.html"
+						},
+						"createuser":{
+							"path":"createuser.html",
+							"template":"publish_prod/pageservice/publish/createuser.html"
+						},
+						"users":{
+							"path":"userslist.html",
+							"template":"publish_prod/pageservice/publish/users.html"
+						},
+						"roleedit":{
+							"path":"roleedit.html",
+							"template":"publish_prod/pageservice/publish/roleedit.html"
+						},
+						"createrole":{
+							"path":"createrole.html",
+							"template":"publish_prod/pageservice/publish/createrole.html"
+						},
+						"roles":{
+							"path":"roleslist.html",
+							"template":"publish_prod/pageservice/publish/roles.html"
 						}
 					}
 				},
@@ -284,6 +321,24 @@
 				"articles":{
 					"name":"view_entities",
 					"path":"/entities",
+					"type":"entitylist"
+				}
+			}
+		},
+		"configviewservice":{
+			"servicename":"view_service",
+			"authenticate":"true",
+			"data_svc":"user_storer",
+			"path":"/configviews",
+			"views": {
+				"users":{
+					"name":"view_users",
+					"path":"/users",
+					"type":"entitylist"
+				},
+				"roles":{
+					"name":"view_roles",
+					"path":"/roles",
 					"type":"entitylist"
 				}
 			}

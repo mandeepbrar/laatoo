@@ -1,0 +1,35 @@
+<page name="default_role">
+	<h1>Roles</h1>
+	<div class="row-fluid">
+		<action class="pull-right" widget="button" label="Create Role" name="Create Role">
+		</action>
+	</div>
+	<div class="row-fluid">
+		<view name="view_roles" viewserver="/configviews">
+			<table class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							Role
+						</th>
+						<th>
+						</th>
+						<th>
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:40%">
+						{{viewrow.Role}}
+					</td>
+					<td>
+						<a href="#/role/edit/{{viewrow.Id}}">edit</a>
+					</td>
+					<td>
+						<a href="#/role/delete/{{viewrow.Id}}">delete</a>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>

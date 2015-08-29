@@ -1,7 +1,7 @@
 var pageConf = {
 	"AuthPage":"http://localhost:7070/login",
 	"LocalAuthServer":"http://localhost:7070/auth/login",
-	"ViewsServer": "http://localhost:7070/view",
+	"ViewsServer": "/view",
 	"LinksServer": "http://localhost:7070/links",
 	"SuccessRedirect":"/home",
 	"AuthRequired":true,
@@ -192,6 +192,80 @@ var pageConf = {
 				
 			]
 		},
+		"default_user": {
+			"url": "http://localhost:7070/user",
+			"model" : {},
+			"options": {},
+			"fields": [
+				{
+					"key":"Id",
+					"type":"input",
+					"templateOptions": {
+			        		"label": "User Id",
+					}
+				},
+				{
+					"key":"Password",
+					"type":"input",
+					"templateOptions": {
+				        "type": "password",
+			        		"label": "Password",
+					}
+				},
+				{
+					"key":"Roles",
+					"type":"ui-grid",
+					"templateOptions": {
+			        		"label": "User Roles",
+						"griditems":[
+							{
+								"Roles":"Admin"
+							},
+							{
+								"Roles":"Editor"
+							}
+						],
+						"columns":[
+							{"name":"Roles"}
+						]
+					}
+				}
+				
+			]
+		},
+		"default_role": {
+			"url": "http://localhost:7070/role",
+			"model" : {},
+			"options": {},
+			"fields": [
+				{
+					"key":"Role",
+					"type":"input",
+					"templateOptions": {
+			        		"label": "Role",
+					}
+				},
+				{
+					"key":"Permissions",
+					"type":"ui-grid",
+					"templateOptions": {
+			        		"label": "Permissions",
+						"griditems":[
+							{
+								"Permissions":"Edit User"
+							},
+							{
+								"Permissions":"Edit Role"
+							}
+						],
+						"columns":[
+							{"name":"Permissions"}
+						]
+					}
+				}
+				
+			]
+		},
 		"video": {
 			"url": "http://localhost:7070/video",
 			"tabbed": true,
@@ -358,6 +432,48 @@ var pageConf = {
 			"view":"mainview",
 			"templatepath":"videoslist.html"
 		},
+		"Edit User": {
+			"url":"/user/edit/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"useredit.html"
+		},
+		"Create User": {
+			"url":"/user/create",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"createuser.html"
+		},		
+		"View Users": {
+			"url":"/users",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"userslist.html"
+		},
+		"Edit Role": {
+			"url":"/role/edit/{id}",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"roleedit.html"
+		},
+		"Create Role": {
+			"url":"/role/create",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"createrole.html"
+		},		
+		"View Roles": {
+			"url":"/roles",
+			"actiontype":"openpartialpage",
+			"viewmode":"link",
+			"view":"mainview",
+			"templatepath":"roleslist.html"
+		},
 		"View Words": {
 			"url":"/words",
 			"actiontype":"openpartialpage",
@@ -415,6 +531,14 @@ var pageConf = {
 			"Words": {
 				"action":"View Words",
 				"label":"Words"
+			},
+			"Roles": {
+				"action":"View Roles",
+				"label":"Roles"
+			},
+			"Users": {
+				"action":"View Users",
+				"label":"Users"
 			}
 		}
 	}

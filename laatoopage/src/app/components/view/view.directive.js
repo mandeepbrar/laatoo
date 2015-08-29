@@ -42,6 +42,9 @@
   	  if($attrs.modelname) {
 		$scope.modelname = $attrs.modelname;
 	  }
+  	  if($attrs.viewserver) {
+	    $scope.viewserver = $attrs.viewserver;
+	  }
       if($attrs.editable) {
       	$scope.editable = ($attrs.editable == 'true');
 		$scope.submitText = "Save";
@@ -63,7 +66,23 @@
       }
 	  $scope.params['viewname'] = name;
 	  $scope.refreshView = function() {
-		  $scope[$scope.modelname] = ViewService.query($scope.params);	  		
+		  var url = pageConf.ViewsServer;
+		  if($scope.viewserver) {
+			url = $scope.viewserver;	
+		  }
+		  $http.get(url, { params: $scope.params }).then(
+		       function(response) {
+					$scope[$scope.modelname] = response.data;
+		       },
+		       function(errorResponse) {
+				  if(errorResponse.status == 401) {
+					window.location.href = window.pageConf.AuthPage;								
+				  } else {
+		         	  console.log("error communicating with server");					
+				   }
+		       }
+		   );
+		//  $scope[$scope.modelname] = ViewService.query($scope.params);	  		
 	  };
 	  $scope.refreshView();
     }

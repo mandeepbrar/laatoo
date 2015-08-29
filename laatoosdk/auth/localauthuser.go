@@ -9,6 +9,7 @@ type LocalAuthUser interface {
 	SetId(string)
 	GetIdField() string
 	GetPassword() string
+	SetPassword(string)
 	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
 }

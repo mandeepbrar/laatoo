@@ -48,12 +48,19 @@
 		} else {
 			$scope.mediatype = 'image';
 		}
+		console.log("setting up change method");
 		$scope.oncheckboxchange = function(evt, val) {
+			console.log($scope.model);
 			var modelVal = $scope.model[$scope.options.key];
-			if(!modelVal) {
+			console.log("checkbox change");
+			console.log(modelVal);
+			if(!modelVal || !(modelVal instanceof Array)) {
+			console.log("initializing");
 				modelVal = [];
 			}
+			console.log(modelVal);
 			if(evt.target.checked) {
+			console.log("pushing "+val);
 				modelVal.push(val);				
 			} else{				
 				var index = modelVal.indexOf(val);
@@ -64,6 +71,7 @@
 			$scope.model[$scope.options.key] = modelVal;
 			console.log($scope.model);
 		};
+		console.log($scope.oncheckboxchange);
   }
 
 

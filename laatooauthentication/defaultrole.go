@@ -2,7 +2,6 @@ package laatooauthentication
 
 import (
 	"laatoocore"
-	"laatoosdk/utils"
 )
 
 const (
@@ -10,8 +9,8 @@ const (
 )
 
 type Role struct {
-	Role        string          `json:"Role" form:"Role" bson:"Role"`
-	Permissions utils.StringSet `json:"Permissions" bson:"Permissions"`
+	Role        string   `json:"Role" form:"Role" bson:"Role"`
+	Permissions []string `json:"Permissions" bson:"Permissions"`
 }
 
 func (r *Role) GetId() string {
@@ -23,11 +22,11 @@ func (r *Role) SetId(id string) {
 func (r *Role) GetIdField() string {
 	return "Role"
 }
-func (r *Role) GetPermissions() utils.StringSet {
+func (r *Role) GetPermissions() []string {
 	return r.Permissions
 }
 
-func (r *Role) SetPermissions(permissions utils.StringSet) {
+func (r *Role) SetPermissions(permissions []string) {
 	r.Permissions = permissions
 }
 

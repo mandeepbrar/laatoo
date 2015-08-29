@@ -13,3 +13,12 @@ func RandomString(n int) string {
 	}
 	return string(b)
 }
+
+func Remove(arr []string, elem string) []string {
+	for i, v := range arr {
+		if v == elem {
+			return append(arr[:i], arr[i+1:]...)
+		}
+	}
+	return arr
+}

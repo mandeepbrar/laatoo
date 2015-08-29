@@ -15,11 +15,13 @@ const (
 	CONF_ENV_SERVICES    = "services"
 	CONF_ENV_SERVICENAME = "servicename"
 	CONF_ENV_USER        = "user_object"
+	CONF_ENV_ROLE        = "role_object"
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "auth_header"
 	//secret key for jwt
 	CONF_ENV_JWTSECRETKEY = "jwtsecretkey"
 	DEFAULT_USER          = "default_user"
+	DEFAULT_ROLE          = "default_role"
 	CONF_ENV_ROUTER       = "router"
 	CONF_ENV_CONTEXT      = "context"
 	CONF_SERVICE_BINDPATH = "path"
@@ -54,6 +56,13 @@ func (env *Environment) createServices() error {
 	if len(userObject) == 0 {
 		userObject = DEFAULT_USER
 		env.Config.SetString(CONF_ENV_USER, DEFAULT_USER)
+	}
+
+	//check if user service name to be used has been provided, otherwise set default name
+	roleObject := env.Config.GetString(CONF_ENV_ROLE)
+	if len(roleObject) == 0 {
+		roleObject = DEFAULT_ROLE
+		env.Config.SetString(CONF_ENV_ROLE, DEFAULT_ROLE)
 	}
 
 	jwtSecret := utils.RandomString(15)
@@ -127,7 +136,7 @@ func (env *Environment) createServices() error {
 							utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
 							return nil
 						} else {
-							if !token.Valid {
+							if token == nil || !token.Valid {
 								return errors.RethrowHttpError(AUTH_ERROR_INVALID_TOKEN, ctx, err)
 							}
 							return err
