@@ -100,13 +100,14 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 }
 
 func (svc *ViewService) GetView(ctx *echo.Context) error {
+	log.Logger.Debugf("Came here for view")
 	name := ctx.Query("viewname")
 	if name == "" {
-		return errors.ThrowError(VIEW_ERROR_MISSING_VIEW)
+		return errors.ThrowHttpError(VIEW_ERROR_MISSING_VIEW, ctx)
 	}
 	view, ok := svc.Views[name]
 	if !ok {
-		return errors.ThrowError(VIEW_ERROR_MISSING_VIEW, name)
+		return errors.ThrowHttpError(VIEW_ERROR_MISSING_VIEW, ctx, name)
 	}
 	return view.Execute(svc.DataStore, ctx)
 }

@@ -194,6 +194,10 @@ func (env *Environment) GetService(alias string) (service.Service, error) {
 	return svc, nil
 }
 
+func (env *Environment) GetAllServices() []interface{} {
+	return env.ServicesStore.GetList()
+}
+
 //creates a named object if the factory has been registered with environment
 func (env *Environment) CreateObject(objName string, confData map[string]interface{}) (interface{}, error) {
 	return CreateObject(objName, confData)

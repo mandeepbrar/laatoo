@@ -17,6 +17,10 @@ const (
 	ENTITY_USER_SERVICE_NAME = "user_service"
 	//encryption cost for local password encryption, if not provided, default is used
 	CONF_AUTHSERVICE_BCRYPTCOST = "bcrypt_cost"
+	PERM_USER_VIEW              = "View User"
+	PERM_USER_EDIT              = "Edit User"
+	PERM_USER_CREATE            = "Create User"
+	PERM_USER_DEL               = "Delete User"
 )
 
 type UserService struct {
@@ -29,6 +33,7 @@ type UserService struct {
 
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_USER_SERVICE_NAME, NewUserService)
+	laatoocore.RegisterPermissions([]string{PERM_USER_VIEW, PERM_USER_EDIT, PERM_USER_CREATE, PERM_USER_DEL})
 }
 
 func NewUserService(conf map[string]interface{}) (interface{}, error) {

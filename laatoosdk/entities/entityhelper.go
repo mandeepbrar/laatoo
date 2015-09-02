@@ -10,6 +10,8 @@ import (
 	"reflect"
 )
 
+type Permissions map[string]string
+
 func ParseConfig(conf map[string]interface{}, svc EntityService, entityName string) (string, *echo.Group, error) {
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
@@ -47,6 +49,11 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 			if !ok {
 				return "", nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHOD, svc.GetName(), name)
 			}
+			var perm string
+			permInt, ok := methodConfig[CONF_ENTITY_PERM]
+			if ok {
+				perm = permInt.(string)
+			}
 
 			path := pathInt.(string)
 			method := methodInt.(string)
@@ -56,6 +63,9 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 						router.Get(path, svc.ListArticle)*/
 			case "get":
 				router.Get(path, func(ctx *echo.Context) error {
+					if len(perm) > 0 {
+						log.Logger.Debugf("Permission required %s", perm)
+					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Getting entity %s", id)
 					ent, err := svc.GetDataStore().GetById(entityName, id)
@@ -66,6 +76,9 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "post":
 				router.Post(path, func(ctx *echo.Context) error {
+					if len(perm) > 0 {
+						log.Logger.Debugf("Permission required %s", perm)
+					}
 					ent, err := laatoocore.CreateEmptyObject(entityName)
 					if err != nil {
 						return err
@@ -82,6 +95,9 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "put":
 				router.Put(path, func(ctx *echo.Context) error {
+					if len(perm) > 0 {
+						log.Logger.Debugf("Permission required %s", perm)
+					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Updating entity %s", id)
 					ent, err := laatoocore.CreateEmptyObject(entityName)
@@ -100,6 +116,9 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "putbulk":
 				router.Put(path, func(ctx *echo.Context) error {
+					if len(perm) > 0 {
+						log.Logger.Debugf("Permission required %s", perm)
+					}
 					typ, err := laatoocore.GetCollectionType(entityName)
 					if err != nil {
 						return err
@@ -124,6 +143,9 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "delete":
 				router.Delete(path, func(ctx *echo.Context) error {
+					if len(perm) > 0 {
+						log.Logger.Debugf("Permission required %s", perm)
+					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Deleting entity %s", id)
 					err := svc.GetDataStore().Delete(entityName, id)

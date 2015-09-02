@@ -21,6 +21,7 @@ type Service interface {
 //service context object for initializing services
 type ServiceContext interface {
 	GetService(alias string) (Service, error)
+	GetAllServices() []interface{}
 	CreateObject(objName string, confData map[string]interface{}) (interface{}, error)
 	CreateEmptyObject(objName string) (interface{}, error)
 	CreateCollection(objName string) (interface{}, error)

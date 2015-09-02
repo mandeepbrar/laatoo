@@ -15,6 +15,7 @@ const (
 	CONF_ENTITY_FIELDS   = "fields"
 	CONF_ENTITY_METHOD   = "method"
 	CONF_ENTITY_PATH     = "path"
+	CONF_ENTITY_PERM     = "permission"
 )
 
 const (

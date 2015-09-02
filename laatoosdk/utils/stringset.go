@@ -33,6 +33,12 @@ func (set StringSet) Join(secset StringSet) {
 	}
 }
 
+func (set StringSet) Append(sec []string) {
+	for _, k := range sec {
+		set[k] = true
+	}
+}
+
 func (set StringSet) ToString() string {
 	if len(set) == 0 {
 		return ""
@@ -51,9 +57,9 @@ func (set StringSet) ToString() string {
 }
 
 func (set StringSet) Values() []string {
-	keys := make([]string, 0, len(set))
+	keys := make([]string, len(set))
 	i := 0
-	for k := range set {
+	for k, _ := range set {
 		keys[i] = k
 		i++
 	}

@@ -14,6 +14,10 @@ import (
 const (
 	ENTITY_ARTICLE_NAME         = "article"
 	ENTITY_ARTICLE_SERVICE_NAME = "articleservice"
+	PERM_ARTICLE_VIEW           = "View Article"
+	PERM_ARTICLE_EDIT           = "Edit Article"
+	PERM_ARTICLE_CREATE         = "Create Article"
+	PERM_ARTICLE_DEL            = "Delete Article"
 )
 
 type ArticleService struct {
@@ -25,6 +29,7 @@ type ArticleService struct {
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_ARTICLE_SERVICE_NAME, NewArticleService)
 	laatoocore.RegisterObjectProvider(ENTITY_ARTICLE_NAME, NewArticle)
+	laatoocore.RegisterPermissions([]string{PERM_ARTICLE_VIEW, PERM_ARTICLE_EDIT, PERM_ARTICLE_CREATE, PERM_ARTICLE_DEL})
 }
 
 func NewArticleService(conf map[string]interface{}) (interface{}, error) {

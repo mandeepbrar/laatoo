@@ -50,7 +50,7 @@
 			"servicename":"page_service",
 			"authenticate":"false",
 			"pagesdir":"publish_prod/pageservice",
-			"actionservice":"actionservice",
+			"permissionservice":"permservice",
 			"path":"",
 			"pages":{
 				"home":{
@@ -343,37 +343,10 @@
 				}
 			}
 		},
-		"actionservice": {
-			"servicename":"action_service",
-			"authenticate":"true",
-			"path":"/actions",
-			"actions": {
-				"Home": {
-					"actiontype":"openpartialpage",
-					"viewmode":"link",
-					"path":"/"
-				},
-				"View Articles": {
-					"actiontype":"openpartialpage",
-					"viewmode":"link",
-					"path":"/articles"
-				},
-				"View Article": {
-					"actiontype":"openpartialpage",
-					"viewmode":"link",
-					"path":"/article?id"
-				},
-				"Edit Article": {
-					"actiontype":"openpartialpage",
-					"viewmode":"link",
-					"path":"/article/edit?id"
-				},
-				"View Videos": {
-					"actiontype":"openpartialpage",
-					"viewmode":"link",
-					"path":"/videos"
-				}
-			}
+		"permservice": {
+			"servicename":"perm_service",
+			"authenticate":"false",
+			"path":"/permissions"
 		}
 	}
 }

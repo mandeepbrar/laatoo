@@ -14,6 +14,10 @@ import (
 const (
 	ENTITY_MEHFIL_NAME         = "mehfil"
 	ENTITY_MEHFIL_SERVICE_NAME = "mehfilservice"
+	PERM_MEHFIL_VIEW           = "View Mehfil"
+	PERM_MEHFIL_EDIT           = "Edit Mehfil"
+	PERM_MEHFIL_CREATE         = "Create Mehfil"
+	PERM_MEHFIL_DEL            = "Delete Mehfil"
 )
 
 type MehfilService struct {
@@ -25,6 +29,7 @@ type MehfilService struct {
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_MEHFIL_SERVICE_NAME, NewMehfilService)
 	laatoocore.RegisterObjectProvider(ENTITY_MEHFIL_NAME, NewMehfil)
+	laatoocore.RegisterPermissions([]string{PERM_MEHFIL_VIEW, PERM_MEHFIL_EDIT, PERM_MEHFIL_CREATE, PERM_MEHFIL_DEL})
 }
 
 func NewMehfilService(conf map[string]interface{}) (interface{}, error) {

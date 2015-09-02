@@ -18,8 +18,6 @@ const (
 )
 
 type PageService struct {
-	actionSvcName string
-	actionSvc     service.Service
 }
 
 //Initialize service, register provider with laatoo
@@ -48,12 +46,12 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		return nil, errors.ThrowError(PAGE_ERROR_PAGES_NOT_PROVIDED)
 	}
 
-	//get a map of all the pages
+	/*//get a map of all the pages
 	actionSvcInt, ok := conf[CONF_PAGE_ACTIONSVC]
 	if !ok {
 		return nil, errors.ThrowError(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED)
 	}
-	svc.actionSvcName = actionSvcInt.(string)
+	svc.actionSvcName = actionSvcInt.(string)*/
 
 	pages, ok := pagesInt.(map[string]interface{})
 	if !ok {
@@ -81,11 +79,11 @@ func (svc *PageService) GetName() string {
 
 //Initialize the service. Consumer of a service passes the data
 func (svc *PageService) Initialize(ctx service.ServiceContext) error {
-	actionSvcInt, err := ctx.GetService(svc.actionSvcName)
-	if err != nil {
-		return errors.ThrowError(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED)
-	}
-	svc.actionSvc = actionSvcInt.(service.Service)
+	/*	actionSvcInt, err := ctx.GetService(svc.actionSvcName)
+		if err != nil {
+			return errors.ThrowError(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED)
+		}
+		svc.actionSvc = actionSvcInt.(service.Service)*/
 	return nil
 }
 

@@ -46,11 +46,13 @@
 			var value = actionset[key];
 			var actionName = value.action;
 			var action = window.pageConf.actions[actionName];
-			var item = {};
-			item.heading = value.label;
-			item.route = actionName;
-			item.actiontype = action.actiontype;
-			items.push(item);
+			if(action.allowed) {
+				var item = {};
+				item.heading = value.label;
+				item.route = actionName;
+				item.actiontype = action.actiontype;
+				items.push(item);				
+			}
 		}		  
 		$scope.items = items;
 	  }

@@ -16,51 +16,67 @@
 		if(options.type == "ui-grid") {
 			scope.haslabel = false;
 			scope.field = options.key;
-			scope.$watch('model', function (newValue) {
-					try {
-						scope.selected = newValue[options.key];
-						scope.griditems = options.templateOptions.griditems;
-						scope.status = [];
-						scope.label = options.templateOptions.label;
-						scope.columns = options.templateOptions.columns;
-						if(options.templateOptions.value) {
-							scope.valueField = options.templateOptions.valueField;							
-						} else {
-							scope.valueField = options.key;
-						}
-						for(var index in scope.griditems) {
-							var item = scope.griditems[index];
-							var valToTest = item[scope.valueField];
-							scope.status[item[scope.valueField]] = (scope.selected.indexOf(item[scope.valueField])>-1);
-						}
-					}catch(ex){}
-		    });
 		}
 		return template;
 	});	
   }
   
   /** @ngInject */
-  function MultiselectCtrl($scope) {
+  function MultiselectCtrl($scope, $http) {
 		$scope.field = "";
 		if($scope.options.templateOptions.mediatype) {
 			$scope.mediatype = $scope.options.templateOptions.mediatype;
 		} else {
 			$scope.mediatype = 'image';
 		}
-		console.log("setting up change method");
+		$scope.$watch('griditems', function (newValue) {
+			for(var index in $scope.griditems) {
+				var item = $scope.griditems[index];
+				if($scope.valueField != "=") {
+					var valToTest = item[$scope.valueField];
+					try {
+						$scope.status[item[$scope.valueField]] = ($scope.selected.indexOf(item[$scope.valueField])>-1);													
+					}catch(ex) {}
+				} else {
+					try {
+						$scope.status[item] = ($scope.selected.indexOf(item)>-1);							
+					}catch(ex) {}
+				}
+			}
+		});
+		$scope.$watch('model', function (newValue) {
+				try {
+					$scope.selected = newValue[$scope.options.key];
+					var gridcallback = $scope.options.templateOptions.gridcallback;
+					if(gridcallback) {
+						$http.get(gridcallback).then(
+					       function(response) {
+								$scope.griditems = response.data;
+					       },
+					       function(errorResponse) {
+					         	console.log("error communicating with server");
+					       }
+					   );							
+					}
+					else {
+						$scope.griditems = $scope.options.templateOptions.griditems;							
+					}
+					$scope.status = [];
+					$scope.label = $scope.options.templateOptions.label;
+					$scope.columns = $scope.options.templateOptions.columns;
+					if($scope.options.templateOptions.valueField) {
+						$scope.valueField = $scope.options.templateOptions.valueField;							
+					} else {
+						$scope.valueField = $scope.options.key;
+					}
+				}catch(ex){}
+	    });
 		$scope.oncheckboxchange = function(evt, val) {
-			console.log($scope.model);
 			var modelVal = $scope.model[$scope.options.key];
-			console.log("checkbox change");
-			console.log(modelVal);
 			if(!modelVal || !(modelVal instanceof Array)) {
-			console.log("initializing");
 				modelVal = [];
 			}
-			console.log(modelVal);
 			if(evt.target.checked) {
-			console.log("pushing "+val);
 				modelVal.push(val);				
 			} else{				
 				var index = modelVal.indexOf(val);
@@ -69,12 +85,9 @@
 				}
 			}				
 			$scope.model[$scope.options.key] = modelVal;
-			console.log($scope.model);
 		};
-		console.log($scope.oncheckboxchange);
   }
 
 
 })();
-
 

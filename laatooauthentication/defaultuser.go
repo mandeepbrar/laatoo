@@ -44,10 +44,10 @@ func (usr *DefaultUser) LoadPermissions(roleStorer data.DataService) error {
 	roles := usr.Roles
 	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {
-		roleInt, err := roleStorer.GetById(laatoocore.DEFAULT_USER, k)
-		if err == nil {
+		roleInt, err := roleStorer.GetById(laatoocore.DEFAULT_ROLE, k)
+		if err == nil && roleInt != nil {
 			role := roleInt.(auth.Role)
-			permissions.Join(role.GetPermissions())
+			permissions.Append(role.GetPermissions())
 		}
 	}
 	usr.Permissions = permissions.Values()

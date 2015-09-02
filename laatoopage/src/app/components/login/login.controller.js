@@ -11,11 +11,12 @@
 		var pass = $scope.password;
         var result = AuthenticationService.login({"Id": id,"Password":pass}, function(data, headers) {
 			localStorage.auth = headers(pageConf.AuthToken);
+			localStorage.permissions = data.Permissions;
 			window.location.href = pageConf.SuccessRedirect;
 		},
 		function(err) {
 			console.log("err" + err);
-		} );
+		});
       };
   }
 

@@ -99,10 +99,11 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		confURL := fmt.Sprint(pagePath, "/conf")
 
 		router.Get(confURL, func(ctx *echo.Context) error {
-			config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
+			/*config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
 			if err != nil {
 				return err
-			}
+			}*/
+			config := make(map[string]interface{})
 			if partialPages != nil {
 				config["partials"] = partialPages
 			}

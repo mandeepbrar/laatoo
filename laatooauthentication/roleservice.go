@@ -13,6 +13,10 @@ import (
 
 const (
 	ENTITY_ROLE_SERVICE_NAME = "role_service"
+	PERM_ROLE_VIEW           = "View Role"
+	PERM_ROLE_EDIT           = "Edit Role"
+	PERM_ROLE_CREATE         = "Create Role"
+	PERM_ROLE_DEL            = "Delete Role"
 )
 
 type RoleService struct {
@@ -24,6 +28,7 @@ type RoleService struct {
 
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_ROLE_SERVICE_NAME, NewRoleService)
+	laatoocore.RegisterPermissions([]string{PERM_ROLE_VIEW, PERM_ROLE_EDIT, PERM_ROLE_CREATE, PERM_ROLE_DEL})
 }
 
 func NewRoleService(conf map[string]interface{}) (interface{}, error) {

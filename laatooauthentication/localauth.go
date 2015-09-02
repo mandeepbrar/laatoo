@@ -79,13 +79,18 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	if err != nil {
 		return errors.RethrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx, err)
 	}
+	if testedUser == nil {
+		return errors.ThrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx)
+	}
 
 	//compare the user requested with the user from database
 	existingUser := testedUser.(auth.LocalAuthUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
+	existingUser.SetPassword("")
 	if err != nil {
 		return errors.RethrowHttpError(AUTH_ERROR_WRONG_PASSWORD, ctx, err)
 	} else {
+		existingUser.SetPassword("")
 		ctx.Set("User", testedUser)
 		return localauth.authCallback(ctx)
 	}

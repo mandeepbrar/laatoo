@@ -13,6 +13,10 @@ import (
 const (
 	ENTITY_WORD_NAME         = "word"
 	ENTITY_WORD_SERVICE_NAME = "wordservice"
+	PERM_WORD_VIEW           = "View Word"
+	PERM_WORD_EDIT           = "Edit Word"
+	PERM_WORD_CREATE         = "Create Word"
+	PERM_WORD_DEL            = "Delete Word"
 )
 
 type WordService struct {
@@ -24,6 +28,7 @@ type WordService struct {
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_WORD_SERVICE_NAME, NewWordService)
 	laatoocore.RegisterObjectProvider(ENTITY_WORD_NAME, NewWord)
+	laatoocore.RegisterPermissions([]string{PERM_WORD_VIEW, PERM_WORD_EDIT, PERM_WORD_CREATE, PERM_WORD_DEL})
 }
 
 func NewWordService(conf map[string]interface{}) (interface{}, error) {

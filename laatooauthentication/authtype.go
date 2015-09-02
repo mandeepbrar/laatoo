@@ -72,6 +72,10 @@ func (svc *AuthService) initializeAuthType(authType AuthType) error {
 			}
 			user := userInt.(auth.User)
 			token := jwt.New(jwt.SigningMethodHS256)
+			rbac, ok := user.(auth.RbacUser)
+			if ok {
+				rbac.LoadPermissions(svc.UserDataService)
+			}
 			user.SetJWTClaims(token)
 			token.Claims["UserId"] = user.GetId()
 			token.Claims["AuthTypeName"] = authType.GetName()

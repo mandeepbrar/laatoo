@@ -89,8 +89,9 @@ var pageConf = {
 									}
 								],
 								"columns":[
-									{"name":"Type"}
-								]
+									{"name":"Type", "key":"Type"}
+								],
+								"valueField":"Type"
 							}
 						}
 					]
@@ -217,17 +218,11 @@ var pageConf = {
 					"type":"ui-grid",
 					"templateOptions": {
 			        		"label": "User Roles",
-						"griditems":[
-							{
-								"Roles":"Admin"
-							},
-							{
-								"Roles":"Editor"
-							}
-						],
+						"gridcallback": "/configviews?viewname=view_roles",
 						"columns":[
-							{"name":"Roles"}
-						]
+							{"name":"Role", "key": "Role"}
+						],
+						"valueField":"Role"
 					}
 				}
 				
@@ -250,17 +245,11 @@ var pageConf = {
 					"type":"ui-grid",
 					"templateOptions": {
 			        		"label": "Permissions",
-						"griditems":[
-							{
-								"Permissions":"Edit User"
-							},
-							{
-								"Permissions":"Edit Role"
-							}
-						],
+						"gridcallback": "/permissions",
 						"columns":[
-							{"name":"Permissions"}
-						]
+							{"name":"Permissions", "key": "="}
+						],
+						"valueField":"="
 					}
 				}
 				
@@ -346,6 +335,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"none",
 			"templatepath":"home.html"
 		},
 		"View Articles": {
@@ -353,6 +343,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Article",
 			"templatepath":"articleslist.html"
 		},
 		"View Article": {
@@ -360,6 +351,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Article",
 			"templatepath":"viewarticle.html"
 		},
 		"Edit Article": {
@@ -367,6 +359,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Article",
 			"templatepath":"articleedit.html"
 		},
 		"Create Article": {
@@ -374,6 +367,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create Article",
 			"templatepath":"createarticle.html"
 		},		
 		"View Mehfils": {
@@ -381,6 +375,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Mehfil",
 			"templatepath":"mehfilslist.html"
 		},
 		"View Mehfil": {
@@ -388,6 +383,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Mehfil",
 			"templatepath":"viewmehfil.html"
 		},
 		"Edit Mehfil": {
@@ -395,6 +391,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Mehfil",
 			"templatepath":"mehfiledit.html"
 		},
 		"Create Mehfil": {
@@ -402,6 +399,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create Mehfil",
 			"templatepath":"createmehfil.html"
 		},		
 		"View Video": {
@@ -409,6 +407,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Video",
 			"templatepath":"viewvideo.html"
 		},
 		"Edit Video": {
@@ -416,6 +415,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Video",
 			"templatepath":"videoedit.html"
 		},
 		"Create Video": {
@@ -423,6 +423,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create Video",
 			"templatepath":"createvideo.html"
 		},		
 		"View Videos": {
@@ -430,6 +431,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Video",
 			"templatepath":"videoslist.html"
 		},
 		"Edit User": {
@@ -437,6 +439,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit User",
 			"templatepath":"useredit.html"
 		},
 		"Create User": {
@@ -444,6 +447,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create User",
 			"templatepath":"createuser.html"
 		},		
 		"View Users": {
@@ -451,6 +455,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View User",
 			"templatepath":"userslist.html"
 		},
 		"Edit Role": {
@@ -458,6 +463,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Role",
 			"templatepath":"roleedit.html"
 		},
 		"Create Role": {
@@ -465,6 +471,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create Role",
 			"templatepath":"createrole.html"
 		},		
 		"View Roles": {
@@ -472,6 +479,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Role",
 			"templatepath":"roleslist.html"
 		},
 		"View Words": {
@@ -479,6 +487,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"View Word",
 			"templatepath":"words.html"
 		},
 		"New Words": {
@@ -486,6 +495,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Word",
 			"templatepath":"newwords.html"
 		},
 		"Review Words": {
@@ -493,6 +503,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Word",
 			"templatepath":"reviewwords.html"
 		},
 		"Edit Word": {
@@ -500,6 +511,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Edit Word",
 			"templatepath":"wordedit.html"
 		},		
 		"Create Word": {
@@ -507,6 +519,7 @@ var pageConf = {
 			"actiontype":"openpartialpage",
 			"viewmode":"link",
 			"view":"mainview",
+			"permission":"Create Word",
 			"templatepath":"createword.html"
 		}		
 	},

@@ -14,6 +14,10 @@ import (
 const (
 	ENTITY_VIDEO_NAME         = "video"
 	ENTITY_VIDEO_SERVICE_NAME = "videoservice"
+	PERM_VIDEO_VIEW           = "View Video"
+	PERM_VIDEO_EDIT           = "Edit Video"
+	PERM_VIDEO_CREATE         = "Create Video"
+	PERM_VIDEO_DEL            = "Delete Video"
 )
 
 type VideoService struct {
@@ -25,6 +29,7 @@ type VideoService struct {
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_VIDEO_SERVICE_NAME, NewVideoService)
 	laatoocore.RegisterObjectProvider(ENTITY_VIDEO_NAME, NewVideo)
+	laatoocore.RegisterPermissions([]string{PERM_VIDEO_VIEW, PERM_VIDEO_EDIT, PERM_VIDEO_CREATE, PERM_VIDEO_DEL})
 }
 
 func NewVideoService(conf map[string]interface{}) (interface{}, error) {
