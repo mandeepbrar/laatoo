@@ -4,7 +4,6 @@
 			"servicename":"mongo_data_service",
 			"connectionstring":"localhost",
 			"database":"Users",
-			"authenticate":"true",
 			"objects": {
 				"default_user":"Users",
 				"default_role":"Roles"				
@@ -13,7 +12,6 @@
 		"publish_prod":{
 			"servicename":"mongo_data_service",
 			"connectionstring":"localhost",
-			"authenticate":"true",
 			"database":"publish_prod",
 			"objects": {
 				"article":"Articles",
@@ -24,40 +22,34 @@
 		},
 		"auth":{
 			"servicename":"auth_service",
-			"authenticate":"false",
+			"bypassauth":"true",
 			"user_data_svc":"user_storer",
 			"path":"/auth"
 		},
 		"users":{
 			"servicename":"user_service",
-			"authenticate":"true",
 			"user_data_svc":"user_storer",
 			"path":"/user"
 		},
 		"roles":{
 			"servicename":"role_service",
-			"authenticate":"true",
 			"user_data_svc":"user_storer",
 			"path":"/role"
 		},
 		"public":{
 			"servicename":"static_file_service",
-			"authenticate":"false",
 			"publicdir":"publish_prod/static",
 			"path":"/static"
 		},
 		"pageservice":{
 			"servicename":"page_service",
-			"authenticate":"false",
 			"pagesdir":"publish_prod/pageservice",
-			"permissionservice":"permservice",
 			"path":"",
 			"pages":{
 				"home":{
 					"path":"/home",
 					"type":"file",
 					"destination":"publish.html",
-					"authentication":"true",
 					"permission":"",
 					"partials": {
 						"home": {
@@ -162,21 +154,18 @@
 					"path":"/login",
 					"type":"file",
 					"destination":"login.html",
-					"authentication":"true",
 					"permission":""
 				},
 				"logout":{
 					"path":"/logout",
 					"type":"file",
 					"destination":"logout.html",
-					"authentication":"true",
 					"permission":""
 				}
 			}
 		},
 		"articleservice":{
 			"servicename":"articleservice",
-			"authenticate":"true",
 			"path":"/article",
 			"entityname":"article",
 			"data_svc":"publish_prod",
@@ -186,7 +175,7 @@
 				"get":{
 					"path":"/:id",
 					"method":"get",
-					"permission":""
+					"permission":"View Article"
 				},
 				"post":{
 					"path":"",
@@ -207,7 +196,6 @@
 		},
 		"mehfilservice":{
 			"servicename":"mehfilservice",
-			"authenticate":"true",
 			"path":"/mehfil",
 			"entityname":"mehfil",
 			"data_svc":"publish_prod",
@@ -238,7 +226,6 @@
 		},
 		"word":{
 			"servicename":"wordservice",
-			"authenticate":"true",
 			"path":"/word",
 			"entityname":"word",
 			"data_svc":"publish_prod",
@@ -274,7 +261,6 @@
 		},
 		"videoservice":{
 			"servicename":"videoservice",
-			"authenticate":"true",
 			"path":"/video",
 			"entityname":"video",
 			"data_svc":"publish_prod",
@@ -305,7 +291,6 @@
 		},
 		"files":{
 			"servicename":"file_service",
-			"authenticate":"false",
 			"path":"/upload",
 			"filesurl":"/static/assets",
 			"filesdir":"publish_prod/static/assets",
@@ -314,7 +299,6 @@
 		},
 		"viewservice":{
 			"servicename":"view_service",
-			"authenticate":"true",
 			"data_svc":"publish_prod",
 			"path":"/view",
 			"views": {
@@ -327,7 +311,6 @@
 		},
 		"configviewservice":{
 			"servicename":"view_service",
-			"authenticate":"true",
 			"data_svc":"user_storer",
 			"path":"/configviews",
 			"views": {
@@ -345,7 +328,6 @@
 		},
 		"permservice": {
 			"servicename":"perm_service",
-			"authenticate":"false",
 			"path":"/permissions"
 		}
 	}

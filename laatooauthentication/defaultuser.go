@@ -6,6 +6,7 @@ import (
 	"laatoosdk/auth"
 	"laatoosdk/data"
 	"laatoosdk/utils"
+	"strings"
 )
 
 type DefaultUser struct {
@@ -62,12 +63,15 @@ func (usr *DefaultUser) RemoveRole(role string) error {
 	return nil
 }
 
-func (usr *DefaultUser) SetJWTClaims(*jwt.Token) {
-
+func (usr *DefaultUser) SetJWTClaims(token *jwt.Token) {
+	token.Claims["Roles"] = strings.Join(usr.Roles, ",")
 }
 
-func (usr *DefaultUser) LoadJWTClaims(*jwt.Token) {
-
+func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
+	rolesInt := token.Claims["Roles"]
+	if rolesInt != nil {
+		usr.Roles = strings.Split(rolesInt.(string), ",")
+	}
 }
 
 func init() {

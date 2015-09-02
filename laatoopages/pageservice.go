@@ -38,7 +38,6 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		return nil, errors.ThrowError(PAGE_ERROR_MISSING_PAGESDIR)
 	}
 	router := routerInt.(*echo.Group)
-	log.Logger.Infof("Router %s", router)
 
 	//get a map of all the pages
 	pagesInt, ok := conf[CONF_PAGE_PAGES]

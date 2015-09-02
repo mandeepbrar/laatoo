@@ -19,13 +19,13 @@ const (
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "auth_header"
 	//secret key for jwt
-	CONF_ENV_JWTSECRETKEY = "jwtsecretkey"
-	DEFAULT_USER          = "default_user"
-	DEFAULT_ROLE          = "default_role"
-	CONF_ENV_ROUTER       = "router"
-	CONF_ENV_CONTEXT      = "context"
-	CONF_SERVICE_BINDPATH = "path"
-	CONF_SERVICE_AUTH     = "authenticate"
+	CONF_ENV_JWTSECRETKEY   = "jwtsecretkey"
+	DEFAULT_USER            = "default_user"
+	DEFAULT_ROLE            = "default_role"
+	CONF_ENV_ROUTER         = "router"
+	CONF_ENV_CONTEXT        = "context"
+	CONF_SERVICE_BINDPATH   = "path"
+	CONF_SERVICE_AUTHBYPASS = "bypassauth"
 )
 
 //Environment hosting an application
@@ -52,18 +52,23 @@ func newEnvironment(envName string, conf string, router *echo.Group) (*Environme
 func (env *Environment) createServices() error {
 
 	//check if user service name to be used has been provided, otherwise set default name
-	userObject := env.Config.GetString(CONF_ENV_USER)
-	if len(userObject) == 0 {
-		userObject = DEFAULT_USER
-		env.Config.SetString(CONF_ENV_USER, DEFAULT_USER)
-	}
-
-	//check if user service name to be used has been provided, otherwise set default name
 	roleObject := env.Config.GetString(CONF_ENV_ROLE)
 	if len(roleObject) == 0 {
 		roleObject = DEFAULT_ROLE
 		env.Config.SetString(CONF_ENV_ROLE, DEFAULT_ROLE)
 	}
+	//check if user service name to be used has been provided, otherwise set default name
+	userObject := env.Config.GetString(CONF_ENV_USER)
+	if len(userObject) == 0 {
+		userObject = DEFAULT_USER
+		env.Config.SetString(CONF_ENV_USER, DEFAULT_USER)
+	}
+	auserInt, err := CreateEmptyObject(userObject)
+	if err != nil {
+		return err
+	}
+	anonymousUser := auserInt.(auth.RbacUser)
+	anonymousUser.AddRole("Anonymous")
 
 	jwtSecret := utils.RandomString(15)
 	authHeader := "Auth-Token"
@@ -101,14 +106,13 @@ func (env *Environment) createServices() error {
 				ctx.Set(CONF_ENV_CONTEXT, env)
 				return nil
 			})
-			authenticate := true
+			bypassauth := false
 			//authentication required by default unless explicitly turned off
-			authInt, ok := serviceConfig[CONF_SERVICE_AUTH]
+			bypassauthInt, ok := serviceConfig[CONF_SERVICE_AUTHBYPASS]
 			if ok {
-				authenticate = (authInt == "true")
+				bypassauth = (bypassauthInt == "true")
 			}
-			if authenticate {
-				log.Logger.Infof("Using authentication middleware for service %s", alias)
+			if !bypassauth {
 				router.Use(func(ctx *echo.Context) error {
 					headerVal := ctx.Request().Header.Get(authHeader)
 
@@ -125,13 +129,15 @@ func (env *Environment) createServices() error {
 							if err != nil {
 								return errors.RethrowHttpError(AUTH_ERROR_WRONG_SIGNING_METHOD, ctx, err)
 							}
-							user, ok := userInt.(auth.User)
+							user, ok := userInt.(auth.RbacUser)
 							if !ok {
 								return errors.ThrowHttpError(AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx)
 							}
 							user.LoadJWTClaims(token)
 							user.SetId(token.Claims["UserId"].(string))
 							ctx.Set("User", userInt)
+							roles, _ := user.GetRoles()
+							ctx.Set("Roles", roles)
 							ctx.Set("JWT_Token", token)
 							utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
 							return nil
@@ -141,8 +147,10 @@ func (env *Environment) createServices() error {
 							}
 							return err
 						}
+					} else {
+						ctx.Set("User", anonymousUser)
 					}
-					return errors.ThrowHttpError(AUTH_ERROR_HEADER_NOT_FOUND, ctx)
+					return nil
 				})
 			}
 			serviceConfig[CONF_ENV_ROUTER] = router
@@ -229,13 +237,3 @@ func (env *Environment) StartEnvironment() error {
 	}
 	return nil
 }
-
-// Initialize routes of designer
-/*func (env *Environment) InitializeRoutes(conf config.Config) {
-	//initialize routes for api
-	apiRouter := router.Group("/api")
-	log.Logger.Debug(apiRouter)
-	//initialize routes for designer
-	router.Static("/", "designerhtml")
-}
-*/

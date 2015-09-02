@@ -63,8 +63,8 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 						router.Get(path, svc.ListArticle)*/
 			case "get":
 				router.Get(path, func(ctx *echo.Context) error {
-					if len(perm) > 0 {
-						log.Logger.Debugf("Permission required %s", perm)
+					if !laatoocore.IsAllowed(ctx, perm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Getting entity %s", id)
@@ -76,8 +76,8 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "post":
 				router.Post(path, func(ctx *echo.Context) error {
-					if len(perm) > 0 {
-						log.Logger.Debugf("Permission required %s", perm)
+					if !laatoocore.IsAllowed(ctx, perm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					ent, err := laatoocore.CreateEmptyObject(entityName)
 					if err != nil {
@@ -95,8 +95,8 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "put":
 				router.Put(path, func(ctx *echo.Context) error {
-					if len(perm) > 0 {
-						log.Logger.Debugf("Permission required %s", perm)
+					if !laatoocore.IsAllowed(ctx, perm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Updating entity %s", id)
@@ -116,8 +116,8 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "putbulk":
 				router.Put(path, func(ctx *echo.Context) error {
-					if len(perm) > 0 {
-						log.Logger.Debugf("Permission required %s", perm)
+					if !laatoocore.IsAllowed(ctx, perm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					typ, err := laatoocore.GetCollectionType(entityName)
 					if err != nil {
@@ -143,8 +143,8 @@ func ParseConfig(conf map[string]interface{}, svc EntityService, entityName stri
 				})
 			case "delete":
 				router.Delete(path, func(ctx *echo.Context) error {
-					if len(perm) > 0 {
-						log.Logger.Debugf("Permission required %s", perm)
+					if !laatoocore.IsAllowed(ctx, perm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
 					log.Logger.Debugf("Deleting entity %s", id)

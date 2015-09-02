@@ -35,7 +35,6 @@ func StaticServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		return nil, errors.ThrowError(STATIC_ERROR_MISSING_PUBLICDIR)
 	}
 	router := routerInt.(*echo.Group)
-	log.Logger.Infof("Router %s", router)
 
 	log.Logger.Infof("Designer service starting with page path %s", publicdir)
 	router.Static("/", publicdir.(string))

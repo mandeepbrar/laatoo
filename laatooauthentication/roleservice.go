@@ -3,12 +3,14 @@ package laatooauthentication
 import (
 	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/auth"
 	"laatoosdk/data"
 	"laatoosdk/entities"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"net/http"
+	"reflect"
 )
 
 const (
@@ -124,6 +126,39 @@ func (svc *RoleService) Initialize(ctx service.ServiceContext) error {
 
 //The service starts serving when this method is called
 func (svc *RoleService) Serve() error {
+
+	rolesInt, err := svc.GetDataStore().Get(svc.RoleObject, nil)
+	if err != nil {
+		return err
+	}
+	anonExists := false
+	if rolesInt != nil {
+		arr := reflect.ValueOf(rolesInt).Elem()
+		length := arr.Len()
+		for i := 0; i < length; i++ {
+			role := arr.Index(i).Addr().Interface().(auth.Role)
+			if role.GetId() == "Anonymous" {
+				anonExists = true
+			}
+			laatoocore.RegisterRolePermissions(role)
+		}
+	}
+
+	/*roles := *rolesInt.(*[]interface{})
+	for role := range *roles {
+		log.Logger.Debugf("Initializing roles", rolesInt, role)
+
+	}*/
+	//laatoocore.InitializeRolePermissions()
+	if !anonExists {
+		aroleInt, err := laatoocore.CreateEmptyObject(svc.RoleObject)
+		anonymousRole := aroleInt.(auth.Role)
+		anonymousRole.SetId("Anonymous")
+		err = svc.GetDataStore().Save(svc.RoleObject, anonymousRole)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

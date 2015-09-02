@@ -15,6 +15,10 @@
 			window.location.href = pageConf.SuccessRedirect;
 		},
 		function(err) {
+			if(err.status == 401) {
+				localStorage.auth = "";				
+				localStorage.permissions = null;
+			}
 			console.log("err" + err);
 		});
       };

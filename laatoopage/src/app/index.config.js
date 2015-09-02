@@ -13,7 +13,6 @@
 	var permissions = [];
 	if(localStorage.permissions != null) {
 		permissions = localStorage.permissions.split(",");		
-		console.log(permissions);
 	}
 	window.isAllowed = function(action) {
 		return permissions.indexOf(action)>-1;

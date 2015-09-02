@@ -42,7 +42,6 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	}
 
 	router := routerInt.(*echo.Group)
-	log.Logger.Infof("Router %s", router)
 	svc.Router = router
 
 	datasvcInt, ok := conf[CONF_VIEW_DATASVC]
@@ -100,7 +99,6 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 }
 
 func (svc *ViewService) GetView(ctx *echo.Context) error {
-	log.Logger.Debugf("Came here for view")
 	name := ctx.Query("viewname")
 	if name == "" {
 		return errors.ThrowHttpError(VIEW_ERROR_MISSING_VIEW, ctx)

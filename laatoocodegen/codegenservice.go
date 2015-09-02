@@ -30,7 +30,6 @@ func CodegenServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		return nil, errors.ThrowError(CODEGEN_ERROR_MISSING_ROUTER)
 	}
 	router := routerInt.(*echo.Group)
-	log.Logger.Infof("Router %s", router)
 
 	return svc, nil
 }

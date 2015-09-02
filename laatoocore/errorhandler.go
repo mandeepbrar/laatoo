@@ -24,6 +24,7 @@ const (
 	AUTH_ERROR_USEROBJECT_NOT_CREATED = "Auth_Error_User_Object_Not_Created"
 	AUTH_ERROR_HEADER_NOT_FOUND       = "Auth_Error_Header_Not_Found"
 	AUTH_ERROR_INVALID_TOKEN          = "Auth_Error_Invalid_Token"
+	AUTH_ERROR_SECURITY               = "AUTH_ERROR_SECURITY"
 )
 
 func init() {
@@ -50,6 +51,7 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_INVALID_TOKEN, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Invalid token."))
 	errors.RegisterErrorHandler(AUTH_ERROR_INVALID_TOKEN, AuthError)
 
+	errors.RegisterCode(AUTH_ERROR_SECURITY, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Not allowed."))
 }
 
 func AuthError(err *errors.Error, ctxMap map[string]interface{}, info ...string) bool {

@@ -46,7 +46,6 @@ func FileServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 	svc.filesUrl = filesurlInt.(string)
 	router := routerInt.(*echo.Group)
-	log.Logger.Infof("Router %s", router)
 	svc.filesDir = filesdirInt.(string) + "/"
 	log.Logger.Infof("Files Directory %s", filesdirInt)
 	router.Post("", svc.processFile)
