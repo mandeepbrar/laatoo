@@ -3,29 +3,31 @@ package laatooauthentication
 import (
 	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/auth"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
+	"reflect"
 )
 
 const (
-	CONF_AUTHSERVICE_SERVICENAME = "auth_service"
+	CONF_SECURITYSERVICE_SERVICENAME = "security_service"
 	//alias of rthe user data service
-	CONF_AUTHSERVICE_USERDATASERVICE = "user_data_svc"
+	CONF_SECURITYSERVICE_USERDATASERVICE = "user_data_svc"
 	//authentication mode for the service
-	CONF_AUTHSERVICE_AUTHMODE      = "auth_mode"
-	CONF_AUTHSERVICE_AUTHMODELOCAL = "local"
-	CONF_AUTHSERVICE_AUTHMODEOAUTH = "oauth"
-	CONF_AUTHSERVICE_AUTHMODALL    = "all"
+	CONF_SECURITYSERVICE_AUTHMODE      = "auth_mode"
+	CONF_SECURITYSERVICE_AUTHMODELOCAL = "local"
+	CONF_SECURITYSERVICE_AUTHMODEOAUTH = "oauth"
+	CONF_SECURITYSERVICE_AUTHMODALL    = "all"
 	//providers to enable for oauth authentication
-	CONF_AUTHSERVICE_OAUTHPROVIDERS = "oauth_providers"
+	CONF_SECURITYSERVICE_OAUTHPROVIDERS = "oauth_providers"
 	//logout path for the service
-	CONF_AUTHSERVICE_LOGOUTPATH = "logout_path"
+	CONF_SECURITYSERVICE_LOGOUTPATH = "logout_path"
 )
 
-// AuthService contains a configuration and other details for running.
-type AuthService struct {
+// SecurityService contains a configuration and other details for running.
+type SecurityService struct {
 	//authentication mode for service
 	AuthMode string
 	//mailer to use for reminders
@@ -54,22 +56,22 @@ type AuthService struct {
 
 //Initialize service, register provider with laatoo
 func init() {
-	laatoocore.RegisterObjectProvider(CONF_AUTHSERVICE_SERVICENAME, AuthServiceFactory)
+	laatoocore.RegisterObjectProvider(CONF_SECURITYSERVICE_SERVICENAME, SecurityServiceFactory)
 }
 
 //factory method returns the service object to the environment
-func AuthServiceFactory(conf map[string]interface{}) (interface{}, error) {
+func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Infof("Creating auth service with alias")
-	svc := &AuthService{}
+	svc := &SecurityService{}
 	//store configuration object
 	svc.Configuration = conf
 	svc.AuthTypes = make(map[string]AuthType, 5)
 	//check if auth mode has been provided, otherwise allow auth by all modes
-	authModeInt, ok := svc.Configuration[CONF_AUTHSERVICE_AUTHMODE]
+	authModeInt, ok := svc.Configuration[CONF_SECURITYSERVICE_AUTHMODE]
 	if ok {
 		svc.AuthMode = authModeInt.(string)
 	} else {
-		svc.AuthMode = CONF_AUTHSERVICE_AUTHMODALL
+		svc.AuthMode = CONF_SECURITYSERVICE_AUTHMODALL
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
@@ -86,16 +88,16 @@ func AuthServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	svc.Router = routerInt.(*echo.Group)
 
 	//local auth is enabled, set local auth type
-	if svc.AuthMode == CONF_AUTHSERVICE_AUTHMODALL || svc.AuthMode == CONF_AUTHSERVICE_AUTHMODELOCAL {
+	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODELOCAL {
 		svc.SetupLocalAuth(conf)
 	}
 	//if oauth mode has been enabled, set oauth mode
-	if svc.AuthMode == CONF_AUTHSERVICE_AUTHMODALL || svc.AuthMode == CONF_AUTHSERVICE_AUTHMODEOAUTH {
+	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEOAUTH {
 
 	}
 
 	//get the logout path for the application
-	logoutPathInt, ok := svc.Configuration[CONF_AUTHSERVICE_LOGOUTPATH]
+	logoutPathInt, ok := svc.Configuration[CONF_SECURITYSERVICE_LOGOUTPATH]
 	if ok {
 		svc.LogoutPath = logoutPathInt.(string)
 	} else {
@@ -110,16 +112,16 @@ func AuthServiceFactory(conf map[string]interface{}) (interface{}, error) {
 }
 
 //Provides the name of the service
-func (svc *AuthService) GetName() string {
-	return CONF_AUTHSERVICE_SERVICENAME
+func (svc *SecurityService) GetName() string {
+	return CONF_SECURITYSERVICE_SERVICENAME
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *AuthService) Initialize(ctx service.ServiceContext) error {
+func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
 	//store the context for the service
 	svc.Context = ctx
 	//setup the user data service from the context
-	userDataInt, ok := svc.Configuration[CONF_AUTHSERVICE_USERDATASERVICE]
+	userDataInt, ok := svc.Configuration[CONF_SECURITYSERVICE_USERDATASERVICE]
 
 	if ok {
 		//get the name of the data service to be used for accessing users database
@@ -137,7 +139,7 @@ func (svc *AuthService) Initialize(ctx service.ServiceContext) error {
 		svc.UserDataService = userDataService
 
 		//check if user service name to be used has been provided, otherwise set default name
-		svc.UserObject = ctx.GetConfig().GetString(laatoocore.CONF_ENV_USER)
+		svc.UserObject = laatoocore.SystemUser
 
 	} else {
 		return errors.ThrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE)
@@ -146,16 +148,42 @@ func (svc *AuthService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *AuthService) Serve() error {
+func (svc *SecurityService) Serve() error {
+	rolesInt, err := svc.UserDataService.Get(laatoocore.SystemRole, nil)
+	if err != nil {
+		return err
+	}
+	anonExists := false
+	if rolesInt != nil {
+		arr := reflect.ValueOf(rolesInt).Elem()
+		length := arr.Len()
+		for i := 0; i < length; i++ {
+			role := arr.Index(i).Addr().Interface().(auth.Role)
+			if role.GetId() == "Anonymous" {
+				anonExists = true
+			}
+			laatoocore.RegisterRolePermissions(role)
+		}
+	}
+
+	if !anonExists {
+		aroleInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemRole)
+		anonymousRole := aroleInt.(auth.Role)
+		anonymousRole.SetId("Anonymous")
+		err = svc.UserDataService.Save(laatoocore.SystemRole, anonymousRole)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 //Type of service
-func (svc *AuthService) GetServiceType() string {
+func (svc *SecurityService) GetServiceType() string {
 	return service.SERVICE_TYPE_APP
 }
 
 //Execute method
-func (svc *AuthService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *SecurityService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

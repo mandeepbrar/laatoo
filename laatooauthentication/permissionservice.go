@@ -32,9 +32,6 @@ func NewPermService(conf map[string]interface{}) (interface{}, error) {
 		perms := laatoocore.ListAllPermissions()
 		return ctx.JSON(http.StatusOK, perms)
 	})
-	router.Post("", func(ctx *echo.Context) error {
-		return nil
-	})
 	return svc, nil
 }
 

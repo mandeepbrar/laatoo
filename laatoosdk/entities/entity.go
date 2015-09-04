@@ -2,7 +2,6 @@ package entities
 
 import (
 	"fmt"
-	"laatoosdk/data"
 	"laatoosdk/errors"
 )
 
@@ -41,7 +40,9 @@ func init() {
 }
 
 //Object stored by data service
-type EntityService interface {
-	GetDataStore() data.DataService
-	GetName() string
+type Entity interface {
+	PreSave() error
+	PostSave() error
+	PreLoad() error
+	PostLoad() error
 }

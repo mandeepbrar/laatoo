@@ -1,25 +1,34 @@
 package laatooentities
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"laatoocore"
-	"laatoosdk/entities"
+	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
+	"net/http"
+	"reflect"
 )
 
 const (
 	CONF_ENTITY_SERVICENAME = "entity_service"
-	CONF_ENTITY_ENTITIES    = "entities"
-	//CONF_ENTITY_TYPE        = "object"
+	CONF_ENTITY             = "entity"
+
+	CONF_ENTITY_DATA_SVC = "data_svc"
+	CONF_ENTITY_TYPE     = "type"
+	CONF_ENTITY_ID       = "id"
+	CONF_ENTITY_METHODS  = "methods"
+	CONF_ENTITY_METHOD   = "method"
+	CONF_ENTITY_PATH     = "path"
 )
 
 //Environment hosting an application
 type EntityService struct {
-	Router         *echo.Group
-	EntitiesConf   map[string]interface{}
-	EntityServices map[string]interface{}
+	EntityName      string
+	dataServiceName string
+	DataStore       data.DataService
 }
 
 //Initialize service, register provider with laatoo
@@ -32,26 +41,156 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Infof("Creating entity service")
 	svc := &EntityService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
-	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_ROUTER)
-	}
-	svc.Router = routerInt.(*echo.Group)
+	router := routerInt.(*echo.Group)
 
 	//get a map of all the entities
-	entitiesInt, ok := conf[CONF_ENTITY_ENTITIES]
+	entityInt, ok := conf[CONF_ENTITY]
 	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_ENTITIES)
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_ENTITY)
+	}
+	entityName := entityInt.(string)
+	svc.EntityName = entityName
+
+	entitydatasvcInt, ok := conf[CONF_ENTITY_DATA_SVC]
+	if !ok {
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_DATASVC, svc.GetName())
+	}
+	svc.dataServiceName = entitydatasvcInt.(string)
+
+	entitymethodsInt, ok := conf[CONF_ENTITY_METHODS]
+	if !ok {
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS, svc.GetName())
 	}
 
-	entitiesConf, ok := entitiesInt.(map[string]interface{})
+	entityMethods, ok := entitymethodsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_ENTITIES)
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS, svc.GetName())
 	}
 
-	svc.EntityServices = make(map[string]interface{}, 20)
+	viewperm := fmt.Sprintf("View %s", entityName)
+	createperm := fmt.Sprintf("Create %s", entityName)
+	editperm := fmt.Sprintf("Edit %s", entityName)
+	deleteperm := fmt.Sprintf("Delete %s", entityName)
+	laatoocore.RegisterPermissions([]string{viewperm, createperm, editperm, deleteperm})
 
-	svc.EntitiesConf = entitiesConf
+	for name, val := range entityMethods {
 
+		methodConfig, ok := val.(map[string]interface{})
+		if !ok {
+			return nil, errors.ThrowError(ENTITY_ERROR_INCORRECT_METHOD_CONF, entityName, name)
+		}
+
+		pathInt, ok := methodConfig[CONF_ENTITY_PATH]
+		if !ok {
+			return nil, errors.ThrowError(ENTITY_ERROR_MISSING_PATH, entityName, name)
+		} else {
+			methodInt, ok := methodConfig[CONF_ENTITY_METHOD]
+			if !ok {
+				return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHOD, entityName, name)
+			}
+
+			path := pathInt.(string)
+			method := methodInt.(string)
+
+			switch method {
+			/*			case "list":
+						router.Get(path, svc.ListArticle)*/
+			case "get":
+				router.Get(path, func(ctx *echo.Context) error {
+					if !laatoocore.IsAllowed(ctx, viewperm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+					}
+					id := ctx.P(0)
+					log.Logger.Debugf("Getting entity %s", id)
+					ent, err := svc.DataStore.GetById(entityName, id)
+					if err != nil {
+						return err
+					}
+					return ctx.JSON(http.StatusOK, ent)
+				})
+			case "post":
+				router.Post(path, func(ctx *echo.Context) error {
+					if !laatoocore.IsAllowed(ctx, createperm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+					}
+					ent, err := laatoocore.CreateEmptyObject(entityName)
+					if err != nil {
+						return err
+					}
+					err = ctx.Bind(ent)
+					if err != nil {
+						return err
+					}
+					err = svc.DataStore.Save(entityName, ent)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+			case "put":
+				router.Put(path, func(ctx *echo.Context) error {
+					if !laatoocore.IsAllowed(ctx, editperm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+					}
+					id := ctx.P(0)
+					log.Logger.Debugf("Updating entity %s", id)
+					ent, err := laatoocore.CreateEmptyObject(entityName)
+					if err != nil {
+						return err
+					}
+					err = ctx.Bind(ent)
+					if err != nil {
+						return err
+					}
+					err = svc.DataStore.Put(entityName, id, ent)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+			case "putbulk":
+				router.Put(path, func(ctx *echo.Context) error {
+					if !laatoocore.IsAllowed(ctx, editperm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+					}
+					typ, err := laatoocore.GetCollectionType(entityName)
+					if err != nil {
+						return err
+					}
+					arrPtr := reflect.New(typ)
+					log.Logger.Debugf("Binding entities with collection %s", entityName)
+					err = ctx.Bind(arrPtr.Interface())
+					if err != nil {
+						return err
+					}
+					arr := arrPtr.Elem()
+					length := arr.Len()
+					log.Logger.Debugf("Saving bulk entities %s", entityName)
+					for i := 0; i < length; i++ {
+						entity := arr.Index(i).Addr().Interface().(data.Storable)
+						err = svc.DataStore.Put(entityName, entity.GetId(), entity)
+						if err != nil {
+							return err
+						}
+					}
+					return nil
+				})
+			case "delete":
+				router.Delete(path, func(ctx *echo.Context) error {
+					if !laatoocore.IsAllowed(ctx, deleteperm) {
+						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+					}
+					id := ctx.P(0)
+					log.Logger.Debugf("Deleting entity %s", id)
+					err := svc.DataStore.Delete(entityName, id)
+					if err != nil {
+						return err
+					}
+					return nil
+				})
+			}
+		}
+	}
 	return svc, nil
 }
 
@@ -62,30 +201,12 @@ func (svc *EntityService) GetName() string {
 
 //Initialize the service. Consumer of a service passes the data
 func (svc *EntityService) Initialize(ctx service.ServiceContext) error {
-	for name, val := range svc.EntitiesConf {
-		//get the config for the page with given alias
-		entityConf, ok := val.(map[string]interface{})
-		if !ok {
-			return errors.ThrowError(ENTITY_ERROR_WRONG_ENTITYCONFIG)
-		}
-
-		//get the service name to be created for the alias
-		log.Logger.Infof("Creating entity %s", name)
-		entitynameInt, ok := entityConf[entities.CONF_ENTITY_NAME]
-		if !ok {
-			return errors.ThrowError(entities.ENTITY_ERROR_MISSING_NAME)
-		}
-
-		entityConf[laatoocore.CONF_ENV_CONTEXT] = ctx
-
-		entityConf[laatoocore.CONF_ENV_ROUTER] = svc.Router
-		//create page with provided conf
-		entInt, err := ctx.CreateObject(entitynameInt.(string), entityConf)
-		if err != nil {
-			return err
-		}
-		svc.EntityServices[name] = entInt
+	dataSvc, err := ctx.GetService(svc.dataServiceName)
+	if err != nil {
+		return errors.RethrowError(ENTITY_ERROR_MISSING_DATASVC, err, svc.EntityName)
 	}
+
+	svc.DataStore = dataSvc.(data.DataService)
 	return nil
 }
 

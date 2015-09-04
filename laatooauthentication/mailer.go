@@ -10,7 +10,7 @@ import (
 )
 
 // SendMail uses the currently configured mailer to deliver e-mails.
-func (svc *AuthService) SendMail(data Email) error {
+func (svc *SecurityService) SendMail(data Email) error {
 	return svc.Mailer.Send(data)
 }
 

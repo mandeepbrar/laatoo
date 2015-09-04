@@ -4,6 +4,8 @@ package data
 type Storable interface {
 	GetId() string
 	SetId(string)
+	PreSave() error
+	PostLoad() error
 	GetIdField() string
 }
 

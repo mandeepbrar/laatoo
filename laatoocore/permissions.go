@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/labstack/echo"
 	"laatoosdk/auth"
-	"laatoosdk/log"
 	"laatoosdk/utils"
 )
 
 var (
+	SystemUser      = ""
+	SystemRole      = ""
 	Permissions     = utils.NewStringSet([]string{})
 	RolePermissions = make(map[string]bool)
 )
@@ -28,7 +29,6 @@ func RegisterRolePermissions(role auth.Role) {
 		key := fmt.Sprintf("%s#%s", role.GetId(), perm)
 		RolePermissions[key] = true
 	}
-	log.Logger.Debugf("RolePermissions", RolePermissions)
 }
 
 func IsAllowed(ctx *echo.Context, perm string) bool {

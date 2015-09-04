@@ -23,7 +23,7 @@ type AuthType interface {
 }
 
 //setup local authentication
-func (svc *AuthService) SetupLocalAuth(conf map[string]interface{}) error {
+func (svc *SecurityService) SetupLocalAuth(conf map[string]interface{}) error {
 	//create local authentication type
 	localAuthType, err := NewLocalAuth(conf, svc)
 	if err != nil {
@@ -38,7 +38,7 @@ func (svc *AuthService) SetupLocalAuth(conf map[string]interface{}) error {
 }
 
 //setup local authentication
-func (svc *AuthService) SetupOAuth(conf map[string]interface{}) error {
+func (svc *SecurityService) SetupOAuth(conf map[string]interface{}) error {
 	/*localAuthType, err : = localAuth.NewAuthType(conf)
 	if(err !=nil) {
 		return err
@@ -50,7 +50,7 @@ func (svc *AuthService) SetupOAuth(conf map[string]interface{}) error {
 }
 
 //The service starts serving when this method is called
-func (svc *AuthService) initializeAuthType(authType AuthType) error {
+func (svc *SecurityService) initializeAuthType(authType AuthType) error {
 	//initialize auth type
 	initializationErr := authType.InitializeType(
 		func(ctx *echo.Context) error { ///  auth start method starts
@@ -99,18 +99,18 @@ func (svc *AuthService) initializeAuthType(authType AuthType) error {
 	return nil
 }
 
-func (svc *AuthService) Logout(ctx *echo.Context) error {
+func (svc *SecurityService) Logout(ctx *echo.Context) error {
 	ctx.Response().Header().Set(svc.AuthHeader, "")
 	ctx.Set("User", nil)
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGOUT_COMPLETE, ctx})
 	return nil
 }
 
-func (svc *AuthService) CreateUser() (interface{}, error) {
+func (svc *SecurityService) CreateUser() (interface{}, error) {
 	return svc.Context.CreateObject(svc.UserObject, nil)
 }
 
-func (svc *AuthService) GetUserById(id string) (interface{}, error) {
+func (svc *SecurityService) GetUserById(id string) (interface{}, error) {
 	user, err := svc.UserDataService.GetById(svc.UserObject, id)
 	if err != nil {
 		return nil, err

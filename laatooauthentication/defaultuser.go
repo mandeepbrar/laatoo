@@ -2,6 +2,7 @@ package laatooauthentication
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
 	"laatoosdk/auth"
 	"laatoosdk/data"
@@ -24,6 +25,16 @@ func (usr *DefaultUser) SetId(id string) {
 }
 func (usr *DefaultUser) GetIdField() string {
 	return "Id"
+}
+func (ent *DefaultUser) PreSave() error {
+	err := ent.encryptPassword()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (ent *DefaultUser) PostLoad() error {
+	return nil
 }
 func (usr *DefaultUser) GetPassword() string {
 	return usr.Password
@@ -80,4 +91,13 @@ func init() {
 
 func NewUser(conf map[string]interface{}) (interface{}, error) {
 	return &DefaultUser{}, nil
+}
+
+func (usr *DefaultUser) encryptPassword() error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(usr.GetPassword()), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	usr.SetPassword(string(hash))
+	return nil
 }

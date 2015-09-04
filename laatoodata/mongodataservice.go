@@ -8,6 +8,7 @@ import (
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
+	"reflect"
 )
 
 type mongoDataService struct {
@@ -93,6 +94,8 @@ func (ms *mongoDataService) Save(objectType string, item interface{}) error {
 	if !ok {
 		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
+	stor := item.(data.Storable)
+	stor.PreSave()
 	err := connCopy.DB(ms.database).C(collection).Insert(item)
 	if err != nil {
 		return err
@@ -111,6 +114,7 @@ func (ms *mongoDataService) Put(objectType string, id string, item interface{}) 
 	stor := item.(data.Storable)
 	idkey := stor.GetIdField()
 	condition[idkey] = id
+	stor.PreSave()
 	err := connCopy.DB(ms.database).C(collection).Update(condition, item)
 	if err != nil {
 		return err
@@ -135,6 +139,7 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 	condition := bson.M{}
 	condition[idkey] = id
 	err = connCopy.DB(ms.database).C(collection).Find(condition).One(object)
+	stor.PostLoad()
 	if err != nil {
 		if err.Error() == "not found" {
 			return nil, nil
@@ -165,6 +170,12 @@ func (ms *mongoDataService) Get(objectType string, queryCond interface{}) (inter
 		conditions = bson.M{}
 	}
 	err = connCopy.DB(ms.database).C(collection).Find(conditions).All(results)
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		stor := arr.Index(i).Addr().Interface().(data.Storable)
+		stor.PostLoad()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +200,12 @@ func (ms *mongoDataService) GetList(objectType string) (interface{}, error) {
 	defer connCopy.Close()
 	condition := bson.M{}
 	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		stor := arr.Index(i).Addr().Interface().(data.Storable)
+		stor.PostLoad()
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,7 @@ var pageConf = {
 	"AuthRequired":true,
 	"AuthToken":"Auth-Token",
 	"entities":{
-		"article": {
+		"Article": {
 			"url": "http://localhost:7070/article",
 			"tabbed": true,
 			"model" : {},
@@ -98,7 +98,7 @@ var pageConf = {
 				}
 			]
 		},		
-		"mehfil": {
+		"Mehfil": {
 			"url": "http://localhost:7070/mehfil",
 			"tabbed": true,
 			"model" : {},
@@ -171,7 +171,7 @@ var pageConf = {
 				}
 			]	
 		},
-		"word": {
+		"Word": {
 			"url": "http://localhost:7070/word",
 			"model" : {},
 			"options": {},
@@ -255,7 +255,7 @@ var pageConf = {
 				
 			]
 		},
-		"video": {
+		"Video": {
 			"url": "http://localhost:7070/video",
 			"tabbed": true,
 			"model" : {},

@@ -4,10 +4,6 @@ import (
 	"laatoocore"
 )
 
-const (
-	CONF_DEFAULT_ROLE = "default_role"
-)
-
 type Role struct {
 	Role        string   `json:"Role" form:"Role" bson:"Role"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
@@ -29,9 +25,15 @@ func (r *Role) GetPermissions() []string {
 func (r *Role) SetPermissions(permissions []string) {
 	r.Permissions = permissions
 }
+func (ent *Role) PreSave() error {
+	return nil
+}
+func (ent *Role) PostLoad() error {
+	return nil
+}
 
 func init() {
-	laatoocore.RegisterObjectProvider(CONF_DEFAULT_ROLE, CreateRole)
+	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_ROLE, CreateRole)
 }
 
 func CreateRole(conf map[string]interface{}) (interface{}, error) {

@@ -5,6 +5,7 @@ import (
 	_ "laatooauthentication"
 	"laatoocore"
 	_ "laatoodata"
+	_ "laatooentities"
 	_ "laatoofiles"
 	_ "laatoopages"
 	"laatoosdk/log"

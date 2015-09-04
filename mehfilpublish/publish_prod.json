@@ -5,8 +5,8 @@
 			"connectionstring":"localhost",
 			"database":"Users",
 			"objects": {
-				"default_user":"Users",
-				"default_role":"Roles"				
+				"User":"Users",
+				"Role":"Roles"				
 			}
 		},
 		"publish_prod":{
@@ -14,27 +14,17 @@
 			"connectionstring":"localhost",
 			"database":"publish_prod",
 			"objects": {
-				"article":"Articles",
-				"video":"Video",
-				"mehfil":"Mehfil",
-				"word":"Word"
+				"Article":"Articles",
+				"Video":"Video",
+				"Mehfil":"Mehfil",
+				"Word":"Word"
 			}
 		},
-		"auth":{
-			"servicename":"auth_service",
+		"security":{
+			"servicename":"security_service",
 			"bypassauth":"true",
 			"user_data_svc":"user_storer",
 			"path":"/auth"
-		},
-		"users":{
-			"servicename":"user_service",
-			"user_data_svc":"user_storer",
-			"path":"/user"
-		},
-		"roles":{
-			"servicename":"role_service",
-			"user_data_svc":"user_storer",
-			"path":"/role"
 		},
 		"public":{
 			"servicename":"static_file_service",
@@ -165,127 +155,162 @@
 			}
 		},
 		"articleservice":{
-			"servicename":"articleservice",
+			"servicename":"entity_service",
+			"entity":"Article",
 			"path":"/article",
-			"entityname":"article",
 			"data_svc":"publish_prod",
 			"type":"core",
 			"id":"Id",
 			"methods": {
 				"get":{
 					"path":"/:id",
-					"method":"get",
-					"permission":"View Article"
+					"method":"get"
 				},
 				"post":{
 					"path":"",
-					"method":"post",
-					"permission":""
+					"method":"post"
 				},
 				"put":{
 					"path":"/:id",
-					"method":"put",
-					"permission":""
+					"method":"put"
 				},
 				"delete":{
 					"path":"/:id",
-					"method":"delete",
-					"permission":""
+					"method":"delete"
 				}
 			}
 		},
+		"roles":{
+			"servicename":"entity_service",
+			"entity":"Role",
+			"path":"/role",
+			"data_svc":"user_storer",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"get":{
+					"path":"/:id",
+					"method":"get"
+				},
+				"post":{
+					"path":"",
+					"method":"post"
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put"
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete"
+				}
+			}
+		},		
+		"users":{
+			"servicename":"entity_service",
+			"entity":"User",
+			"path":"/user",
+			"data_svc":"user_storer",
+			"type":"core",
+			"id":"Id",
+			"methods": {
+				"get":{
+					"path":"/:id",
+					"method":"get"
+				},
+				"post":{
+					"path":"",
+					"method":"post"
+				},
+				"put":{
+					"path":"/:id",
+					"method":"put"
+				},
+				"delete":{
+					"path":"/:id",
+					"method":"delete"
+				}
+			}
+		},		
 		"mehfilservice":{
-			"servicename":"mehfilservice",
+			"servicename":"entity_service",
 			"path":"/mehfil",
-			"entityname":"mehfil",
+			"entity":"Mehfil",
 			"data_svc":"publish_prod",
 			"type":"core",
 			"id":"Id",
 			"methods": {
 				"get":{
 					"path":"/:id",
-					"method":"get",
-					"permission":""
+					"method":"get"
 				},
 				"post":{
 					"path":"",
-					"method":"post",
-					"permission":""
+					"method":"post"
 				},
 				"put":{
 					"path":"/:id",
-					"method":"put",
-					"permission":""
+					"method":"put"
 				},
 				"delete":{
 					"path":"/:id",
-					"method":"delete",
-					"permission":""
+					"method":"delete"
 				}
 			}
 		},
 		"word":{
-			"servicename":"wordservice",
+			"servicename":"entity_service",
 			"path":"/word",
-			"entityname":"word",
+			"entity":"Word",
 			"data_svc":"publish_prod",
 			"type":"core",
 			"id":"Id",
 			"methods": {
 				"get":{
 					"path":"/:id",
-					"method":"get",
-					"permission":""
+					"method":"get"
 				},
 				"post":{
 					"path":"",
-					"method":"post",
-					"permission":""
+					"method":"post"
 				},
 				"put":{
 					"path":"/:id",
-					"method":"put",
-					"permission":""
+					"method":"put"
 				},
 				"putbulk":{
 					"path":"",
-					"method":"putbulk",
-					"permission":""
+					"method":"putbulk"
 				},
 				"delete":{
 					"path":"/:id",
-					"method":"delete",
-					"permission":""
+					"method":"delete"
 				}
 			}
 		},
 		"videoservice":{
-			"servicename":"videoservice",
+			"servicename":"entity_service",
 			"path":"/video",
-			"entityname":"video",
+			"entity":"Video",
 			"data_svc":"publish_prod",
 			"type":"core",
 			"id":"Id",
 			"methods": {
 				"get":{
 					"path":"/:id",
-					"method":"get",
-					"permission":""
+					"method":"get"
 				},
 				"post":{
 					"path":"",
-					"method":"post",
-					"permission":""
+					"method":"post"
 				},
 				"put":{
 					"path":"/:id",
-					"method":"put",
-					"permission":""
+					"method":"put"
 				},
 				"delete":{
 					"path":"/:id",
-					"method":"delete",
-					"permission":""
+					"method":"delete"
 				}
 			}
 		},
@@ -315,12 +340,12 @@
 			"path":"/configviews",
 			"views": {
 				"users":{
-					"name":"view_users",
+					"name":"view_entities",
 					"path":"/users",
 					"type":"entitylist"
 				},
 				"roles":{
-					"name":"view_roles",
+					"name":"view_entities",
 					"path":"/roles",
 					"type":"entitylist"
 				}

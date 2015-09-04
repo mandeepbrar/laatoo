@@ -1,7 +1,8 @@
-package publish_prod
+package laatooentities
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/data"
@@ -35,7 +36,11 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 		return errors.ThrowHttpError(views.VIEW_ERROR_MISSING_ARG, ctx, VIEW_ENTITY)
 	}
 	args := ctx.Query(VIEW_ARGS)
-	log.Logger.Debugf("Executing entity view %s with args %s", entity, args)
+	perm := fmt.Sprintf("View %s", entity)
+	log.Logger.Debugf("Executing entity view %s with args %s and permission %s", entity, args, perm)
+	if !laatoocore.IsAllowed(ctx, perm) {
+		return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
+	}
 
 	var argsMap map[string]interface{}
 

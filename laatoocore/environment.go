@@ -20,8 +20,8 @@ const (
 	CONF_ENV_AUTHHEADER = "auth_header"
 	//secret key for jwt
 	CONF_ENV_JWTSECRETKEY   = "jwtsecretkey"
-	DEFAULT_USER            = "default_user"
-	DEFAULT_ROLE            = "default_role"
+	DEFAULT_USER            = "User"
+	DEFAULT_ROLE            = "Role"
 	CONF_ENV_ROUTER         = "router"
 	CONF_ENV_CONTEXT        = "context"
 	CONF_SERVICE_BINDPATH   = "path"
@@ -55,14 +55,15 @@ func (env *Environment) createServices() error {
 	roleObject := env.Config.GetString(CONF_ENV_ROLE)
 	if len(roleObject) == 0 {
 		roleObject = DEFAULT_ROLE
-		env.Config.SetString(CONF_ENV_ROLE, DEFAULT_ROLE)
 	}
+	SystemRole = roleObject
+
 	//check if user service name to be used has been provided, otherwise set default name
 	userObject := env.Config.GetString(CONF_ENV_USER)
 	if len(userObject) == 0 {
 		userObject = DEFAULT_USER
-		env.Config.SetString(CONF_ENV_USER, DEFAULT_USER)
 	}
+	SystemUser = userObject
 	auserInt, err := CreateEmptyObject(userObject)
 	if err != nil {
 		return err

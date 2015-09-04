@@ -20,15 +20,15 @@ type localAuthType struct {
 	//method called in case of callback
 	authCallback echo.HandlerFunc
 	//reference to the main auth service
-	authService *AuthService
+	securityService *SecurityService
 }
 
 //method called for creating new auth type
-func NewLocalAuth(conf map[string]interface{}, svc *AuthService) (*localAuthType, error) {
+func NewLocalAuth(conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
 	//create the new auth type
 	localauth := &localAuthType{}
 	//store the reference to the parent
-	localauth.authService = svc
+	localauth.securityService = svc
 	log.Logger.Debug("localAuthProvider: Initializing")
 
 	//get the login path
@@ -48,7 +48,7 @@ func (localauth *localAuthType) Serve() error {
 //initialize auth type called by base auth for initializing
 func (localauth *localAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	//setup path for listening to login post request
-	localauth.authService.Router.Post(localauth.loginpath, authStart)
+	localauth.securityService.Router.Post(localauth.loginpath, authStart)
 	localauth.authCallback = authCallback
 	return nil
 }
@@ -59,7 +59,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	log.Logger.Debug("localAuthProvider: Validating Credentials")
 
 	//create the user
-	usrInt, err := localauth.authService.CreateUser()
+	usrInt, err := localauth.securityService.CreateUser()
 	if err != nil {
 		return errors.RethrowHttpError(laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
 	}
@@ -75,7 +75,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	id := usr.GetId()
 
 	//get the tested user from database
-	testedUser, err := localauth.authService.GetUserById(id)
+	testedUser, err := localauth.securityService.GetUserById(id)
 	if err != nil {
 		return errors.RethrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx, err)
 	}
