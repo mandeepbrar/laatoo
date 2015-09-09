@@ -10,7 +10,7 @@ import (
 var (
 	//global provider register
 	//objects factory register exists for every server
-	ObjectsFactoryRegister = utils.NewMemoryStorer()
+	ObjectsFactoryRegister = make(map[string]interface{}, 30)
 	ObjectCollections      = utils.NewMemoryStorer()
 	EmptyObjects           = utils.NewMemoryStorer()
 )
@@ -21,9 +21,11 @@ type ObjectFactory func(conf map[string]interface{}) (interface{}, error)
 
 //register the object factory in the global register
 func RegisterObjectProvider(objectName string, factory ObjectFactory) {
-
-	log.Logger.Infof("Registering object factory for %s", objectName)
-	ObjectsFactoryRegister.PutObject(objectName, factory)
+	_, ok := ObjectsFactoryRegister[objectName]
+	if !ok {
+		log.Logger.Infof("Registering object factory for %s", objectName)
+		ObjectsFactoryRegister[objectName] = factory
+	}
 }
 
 func CreateEmptyObject(objectName string) (interface{}, error) {
@@ -83,15 +85,15 @@ func createObject(objectName string, confdata map[string]interface{}) (interface
 	log.Logger.Debugf("Getting object %s", objectName)
 
 	//get the factory from the register
-	factoryInt, err := ObjectsFactoryRegister.GetObject(objectName)
-	if err != nil {
-		return nil, errors.RethrowError(CORE_ERROR_PROVIDER_NOT_FOUND, err, objectName)
+	factoryInt, ok := ObjectsFactoryRegister[objectName]
+	if !ok {
+		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, objectName)
 
 	}
 	//cast to a creatory func
 	factoryFunc, ok := factoryInt.(ObjectFactory)
 	if !ok {
-		return nil, errors.RethrowError(CORE_ERROR_PROVIDER_NOT_FOUND, err, objectName)
+		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, objectName)
 	}
 
 	log.Logger.Debugf("Creating object %s from factory", objectName)

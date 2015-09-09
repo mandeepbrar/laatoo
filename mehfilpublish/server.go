@@ -1,21 +1,11 @@
+// +build !appengine
+
 package main
 
 import (
-	_ "entities/publish_prod"
-	_ "laatooauthentication"
 	"laatoocore"
-	_ "laatoodata"
-	_ "laatooentities"
-	_ "laatoofiles"
-	_ "laatoopages"
-	"laatoosdk/log"
-	_ "laatoostatic"
-	_ "laatooview"
+	"log"
 	"os"
-)
-
-const (
-	CONF_SERVERTYPE_HOSTNAME = "STANDALONE"
 )
 
 func main() {
@@ -26,10 +16,7 @@ func main() {
 	} else {
 		configName = "server"
 	}
-
+	log.Println("Main Server Init")
 	//create a server with config name
-	_, err := laatoocore.NewServer(configName, laatoocore.CONF_SERVERTYPE_STANDALONE)
-	if err != nil {
-		log.Logger.Error("Error in server %s", err)
-	}
+	start(configName, laatoocore.CONF_SERVERTYPE_STANDALONE)
 }

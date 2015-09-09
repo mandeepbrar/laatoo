@@ -10,6 +10,7 @@ import (
 var (
 	SystemUser      = ""
 	SystemRole      = ""
+	AdminRole       = "Admin"
 	Permissions     = utils.NewStringSet([]string{})
 	RolePermissions = make(map[string]bool)
 )
@@ -41,6 +42,9 @@ func IsAllowed(ctx *echo.Context, perm string) bool {
 	}
 	roles := rolesInt.([]string)
 	for _, role := range roles {
+		if role == AdminRole {
+			return true
+		}
 		key := fmt.Sprintf("%s#%s", role, perm)
 		val, ok := RolePermissions[key]
 		if ok {

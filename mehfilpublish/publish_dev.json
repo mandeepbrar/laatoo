@@ -1,5 +1,4 @@
 {
-	"commsvc":"",
 	"services":{
 		"user_storer":{
 			"servicename":"mongo_data_service",
@@ -11,7 +10,9 @@
 			}
 		},
 		"publish_prod":{
-			"servicename":"datastore_data_service",
+			"servicename":"mongo_data_service",
+			"connectionstring":"localhost",
+			"database":"publish_prod",
 			"objects": {
 				"Article":"Articles",
 				"Video":"Video",

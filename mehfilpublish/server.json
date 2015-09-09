@@ -1,5 +1,5 @@
 {
-	"hostname": "localhost:7070",
+	"hostname": "localhost:8080",
 	"logging": {
 		"level":"debug"
 	},
@@ -7,6 +7,13 @@
 		{
 			"name":"publish_prod",
 			"conf":"publish_prod",
+			"servertype":"GOOGLE_APP",
+			"path":""
+		},
+		{
+			"name":"publish_dev",
+			"conf":"publish_dev",
+			"servertype":"STANDALONE",
 			"domain":"localhost:7070",
 			"path":""
 		}

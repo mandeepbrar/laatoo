@@ -1,14 +1,14 @@
 var pageConf = {
-	"AuthPage":"http://localhost:7070/login",
-	"LocalAuthServer":"http://localhost:7070/auth/login",
+	"AuthPage":"/login",
+	"LocalAuthServer":"/auth/login",
 	"ViewsServer": "/view",
-	"LinksServer": "http://localhost:7070/links",
+	"LinksServer": "/links",
 	"SuccessRedirect":"/home",
 	"AuthRequired":true,
 	"AuthToken":"Auth-Token",
 	"entities":{
 		"Article": {
-			"url": "http://localhost:7070/article",
+			"url": "/article",
 			"tabbed": true,
 			"model" : {},
 			"options": {},
@@ -99,7 +99,7 @@ var pageConf = {
 			]
 		},		
 		"Mehfil": {
-			"url": "http://localhost:7070/mehfil",
+			"url": "/mehfil",
 			"tabbed": true,
 			"model" : {},
 			"options": {},
@@ -172,7 +172,7 @@ var pageConf = {
 			]	
 		},
 		"Word": {
-			"url": "http://localhost:7070/word",
+			"url": "/word",
 			"model" : {},
 			"options": {},
 			"fields": [
@@ -194,7 +194,7 @@ var pageConf = {
 			]
 		},
 		"default_user": {
-			"url": "http://localhost:7070/user",
+			"url": "/user",
 			"model" : {},
 			"options": {},
 			"fields": [
@@ -218,7 +218,7 @@ var pageConf = {
 					"type":"ui-grid",
 					"templateOptions": {
 			        		"label": "User Roles",
-						"gridcallback": "/configviews?viewname=view_roles",
+						"gridcallback": "/configviews?viewname=view_entities&entity=Role",
 						"columns":[
 							{"name":"Role", "key": "Role"}
 						],
@@ -229,7 +229,7 @@ var pageConf = {
 			]
 		},
 		"default_role": {
-			"url": "http://localhost:7070/role",
+			"url": "/role",
 			"model" : {},
 			"options": {},
 			"fields": [
@@ -256,7 +256,7 @@ var pageConf = {
 			]
 		},
 		"Video": {
-			"url": "http://localhost:7070/video",
+			"url": "/video",
 			"tabbed": true,
 			"model" : {},
 			"options": {},

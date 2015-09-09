@@ -3,6 +3,7 @@ package errors
 import (
 	"fmt"
 	"laatoosdk/log"
+	"runtime/debug"
 )
 
 //levels at which error messages can be logged
@@ -88,7 +89,11 @@ func ThrowErrorWithContext(internalErrorCode string, ctx map[string]interface{},
 	case PANIC:
 		log.Logger.Panicf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
 	case ERROR:
-		log.Logger.Errorf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		stack := ""
+		if ctx == nil {
+			stack = string(debug.Stack())
+		}
+		log.Logger.Errorf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
 	case WARNING:
 		log.Logger.Warningf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
 	case INFO:

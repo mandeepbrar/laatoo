@@ -1,6 +1,6 @@
 package service
 
-import (
+/*import (
 	"fmt"
 	"laatoosdk/log"
 )
@@ -24,11 +24,11 @@ func (mods *ModuleHelper) InitializeModules(ctx ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (mods *ModuleHelper) Serve() error {
+func (mods *ModuleHelper) Serve(ctx ServiceContext) error {
 	for name, moduleInt := range mods.RegisteredModules {
 		module := moduleInt.(Service)
 		log.Logger.Infoln("ModuleHelper: Starting module ", name)
-		if err := module.Serve(); err != nil {
+		if err := module.Serve(ctx); err != nil {
 			return fmt.Errorf("ModuleHelper: [%s] Module Error: %v", name, err)
 		}
 	}
@@ -41,3 +41,4 @@ func NewModuleHelper() *ModuleHelper {
 	mod.RegisteredModules = make(map[string]Service)
 	return mod
 }
+*/

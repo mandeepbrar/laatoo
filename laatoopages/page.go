@@ -65,7 +65,7 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
 		var partialPages []*entities.Partial
 		if ok {
-			log.Logger.Infof("partialsInt %s", partialsInt)
+			log.Logger.Debugf("partialsInt %s", partialsInt)
 			partialsConf, ok := partialsInt.(map[string]interface{})
 			if !ok {
 				return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALS)

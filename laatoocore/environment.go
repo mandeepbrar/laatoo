@@ -18,6 +18,7 @@ const (
 	CONF_ENV_ROLE        = "role_object"
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "auth_header"
+	CONF_ENV_COMMSVC    = "commsvc"
 	//secret key for jwt
 	CONF_ENV_JWTSECRETKEY   = "jwtsecretkey"
 	DEFAULT_USER            = "User"
@@ -25,6 +26,7 @@ const (
 	CONF_ENV_ROUTER         = "router"
 	CONF_ENV_CONTEXT        = "context"
 	CONF_SERVICE_BINDPATH   = "path"
+	CONF_SERVICE_SERVERTYPE = "servertype"
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
 )
 
@@ -33,23 +35,24 @@ type Environment struct {
 	Router        *echo.Group
 	Config        config.Config
 	ServicesStore *utils.MemoryStorer
+	pubSub        service.PubSub
 }
 
 //creates a new environment
-func newEnvironment(envName string, conf string, router *echo.Group) (*Environment, error) {
+func newEnvironment(envName string, conf string, router *echo.Group, serverType string) (*Environment, error) {
 	env := &Environment{Router: router}
 	env.ServicesStore = utils.NewMemoryStorer()
 	//read config for standalone
 	env.Config = config.NewConfigFromFile(conf)
 	//create all services in the environment
 
-	if err := env.createServices(); err != nil {
+	if err := env.createServices(serverType); err != nil {
 		return nil, errors.RethrowError(CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 	}
 	return env, nil
 }
 
-func (env *Environment) createServices() error {
+func (env *Environment) createServices(serverType string) error {
 
 	//check if user service name to be used has been provided, otherwise set default name
 	roleObject := env.Config.GetString(CONF_ENV_ROLE)
@@ -97,6 +100,14 @@ func (env *Environment) createServices() error {
 		svcName, ok := serviceConfig[CONF_ENV_SERVICENAME].(string)
 		if !ok {
 			return errors.ThrowError(CORE_ERROR_MISSING_SERVICE_NAME, alias)
+		}
+
+		svcServerType, ok := serviceConfig[CONF_SERVICE_SERVERTYPE]
+
+		if ok {
+			if serverType != svcServerType.(string) {
+				continue
+			}
 		}
 
 		svcBindPath, ok := serviceConfig[CONF_SERVICE_BINDPATH]
@@ -176,6 +187,15 @@ func (env *Environment) createServices() error {
 
 //Initialize an environment
 func (env *Environment) InitializeEnvironment() error {
+	commSvc := env.Config.GetString(CONF_ENV_COMMSVC)
+	if len(commSvc) > 0 {
+		svcInt, err := env.ServicesStore.GetObject(commSvc)
+		if err != nil {
+			return err
+		}
+		env.pubSub = svcInt.(service.PubSub)
+	}
+
 	//go through list of all the services
 	svcs := env.ServicesStore.GetList()
 	//iterate through all the services

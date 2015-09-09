@@ -19,6 +19,9 @@ const (
 	CONF_SECURITYSERVICE_AUTHMODE      = "auth_mode"
 	CONF_SECURITYSERVICE_AUTHMODELOCAL = "local"
 	CONF_SECURITYSERVICE_AUTHMODEOAUTH = "oauth"
+	CONF_SECURITYSERVICE_SEEDUSER      = "seeduser"
+	CONF_SECURITYSERVICE_SEEDUSER_ID   = "user"
+	CONF_SECURITYSERVICE_SEEDUSER_PASS = "password"
 	CONF_SECURITYSERVICE_AUTHMODALL    = "all"
 	//providers to enable for oauth authentication
 	CONF_SECURITYSERVICE_OAUTHPROVIDERS = "oauth_providers"
@@ -149,6 +152,25 @@ func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
 
 //The service starts serving when this method is called
 func (svc *SecurityService) Serve() error {
+	seedUserInt, ok := svc.Configuration[CONF_SECURITYSERVICE_SEEDUSER]
+	if ok {
+		seedUserConf := seedUserInt.(map[string]interface{})
+		userId := seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_ID].(string)
+		user, _ := svc.UserDataService.GetById(laatoocore.SystemUser, userId)
+		if user == nil {
+			log.Logger.Infof("Creating seed user %s", userId)
+			suserInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemUser)
+			sUser := suserInt.(auth.RbacUser)
+			sLocalUser := suserInt.(auth.LocalAuthUser)
+			sUser.SetId(userId)
+			sUser.SetRoles([]string{laatoocore.AdminRole})
+			sLocalUser.SetPassword(seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_PASS].(string))
+			err = svc.UserDataService.Save(laatoocore.SystemUser, sUser)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	rolesInt, err := svc.UserDataService.Get(laatoocore.SystemRole, nil)
 	if err != nil {
 		return err

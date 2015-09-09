@@ -1,4 +1,4 @@
-package datastores
+package laatoodata
 
 import (
 	"gopkg.in/mgo.v2"

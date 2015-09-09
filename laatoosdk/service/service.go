@@ -11,7 +11,10 @@ type Service interface {
 	//Initialize the service. Consumer of a service passes the data
 	Initialize(ctx ServiceContext) error
 	//The service starts serving when this method is called
+	//called on first request
 	Serve() error
+	//This method is called on installation of the service
+	Install() error
 	//Type of service
 	GetServiceType() string
 	//Execute method
@@ -25,6 +28,8 @@ type ServiceContext interface {
 	CreateObject(objName string, confData map[string]interface{}) (interface{}, error)
 	CreateEmptyObject(objName string) (interface{}, error)
 	CreateCollection(objName string) (interface{}, error)
+	SubscribeTopic(topic string, handler TopicListener)
+	PublishMessage(topic string, message interface{}) error
 	GetConfig() config.Config
 }
 

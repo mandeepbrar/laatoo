@@ -2,11 +2,9 @@ package laatoocore
 
 import (
 	"github.com/labstack/echo"
-	mw "github.com/labstack/echo/middleware"
 	"laatoosdk/config"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"net/http"
 )
 
 const (
@@ -17,6 +15,7 @@ const (
 	CONF_ENVNAME               = "name"
 	CONF_ENVCONF               = "conf"
 	CONF_ENVPATH               = "path"
+	CONF_ENV_SERVERTYPE        = "servertype"
 )
 
 //Server hosting a number of environments
@@ -32,18 +31,13 @@ type Server struct {
 }
 
 //Initialize Server
-func (server *Server) InitServer(configName string) {
+func (server *Server) InitServer(configName string, router *echo.Echo) {
 	server.Applications = make(map[string]*Environment)
 	log.Logger.Infof("Initializing server with config %s", configName)
 	//read config for standalone
 	server.Config = config.NewConfigFromFile(configName)
 	//config logger
 	debug := log.ConfigLogger(server.Config)
-	//initialize router
-	router := echo.New()
-	// Middleware
-	router.Use(mw.Logger())
-	router.Use(mw.Recover())
 	router.SetDebug(debug)
 
 	log.Logger.Debugf("Getting environments")
@@ -55,8 +49,13 @@ func (server *Server) InitServer(configName string) {
 		envName := env[CONF_ENVNAME].(string)
 		envConf := env[CONF_ENVCONF].(string)
 		envPath := env[CONF_ENVPATH].(string)
-		log.Logger.Debugf("Creating environment", envName)
-		environment, err := newEnvironment(envName, envConf, router.Group(envPath))
+		envServerType, ok := env[CONF_ENV_SERVERTYPE]
+		if ok && (envServerType.(string) != server.ServerType) {
+			log.Logger.Infof("Skipping environment %s", envName)
+			continue
+		}
+		log.Logger.Infof("Creating environment", envName)
+		environment, err := newEnvironment(envName, envConf, router.Group(envPath), server.ServerType)
 		if err != nil {
 			errors.RethrowError(CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 		}
@@ -69,9 +68,6 @@ func (server *Server) InitServer(configName string) {
 			errors.RethrowError(CORE_ENVIRONMENT_NOT_INITIALIZED, err, envName)
 		}
 	}
-	log.Logger.Debugf("Router %v", router)
-
-	http.Handle("/", router)
 }
 
 //start the server
@@ -80,22 +76,4 @@ func (server *Server) Start() {
 	for _, app := range server.Applications {
 		app.StartEnvironment()
 	}
-}
-
-//Create a new server
-func NewServer(configName string, serverType string) (*Server, error) {
-	server := &Server{ServerType: serverType}
-	server.InitServer(configName)
-	server.Start()
-	//listen if server type is standalone
-	if serverType == CONF_SERVERTYPE_STANDALONE {
-		//find the address to bind from the server
-		address := server.Config.GetString(CONF_SERVERTYPE_HOSTNAME)
-		if address == "" {
-			return nil, errors.ThrowError(CORE_SERVERADD_NOT_FOUND)
-		}
-		//start listening
-		http.ListenAndServe(address, nil)
-	}
-	return server, nil
 }
