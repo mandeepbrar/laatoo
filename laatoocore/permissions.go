@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"laatoosdk/auth"
 	"laatoosdk/utils"
+	"reflect"
 )
 
 var (
@@ -22,6 +23,17 @@ func RegisterPermissions(perm []string) {
 
 func ListAllPermissions() []string {
 	return Permissions.Values()
+}
+
+func RegisterRoles(rolesInt interface{}) {
+	if rolesInt != nil {
+		arr := reflect.ValueOf(rolesInt).Elem()
+		length := arr.Len()
+		for i := 0; i < length; i++ {
+			role := arr.Index(i).Addr().Interface().(auth.Role)
+			RegisterRolePermissions(role)
+		}
+	}
 }
 
 func RegisterRolePermissions(role auth.Role) {

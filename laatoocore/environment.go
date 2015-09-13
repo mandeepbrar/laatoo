@@ -1,6 +1,7 @@
 package laatoocore
 
 import (
+	"github.com/dghubble/sling"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"laatoosdk/auth"
@@ -9,18 +10,19 @@ import (
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"laatoosdk/utils"
+	"net/http"
 )
 
 const (
 	CONF_ENV_SERVICES    = "services"
 	CONF_ENV_SERVICENAME = "servicename"
-	CONF_ENV_USER        = "user_object"
-	CONF_ENV_ROLE        = "role_object"
+	CONF_ENV_USER        = "settings.user_object"
+	CONF_ENV_ROLE        = "settings.role_object"
 	//header set by the service
-	CONF_ENV_AUTHHEADER = "auth_header"
-	CONF_ENV_COMMSVC    = "commsvc"
+	CONF_ENV_AUTHHEADER = "settings.auth_header"
+	CONF_ENV_COMMSVC    = "settings.commsvc"
 	//secret key for jwt
-	CONF_ENV_JWTSECRETKEY   = "jwtsecretkey"
+	CONF_ENV_JWTSECRETKEY   = "settings.jwtsecretkey"
 	DEFAULT_USER            = "User"
 	DEFAULT_ROLE            = "Role"
 	CONF_ENV_ROUTER         = "router"
@@ -28,6 +30,13 @@ const (
 	CONF_SERVICE_BINDPATH   = "path"
 	CONF_SERVICE_SERVERTYPE = "servertype"
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
+	CONF_AUTH_MODE          = "settings.authorization.mode"
+	CONF_AUTH_MODE_LOCAL    = "local"
+	CONF_AUTH_MODE_REMOTE   = "remote"
+	CONF_API_AUTH           = "settings.authorization.apiauth"
+	CONF_ROLES_API          = "settings.authorization.rolesapi"
+	CONF_API_PUBKEY         = "settings.authorization.pubkey"
+	CONF_API_DOMAIN         = "settings.authorization.domain"
 )
 
 //Environment hosting an application
@@ -36,11 +45,13 @@ type Environment struct {
 	Config        config.Config
 	ServicesStore *utils.MemoryStorer
 	pubSub        service.PubSub
+	authHeader    string
+	Name          string
 }
 
 //creates a new environment
 func newEnvironment(envName string, conf string, router *echo.Group, serverType string) (*Environment, error) {
-	env := &Environment{Router: router}
+	env := &Environment{Name: envName, Router: router}
 	env.ServicesStore = utils.NewMemoryStorer()
 	//read config for standalone
 	env.Config = config.NewConfigFromFile(conf)
@@ -75,7 +86,7 @@ func (env *Environment) createServices(serverType string) error {
 	anonymousUser.AddRole("Anonymous")
 
 	jwtSecret := utils.RandomString(15)
-	authHeader := "Auth-Token"
+	env.authHeader = "Auth-Token"
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
 	jwtSecretInt := env.Config.GetString(CONF_ENV_JWTSECRETKEY)
@@ -86,7 +97,7 @@ func (env *Environment) createServices(serverType string) error {
 	//check if auth header to be set has been provided, otherwise set default token
 	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
 	if len(authTokenInt) > 0 {
-		authHeader = authTokenInt
+		env.authHeader = authTokenInt
 	}
 
 	//get a map of all the services
@@ -126,7 +137,7 @@ func (env *Environment) createServices(serverType string) error {
 			}
 			if !bypassauth {
 				router.Use(func(ctx *echo.Context) error {
-					headerVal := ctx.Request().Header.Get(authHeader)
+					headerVal := ctx.Request().Header.Get(env.authHeader)
 
 					if headerVal != "" {
 						token, err := jwt.Parse(headerVal, func(token *jwt.Token) (interface{}, error) {
@@ -167,7 +178,7 @@ func (env *Environment) createServices(serverType string) error {
 			}
 			serviceConfig[CONF_ENV_ROUTER] = router
 			serviceConfig[CONF_ENV_JWTSECRETKEY] = jwtSecret
-			serviceConfig[CONF_ENV_AUTHHEADER] = authHeader
+			serviceConfig[CONF_ENV_AUTHHEADER] = env.authHeader
 		}
 
 		serviceConfig[CONF_ENV_CONTEXT] = env
@@ -246,6 +257,15 @@ func (env *Environment) GetConfig() config.Config {
 
 //start services
 func (env *Environment) StartEnvironment() error {
+	log.Logger.Infof("Starting environment %s", env.Name)
+	err := env.loadRemoteRolePermissions()
+	if err != nil {
+		return errors.RethrowError(CORE_ROLES_INIT_ERROR, err)
+	}
+	err = env.subscribeTopics()
+	if err != nil {
+		return errors.RethrowError(CORE_ERROR_PUBSUB_INITIALIZATION, err)
+	}
 	//go through list of all the services
 	svcs := env.ServicesStore.GetList()
 	//iterate through all the services
@@ -255,6 +275,58 @@ func (env *Environment) StartEnvironment() error {
 		if err := svc.Serve(); err != nil {
 			return errors.RethrowError(CORE_ERROR_SERVICE_NOT_STARTED, err, svc.GetName())
 		}
+	}
+	return nil
+}
+
+func (env *Environment) loadRemoteRolePermissions() error {
+	mode := env.Config.GetString(CONF_AUTH_MODE)
+	if mode == CONF_AUTH_MODE_REMOTE {
+		apiauth := env.Config.GetString(CONF_API_AUTH)
+		if len(apiauth) == 0 {
+			errors.ThrowError(AUTH_MISSING_API)
+		}
+		pubkey := env.Config.GetString(CONF_API_PUBKEY)
+		domain := env.Config.GetString(CONF_API_DOMAIN)
+		log.Logger.Infof("pubkey", pubkey)
+		key, err := EncryptWithKey(pubkey, domain)
+		if err != nil {
+			return err
+		}
+		form := &KeyAuth{Key: key}
+		req, err := sling.New().Post(apiauth).BodyJSON(form).Request()
+		if err != nil {
+			return err
+		}
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode != 200 {
+			errors.ThrowError(AUTH_APISEC_NOTALLOWED)
+		} else {
+			token := resp.Header.Get(env.authHeader)
+			rolesurl := env.Config.GetString(CONF_ROLES_API)
+			if len(rolesurl) == 0 {
+				return errors.ThrowError(CORE_ROLESAPI_NOT_FOUND)
+			}
+			roles, err := CreateCollection(SystemRole)
+			if err != nil {
+				return err
+			}
+			base := sling.New().Set(env.authHeader, token)
+			//req, err := base.New().Get("gophergram/list").Request()
+			resp, err = base.New().Get(rolesurl).ReceiveSuccess(roles)
+			if err != nil {
+				return err
+			}
+			if resp.StatusCode != 200 {
+				return errors.ThrowError(CORE_ROLESAPI_NOT_FOUND)
+			}
+			RegisterRoles(roles)
+		}
+
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	router.Use(mw.Recover())
 	server := &Server{ServerType: serverType}
 	server.InitServer(configName, router)
+	http.Handle("/", router)
 	if server.ServerType == CONF_SERVERTYPE_GOOGLEAPP {
 		log.Logger.Error("setting up router for warmup")
 		var req *echo.Context
@@ -45,6 +46,5 @@ func NewServer(configName string, serverType string) (*Server, error) {
 			return nil
 		})
 	}
-	http.Handle("/", router)
 	return server, nil
 }

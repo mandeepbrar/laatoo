@@ -1,6 +1,19 @@
 {
-	"commsvc":"",
+	"settings": {
+		"commsvc":"redis",
+		"jwtsecretkey":"",
+		"authorization":	{
+			"mode":"remote",
+			"apiauth":"http://localhost:8080/auth/keyauth",
+			"rolesapi":"http://localhost:8080/configviews?viewname=view_entities&entity=Role",
+			"pubkey":"mykey.pub"
+		}
+	},
 	"services":{
+		"redis": {
+			"servicename":"redis_pubsub",
+			"server":"localhost:6379"
+		},
 		"user_storer":{
 			"servicename":"mongo_data_service",
 			"connectionstring":"localhost",
@@ -22,6 +35,7 @@
 		"security":{
 			"servicename":"security_service",
 			"bypassauth":"true",
+			"pvtkey":"mykey.pem",
 			"user_data_svc":"user_storer",
 			"path":"/auth",
 			"seeduser": {

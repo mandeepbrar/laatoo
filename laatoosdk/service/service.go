@@ -13,8 +13,6 @@ type Service interface {
 	//The service starts serving when this method is called
 	//called on first request
 	Serve() error
-	//This method is called on installation of the service
-	Install() error
 	//Type of service
 	GetServiceType() string
 	//Execute method

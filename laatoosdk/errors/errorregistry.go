@@ -85,9 +85,17 @@ func ThrowErrorWithContext(internalErrorCode string, ctx map[string]interface{},
 	}
 	switch err.Loglevel {
 	case FATAL:
-		log.Logger.Fatalf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		stack := ""
+		if ctx == nil {
+			stack = string(debug.Stack())
+		}
+		log.Logger.Fatalf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
 	case PANIC:
-		log.Logger.Panicf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		stack := ""
+		if ctx == nil {
+			stack = string(debug.Stack())
+		}
+		log.Logger.Panicf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
 	case ERROR:
 		stack := ""
 		if ctx == nil {

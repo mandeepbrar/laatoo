@@ -12,6 +12,7 @@ const (
 	CORE_ERROR_MISSING_SERVICE_NAME   = "Core_Missing_Service_Name"
 	CORE_ERROR_SERVICE_CREATION       = "Core_Service_Creation"
 	CORE_ERROR_SERVICE_INITIALIZATION = "Core_Service_Initialization"
+	CORE_ERROR_PUBSUB_INITIALIZATION  = "Core_Error_Pubsub_Initialization"
 	CORE_ERROR_SERVICE_NOT_FOUND      = "Core_Service_Not_Found"
 	CORE_ERROR_SERVICE_NOT_STARTED    = "Core_Service_Not_Started"
 	CORE_ERROR_PROVIDER_NOT_FOUND     = "Core_Provider_Not_Found"
@@ -19,12 +20,16 @@ const (
 	CORE_ENVIRONMENT_NOT_CREATED      = "Core_Environment_Not_Created"
 	CORE_ENVIRONMENT_NOT_INITIALIZED  = "Core_Environment_Not_Initialized"
 	CORE_SERVERADD_NOT_FOUND          = "Core_ServerAdd_Not_Found"
+	CORE_ROLESAPI_NOT_FOUND           = "Core_Rolesapi_Not_Found"
+	CORE_ROLES_INIT_ERROR             = "Core_Roles_Init_Error"
 
 	AUTH_ERROR_WRONG_SIGNING_METHOD   = "Auth_Error_Wrong_Signing_Method"
 	AUTH_ERROR_USEROBJECT_NOT_CREATED = "Auth_Error_User_Object_Not_Created"
 	AUTH_ERROR_HEADER_NOT_FOUND       = "Auth_Error_Header_Not_Found"
 	AUTH_ERROR_INVALID_TOKEN          = "Auth_Error_Invalid_Token"
-	AUTH_ERROR_SECURITY               = "AUTH_ERROR_SECURITY"
+	AUTH_ERROR_SECURITY               = "Auth_Error_Security"
+	AUTH_MISSING_API                  = "Auth_Missing_Api"
+	AUTH_APISEC_NOTALLOWED            = "Auth_Apisec_notallowed"
 )
 
 func init() {
@@ -32,12 +37,17 @@ func init() {
 	errors.RegisterCode(CORE_ERROR_SERVICE_CREATION, errors.FATAL, fmt.Errorf("Service could not be created."))
 	errors.RegisterCode(CORE_ERROR_SERVICE_INITIALIZATION, errors.FATAL, fmt.Errorf("Service could not be initialized."))
 	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_FOUND, errors.FATAL, fmt.Errorf("Service not found."))
+	errors.RegisterCode(CORE_ERROR_PUBSUB_INITIALIZATION, errors.FATAL, fmt.Errorf("Pubsub could not be initialized."))
 	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_STARTED, errors.FATAL, fmt.Errorf("Service not started."))
 	errors.RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, errors.FATAL, fmt.Errorf("Provider for object not found."))
 	errors.RegisterCode(CORE_ERROR_OBJECT_NOT_CREATED, errors.FATAL, fmt.Errorf("Object could not be created from provider."))
 	errors.RegisterCode(CORE_ENVIRONMENT_NOT_CREATED, errors.FATAL, fmt.Errorf("Environment could not be created."))
 	errors.RegisterCode(CORE_ENVIRONMENT_NOT_INITIALIZED, errors.FATAL, fmt.Errorf("Environment could not be initialized."))
 	errors.RegisterCode(CORE_SERVERADD_NOT_FOUND, errors.FATAL, fmt.Errorf("Server address not provided."))
+	errors.RegisterCode(CORE_ROLESAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Roles api not provided."))
+	errors.RegisterCode(CORE_ROLES_INIT_ERROR, errors.FATAL, fmt.Errorf("Roles could not be initialized."))
+	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("API not provided for api authentication."))
+	errors.RegisterCode(AUTH_APISEC_NOTALLOWED, errors.FATAL, fmt.Errorf("System could not authenticate for Apis."))
 
 	errors.RegisterCode(AUTH_ERROR_WRONG_SIGNING_METHOD, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Wrong signing method used in the token."))
 	errors.RegisterErrorHandler(AUTH_ERROR_WRONG_SIGNING_METHOD, AuthError)

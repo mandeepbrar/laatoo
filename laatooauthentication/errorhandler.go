@@ -20,6 +20,7 @@ const (
 	AUTH_ERROR_WRONG_PASSWORD             = "Auth_Error_Wrong_Password"
 	AUTH_ERROR_USER_NOT_FOUND             = "Auth_Error_User_Not_Found"
 	AUTH_ERROR_INCORRECT_REQ_FORMAT       = "Auth_Error_Incorrect_Req_Format"
+	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
 )
 
 func init() {
@@ -47,4 +48,7 @@ func init() {
 
 	errors.RegisterCode(AUTH_ERROR_INCORRECT_REQ_FORMAT, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Request for login was not in a correct format"))
 	errors.RegisterErrorHandler(AUTH_ERROR_INCORRECT_REQ_FORMAT, laatoocore.AuthError)
+
+	errors.RegisterCode(AUTH_ERROR_DOMAIN_NOT_ALLOWED, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Domain not allowed by system"))
+	errors.RegisterErrorHandler(AUTH_ERROR_DOMAIN_NOT_ALLOWED, laatoocore.AuthError)
 }

@@ -8,6 +8,7 @@ import (
 	_ "laatooentities"
 	_ "laatoofiles"
 	_ "laatoopages"
+	_ "laatoopubsub"
 	"laatoosdk/log"
 	_ "laatoostatic"
 	_ "laatooview"

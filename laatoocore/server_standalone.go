@@ -6,7 +6,9 @@ import (
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 	"laatoosdk/errors"
+	"net"
 	"net/http"
+	"time"
 )
 
 //Create a new server
@@ -20,15 +22,28 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	server.InitServer(configName, router)
 	//listen if server type is standalone
 	if serverType == CONF_SERVERTYPE_STANDALONE {
-		server.Start()
 		//find the address to bind from the server
 		address := server.Config.GetString(CONF_SERVERTYPE_HOSTNAME)
 		if address == "" {
 			return nil, errors.ThrowError(CORE_SERVERADD_NOT_FOUND)
 		}
 		http.Handle("/", router)
+		go startServer(address, server)
 		//start listening
 		http.ListenAndServe(address, nil)
 	}
 	return server, nil
+}
+
+func startServer(address string, server *Server) {
+	for i := 0; i < 10; i++ {
+		_, err := net.Dial("tcp", address)
+		if err != nil {
+			time.Sleep(100 * time.Millisecond)
+		} else {
+			server.Start()
+			return
+		}
+	}
+	panic("Server could not be started")
 }

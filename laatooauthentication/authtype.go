@@ -37,6 +37,21 @@ func (svc *SecurityService) SetupLocalAuth(conf map[string]interface{}) error {
 	return nil
 }
 
+//setup api authentication
+func (svc *SecurityService) SetupKeyAuth(conf map[string]interface{}) error {
+	//create local authentication type
+	keyAuthType, err := NewKeyAuth(conf, svc)
+	if err != nil {
+		return err
+	}
+	//initialize local authentication
+	err = svc.initializeAuthType(keyAuthType)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //setup local authentication
 func (svc *SecurityService) SetupOAuth(conf map[string]interface{}) error {
 	/*localAuthType, err : = localAuth.NewAuthType(conf)

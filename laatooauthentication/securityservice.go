@@ -23,6 +23,7 @@ const (
 	CONF_SECURITYSERVICE_SEEDUSER_ID   = "user"
 	CONF_SECURITYSERVICE_SEEDUSER_PASS = "password"
 	CONF_SECURITYSERVICE_AUTHMODALL    = "all"
+	CONF_SECURITYSERVICE_AUTHMODEKEY   = "key"
 	//providers to enable for oauth authentication
 	CONF_SECURITYSERVICE_OAUTHPROVIDERS = "oauth_providers"
 	//logout path for the service
@@ -97,6 +98,10 @@ func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	//if oauth mode has been enabled, set oauth mode
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEOAUTH {
 
+	}
+	//if oauth mode has been enabled, set oauth mode
+	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEKEY {
+		svc.SetupKeyAuth(conf)
 	}
 
 	//get the logout path for the application
