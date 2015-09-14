@@ -151,15 +151,17 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 	return object, nil
 }
 
-func (ms *mongoDataService) Get(objectType string, queryCond interface{}) (interface{}, error) {
+func (ms *mongoDataService) Get(objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	totalrecs = -1
+	recsreturned = -1
 	results, err := ms.context.CreateCollection(objectType)
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
 	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -169,47 +171,71 @@ func (ms *mongoDataService) Get(objectType string, queryCond interface{}) (inter
 	} else {
 		conditions = bson.M{}
 	}
-	err = connCopy.DB(ms.database).C(collection).Find(conditions).All(results)
+	query := connCopy.DB(ms.database).C(collection).Find(conditions)
+	if pageSize > 0 {
+		totalrecs, err = query.Count()
+		if err != nil {
+			return nil, totalrecs, recsreturned, err
+		}
+		recsToSkip := (pageNum - 1) * pageSize
+		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
+	err = query.All(results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
-	for i := 0; i < length; i++ {
+	i := 0
+	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
 		stor.PostLoad()
 	}
+	recsreturned = i
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
-	return results, nil
+	return results, totalrecs, recsreturned, nil
 }
 
 func (ms *mongoDataService) Delete(objectType string, id string) error {
 	return nil
 }
 
-func (ms *mongoDataService) GetList(objectType string) (interface{}, error) {
+func (ms *mongoDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	totalrecs = -1
+	recsreturned = -1
 	results, err := ms.context.CreateCollection(objectType)
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
 	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
-	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	query := connCopy.DB(ms.database).C(collection).Find(condition)
+	if pageSize > 0 {
+		totalrecs, err = query.Count()
+		if err != nil {
+			return nil, totalrecs, recsreturned, err
+		}
+		recsToSkip := (pageNum - 1) * pageSize
+		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
+	err = query.All(results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
-	for i := 0; i < length; i++ {
+	i := 0
+	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
 		stor.PostLoad()
 	}
+	recsreturned = i
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
-	return results, nil
+	return results, totalrecs, recsreturned, nil
 }
 
 //Execute method

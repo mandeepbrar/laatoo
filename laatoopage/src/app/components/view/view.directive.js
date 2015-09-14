@@ -64,15 +64,32 @@
 		   );
 		};
       }
+	  $scope.pagenum = 1;
+	  $scope.paginate = false;
+	  if($attrs.paginate) {
+	    $scope.paginate = ($attrs.paginate == "true");	
+ 	  }
+      if($attrs.pagesize) {
+		  $scope.pagesize = parseInt($attrs.pagesize);
+	  } else {
+		$scope.pagesize = 10;
+	  }	
 	  $scope.params['viewname'] = name;
 	  $scope.refreshView = function() {
 		  var url = pageConf.ViewsServer;
 		  if($scope.viewserver) {
 			url = $scope.viewserver;	
 		  }
+		  if($scope.paginate) {
+			  $scope.params.pagesize = $scope.pagesize;
+			  $scope.params.pagenum = $scope.pagenum;			
+		  }
 		  $http.get(url, { params: $scope.params }).then(
 		       function(response) {
 					$scope[$scope.modelname] = response.data;
+					var headers = response.headers();
+					$scope.records = headers["records"]
+					$scope.totalrecords = headers["totalrecords"]
 		       },
 		       function(errorResponse) {
 				  if(errorResponse.status == 401) {

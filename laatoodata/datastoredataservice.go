@@ -168,98 +168,78 @@ func (ms *DatastoreDataService) GetById(objectType string, id string) (interface
 	return object, nil
 }
 
-func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}) (interface{}, error) {
+func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	totalrecs = -1
+	recsreturned = -1
 	results, err := ms.context.CreateCollection(objectType)
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
 	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
 	q := datastore.NewQuery(collection)
+	if pageSize > 0 {
+		totalrecs, err = query.Count()
+		if err != nil {
+			return nil, totalrecs, recsreturned, err
+		}
+		recsToSkip := (pageNum - 1) * pageSize
+		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = q.GetAll(laatoocore.APPENGINE_CONTEXT, results)
-	/*results, err := ms.context.CreateCollection(objectType)
-	if err != nil {
-		return nil, err
-	}
-	log.Logger.Debugf("Got the object ", results)
-	collection, ok := ms.objects[objectType]
-	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
-	}
-	connCopy := ms.connection.Copy()
-	defer connCopy.Close()
-	var conditions map[string]interface{}
-	if queryCond != nil {
-		conditions = queryCond.(map[string]interface{})
-	} else {
-		conditions = bson.M{}
-	}
-	err = connCopy.DB(ms.database).C(collection).Find(conditions).All(results)*/
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
-	for i := 0; i < length; i++ {
+	i := 0
+	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
 		stor.PostLoad()
 	}
+	recsreturned = i
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
-	return results, nil
+	return results, totalrecs, recsreturned, nil
 }
 
 func (ms *DatastoreDataService) Delete(objectType string, id string) error {
 	return nil
 }
 
-func (ms *DatastoreDataService) GetList(objectType string) (interface{}, error) {
+func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	totalrecs = -1
+	recsreturned = -1
 	results, err := ms.context.CreateCollection(objectType)
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
 	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
 	q := datastore.NewQuery(collection)
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = q.GetAll(laatoocore.APPENGINE_CONTEXT, results)
-	/*results, err := ms.context.CreateCollection(objectType)
-	if err != nil {
-		return nil, err
-	}
-	log.Logger.Debugf("Got the object ", results)
-	collection, ok := ms.objects[objectType]
-	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
-	}
-	connCopy := ms.connection.Copy()
-	defer connCopy.Close()
-	var conditions map[string]interface{}
-	if queryCond != nil {
-		conditions = queryCond.(map[string]interface{})
-	} else {
-		conditions = bson.M{}
-	}
-	err = connCopy.DB(ms.database).C(collection).Find(conditions).All(results)*/
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
-	for i := 0; i < length; i++ {
+	i := 0
+	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
 		stor.PostLoad()
 	}
+	recsreturned = i
 	if err != nil {
-		return nil, err
+		return nil, totalrecs, recsreturned, err
 	}
-	return results, nil
+	return results, totalrecs, recsreturned, nil
 }
 
 //Execute method

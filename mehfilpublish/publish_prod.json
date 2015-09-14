@@ -3,7 +3,7 @@
 		"commsvc":"redis",
 		"jwtsecretkey":"",
 		"authorization":	{
-			"mode":"remote",
+			"mode":"local",
 			"apiauth":"http://localhost:8080/auth/keyauth",
 			"rolesapi":"http://localhost:8080/configviews?viewname=view_entities&entity=Role",
 			"pubkey":"mykey.pub"

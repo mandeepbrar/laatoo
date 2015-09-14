@@ -176,7 +176,7 @@ func (svc *SecurityService) Serve() error {
 			}
 		}
 	}
-	rolesInt, err := svc.UserDataService.Get(laatoocore.SystemRole, nil)
+	rolesInt, _, _, err := svc.UserDataService.Get(laatoocore.SystemRole, nil, -1, -1, "")
 	if err != nil {
 		return err
 	}

@@ -13,9 +13,9 @@ type DataService interface {
 	//Get an object by id
 	GetById(objectType string, id string) (interface{}, error)
 	//Get all object with given conditions
-	Get(objectType string, conditions interface{}) (interface{}, error)
+	Get(objectType string, conditions interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
-	GetList(objectType string) (interface{}, error)
+	GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 }
 
 const (

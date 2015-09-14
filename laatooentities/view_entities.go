@@ -10,6 +10,7 @@ import (
 	"laatoosdk/log"
 	views "laatooview"
 	"net/http"
+	"strconv"
 )
 
 const (
@@ -31,9 +32,26 @@ func init() {
 }
 
 func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context) error {
+	var err error
 	entity := ctx.Query(VIEW_ENTITY)
 	if entity == "" {
 		return errors.ThrowHttpError(views.VIEW_ERROR_MISSING_ARG, ctx, VIEW_ENTITY)
+	}
+	pagesize := -1
+	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
+	if pagesizeVal != "" {
+		pagesize, err = strconv.Atoi(pagesizeVal)
+		if err != nil {
+			return err
+		}
+	}
+	pagenum := 1
+	pagenumVal := ctx.Query(data.VIEW_PAGENUM)
+	if pagenumVal != "" {
+		pagenum, err = strconv.Atoi(pagenumVal)
+		if err != nil {
+			return err
+		}
 	}
 	args := ctx.Query(VIEW_ARGS)
 	perm := fmt.Sprintf("View %s", entity)
@@ -51,9 +69,12 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 		}
 	}
 
-	entities, err := dataStore.Get(entity, argsMap)
+	entities, totalrecs, recsreturned, err := dataStore.Get(entity, argsMap, pagesize, pagenum, "")
 	if err != nil {
 		return err
 	}
+	log.Logger.Debugf("Totalrecs %d RecsReturned %d", totalrecs, recsreturned)
+	ctx.Response().Header().Set(data.VIEW_TOTALRECS, fmt.Sprint(totalrecs))
+	ctx.Response().Header().Set(data.VIEW_RECSRETURNED, fmt.Sprint(recsreturned))
 	return ctx.JSON(http.StatusOK, entities)
 }

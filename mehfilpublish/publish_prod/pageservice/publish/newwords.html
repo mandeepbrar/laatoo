@@ -1,7 +1,7 @@
 <page name="words">
 	<h1>New Words</h1>
 	<div class="row-fluid">
-		<view name="view_entities" editable="true"  action="/word" args='{"entity":"Word"}'>
+		<view name="view_entities" editable="true"  action="/word" args='{"entity":"Word"}' paginate="true" pagesize="50">
 			<table ng-model="$parent.viewrows" class="table table-striped ">
 				<thead>
 					<tr>
