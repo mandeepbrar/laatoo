@@ -180,19 +180,19 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
-	q := datastore.NewQuery(collection)
+	query := datastore.NewQuery(collection)
 	if pageSize > 0 {
-		totalrecs, err = query.Count()
+		totalrecs, err = query.Count(laatoocore.APPENGINE_CONTEXT)
 		if err != nil {
 			return nil, totalrecs, recsreturned, err
 		}
 		recsToSkip := (pageNum - 1) * pageSize
-		query = query.Limit(pageSize).Skip(recsToSkip)
+		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
-	_, err = q.GetAll(laatoocore.APPENGINE_CONTEXT, results)
+	_, err = query.GetAll(laatoocore.APPENGINE_CONTEXT, results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
 	i := 0
@@ -223,11 +223,19 @@ func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
 	}
-	q := datastore.NewQuery(collection)
+	query := datastore.NewQuery(collection)
+	if pageSize > 0 {
+		totalrecs, err = query.Count(laatoocore.APPENGINE_CONTEXT)
+		if err != nil {
+			return nil, totalrecs, recsreturned, err
+		}
+		recsToSkip := (pageNum - 1) * pageSize
+		query = query.Limit(pageSize).Offset(recsToSkip)
+	}
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
-	_, err = q.GetAll(laatoocore.APPENGINE_CONTEXT, results)
+	_, err = query.GetAll(laatoocore.APPENGINE_CONTEXT, results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
 	i := 0

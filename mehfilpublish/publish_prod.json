@@ -41,6 +41,15 @@
 			"seeduser": {
 				"user":"user",
 				"password":"password"
+			}, 
+			"oauthsites": {
+				"google": {
+					"clientid":"x",
+					"clientsecret": "y",
+					"sitetype":"google",
+					"authurl":"/google",
+					"callbackurl":"/callback/google"
+				}
 			}
 		},
 		"public":{
