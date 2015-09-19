@@ -208,7 +208,12 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 }
 
 func (ms *DatastoreDataService) Delete(objectType string, id string) error {
-	return nil
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+	}
+	key := datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, id, 0, nil)
+	return datastore.Delete(laatoocore.APPENGINE_CONTEXT, key)
 }
 
 func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
