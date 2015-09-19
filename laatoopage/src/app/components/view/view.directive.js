@@ -29,7 +29,7 @@
     return directive;
 
     /** @ngInject */
-    function ViewCtrl($scope, $element, $attrs, ViewService, $http) {
+    function ViewCtrl($scope, $element, $attrs, ViewService, $http, dialogs) {
       var name = $attrs.name;
 	  $scope.params = {};
 	  $scope.modelname = 'viewrows';
@@ -53,13 +53,16 @@
 			actionUrl = $attrs.action;
 	  	}
 		$scope.onSubmit = function() {
-			console.log("submit view");
 			$http.put(actionUrl, $scope[$scope.modelname]).then(
 		       function(response) {
-					console.log(response);
+					dialogs.notify('Success','Action completed successfully.');
 		       },
 		       function(errorResponse) {
-		         	console.log("error communicating with server");
+		            if(errorResponse.status == 0) {
+					  dialogs.error('Error','Could not connect to the website. Please check your internet connection or the website is offline.');
+		               return;
+		            }
+					dialogs.error('Error','Action could not be completed. ' + errorResponse);
 		       }
 		   );
 		};
@@ -84,21 +87,25 @@
 			  $scope.params.pagesize = $scope.pagesize;
 			  $scope.params.pagenum = $scope.pagenum;			
 		  }
-		  $http.get(url, { params: $scope.params }).then(
+			$http.get(url, { params: $scope.params }).then(
 		       function(response) {
 					$scope[$scope.modelname] = response.data;
 					var headers = response.headers();
 					$scope.records = headers["records"]
 					$scope.totalrecords = headers["totalrecords"]
 		       },
-		       function(errorResponse) {
+		       function(errorResponse, status) {
+		            if(errorResponse.status == 0) {
+					  dialogs.error('Error','Could not connect to the website. Please check your internet connection or the website is offline.');
+		               return;
+		            }
 				  if(errorResponse.status == 401) {
 					window.location.href = window.pageConf.AuthPage;								
 				  } else {
-		         	  console.log("error communicating with server");					
+					  dialogs.error('Error','Action could not be completed. ' + errorResponse.statusText);
 				   }
 		       }
-		   );
+		    );
 		//  $scope[$scope.modelname] = ViewService.query($scope.params);	  		
 	  };
 	  $scope.refreshView();

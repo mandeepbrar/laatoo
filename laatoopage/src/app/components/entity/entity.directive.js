@@ -29,7 +29,7 @@
       if($attrs.name) {
         name = $attrs.name;
       } else {
-		throw new Error("Server error. Entity name missing");	
+		dialogs.error('Error','Action could not be completed.');
 	  }
 	  var id;
       if($attrs.id) {
@@ -44,7 +44,11 @@
 				$scope.entitydata = response.data;
 	        },
 	        function(errorResponse) {
-	          console.log("error communicating with server");
+	            if(errorResponse.status == 0) {
+				  dialogs.error('Error','Could not connect to the website. Please check your internet connection or the website is offline.');
+	               return;
+	            }
+				dialogs.error('Error','Action could not be completed. ' + errorResponse.statusText);
 	        }
 	    );
       });

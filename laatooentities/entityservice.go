@@ -117,7 +117,9 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 					if err != nil {
 						return err
 					}
+					log.Logger.Debugf("Saving entity1", ent)
 					err = ctx.Bind(ent)
+					log.Logger.Debugf("Saving entity2", ent)
 					if err != nil {
 						return err
 					}

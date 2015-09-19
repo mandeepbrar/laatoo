@@ -5,7 +5,7 @@
   app.controller('LoginController', LoginController);
 
   /** @ngInject */ 
-  function LoginController ($scope, $state, $location, AuthenticationService) {
+  function LoginController ($scope, $state, $location, AuthenticationService, dialogs) {
       $scope.login = function() {
 		var id = $scope.username;
 		var pass = $scope.password;
@@ -19,7 +19,8 @@
 				localStorage.auth = "";				
 				localStorage.permissions = null;
 			}
-			console.log("err" + err);
+			dialogs.error('Error','Login unsuccessful.');
+			console.log(err);
 		});
       };
   }

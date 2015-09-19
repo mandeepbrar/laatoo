@@ -196,7 +196,21 @@ func (ms *mongoDataService) Get(objectType string, queryCond interface{}, pageSi
 }
 
 func (ms *mongoDataService) Delete(objectType string, id string) error {
-	return nil
+	object, err := ms.context.CreateObject(objectType, nil)
+	if err != nil {
+		return nil
+	}
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+	}
+	stor := object.(data.Storable)
+	idkey := stor.GetIdField()
+	condition := bson.M{}
+	condition[idkey] = id
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	return connCopy.DB(ms.database).C(collection).Remove(condition)
 }
 
 func (ms *mongoDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {

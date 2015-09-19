@@ -22,11 +22,25 @@
 			var url = value.url;		
 			var templatepath = value.templatepath;		
 			var actiontype = value.actiontype;		
-			var viewmode = value.viewmode;
-			var obj = {};
-			obj[view] = 	{ templateUrl: templatepath };
-		    mainapp.stateProvider.state(actionName, 
-				{ url: url, views : obj });
+			if(actiontype === 'openpartialpage') {
+				var viewmode = value.viewmode;
+				var obj = {};
+				obj[view] = 	{ templateUrl: templatepath };
+				var cfunc = function($scope, $stateParams) {
+							for(var i = 0; i< len($stateParams); i++) {
+								if(!$scope.params) {
+									$scope.params = {};
+								}
+								var key = $stateParams[i];
+								var val = $stateParams[key];
+				     			$scope.params[key] = val;							
+							}
+			         	};
+	
+			    mainapp.stateProvider.state(actionName, 
+					{ url: url, views : obj, params: value.params, controller: cfunc });
+				
+			}
 		}		  
 		mainapp.urlRouteProvider.otherwise('/');
 	}

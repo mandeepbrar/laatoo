@@ -1,7 +1,7 @@
 (function() {
 
     'use strict';
-    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'login', 'view', 'actions', 'entity', 'media', 'smart-table', 'uigrid']);
+    var mainApp = angular.module('main', ['ngAnimate', 'ngCookies', 'ngTouch', 'ngSanitize', 'ngResource', 'ui.router', 'ui.bootstrap', 'dialogs.main', 'pascalprecht.translate', 'dialogs.default-translations', 'login', 'view', 'actions', 'entity', 'media', 'smart-table', 'uigrid']);
 
     bootstrapApplication();
 	
@@ -9,7 +9,7 @@
 		if(localStorage.auth != null && localStorage.auth.length > 0 ) {				
 			localStorage.auth = "";				
 		}			
-	};
+	};	
 
     function bootstrapApplication() {
         var initInjector = angular.injector(["ng"]);
@@ -27,6 +27,7 @@
 			startApplication($httpProvider, '');
 		}
 	}
+	
     function startApplication($http, token) {
 		var docUrl = document.location.href;
 		var loc = docUrl.indexOf("#");
@@ -48,11 +49,10 @@
 		        });
             },
             function(errorResponse) {
-			  console.log(errorResponse);
 			  if(errorResponse.status == 401) {
 				window.location.href = window.pageConf.AuthPage;								
 			  }
-              console.log("error communicating with server");
+			  console.log(errorResponse);
             }
         );
     }

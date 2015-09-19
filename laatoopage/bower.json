@@ -11,20 +11,22 @@
     "bootstrap": "~3.3.4",
     "angular-bootstrap": "~0.13.0",
     "animate.css": "~3.3.0",
-	"ngstorage":"*",
+    "ngstorage": "*",
     "api-check": "*",
-	"angular-formly":"*",
-	"angular-formly-templates-bootstrap":"*",
-	"angular-ui-router-tabs":"*",
-	"angular-ckeditor": "latest",
-	"angular-file-upload":"*",
-	"angular-smart-table":"*",
+    "angular-formly": "*",
+    "angular-formly-templates-bootstrap": "*",
+    "angular-ui-router-tabs": "*",
+    "angular-ckeditor": "latest",
+    "angular-file-upload": "*",
+    "angular-smart-table": "*",
+    "angular-dialog-service": "*",
     "angular": "~1.4.0"
   },
   "devDependencies": {
     "angular-mocks": "~1.4.0"
   },
   "resolutions": {
-    "angular": "~1.4.0"
+    "angular": "~1.4.0",
+    "angular-bootstrap": "^0.13.0"
   }
 }

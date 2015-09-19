@@ -362,6 +362,12 @@ var pageConf = {
 			"permission":"Edit Article",
 			"templatepath":"articleedit.html"
 		},
+		"Delete Article": {
+			"actiontype":"restcall",
+			"url":"/article/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete Article"
+		},		
 		"Create Article": {
 			"url":"/article/create",
 			"actiontype":"openpartialpage",
@@ -394,6 +400,12 @@ var pageConf = {
 			"permission":"Edit Mehfil",
 			"templatepath":"mehfiledit.html"
 		},
+		"Delete Mehfil": {
+			"actiontype":"restcall",
+			"url":"/mehfil/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete Mehfil"
+		},		
 		"Create Mehfil": {
 			"url":"/mehfil/create",
 			"actiontype":"openpartialpage",
@@ -418,6 +430,12 @@ var pageConf = {
 			"permission":"Edit Video",
 			"templatepath":"videoedit.html"
 		},
+		"Delete Video": {
+			"actiontype":"restcall",
+			"url":"/video/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete Video"
+		},		
 		"Create Video": {
 			"url":"/video/create",
 			"actiontype":"openpartialpage",
@@ -450,6 +468,12 @@ var pageConf = {
 			"permission":"Create User",
 			"templatepath":"createuser.html"
 		},		
+		"Delete User": {
+			"actiontype":"restcall",
+			"url":"/user/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete User"
+		},		
 		"View Users": {
 			"url":"/users",
 			"actiontype":"openpartialpage",
@@ -473,6 +497,12 @@ var pageConf = {
 			"view":"mainview",
 			"permission":"Create Role",
 			"templatepath":"createrole.html"
+		},		
+		"Delete Role": {
+			"actiontype":"restcall",
+			"url":"/role/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete Role"
 		},		
 		"View Roles": {
 			"url":"/roles",
@@ -513,6 +543,12 @@ var pageConf = {
 			"view":"mainview",
 			"permission":"Edit Word",
 			"templatepath":"wordedit.html"
+		},		
+		"Delete Word": {
+			"actiontype":"restcall",
+			"url":"/word/{id}",
+			"restmethod":"DELETE",
+			"permission":"Delete Word"
 		},		
 		"Create Word": {
 			"url":"/word/create",

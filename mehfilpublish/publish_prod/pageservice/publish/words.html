@@ -1,11 +1,11 @@
 <page name="words">
 	<h1>Words</h1>
 	<div class="row-fluid clearfix">
-		<action class="margin10 pull-right" widget="button" label="New Words" name="New Words">
+		<action class="margin10 pull-right" widget="button" name="New Words">New Words
 		</action>
-		<action class="margin10 pull-right" widget="button" label="Review Words" name="Review Words">
+		<action class="margin10 pull-right" widget="button" name="Review Words">Review Words
 		</action>
-		<action class="margin10 pull-right" widget="button" label="Create Word" name="Create Word">
+		<action class="margin10 pull-right" widget="button" name="Create Word">Create Word
 		</action>
 	</div>
 	<view class="row-fluid clearfix" name="view_entities" args='{"entity":"Word"}' paginate="true" pagesize="50">
@@ -39,10 +39,12 @@
 					{{viewrow.WordEng}}
 				</td>
 				<td>
-					<a href="#/word/edit/{{viewrow.WordGur}}">edit</a>
+					<action params='{"id":"{{viewrow.WordGur}}"}' widget="link" name="Edit Word">edit
+					</action>
 				</td>
 				<td>
-					<a href="#/word/delete/{{viewrow.WordGur}}">delete</a>
+					<action params='{"id":"{{viewrow.WordGur}}"}' widget="link" name="Delete Word">delete
+					</action>
 				</td>
 			</tr>
 		</table>
