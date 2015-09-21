@@ -1,0 +1,37 @@
+<page name="default_user">
+	<h1>Users</h1>
+	<div class="row-fluid">
+		<action class="pull-right" widget="button" name="Create User">Create User
+		</action>
+	</div>
+	<div class="row-fluid">
+		<view name="view_entities" args='{"entity":"User"}' viewserver="/configviews"  paginate="true" pagesize="50">
+			<table class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							User Id
+						</th>
+						<th>
+						</th>
+						<th>
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:40%">
+						{{viewrow.Id}}
+					</td>
+					<td>
+						<action params='{"id":"{{viewrow.Id}}"}' widget="link" name="Edit User">edit
+						</action>
+					</td>
+					<td>
+						<action params='{"id":"{{viewrow.Id}}"}' widget="link" name="Delete User">delete
+						</action>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>

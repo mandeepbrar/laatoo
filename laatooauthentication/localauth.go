@@ -92,6 +92,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	} else {
 		existingUser.SetPassword("")
 		ctx.Set("User", testedUser)
+		log.Logger.Debugf("**********Auth user", testedUser)
 		return localauth.authCallback(ctx)
 	}
 }

@@ -1,0 +1,28 @@
+<page name="words">
+	<h1>New Words</h1>
+	<div class="row-fluid">
+		<view name="view_entities" editable="true"  action="/word" args='{"entity":"Word"}' paginate="true" pagesize="50">
+			<table ng-model="$parent.viewrows" class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							Gurmukhi
+						</th>
+						<th>
+							English
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:50%">
+						{{viewrow.WordGur}}
+					</td>
+					<td style="width:50%">
+						<input type="text" ng-model="viewrow.WordEng"></input>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>
+

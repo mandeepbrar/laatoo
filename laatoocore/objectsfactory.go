@@ -12,7 +12,6 @@ var (
 	//objects factory register exists for every server
 	ObjectsFactoryRegister = make(map[string]interface{}, 30)
 	ObjectCollections      = utils.NewMemoryStorer()
-	EmptyObjects           = utils.NewMemoryStorer()
 )
 
 //every object that needs to be created by configuration should register a factory func
@@ -28,23 +27,6 @@ func RegisterObjectProvider(objectName string, factory ObjectFactory) {
 	}
 }
 
-func CreateEmptyObject(objectName string) (interface{}, error) {
-	typeInt, err := EmptyObjects.GetObject(objectName)
-	if err == nil {
-		log.Logger.Infof("Returning object ", typeInt)
-		return reflect.New(typeInt.(reflect.Type)).Interface(), nil
-	} else {
-		objectPtr, err := createObject(objectName, nil)
-		if err != nil {
-			return nil, err
-		}
-		typeVal := reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface())
-		log.Logger.Infof("Creating object   %s", typeVal)
-		EmptyObjects.PutObject(objectName, typeVal)
-		return objectPtr, nil
-	}
-}
-
 //returns collection type for given object
 func GetCollectionType(objectName string) (reflect.Type, error) {
 	//find the collection type from memory
@@ -52,7 +34,7 @@ func GetCollectionType(objectName string) (reflect.Type, error) {
 	if err == nil {
 		return typeInt.(reflect.Type), nil
 	} else {
-		objectPtr, err := createObject(objectName, nil)
+		objectPtr, err := CreateObject(objectName, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -71,17 +53,12 @@ func CreateCollection(objectName string) (interface{}, error) {
 	return reflect.New(collectionType).Interface(), nil
 }
 
-//Provides a object with a given name
-func CreateObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
-	if confdata == nil {
-		return CreateEmptyObject(objectName)
-	} else {
-		return createObject(objectName, confdata)
-	}
+func CreateEmptyObject(objectName string) (interface{}, error) {
+	return CreateObject(objectName, nil)
 }
 
 //Provides a object with a given name
-func createObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
+func CreateObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
 	log.Logger.Debugf("Getting object %s", objectName)
 
 	//get the factory from the register

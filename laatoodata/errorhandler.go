@@ -13,6 +13,7 @@ const (
 	DATA_ERROR_NOT_IMPLEMENTED           = "Data_Error_Not_Implemented"
 	DATA_ERROR_MISSING_COLLECTION        = "Data_Error_Missing_Collection"
 	DATA_ERROR_NOT_FOUND                 = "Data_Error_Not_Found"
+	DATA_ERROR_ID_NOT_FOUND              = "Data_Error_ID_Not_Found"
 )
 
 func init() {
@@ -23,4 +24,5 @@ func init() {
 	errors.RegisterCode(DATA_ERROR_NOT_IMPLEMENTED, errors.ERROR, fmt.Errorf("Method not implemented for the service."))
 	errors.RegisterCode(DATA_ERROR_MISSING_COLLECTION, errors.ERROR, fmt.Errorf("Collection name not present for the object."))
 	errors.RegisterCode(DATA_ERROR_NOT_FOUND, errors.ERROR, fmt.Errorf("Data not found for criteria."))
+	errors.RegisterCode(DATA_ERROR_ID_NOT_FOUND, errors.ERROR, fmt.Errorf("Id not provided for the entity."))
 }

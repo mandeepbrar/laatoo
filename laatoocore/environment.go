@@ -162,6 +162,7 @@ func (env *Environment) createServices(serverType string) error {
 							roles, _ := user.GetRoles()
 							ctx.Set("Roles", roles)
 							ctx.Set("JWT_Token", token)
+							log.Logger.Infof("roles", roles)
 							utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
 							return nil
 						} else {
@@ -303,10 +304,12 @@ func (env *Environment) loadRemoteRolePermissions() error {
 		if err != nil {
 			return err
 		}
+		log.Logger.Infof("response", resp)
 		if resp.StatusCode != 200 {
 			errors.ThrowError(AUTH_APISEC_NOTALLOWED)
 		} else {
 			token := resp.Header.Get(env.authHeader)
+			log.Logger.Infof("token", token)
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
 			if len(rolesurl) == 0 {
 				return errors.ThrowError(CORE_ROLESAPI_NOT_FOUND)

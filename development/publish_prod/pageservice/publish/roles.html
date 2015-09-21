@@ -1,0 +1,37 @@
+<page name="default_role">
+	<h1>Roles</h1>
+	<div class="row-fluid">
+		<action class="pull-right" widget="button" name="Create Role">Create Role
+		</action>
+	</div>
+	<div class="row-fluid">
+		<view name="view_entities" args='{"entity":"Role"}' viewserver="/configviews">
+			<table class="table table-striped ">
+				<thead>
+					<tr>
+						<th>
+							Role
+						</th>
+						<th>
+						</th>
+						<th>
+						</th>
+					</tr>
+				</thead>
+				<tr ng-repeat="viewrow in $parent.viewrows">
+					<td style="width:40%">
+						{{viewrow.Role}}
+					</td>
+					<td>
+						<action widget="link" params='{"id":"{{viewrow.Role}}"}' name="Edit Role">edit
+						</action>
+					</td>
+					<td>
+						<action params='{"id":"{{viewrow.Role}}"}' widget="link" name="Delete Role">delete
+						</action>
+					</td>
+				</tr>
+			</table>
+		</view>			
+	</div>
+</page>

@@ -56,6 +56,10 @@ func (usr *DefaultUser) LoadPermissions(roleStorer data.DataService) error {
 	roles := usr.Roles
 	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {
+		if k == laatoocore.AdminRole {
+			usr.Permissions = laatoocore.ListAllPermissions()
+			return nil
+		}
 		roleInt, err := roleStorer.GetById(laatoocore.DEFAULT_ROLE, k)
 		if err == nil && roleInt != nil {
 			role := roleInt.(auth.Role)

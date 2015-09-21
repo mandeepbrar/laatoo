@@ -180,6 +180,7 @@ func (svc *SecurityService) Serve() error {
 	if err != nil {
 		return err
 	}
+	adminExists := false
 	anonExists := false
 	if rolesInt != nil {
 		arr := reflect.ValueOf(rolesInt).Elem()
@@ -188,6 +189,9 @@ func (svc *SecurityService) Serve() error {
 			role := arr.Index(i).Addr().Interface().(auth.Role)
 			if role.GetId() == "Anonymous" {
 				anonExists = true
+			}
+			if role.GetId() == laatoocore.AdminRole {
+				adminExists = true
 			}
 			laatoocore.RegisterRolePermissions(role)
 		}
@@ -198,6 +202,15 @@ func (svc *SecurityService) Serve() error {
 		anonymousRole := aroleInt.(auth.Role)
 		anonymousRole.SetId("Anonymous")
 		err = svc.UserDataService.Save(laatoocore.SystemRole, anonymousRole)
+		if err != nil {
+			return err
+		}
+	}
+	if !adminExists {
+		aroleInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemRole)
+		adminRole := aroleInt.(auth.Role)
+		adminRole.SetId(laatoocore.AdminRole)
+		err = svc.UserDataService.Save(laatoocore.SystemRole, adminRole)
 		if err != nil {
 			return err
 		}

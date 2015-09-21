@@ -96,6 +96,10 @@ func (ms *mongoDataService) Save(objectType string, item interface{}) error {
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
+	id := stor.GetId()
+	if id == "" {
+		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, objectType)
+	}
 	err := connCopy.DB(ms.database).C(collection).Insert(item)
 	if err != nil {
 		return err

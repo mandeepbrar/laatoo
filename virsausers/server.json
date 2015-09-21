@@ -1,0 +1,13 @@
+{
+	"logging": {
+		"level":"debug"
+	},
+	"environments": [
+		{
+			"name":"virsausers_prod",
+			"conf":"virsausers_prod",
+			"servertype":"GOOGLE_APP",
+			"path":""
+		}
+	]
+}

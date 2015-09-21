@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 	"laatoosdk/errors"
+	"laatoosdk/log"
 	"net"
 	"net/http"
 	"time"
@@ -29,8 +30,12 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		}
 		http.Handle("/", router)
 		go startServer(address, server)
+		log.Logger.Infof("Starting server on address %s", address)
 		//start listening
-		http.ListenAndServe(address, nil)
+		err := http.ListenAndServe(address, nil)
+		if err != nil {
+			log.Logger.Error(err)
+		}
 	}
 	return server, nil
 }

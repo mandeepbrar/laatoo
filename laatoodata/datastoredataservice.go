@@ -91,6 +91,10 @@ func (ms *DatastoreDataService) Save(objectType string, item interface{}) error 
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
+	id := stor.GetId()
+	if id == "" {
+		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, objectType)
+	}
 	key, err := datastore.Put(laatoocore.APPENGINE_CONTEXT, datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, stor.GetId(), 0, nil), item)
 	if err != nil {
 		return err
@@ -175,7 +179,6 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
@@ -204,6 +207,7 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
+	log.Logger.Debugf("Got the object ", results)
 	return results, totalrecs, recsreturned, nil
 }
 
@@ -223,7 +227,6 @@ func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
@@ -252,6 +255,7 @@ func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
+	log.Logger.Debugf("Got the object ", results)
 	return results, totalrecs, recsreturned, nil
 }
 

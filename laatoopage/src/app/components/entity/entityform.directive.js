@@ -68,6 +68,7 @@
 			} else {
 				$http.post(entity.url, $scope.entity.model).then(
 			       function(response) {
+					console.log(successstate);
 					if(successstate) {
 						$state.go(successstate);							
 					}
