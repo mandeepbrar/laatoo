@@ -19,6 +19,7 @@ type RedisPubSubService struct {
 }
 
 const (
+	LOGGING_CONTEXT             = "redis"
 	CONF_REDISPUBSUB_NAME       = "redis_pubsub"
 	CONF_REDIS_CONNECTIONSTRING = "server"
 	CONF_REDIS_DATABASE         = "db"
@@ -29,7 +30,7 @@ func init() {
 }
 
 func RedisPubSubServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating redis pubsub service ")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating redis pubsub service ")
 	redisSvc := &RedisPubSubService{name: CONF_REDISPUBSUB_NAME}
 
 	connectionStringInt, ok := conf[CONF_REDIS_CONNECTIONSTRING]
@@ -52,7 +53,7 @@ func RedisPubSubServiceFactory(conf map[string]interface{}) (interface{}, error)
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Errorf("redis TestOnBorrow %v", err)
+				log.Logger.Error(LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},
@@ -73,12 +74,6 @@ func RedisPubSubServiceFactory(conf map[string]interface{}) (interface{}, error)
 			return conn, nil
 		}}
 
-	/*mongoSvc.objects = make(map[string]string, len(objs))
-	for obj, collection := range objs {
-
-		mongoSvc.objects[obj] = collection.(string)
-	}*/
-	//log.Logger.Debugf("Mongo service configured for objects ", mongoSvc.objects)
 	return redisSvc, nil
 }
 
@@ -129,7 +124,7 @@ func (svc *RedisPubSubService) Subscribe(topics []string, lstnr service.TopicLis
 				lstnr(v.Channel, v.Data)
 			case redis.Subscription:
 			case error:
-				log.Logger.Infof("Pubsub error ", v)
+				log.Logger.Info(LOGGING_CONTEXT, "Pubsub error ", "Error", v)
 			}
 		}
 	}()

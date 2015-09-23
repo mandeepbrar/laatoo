@@ -30,11 +30,11 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		}
 		http.Handle("/", router)
 		go startServer(address, server)
-		log.Logger.Infof("Starting server on address %s", address)
+		log.Logger.Info("core.server", "Starting server", "address", address)
 		//start listening
 		err := http.ListenAndServe(address, nil)
 		if err != nil {
-			log.Logger.Error(err)
+			log.Logger.Error("core.server", "Error in listening", "address", address, "Error", err)
 		}
 	}
 	return server, nil

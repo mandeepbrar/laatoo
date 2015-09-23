@@ -22,7 +22,7 @@ type ObjectFactory func(conf map[string]interface{}) (interface{}, error)
 func RegisterObjectProvider(objectName string, factory ObjectFactory) {
 	_, ok := ObjectsFactoryRegister[objectName]
 	if !ok {
-		log.Logger.Infof("Registering object factory for %s", objectName)
+		log.Logger.Info("core.objects", "Registering object factory ", "Object Name", objectName)
 		ObjectsFactoryRegister[objectName] = factory
 	}
 }
@@ -39,7 +39,7 @@ func GetCollectionType(objectName string) (reflect.Type, error) {
 			return nil, err
 		}
 		collectionType := reflect.SliceOf(reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface()))
-		log.Logger.Infof("Creating collectionType   %s", collectionType)
+		log.Logger.Info("core.objects", "Creating collectionType ", "Collection Type", collectionType)
 		ObjectCollections.PutObject(objectName, collectionType)
 		return collectionType, nil
 	}
@@ -59,27 +59,26 @@ func CreateEmptyObject(objectName string) (interface{}, error) {
 
 //Provides a object with a given name
 func CreateObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
-	log.Logger.Debugf("Getting object %s", objectName)
+	log.Logger.Trace("core.objects", "Getting object ", "Object Name", objectName)
 
 	//get the factory from the register
 	factoryInt, ok := ObjectsFactoryRegister[objectName]
 	if !ok {
-		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, objectName)
+		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 
 	}
 	//cast to a creatory func
 	factoryFunc, ok := factoryInt.(ObjectFactory)
 	if !ok {
-		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, objectName)
+		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
 
-	log.Logger.Debugf("Creating object %s from factory", objectName)
 	//call factory method for creating an object
 	obj, err := factoryFunc(confdata)
 	if err != nil {
-		return nil, errors.RethrowError(CORE_ERROR_OBJECT_NOT_CREATED, err, objectName)
+		return nil, errors.RethrowError(CORE_ERROR_OBJECT_NOT_CREATED, err, "Object Name", objectName)
 	}
-	log.Logger.Debugf("Created object %s", objectName)
+	log.Logger.Trace("core.objects", "Created object ", "Object Name", objectName)
 	//return object by calling factory func
 	return obj, nil
 }

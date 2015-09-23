@@ -33,38 +33,39 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(CORE_ERROR_MISSING_SERVICE_NAME, errors.FATAL, fmt.Errorf("Service name is missing or wrong."))
-	errors.RegisterCode(CORE_ERROR_SERVICE_CREATION, errors.FATAL, fmt.Errorf("Service could not be created."))
-	errors.RegisterCode(CORE_ERROR_SERVICE_INITIALIZATION, errors.FATAL, fmt.Errorf("Service could not be initialized."))
-	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_FOUND, errors.FATAL, fmt.Errorf("Service not found."))
-	errors.RegisterCode(CORE_ERROR_PUBSUB_INITIALIZATION, errors.FATAL, fmt.Errorf("Pubsub could not be initialized."))
-	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_STARTED, errors.FATAL, fmt.Errorf("Service not started."))
-	errors.RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, errors.FATAL, fmt.Errorf("Provider for object not found."))
-	errors.RegisterCode(CORE_ERROR_OBJECT_NOT_CREATED, errors.FATAL, fmt.Errorf("Object could not be created from provider."))
-	errors.RegisterCode(CORE_ENVIRONMENT_NOT_CREATED, errors.FATAL, fmt.Errorf("Environment could not be created."))
-	errors.RegisterCode(CORE_ENVIRONMENT_NOT_INITIALIZED, errors.FATAL, fmt.Errorf("Environment could not be initialized."))
-	errors.RegisterCode(CORE_SERVERADD_NOT_FOUND, errors.FATAL, fmt.Errorf("Server address not provided."))
-	errors.RegisterCode(CORE_ROLESAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Roles api not provided."))
-	errors.RegisterCode(CORE_ROLES_INIT_ERROR, errors.FATAL, fmt.Errorf("Roles could not be initialized."))
-	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("API not provided for api authentication."))
-	errors.RegisterCode(AUTH_APISEC_NOTALLOWED, errors.FATAL, fmt.Errorf("System could not authenticate for Apis."))
+	errors.RegisterCode(CORE_ERROR_MISSING_SERVICE_NAME, errors.FATAL, fmt.Errorf("Service name is missing or wrong."), "core")
+	errors.RegisterCode(CORE_ERROR_SERVICE_CREATION, errors.FATAL, fmt.Errorf("Service could not be created."), "core")
+	errors.RegisterCode(CORE_ERROR_SERVICE_INITIALIZATION, errors.FATAL, fmt.Errorf("Service could not be initialized."), "core")
+	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_FOUND, errors.FATAL, fmt.Errorf("Service not found."), "core")
+	errors.RegisterCode(CORE_ERROR_PUBSUB_INITIALIZATION, errors.FATAL, fmt.Errorf("Pubsub could not be initialized."), "core")
+	errors.RegisterCode(CORE_ERROR_SERVICE_NOT_STARTED, errors.FATAL, fmt.Errorf("Service not started."), "core")
+	errors.RegisterCode(CORE_ERROR_PROVIDER_NOT_FOUND, errors.FATAL, fmt.Errorf("Provider for object not found."), "core")
+	errors.RegisterCode(CORE_ERROR_OBJECT_NOT_CREATED, errors.FATAL, fmt.Errorf("Object could not be created from provider."), "core")
+	errors.RegisterCode(CORE_ENVIRONMENT_NOT_CREATED, errors.FATAL, fmt.Errorf("Environment could not be created."), "core")
+	errors.RegisterCode(CORE_ENVIRONMENT_NOT_INITIALIZED, errors.FATAL, fmt.Errorf("Environment could not be initialized."), "core")
+	errors.RegisterCode(CORE_SERVERADD_NOT_FOUND, errors.FATAL, fmt.Errorf("Server address not provided."), "core")
+	errors.RegisterCode(CORE_ROLESAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Roles api not provided."), "core")
+	errors.RegisterCode(CORE_ROLES_INIT_ERROR, errors.FATAL, fmt.Errorf("Roles could not be initialized."), "core")
+	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("API not provided for api authentication."), "core")
+	errors.RegisterCode(AUTH_APISEC_NOTALLOWED, errors.FATAL, fmt.Errorf("System could not authenticate for Apis."), "core")
 
-	errors.RegisterCode(AUTH_ERROR_WRONG_SIGNING_METHOD, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Wrong signing method used in the token."))
+	errors.RegisterCode(AUTH_ERROR_WRONG_SIGNING_METHOD, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Wrong signing method used in the token."), "core")
 	errors.RegisterErrorHandler(AUTH_ERROR_WRONG_SIGNING_METHOD, AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_USEROBJECT_NOT_CREATED, errors.ERROR, echo.NewHTTPError(http.StatusInternalServerError, "User Object Could not be created."))
+	errors.RegisterCode(AUTH_ERROR_USEROBJECT_NOT_CREATED, errors.ERROR, echo.NewHTTPError(http.StatusInternalServerError, "User Object Could not be created."), "core")
 	errors.RegisterErrorHandler(AUTH_ERROR_USEROBJECT_NOT_CREATED, AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_HEADER_NOT_FOUND, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "Auth header not found."))
+	errors.RegisterCode(AUTH_ERROR_HEADER_NOT_FOUND, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "Auth header not found."), "core")
 	errors.RegisterErrorHandler(AUTH_ERROR_HEADER_NOT_FOUND, AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_INVALID_TOKEN, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Invalid token."))
+	errors.RegisterCode(AUTH_ERROR_INVALID_TOKEN, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Invalid token."), "core")
 	errors.RegisterErrorHandler(AUTH_ERROR_INVALID_TOKEN, AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_SECURITY, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Not allowed."))
+	errors.RegisterCode(AUTH_ERROR_SECURITY, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Not allowed."), "core")
 }
 
-func AuthError(err *errors.Error, ctxMap map[string]interface{}, info ...string) bool {
+func AuthError(err *errors.Error, context interface{}, info ...interface{}) bool {
+	ctxMap := context.(map[string]interface{})
 	ctxInt, ok := ctxMap["Context"]
 	if !ok {
 		return false

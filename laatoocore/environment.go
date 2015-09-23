@@ -106,11 +106,11 @@ func (env *Environment) createServices(serverType string) error {
 		//get the config for the service with given alias
 		serviceConfig := val.(map[string]interface{})
 		//get the service name to be created for the alias
-		log.Logger.Infof("Creating service %s", alias)
+		log.Logger.Info("core.env.createservice", "Creating service ", "service alias", alias)
 
 		svcName, ok := serviceConfig[CONF_ENV_SERVICENAME].(string)
 		if !ok {
-			return errors.ThrowError(CORE_ERROR_MISSING_SERVICE_NAME, alias)
+			return errors.ThrowError(CORE_ERROR_MISSING_SERVICE_NAME, "service alias", alias)
 		}
 
 		svcServerType, ok := serviceConfig[CONF_SERVICE_SERVERTYPE]
@@ -162,7 +162,7 @@ func (env *Environment) createServices(serverType string) error {
 							roles, _ := user.GetRoles()
 							ctx.Set("Roles", roles)
 							ctx.Set("JWT_Token", token)
-							log.Logger.Infof("roles", roles)
+							log.Logger.Info("core.env.auth", "Set roles", "roles", roles)
 							utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
 							return nil
 						} else {
@@ -211,12 +211,12 @@ func (env *Environment) InitializeEnvironment() error {
 	//go through list of all the services
 	svcs := env.ServicesStore.GetList()
 	//iterate through all the services
-	for _, svcInt := range svcs {
+	for alias, svcInt := range svcs {
 		svc := svcInt.(service.Service)
 		//initialize service
 		err := svc.Initialize(env)
 		if err != nil {
-			return errors.RethrowError(CORE_ERROR_SERVICE_INITIALIZATION, err, svc.GetName())
+			return errors.RethrowError(CORE_ERROR_SERVICE_INITIALIZATION, err, "Service Alias", alias)
 		}
 	}
 	return nil
@@ -230,7 +230,7 @@ func (env *Environment) GetService(alias string) (service.Service, error) {
 	}
 	svc, ok := svcInt.(service.Service)
 	if !ok {
-		return nil, errors.RethrowError(CORE_ERROR_SERVICE_NOT_FOUND, err, alias)
+		return nil, errors.RethrowError(CORE_ERROR_SERVICE_NOT_FOUND, err, "Service Alias", alias)
 	}
 	return svc, nil
 }
@@ -258,7 +258,7 @@ func (env *Environment) GetConfig() config.Config {
 
 //start services
 func (env *Environment) StartEnvironment() error {
-	log.Logger.Infof("Starting environment %s", env.Name)
+	log.Logger.Info("core.env", "Starting environment", "Env Name", env.Name)
 	err := env.loadRemoteRolePermissions()
 	if err != nil {
 		return errors.RethrowError(CORE_ROLES_INIT_ERROR, err)
@@ -270,11 +270,11 @@ func (env *Environment) StartEnvironment() error {
 	//go through list of all the services
 	svcs := env.ServicesStore.GetList()
 	//iterate through all the services
-	for _, svcInt := range svcs {
+	for alias, svcInt := range svcs {
 		svc := svcInt.(service.Service)
 		//start service
 		if err := svc.Serve(); err != nil {
-			return errors.RethrowError(CORE_ERROR_SERVICE_NOT_STARTED, err, svc.GetName())
+			return errors.RethrowError(CORE_ERROR_SERVICE_NOT_STARTED, err, "Service Alias", alias)
 		}
 	}
 	return nil
@@ -289,7 +289,6 @@ func (env *Environment) loadRemoteRolePermissions() error {
 		}
 		pubkey := env.Config.GetString(CONF_API_PUBKEY)
 		domain := env.Config.GetString(CONF_API_DOMAIN)
-		log.Logger.Infof("pubkey", pubkey)
 		key, err := EncryptWithKey(pubkey, domain)
 		if err != nil {
 			return err
@@ -304,12 +303,11 @@ func (env *Environment) loadRemoteRolePermissions() error {
 		if err != nil {
 			return err
 		}
-		log.Logger.Infof("response", resp)
+		log.Logger.Debug("core.env.remoteroles", "Got Response for api key", "Response", resp)
 		if resp.StatusCode != 200 {
 			errors.ThrowError(AUTH_APISEC_NOTALLOWED)
 		} else {
 			token := resp.Header.Get(env.authHeader)
-			log.Logger.Infof("token", token)
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
 			if len(rolesurl) == 0 {
 				return errors.ThrowError(CORE_ROLESAPI_NOT_FOUND)

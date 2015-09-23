@@ -11,6 +11,6 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(STATIC_ERROR_MISSING_ROUTER, errors.PANIC, fmt.Errorf("Router not found in static file service."))
-	errors.RegisterCode(STATIC_ERROR_MISSING_PUBLICDIR, errors.ERROR, fmt.Errorf("Public directory not provided to static file service."))
+	errors.RegisterCode(STATIC_ERROR_MISSING_ROUTER, errors.ERROR, fmt.Errorf("Router not found in static file service."), LOGGING_CONTEXT)
+	errors.RegisterCode(STATIC_ERROR_MISSING_PUBLICDIR, errors.ERROR, fmt.Errorf("Public directory not provided to static file service."), LOGGING_CONTEXT)
 }

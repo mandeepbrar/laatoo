@@ -29,36 +29,36 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(AUTH_ERROR_MISSING_ROUTER, errors.PANIC, fmt.Errorf("Router not found in authentication service."))
-	errors.RegisterCode(AUTH_ERROR_MISSING_USER_DATA_SERVICE, errors.PANIC, fmt.Errorf("User data service not provided to authentication service."))
-	errors.RegisterCode(AUTH_ERROR_INITIALIZING_TYPE, errors.PANIC, fmt.Errorf("Auth Type could not be initialized."))
-	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CLIENTID, errors.PANIC, fmt.Errorf("Client id not provided for oauth site."))
-	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET, errors.PANIC, fmt.Errorf("Client secret not provided for oauth site."))
-	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_AUTHURL, errors.PANIC, fmt.Errorf("Auth url not provided for oauth site."))
-	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CALLBACKURL, errors.PANIC, fmt.Errorf("Callback url not provided for oauth site."))
-	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_TYPE, errors.PANIC, fmt.Errorf("Type not provided for oauth site."))
+	errors.RegisterCode(AUTH_ERROR_MISSING_ROUTER, errors.FATAL, fmt.Errorf("Router not found in authentication service."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_MISSING_USER_DATA_SERVICE, errors.FATAL, fmt.Errorf("User data service not provided to authentication service."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_INITIALIZING_TYPE, errors.FATAL, fmt.Errorf("Auth Type could not be initialized."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CLIENTID, errors.FATAL, fmt.Errorf("Client id not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET, errors.FATAL, fmt.Errorf("Client secret not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_AUTHURL, errors.FATAL, fmt.Errorf("Auth url not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CALLBACKURL, errors.FATAL, fmt.Errorf("Callback url not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_TYPE, errors.FATAL, fmt.Errorf("Type not provided for oauth site."), LOGGING_CONTEXT)
 
-	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."))
+	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_VALIDATION_FAILED, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_AUTH_COMPLETION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "Could not complete authentication of user."))
+	errors.RegisterCode(AUTH_ERROR_AUTH_COMPLETION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "Could not complete authentication of user."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_AUTH_COMPLETION_FAILED, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, errors.INFO, echo.NewHTTPError(http.StatusInternalServerError, "Internal Server Error completing authentication."))
+	errors.RegisterCode(AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, errors.INFO, echo.NewHTTPError(http.StatusInternalServerError, "Internal Server Error completing authentication."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_JWT_CREATION, errors.ERROR, echo.NewHTTPError(http.StatusInternalServerError, "Could not create JWT Token."))
+	errors.RegisterCode(AUTH_ERROR_JWT_CREATION, errors.ERROR, echo.NewHTTPError(http.StatusInternalServerError, "Could not create JWT Token."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_JWT_CREATION, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_WRONG_PASSWORD, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "User name or password entered by you is wrong"))
+	errors.RegisterCode(AUTH_ERROR_WRONG_PASSWORD, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "User name or password entered by you is wrong"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_WRONG_PASSWORD, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_USER_NOT_FOUND, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "User name or password entered by you is wrong"))
+	errors.RegisterCode(AUTH_ERROR_USER_NOT_FOUND, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "User name or password entered by you is wrong"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_NOT_FOUND, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_INCORRECT_REQ_FORMAT, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Request for login was not in a correct format"))
+	errors.RegisterCode(AUTH_ERROR_INCORRECT_REQ_FORMAT, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Request for login was not in a correct format"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_INCORRECT_REQ_FORMAT, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_DOMAIN_NOT_ALLOWED, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Domain not allowed by system"))
+	errors.RegisterCode(AUTH_ERROR_DOMAIN_NOT_ALLOWED, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Domain not allowed by system"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_DOMAIN_NOT_ALLOWED, laatoocore.AuthError)
 }

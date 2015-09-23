@@ -35,7 +35,7 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 	var err error
 	entity := ctx.Query(VIEW_ENTITY)
 	if entity == "" {
-		return errors.ThrowHttpError(views.VIEW_ERROR_MISSING_ARG, ctx, VIEW_ENTITY)
+		return errors.ThrowHttpError(views.VIEW_ERROR_MISSING_ARG, ctx, "Entity", VIEW_ENTITY)
 	}
 	pagesize := -1
 	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
@@ -55,7 +55,7 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 	}
 	args := ctx.Query(VIEW_ARGS)
 	perm := fmt.Sprintf("View %s", entity)
-	log.Logger.Debugf("Executing entity view %s with args %s and permission %s", entity, args, perm)
+	log.Logger.Trace(LOGGING_CONTEXT, "Executing entity view", "Entity", entity, "Args", args, "Permission", perm)
 	if !laatoocore.IsAllowed(ctx, perm) {
 		return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 	}
@@ -73,7 +73,7 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context)
 	if err != nil {
 		return err
 	}
-	log.Logger.Debugf("Totalrecs %d RecsReturned %d", totalrecs, recsreturned)
+	log.Logger.Trace(LOGGING_CONTEXT, "Executed View", "Entity", entity, "Totalrecs", totalrecs, "RecsReturned", recsreturned)
 	ctx.Response().Header().Set(data.VIEW_TOTALRECS, fmt.Sprint(totalrecs))
 	ctx.Response().Header().Set(data.VIEW_RECSRETURNED, fmt.Sprint(recsreturned))
 	return ctx.JSON(http.StatusOK, entities)

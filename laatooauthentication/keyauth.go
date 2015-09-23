@@ -46,7 +46,7 @@ func NewKeyAuth(conf map[string]interface{}, svc *SecurityService) (*keyAuthType
 	}
 	//store the reference to the parent
 	keyauth.securityService = svc
-	log.Logger.Debug("keyAuthProvider: Initializing")
+	log.Logger.Debug(LOGGING_CONTEXT, "keyAuthProvider: Initializing")
 
 	return keyauth, nil
 }
@@ -58,7 +58,7 @@ func (keyauth *keyAuthType) Serve() error {
 
 //initialize auth type called by base auth for initializing
 func (keyauth *keyAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
-	log.Logger.Debug("Settingup Api Auth")
+	log.Logger.Debug(LOGGING_CONTEXT, "Settingup Api Auth")
 	//setup path for listening to login post request
 	keyauth.securityService.Router.Post(CONF_AUTHSERVICE_KEYPATH, authStart)
 	keyauth.authCallback = authCallback
@@ -68,7 +68,7 @@ func (keyauth *keyAuthType) InitializeType(authStart echo.HandlerFunc, authCallb
 //validate the local user
 //derive the data from context object
 func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug("keyauth: Validating Credentials")
+	log.Logger.Debug(LOGGING_CONTEXT, "keyauth: Validating Credentials")
 
 	if keyauth.domains == nil {
 		return errors.ThrowHttpError(AUTH_ERROR_DOMAIN_NOT_ALLOWED, ctx)
@@ -98,7 +98,7 @@ func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
 
 	domain := string(out)
 	role, ok := keyauth.domains[domain]
-	log.Logger.Debugf("Domain %s  Role assigned %s", domain, role.(string))
+	log.Logger.Debug(LOGGING_CONTEXT, "Auth Key Validated", "Domain", domain, " Role assigned", role.(string))
 	if ok {
 		usr := usrInt.(auth.RbacUser)
 		usr.SetId("system")
@@ -117,7 +117,7 @@ func (keyauth *keyAuthType) GetName() string {
 
 //complete authentication
 func (keyauth *keyAuthType) CompleteAuthentication(ctx *echo.Context) error {
-	log.Logger.Debugf("keyAuthProvider: Authentication Successful")
+	log.Logger.Debug(LOGGING_CONTEXT, "keyAuthProvider: Authentication Successful")
 	return nil
 }
 

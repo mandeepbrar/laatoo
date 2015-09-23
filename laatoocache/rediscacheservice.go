@@ -19,6 +19,7 @@ type RedisCacheService struct {
 }
 
 const (
+	LOGGING_CONTEXT             = "rediscache"
 	CONF_REDISCACHE_NAME        = "redis_cache"
 	CONF_REDIS_CONNECTIONSTRING = "server"
 	CONF_REDIS_DATABASE         = "db"
@@ -29,7 +30,7 @@ func init() {
 }
 
 func RedisCacheServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating redis cache service ")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating redis cache service ")
 	redisSvc := &RedisCacheService{name: CONF_REDISCACHE_NAME}
 
 	connectionStringInt, ok := conf[CONF_REDIS_CONNECTIONSTRING]
@@ -52,7 +53,7 @@ func RedisCacheServiceFactory(conf map[string]interface{}) (interface{}, error) 
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Errorf("redis TestOnBorrow %v", err)
+				log.Logger.Error(LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},

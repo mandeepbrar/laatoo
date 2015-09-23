@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT         = "entity_service"
 	CONF_ENTITY_SERVICENAME = "entity_service"
 	CONF_ENTITY             = "entity"
 
@@ -38,7 +39,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating entity service")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating entity service")
 	svc := &EntityService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(*echo.Group)
@@ -53,18 +54,18 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 	entitydatasvcInt, ok := conf[CONF_ENTITY_DATA_SVC]
 	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_DATASVC, svc.GetName())
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_DATASVC)
 	}
 	svc.dataServiceName = entitydatasvcInt.(string)
 
 	entitymethodsInt, ok := conf[CONF_ENTITY_METHODS]
 	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS, svc.GetName())
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS)
 	}
 
 	entityMethods, ok := entitymethodsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS, svc.GetName())
+		return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHODS)
 	}
 
 	viewperm := fmt.Sprintf("View %s", entityName)
@@ -77,16 +78,16 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 		methodConfig, ok := val.(map[string]interface{})
 		if !ok {
-			return nil, errors.ThrowError(ENTITY_ERROR_INCORRECT_METHOD_CONF, entityName, name)
+			return nil, errors.ThrowError(ENTITY_ERROR_INCORRECT_METHOD_CONF, "Entity", entityName, "Method", name)
 		}
 
 		pathInt, ok := methodConfig[CONF_ENTITY_PATH]
 		if !ok {
-			return nil, errors.ThrowError(ENTITY_ERROR_MISSING_PATH, entityName, name)
+			return nil, errors.ThrowError(ENTITY_ERROR_MISSING_PATH, "Entity", entityName, "Method", name)
 		} else {
 			methodInt, ok := methodConfig[CONF_ENTITY_METHOD]
 			if !ok {
-				return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHOD, entityName, name)
+				return nil, errors.ThrowError(ENTITY_ERROR_MISSING_METHOD, "Entity", entityName, "Method", name)
 			}
 
 			path := pathInt.(string)
@@ -101,7 +102,6 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
-					log.Logger.Debugf("Getting entity %s", id)
 					ent, err := svc.DataStore.GetById(entityName, id)
 					if err != nil {
 						return err
@@ -117,9 +117,7 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 					if err != nil {
 						return err
 					}
-					log.Logger.Debugf("Saving entity1", ent)
 					err = ctx.Bind(ent)
-					log.Logger.Debugf("Saving entity2", ent)
 					if err != nil {
 						return err
 					}
@@ -127,6 +125,7 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 					if err != nil {
 						return err
 					}
+					log.Logger.Trace(LOGGING_CONTEXT, "Saved entity", "Entity", ent)
 					return nil
 				})
 			case "put":
@@ -135,7 +134,7 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
-					log.Logger.Debugf("Updating entity %s", id)
+					log.Logger.Trace(LOGGING_CONTEXT, "Updating entity", "ID", id)
 					ent, err := laatoocore.CreateEmptyObject(entityName)
 					if err != nil {
 						return err
@@ -160,14 +159,14 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 						return err
 					}
 					arrPtr := reflect.New(typ)
-					log.Logger.Debugf("Binding entities with collection %s", entityName)
+					log.Logger.Trace(LOGGING_CONTEXT, "Binding entities with collection", "Entity", entityName)
 					err = ctx.Bind(arrPtr.Interface())
 					if err != nil {
 						return err
 					}
 					arr := arrPtr.Elem()
 					length := arr.Len()
-					log.Logger.Debugf("Saving bulk entities %s", entityName)
+					log.Logger.Trace("Saving bulk entities", "Entity", entityName)
 					for i := 0; i < length; i++ {
 						entity := arr.Index(i).Addr().Interface().(data.Storable)
 						err = svc.DataStore.Put(entityName, entity.GetId(), entity)
@@ -183,7 +182,7 @@ func EntityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 						return errors.ThrowHttpError(laatoocore.AUTH_ERROR_SECURITY, ctx)
 					}
 					id := ctx.P(0)
-					log.Logger.Debugf("Deleting entity %s", id)
+					log.Logger.Debug(LOGGING_CONTEXT, "Deleting entity", "ID", id)
 					err := svc.DataStore.Delete(entityName, id)
 					if err != nil {
 						return err
@@ -205,7 +204,7 @@ func (svc *EntityService) GetName() string {
 func (svc *EntityService) Initialize(ctx service.ServiceContext) error {
 	dataSvc, err := ctx.GetService(svc.dataServiceName)
 	if err != nil {
-		return errors.RethrowError(ENTITY_ERROR_MISSING_DATASVC, err, svc.EntityName)
+		return errors.RethrowError(ENTITY_ERROR_MISSING_DATASVC, err)
 	}
 
 	svc.DataStore = dataSvc.(data.DataService)

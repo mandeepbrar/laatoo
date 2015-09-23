@@ -20,16 +20,16 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(ENTITY_ERROR_MISSING_ROUTER, errors.PANIC, fmt.Errorf("Router not found in entity service."))
-	errors.RegisterCode(ENTITY_ERROR_MISSING_ENTITY, errors.PANIC, fmt.Errorf("Entity not found in entity service."))
-	errors.RegisterCode(ENTITY_ERROR_WRONG_ENTITYCONFIG, errors.PANIC, fmt.Errorf("Wrong config provided for entity."))
+	errors.RegisterCode(ENTITY_ERROR_MISSING_ROUTER, errors.FATAL, fmt.Errorf("Router not found in entity service."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_MISSING_ENTITY, errors.FATAL, fmt.Errorf("Entity not found in entity service."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_WRONG_ENTITYCONFIG, errors.FATAL, fmt.Errorf("Wrong config provided for entity."), LOGGING_CONTEXT)
 
-	errors.RegisterCode(ENTITY_ERROR_MISSING_NAME, errors.PANIC, fmt.Errorf("Name of entity not provided."))
-	errors.RegisterCode(ENTITY_ERROR_MISSING_DATASVC, errors.PANIC, fmt.Errorf("Data service not found for entity."))
-	errors.RegisterCode(ENTITY_ERROR_MISSING_METHODS, errors.PANIC, fmt.Errorf("Methods not found for entity."))
-	errors.RegisterCode(ENTITY_ERROR_MISSING_PATH, errors.PANIC, fmt.Errorf("Path not found for method."))
-	errors.RegisterCode(ENTITY_ERROR_MISSING_METHOD, errors.PANIC, fmt.Errorf("Method not provided."))
-	errors.RegisterCode(ENTITY_ERROR_INCORRECT_METHOD_CONF, errors.PANIC, fmt.Errorf("Incorrect conf provided for method."))
-	errors.RegisterCode(ENTITY_ERROR_CONF_INCORRECT, errors.PANIC, fmt.Errorf("Incorrect conf provided for entity."))
+	errors.RegisterCode(ENTITY_ERROR_MISSING_NAME, errors.FATAL, fmt.Errorf("Name of entity not provided."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_MISSING_DATASVC, errors.FATAL, fmt.Errorf("Data service not found for entity."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_MISSING_METHODS, errors.FATAL, fmt.Errorf("Methods not found for entity."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_MISSING_PATH, errors.FATAL, fmt.Errorf("Path not found for method."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_MISSING_METHOD, errors.FATAL, fmt.Errorf("Method not provided."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_INCORRECT_METHOD_CONF, errors.FATAL, fmt.Errorf("Incorrect conf provided for method."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_CONF_INCORRECT, errors.FATAL, fmt.Errorf("Incorrect conf provided for entity."), LOGGING_CONTEXT)
 
 }

@@ -8,7 +8,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"laatoosdk/log"
+	//	"laatoosdk/log"
 )
 
 type KeyAuth struct {
@@ -24,7 +24,6 @@ func EncryptWithKey(publickeypath string, message string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Logger.Debug("msg ", encryptedmsg)
 	return encryptedmsg, nil
 }
 

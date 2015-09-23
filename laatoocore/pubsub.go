@@ -29,7 +29,7 @@ func (env *Environment) subscribeTopics() error {
 			topics[i] = k
 			i++
 		}
-		log.Logger.Infof("topics ", topics)
+		log.Logger.Info("core.pubsub", "Subscribing topics", "topics", topics)
 		err := env.pubSub.Subscribe(topics, func(topic string, message interface{}) {
 			lsnrs := topicListeners[topic]
 			for _, val := range lsnrs {

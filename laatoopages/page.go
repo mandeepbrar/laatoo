@@ -25,9 +25,9 @@ const (
 
 func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Group, pagesDir string) error {
 	var pagePath, pageDest string
-	pagePerm := ""
+	//	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE
-	pageAuth := false
+	//pageAuth := false
 
 	pagepathInt, ok := conf[CONF_PAGE_PATH]
 	if !ok {
@@ -46,17 +46,17 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 	}
 	pageDest = pagedestInt.(string)
 
-	pageauthInt, ok := conf[CONF_PAGE_AUTH]
+	/*pageauthInt, ok := conf[CONF_PAGE_AUTH]
 	if ok {
 		if pageauthInt.(string) == "true" {
 			pageAuth = true
 		}
-	}
+	}*/
 
-	pagepermInt, ok := conf[CONF_PAGE_PERM]
+	/*pagepermInt, ok := conf[CONF_PAGE_PERM]
 	if ok {
 		pagePerm = pagepermInt.(string)
-	}
+	}*/
 
 	if pageType == CONF_PAGE_TYPE_FILE {
 		dest := fmt.Sprint(pagesDir, "/", pageDest)
@@ -65,7 +65,7 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
 		var partialPages []*entities.Partial
 		if ok {
-			log.Logger.Debugf("partialsInt %s", partialsInt)
+			log.Logger.Trace(LOGGING_CONTEXT, "Got Partials for page", "Page Path", pagePath, "PartialsInt", partialsInt)
 			partialsConf, ok := partialsInt.(map[string]interface{})
 			if !ok {
 				return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALS)
@@ -87,7 +87,7 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 				}
 				content, err := ioutil.ReadFile(templateFile)
 				if err != nil {
-					return errors.RethrowError(PAGE_ERROR_WRONG_PARTIALS, err, CONF_PAGE_SERVICENAME, partialPageName)
+					return errors.RethrowError(PAGE_ERROR_WRONG_PARTIALS, err, "Page Name", partialPageName)
 				} else {
 					obj.Template = string(content)
 				}
@@ -112,8 +112,8 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		})
 	}
 
-	log.Logger.Infof("pagePerm %s", pagePerm)
-	log.Logger.Infof("pageAuth %s", pageAuth)
-	log.Logger.Infof("pageType %s", pageType)
+	/*log.Logger.Info("pagePerm %s", pagePerm)
+	log.Logger.Info("pageAuth %s", pageAuth)
+	log.Logger.Info("pageType %s", pageType)*/
 	return nil
 }

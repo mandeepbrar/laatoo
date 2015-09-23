@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT = "securityservice"
+
 	CONF_SECURITYSERVICE_SERVICENAME = "security_service"
 	//alias of rthe user data service
 	CONF_SECURITYSERVICE_USERDATASERVICE = "user_data_svc"
@@ -65,7 +67,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating auth service with alias")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating auth service with alias")
 	svc := &SecurityService{}
 	//store configuration object
 	svc.Configuration = conf
@@ -142,7 +144,7 @@ func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
 		if !ok {
 			return errors.ThrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 		}
-		log.Logger.Debug("User storer set for authenticaion")
+		log.Logger.Debug(LOGGING_CONTEXT, "User storer set for authenticaion")
 		//get and set the data service for accessing users
 		svc.UserDataService = userDataService
 
@@ -163,7 +165,7 @@ func (svc *SecurityService) Serve() error {
 		userId := seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_ID].(string)
 		user, _ := svc.UserDataService.GetById(laatoocore.SystemUser, userId)
 		if user == nil {
-			log.Logger.Infof("Creating seed user %s", userId)
+			log.Logger.Info(LOGGING_CONTEXT, "Creating seed user", "ID", userId)
 			suserInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemUser)
 			sUser := suserInt.(auth.RbacUser)
 			sLocalUser := suserInt.(auth.LocalAuthUser)

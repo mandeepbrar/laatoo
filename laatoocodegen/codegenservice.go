@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT          = "codegen"
 	CONF_CODEGEN_SERVICENAME = "codegen_service"
 )
 
@@ -23,7 +24,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func CodegenServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating static service")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating static service")
 	svc := &CodegenService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {

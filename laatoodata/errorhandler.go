@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT                      = "data_service"
 	DATA_ERROR_MISSING_CONNECTION_STRING = "Data_Error_Missing_Connection_String"
 	DATA_ERROR_MISSING_DATABASE          = "Data_Error_Missing_Database"
 	DATA_ERROR_CONNECTION                = "Data_Error_Connection"
@@ -17,12 +18,12 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(DATA_ERROR_MISSING_CONNECTION_STRING, errors.ERROR, fmt.Errorf("Connection string not provided for the database."))
-	errors.RegisterCode(DATA_ERROR_MISSING_DATABASE, errors.ERROR, fmt.Errorf("Database name not provided"))
-	errors.RegisterCode(DATA_ERROR_MISSING_OBJECTS, errors.ERROR, fmt.Errorf("Name of the objects stored in the database not provided."))
-	errors.RegisterCode(DATA_ERROR_CONNECTION, errors.ERROR, fmt.Errorf("Could not connect to the database."))
-	errors.RegisterCode(DATA_ERROR_NOT_IMPLEMENTED, errors.ERROR, fmt.Errorf("Method not implemented for the service."))
-	errors.RegisterCode(DATA_ERROR_MISSING_COLLECTION, errors.ERROR, fmt.Errorf("Collection name not present for the object."))
-	errors.RegisterCode(DATA_ERROR_NOT_FOUND, errors.ERROR, fmt.Errorf("Data not found for criteria."))
-	errors.RegisterCode(DATA_ERROR_ID_NOT_FOUND, errors.ERROR, fmt.Errorf("Id not provided for the entity."))
+	errors.RegisterCode(DATA_ERROR_MISSING_CONNECTION_STRING, errors.ERROR, fmt.Errorf("Connection string not provided for the database."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_MISSING_DATABASE, errors.ERROR, fmt.Errorf("Database name not provided"), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_MISSING_OBJECTS, errors.ERROR, fmt.Errorf("Name of the objects stored in the database not provided."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_CONNECTION, errors.ERROR, fmt.Errorf("Could not connect to the database."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_NOT_IMPLEMENTED, errors.ERROR, fmt.Errorf("Method not implemented for the service."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_MISSING_COLLECTION, errors.ERROR, fmt.Errorf("Collection name not present for the object."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_NOT_FOUND, errors.ERROR, fmt.Errorf("Data not found for criteria."), LOGGING_CONTEXT)
+	errors.RegisterCode(DATA_ERROR_ID_NOT_FOUND, errors.ERROR, fmt.Errorf("Id not provided for the entity."), LOGGING_CONTEXT)
 }

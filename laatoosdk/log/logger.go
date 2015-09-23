@@ -1,34 +1,37 @@
 package log
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"laatoosdk/config"
 )
 
 const (
 	CONF_LOGGINGLEVEL = "logging.level"
+	CONF_LOGGER       = "logging.loggertype"
 )
 
-var Logger *log.Logger
+type LoggerInterface interface {
+	Trace(loggingCtx string, msg string, args ...interface{})
+	Debug(loggingCtx string, msg string, args ...interface{})
+	Info(loggingCtx string, msg string, args ...interface{})
+	Warn(loggingCtx string, msg string, args ...interface{})
+	Error(loggingCtx string, msg string, args ...interface{})
+	Fatal(loggingCtx string, msg string, args ...interface{})
 
-func init() {
-	Logger = log.New()
+	SetLevel(string)
+	IsTrace() bool
+	IsDebug() bool
+	IsInfo() bool
+	IsWarn() bool
 }
+
+var (
+	Logger LoggerInterface
+)
 
 //configures logging level and returns true if its set to debug
 func ConfigLogger(conf config.Config) bool {
-	//read configuration
-	loggingLevel, err := log.ParseLevel(conf.GetString(CONF_LOGGINGLEVEL))
-	if err == nil {
-		//set logger level
-		Logger.Level = loggingLevel
-		if loggingLevel == log.DebugLevel {
-			return true
-		}
-		return false
-	} else {
-		Logger.Level = log.InfoLevel
-		Logger.Errorf("Logger: Invalid logging level %s", err)
-		return false
-	}
+	Logger = NewLogger()
+	loggingLevel := conf.GetString(CONF_LOGGINGLEVEL)
+	Logger.SetLevel(loggingLevel)
+	return Logger.IsDebug()
 }

@@ -69,7 +69,7 @@ func (svc *SecurityService) initializeAuthType(authType AuthType) error {
 	//initialize auth type
 	initializationErr := authType.InitializeType(
 		func(ctx *echo.Context) error { ///  auth start method starts
-			log.Logger.Debug("Validating user")
+			log.Logger.Trace(LOGGING_CONTEXT, "Validating user")
 			err := authType.ValidateUser(ctx)
 			if err != nil {
 				return errors.RethrowHttpError(AUTH_ERROR_USER_VALIDATION_FAILED, ctx, err)

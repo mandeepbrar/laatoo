@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT         = "static_file_service"
 	CONF_STATIC_SERVICENAME = "static_file_service"
 	CONF_STATIC_PUBLICDIR   = "publicdir"
 )
@@ -24,7 +25,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func StaticServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating static service")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating static service")
 	svc := &StaticService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
@@ -36,7 +37,7 @@ func StaticServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	}
 	router := routerInt.(*echo.Group)
 
-	log.Logger.Infof("Designer service starting with page path %s", publicdir)
+	log.Logger.Info(LOGGING_CONTEXT, "Designer service starting", "Page Path", publicdir)
 	router.Static("/", publicdir.(string))
 	return svc, nil
 }

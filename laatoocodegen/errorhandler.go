@@ -11,5 +11,5 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(CODEGEN_ERROR_MISSING_ROUTER, errors.PANIC, fmt.Errorf("Router not found in codegen service."))
+	errors.RegisterCode(CODEGEN_ERROR_MISSING_ROUTER, errors.FATAL, fmt.Errorf("Router not found in codegen service."), LOGGING_CONTEXT)
 }

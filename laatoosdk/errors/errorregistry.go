@@ -9,7 +9,6 @@ import (
 //levels at which error messages can be logged
 const (
 	FATAL   = iota
-	PANIC   = iota
 	ERROR   = iota
 	WARNING = iota
 	INFO    = iota
@@ -21,11 +20,12 @@ type Error struct {
 	InternalErrorCode string
 	Loglevel          int
 	Error             error
+	Context           string
 }
 
 //Error handler for interrupting the error process
 //Returns true if the error has been handled
-type ErrorHandler func(err *Error, ctx map[string]interface{}, info ...string) bool
+type ErrorHandler func(err *Error, ctx interface{}, info ...interface{}) bool
 
 var (
 	//errors register to store all errors in the process
@@ -35,8 +35,8 @@ var (
 )
 
 //register error code
-func RegisterCode(internalErrorCode string, loglevel int, err error) {
-	ErrorsRegister[internalErrorCode] = &Error{internalErrorCode, loglevel, err}
+func RegisterCode(internalErrorCode string, loglevel int, err error, ctx string) {
+	ErrorsRegister[internalErrorCode] = &Error{internalErrorCode, loglevel, err, ctx}
 }
 
 //register error handler for an internal error code
@@ -54,60 +54,51 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 }
 
 //rethrow an error with an internal error code
-func RethrowHttpError(internalErrorCode string, ctx interface{}, err error, info ...string) error {
-	return RethrowErrorWithContext(internalErrorCode, map[string]interface{}{"Context": ctx}, err, info...)
+func RethrowHttpError(internalErrorCode string, ctx interface{}, err error, info ...interface{}) error {
+	return RethrowErrorWithContext(internalErrorCode, ctx, err, info...)
 }
 
 //rethrow an error with an internal error code
-func RethrowError(internalErrorCode string, err error, info ...string) error {
+func RethrowError(internalErrorCode string, err error, info ...interface{}) error {
 	return RethrowErrorWithContext(internalErrorCode, nil, err, info...)
 }
 
 //rethrow an error with an internal error code
-func RethrowErrorWithContext(internalErrorCode string, ctx map[string]interface{}, err error, info ...string) error {
-	return ThrowErrorWithContext(internalErrorCode, ctx, append(info, err.Error())...)
+func RethrowErrorWithContext(internalErrorCode string, ctx interface{}, err error, info ...interface{}) error {
+	return ThrowErrorWithContext(internalErrorCode, ctx, append([]interface{}{"Root Error", err.Error()}, info...)...)
 }
 
 //rethrow an error with an internal error code
-func ThrowHttpError(internalErrorCode string, ctx interface{}, info ...string) error {
-	return ThrowErrorWithContext(internalErrorCode, map[string]interface{}{"Context": ctx}, info...)
+func ThrowHttpError(internalErrorCode string, ctx interface{}, info ...interface{}) error {
+	return ThrowErrorWithContext(internalErrorCode, ctx, info...)
 }
 
-func ThrowError(internalErrorCode string, info ...string) error {
+func ThrowError(internalErrorCode string, info ...interface{}) error {
 	return ThrowErrorWithContext(internalErrorCode, nil, info...)
 }
 
 //throw a registered error code
-func ThrowErrorWithContext(internalErrorCode string, ctx map[string]interface{}, info ...string) error {
+func ThrowErrorWithContext(internalErrorCode string, ctx interface{}, info ...interface{}) error {
 	err, ok := ErrorsRegister[internalErrorCode]
 	if !ok {
 		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
 	}
+	stack := ""
+	if ctx == nil {
+		stack = string(debug.Stack())
+	}
+	infoArr := append([]interface{}{"Err", err.Error.Error(), "Internal Error Code", err.InternalErrorCode, "Context", fmt.Sprint(ctx), "Stack", stack}, info...)
 	switch err.Loglevel {
 	case FATAL:
-		stack := ""
-		if ctx == nil {
-			stack = string(debug.Stack())
-		}
-		log.Logger.Fatalf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
-	case PANIC:
-		stack := ""
-		if ctx == nil {
-			stack = string(debug.Stack())
-		}
-		log.Logger.Panicf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
+		log.Logger.Fatal(err.Context, "Encountered error", infoArr...)
 	case ERROR:
-		stack := ""
-		if ctx == nil {
-			stack = string(debug.Stack())
-		}
-		log.Logger.Errorf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s Stack: %s", err.Error, err.InternalErrorCode, ctx, info, stack)
+		log.Logger.Error(err.Context, "Encountered error", infoArr...)
 	case WARNING:
-		log.Logger.Warningf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		log.Logger.Warn(err.Context, "Encountered warning", infoArr)
 	case INFO:
-		log.Logger.Infof("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		log.Logger.Info(err.Context, "Info Error", infoArr)
 	case DEBUG:
-		log.Logger.Debugf("Encountered error: %s\n, Internal Error Code: %s, Context: %s, Info: %s", err.Error, err.InternalErrorCode, ctx, info)
+		log.Logger.Debug(err.Context, "Debug Error", infoArr)
 	}
 	//call the handlers while throwing an error
 	handlers := ErrorsHandlersRegister[internalErrorCode]

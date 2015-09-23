@@ -44,7 +44,7 @@ func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, er
 	oauth := &OAuthType{}
 	//store the reference to the parent
 	oauth.securityService = svc
-	log.Logger.Debug("OAuthType: Initializing")
+	log.Logger.Debug(LOGGING_CONTEXT, "OAuthType: Initializing")
 	sitesInt, ok := conf[CONF_AUTHSERVICE_OAUTHPATH_SITES]
 	if ok {
 		sitesMap, ok := sitesInt.(map[string]interface{})
@@ -96,12 +96,6 @@ func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, er
 		}
 	}
 
-	/*//get the login path
-	oauth.loginpath = "/login"
-	loginpath, ok := conf[CONF_AUTHSERVICE_LOGINPATH]
-	if ok {
-		oauth.loginpath = loginpath.(string)
-	}*/
 	return oauth, nil
 }
 
@@ -113,7 +107,6 @@ func (oauth *OAuthType) Serve() error {
 //initialize auth type called by base auth for initializing
 func (oauth *OAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	oauth.authCallback = authCallback
-	//groupRouter := oauth.app.Router.Group("/auth")
 	state := utils.RandomString(10)
 	for _, site := range oauth.sites {
 		oauth.securityService.Router.Get(site.systemAuthURL, func(ctx *echo.Context) error {
@@ -134,7 +127,7 @@ func (oauth *OAuthType) InitializeType(authStart echo.HandlerFunc, authCallback 
 //validate the local user
 //derive the data from context object
 func (oauth *OAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug("OAuthProvider: Validating Credentials")
+	log.Logger.Debug(LOGGING_CONTEXT, "OAuthProvider: Validating Credentials")
 
 	siteInt := ctx.Get("Site")
 	site, _ := siteInt.(*OAuthSite)
@@ -215,6 +208,6 @@ func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
 		return err
 	}
 
-	log.Logger.Info("OAuthProvider: Authentication Successful", bits)
+	log.Logger.Debug(LOGGING_CONTEXT, "OAuthProvider: Authentication Successful", "bits", bits)
 	return nil
 }

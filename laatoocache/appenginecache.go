@@ -17,6 +17,7 @@ type AppEngineCacheService struct {
 }
 
 const (
+	APPNEGINE_LOGGING_CONTEXT = "appenginecache"
 	CONF_APPENGINECACHE_NAME        = "appengine_cache"
 	CONF_APPENGINE_CONNECTIONSTRING = "server"
 	CONF_APPENGINE_DATABASE         = "db"
@@ -27,7 +28,7 @@ func init() {
 }
 
 func AppEngineCacheServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating redis cache service ")
+	log.Logger.Info(APPNEGINE_LOGGING_CONTEXT, "Creating appengine cache service ")
 	appengineSvc := &AppEngineCacheService{name: CONF_APPENGINECACHE_NAME}
 
 	return appengineSvc, nil

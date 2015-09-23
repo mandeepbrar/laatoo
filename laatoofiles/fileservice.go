@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT       = "filservice"
 	CONF_FILE_SERVICENAME = "file_service"
 	CONF_FILE_FILESDIR    = "filesdir"
 	CONF_FILE_FILESURL    = "filesurl"
@@ -29,7 +30,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func FileServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating file service")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating file service")
 	svc := &FileService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
@@ -47,7 +48,7 @@ func FileServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	svc.filesUrl = filesurlInt.(string)
 	router := routerInt.(*echo.Group)
 	svc.filesDir = filesdirInt.(string) + "/"
-	log.Logger.Infof("Files Directory %s", filesdirInt)
+	log.Logger.Info(LOGGING_CONTEXT, "Got files directory", "Name", filesdirInt)
 	router.Post("", svc.processFile)
 	return svc, nil
 }
@@ -82,7 +83,7 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 
 	err := req.ParseMultipartForm(16 << 20) // Max memory 16 MiB
 	if err != nil {
-		log.Logger.Debugf("Error", err)
+		log.Logger.Debug(LOGGING_CONTEXT, "Error while parsing multipart form", "Error", err)
 		return err
 	}
 
@@ -91,15 +92,12 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 	//email := c.Form("email")
 
 	// Read files
-	log.Logger.Infof("Request", req)
-	log.Logger.Infof("form", req.MultipartForm)
 
 	files := req.MultipartForm.File["file"]
-	log.Logger.Infof("files", len(files))
+	log.Logger.Debug(LOGGING_CONTEXT, "Parsed multipart form", "Number of files", len(files))
 
 	url := make([]string, len(files))
 	for index, f := range files {
-		log.Logger.Infof("index", index)
 		// Source file
 		src, err := f.Open()
 		if err != nil {
@@ -108,14 +106,14 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 		defer src.Close()
 
 		fileName := svc.filesDir + f.Filename
-		log.Logger.Debugf("Writing file", fileName)
+		log.Logger.Trace(LOGGING_CONTEXT, "Writing file", "Name", fileName)
 		// Destination file
 		dst, err := os.Create(fileName)
 		if err != nil {
 			return err
 		}
 		defer dst.Close()
-		log.Logger.Debugf("Copying file", fileName)
+		log.Logger.Trace(LOGGING_CONTEXT, "Copying file", "Name", fileName)
 
 		if _, err = io.Copy(dst, src); err != nil {
 			return err

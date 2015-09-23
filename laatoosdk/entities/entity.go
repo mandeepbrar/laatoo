@@ -1,11 +1,13 @@
 package entities
 
 import (
-	"fmt"
-	"laatoosdk/errors"
+//"fmt"
+//"laatoosdk/errors"
 )
 
+/*
 const (
+	LOGGING_CONTEXT = "ENTITYERROR"
 	CONF_ENTITY_NAME     = "name"
 	CONF_ENTITY_DATA_SVC = "data_svc"
 	CONF_ENTITY_TYPE     = "type"
@@ -38,7 +40,7 @@ func init() {
 	errors.RegisterCode(ENTITY_ERROR_INCORRECT_METHOD_CONF, errors.PANIC, fmt.Errorf("Incorrect conf provided for method."))
 	errors.RegisterCode(ENTITY_ERROR_CONF_INCORRECT, errors.PANIC, fmt.Errorf("Incorrect conf provided for entity."))
 }
-
+*/
 //Object stored by data service
 type Entity interface {
 	PreSave() error

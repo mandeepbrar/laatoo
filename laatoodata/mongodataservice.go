@@ -58,7 +58,7 @@ func MongoServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 		mongoSvc.objects[obj] = collection.(string)
 	}
-	log.Logger.Debugf("Mongo service configured for objects ", mongoSvc.objects)
+	log.Logger.Debug(LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)
 	return mongoSvc, nil
 }
 
@@ -87,18 +87,18 @@ func (svc *mongoDataService) Serve() error {
 }
 
 func (ms *mongoDataService) Save(objectType string, item interface{}) error {
-	log.Logger.Debugf("Saving object", objectType, item)
+	log.Logger.Trace(LOGGING_CONTEXT, "Saving object", "Object", objectType, "Item", item)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
 	id := stor.GetId()
 	if id == "" {
-		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, objectType)
+		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
 	}
 	err := connCopy.DB(ms.database).C(collection).Insert(item)
 	if err != nil {
@@ -112,7 +112,7 @@ func (ms *mongoDataService) Put(objectType string, id string, item interface{}) 
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	condition := bson.M{}
 	stor := item.(data.Storable)
@@ -134,7 +134,7 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 	collection, ok := ms.objects[objectType]
 
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -148,10 +148,9 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 		if err.Error() == "not found" {
 			return nil, nil
 		}
-		log.Logger.Debugf("Error in getting object with id %s %s", id, err)
+		log.Logger.Debug(LOGGING_CONTEXT, "Error in getting object with", "ID", id, "Error", err)
 		return nil, err
 	}
-	log.Logger.Debugf("Got the object with id %s", id)
 	return object, nil
 }
 
@@ -162,10 +161,10 @@ func (ms *mongoDataService) Get(objectType string, queryCond interface{}, pageSi
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Debugf("Got the object ", results)
+	log.Logger.Trace(LOGGING_CONTEXT, "Got the object ", "Result", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -206,7 +205,7 @@ func (ms *mongoDataService) Delete(objectType string, id string) error {
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := object.(data.Storable)
 	idkey := stor.GetIdField()
@@ -224,10 +223,9 @@ func (ms *mongoDataService) GetList(objectType string, pageSize int, pageNum int
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Debugf("Got the object ", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()

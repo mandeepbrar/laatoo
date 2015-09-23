@@ -32,7 +32,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		var once sync.Once
 		warmupFunc := func() {
 			APPENGINE_CONTEXT = appengine.NewContext(req.Request())
-			log.Logger.Error("context", APPENGINE_CONTEXT)
+			log.Logger.Error("core.appengine.warmup", "Got context", "context", APPENGINE_CONTEXT)
 			server.Start()
 		}
 		router.Use(func(ctx *echo.Context) error {

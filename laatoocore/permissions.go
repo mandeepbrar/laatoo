@@ -43,7 +43,7 @@ func RegisterRolePermissions(role auth.Role) {
 		key := fmt.Sprintf("%s#%s", role.GetId(), perm)
 		RolePermissions[key] = true
 	}
-	log.Logger.Debug("Role permissions", RolePermissions)
+	log.Logger.Trace("core.permissions", "Registered Role permissions", "Role Permissions", RolePermissions)
 }
 
 func IsAllowed(ctx *echo.Context, perm string) bool {

@@ -33,17 +33,17 @@ type Server struct {
 //Initialize Server
 func (server *Server) InitServer(configName string, router *echo.Echo) {
 	server.Applications = make(map[string]*Environment)
-	log.Logger.Infof("Initializing server with config %s", configName)
+	log.Logger.Info("core.server", "Initializing server", "config", configName)
 	//read config for standalone
 	server.Config = config.NewConfigFromFile(configName)
 	//config logger
 	debug := log.ConfigLogger(server.Config)
 	router.SetDebug(debug)
 
-	log.Logger.Debugf("Getting environments")
+	log.Logger.Trace("core.server", "Getting environments")
 	//read config
 	envs := server.Config.GetArray(CONF_ENVIRONMENTS)
-	log.Logger.Debugf("%s environments to be initialized", len(envs))
+	log.Logger.Debug("core.server", " Environments to be initialized", "Number of environments", len(envs))
 	for _, val := range envs {
 		env := val.(map[string]interface{})
 		envName := env[CONF_ENVNAME].(string)
@@ -51,10 +51,10 @@ func (server *Server) InitServer(configName string, router *echo.Echo) {
 		envPath := env[CONF_ENVPATH].(string)
 		envServerType, ok := env[CONF_ENV_SERVERTYPE]
 		if ok && (envServerType.(string) != server.ServerType) {
-			log.Logger.Infof("Skipping environment %s", envName)
+			log.Logger.Info("core.server", "Skipping environment", "Environment", envName)
 			continue
 		}
-		log.Logger.Infof("Creating environment", envName)
+		log.Logger.Debug("core.server", "Creating environment", "Environment", envName)
 		environment, err := newEnvironment(envName, envConf, router.Group(envPath), server.ServerType)
 		if err != nil {
 			errors.RethrowError(CORE_ENVIRONMENT_NOT_CREATED, err, envName)
@@ -65,7 +65,7 @@ func (server *Server) InitServer(configName string, router *echo.Echo) {
 	for envName, app := range server.Applications {
 		err := app.InitializeEnvironment()
 		if err != nil {
-			errors.RethrowError(CORE_ENVIRONMENT_NOT_INITIALIZED, err, envName)
+			errors.RethrowError(CORE_ENVIRONMENT_NOT_INITIALIZED, err, "Environment", envName)
 		}
 	}
 }

@@ -29,7 +29,7 @@ func NewLocalAuth(conf map[string]interface{}, svc *SecurityService) (*localAuth
 	localauth := &localAuthType{}
 	//store the reference to the parent
 	localauth.securityService = svc
-	log.Logger.Debug("localAuthProvider: Initializing")
+	log.Logger.Debug(LOGGING_CONTEXT, "localAuthProvider: Initializing")
 
 	//get the login path
 	localauth.loginpath = "/login"
@@ -56,7 +56,7 @@ func (localauth *localAuthType) InitializeType(authStart echo.HandlerFunc, authC
 //validate the local user
 //derive the data from context object
 func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug("localAuthProvider: Validating Credentials")
+	log.Logger.Debug(LOGGING_CONTEXT, "localAuthProvider: Validating Credentials")
 
 	//create the user
 	usrInt, err := localauth.securityService.CreateUser()
@@ -92,7 +92,6 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	} else {
 		existingUser.SetPassword("")
 		ctx.Set("User", testedUser)
-		log.Logger.Debugf("**********Auth user", testedUser)
 		return localauth.authCallback(ctx)
 	}
 }
@@ -103,6 +102,6 @@ func (localauth *localAuthType) GetName() string {
 
 //complete authentication
 func (localauth *localAuthType) CompleteAuthentication(ctx *echo.Context) error {
-	log.Logger.Info("localAuthProvider: Authentication Successful")
+	log.Logger.Info(LOGGING_CONTEXT, "localAuthProvider: Authentication Successful")
 	return nil
 }

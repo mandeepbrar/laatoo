@@ -18,13 +18,13 @@ const (
 )
 
 func init() {
-	errors.RegisterCode(PAGE_ERROR_MISSING_ROUTER, errors.PANIC, fmt.Errorf("Router not found in page service."))
-	errors.RegisterCode(PAGE_ERROR_MISSING_PAGESDIR, errors.ERROR, fmt.Errorf("Pages directory not provided to page service."))
-	errors.RegisterCode(PAGE_ERROR_MISSING_PAGEPATH, errors.ERROR, fmt.Errorf("Path of a page has not been provided."))
-	errors.RegisterCode(PAGE_ERROR_MISSING_DEST, errors.ERROR, fmt.Errorf("Dest of a page has not been provided."))
-	errors.RegisterCode(PAGE_ERROR_PAGES_NOT_PROVIDED, errors.ERROR, fmt.Errorf("Pages directive has not been provided to the page service."))
-	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALS, errors.ERROR, fmt.Errorf("Wrong data provided for partials of the page."))
-	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALPATH, errors.ERROR, fmt.Errorf("Wrong path provided for partial."))
-	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALFILE, errors.ERROR, fmt.Errorf("Wrong file provided for partial."))
-	errors.RegisterCode(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED, errors.ERROR, fmt.Errorf("Actions Service not provided to Page Service."))
+	errors.RegisterCode(PAGE_ERROR_MISSING_ROUTER, errors.FATAL, fmt.Errorf("Router not found in page service."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_MISSING_PAGESDIR, errors.FATAL, fmt.Errorf("Pages directory not provided to page service."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_MISSING_PAGEPATH, errors.FATAL, fmt.Errorf("Path of a page has not been provided."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_MISSING_DEST, errors.FATAL, fmt.Errorf("Dest of a page has not been provided."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_PAGES_NOT_PROVIDED, errors.FATAL, fmt.Errorf("Pages directive has not been provided to the page service."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALS, errors.FATAL, fmt.Errorf("Wrong data provided for partials of the page."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALPATH, errors.FATAL, fmt.Errorf("Wrong path provided for partial."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_WRONG_PARTIALFILE, errors.FATAL, fmt.Errorf("Wrong file provided for partial."), LOGGING_CONTEXT)
+	errors.RegisterCode(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED, errors.ERROR, fmt.Errorf("Actions Service not provided to Page Service."), LOGGING_CONTEXT)
 }

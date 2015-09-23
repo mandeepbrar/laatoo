@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	LOGGING_CONTEXT                = "page_service"
 	CONF_PAGE_SERVICENAME          = "page_service"
 	CONF_PAGE_PAGESDIR             = "pagesdir"
 	CONF_PAGE_PAGES                = "pages"
@@ -27,7 +28,7 @@ func init() {
 
 //factory method returns the service object to the environment
 func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Infof("Creating page service")
+	log.Logger.Info(LOGGING_CONTEXT, "Creating page service")
 	svc := &PageService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
@@ -60,7 +61,7 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 		//get the config for the page with given alias
 		pageConf := val.(map[string]interface{})
 		//get the service name to be created for the alias
-		log.Logger.Info("Creating page %s", name)
+		log.Logger.Debug(LOGGING_CONTEXT, "Creating page", "Name", name)
 		//create page with provided conf
 		err := svc.createPage(pageConf, router, pagesdir.(string))
 		if err != nil {

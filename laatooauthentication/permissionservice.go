@@ -22,7 +22,7 @@ func init() {
 
 func NewPermService(conf map[string]interface{}) (interface{}, error) {
 
-	log.Logger.Infof("Creating entity service", ENTITY_PERM_SERVICE_NAME)
+	log.Logger.Info(LOGGING_CONTEXT, "Creating entity service", "ServiceName", ENTITY_PERM_SERVICE_NAME)
 
 	svc := &PermService{}
 	routerInt, _ := conf[laatoocore.CONF_ENV_ROUTER]
