@@ -29,8 +29,8 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_REDISPUBSUB_NAME, RedisPubSubServiceFactory)
 }
 
-func RedisPubSubServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating redis pubsub service ")
+func RedisPubSubServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating redis pubsub service ")
 	redisSvc := &RedisPubSubService{name: CONF_REDISPUBSUB_NAME}
 
 	connectionStringInt, ok := conf[CONF_REDIS_CONNECTIONSTRING]
@@ -53,7 +53,7 @@ func RedisPubSubServiceFactory(conf map[string]interface{}) (interface{}, error)
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Error(LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
+				log.Logger.Error(ctx, LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},
@@ -93,11 +93,11 @@ func (svc *RedisPubSubService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *RedisPubSubService) Serve() error {
+func (svc *RedisPubSubService) Serve(ctx interface{}) error {
 	return nil
 }
 
-func (svc *RedisPubSubService) Publish(topic string, message interface{}) error {
+func (svc *RedisPubSubService) Publish(ctx interface{}, topic string, message interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("PUBLISH", topic, message)
@@ -108,7 +108,7 @@ func (svc *RedisPubSubService) Publish(topic string, message interface{}) error 
 	return nil
 }
 
-func (svc *RedisPubSubService) Subscribe(topics []string, lstnr service.TopicListener) error {
+func (svc *RedisPubSubService) Subscribe(ctx interface{}, topics []string, lstnr service.TopicListener) error {
 	conn := svc.pool.Get()
 	psc := redis.PubSubConn{Conn: conn}
 	for _, topic := range topics {
@@ -121,10 +121,10 @@ func (svc *RedisPubSubService) Subscribe(topics []string, lstnr service.TopicLis
 		for {
 			switch v := psc.Receive().(type) {
 			case redis.Message:
-				lstnr(v.Channel, v.Data)
+				lstnr(ctx, v.Channel, v.Data)
 			case redis.Subscription:
 			case error:
-				log.Logger.Info(LOGGING_CONTEXT, "Pubsub error ", "Error", v)
+				log.Logger.Info(ctx, LOGGING_CONTEXT, "Pubsub error ", "Error", v)
 			}
 		}
 	}()
@@ -132,6 +132,6 @@ func (svc *RedisPubSubService) Subscribe(topics []string, lstnr service.TopicLis
 }
 
 //Execute method
-func (svc *RedisPubSubService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *RedisPubSubService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

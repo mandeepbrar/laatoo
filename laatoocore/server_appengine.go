@@ -5,15 +5,9 @@ package laatoocore
 import (
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"laatoosdk/log"
 	"net/http"
 	"sync"
-)
-
-var (
-	APPENGINE_CONTEXT context.Context
 )
 
 //Create a new server
@@ -27,13 +21,12 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	server.InitServer(configName, router)
 	http.Handle("/", router)
 	if server.ServerType == CONF_SERVERTYPE_GOOGLEAPP {
-		log.Logger.Error("setting up router for warmup")
+		log.Logger.Error(nil, "core.appengine.warmup", "setting up router for warmup")
 		var req *echo.Context
 		var once sync.Once
 		warmupFunc := func() {
-			APPENGINE_CONTEXT = appengine.NewContext(req.Request())
-			log.Logger.Error("core.appengine.warmup", "Got context", "context", APPENGINE_CONTEXT)
-			server.Start()
+			log.Logger.Error(req, "core.appengine.warmup", "starting server")
+			server.Start(req)
 		}
 		router.Use(func(ctx *echo.Context) error {
 			req = ctx

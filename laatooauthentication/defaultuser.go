@@ -4,8 +4,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
-	"laatoosdk/auth"
-	"laatoosdk/data"
 	"laatoosdk/utils"
 	"strings"
 )
@@ -52,22 +50,8 @@ func (usr *DefaultUser) SetRoles(roles []string) error {
 func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }
-func (usr *DefaultUser) LoadPermissions(roleStorer data.DataService) error {
-	roles := usr.Roles
-	permissions := utils.NewStringSet([]string{})
-	for _, k := range roles {
-		if k == laatoocore.AdminRole {
-			usr.Permissions = laatoocore.ListAllPermissions()
-			return nil
-		}
-		roleInt, err := roleStorer.GetById(laatoocore.DEFAULT_ROLE, k)
-		if err == nil && roleInt != nil {
-			role := roleInt.(auth.Role)
-			permissions.Append(role.GetPermissions())
-		}
-	}
-	usr.Permissions = permissions.Values()
-	return nil
+func (usr *DefaultUser) SetPermissions(permissions []string) {
+	usr.Permissions = permissions
 }
 func (usr *DefaultUser) AddRole(role string) error {
 	usr.Roles = append(usr.Roles, role)
@@ -93,7 +77,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_USER, NewUser)
 }
 
-func NewUser(conf map[string]interface{}) (interface{}, error) {
+func NewUser(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 	return &DefaultUser{}, nil
 }
 

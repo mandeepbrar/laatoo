@@ -5,6 +5,7 @@ package laatoodata
 import (
 	"google.golang.org/appengine/datastore"
 	"laatoocore"
+	"laatoosdk/context"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
@@ -27,14 +28,14 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_DATASTORE_SERVICENAME, DatastoreServiceFactory)
 }
 
-func DatastoreServiceFactory(conf map[string]interface{}) (interface{}, error) {
+func DatastoreServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 	objectsInt, ok := conf[CONF_DATASTORE_OBJECTS]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
 	}
 	objs, ok := objectsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
 	}
 
 	datastoreSvc := &DatastoreDataService{name: "Datastore Data Service"}
@@ -43,7 +44,7 @@ func DatastoreServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 		datastoreSvc.objects[obj] = collection.(string)
 	}
-	log.Logger.Debug(LOGGING_CONTEXT, "Datastore service configured for objects ", "Objects", datastoreSvc.objects)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Datastore service configured for objects ", "Objects", datastoreSvc.objects)
 	return datastoreSvc, nil
 }
 
@@ -67,80 +68,84 @@ func (svc *DatastoreDataService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *DatastoreDataService) Serve() error {
+func (svc *DatastoreDataService) Serve(ctx interface{}) error {
 	return nil
 }
 
-func (ms *DatastoreDataService) Save(objectType string, item interface{}) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
+func (ms *DatastoreDataService) Save(ctx interface{}, objectType string, item interface{}) error {
+	appEngineContext := context.GetAppengineContext(ctx)
+	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
 	id := stor.GetId()
 	if id == "" {
-		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
+		return errors.ThrowError(appEngineContext, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
 	}
-	key, err := datastore.Put(laatoocore.APPENGINE_CONTEXT, datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, stor.GetId(), 0, nil), item)
+	key, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, collection, stor.GetId(), 0, nil), item)
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
 
-func (ms *DatastoreDataService) Put(objectType string, id string, item interface{}) error {
-	log.Logger.Debugf("Saving object", objectType, item)
+func (ms *DatastoreDataService) Put(ctx interface{}, objectType string, id string, item interface{}) error {
+	appEngineContext := context.GetAppengineContext(ctx)
+	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
-	key, err := datastore.Put(laatoocore.APPENGINE_CONTEXT, datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, id, 0, nil), item)
+	key, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, collection, id, 0, nil), item)
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
+	log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
 
-func (ms *DatastoreDataService) GetById(objectType string, id string) (interface{}, error) {
+func (ms *DatastoreDataService) GetById(ctx interface{}, objectType string, id string) (interface{}, error) {
+	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
-	object, err := ms.context.CreateObject(objectType, nil)
+	object, err := laatoocore.CreateObject(appEngineContext, objectType, nil)
 	if err != nil {
 		return nil, err
 	}
-	key := datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, id, 0, nil)
-	err = datastore.Get(laatoocore.APPENGINE_CONTEXT, key, object)
+	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+	err = datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
 	stor.PostLoad()
 	if err != nil {
-		log.Logger.Debug(LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
+		log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
 		return nil, err
 	}
 	return object, nil
 }
 
-func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
-	results, err := ms.context.CreateCollection(objectType)
+	results, err := laatoocore.CreateCollection(appEngineContext, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
 	if pageSize > 0 {
-		totalrecs, err = query.Count(laatoocore.APPENGINE_CONTEXT)
+		totalrecs, err = query.Count(appEngineContext)
 		if err != nil {
 			return nil, totalrecs, recsreturned, err
 		}
@@ -150,7 +155,7 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
-	_, err = query.GetAll(laatoocore.APPENGINE_CONTEXT, results)
+	_, err = query.GetAll(appEngineContext, results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
 	i := 0
@@ -165,29 +170,31 @@ func (ms *DatastoreDataService) Get(objectType string, queryCond interface{}, pa
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *DatastoreDataService) Delete(objectType string, id string) error {
+func (ms *DatastoreDataService) Delete(ctx interface{}, objectType string, id string) error {
+	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
-	key := datastore.NewKey(laatoocore.APPENGINE_CONTEXT, collection, id, 0, nil)
-	return datastore.Delete(laatoocore.APPENGINE_CONTEXT, key)
+	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+	return datastore.Delete(appEngineContext, key)
 }
 
-func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) GetList(ctx interface{}, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
-	results, err := ms.context.CreateCollection(objectType)
+	results, err := laatoocore.CreateCollection(appEngineContext, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
 	if pageSize > 0 {
-		totalrecs, err = query.Count(laatoocore.APPENGINE_CONTEXT)
+		totalrecs, err = query.Count(appEngineContext)
 		if err != nil {
 			return nil, totalrecs, recsreturned, err
 		}
@@ -197,7 +204,7 @@ func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
-	_, err = query.GetAll(laatoocore.APPENGINE_CONTEXT, results)
+	_, err = query.GetAll(appEngineContext, results)
 	arr := reflect.ValueOf(results).Elem()
 	length := arr.Len()
 	i := 0
@@ -213,6 +220,6 @@ func (ms *DatastoreDataService) GetList(objectType string, pageSize int, pageNum
 }
 
 //Execute method
-func (svc *DatastoreDataService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *DatastoreDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

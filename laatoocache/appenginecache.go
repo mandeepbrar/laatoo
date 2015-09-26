@@ -27,8 +27,8 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_APPENGINECACHE_NAME, AppEngineCacheServiceFactory)
 }
 
-func AppEngineCacheServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(APPNEGINE_LOGGING_CONTEXT, "Creating appengine cache service ")
+func AppEngineCacheServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, APPNEGINE_LOGGING_CONTEXT, "Creating appengine cache service ")
 	appengineSvc := &AppEngineCacheService{name: CONF_APPENGINECACHE_NAME}
 
 	return appengineSvc, nil
@@ -50,19 +50,19 @@ func (svc *AppEngineCacheService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *AppEngineCacheService) Serve() error {
+func (svc *AppEngineCacheService) Serve(ctx interface{}) error {
 	return nil
 }
 
-func (svc *AppEngineCacheService) Delete(key string) error {
+func (svc *AppEngineCacheService) Delete(ctx interface{}, key string) error {
 	return nil
 }
 
-func (svc *AppEngineCacheService) PutObject(key string, val interface{}) error {
+func (svc *AppEngineCacheService) PutObject(ctx interface{}, key string, val interface{}) error {
 	return memcache.Set(c, &memcache.Item{ Key: key, Value: []byte(val))
 }
 
-func (svc *AppEngineCacheService) GetObject(key string) (interface{}, error) {
+func (svc *AppEngineCacheService) GetObject(ctx interface{}, key string) (interface{}, error) {
 	item, err := memcache.Get(c, key)
 	if(err != nil ) {
 		return nil, err
@@ -72,6 +72,6 @@ func (svc *AppEngineCacheService) GetObject(key string) (interface{}, error) {
 }
 
 //Execute method
-func (svc *AppEngineCacheService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *AppEngineCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

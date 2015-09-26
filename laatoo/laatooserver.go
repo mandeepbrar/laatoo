@@ -25,6 +25,6 @@ func main() {
 	//create a server with config name
 	_, err := laatoocore.NewServer(configName, laatoocore.CONF_SERVERTYPE_STANDALONE)
 	if err != nil {
-		log.Logger.Error("Error in server %s", err)
+		log.Logger.Error(nil, "Error in server %s", err)
 	}
 }

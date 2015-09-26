@@ -11,74 +11,91 @@ var (
 	//global provider register
 	//objects factory register exists for every server
 	ObjectsFactoryRegister = make(map[string]interface{}, 30)
-	ObjectCollections      = utils.NewMemoryStorer()
+
+	//register for collection types of objects
+	//types of object collections are only registered once
+	ObjectCollections = utils.NewMemoryStorer()
 )
 
 //every object that needs to be created by configuration should register a factory func
 //this factory function provides a object if called
-type ObjectFactory func(conf map[string]interface{}) (interface{}, error)
+type ObjectFactory func(ctx interface{}, conf map[string]interface{}) (interface{}, error)
 
 //register the object factory in the global register
 func RegisterObjectProvider(objectName string, factory ObjectFactory) {
 	_, ok := ObjectsFactoryRegister[objectName]
 	if !ok {
-		log.Logger.Info("core.objects", "Registering object factory ", "Object Name", objectName)
+		log.Logger.Info(nil, "core.objects", "Registering object factory ", "Object Name", objectName)
 		ObjectsFactoryRegister[objectName] = factory
 	}
 }
 
 //returns collection type for given object
-func GetCollectionType(objectName string) (reflect.Type, error) {
+func GetCollectionType(ctx interface{}, objectName string) (reflect.Type, error) {
 	//find the collection type from memory
 	typeInt, err := ObjectCollections.GetObject(objectName)
+
 	if err == nil {
+		//if present in registry return it
 		return typeInt.(reflect.Type), nil
 	} else {
-		objectPtr, err := CreateObject(objectName, nil)
+
+		//if not present create type of collection by reflection
+		//create an object of the type by factory func
+
+		objectPtr, err := CreateObject(ctx, objectName, nil)
 		if err != nil {
 			return nil, err
 		}
+		// derive collection type from object type
 		collectionType := reflect.SliceOf(reflect.TypeOf(reflect.ValueOf(objectPtr).Elem().Interface()))
-		log.Logger.Info("core.objects", "Creating collectionType ", "Collection Type", collectionType)
+		log.Logger.Info(ctx, "core.objects", "Creating collectionType ", "Collection Type", collectionType)
 		ObjectCollections.PutObject(objectName, collectionType)
 		return collectionType, nil
 	}
 }
 
-func CreateCollection(objectName string) (interface{}, error) {
-	collectionType, err := GetCollectionType(objectName)
+//returns a collection of the object type
+func CreateCollection(ctx interface{}, objectName string) (interface{}, error) {
+	//get the collection type from registry
+	collectionType, err := GetCollectionType(ctx, objectName)
 	if err != nil {
 		return nil, err
 	}
+	//create an instance of collection.
+	//returns pointer to the collection
 	return reflect.New(collectionType).Interface(), nil
 }
 
-func CreateEmptyObject(objectName string) (interface{}, error) {
-	return CreateObject(objectName, nil)
+//returns an object without any config
+func CreateEmptyObject(ctx interface{}, objectName string) (interface{}, error) {
+	return CreateObject(ctx, objectName, nil)
 }
 
-//Provides a object with a given name
-func CreateObject(objectName string, confdata map[string]interface{}) (interface{}, error) {
-	log.Logger.Trace("core.objects", "Getting object ", "Object Name", objectName)
+//Provides an object with a given name
+func CreateObject(ctx interface{}, objectName string, confdata map[string]interface{}) (interface{}, error) {
+	log.Logger.Trace(ctx, "core.objects", "Getting object ", "Object Name", objectName)
 
-	//get the factory from the register
+	//get the factory func from the register
 	factoryInt, ok := ObjectsFactoryRegister[objectName]
 	if !ok {
-		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
+		return nil, errors.ThrowError(ctx, CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 
 	}
+
 	//cast to a creatory func
 	factoryFunc, ok := factoryInt.(ObjectFactory)
 	if !ok {
-		return nil, errors.ThrowError(CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
+		return nil, errors.ThrowError(ctx, CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
 
 	//call factory method for creating an object
-	obj, err := factoryFunc(confdata)
+	obj, err := factoryFunc(ctx, confdata)
 	if err != nil {
-		return nil, errors.RethrowError(CORE_ERROR_OBJECT_NOT_CREATED, err, "Object Name", objectName)
+		return nil, errors.RethrowError(ctx, CORE_ERROR_OBJECT_NOT_CREATED, err, "Object Name", objectName)
 	}
-	log.Logger.Trace("core.objects", "Created object ", "Object Name", objectName)
+
+	log.Logger.Trace(ctx, "core.objects", "Created object ", "Object Name", objectName)
 	//return object by calling factory func
 	return obj, nil
 }

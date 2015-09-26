@@ -24,12 +24,12 @@ type localAuthType struct {
 }
 
 //method called for creating new auth type
-func NewLocalAuth(conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
+func NewLocalAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
 	//create the new auth type
 	localauth := &localAuthType{}
 	//store the reference to the parent
 	localauth.securityService = svc
-	log.Logger.Debug(LOGGING_CONTEXT, "localAuthProvider: Initializing")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "localAuthProvider: Initializing")
 
 	//get the login path
 	localauth.loginpath = "/login"
@@ -40,13 +40,8 @@ func NewLocalAuth(conf map[string]interface{}, svc *SecurityService) (*localAuth
 	return localauth, nil
 }
 
-//method called for service
-func (localauth *localAuthType) Serve() error {
-	return nil
-}
-
 //initialize auth type called by base auth for initializing
-func (localauth *localAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (localauth *localAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	//setup path for listening to login post request
 	localauth.securityService.Router.Post(localauth.loginpath, authStart)
 	localauth.authCallback = authCallback
@@ -56,31 +51,34 @@ func (localauth *localAuthType) InitializeType(authStart echo.HandlerFunc, authC
 //validate the local user
 //derive the data from context object
 func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "localAuthProvider: Validating Credentials")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "localAuthProvider: Validating Credentials")
 
 	//create the user
-	usrInt, err := localauth.securityService.CreateUser()
+	usrInt, err := localauth.securityService.CreateUser(ctx)
 	if err != nil {
-		return errors.RethrowHttpError(laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
+		return errors.RethrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, err)
 	}
 
 	//ctx.Request().Body
 	err = ctx.Bind(usrInt)
 	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_INCORRECT_REQ_FORMAT, ctx, err)
+		return errors.RethrowError(ctx, AUTH_ERROR_INCORRECT_REQ_FORMAT, err)
 	}
 
 	//get the ide of the user to be tested
 	usr := usrInt.(auth.LocalAuthUser)
 	id := usr.GetId()
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Binding complete for id", "Id", id)
 
 	//get the tested user from database
-	testedUser, err := localauth.securityService.GetUserById(id)
+	testedUser, err := localauth.securityService.GetUserById(ctx, id)
 	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx, err)
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found", "Err", err)
+		return errors.RethrowError(ctx, AUTH_ERROR_USER_NOT_FOUND, err)
 	}
 	if testedUser == nil {
-		return errors.ThrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx)
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found")
+		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
 	}
 
 	//compare the user requested with the user from database
@@ -88,7 +86,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	existingUser.SetPassword("")
 	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_WRONG_PASSWORD, ctx, err)
+		return errors.RethrowError(ctx, AUTH_ERROR_WRONG_PASSWORD, err)
 	} else {
 		existingUser.SetPassword("")
 		ctx.Set("User", testedUser)
@@ -102,6 +100,6 @@ func (localauth *localAuthType) GetName() string {
 
 //complete authentication
 func (localauth *localAuthType) CompleteAuthentication(ctx *echo.Context) error {
-	log.Logger.Info(LOGGING_CONTEXT, "localAuthProvider: Authentication Successful")
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "localAuthProvider: Authentication Successful")
 	return nil
 }

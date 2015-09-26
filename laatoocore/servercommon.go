@@ -33,17 +33,18 @@ type Server struct {
 //Initialize Server
 func (server *Server) InitServer(configName string, router *echo.Echo) {
 	server.Applications = make(map[string]*Environment)
-	log.Logger.Info("core.server", "Initializing server", "config", configName)
+	log.Logger.Info(nil, "core.server", "Initializing server", "config", configName)
 	//read config for standalone
 	server.Config = config.NewConfigFromFile(configName)
+	log.Logger.Error(nil, "core.server", "got config")
 	//config logger
 	debug := log.ConfigLogger(server.Config)
 	router.SetDebug(debug)
 
-	log.Logger.Trace("core.server", "Getting environments")
+	log.Logger.Trace(nil, "core.server", "Getting environments")
 	//read config
 	envs := server.Config.GetArray(CONF_ENVIRONMENTS)
-	log.Logger.Debug("core.server", " Environments to be initialized", "Number of environments", len(envs))
+	log.Logger.Debug(nil, "core.server", " Environments to be initialized", "Number of environments", len(envs))
 	for _, val := range envs {
 		env := val.(map[string]interface{})
 		envName := env[CONF_ENVNAME].(string)
@@ -51,13 +52,13 @@ func (server *Server) InitServer(configName string, router *echo.Echo) {
 		envPath := env[CONF_ENVPATH].(string)
 		envServerType, ok := env[CONF_ENV_SERVERTYPE]
 		if ok && (envServerType.(string) != server.ServerType) {
-			log.Logger.Info("core.server", "Skipping environment", "Environment", envName)
+			log.Logger.Info(nil, "core.server", "Skipping environment", "Environment", envName)
 			continue
 		}
-		log.Logger.Debug("core.server", "Creating environment", "Environment", envName)
+		log.Logger.Debug(nil, "core.server", "Creating environment", "Environment", envName)
 		environment, err := newEnvironment(envName, envConf, router.Group(envPath), server.ServerType)
 		if err != nil {
-			errors.RethrowError(CORE_ENVIRONMENT_NOT_CREATED, err, envName)
+			errors.RethrowError(nil, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 		}
 		server.Applications[envName] = environment
 	}
@@ -65,15 +66,15 @@ func (server *Server) InitServer(configName string, router *echo.Echo) {
 	for envName, app := range server.Applications {
 		err := app.InitializeEnvironment()
 		if err != nil {
-			errors.RethrowError(CORE_ENVIRONMENT_NOT_INITIALIZED, err, "Environment", envName)
+			errors.RethrowError(nil, CORE_ENVIRONMENT_NOT_INITIALIZED, err, "Environment", envName)
 		}
 	}
 }
 
 //start the server
-func (server *Server) Start() {
+func (server *Server) Start(ctx interface{}) {
 	//Initializes application environments to be hosted on this server
 	for _, app := range server.Applications {
-		app.StartEnvironment()
+		app.StartEnvironment(ctx)
 	}
 }

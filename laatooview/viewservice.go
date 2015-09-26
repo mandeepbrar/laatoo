@@ -34,12 +34,12 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating view service")
+func ViewServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating view service")
 	svc := &ViewService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(VIEW_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_ROUTER)
 	}
 
 	router := routerInt.(*echo.Group)
@@ -47,42 +47,42 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 	datasvcInt, ok := conf[CONF_VIEW_DATASVC]
 	if !ok {
-		return nil, errors.ThrowError(VIEW_ERROR_MISSING_DATASVC)
+		return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_DATASVC)
 	}
 	svc.dataSvcName = datasvcInt.(string)
 
 	viewsInt, ok := conf[CONF_VIEW_VIEWS]
 	if !ok {
-		return nil, errors.ThrowError(VIEW_ERROR_MISSING_VIEWS)
+		return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWS)
 	}
 
 	views, ok := viewsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(VIEW_ERROR_MISSING_VIEWS)
+		return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWS)
 	}
 	svc.Views = make(map[string]data.View, len(views))
 	for name, val := range views {
 
 		viewConfig, ok := val.(map[string]interface{})
 		if !ok {
-			return nil, errors.ThrowError(VIEW_ERROR_INCORRECT_VIEW_CONF, "View Name", name)
+			return nil, errors.ThrowError(ctx, VIEW_ERROR_INCORRECT_VIEW_CONF, "View Name", name)
 		}
 
 		nameInt, ok := viewConfig[CONF_VIEW_VIEWNAME]
 		if !ok {
-			return nil, errors.ThrowError(VIEW_ERROR_MISSING_VIEWNAME, "View Name", name)
+			return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWNAME, "View Name", name)
 		} else {
 			name := nameInt.(string)
 			pathInt, ok := viewConfig[CONF_VIEW_VIEWPATH]
 			if !ok {
-				return nil, errors.ThrowError(VIEW_ERROR_MISSING_VIEWPATH, "View Name", name)
+				return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWPATH, "View Name", name)
 			}
 
 			path := pathInt.(string)
 
-			viewInt, err := laatoocore.CreateObject(name, nil)
+			viewInt, err := laatoocore.CreateObject(ctx, name, nil)
 			if err != nil {
-				return nil, errors.RethrowError(VIEW_ERROR_MISSING_VIEW, err, "View Name", name)
+				return nil, errors.RethrowError(ctx, VIEW_ERROR_MISSING_VIEW, err, "View Name", name)
 			}
 
 			view := viewInt.(data.View)
@@ -90,7 +90,7 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 			router.Get(path, func(ctx *echo.Context) error {
 				return view.Execute(svc.DataStore, ctx)
 			})
-			log.Logger.Trace(LOGGING_CONTEXT, "Registering view", "View Name", name)
+			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Registering view", "View Name", name)
 			svc.Views[name] = view
 		}
 	}
@@ -102,11 +102,11 @@ func ViewServiceFactory(conf map[string]interface{}) (interface{}, error) {
 func (svc *ViewService) GetView(ctx *echo.Context) error {
 	name := ctx.Query("viewname")
 	if name == "" {
-		return errors.ThrowHttpError(VIEW_ERROR_MISSING_VIEW, ctx)
+		return errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEW)
 	}
 	view, ok := svc.Views[name]
 	if !ok {
-		return errors.ThrowHttpError(VIEW_ERROR_MISSING_VIEW, ctx, "View Name", name)
+		return errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEW, "View Name", name)
 	}
 	return view.Execute(svc.DataStore, ctx)
 }
@@ -119,9 +119,9 @@ func (svc *ViewService) GetName() string {
 //Initialize the service. Consumer of a service passes the data
 func (svc *ViewService) Initialize(ctx service.ServiceContext) error {
 
-	dataSvc, err := ctx.GetService(svc.dataSvcName)
+	dataSvc, err := ctx.GetService(ctx, svc.dataSvcName)
 	if err != nil {
-		return errors.RethrowError(VIEW_ERROR_MISSING_DATASVC, err)
+		return errors.RethrowError(ctx, VIEW_ERROR_MISSING_DATASVC, err)
 	}
 
 	svc.DataStore = dataSvc.(data.DataService)
@@ -129,7 +129,7 @@ func (svc *ViewService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *ViewService) Serve() error {
+func (svc *ViewService) Serve(ctx interface{}) error {
 	return nil
 }
 
@@ -139,6 +139,6 @@ func (svc *ViewService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *ViewService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *ViewService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

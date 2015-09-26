@@ -17,6 +17,7 @@ const (
 	ENTITY_ERROR_MISSING_METHOD        = "Entity_Error_Missing_Method"
 	ENTITY_ERROR_INCORRECT_METHOD_CONF = "Entity_Error_Incorrect_Method_Conf"
 	ENTITY_ERROR_CONF_INCORRECT        = "Entity_Error_Conf_Incorrect"
+	ENTITY_VIEW_MISSING_ARG            = "Entity_View_Missing_Arg"
 )
 
 func init() {
@@ -31,5 +32,6 @@ func init() {
 	errors.RegisterCode(ENTITY_ERROR_MISSING_METHOD, errors.FATAL, fmt.Errorf("Method not provided."), LOGGING_CONTEXT)
 	errors.RegisterCode(ENTITY_ERROR_INCORRECT_METHOD_CONF, errors.FATAL, fmt.Errorf("Incorrect conf provided for method."), LOGGING_CONTEXT)
 	errors.RegisterCode(ENTITY_ERROR_CONF_INCORRECT, errors.FATAL, fmt.Errorf("Incorrect conf provided for entity."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_VIEW_MISSING_ARG, errors.FATAL, fmt.Errorf("Name of the entity not provided as an argument to the view."), LOGGING_CONTEXT)
 
 }

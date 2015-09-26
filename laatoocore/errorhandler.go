@@ -19,6 +19,7 @@ const (
 	CORE_ERROR_OBJECT_NOT_CREATED     = "Core_Object_Not_Created"
 	CORE_ENVIRONMENT_NOT_CREATED      = "Core_Environment_Not_Created"
 	CORE_ENVIRONMENT_NOT_INITIALIZED  = "Core_Environment_Not_Initialized"
+	CORE_ERROR_NOCOMMSVC              = "Core_Error_Nocommsvc"
 	CORE_SERVERADD_NOT_FOUND          = "Core_ServerAdd_Not_Found"
 	CORE_ROLESAPI_NOT_FOUND           = "Core_Rolesapi_Not_Found"
 	CORE_ROLES_INIT_ERROR             = "Core_Roles_Init_Error"
@@ -61,16 +62,16 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_INVALID_TOKEN, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Invalid token."), "core")
 	errors.RegisterErrorHandler(AUTH_ERROR_INVALID_TOKEN, AuthError)
 
+	errors.RegisterCode(CORE_ERROR_NOCOMMSVC, errors.ERROR, fmt.Errorf("Communication Service not enabled."), "core")
+
 	errors.RegisterCode(AUTH_ERROR_SECURITY, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Not allowed."), "core")
 }
 
-func AuthError(err *errors.Error, context interface{}, info ...interface{}) bool {
-	ctxMap := context.(map[string]interface{})
-	ctxInt, ok := ctxMap["Context"]
+func AuthError(ctxInt interface{}, err *errors.Error, info ...interface{}) bool {
+	ctx, ok := ctxInt.(*echo.Context)
 	if !ok {
 		return false
 	}
-	ctx := ctxInt.(*echo.Context)
 	ctx.Set("User", nil)
 	//ctx.Response().Header().Set(svc.AuthHeader, "")
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_FAILED, ctx})

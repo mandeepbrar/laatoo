@@ -29,8 +29,8 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_REDISCACHE_NAME, RedisCacheServiceFactory)
 }
 
-func RedisCacheServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating redis cache service ")
+func RedisCacheServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating redis cache service ")
 	redisSvc := &RedisCacheService{name: CONF_REDISCACHE_NAME}
 
 	connectionStringInt, ok := conf[CONF_REDIS_CONNECTIONSTRING]
@@ -53,7 +53,7 @@ func RedisCacheServiceFactory(conf map[string]interface{}) (interface{}, error) 
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Error(LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
+				log.Logger.Error(ctx, LOGGING_CONTEXT, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},
@@ -93,15 +93,15 @@ func (svc *RedisCacheService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *RedisCacheService) Serve() error {
+func (svc *RedisCacheService) Serve(ctx interface{}) error {
 	return nil
 }
 
-func (svc *RedisCacheService) Delete(key string) error {
+func (svc *RedisCacheService) Delete(ctx interface{}, key string) error {
 	return nil
 }
 
-func (svc *RedisCacheService) PutObject(key string, val interface{}) error {
+func (svc *RedisCacheService) PutObject(ctx interface{}, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("SET", key, val)
@@ -112,13 +112,13 @@ func (svc *RedisCacheService) PutObject(key string, val interface{}) error {
 	return nil
 }
 
-func (svc *RedisCacheService) GetObject(key string) (interface{}, error) {
+func (svc *RedisCacheService) GetObject(ctx interface{}, key string) (interface{}, error) {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	return conn.Do("GET", key)
 }
 
 //Execute method
-func (svc *RedisCacheService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *RedisCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

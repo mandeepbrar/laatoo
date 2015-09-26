@@ -30,26 +30,26 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_MONGO_SERVICENAME, MongoServiceFactory)
 }
 
-func MongoServiceFactory(conf map[string]interface{}) (interface{}, error) {
+func MongoServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 	connectionStringInt, ok := conf[CONF_MONGO_CONNECTIONSTRING]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_CONNECTION_STRING)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_CONNECTION_STRING)
 	}
 	sess, err := mgo.Dial(connectionStringInt.(string))
 	if err != nil {
-		return nil, errors.RethrowError(DATA_ERROR_CONNECTION, err)
+		return nil, errors.RethrowError(ctx, DATA_ERROR_CONNECTION, err, "Connection String", connectionStringInt)
 	}
 	databaseInt, ok := conf[CONF_MONGO_DATABASE]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_DATABASE)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_DATABASE)
 	}
 	objectsInt, ok := conf[CONF_MONGO_OBJECTS]
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
 	}
 	objs, ok := objectsInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_OBJECTS)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
 	}
 
 	mongoSvc := &mongoDataService{name: "Mongo Data Service", connection: sess, database: databaseInt.(string)}
@@ -58,7 +58,7 @@ func MongoServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 		mongoSvc.objects[obj] = collection.(string)
 	}
-	log.Logger.Debug(LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)
 	return mongoSvc, nil
 }
 
@@ -82,23 +82,23 @@ func (svc *mongoDataService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *mongoDataService) Serve() error {
+func (svc *mongoDataService) Serve(ctx interface{}) error {
 	return nil
 }
 
-func (ms *mongoDataService) Save(objectType string, item interface{}) error {
-	log.Logger.Trace(LOGGING_CONTEXT, "Saving object", "Object", objectType, "Item", item)
+func (ms *mongoDataService) Save(ctx interface{}, objectType string, item interface{}) error {
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving object", "Object", objectType, "Item", item)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave()
 	id := stor.GetId()
 	if id == "" {
-		return errors.ThrowError(DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
 	}
 	err := connCopy.DB(ms.database).C(collection).Insert(item)
 	if err != nil {
@@ -107,12 +107,12 @@ func (ms *mongoDataService) Save(objectType string, item interface{}) error {
 	return nil
 }
 
-func (ms *mongoDataService) Put(objectType string, id string, item interface{}) error {
+func (ms *mongoDataService) Put(ctx interface{}, objectType string, id string, item interface{}) error {
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	condition := bson.M{}
 	stor := item.(data.Storable)
@@ -126,15 +126,15 @@ func (ms *mongoDataService) Put(objectType string, id string, item interface{}) 
 	return nil
 }
 
-func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, error) {
-	object, err := ms.context.CreateObject(objectType, nil)
+func (ms *mongoDataService) GetById(ctx interface{}, objectType string, id string) (interface{}, error) {
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil, err
 	}
 	collection, ok := ms.objects[objectType]
 
 	if !ok {
-		return nil, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -148,23 +148,23 @@ func (ms *mongoDataService) GetById(objectType string, id string) (interface{}, 
 		if err.Error() == "not found" {
 			return nil, nil
 		}
-		log.Logger.Debug(LOGGING_CONTEXT, "Error in getting object with", "ID", id, "Error", err)
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error in getting object with", "ID", id, "Error", err)
 		return nil, err
 	}
 	return object, nil
 }
 
-func (ms *mongoDataService) Get(objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) Get(ctx interface{}, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
-	results, err := ms.context.CreateCollection(objectType)
+	results, err := laatoocore.CreateCollection(ctx, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Trace(LOGGING_CONTEXT, "Got the object ", "Result", results)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "Result", results)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -198,14 +198,14 @@ func (ms *mongoDataService) Get(objectType string, queryCond interface{}, pageSi
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Delete(objectType string, id string) error {
-	object, err := ms.context.CreateObject(objectType, nil)
+func (ms *mongoDataService) Delete(ctx interface{}, objectType string, id string) error {
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := object.(data.Storable)
 	idkey := stor.GetIdField()
@@ -216,16 +216,16 @@ func (ms *mongoDataService) Delete(objectType string, id string) error {
 	return connCopy.DB(ms.database).C(collection).Remove(condition)
 }
 
-func (ms *mongoDataService) GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) GetList(ctx interface{}, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
-	results, err := ms.context.CreateCollection(objectType)
+	results, err := laatoocore.CreateCollection(ctx, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -255,6 +255,6 @@ func (ms *mongoDataService) GetList(objectType string, pageSize int, pageNum int
 }
 
 //Execute method
-func (svc *mongoDataService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *mongoDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

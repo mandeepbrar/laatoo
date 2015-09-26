@@ -40,6 +40,10 @@ type SecurityService struct {
 	Mailer Mailer
 	//user object for the service
 	UserObject string
+	//role object for the service
+	RoleObject string
+	//admin role
+	AdminRole string
 	//data service to use for users
 	UserDataService data.DataService
 	//context for the service for getting other services like data service and objects
@@ -66,9 +70,10 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating auth service with alias")
-	svc := &SecurityService{}
+func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating auth service with alias")
+	serviceContext := ctx.(service.ServiceContext)
+	svc := &SecurityService{Context: serviceContext}
 	//store configuration object
 	svc.Configuration = conf
 	svc.AuthTypes = make(map[string]AuthType, 5)
@@ -81,21 +86,25 @@ func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	svc.JWTSecret, _ = conf[laatoocore.CONF_ENV_JWTSECRETKEY].(string)
+	svc.JWTSecret, _ = serviceContext.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
 
 	//check if auth header to be set has been provided, otherwise set default token
-	svc.AuthHeader, _ = conf[laatoocore.CONF_ENV_AUTHHEADER].(string)
+	svc.AuthHeader, _ = serviceContext.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
+
+	svc.AdminRole = serviceContext.GetVariable(laatoocore.CONF_ENV_ADMINROLE).(string)
+	svc.UserObject = serviceContext.GetVariable(laatoocore.CONF_ENV_USER).(string)
+	svc.RoleObject = serviceContext.GetVariable(laatoocore.CONF_ENV_ROLE).(string)
 
 	//set the router object from configuration
 	routerInt, ok := svc.Configuration[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(AUTH_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, AUTH_ERROR_MISSING_ROUTER)
 	}
 	svc.Router = routerInt.(*echo.Group)
 
 	//local auth is enabled, set local auth type
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODELOCAL {
-		svc.SetupLocalAuth(conf)
+		svc.SetupLocalAuth(ctx, conf)
 	}
 	//if oauth mode has been enabled, set oauth mode
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEOAUTH {
@@ -103,7 +112,7 @@ func SecurityServiceFactory(conf map[string]interface{}) (interface{}, error) {
 	}
 	//if oauth mode has been enabled, set oauth mode
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEKEY {
-		svc.SetupKeyAuth(conf)
+		svc.SetupKeyAuth(ctx, conf)
 	}
 
 	//get the logout path for the application
@@ -128,57 +137,52 @@ func (svc *SecurityService) GetName() string {
 
 //Initialize the service. Consumer of a service passes the data
 func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
-	//store the context for the service
-	svc.Context = ctx
 	//setup the user data service from the context
 	userDataInt, ok := svc.Configuration[CONF_SECURITYSERVICE_USERDATASERVICE]
 
 	if ok {
 		//get the name of the data service to be used for accessing users database
 		svcAlias := userDataInt.(string)
-		userService, err := ctx.GetService(svcAlias)
+		userService, err := ctx.GetService(ctx, svcAlias)
 		if err != nil {
-			return errors.RethrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
+			return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 		}
 		userDataService, ok := userService.(data.DataService)
 		if !ok {
-			return errors.ThrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE)
+			return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 		}
-		log.Logger.Debug(LOGGING_CONTEXT, "User storer set for authenticaion")
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "User storer set for authenticaion")
 		//get and set the data service for accessing users
 		svc.UserDataService = userDataService
 
-		//check if user service name to be used has been provided, otherwise set default name
-		svc.UserObject = laatoocore.SystemUser
-
 	} else {
-		return errors.ThrowError(AUTH_ERROR_MISSING_USER_DATA_SERVICE)
+		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *SecurityService) Serve() error {
+func (svc *SecurityService) Serve(ctx interface{}) error {
 	seedUserInt, ok := svc.Configuration[CONF_SECURITYSERVICE_SEEDUSER]
 	if ok {
 		seedUserConf := seedUserInt.(map[string]interface{})
 		userId := seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_ID].(string)
-		user, _ := svc.UserDataService.GetById(laatoocore.SystemUser, userId)
+		user, _ := svc.UserDataService.GetById(ctx, svc.UserObject, userId)
 		if user == nil {
-			log.Logger.Info(LOGGING_CONTEXT, "Creating seed user", "ID", userId)
-			suserInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemUser)
+			log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating seed user", "ID", userId)
+			suserInt, err := laatoocore.CreateEmptyObject(ctx, svc.UserObject)
 			sUser := suserInt.(auth.RbacUser)
 			sLocalUser := suserInt.(auth.LocalAuthUser)
 			sUser.SetId(userId)
-			sUser.SetRoles([]string{laatoocore.AdminRole})
+			sUser.SetRoles([]string{svc.AdminRole})
 			sLocalUser.SetPassword(seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_PASS].(string))
-			err = svc.UserDataService.Save(laatoocore.SystemUser, sUser)
+			err = svc.UserDataService.Save(ctx, svc.UserObject, sUser)
 			if err != nil {
 				return err
 			}
 		}
 	}
-	rolesInt, _, _, err := svc.UserDataService.Get(laatoocore.SystemRole, nil, -1, -1, "")
+	rolesInt, _, _, err := svc.UserDataService.Get(ctx, svc.RoleObject, nil, -1, -1, "")
 	if err != nil {
 		return err
 	}
@@ -192,27 +196,27 @@ func (svc *SecurityService) Serve() error {
 			if role.GetId() == "Anonymous" {
 				anonExists = true
 			}
-			if role.GetId() == laatoocore.AdminRole {
+			if role.GetId() == svc.AdminRole {
 				adminExists = true
 			}
-			laatoocore.RegisterRolePermissions(role)
+			svc.Context.RegisterRolePermissions(ctx, role)
 		}
 	}
 
 	if !anonExists {
-		aroleInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemRole)
+		aroleInt, err := laatoocore.CreateEmptyObject(ctx, svc.RoleObject)
 		anonymousRole := aroleInt.(auth.Role)
 		anonymousRole.SetId("Anonymous")
-		err = svc.UserDataService.Save(laatoocore.SystemRole, anonymousRole)
+		err = svc.UserDataService.Save(ctx, svc.RoleObject, anonymousRole)
 		if err != nil {
 			return err
 		}
 	}
 	if !adminExists {
-		aroleInt, err := laatoocore.CreateEmptyObject(laatoocore.SystemRole)
+		aroleInt, err := laatoocore.CreateEmptyObject(ctx, svc.RoleObject)
 		adminRole := aroleInt.(auth.Role)
-		adminRole.SetId(laatoocore.AdminRole)
-		err = svc.UserDataService.Save(laatoocore.SystemRole, adminRole)
+		adminRole.SetId(svc.AdminRole)
+		err = svc.UserDataService.Save(ctx, svc.RoleObject, adminRole)
 		if err != nil {
 			return err
 		}
@@ -226,6 +230,6 @@ func (svc *SecurityService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *SecurityService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *SecurityService) Execute(reqContext interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

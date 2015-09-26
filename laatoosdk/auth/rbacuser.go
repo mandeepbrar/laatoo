@@ -2,7 +2,6 @@ package auth
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"laatoosdk/data"
 )
 
 type RbacUser interface {
@@ -12,7 +11,7 @@ type RbacUser interface {
 	GetRoles() ([]string, error)
 	SetRoles(roles []string) error
 	GetPermissions() (permissions []string, err error)
-	LoadPermissions(data.DataService) error
+	SetPermissions(permissions []string)
 	AddRole(role string) error
 	RemoveRole(role string) error
 	SetJWTClaims(*jwt.Token)

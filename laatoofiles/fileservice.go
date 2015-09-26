@@ -29,26 +29,26 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func FileServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating file service")
+func FileServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating file service")
 	svc := &FileService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(FILE_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_ROUTER)
 	}
 	filesdirInt, ok := conf[CONF_FILE_FILESDIR]
 	if !ok {
-		return nil, errors.ThrowError(FILE_ERROR_MISSING_FILEDIR)
+		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_FILEDIR)
 	}
 	filesurlInt, ok := conf[CONF_FILE_FILESURL]
 	if !ok {
-		return nil, errors.ThrowError(FILE_ERROR_MISSING_FILESURL)
+		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_FILESURL)
 	}
 
 	svc.filesUrl = filesurlInt.(string)
 	router := routerInt.(*echo.Group)
 	svc.filesDir = filesdirInt.(string) + "/"
-	log.Logger.Info(LOGGING_CONTEXT, "Got files directory", "Name", filesdirInt)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Got files directory", "Name", filesdirInt)
 	router.Post("", svc.processFile)
 	return svc, nil
 }
@@ -64,7 +64,7 @@ func (svc *FileService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *FileService) Serve() error {
+func (svc *FileService) Serve(ctx interface{}) error {
 	return nil
 }
 
@@ -74,7 +74,7 @@ func (svc *FileService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *FileService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *FileService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }
 
@@ -83,7 +83,7 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 
 	err := req.ParseMultipartForm(16 << 20) // Max memory 16 MiB
 	if err != nil {
-		log.Logger.Debug(LOGGING_CONTEXT, "Error while parsing multipart form", "Error", err)
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error while parsing multipart form", "Error", err)
 		return err
 	}
 
@@ -94,7 +94,7 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 	// Read files
 
 	files := req.MultipartForm.File["file"]
-	log.Logger.Debug(LOGGING_CONTEXT, "Parsed multipart form", "Number of files", len(files))
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Parsed multipart form", "Number of files", len(files))
 
 	url := make([]string, len(files))
 	for index, f := range files {
@@ -106,14 +106,14 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 		defer src.Close()
 
 		fileName := svc.filesDir + f.Filename
-		log.Logger.Trace(LOGGING_CONTEXT, "Writing file", "Name", fileName)
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Writing file", "Name", fileName)
 		// Destination file
 		dst, err := os.Create(fileName)
 		if err != nil {
 			return err
 		}
 		defer dst.Close()
-		log.Logger.Trace(LOGGING_CONTEXT, "Copying file", "Name", fileName)
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Copying file", "Name", fileName)
 
 		if _, err = io.Copy(dst, src); err != nil {
 			return err

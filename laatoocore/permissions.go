@@ -5,48 +5,40 @@ import (
 	"github.com/labstack/echo"
 	"laatoosdk/auth"
 	"laatoosdk/log"
-	"laatoosdk/utils"
 	"reflect"
 )
 
-var (
-	SystemUser      = ""
-	SystemRole      = ""
-	AdminRole       = "Admin"
-	Permissions     = utils.NewStringSet([]string{})
-	RolePermissions = make(map[string]bool)
-)
-
 //register the object factory in the global register
-func RegisterPermissions(perm []string) {
-	Permissions.Append(perm)
+func (env *Environment) RegisterPermissions(ctx interface{}, perm []string) {
+	env.Permissions.Append(perm)
 }
 
-func ListAllPermissions() []string {
-	return Permissions.Values()
+func (env *Environment) ListAllPermissions() []string {
+	return env.Permissions.Values()
 }
 
-func RegisterRoles(rolesInt interface{}) {
+//register the roles and permissions
+func (env *Environment) RegisterRoles(ctx interface{}, rolesInt interface{}) {
 	if rolesInt != nil {
 		arr := reflect.ValueOf(rolesInt).Elem()
 		length := arr.Len()
 		for i := 0; i < length; i++ {
 			role := arr.Index(i).Addr().Interface().(auth.Role)
-			RegisterRolePermissions(role)
+			env.RegisterRolePermissions(ctx, role)
 		}
 	}
 }
 
-func RegisterRolePermissions(role auth.Role) {
+func (env *Environment) RegisterRolePermissions(ctx interface{}, role auth.Role) {
 	permissions := role.GetPermissions()
 	for _, perm := range permissions {
 		key := fmt.Sprintf("%s#%s", role.GetId(), perm)
-		RolePermissions[key] = true
+		env.RolePermissions[key] = true
 	}
-	log.Logger.Trace("core.permissions", "Registered Role permissions", "Role Permissions", RolePermissions)
+	log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "Role Permissions", env.RolePermissions)
 }
 
-func IsAllowed(ctx *echo.Context, perm string) bool {
+func (env *Environment) IsAllowed(ctx *echo.Context, perm string) bool {
 	if perm == "" {
 		return true
 	}
@@ -56,11 +48,11 @@ func IsAllowed(ctx *echo.Context, perm string) bool {
 	}
 	roles := rolesInt.([]string)
 	for _, role := range roles {
-		if role == AdminRole {
+		if role == env.AdminRole {
 			return true
 		}
 		key := fmt.Sprintf("%s#%s", role, perm)
-		val, ok := RolePermissions[key]
+		val, ok := env.RolePermissions[key]
 		if ok {
 			return val
 		}

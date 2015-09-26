@@ -23,12 +23,12 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func CodegenServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating static service")
+func CodegenServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating static service")
 	svc := &CodegenService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(CODEGEN_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, CODEGEN_ERROR_MISSING_ROUTER)
 	}
 	router := routerInt.(*echo.Group)
 
@@ -46,7 +46,7 @@ func (svc *CodegenService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *CodegenService) Serve() error {
+func (svc *CodegenService) Serve(ctx interface{}) error {
 	return nil
 }
 
@@ -56,6 +56,6 @@ func (svc *CodegenService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *CodegenService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *CodegenService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

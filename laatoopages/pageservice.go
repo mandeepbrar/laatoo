@@ -27,23 +27,23 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating page service")
+func PageServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating page service")
 	svc := &PageService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(PAGE_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, PAGE_ERROR_MISSING_ROUTER)
 	}
 	pagesdir, ok := conf[CONF_PAGE_PAGESDIR]
 	if !ok {
-		return nil, errors.ThrowError(PAGE_ERROR_MISSING_PAGESDIR)
+		return nil, errors.ThrowError(ctx, PAGE_ERROR_MISSING_PAGESDIR)
 	}
 	router := routerInt.(*echo.Group)
 
 	//get a map of all the pages
 	pagesInt, ok := conf[CONF_PAGE_PAGES]
 	if !ok {
-		return nil, errors.ThrowError(PAGE_ERROR_PAGES_NOT_PROVIDED)
+		return nil, errors.ThrowError(ctx, PAGE_ERROR_PAGES_NOT_PROVIDED)
 	}
 
 	/*//get a map of all the pages
@@ -55,15 +55,15 @@ func PageServiceFactory(conf map[string]interface{}) (interface{}, error) {
 
 	pages, ok := pagesInt.(map[string]interface{})
 	if !ok {
-		return nil, errors.ThrowError(PAGE_ERROR_PAGES_NOT_PROVIDED)
+		return nil, errors.ThrowError(ctx, PAGE_ERROR_PAGES_NOT_PROVIDED)
 	}
 	for name, val := range pages {
 		//get the config for the page with given alias
 		pageConf := val.(map[string]interface{})
 		//get the service name to be created for the alias
-		log.Logger.Debug(LOGGING_CONTEXT, "Creating page", "Name", name)
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Creating page", "Name", name)
 		//create page with provided conf
-		err := svc.createPage(pageConf, router, pagesdir.(string))
+		err := svc.createPage(ctx, pageConf, router, pagesdir.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +88,7 @@ func (svc *PageService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *PageService) Serve() error {
+func (svc *PageService) Serve(ctx interface{}) error {
 	return nil
 }
 
@@ -98,6 +98,6 @@ func (svc *PageService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *PageService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *PageService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

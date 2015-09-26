@@ -36,6 +36,6 @@ func init() {
 	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_ROLE, CreateRole)
 }
 
-func CreateRole(conf map[string]interface{}) (interface{}, error) {
+func CreateRole(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 	return &Role{}, nil
 }

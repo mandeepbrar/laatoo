@@ -14,22 +14,24 @@ const (
 )
 
 type PermService struct {
+	Context service.ServiceContext
 }
 
 func init() {
 	laatoocore.RegisterObjectProvider(ENTITY_PERM_SERVICE_NAME, NewPermService)
 }
 
-func NewPermService(conf map[string]interface{}) (interface{}, error) {
+func NewPermService(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 
-	log.Logger.Info(LOGGING_CONTEXT, "Creating entity service", "ServiceName", ENTITY_PERM_SERVICE_NAME)
-
-	svc := &PermService{}
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating entity service", "ServiceName", ENTITY_PERM_SERVICE_NAME)
+	serviceContext := ctx.(service.ServiceContext)
+	svc := &PermService{Context: serviceContext}
 	routerInt, _ := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(*echo.Group)
 
-	router.Get("", func(ctx *echo.Context) error {
-		perms := laatoocore.ListAllPermissions()
+	router.Post("", func(ctx *echo.Context) error {
+
+		perms := svc.Context.ListAllPermissions()
 		return ctx.JSON(http.StatusOK, perms)
 	})
 	return svc, nil
@@ -46,7 +48,7 @@ func (psvc *PermService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *PermService) Serve() error {
+func (svc *PermService) Serve(reqContext interface{}) error {
 	return nil
 }
 
@@ -56,6 +58,6 @@ func (svc *PermService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *PermService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *PermService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

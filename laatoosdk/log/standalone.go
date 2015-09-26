@@ -1,8 +1,10 @@
+// +build !appengine
+
 package log
 
 import (
 	//log "github.com/Sirupsen/logrus"
-	logxi "github.com/mgutz/logxi/v1"
+	logxi "logxi/v1"
 	"os"
 )
 
@@ -14,23 +16,23 @@ type StandaloneLogger struct {
 	logger logxi.Logger
 }
 
-func (log *StandaloneLogger) Trace(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Trace(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Trace(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Trace(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Debug(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Debug(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Debug(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Debug(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Info(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Info(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Info(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Info(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Warn(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Warn(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Warn(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Warn(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Error(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Error(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Error(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Error(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Fatal(loggingCtx string, msg string, args ...interface{}) {
-	log.logger.Fatal(msg, "_ctx", loggingCtx, args)
+func (log *StandaloneLogger) Fatal(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+	log.logger.Fatal(reqContext, loggingCtx, msg, args...)
 }
 
 func (log *StandaloneLogger) SetLevel(level string) {

@@ -23,9 +23,11 @@ type Error struct {
 	Context           string
 }
 
+var ShowStack = true
+
 //Error handler for interrupting the error process
 //Returns true if the error has been handled
-type ErrorHandler func(err *Error, ctx interface{}, info ...interface{}) bool
+type ErrorHandler func(ctx interface{}, err *Error, info ...interface{}) bool
 
 var (
 	//errors register to store all errors in the process
@@ -53,59 +55,46 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 	ErrorsHandlersRegister[internalErrorCode] = val
 }
 
-//rethrow an error with an internal error code
-func RethrowHttpError(internalErrorCode string, ctx interface{}, err error, info ...interface{}) error {
-	return RethrowErrorWithContext(internalErrorCode, ctx, err, info...)
-}
-
-//rethrow an error with an internal error code
-func RethrowError(internalErrorCode string, err error, info ...interface{}) error {
-	return RethrowErrorWithContext(internalErrorCode, nil, err, info...)
-}
-
-//rethrow an error with an internal error code
-func RethrowErrorWithContext(internalErrorCode string, ctx interface{}, err error, info ...interface{}) error {
-	return ThrowErrorWithContext(internalErrorCode, ctx, append([]interface{}{"Root Error", err.Error()}, info...)...)
-}
-
-//rethrow an error with an internal error code
-func ThrowHttpError(internalErrorCode string, ctx interface{}, info ...interface{}) error {
-	return ThrowErrorWithContext(internalErrorCode, ctx, info...)
-}
-
-func ThrowError(internalErrorCode string, info ...interface{}) error {
-	return ThrowErrorWithContext(internalErrorCode, nil, info...)
+func ThrowError(ctx interface{}, internalErrorCode string, info ...interface{}) error {
+	return RethrowError(ctx, internalErrorCode, nil, info...)
 }
 
 //throw a registered error code
-func ThrowErrorWithContext(internalErrorCode string, ctx interface{}, info ...interface{}) error {
-	err, ok := ErrorsRegister[internalErrorCode]
+//rethrow an error with an internal error code
+func RethrowError(ctx interface{}, internalErrorCode string, err error, info ...interface{}) error {
+	registeredErr, ok := ErrorsRegister[internalErrorCode]
 	if !ok {
 		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
 	}
 	stack := ""
-	if ctx == nil {
+	if ShowStack {
 		stack = string(debug.Stack())
 	}
-	infoArr := append([]interface{}{"Err", err.Error.Error(), "Internal Error Code", err.InternalErrorCode, "Context", fmt.Sprint(ctx), "Stack", stack}, info...)
-	switch err.Loglevel {
+	var errDetails []interface{}
+	if err == nil {
+		errDetails = []interface{}{"Err", registeredErr.Error.Error(), "Internal Error Code", internalErrorCode, "Stack", stack}
+	} else {
+		errDetails = []interface{}{"Err", registeredErr.Error.Error(), "Internal Error Code", internalErrorCode, "Stack", stack, "Root Error", err}
+	}
+	infoArr := append(errDetails, info)
+	switch registeredErr.Loglevel {
 	case FATAL:
-		log.Logger.Fatal(err.Context, "Encountered error", infoArr...)
+		log.Logger.Fatal(ctx, registeredErr.Context, "Encountered error", infoArr...)
 	case ERROR:
-		log.Logger.Error(err.Context, "Encountered error", infoArr...)
+		log.Logger.Error(ctx, registeredErr.Context, "Encountered error", infoArr...)
 	case WARNING:
-		log.Logger.Warn(err.Context, "Encountered warning", infoArr)
+		log.Logger.Warn(ctx, registeredErr.Context, "Encountered warning", infoArr...)
 	case INFO:
-		log.Logger.Info(err.Context, "Info Error", infoArr)
+		log.Logger.Info(ctx, registeredErr.Context, "Info Error", infoArr...)
 	case DEBUG:
-		log.Logger.Debug(err.Context, "Debug Error", infoArr)
+		log.Logger.Debug(ctx, registeredErr.Context, "Debug Error", infoArr...)
 	}
 	//call the handlers while throwing an error
 	handlers := ErrorsHandlersRegister[internalErrorCode]
 	if handlers != nil {
 		handled := false
 		for _, val := range handlers {
-			handled = val(err, ctx, info...) || handled
+			handled = val(ctx, registeredErr, info...) || handled
 		}
 		//if an error has been handled, dont throw it
 		if handled {
@@ -113,5 +102,5 @@ func ThrowErrorWithContext(internalErrorCode string, ctx interface{}, info ...in
 		}
 	}
 	//thwo the error
-	return err.Error
+	return registeredErr.Error
 }

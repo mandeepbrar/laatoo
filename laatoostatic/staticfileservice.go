@@ -24,20 +24,20 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func StaticServiceFactory(conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(LOGGING_CONTEXT, "Creating static service")
+func StaticServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating static service")
 	svc := &StaticService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
-		return nil, errors.ThrowError(STATIC_ERROR_MISSING_ROUTER)
+		return nil, errors.ThrowError(ctx, STATIC_ERROR_MISSING_ROUTER)
 	}
 	publicdir, ok := conf[CONF_STATIC_PUBLICDIR]
 	if !ok {
-		return nil, errors.ThrowError(STATIC_ERROR_MISSING_PUBLICDIR)
+		return nil, errors.ThrowError(ctx, STATIC_ERROR_MISSING_PUBLICDIR)
 	}
 	router := routerInt.(*echo.Group)
 
-	log.Logger.Info(LOGGING_CONTEXT, "Designer service starting", "Page Path", publicdir)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Designer service starting", "Page Path", publicdir)
 	router.Static("/", publicdir.(string))
 	return svc, nil
 }
@@ -53,7 +53,7 @@ func (svc *StaticService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *StaticService) Serve() error {
+func (svc *StaticService) Serve(ctx interface{}) error {
 	return nil
 }
 
@@ -63,6 +63,6 @@ func (svc *StaticService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *StaticService) Execute(name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *StaticService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

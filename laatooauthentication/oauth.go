@@ -39,12 +39,12 @@ type OAuthType struct {
 }
 
 //method called for creating new auth type
-func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
+func NewOAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
 	//create the new auth type
 	oauth := &OAuthType{}
 	//store the reference to the parent
 	oauth.securityService = svc
-	log.Logger.Debug(LOGGING_CONTEXT, "OAuthType: Initializing")
+	log.Logger.Debug(nil, LOGGING_CONTEXT, "OAuthType: Initializing")
 	sitesInt, ok := conf[CONF_AUTHSERVICE_OAUTHPATH_SITES]
 	if ok {
 		sitesMap, ok := sitesInt.(map[string]interface{})
@@ -55,7 +55,7 @@ func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, er
 				siteConf := v.(map[string]interface{})
 				siteTypeInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_TYPE]
 				if !ok {
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_TYPE)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_TYPE)
 				}
 				siteType := siteTypeInt.(string)
 				var endpoint oauth2.Endpoint
@@ -65,23 +65,23 @@ func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, er
 				case "facebook":
 					endpoint = facebook.Endpoint
 				default:
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_TYPE)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_TYPE)
 				}
 				systemAuthUrlInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_AUTHURL]
 				if !ok {
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_AUTHURL)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_AUTHURL)
 				}
 				clientIdInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_CLIENTID]
 				if !ok {
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_CLIENTID)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_CLIENTID)
 				}
 				clientSecretInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_CLIENTSECRET]
 				if !ok {
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET)
 				}
 				callbackURLInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_AUTHCALLBACK]
 				if !ok {
-					return nil, errors.ThrowError(AUTH_ERROR_OAUTH_MISSING_CALLBACKURL)
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_CALLBACKURL)
 				}
 				conf := &oauth2.Config{
 					ClientID:     clientIdInt.(string),
@@ -99,13 +99,8 @@ func NewOAuth(conf map[string]interface{}, svc *SecurityService) (*OAuthType, er
 	return oauth, nil
 }
 
-//method called for service
-func (oauth *OAuthType) Serve() error {
-	return nil
-}
-
 //initialize auth type called by base auth for initializing
-func (oauth *OAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (oauth *OAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	oauth.authCallback = authCallback
 	state := utils.RandomString(10)
 	for _, site := range oauth.sites {
@@ -127,7 +122,7 @@ func (oauth *OAuthType) InitializeType(authStart echo.HandlerFunc, authCallback 
 //validate the local user
 //derive the data from context object
 func (oauth *OAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "OAuthProvider: Validating Credentials")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthProvider: Validating Credentials")
 
 	siteInt := ctx.Get("Site")
 	site, _ := siteInt.(*OAuthSite)
@@ -186,7 +181,7 @@ func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
 	sentStateInt := ctx.Get("State")
 	state := ctx.Param("state")
 	if state != sentStateInt.(string) {
-		return errors.ThrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx)
+		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
 	}
 	code := ctx.Param("code")
 	token, err := site.config.Exchange(oauth2.NoContext, code)
@@ -208,6 +203,6 @@ func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
 		return err
 	}
 
-	log.Logger.Debug(LOGGING_CONTEXT, "OAuthProvider: Authentication Successful", "bits", bits)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthProvider: Authentication Successful", "bits", bits)
 	return nil
 }

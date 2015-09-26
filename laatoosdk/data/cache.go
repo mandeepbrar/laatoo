@@ -1,7 +1,7 @@
 package data
 
 type Cache interface {
-	PutObject(key string, item interface{}) error
-	GetObject(key string) (interface{}, error)
-	Delete(key string) error
+	PutObject(ctx interface{}, key string, item interface{}) error
+	GetObject(ctx interface{}, key string) (interface{}, error)
+	Delete(ctx interface{}, key string) error
 }

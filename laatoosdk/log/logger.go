@@ -10,12 +10,12 @@ const (
 )
 
 type LoggerInterface interface {
-	Trace(loggingCtx string, msg string, args ...interface{})
-	Debug(loggingCtx string, msg string, args ...interface{})
-	Info(loggingCtx string, msg string, args ...interface{})
-	Warn(loggingCtx string, msg string, args ...interface{})
-	Error(loggingCtx string, msg string, args ...interface{})
-	Fatal(loggingCtx string, msg string, args ...interface{})
+	Trace(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
+	Debug(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
+	Info(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
+	Warn(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
+	Error(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
+	Fatal(reqContext interface{}, loggingCtx string, msg string, args ...interface{})
 
 	SetLevel(string)
 	IsTrace() bool
@@ -28,9 +28,12 @@ var (
 	Logger LoggerInterface
 )
 
+func init() {
+	Logger = NewLogger()
+}
+
 //configures logging level and returns true if its set to debug
 func ConfigLogger(conf config.Config) bool {
-	Logger = NewLogger()
 	loggingLevel := conf.GetString(CONF_LOGGINGLEVEL)
 	Logger.SetLevel(loggingLevel)
 	return Logger.IsDebug()

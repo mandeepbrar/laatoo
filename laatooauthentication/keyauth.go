@@ -32,7 +32,7 @@ type keyAuthType struct {
 }
 
 //method called for creating new auth type
-func NewKeyAuth(conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
+func NewKeyAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
 	//create the new auth type
 	keyauth := &keyAuthType{}
 
@@ -46,19 +46,14 @@ func NewKeyAuth(conf map[string]interface{}, svc *SecurityService) (*keyAuthType
 	}
 	//store the reference to the parent
 	keyauth.securityService = svc
-	log.Logger.Debug(LOGGING_CONTEXT, "keyAuthProvider: Initializing")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "keyAuthProvider: Initializing")
 
 	return keyauth, nil
 }
 
-//method called for service
-func (keyauth *keyAuthType) Serve() error {
-	return nil
-}
-
 //initialize auth type called by base auth for initializing
-func (keyauth *keyAuthType) InitializeType(authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "Settingup Api Auth")
+func (keyauth *keyAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Settingup Api Auth")
 	//setup path for listening to login post request
 	keyauth.securityService.Router.Post(CONF_AUTHSERVICE_KEYPATH, authStart)
 	keyauth.authCallback = authCallback
@@ -68,22 +63,22 @@ func (keyauth *keyAuthType) InitializeType(authStart echo.HandlerFunc, authCallb
 //validate the local user
 //derive the data from context object
 func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "keyauth: Validating Credentials")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "keyauth: Validating Credentials")
 
 	if keyauth.domains == nil {
-		return errors.ThrowHttpError(AUTH_ERROR_DOMAIN_NOT_ALLOWED, ctx)
+		return errors.ThrowError(ctx, AUTH_ERROR_DOMAIN_NOT_ALLOWED)
 	}
 	//create the user
-	usrInt, err := keyauth.securityService.CreateUser()
+	usrInt, err := keyauth.securityService.CreateUser(ctx)
 	if err != nil {
-		return errors.RethrowHttpError(laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
+		return errors.RethrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, err)
 	}
 
 	authform := &laatoocore.KeyAuth{}
 
 	err = ctx.Bind(authform)
 	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_INCORRECT_REQ_FORMAT, ctx, err)
+		return errors.RethrowError(ctx, AUTH_ERROR_INCORRECT_REQ_FORMAT, err)
 	}
 
 	pvtKey, err := loadPrivateKey(keyauth.pvtKeyPath)
@@ -98,14 +93,14 @@ func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
 
 	domain := string(out)
 	role, ok := keyauth.domains[domain]
-	log.Logger.Debug(LOGGING_CONTEXT, "Auth Key Validated", "Domain", domain, " Role assigned", role.(string))
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Auth Key Validated", "Domain", domain, " Role assigned", role.(string))
 	if ok {
 		usr := usrInt.(auth.RbacUser)
 		usr.SetId("system")
 		usr.SetRoles([]string{role.(string)})
 		ctx.Set("User", usr)
 	} else {
-		return errors.ThrowHttpError(AUTH_ERROR_DOMAIN_NOT_ALLOWED, ctx)
+		return errors.ThrowError(ctx, AUTH_ERROR_DOMAIN_NOT_ALLOWED)
 	}
 
 	return keyauth.authCallback(ctx)
@@ -117,7 +112,7 @@ func (keyauth *keyAuthType) GetName() string {
 
 //complete authentication
 func (keyauth *keyAuthType) CompleteAuthentication(ctx *echo.Context) error {
-	log.Logger.Debug(LOGGING_CONTEXT, "keyAuthProvider: Authentication Successful")
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "keyAuthProvider: Authentication Successful")
 	return nil
 }
 

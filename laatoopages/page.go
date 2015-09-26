@@ -23,7 +23,7 @@ const (
 	CONF_PAGE_TYPE_REDIRECT   = "redirect"
 )
 
-func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Group, pagesDir string) error {
+func (svc *PageService) createPage(ctx interface{}, conf map[string]interface{}, router *echo.Group, pagesDir string) error {
 	var pagePath, pageDest string
 	//	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE
@@ -31,7 +31,7 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 
 	pagepathInt, ok := conf[CONF_PAGE_PATH]
 	if !ok {
-		return errors.ThrowError(PAGE_ERROR_MISSING_PAGEPATH)
+		return errors.ThrowError(ctx, PAGE_ERROR_MISSING_PAGEPATH)
 	}
 	pagePath = pagepathInt.(string)
 
@@ -42,7 +42,7 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 
 	pagedestInt, ok := conf[CONF_PAGE_DEST]
 	if !ok {
-		return errors.ThrowError(PAGE_ERROR_MISSING_DEST)
+		return errors.ThrowError(ctx, PAGE_ERROR_MISSING_DEST)
 	}
 	pageDest = pagedestInt.(string)
 
@@ -65,10 +65,10 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
 		var partialPages []*entities.Partial
 		if ok {
-			log.Logger.Trace(LOGGING_CONTEXT, "Got Partials for page", "Page Path", pagePath, "PartialsInt", partialsInt)
+			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got Partials for page", "Page Path", pagePath, "PartialsInt", partialsInt)
 			partialsConf, ok := partialsInt.(map[string]interface{})
 			if !ok {
-				return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALS)
+				return errors.ThrowError(ctx, PAGE_ERROR_WRONG_PARTIALS)
 			}
 			partialPages = make([]*entities.Partial, len(partialsConf))
 			i := 0
@@ -79,15 +79,15 @@ func (svc *PageService) createPage(conf map[string]interface{}, router *echo.Gro
 				obj.Name = partialPageName
 				obj.Path, ok = partialConf[CONF_PAGE_PARTIALPATH].(string)
 				if !ok {
-					return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALPATH)
+					return errors.ThrowError(ctx, PAGE_ERROR_WRONG_PARTIALPATH)
 				}
 				templateFile, ok := partialConf[CONF_PAGE_PARTIALTEMPLATE].(string)
 				if !ok {
-					return errors.ThrowError(PAGE_ERROR_WRONG_PARTIALFILE)
+					return errors.ThrowError(ctx, PAGE_ERROR_WRONG_PARTIALFILE)
 				}
 				content, err := ioutil.ReadFile(templateFile)
 				if err != nil {
-					return errors.RethrowError(PAGE_ERROR_WRONG_PARTIALS, err, "Page Name", partialPageName)
+					return errors.RethrowError(ctx, PAGE_ERROR_WRONG_PARTIALS, err, "Page Name", partialPageName)
 				} else {
 					obj.Template = string(content)
 				}

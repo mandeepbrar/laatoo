@@ -5,17 +5,17 @@ package data
 type DataService interface {
 	GetDataServiceType() string
 	//save an object
-	Save(objectType string, item interface{}) error
+	Save(ctx interface{}, objectType string, item interface{}) error
 	//Store an object against an id
-	Put(objectType string, id string, obj interface{}) error
+	Put(ctx interface{}, objectType string, id string, obj interface{}) error
 	//Delete an object by id
-	Delete(objectType string, id string) error
+	Delete(ctx interface{}, objectType string, id string) error
 	//Get an object by id
-	GetById(objectType string, id string) (interface{}, error)
+	GetById(ctx interface{}, objectType string, id string) (interface{}, error)
 	//Get all object with given conditions
-	Get(objectType string, conditions interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
+	Get(ctx interface{}, objectType string, conditions interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
-	GetList(objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
+	GetList(ctx interface{}, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 }
 
 const (

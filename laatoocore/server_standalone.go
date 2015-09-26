@@ -26,27 +26,27 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		//find the address to bind from the server
 		address := server.Config.GetString(CONF_SERVERTYPE_HOSTNAME)
 		if address == "" {
-			return nil, errors.ThrowError(CORE_SERVERADD_NOT_FOUND)
+			return nil, errors.ThrowError(nil, CORE_SERVERADD_NOT_FOUND)
 		}
 		http.Handle("/", router)
-		go startServer(address, server)
-		log.Logger.Info("core.server", "Starting server", "address", address)
+		go startServer(nil, address, server)
+		log.Logger.Info(nil, "core.server", "Starting server", "address", address)
 		//start listening
 		err := http.ListenAndServe(address, nil)
 		if err != nil {
-			log.Logger.Error("core.server", "Error in listening", "address", address, "Error", err)
+			log.Logger.Error(nil, "core.server", "Error in listening", "address", address, "Error", err)
 		}
 	}
 	return server, nil
 }
 
-func startServer(address string, server *Server) {
+func startServer(ctx interface{}, address string, server *Server) {
 	for i := 0; i < 10; i++ {
 		_, err := net.Dial("tcp", address)
 		if err != nil {
 			time.Sleep(100 * time.Millisecond)
 		} else {
-			server.Start()
+			server.Start(ctx)
 			return
 		}
 	}
