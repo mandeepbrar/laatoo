@@ -104,6 +104,7 @@ func (svc *SecurityService) initializeAuthType(ctx interface{}, authType AuthTyp
 				return errors.RethrowError(ctx, AUTH_ERROR_JWT_CREATION, err)
 			}
 			ctx.Response().Header().Set(svc.AuthHeader, tokenString)
+			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Sending Token", svc.AuthHeader, tokenString)
 
 			utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGIN_COMPLETE, ctx})
 			ctx.JSON(http.StatusOK, user)

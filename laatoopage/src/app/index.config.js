@@ -53,7 +53,8 @@
 	    }
 	  };
 	});
-	
+	$httpProvider.defaults.useXDomain = true;
+
 	$httpProvider.interceptors.push('myHttpInterceptor');
 	
 	

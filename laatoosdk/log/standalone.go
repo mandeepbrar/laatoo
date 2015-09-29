@@ -39,13 +39,15 @@ func (log *StandaloneLogger) SetLevel(level string) {
 	switch level {
 	case "all":
 		log.logger.SetLevel(logxi.LevelAll)
+	case "trace":
+		log.logger.SetLevel(logxi.LevelTrace)
 	case "debug":
 		log.logger.SetLevel(logxi.LevelDebug)
 	case "info":
 		log.logger.SetLevel(logxi.LevelInfo)
 	case "warn":
 		log.logger.SetLevel(logxi.LevelWarn)
-	case "error":
+	default:
 		log.logger.SetLevel(logxi.LevelError)
 	}
 }

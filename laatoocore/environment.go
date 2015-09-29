@@ -309,13 +309,14 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 		if err != nil {
 			return err
 		}
-		log.Logger.Debug(ctx, "core.env.remoteroles", "Got Response for api key", "Response", resp)
+		log.Logger.Trace(ctx, "core.env.remoteroles", "Got Response for api key", "Response", resp.StatusCode)
 		if resp.StatusCode != 200 {
 			//if the remote system did not allow auth
 			errors.ThrowError(ctx, AUTH_APISEC_NOTALLOWED)
 		} else {
 			//get token from remote system
 			token := resp.Header.Get(env.AuthHeader)
+			log.Logger.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
 			//get the url for remote system
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
 			if len(rolesurl) == 0 {
@@ -332,6 +333,7 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			if err != nil {
 				return err
 			}
+			log.Logger.Trace(ctx, "core.env.remoteroles", "result for roles query", "Status code", resp.StatusCode)
 			//get the response
 			if resp.StatusCode != 200 {
 				return errors.ThrowError(ctx, CORE_ROLESAPI_NOT_FOUND)
