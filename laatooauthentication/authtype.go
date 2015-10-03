@@ -56,13 +56,15 @@ func (svc *SecurityService) SetupKeyAuth(ctx interface{}, conf map[string]interf
 
 //setup local authentication
 func (svc *SecurityService) SetupOAuth(ctx interface{}, conf map[string]interface{}) error {
-	/*localAuthType, err : = localAuth.NewAuthType(conf)
-	if(err !=nil) {
+	oAuthType, err := NewOAuth(ctx, conf, svc)
+	if err != nil {
 		return err
 	}
-	svc.Router.POST(svc.LoginPath, authStart)
-	localauth.authFailure = authFailed
-	localauth.authSuccessful = authSuccessful*/
+	//initialize local authentication
+	err = svc.initializeAuthType(ctx, oAuthType)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

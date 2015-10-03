@@ -34,6 +34,7 @@ const (
 	CONF_AUTH_MODE_REMOTE   = "remote"
 	CONF_API_AUTH           = "settings.authorization.apiauth"
 	CONF_ROLES_API          = "settings.authorization.rolesapi"
+	CONF_PERMISSIONS_API    = "settings.authorization.permissionsapi"
 	CONF_API_PUBKEY         = "settings.authorization.pubkey"
 	CONF_API_DOMAIN         = "settings.authorization.domain"
 )
@@ -314,9 +315,30 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			//if the remote system did not allow auth
 			errors.ThrowError(ctx, AUTH_APISEC_NOTALLOWED)
 		} else {
+
 			//get token from remote system
 			token := resp.Header.Get(env.AuthHeader)
 			log.Logger.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
+
+			permurl := env.Config.GetString(CONF_PERMISSIONS_API)
+			if len(permurl) == 0 {
+				return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
+			}
+			perms := &PermissionsExchange{}
+			perms.Permissions = env.Permissions.Values()
+			base := sling.New().Set(env.AuthHeader, token)
+			//req, err := base.New().Get("gophergram/list").Request()
+			req, err = base.New().Post(permurl).BodyJSON(perms).Request()
+			if err != nil {
+				return err
+			}
+			resp, err = client.Do(req)
+			log.Logger.Trace(ctx, "core.env.remoteroles", "result for perm query", "Status code", resp.StatusCode)
+			//get the response
+			if resp.StatusCode != 200 {
+				return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
+			}
+
 			//get the url for remote system
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
 			if len(rolesurl) == 0 {
@@ -327,7 +349,7 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			if err != nil {
 				return err
 			}
-			base := sling.New().Set(env.AuthHeader, token)
+			//base = sling.New().Set(env.AuthHeader, token)
 			//req, err := base.New().Get("gophergram/list").Request()
 			resp, err = base.New().Get(rolesurl).ReceiveSuccess(roles)
 			if err != nil {

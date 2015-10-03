@@ -10,7 +10,5 @@ type OAuthUser interface {
 	GetIdField() string
 	SetJWTClaims(*jwt.Token)
 	LoadJWTClaims(*jwt.Token)
-	/*	Email             string
-		AccessToken       string
-		AccessTokenSecret string*/
+	GetEmail() string
 }

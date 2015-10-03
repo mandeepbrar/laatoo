@@ -3,14 +3,15 @@ package laatooauthentication
 import (
 	"github.com/labstack/echo"
 	"laatoocore"
-	//"laatoosdk/errors"
+	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"net/http"
 )
 
 const (
-	ENTITY_PERM_SERVICE_NAME = "perm_service"
+	ENTITY_PERM_SERVICE_NAME   = "perm_service"
+	EDIT_PERMISSION_PERMISSION = "Edit Permission"
 )
 
 type PermService struct {
@@ -29,8 +30,20 @@ func NewPermService(ctx interface{}, conf map[string]interface{}) (interface{}, 
 	routerInt, _ := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(*echo.Group)
 
+	router.Post("", func(ctx *echo.Context) error {
+		if !svc.Context.IsAllowed(ctx, EDIT_PERMISSION_PERMISSION) {
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+		permissions := &laatoocore.PermissionsExchange{}
+		//ctx.Request().Body
+		err := ctx.Bind(permissions)
+		if err != nil {
+			return errors.RethrowError(ctx, AUTH_ERROR_INCORRECT_REQ_FORMAT, err)
+		}
+		svc.Context.RegisterPermissions(ctx, permissions.Permissions)
+		return ctx.NoContent(http.StatusOK)
+	})
 	router.Get("", func(ctx *echo.Context) error {
-
 		perms := svc.Context.ListAllPermissions()
 		return ctx.JSON(http.StatusOK, perms)
 	})
@@ -44,6 +57,8 @@ func (svc *PermService) GetName() string {
 
 //Initialize the service. Consumer of a service passes the data
 func (psvc *PermService) Initialize(ctx service.ServiceContext) error {
+	psvc.Context = ctx
+	ctx.RegisterPermissions(ctx, []string{EDIT_PERMISSION_PERMISSION})
 	return nil
 }
 

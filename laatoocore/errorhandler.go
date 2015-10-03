@@ -22,6 +22,7 @@ const (
 	CORE_ERROR_NOCOMMSVC              = "Core_Error_Nocommsvc"
 	CORE_SERVERADD_NOT_FOUND          = "Core_ServerAdd_Not_Found"
 	CORE_ROLESAPI_NOT_FOUND           = "Core_Rolesapi_Not_Found"
+	CORE_PERMAPI_NOT_FOUND            = "Core_Permapi_Not_Found"
 	CORE_ROLES_INIT_ERROR             = "Core_Roles_Init_Error"
 
 	AUTH_ERROR_WRONG_SIGNING_METHOD   = "Auth_Error_Wrong_Signing_Method"
@@ -46,6 +47,7 @@ func init() {
 	errors.RegisterCode(CORE_ENVIRONMENT_NOT_INITIALIZED, errors.FATAL, fmt.Errorf("Environment could not be initialized."), "core")
 	errors.RegisterCode(CORE_SERVERADD_NOT_FOUND, errors.FATAL, fmt.Errorf("Server address not provided."), "core")
 	errors.RegisterCode(CORE_ROLESAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Roles api not provided."), "core")
+	errors.RegisterCode(CORE_PERMAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Permission api for registering permissions to remote auth server not provided."), "core")
 	errors.RegisterCode(CORE_ROLES_INIT_ERROR, errors.FATAL, fmt.Errorf("Roles could not be initialized."), "core")
 	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("API not provided for api authentication."), "core")
 	errors.RegisterCode(AUTH_APISEC_NOTALLOWED, errors.FATAL, fmt.Errorf("System could not authenticate for Apis."), "core")

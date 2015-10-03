@@ -108,7 +108,7 @@ func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (inter
 	}
 	//if oauth mode has been enabled, set oauth mode
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEOAUTH {
-
+		svc.SetupOAuth(ctx, conf)
 	}
 	//if oauth mode has been enabled, set oauth mode
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODEKEY {

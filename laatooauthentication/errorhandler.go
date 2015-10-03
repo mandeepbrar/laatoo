@@ -26,6 +26,7 @@ const (
 	AUTH_ERROR_USER_NOT_FOUND             = "Auth_Error_User_Not_Found"
 	AUTH_ERROR_INCORRECT_REQ_FORMAT       = "Auth_Error_Incorrect_Req_Format"
 	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
+	AUTH_ERROR_OAUTH_MISSING_PROFILEURL   = "Auth_Error_Oauth_Missing_Profileurl"
 )
 
 func init() {
@@ -36,6 +37,7 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET, errors.FATAL, fmt.Errorf("Client secret not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_AUTHURL, errors.FATAL, fmt.Errorf("Auth url not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CALLBACKURL, errors.FATAL, fmt.Errorf("Callback url not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_PROFILEURL, errors.FATAL, fmt.Errorf("Profile url not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_TYPE, errors.FATAL, fmt.Errorf("Type not provided for oauth site."), LOGGING_CONTEXT)
 
 	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."), LOGGING_CONTEXT)

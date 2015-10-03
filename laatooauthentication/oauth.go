@@ -1,32 +1,40 @@
 package laatooauthentication
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
-	//"laatoocore"
 	"io/ioutil"
+	"laatoocore"
+	"laatoosdk/auth"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/utils"
 	"net/http"
-	//"net/url"
 )
 
 const (
 	CONF_AUTHSERVICE_OAUTHPATH_SITES = "oauthsites"
 	//login path to be used for local and oauth authentication
-	CONF_AUTHSERVICE_OAUTH_AUTHCALLBACK = "callbackurl"
-	CONF_AUTHSERVICE_OAUTH_AUTHURL      = "authurl"
-	CONF_AUTHSERVICE_OAUTH_TYPE         = "sitetype"
-	CONF_AUTHSERVICE_OAUTH_CLIENTID     = "clientid"
-	CONF_AUTHSERVICE_OAUTH_CLIENTSECRET = "clientsecret"
+	CONF_AUTHSERVICE_OAUTH_AUTHCALLBACK   = "callbackurl"
+	CONF_AUTHSERVICE_OAUTH_AUTHURL        = "authurl"
+	CONF_AUTHSERVICE_OAUTH_LOGINURL       = "oauthlogin"
+	CONF_AUTHSERVICE_OAUTH_LOGININTERCEPT = "intercept"
+	CONF_AUTHSERVICE_OAUTH_PROFILEURL     = "profileurl"
+	CONF_AUTHSERVICE_OAUTH_TYPE           = "sitetype"
+	CONF_AUTHSERVICE_OAUTH_CLIENTID       = "clientid"
+	CONF_AUTHSERVICE_OAUTH_CLIENTSECRET   = "clientsecret"
 )
 
 type OAuthSite struct {
+	sitetype      string
 	systemAuthURL string
 	callbackURL   string
+	profileURL    string
+	interceptor   bool
 	config        *oauth2.Config
 }
 
@@ -79,18 +87,28 @@ func NewOAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService
 				if !ok {
 					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_CLIENTSECRET)
 				}
+				profileInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_PROFILEURL]
+				if !ok {
+					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_PROFILEURL)
+				}
 				callbackURLInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_AUTHCALLBACK]
 				if !ok {
 					return nil, errors.ThrowError(nil, AUTH_ERROR_OAUTH_MISSING_CALLBACKURL)
 				}
+
 				conf := &oauth2.Config{
 					ClientID:     clientIdInt.(string),
 					ClientSecret: clientSecretInt.(string),
 					RedirectURL:  callbackURLInt.(string),
-					Scopes:       []string{"openid", "profile"},
+					Scopes:       []string{"openid", "profile", "email"},
 					Endpoint:     endpoint,
 				}
-				oauth.sites[i] = &OAuthSite{systemAuthURL: systemAuthUrlInt.(string), callbackURL: callbackURLInt.(string), config: conf}
+				interceptor := true
+				interceptInt, ok := siteConf[CONF_AUTHSERVICE_OAUTH_LOGININTERCEPT]
+				if ok {
+					interceptor = (interceptInt.(string) != "false")
+				}
+				oauth.sites[i] = &OAuthSite{sitetype: siteType, interceptor: interceptor, profileURL: profileInt.(string), systemAuthURL: systemAuthUrlInt.(string), callbackURL: callbackURLInt.(string), config: conf}
 				i++
 			}
 		}
@@ -104,16 +122,28 @@ func (oauth *OAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFu
 	oauth.authCallback = authCallback
 	state := utils.RandomString(10)
 	for _, site := range oauth.sites {
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: Setting up site", "site", site)
 		oauth.securityService.Router.Get(site.systemAuthURL, func(ctx *echo.Context) error {
 			ctx.Set("Site", site)
 			ctx.Set("State", state)
 			return authStart(ctx)
 		})
-		oauth.securityService.Router.Get(site.callbackURL, func(ctx *echo.Context) error {
+		oauth.securityService.Router.Get(site.systemAuthURL+"/callback", func(ctx *echo.Context) error {
 			ctx.Set("Site", site)
 			ctx.Set("State", state)
-			return authCallback(ctx)
+			if site.interceptor {
+				return oauth.InterceptorPage(ctx)
+			} else {
+				return authCallback(ctx)
+			}
 		})
+		if site.interceptor {
+			oauth.securityService.Router.Post(site.systemAuthURL, func(ctx *echo.Context) error {
+				ctx.Set("Site", site)
+				ctx.Set("State", state)
+				return authCallback(ctx)
+			})
+		}
 	}
 
 	return nil
@@ -174,25 +204,59 @@ func (oauth *OAuthType) GetName() string {
 }
 
 //complete authentication
-func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
-
+func (oauth *OAuthType) InterceptorPage(ctx *echo.Context) error {
 	siteInt := ctx.Get("Site")
 	site, _ := siteInt.(*OAuthSite)
 	sentStateInt := ctx.Get("State")
-	state := ctx.Param("state")
+	state := ctx.Query("state")
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "state", state)
 	if state != sentStateInt.(string) {
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
 		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
 	}
-	code := ctx.Param("code")
-	token, err := site.config.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		return err
+	code := ctx.Query("code")
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "code", code)
+	return ctx.HTML(http.StatusOK, "<html><body onload='console.log(window.opener); window.opener.oauthLogin(\"%s\",\"%s\",\"%s\"); window.close();'></body></html", site.sitetype, state, code)
+}
+
+//complete authentication
+func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
+	siteInt := ctx.Get("Site")
+	site, _ := siteInt.(*OAuthSite)
+	sentStateInt := ctx.Get("State")
+	method := ctx.Request().Method
+	state := ""
+	code := ""
+	if method == "GET" {
+		state = ctx.Query("state")
+		code = ctx.Query("code")
+	} else {
+		req := &OAuthLoginReq{}
+		err := ctx.Bind(req)
+		if err != nil {
+			return err
+		}
+		state = req.State
+		code = req.Code
 	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "state", state, "method", method)
+	if state != sentStateInt.(string) {
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
+		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "code", code, "method", method)
+	oauthCtx := GetOAuthContext(ctx)
+	token, err := site.config.Exchange(oauthCtx, code)
+	if err != nil {
+		return errors.RethrowError(ctx, AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, err)
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received token", "code", code, "token", token)
 
-	client := site.config.Client(oauth2.NoContext, token)
+	client := site.config.Client(oauthCtx, token)
 
-	endpointProfile := ""
-	response, err := client.Get(endpointProfile)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: end point profile")
+
+	response, err := client.Get(site.profileURL)
 	if err != nil {
 		return err
 	}
@@ -203,6 +267,43 @@ func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
 		return err
 	}
 
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthProvider: Authentication Successful", "bits", bits)
+	//create the user
+	usrInt, err := oauth.securityService.CreateUser(ctx)
+	if err != nil {
+		return errors.RethrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, err)
+	}
+
+	if err := json.Unmarshal(bits, usrInt); err != nil {
+		return errors.RethrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, err)
+	}
+
+	oauthUsr, ok := usrInt.(auth.OAuthUser)
+	if !ok {
+		return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED)
+	}
+
+	usrId := fmt.Sprintf("%s_%s", site.sitetype, oauthUsr.GetEmail())
+
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthProvider: Authentication Successful", "usrInt", usrInt)
+
+	//get the ide of the user to be tested
+
+	//get the tested user from database
+	testedUser, err := oauth.securityService.GetUserById(ctx, usrId)
+	if err != nil {
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found", "Err", err)
+		return errors.RethrowError(ctx, AUTH_ERROR_USER_NOT_FOUND, err)
+	}
+	if testedUser == nil {
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found")
+		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
+	}
+
+	ctx.Set("User", testedUser)
 	return nil
+}
+
+type OAuthLoginReq struct {
+	State string `json:"state" form:"state"`
+	Code  string `json:"code" form:"code"`
 }

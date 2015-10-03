@@ -8,6 +8,10 @@ import (
 	"reflect"
 )
 
+type PermissionsExchange struct {
+	Permissions []string
+}
+
 //register the object factory in the global register
 func (env *Environment) RegisterPermissions(ctx interface{}, perm []string) {
 	env.Permissions.Append(perm)

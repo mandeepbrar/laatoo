@@ -24,9 +24,14 @@
       if($attrs.class) {
         $scope.class = "class="+$attrs.class;
       }
-      var social = $attrs.social;
       if($attrs.social) {
         $scope.social = true;
+      }
+      if($attrs.google) {
+        $scope.google = $attrs.google;
+      }
+      if($attrs.facebook) {
+        $scope.facebook = $attrs.facebook;
       }
       var social = $attrs.signup;
       if($attrs.signup) {
