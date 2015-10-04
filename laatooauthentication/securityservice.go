@@ -8,13 +8,14 @@ import (
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
-	"reflect"
+	"net/http"
 )
 
 const (
 	LOGGING_CONTEXT = "securityservice"
 
 	CONF_SECURITYSERVICE_SERVICENAME = "security_service"
+	CONF_SECURITYSERVICE_PERM        = "permissions"
 	//alias of rthe user data service
 	CONF_SECURITYSERVICE_USERDATASERVICE = "user_data_svc"
 	//authentication mode for the service
@@ -30,6 +31,7 @@ const (
 	CONF_SECURITYSERVICE_OAUTHPROVIDERS = "oauth_providers"
 	//logout path for the service
 	CONF_SECURITYSERVICE_LOGOUTPATH = "logout_path"
+	CONF_SECURITYSERVICE_PERMPATH   = "permissions_path"
 )
 
 // SecurityService contains a configuration and other details for running.
@@ -62,6 +64,8 @@ type SecurityService struct {
 	JWTSecret string
 	//Local auth object
 	AuthTypes map[string]AuthType
+	//permissions array for security
+	Permissions []string
 }
 
 //Initialize service, register provider with laatoo
@@ -83,6 +87,19 @@ func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (inter
 		svc.AuthMode = authModeInt.(string)
 	} else {
 		svc.AuthMode = CONF_SECURITYSERVICE_AUTHMODALL
+	}
+
+	permInt, ok := conf[CONF_SECURITYSERVICE_PERM]
+	if ok {
+		perms := permInt.([]interface{})
+		svc.Permissions = make([]string, len(perms))
+		i := 0
+		for _, k := range perms {
+			svc.Permissions[i] = k.(string)
+			i++
+		}
+	} else {
+		svc.Permissions = []string{}
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
@@ -125,6 +142,17 @@ func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (inter
 
 	//register logout route
 	svc.Router.Get(svc.LogoutPath, svc.Logout)
+
+	permissionsPath := "/permissions"
+	//get the permissions path for the application
+	permissionsPathInt, ok := svc.Configuration[CONF_SECURITYSERVICE_PERMPATH]
+	if ok {
+		permissionsPath = permissionsPathInt.(string)
+	}
+
+	svc.Router.Get(permissionsPath, func(ctx *echo.Context) error {
+		return ctx.JSON(http.StatusOK, svc.Permissions)
+	})
 
 	//return the service
 	return svc, nil
@@ -182,45 +210,6 @@ func (svc *SecurityService) Serve(ctx interface{}) error {
 			}
 		}
 	}
-	rolesInt, _, _, err := svc.UserDataService.Get(ctx, svc.RoleObject, nil, -1, -1, "")
-	if err != nil {
-		return err
-	}
-	adminExists := false
-	anonExists := false
-	if rolesInt != nil {
-		arr := reflect.ValueOf(rolesInt).Elem()
-		length := arr.Len()
-		for i := 0; i < length; i++ {
-			role := arr.Index(i).Addr().Interface().(auth.Role)
-			if role.GetId() == "Anonymous" {
-				anonExists = true
-			}
-			if role.GetId() == svc.AdminRole {
-				adminExists = true
-			}
-			svc.Context.RegisterRolePermissions(ctx, role)
-		}
-	}
-
-	if !anonExists {
-		aroleInt, err := laatoocore.CreateEmptyObject(ctx, svc.RoleObject)
-		anonymousRole := aroleInt.(auth.Role)
-		anonymousRole.SetId("Anonymous")
-		err = svc.UserDataService.Save(ctx, svc.RoleObject, anonymousRole)
-		if err != nil {
-			return err
-		}
-	}
-	if !adminExists {
-		aroleInt, err := laatoocore.CreateEmptyObject(ctx, svc.RoleObject)
-		adminRole := aroleInt.(auth.Role)
-		adminRole.SetId(svc.AdminRole)
-		err = svc.UserDataService.Save(ctx, svc.RoleObject, adminRole)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -230,6 +219,15 @@ func (svc *SecurityService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *SecurityService) Execute(reqContext interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *SecurityService) Execute(reqContext interface{}, name string, params map[string]interface{}) (interface{}, error) {
+	switch name {
+	case "GetPermissions":
+		return svc.Permissions, nil
+	case "GetRoles":
+		rolesInt, _, _, err := svc.UserDataService.Get(reqContext, svc.RoleObject, nil, -1, -1, "")
+		return rolesInt, err
+	case "SaveRole":
+		return nil, svc.UserDataService.Save(reqContext, svc.RoleObject, params["data"])
+	}
 	return nil, nil
 }

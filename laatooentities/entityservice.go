@@ -74,7 +74,7 @@ func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interfa
 	createperm := fmt.Sprintf("Create %s", entityName)
 	editperm := fmt.Sprintf("Edit %s", entityName)
 	deleteperm := fmt.Sprintf("Delete %s", entityName)
-	serviceContext.RegisterPermissions(ctx, []string{viewperm, createperm, editperm, deleteperm})
+	//serviceContext.RegisterPermissions(ctx, []string{viewperm, createperm, editperm, deleteperm})
 
 	for name, val := range entityMethods {
 
@@ -224,6 +224,6 @@ func (svc *EntityService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *EntityService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *EntityService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

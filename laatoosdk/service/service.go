@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/labstack/echo"
-	"laatoosdk/auth"
+	//"laatoosdk/auth"
 	"laatoosdk/config"
 )
 
@@ -18,17 +18,17 @@ type Service interface {
 	//Type of service
 	GetServiceType() string
 	//Execute method
-	Execute(interface{}, string, map[string]interface{}) (map[string]interface{}, error)
+	Execute(interface{}, string, map[string]interface{}) (interface{}, error)
 }
 
 //service context object for initializing services
 type ServiceContext interface {
 	GetVariable(variable string) interface{}
 	GetService(ctx interface{}, alias string) (Service, error)
-	RegisterPermissions(ctx interface{}, perm []string)
-	ListAllPermissions() []string
-	RegisterRoles(ctx interface{}, rolesInt interface{})
-	RegisterRolePermissions(ctx interface{}, role auth.Role)
+	//RegisterPermissions(ctx interface{}, perm []string)
+	/*	ListAllPermissions() []string
+		RegisterRoles(ctx interface{}, rolesInt interface{})
+		RegisterRolePermissions(ctx interface{}, role auth.Role)*/
 	IsAllowed(ctx *echo.Context, perm string) bool
 	SubscribeTopic(ctx interface{}, topic string, handler TopicListener)
 	PublishMessage(ctx interface{}, topic string, message interface{}) error

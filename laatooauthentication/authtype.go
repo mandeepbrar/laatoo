@@ -141,7 +141,7 @@ func (svc *SecurityService) LoadPermissions(ctx interface{}, usr auth.RbacUser, 
 	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {
 		if k == svc.AdminRole {
-			usr.SetPermissions(svc.Context.ListAllPermissions())
+			usr.SetPermissions(svc.Permissions)
 			return nil
 		}
 		roleInt, err := roleStorer.GetById(ctx, laatoocore.DEFAULT_ROLE, k)

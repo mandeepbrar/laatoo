@@ -132,6 +132,6 @@ func (svc *RedisPubSubService) Subscribe(ctx interface{}, topics []string, lstnr
 }
 
 //Execute method
-func (svc *RedisPubSubService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *RedisPubSubService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

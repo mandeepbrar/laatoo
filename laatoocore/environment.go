@@ -3,18 +3,23 @@ package laatoocore
 import (
 	"github.com/dghubble/sling"
 	"github.com/labstack/echo"
+	"github.com/rs/cors"
+	"laatoosdk/auth"
 	"laatoosdk/config"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"laatoosdk/utils"
 	"net/http"
+	"reflect"
 )
 
 const (
 	CONF_ENV_SERVICES    = "services"
 	CONF_ENV_SERVICENAME = "servicename"
+	CONF_ENVPATH         = "settings.path"
 	CONF_ENV_USER        = "settings.user_object"
+	CONF_ENV_CORSHOSTS   = "settings.corshosts"
 	CONF_ENV_ROLE        = "settings.role_object"
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "settings.auth_header"
@@ -34,6 +39,7 @@ const (
 	CONF_AUTH_MODE_REMOTE   = "remote"
 	CONF_API_AUTH           = "settings.authorization.apiauth"
 	CONF_ROLES_API          = "settings.authorization.rolesapi"
+	CONF_SECURITY_SVC       = "settings.authorization.securitysvc"
 	CONF_PERMISSIONS_API    = "settings.authorization.permissionsapi"
 	CONF_API_PUBKEY         = "settings.authorization.pubkey"
 	CONF_API_DOMAIN         = "settings.authorization.domain"
@@ -70,8 +76,8 @@ type Environment struct {
 }
 
 //creates a new environment
-func newEnvironment(envName string, conf string, router *echo.Group, serverType string) (*Environment, error) {
-	env := &Environment{Name: envName, Router: router, ServerType: serverType}
+func newEnvironment(envName string, conf string, router *echo.Echo, serverType string) (*Environment, error) {
+	env := &Environment{Name: envName, ServerType: serverType}
 	//default admin role
 	env.AdminRole = "Admin"
 	//construct permissions set
@@ -83,6 +89,35 @@ func newEnvironment(envName string, conf string, router *echo.Group, serverType 
 	//read config for standalone
 	env.Config = config.NewConfigFromFile(conf)
 
+	envPath := env.Config.GetString(CONF_ENVPATH)
+
+	env.AuthHeader = "X-Auth-Token"
+	//check if auth header to be set has been provided, otherwise set default token
+	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
+	if len(authTokenInt) > 0 {
+		env.AuthHeader = authTokenInt
+	}
+
+	corsHostsInt := env.Config.GetArray(CONF_ENV_CORSHOSTS)
+	if corsHostsInt != nil {
+		allowedOrigins := make([]string, len(corsHostsInt))
+		i := 0
+		for _, k := range corsHostsInt {
+			allowedOrigins[i] = k.(string)
+			i++
+		}
+
+		corsMw := cors.New(cors.Options{
+			AllowedOrigins:   allowedOrigins,
+			AllowedHeaders:   []string{"*"},
+			ExposedHeaders:   []string{env.AuthHeader},
+			AllowCredentials: true,
+		}).Handler
+		router.Use(corsMw)
+		log.Logger.Info(env, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
+	}
+
+	env.Router = router.Group(envPath)
 	//create all services in the environment
 	if err := env.createServices(); err != nil {
 		return nil, errors.RethrowError(env, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
@@ -108,18 +143,11 @@ func (env *Environment) createServices() error {
 	env.SystemUser = userObject
 
 	env.JWTSecret = utils.RandomString(15)
-	env.AuthHeader = "Auth-Token"
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
 	jwtSecretInt := env.Config.GetString(CONF_ENV_JWTSECRETKEY)
 	if len(jwtSecretInt) > 0 {
 		env.JWTSecret = jwtSecretInt
-	}
-
-	//check if auth header to be set has been provided, otherwise set default token
-	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
-	if len(authTokenInt) > 0 {
-		env.AuthHeader = authTokenInt
 	}
 
 	//get a map of all the services
@@ -320,24 +348,24 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			token := resp.Header.Get(env.AuthHeader)
 			log.Logger.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
 
-			permurl := env.Config.GetString(CONF_PERMISSIONS_API)
-			if len(permurl) == 0 {
-				return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
-			}
-			perms := &PermissionsExchange{}
-			perms.Permissions = env.Permissions.Values()
-			base := sling.New().Set(env.AuthHeader, token)
-			//req, err := base.New().Get("gophergram/list").Request()
-			req, err = base.New().Post(permurl).BodyJSON(perms).Request()
-			if err != nil {
-				return err
-			}
-			resp, err = client.Do(req)
-			log.Logger.Trace(ctx, "core.env.remoteroles", "result for perm query", "Status code", resp.StatusCode)
-			//get the response
-			if resp.StatusCode != 200 {
-				return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
-			}
+			/*			permurl := env.Config.GetString(CONF_PERMISSIONS_API)
+						if len(permurl) == 0 {
+							return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
+						}
+						perms := &PermissionsExchange{}
+						perms.Permissions = env.Permissions.Values()
+						base := sling.New().Set(env.AuthHeader, token)
+						//req, err := base.New().Get("gophergram/list").Request()
+						req, err = base.New().Post(permurl).BodyJSON(perms).Request()
+						if err != nil {
+							return err
+						}
+						resp, err = client.Do(req)
+						log.Logger.Trace(ctx, "core.env.remoteroles", "result for perm query", "Status code", resp.StatusCode)
+						//get the response
+						if resp.StatusCode != 200 {
+							return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
+						}*/
 
 			//get the url for remote system
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
@@ -349,7 +377,7 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			if err != nil {
 				return err
 			}
-			//base = sling.New().Set(env.AuthHeader, token)
+			base := sling.New().Set(env.AuthHeader, token)
 			//req, err := base.New().Get("gophergram/list").Request()
 			resp, err = base.New().Get(rolesurl).ReceiveSuccess(roles)
 			if err != nil {
@@ -363,7 +391,68 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			//register the roles and permissions received from auth system
 			env.RegisterRoles(ctx, roles)
 		}
+	} else {
+		//load permissions from remote system
+		secsvcname := env.Config.GetString(CONF_SECURITY_SVC)
+		if len(secsvcname) == 0 {
+			errors.ThrowError(ctx, AUTH_MISSING_API)
+		}
+		secsvc, err := env.GetService(ctx, secsvcname)
+		if err != nil {
+			errors.RethrowError(ctx, AUTH_MISSING_API, err)
+		}
+		rolesInt, err := secsvc.Execute(ctx, "GetRoles", nil)
+		if err != nil {
+			return err
+		}
+		log.Logger.Trace(ctx, "core.env.localroles", "Got Roles")
+		adminExists := false
+		anonExists := false
+		if rolesInt != nil {
+			arr := reflect.ValueOf(rolesInt).Elem()
+			length := arr.Len()
+			for i := 0; i < length; i++ {
+				role := arr.Index(i).Addr().Interface().(auth.Role)
+				if role.GetId() == "Anonymous" {
+					anonExists = true
+				}
+				if role.GetId() == env.AdminRole {
+					adminExists = true
+				}
+				env.RegisterRolePermissions(ctx, role)
+			}
+			log.Logger.Trace(ctx, "core.env.localroles", "Registered Roles")
+		}
 
+		if !anonExists {
+			aroleInt, err := CreateEmptyObject(ctx, env.SystemRole)
+			anonymousRole := aroleInt.(auth.Role)
+			anonymousRole.SetId("Anonymous")
+			data := make(map[string]interface{}, 1)
+			data["data"] = anonymousRole
+			_, err = secsvc.Execute(ctx, "SaveRole", data)
+			if err != nil {
+				return err
+			}
+		}
+		if !adminExists {
+			aroleInt, err := CreateEmptyObject(ctx, env.SystemRole)
+			adminRole := aroleInt.(auth.Role)
+			adminRole.SetId(env.AdminRole)
+			permissionsInt, err := secsvc.Execute(ctx, "GetPermissions", nil)
+			if err != nil {
+				return err
+			}
+			adminRole.SetPermissions(permissionsInt.([]string))
+			data := make(map[string]interface{}, 1)
+			data["data"] = adminRole
+			_, err = secsvc.Execute(ctx, "SaveRole", data)
+			if err != nil {
+				return err
+			}
+		}
+		//log.Logger.Trace(ctx, "core.env.localroles", "Got Registering roles")
+		//env.RegisterRoles(ctx, rolesInt)
 	}
 	return nil
 }

@@ -49,7 +49,7 @@ func init() {
 	errors.RegisterCode(CORE_ROLESAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Roles api not provided."), "core")
 	errors.RegisterCode(CORE_PERMAPI_NOT_FOUND, errors.FATAL, fmt.Errorf("Permission api for registering permissions to remote auth server not provided."), "core")
 	errors.RegisterCode(CORE_ROLES_INIT_ERROR, errors.FATAL, fmt.Errorf("Roles could not be initialized."), "core")
-	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("API not provided for api authentication."), "core")
+	errors.RegisterCode(AUTH_MISSING_API, errors.FATAL, fmt.Errorf("Missing Info for authentication."), "core")
 	errors.RegisterCode(AUTH_APISEC_NOTALLOWED, errors.FATAL, fmt.Errorf("System could not authenticate for Apis."), "core")
 
 	errors.RegisterCode(AUTH_ERROR_WRONG_SIGNING_METHOD, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Wrong signing method used in the token."), "core")

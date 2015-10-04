@@ -63,6 +63,6 @@ func (svc *StaticService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *StaticService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *StaticService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

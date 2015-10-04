@@ -5,4 +5,5 @@ type Role interface {
 	SetId(string)
 	GetIdField() string
 	GetPermissions() []string
+	SetPermissions([]string)
 }

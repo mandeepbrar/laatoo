@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-type PermissionsExchange struct {
+/*type PermissionsExchange struct {
 	Permissions []string
 }
 
@@ -20,7 +20,7 @@ func (env *Environment) RegisterPermissions(ctx interface{}, perm []string) {
 func (env *Environment) ListAllPermissions() []string {
 	return env.Permissions.Values()
 }
-
+*/
 //register the roles and permissions
 func (env *Environment) RegisterRoles(ctx interface{}, rolesInt interface{}) {
 	if rolesInt != nil {

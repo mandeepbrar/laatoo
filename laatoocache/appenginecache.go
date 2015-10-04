@@ -72,6 +72,6 @@ func (svc *AppEngineCacheService) GetObject(ctx interface{}, key string) (interf
 }
 
 //Execute method
-func (svc *AppEngineCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *AppEngineCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

@@ -255,6 +255,6 @@ func (ms *mongoDataService) GetList(ctx interface{}, objectType string, pageSize
 }
 
 //Execute method
-func (svc *mongoDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *mongoDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

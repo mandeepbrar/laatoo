@@ -119,6 +119,6 @@ func (svc *RedisCacheService) GetObject(ctx interface{}, key string) (interface{
 }
 
 //Execute method
-func (svc *RedisCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *RedisCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

@@ -5,7 +5,6 @@ package laatoocore
 import (
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
-	"github.com/rs/cors"
 	"laatoosdk/log"
 	"net/http"
 	"sync"
@@ -19,14 +18,6 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	router.Use(mw.Logger())
 	router.Use(mw.Recover())
 	router.Use(mw.Gzip())
-	corsMw := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedHeaders:   []string{"*"},
-		ExposedHeaders:   []string{"X-Auth-Token"},
-		AllowCredentials: true,
-	}).Handler
-
-	router.Use(corsMw)
 	server := &Server{ServerType: serverType}
 	server.InitServer(configName, router)
 	http.Handle("/", router)

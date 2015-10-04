@@ -1,6 +1,6 @@
 package laatooauthentication
 
-import (
+/*import (
 	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/errors"
@@ -10,12 +10,15 @@ import (
 )
 
 const (
-	ENTITY_PERM_SERVICE_NAME   = "perm_service"
+	ENTITY_PERM_SERVICE_NAME = "perm_service"
+	//CONF_SECURITYSERVICE_PERM  = "permissions"
 	EDIT_PERMISSION_PERMISSION = "Edit Permission"
 )
 
 type PermService struct {
 	Context service.ServiceContext
+	//permissions array for security
+	Permissions []string
 }
 
 func init() {
@@ -29,6 +32,12 @@ func NewPermService(ctx interface{}, conf map[string]interface{}) (interface{}, 
 	svc := &PermService{Context: serviceContext}
 	routerInt, _ := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(*echo.Group)
+	permInt, ok := conf[CONF_SECURITYSERVICE_PERM]
+	if ok {
+		svc.Permissions = permInt.([]string)
+	} else {
+		svc.Permissions = []string{}
+	}
 
 	router.Post("", func(ctx *echo.Context) error {
 		if !svc.Context.IsAllowed(ctx, EDIT_PERMISSION_PERMISSION) {
@@ -76,3 +85,4 @@ func (svc *PermService) GetServiceType() string {
 func (svc *PermService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }
+*/

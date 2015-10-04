@@ -98,6 +98,6 @@ func (svc *PageService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *PageService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *PageService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

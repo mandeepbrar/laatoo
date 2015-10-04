@@ -14,7 +14,6 @@ const (
 	CONF_ENVIRONMENTS          = "environments"
 	CONF_ENVNAME               = "name"
 	CONF_ENVCONF               = "conf"
-	CONF_ENVPATH               = "path"
 	CONF_ENV_SERVERTYPE        = "servertype"
 )
 
@@ -49,14 +48,13 @@ func (server *Server) InitServer(configName string, router *echo.Echo) {
 		env := val.(map[string]interface{})
 		envName := env[CONF_ENVNAME].(string)
 		envConf := env[CONF_ENVCONF].(string)
-		envPath := env[CONF_ENVPATH].(string)
 		envServerType, ok := env[CONF_ENV_SERVERTYPE]
 		if ok && (envServerType.(string) != server.ServerType) {
 			log.Logger.Info(nil, "core.server", "Skipping environment", "Environment", envName)
 			continue
 		}
 		log.Logger.Debug(nil, "core.server", "Creating environment", "Environment", envName)
-		environment, err := newEnvironment(envName, envConf, router.Group(envPath), server.ServerType)
+		environment, err := newEnvironment(envName, envConf, router, server.ServerType)
 		if err != nil {
 			errors.RethrowError(nil, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 		}

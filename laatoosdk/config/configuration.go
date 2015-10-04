@@ -57,6 +57,9 @@ func (conf *ConfigImpl) GetString(configurationName string) string {
 
 func (conf *ConfigImpl) GetArray(configurationName string) []interface{} {
 	arrInt := conf.Get(configurationName)
+	if arrInt == nil {
+		return nil
+	}
 	return arrInt.([]interface{})
 }
 

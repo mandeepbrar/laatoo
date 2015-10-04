@@ -220,6 +220,6 @@ func (ms *DatastoreDataService) GetList(ctx interface{}, objectType string, page
 }
 
 //Execute method
-func (svc *DatastoreDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (map[string]interface{}, error) {
+func (svc *DatastoreDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }
