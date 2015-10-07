@@ -83,7 +83,7 @@ func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
 
 	pvtKey, err := loadPrivateKey(keyauth.pvtKeyPath)
 	if err != nil {
-		return err
+		return errors.RethrowError(ctx, AUTH_ERROR_KEYAUTH_MISSING_PVTKEY, err)
 	}
 
 	out, err := rsa.DecryptOAEP(md5.New(), rand.Reader, pvtKey, authform.Key, []byte(""))
@@ -93,15 +93,15 @@ func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
 
 	domain := string(out)
 	role, ok := keyauth.domains[domain]
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Auth Key Validated", "Domain", domain, " Role assigned", role.(string))
 	if ok {
 		usr := usrInt.(auth.RbacUser)
 		usr.SetId("system")
 		usr.SetRoles([]string{role.(string)})
 		ctx.Set("User", usr)
 	} else {
-		return errors.ThrowError(ctx, AUTH_ERROR_DOMAIN_NOT_ALLOWED)
+		return errors.ThrowError(ctx, AUTH_ERROR_DOMAIN_NOT_ALLOWED, "Domain", domain)
 	}
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Auth Key Validated", "Domain", domain, " Role assigned", role.(string))
 
 	return keyauth.authCallback(ctx)
 }

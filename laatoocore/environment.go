@@ -1,11 +1,14 @@
 package laatoocore
 
 import (
-	"github.com/dghubble/sling"
+	"bytes"
+	"encoding/json"
 	"github.com/labstack/echo"
 	"github.com/rs/cors"
+	"io/ioutil"
 	"laatoosdk/auth"
 	"laatoosdk/config"
+	"laatoosdk/context"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
@@ -327,15 +330,12 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 		if err != nil {
 			return err
 		}
+		client := context.HttpClient(ctx)
 		form := &KeyAuth{Key: key}
-		req, err := sling.New().Post(apiauth).BodyJSON(form).Request()
+		load, _ := json.Marshal(form)
+		resp, err := client.Post(apiauth, "application/json", bytes.NewBuffer(load))
 		if err != nil {
-			return err
-		}
-		//get the response
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if err != nil {
+			log.Logger.Trace(ctx, "core.env.remoteroles", "Error in key auth", "err", err)
 			return err
 		}
 		log.Logger.Trace(ctx, "core.env.remoteroles", "Got Response for api key", "Response", resp.StatusCode)
@@ -348,25 +348,6 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			token := resp.Header.Get(env.AuthHeader)
 			log.Logger.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
 
-			/*			permurl := env.Config.GetString(CONF_PERMISSIONS_API)
-						if len(permurl) == 0 {
-							return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
-						}
-						perms := &PermissionsExchange{}
-						perms.Permissions = env.Permissions.Values()
-						base := sling.New().Set(env.AuthHeader, token)
-						//req, err := base.New().Get("gophergram/list").Request()
-						req, err = base.New().Post(permurl).BodyJSON(perms).Request()
-						if err != nil {
-							return err
-						}
-						resp, err = client.Do(req)
-						log.Logger.Trace(ctx, "core.env.remoteroles", "result for perm query", "Status code", resp.StatusCode)
-						//get the response
-						if resp.StatusCode != 200 {
-							return errors.ThrowError(ctx, CORE_PERMAPI_NOT_FOUND)
-						}*/
-
 			//get the url for remote system
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
 			if len(rolesurl) == 0 {
@@ -377,9 +358,20 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 			if err != nil {
 				return err
 			}
-			base := sling.New().Set(env.AuthHeader, token)
+			req, err := http.NewRequest("GET", rolesurl, nil)
+			req.Header.Add(env.AuthHeader, token)
+			res, err := client.Do(req)
+			if err != nil {
+				log.Logger.Trace(ctx, "core.env.remoteroles", "Error in roles query", "err", err)
+				return err
+			}
+			body, err := ioutil.ReadAll(res.Body)
+			log.Logger.Trace(ctx, "core.env.remoteroles", "result for roles query", "body", body)
+			err = json.Unmarshal(body, &roles)
+			/*base := sling.New().Set(env.AuthHeader, token)
 			//req, err := base.New().Get("gophergram/list").Request()
-			resp, err = base.New().Get(rolesurl).ReceiveSuccess(roles)
+			resp, err = base.New().Client(client).Get(rolesurl).ReceiveSuccess(roles)*/
+			log.Logger.Trace(ctx, "core.env.remoteroles", "result for roles query", "err", err)
 			if err != nil {
 				return err
 			}

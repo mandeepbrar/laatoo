@@ -18,6 +18,7 @@ const (
 	AUTH_ERROR_OAUTH_MISSING_CALLBACKURL  = "Auth_Error_Oauth_Missing_Callbackurl"
 	AUTH_ERROR_OAUTH_MISSING_TYPE         = "Auth_Error_Oauth_Missing_Type"
 
+	AUTH_ERROR_KEYAUTH_MISSING_PVTKEY     = "Auth_Error_Keyauth_Missing_PvtKey"
 	AUTH_ERROR_USER_VALIDATION_FAILED     = "Auth_Error_User_Validation_Failed"
 	AUTH_ERROR_AUTH_COMPLETION_FAILED     = "Auth_Error_Auth_Completion_Failed"
 	AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH = "Auth_Error_Internal_Server_Error_Auth"
@@ -39,6 +40,7 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_CALLBACKURL, errors.FATAL, fmt.Errorf("Callback url not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_PROFILEURL, errors.FATAL, fmt.Errorf("Profile url not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_TYPE, errors.FATAL, fmt.Errorf("Type not provided for oauth site."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_KEYAUTH_MISSING_PVTKEY, errors.FATAL, fmt.Errorf("Private key could not be loaded for keyauth."), LOGGING_CONTEXT)
 
 	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_VALIDATION_FAILED, laatoocore.AuthError)

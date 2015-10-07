@@ -1,3 +1,5 @@
+// +build !appengine
+
 package laatoofiles
 
 import (
@@ -12,7 +14,6 @@ import (
 )
 
 const (
-	LOGGING_CONTEXT       = "filservice"
 	CONF_FILE_SERVICENAME = "file_service"
 	CONF_FILE_FILESDIR    = "filesdir"
 	CONF_FILE_FILESURL    = "filesurl"
