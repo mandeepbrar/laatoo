@@ -4,7 +4,7 @@
 	</div>
 	<hr/>
 	<tabset class="row" style="height:250px;">
-        <tab heading="Library">
+        <tab heading="Library" >
 		    <div style="height:260px">
 				<media type="image" source="http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg" height="70px"></media>
 				<media type="image" source="http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg" height="70px"></media>
@@ -24,15 +24,15 @@
 			<hr/>
 			<div class="row">
 				<button class="btn btn-primary pull-right" ng-click="fileSelected(mediaurl)">Select</button>
-	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button>
+	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button> 
 			</div>
 		</tab>
-        <tab heading="Upload">
+        <tab heading="Upload" ng-show="allowupload==='true'">
 			<div class="row" style="height:260px" >
 
                 <div class="col-md-12">
 
-                    <h3>Upload files</h3>
+                    <h3>Upload files{{allowupload}}</h3>
 
                     <div ng-show="uploader.isHTML5">
 						<div nv-file-drop="" uploader="uploader"  class="well my-drop-zone">

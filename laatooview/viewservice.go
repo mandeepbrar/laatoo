@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	LOGGING_CONTEXT       = "view_service"
-	CONF_VIEW_SERVICENAME = "view_service"
-	CONF_VIEW_VIEWS       = "views"
-	CONF_VIEW_DATASVC     = "data_svc"
-	CONF_VIEW_VIEWNAME    = "name"
-	CONF_VIEW_VIEWPATH    = "path"
+	LOGGING_CONTEXT          = "view_service"
+	CONF_VIEW_SERVICENAME    = "view_service"
+	CONF_VIEW_VIEWS          = "views"
+	CONF_VIEW_DATASVC        = "data_svc"
+	CONF_VIEW_VIEWOBJECTNAME = "objectname"
+	CONF_VIEW_VIEWPATH       = "path"
+	CONF_VIEW_VIEWCONF       = "conf"
 	//CONF_VIEW_OBJECT      = "object"
 	//CONF_VIEW_TYPE        = "object"
 )
@@ -68,11 +69,11 @@ func ViewServiceFactory(ctx interface{}, conf map[string]interface{}) (interface
 			return nil, errors.ThrowError(ctx, VIEW_ERROR_INCORRECT_VIEW_CONF, "View Name", name)
 		}
 
-		nameInt, ok := viewConfig[CONF_VIEW_VIEWNAME]
+		objectnameInt, ok := viewConfig[CONF_VIEW_VIEWOBJECTNAME]
 		if !ok {
-			return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWNAME, "View Name", name)
+			return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWOBJECTNAME, "View Name", name)
 		} else {
-			name := nameInt.(string)
+			objectname := objectnameInt.(string)
 			pathInt, ok := viewConfig[CONF_VIEW_VIEWPATH]
 			if !ok {
 				return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEWPATH, "View Name", name)
@@ -80,18 +81,25 @@ func ViewServiceFactory(ctx interface{}, conf map[string]interface{}) (interface
 
 			path := pathInt.(string)
 
-			viewInt, err := laatoocore.CreateObject(ctx, name, nil)
+			viewInt, err := laatoocore.CreateObject(ctx, objectname, nil)
 			if err != nil {
 				return nil, errors.RethrowError(ctx, VIEW_ERROR_MISSING_VIEW, err, "View Name", name)
 			}
 
 			view := viewInt.(data.View)
 
+			conf := make(map[string]interface{})
+			confInt, ok := viewConfig[CONF_VIEW_VIEWCONF]
+			if ok {
+				conf = confInt.(map[string]interface{})
+			}
+
 			router.Get(path, func(ctx *echo.Context) error {
-				return view.Execute(svc.DataStore, ctx)
+				return view.Execute(svc.DataStore, ctx, conf)
 			})
 			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Registering view", "View Name", name)
 			svc.Views[name] = view
+
 		}
 	}
 	router.Get("", svc.GetView)
@@ -108,7 +116,7 @@ func (svc *ViewService) GetView(ctx *echo.Context) error {
 	if !ok {
 		return errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEW, "View Name", name)
 	}
-	return view.Execute(svc.DataStore, ctx)
+	return view.Execute(svc.DataStore, ctx, nil)
 }
 
 //Provides the name of the service

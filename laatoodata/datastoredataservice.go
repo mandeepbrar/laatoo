@@ -3,6 +3,7 @@
 package laatoodata
 
 import (
+	"fmt"
 	"google.golang.org/appengine/datastore"
 	"laatoocore"
 	"laatoosdk/context"
@@ -128,6 +129,7 @@ func (ms *DatastoreDataService) GetById(ctx interface{}, objectType string, id s
 		log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
 		return nil, err
 	}
+	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Got object", "Object", object)
 	return object, nil
 }
 
@@ -139,11 +141,22 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
+	log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Get Resuls with condition", "Object Type", objectType, "QueryCond", queryCond)
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
+	if queryCond != nil {
+		queryCondMap, ok := queryCond.(map[string]interface{})
+		if ok {
+			for k, v := range queryCondMap {
+				query = query.Filter(fmt.Sprintf("%s =", k), v)
+				log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Get Resuls with condition", "k", k, "v", v)
+
+			}
+		}
+	}
 	if pageSize > 0 {
 		totalrecs, err = query.Count(appEngineContext)
 		if err != nil {
@@ -152,7 +165,6 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
-
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = query.GetAll(appEngineContext, results)

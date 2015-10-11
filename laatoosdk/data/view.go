@@ -12,5 +12,5 @@ const (
 )
 
 type View interface {
-	Execute(DataService, *echo.Context) error
+	Execute(DataService, *echo.Context, map[string]interface{}) error
 }

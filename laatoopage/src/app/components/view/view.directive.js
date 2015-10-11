@@ -30,20 +30,17 @@
 
     /** @ngInject */
     function ViewCtrl($scope, $element, $attrs, ViewService, $http, dialogs) {
-      var name = $attrs.name;
+      var url = $attrs.url;
 	  $scope.params = {};
 	  $scope.modelname = 'viewrows';
       if($attrs.class) {
       	$scope.class = "class="+$attrs.class;
       }
   	  if($attrs.args) {
-		$scope.params = angular.fromJson($attrs.args);
+		$scope.params.args = angular.fromJson($attrs.args);
 	  }
   	  if($attrs.modelname) {
 		$scope.modelname = $attrs.modelname;
-	  }
-  	  if($attrs.viewserver) {
-	    $scope.viewserver = $attrs.viewserver;
 	  }
       if($attrs.editable) {
       	$scope.editable = ($attrs.editable == 'true');
@@ -77,12 +74,7 @@
 	  } else {
 		$scope.pagesize = 10;
 	  }	
-	  $scope.params['viewname'] = name;
 	  $scope.refreshView = function() {
-		  var url = pageConf.ViewsServer;
-		  if($scope.viewserver) {
-			url = $scope.viewserver;	
-		  }
 		  if($scope.paginate) {
 			  $scope.params.pagesize = $scope.pagesize;
 			  $scope.params.pagenum = $scope.pagenum;			

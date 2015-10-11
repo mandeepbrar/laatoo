@@ -34,12 +34,13 @@ func init() {
 	laatoocore.RegisterObjectProvider(VIEW_NAME, NewEntitiesView)
 }
 
-func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context) error {
+func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context, conf map[string]interface{}) error {
 	var err error
-	entity := ctx.Query(VIEW_ENTITY)
-	if entity == "" {
+	entityInt, ok := conf[VIEW_ENTITY]
+	if !ok {
 		return errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
 	}
+	entity := entityInt.(string)
 	pagesize := -1
 	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
 	if pagesizeVal != "" {

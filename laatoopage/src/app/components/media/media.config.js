@@ -23,6 +23,7 @@
 		if(options.type == "media") {
 			scope.haslabel = false;
 			scope.field = options.key;
+			scope.allowupload = options.templateOptions.allowupload;
 			scope.$watch('model', function (newValue) {
 					try {
 						scope.mediasource = newValue[options.key];
@@ -42,6 +43,14 @@
 		} else {
 			$scope.mediatype = 'image';
 		}
+		
+		console.log($scope);
+		var allowupload = "false";
+		if($scope.options.templateOptions.allowupload) {
+			allowupload = $scope.options.templateOptions.allowupload;
+			console.log(allowupload);
+		}
+		
 		$scope.chooseMedia = function(field, type){
 			var modalOptions = {
 	        		backdrop: true,
@@ -53,7 +62,11 @@
 				resolve: {
          			mediatype: function () {	
          			  	return type;
-         			}
+         			},
+					allowupload: function() {
+						console.log("return "+allowupload);
+						return allowupload;
+					}
        			},
 	            actionButtonText: 'OK'
 	        };
@@ -71,8 +84,9 @@
   }
 
   /** @ngInject */
-  function modalDialogController($scope, $modalInstance, FileUploader, mediatype) {
+  function modalDialogController($scope, $modalInstance, FileUploader, mediatype, allowupload) {
 	$scope.mediatype = mediatype;
+	$scope.allowupload = allowupload;
     var uploader = $scope.uploader = new FileUploader({
         url: '/upload',
 		queueLimit: 1

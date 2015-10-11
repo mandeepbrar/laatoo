@@ -24,7 +24,7 @@
 	  if($attrs.popupsearch) {
 		console.log("popup search");	
 	  }
-	  $scope.params = {};
+	  $scope.params = $scope.$parent.params.args;
 	  $scope.applyFilter = function() {
 		var parent = $scope.$parent;
 		parent.params.args = $scope.params;
