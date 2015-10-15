@@ -12,6 +12,8 @@ type DataService interface {
 	Delete(ctx interface{}, objectType string, id string) error
 	//Get an object by id
 	GetById(ctx interface{}, objectType string, id string) (interface{}, error)
+	//Get multiple objects by id
+	GetMulti(ctx interface{}, objectType string, ids []string) (map[string]interface{}, error)
 	//Get all object with given conditions
 	Get(ctx interface{}, objectType string, conditions interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 	//Get a list of all items

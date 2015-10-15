@@ -81,21 +81,21 @@ func ViewServiceFactory(ctx interface{}, conf map[string]interface{}) (interface
 
 			path := pathInt.(string)
 
-			viewInt, err := laatoocore.CreateObject(ctx, objectname, nil)
+			viewInt, err := laatoocore.CreateObject(ctx, objectname, viewConfig)
 			if err != nil {
 				return nil, errors.RethrowError(ctx, VIEW_ERROR_MISSING_VIEW, err, "View Name", name)
 			}
 
 			view := viewInt.(data.View)
 
-			conf := make(map[string]interface{})
+			/*conf := make(map[string]interface{})
 			confInt, ok := viewConfig[CONF_VIEW_VIEWCONF]
 			if ok {
 				conf = confInt.(map[string]interface{})
-			}
+			}*/
 
 			router.Get(path, func(ctx *echo.Context) error {
-				return view.Execute(svc.DataStore, ctx, conf)
+				return view.Execute(ctx, svc.DataStore)
 			})
 			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Registering view", "View Name", name)
 			svc.Views[name] = view
@@ -116,7 +116,7 @@ func (svc *ViewService) GetView(ctx *echo.Context) error {
 	if !ok {
 		return errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEW, "View Name", name)
 	}
-	return view.Execute(svc.DataStore, ctx, nil)
+	return view.Execute(ctx, svc.DataStore)
 }
 
 //Provides the name of the service

@@ -95,7 +95,7 @@ func (ms *mongoDataService) Save(ctx interface{}, objectType string, item interf
 		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
-	stor.PreSave()
+	stor.PreSave(ctx)
 	id := stor.GetId()
 	if id == "" {
 		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
@@ -118,7 +118,7 @@ func (ms *mongoDataService) Put(ctx interface{}, objectType string, id string, i
 	stor := item.(data.Storable)
 	idkey := stor.GetIdField()
 	condition[idkey] = id
-	stor.PreSave()
+	stor.PreSave(ctx)
 	err := connCopy.DB(ms.database).C(collection).Update(condition, item)
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func (ms *mongoDataService) GetById(ctx interface{}, objectType string, id strin
 	condition := bson.M{}
 	condition[idkey] = id
 	err = connCopy.DB(ms.database).C(collection).Find(condition).One(object)
-	stor.PostLoad()
+	stor.PostLoad(ctx)
 	if err != nil {
 		if err.Error() == "not found" {
 			return nil, nil
@@ -152,6 +152,50 @@ func (ms *mongoDataService) GetById(ctx interface{}, objectType string, id strin
 		return nil, err
 	}
 	return object, nil
+}
+
+//Get multiple objects by id
+func (ms *mongoDataService) GetMulti(ctx interface{}, objectType string, ids []string) (map[string]interface{}, error) {
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	results, err := laatoocore.CreateCollection(ctx, objectType)
+	if err != nil {
+		return nil, err
+	}
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	stor := object.(data.Storable)
+	idkey := stor.GetIdField()
+	condition := bson.M{}
+	operatorCond := bson.M{}
+	operatorCond["$in"] = ids
+	condition[idkey] = operatorCond
+	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	if err != nil {
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error in getting multiple objects", "ids", ids, "Error", err)
+		return nil, err
+	}
+	// To retrieve the results,
+	// you must execute the Query using its GetAll or Run methods.
+	retVal := make(map[string]interface{}, len(ids))
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		retVal[stor.GetId()] = valPtr
+		stor.PostLoad(ctx)
+	}
+	for _, id := range ids {
+		_, ok := retVal[id]
+		if !ok {
+			retVal[id] = nil
+		}
+	}
+	return retVal, nil
 }
 
 func (ms *mongoDataService) Get(ctx interface{}, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
@@ -189,7 +233,7 @@ func (ms *mongoDataService) Get(ctx interface{}, objectType string, queryCond in
 	i := 0
 	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
-		stor.PostLoad()
+		stor.PostLoad(ctx)
 	}
 	recsreturned = i
 	if err != nil {
@@ -245,7 +289,7 @@ func (ms *mongoDataService) GetList(ctx interface{}, objectType string, pageSize
 	i := 0
 	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
-		stor.PostLoad()
+		stor.PostLoad(ctx)
 	}
 	recsreturned = i
 	if err != nil {

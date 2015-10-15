@@ -4,6 +4,7 @@ package laatoodata
 
 import (
 	"fmt"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"laatoocore"
 	"laatoosdk/context"
@@ -81,7 +82,7 @@ func (ms *DatastoreDataService) Save(ctx interface{}, objectType string, item in
 		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
-	stor.PreSave()
+	stor.PreSave(ctx)
 	id := stor.GetId()
 	if id == "" {
 		return errors.ThrowError(appEngineContext, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
@@ -102,7 +103,7 @@ func (ms *DatastoreDataService) Put(ctx interface{}, objectType string, id strin
 		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
-	stor.PreSave()
+	stor.PreSave(ctx)
 	key, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, collection, id, 0, nil), item)
 	if err != nil {
 		return err
@@ -124,13 +125,55 @@ func (ms *DatastoreDataService) GetById(ctx interface{}, objectType string, id s
 	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
 	err = datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
-	stor.PostLoad()
+	stor.PostLoad(ctx)
 	if err != nil {
 		log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
 		return nil, err
 	}
-	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Got object", "Object", object)
+	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Got object", "Key", datastore.NewKey(appEngineContext, collection, "some id", 0, nil))
 	return object, nil
+}
+
+//Get multiple objects by id
+func (ms *DatastoreDataService) GetMulti(ctx interface{}, objectType string, ids []string) (map[string]interface{}, error) {
+	appEngineContext := context.GetAppengineContext(ctx)
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	ctype, err := laatoocore.GetCollectionType(appEngineContext, objectType)
+	if err != nil {
+		return nil, err
+	}
+	lenids := len(ids)
+	arr := reflect.MakeSlice(ctype, lenids, lenids)
+	keys := make([]*datastore.Key, len(ids))
+	for ind, id := range ids {
+		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+		keys[ind] = key
+	}
+
+	err = datastore.GetMulti(appEngineContext, keys, arr.Interface())
+	if err != nil {
+		if _, ok := err.(appengine.MultiError); !ok {
+			log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Geting object", "err", err)
+			return nil, err
+		}
+	}
+	retVal := make(map[string]interface{}, lenids)
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		id := stor.GetId()
+		if id != "" {
+			retVal[ids[i]] = valPtr
+			stor.PostLoad(ctx)
+		} else {
+			retVal[ids[i]] = nil
+		}
+	}
+	return retVal, nil
 }
 
 func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
@@ -158,7 +201,7 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 		}
 	}
 	if pageSize > 0 {
-		totalrecs, err = query.Count(appEngineContext)
+		totalrecs, err = query.Limit(500).Count(appEngineContext)
 		if err != nil {
 			return nil, totalrecs, recsreturned, err
 		}
@@ -173,7 +216,7 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 	i := 0
 	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
-		stor.PostLoad()
+		stor.PostLoad(ctx)
 	}
 	recsreturned = i
 	if err != nil {
@@ -222,7 +265,7 @@ func (ms *DatastoreDataService) GetList(ctx interface{}, objectType string, page
 	i := 0
 	for i = 0; i < length; i++ {
 		stor := arr.Index(i).Addr().Interface().(data.Storable)
-		stor.PostLoad()
+		stor.PostLoad(ctx)
 	}
 	recsreturned = i
 	if err != nil {

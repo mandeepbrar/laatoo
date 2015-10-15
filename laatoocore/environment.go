@@ -9,6 +9,7 @@ import (
 	"laatoosdk/auth"
 	"laatoosdk/config"
 	"laatoosdk/context"
+	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
@@ -27,6 +28,7 @@ const (
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "settings.auth_header"
 	CONF_ENV_COMMSVC    = "settings.commsvc"
+	CONF_ENV_CACHESVC   = "settings.cachesvc"
 	//secret key for jwt
 	CONF_ENV_JWTSECRETKEY   = "settings.jwtsecretkey"
 	DEFAULT_USER            = "User"
@@ -37,6 +39,7 @@ const (
 	CONF_SERVICE_BINDPATH   = "path"
 	CONF_SERVICE_SERVERTYPE = "servertype"
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
+	CONF_SERVICE_USECORS    = "usecors"
 	CONF_AUTH_MODE          = "settings.authorization.mode"
 	CONF_AUTH_MODE_LOCAL    = "local"
 	CONF_AUTH_MODE_REMOTE   = "remote"
@@ -76,6 +79,8 @@ type Environment struct {
 	RolePermissions map[string]bool
 	//type of server environment is hosted in
 	ServerType string
+	//caching service
+	Cache data.Cache
 }
 
 //creates a new environment
@@ -99,25 +104,6 @@ func newEnvironment(envName string, conf string, router *echo.Echo, serverType s
 	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
 	if len(authTokenInt) > 0 {
 		env.AuthHeader = authTokenInt
-	}
-
-	corsHostsInt := env.Config.GetArray(CONF_ENV_CORSHOSTS)
-	if corsHostsInt != nil {
-		allowedOrigins := make([]string, len(corsHostsInt))
-		i := 0
-		for _, k := range corsHostsInt {
-			allowedOrigins[i] = k.(string)
-			i++
-		}
-
-		corsMw := cors.New(cors.Options{
-			AllowedOrigins:   allowedOrigins,
-			AllowedHeaders:   []string{"*"},
-			ExposedHeaders:   []string{env.AuthHeader},
-			AllowCredentials: true,
-		}).Handler
-		router.Use(corsMw)
-		log.Logger.Info(env, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
 	}
 
 	env.Router = router.Group(envPath)
@@ -198,6 +184,26 @@ func (env *Environment) createService(alias string, conf interface{}) (service.S
 	if ok {
 		//router to be passed in the configuration
 		router := env.Router.Group(svcBindPath.(string))
+		_, ok := serviceConfig[CONF_SERVICE_USECORS]
+		if ok {
+			corsHostsInt := env.Config.GetArray(CONF_ENV_CORSHOSTS)
+			if corsHostsInt != nil {
+				allowedOrigins := make([]string, len(corsHostsInt))
+				i := 0
+				for _, k := range corsHostsInt {
+					allowedOrigins[i] = k.(string)
+					i++
+				}
+				corsMw := cors.New(cors.Options{
+					AllowedOrigins:   allowedOrigins,
+					AllowedHeaders:   []string{"*"},
+					ExposedHeaders:   []string{env.AuthHeader},
+					AllowCredentials: true,
+				}).Handler
+				log.Logger.Info(env, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
+				router.Use(corsMw)
+			}
+		}
 
 		//provide environment context to every request using middleware
 		router.Use(func(ctx *echo.Context) error {
@@ -238,6 +244,15 @@ func (env *Environment) InitializeEnvironment() error {
 			return errors.ThrowError(env, CORE_ERROR_SERVICE_NOT_FOUND, "Communication Service", commSvc)
 		}
 		env.CommunicationService = svcInt.(service.PubSub)
+	}
+
+	cacheSvc := env.Config.GetString(CONF_ENV_CACHESVC)
+	if len(cacheSvc) > 0 {
+		svcInt, ok := env.ServicesStore[cacheSvc]
+		if !ok {
+			return errors.ThrowError(env, CORE_ERROR_SERVICE_NOT_FOUND, "Cache Service", cacheSvc)
+		}
+		env.Cache = svcInt.(data.Cache)
 	}
 
 	//get list of all the services
@@ -310,6 +325,10 @@ func (env *Environment) StartEnvironment(ctx interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (env *Environment) GetCache() data.Cache {
+	return env.Cache
 }
 
 //load role permissions if needed from another environment

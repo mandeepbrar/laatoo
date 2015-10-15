@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/labstack/echo"
-	//"laatoosdk/auth"
 	"laatoosdk/config"
+	"laatoosdk/data"
 )
 
 //Service interface that needs to be implemented by any service of a system
@@ -25,6 +25,7 @@ type Service interface {
 type ServiceContext interface {
 	GetVariable(variable string) interface{}
 	GetService(ctx interface{}, alias string) (Service, error)
+	GetCache() data.Cache
 	//RegisterPermissions(ctx interface{}, perm []string)
 	/*	ListAllPermissions() []string
 		RegisterRoles(ctx interface{}, rolesInt interface{})

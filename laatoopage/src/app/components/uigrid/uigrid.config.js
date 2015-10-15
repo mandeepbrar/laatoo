@@ -29,7 +29,7 @@
 		} else {
 			$scope.mediatype = 'image';
 		}
-		$scope.$watch('griditems', function (newValue) {
+		var setSelections = function() {
 			for(var index in $scope.griditems) {
 				var item = $scope.griditems[index];
 				if($scope.valueField != "=") {
@@ -43,9 +43,13 @@
 					}catch(ex) {}
 				}
 			}
+		}
+		$scope.$watch('griditems', function (newValue) {
+			setSelections();
 		});
 		$scope.$watch('model', function (newValue) {
 				try {
+					$scope.status = [];
 					$scope.selected = newValue[$scope.options.key];
 					var gridcallback = $scope.options.templateOptions.gridcallback;
 					if(gridcallback) {
@@ -61,7 +65,6 @@
 					else {
 						$scope.griditems = $scope.options.templateOptions.griditems;							
 					}
-					$scope.status = [];
 					$scope.label = $scope.options.templateOptions.label;
 					$scope.columns = $scope.options.templateOptions.columns;
 					if($scope.options.templateOptions.valueField) {
@@ -69,6 +72,7 @@
 					} else {
 						$scope.valueField = $scope.options.key;
 					}
+					setSelections();
 				}catch(ex){}
 	    });
 		$scope.oncheckboxchange = function(evt, val) {

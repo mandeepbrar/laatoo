@@ -23,24 +23,24 @@ const (
 type EntitiesView struct {
 	Options        map[string]interface{}
 	serviceContext service.ServiceContext
+	entity         string
 }
 
 func NewEntitiesView(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
 	serviceContext := ctx.(service.ServiceContext)
-	return &EntitiesView{Options: conf, serviceContext: serviceContext}, nil
+	entityInt, ok := conf[VIEW_ENTITY]
+	if !ok {
+		return nil, errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
+	}
+	return &EntitiesView{Options: conf, serviceContext: serviceContext, entity: entityInt.(string)}, nil
 }
 
 func init() {
 	laatoocore.RegisterObjectProvider(VIEW_NAME, NewEntitiesView)
 }
 
-func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context, conf map[string]interface{}) error {
+func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService) error {
 	var err error
-	entityInt, ok := conf[VIEW_ENTITY]
-	if !ok {
-		return errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
-	}
-	entity := entityInt.(string)
 	pagesize := -1
 	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
 	if pagesizeVal != "" {
@@ -58,8 +58,8 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context,
 		}
 	}
 	args := ctx.Query(VIEW_ARGS)
-	perm := fmt.Sprintf("View %s", entity)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", entity, "Args", args, "Permission", perm)
+	perm := fmt.Sprintf("View %s", view.entity)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", args, "Permission", perm)
 	if !view.serviceContext.IsAllowed(ctx, perm) {
 		return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
@@ -73,11 +73,11 @@ func (view *EntitiesView) Execute(dataStore data.DataService, ctx *echo.Context,
 		}
 	}
 
-	entities, totalrecs, recsreturned, err := dataStore.Get(ctx, entity, argsMap, pagesize, pagenum, "")
+	entities, totalrecs, recsreturned, err := dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "")
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executed View", "Entity", entity, "Totalrecs", totalrecs, "RecsReturned", recsreturned)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executed View", "Entity", view.entity, "Totalrecs", totalrecs, "RecsReturned", recsreturned)
 	ctx.Response().Header().Set(data.VIEW_TOTALRECS, fmt.Sprint(totalrecs))
 	ctx.Response().Header().Set(data.VIEW_RECSRETURNED, fmt.Sprint(recsreturned))
 	return ctx.JSON(http.StatusOK, entities)

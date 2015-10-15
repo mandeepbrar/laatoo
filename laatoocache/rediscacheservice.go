@@ -1,4 +1,4 @@
-package laatoopubsub
+package laatoocache
 
 import (
 	"github.com/garyburd/redigo/redis"
@@ -112,10 +112,16 @@ func (svc *RedisCacheService) PutObject(ctx interface{}, key string, val interfa
 	return nil
 }
 
-func (svc *RedisCacheService) GetObject(ctx interface{}, key string) (interface{}, error) {
+func (svc *RedisCacheService) GetObject(ctx interface{}, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
-	return conn.Do("GET", key)
+	k, err := conn.Do("GET", key)
+	val = &k
+	return err
+}
+
+func (svc *RedisCacheService) GetMulti(ctx interface{}, keys []string, val map[string]interface{}) error {
+	return nil
 }
 
 //Execute method

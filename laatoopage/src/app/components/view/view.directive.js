@@ -42,6 +42,10 @@
   	  if($attrs.modelname) {
 		$scope.modelname = $attrs.modelname;
 	  }
+	  $attrs.$observe('url', function(passedval) {
+		url = passedval;
+		$scope.refreshView();
+	  });
       if($attrs.editable) {
       	$scope.editable = ($attrs.editable == 'true');
 		$scope.submitText = "Save";
@@ -100,7 +104,6 @@
 		    );
 		//  $scope[$scope.modelname] = ViewService.query($scope.params);	  		
 	  };
-	  $scope.refreshView();
     }
   }
 
