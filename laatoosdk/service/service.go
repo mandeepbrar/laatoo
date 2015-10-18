@@ -11,28 +11,28 @@ type Service interface {
 	//Provides the name of the service
 	GetName() string
 	//Initialize the service. Consumer of a service passes the data
-	Initialize(ctx ServiceContext) error
+	Initialize(ctx *echo.Context) error
 	//The service starts serving when this method is called
 	//called on first request
-	Serve(ctx interface{}) error
+	Serve(ctx *echo.Context) error
 	//Type of service
 	GetServiceType() string
 	//Execute method
-	Execute(interface{}, string, map[string]interface{}) (interface{}, error)
+	Execute(*echo.Context, string, map[string]interface{}) (interface{}, error)
 }
 
 //service context object for initializing services
-type ServiceContext interface {
+type Environment interface {
 	GetVariable(variable string) interface{}
-	GetService(ctx interface{}, alias string) (Service, error)
+	GetService(ctx *echo.Context, alias string) (Service, error)
 	GetCache() data.Cache
-	//RegisterPermissions(ctx interface{}, perm []string)
+	//RegisterPermissions(ctx *echo.Context, perm []string)
 	/*	ListAllPermissions() []string
-		RegisterRoles(ctx interface{}, rolesInt interface{})
-		RegisterRolePermissions(ctx interface{}, role auth.Role)*/
+		RegisterRoles(ctx *echo.Context, rolesInt interface{})
+		RegisterRolePermissions(ctx *echo.Context, role auth.Role)*/
 	IsAllowed(ctx *echo.Context, perm string) bool
-	SubscribeTopic(ctx interface{}, topic string, handler TopicListener)
-	PublishMessage(ctx interface{}, topic string, message interface{}) error
+	SubscribeTopic(ctx *echo.Context, topic string, handler TopicListener)
+	PublishMessage(ctx *echo.Context, topic string, message interface{}) error
 	GetConfig() config.Config
 }
 

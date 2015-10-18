@@ -23,7 +23,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func CodegenServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func CodegenServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating static service")
 	svc := &CodegenService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -46,7 +46,7 @@ func (svc *CodegenService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *CodegenService) Serve(ctx interface{}) error {
+func (svc *CodegenService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -56,6 +56,6 @@ func (svc *CodegenService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *CodegenService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *CodegenService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

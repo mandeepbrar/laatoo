@@ -28,7 +28,7 @@ const (
 
 //Environment hosting an application
 type EntityService struct {
-	serviceContext  service.ServiceContext
+	serviceEnv      service.Environment
 	EntityName      string
 	dataServiceName string
 	DataStore       data.DataService
@@ -45,10 +45,10 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating entity service")
-	serviceContext := ctx.(service.ServiceContext)
-	svc := &EntityService{serviceContext: serviceContext}
+	serviceEnv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
+	svc := &EntityService{serviceEnv: serviceEnv}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(*echo.Group)
 
@@ -123,7 +123,7 @@ func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interfa
 				})
 			case "post":
 				router.Post(path, func(ctx *echo.Context) error {
-					if !serviceContext.IsAllowed(ctx, svc.createperm) {
+					if !serviceEnv.IsAllowed(ctx, svc.createperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					ent, err := laatoocore.CreateEmptyObject(ctx, entityName)
@@ -147,7 +147,7 @@ func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interfa
 				})
 			case "put":
 				router.Put(path, func(ctx *echo.Context) error {
-					if !serviceContext.IsAllowed(ctx, svc.editperm) {
+					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					id := ctx.P(0)
@@ -171,7 +171,7 @@ func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interfa
 				})
 			case "putbulk":
 				router.Put(path, func(ctx *echo.Context) error {
-					if !serviceContext.IsAllowed(ctx, svc.editperm) {
+					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					typ, err := laatoocore.GetCollectionType(ctx, entityName)
@@ -201,7 +201,7 @@ func EntityServiceFactory(ctx interface{}, conf map[string]interface{}) (interfa
 				})
 			case "delete":
 				router.Delete(path, func(ctx *echo.Context) error {
-					if !serviceContext.IsAllowed(ctx, svc.deleteperm) {
+					if !serviceEnv.IsAllowed(ctx, svc.deleteperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					id := ctx.P(0)
@@ -227,18 +227,19 @@ func (svc *EntityService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *EntityService) Initialize(ctx service.ServiceContext) error {
-	dataSvc, err := ctx.GetService(ctx, svc.dataServiceName)
+func (svc *EntityService) Initialize(ctx *echo.Context) error {
+	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
+	dataSvc, err := svcenv.GetService(ctx, svc.dataServiceName)
 	if err != nil {
 		return errors.RethrowError(ctx, ENTITY_ERROR_MISSING_DATASVC, err)
 	}
 
 	svc.DataStore = dataSvc.(data.DataService)
-	svc.cache = ctx.GetCache()
+	svc.cache = svcenv.GetCache()
 	return nil
 }
 
-func (svc *EntityService) invalidateCache(ctx interface{}, id string) {
+func (svc *EntityService) invalidateCache(ctx *echo.Context, id string) {
 	if svc.cache != nil {
 		svc.cache.Delete(ctx, svc.getCacheKey(id))
 	}
@@ -249,7 +250,7 @@ func (svc *EntityService) getCacheKey(id string) string {
 }
 
 //The service starts serving when this method is called
-func (svc *EntityService) Serve(ctx interface{}) error {
+func (svc *EntityService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -259,19 +260,18 @@ func (svc *EntityService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *EntityService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
-	ectx := ctx.(*echo.Context)
+func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	switch name {
 	case "Get":
-		return svc.getEntity(ectx, params["id"].(string))
+		return svc.getEntity(ctx, params["id"].(string))
 	case "GetBulk":
-		return svc.getEntities(ectx, params["ids"].([]string))
+		return svc.getEntities(ctx, params["ids"].([]string))
 	}
 	return nil, nil
 }
 
 func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, error) {
-	if !svc.serviceContext.IsAllowed(ctx, svc.viewperm) {
+	if !svc.serviceEnv.IsAllowed(ctx, svc.viewperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	if svc.cache != nil {
@@ -296,7 +296,7 @@ func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, 
 }
 
 func (svc *EntityService) getEntities(ctx *echo.Context, ids []string) (map[string]interface{}, error) {
-	if !svc.serviceContext.IsAllowed(ctx, svc.viewperm) {
+	if !svc.serviceEnv.IsAllowed(ctx, svc.viewperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	ents, err := svc.DataStore.GetMulti(ctx, svc.EntityName, ids)

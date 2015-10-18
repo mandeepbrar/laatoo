@@ -24,7 +24,7 @@ type localAuthType struct {
 }
 
 //method called for creating new auth type
-func NewLocalAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
+func NewLocalAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
 	//create the new auth type
 	localauth := &localAuthType{}
 	//store the reference to the parent
@@ -41,7 +41,7 @@ func NewLocalAuth(ctx interface{}, conf map[string]interface{}, svc *SecuritySer
 }
 
 //initialize auth type called by base auth for initializing
-func (localauth *localAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (localauth *localAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	//setup path for listening to login post request
 	localauth.securityService.Router.Post(localauth.loginpath, authStart)
 	localauth.authCallback = authCallback

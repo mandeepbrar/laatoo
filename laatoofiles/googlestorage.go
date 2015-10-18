@@ -29,7 +29,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func GoogleStorageServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func GoogleStorageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating google storage file service")
 	svc := &GoogleStorageService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -52,12 +52,12 @@ func (svc *GoogleStorageService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *GoogleStorageService) Initialize(ctx service.ServiceContext) error {
+func (svc *GoogleStorageService) Initialize(ctx *echo.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *GoogleStorageService) Serve(ctx interface{}) error {
+func (svc *GoogleStorageService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -67,7 +67,7 @@ func (svc *GoogleStorageService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *GoogleStorageService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *GoogleStorageService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }
 

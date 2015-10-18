@@ -4,6 +4,7 @@ package laatoodata
 
 import (
 	"fmt"
+	"github.com/labstack/echo"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"laatoocore"
@@ -18,7 +19,6 @@ import (
 type DatastoreDataService struct {
 	name    string
 	objects map[string]string
-	context service.ServiceContext
 }
 
 const (
@@ -30,7 +30,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_DATASTORE_SERVICENAME, DatastoreServiceFactory)
 }
 
-func DatastoreServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func DatastoreServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	objectsInt, ok := conf[CONF_DATASTORE_OBJECTS]
 	if !ok {
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
@@ -64,28 +64,27 @@ func (svc *DatastoreDataService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *DatastoreDataService) Initialize(ctx service.ServiceContext) error {
-	svc.context = ctx
+func (svc *DatastoreDataService) Initialize(ctx *echo.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *DatastoreDataService) Serve(ctx interface{}) error {
+func (svc *DatastoreDataService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
-func (ms *DatastoreDataService) Save(ctx interface{}, objectType string, item interface{}) error {
+func (ms *DatastoreDataService) Save(ctx *echo.Context, objectType string, item interface{}) error {
 	appEngineContext := context.GetAppengineContext(ctx)
-	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave(ctx)
 	id := stor.GetId()
 	if id == "" {
-		return errors.ThrowError(appEngineContext, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
 	}
 	key, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, collection, stor.GetId(), 0, nil), item)
 	if err != nil {
@@ -95,12 +94,12 @@ func (ms *DatastoreDataService) Save(ctx interface{}, objectType string, item in
 	return nil
 }
 
-func (ms *DatastoreDataService) Put(ctx interface{}, objectType string, id string, item interface{}) error {
+func (ms *DatastoreDataService) Put(ctx *echo.Context, objectType string, id string, item interface{}) error {
 	appEngineContext := context.GetAppengineContext(ctx)
-	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving object", "ObjectType", objectType, "Item", item)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
 	stor.PreSave(ctx)
@@ -108,17 +107,17 @@ func (ms *DatastoreDataService) Put(ctx interface{}, objectType string, id strin
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
 
-func (ms *DatastoreDataService) GetById(ctx interface{}, objectType string, id string) (interface{}, error) {
+func (ms *DatastoreDataService) GetById(ctx *echo.Context, objectType string, id string) (interface{}, error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
-	object, err := laatoocore.CreateObject(appEngineContext, objectType, nil)
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -127,21 +126,21 @@ func (ms *DatastoreDataService) GetById(ctx interface{}, objectType string, id s
 	stor := object.(data.Storable)
 	stor.PostLoad(ctx)
 	if err != nil {
-		log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
+		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
 		return nil, err
 	}
-	log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Got object", "Key", datastore.NewKey(appEngineContext, collection, "some id", 0, nil))
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Got object", "Key", datastore.NewKey(appEngineContext, collection, "some id", 0, nil))
 	return object, nil
 }
 
 //Get multiple objects by id
-func (ms *DatastoreDataService) GetMulti(ctx interface{}, objectType string, ids []string) (map[string]interface{}, error) {
+func (ms *DatastoreDataService) GetMulti(ctx *echo.Context, objectType string, ids []string) (map[string]interface{}, error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
-	ctype, err := laatoocore.GetCollectionType(appEngineContext, objectType)
+	ctype, err := laatoocore.GetCollectionType(ctx, objectType)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +155,7 @@ func (ms *DatastoreDataService) GetMulti(ctx interface{}, objectType string, ids
 	err = datastore.GetMulti(appEngineContext, keys, arr.Interface())
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
-			log.Logger.Debug(appEngineContext, LOGGING_CONTEXT, "Geting object", "err", err)
+			log.Logger.Debug(ctx, LOGGING_CONTEXT, "Geting object", "err", err)
 			return nil, err
 		}
 	}
@@ -176,18 +175,18 @@ func (ms *DatastoreDataService) GetMulti(ctx interface{}, objectType string, ids
 	return retVal, nil
 }
 
-func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
-	results, err := laatoocore.CreateCollection(appEngineContext, objectType)
+	results, err := laatoocore.CreateCollection(ctx, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Get Resuls with condition", "Object Type", objectType, "QueryCond", queryCond)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Get Resuls with condition", "Object Type", objectType, "QueryCond", queryCond)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
 	if queryCond != nil {
@@ -195,7 +194,7 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 		if ok {
 			for k, v := range queryCondMap {
 				query = query.Filter(fmt.Sprintf("%s =", k), v)
-				log.Logger.Trace(appEngineContext, LOGGING_CONTEXT, "Get Resuls with condition", "k", k, "v", v)
+				log.Logger.Trace(ctx, LOGGING_CONTEXT, "Get Resuls with condition", "k", k, "v", v)
 
 			}
 		}
@@ -225,27 +224,27 @@ func (ms *DatastoreDataService) Get(ctx interface{}, objectType string, queryCon
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *DatastoreDataService) Delete(ctx interface{}, objectType string, id string) error {
+func (ms *DatastoreDataService) Delete(ctx *echo.Context, objectType string, id string) error {
 	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
 	return datastore.Delete(appEngineContext, key)
 }
 
-func (ms *DatastoreDataService) GetList(ctx interface{}, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
-	results, err := laatoocore.CreateCollection(appEngineContext, objectType)
+	results, err := laatoocore.CreateCollection(ctx, objectType)
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
 	collection, ok := ms.objects[objectType]
 	if !ok {
-		return nil, totalrecs, recsreturned, errors.ThrowError(appEngineContext, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
 	if pageSize > 0 {
@@ -275,6 +274,6 @@ func (ms *DatastoreDataService) GetList(ctx interface{}, objectType string, page
 }
 
 //Execute method
-func (svc *DatastoreDataService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *DatastoreDataService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

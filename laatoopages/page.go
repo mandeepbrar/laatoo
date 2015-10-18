@@ -23,7 +23,7 @@ const (
 	CONF_PAGE_TYPE_REDIRECT   = "redirect"
 )
 
-func (svc *PageService) createPage(ctx interface{}, conf map[string]interface{}, router *echo.Group, pagesDir string) error {
+func (svc *PageService) createPage(ctx *echo.Context, conf map[string]interface{}, router *echo.Group, pagesDir string) error {
 	var pagePath, pageDest string
 	//	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE

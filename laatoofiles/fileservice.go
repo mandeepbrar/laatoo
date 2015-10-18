@@ -30,7 +30,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func FileServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func FileServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating file service")
 	svc := &FileService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -60,12 +60,12 @@ func (svc *FileService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *FileService) Initialize(ctx service.ServiceContext) error {
+func (svc *FileService) Initialize(ctx *echo.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *FileService) Serve(ctx interface{}) error {
+func (svc *FileService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -75,7 +75,7 @@ func (svc *FileService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *FileService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *FileService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }
 

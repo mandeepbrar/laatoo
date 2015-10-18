@@ -2,6 +2,7 @@ package laatooauthentication
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
 	"laatoosdk/utils"
@@ -30,14 +31,14 @@ func (usr *DefaultUser) SetId(id string) {
 func (usr *DefaultUser) GetIdField() string {
 	return "Id"
 }
-func (ent *DefaultUser) PreSave() error {
+func (ent *DefaultUser) PreSave(ctx *echo.Context) error {
 	err := ent.encryptPassword()
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (ent *DefaultUser) PostLoad() error {
+func (ent *DefaultUser) PostLoad(ctx *echo.Context) error {
 	return nil
 }
 func (usr *DefaultUser) GetPassword() string {
@@ -102,7 +103,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_USER, NewUser)
 }
 
-func NewUser(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func NewUser(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	return &DefaultUser{}, nil
 }
 

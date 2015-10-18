@@ -27,7 +27,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func PageServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func PageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating page service")
 	svc := &PageService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -78,7 +78,7 @@ func (svc *PageService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *PageService) Initialize(ctx service.ServiceContext) error {
+func (svc *PageService) Initialize(ctx *echo.Context) error {
 	/*	actionSvcInt, err := ctx.GetService(svc.actionSvcName)
 		if err != nil {
 			return errors.ThrowError(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED)
@@ -88,7 +88,7 @@ func (svc *PageService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *PageService) Serve(ctx interface{}) error {
+func (svc *PageService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -98,6 +98,6 @@ func (svc *PageService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *PageService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *PageService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

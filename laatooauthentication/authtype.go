@@ -17,7 +17,7 @@ import (
 type AuthType interface {
 	GetName() string
 	//Initializes the authentication type module
-	InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error
+	InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error
 	//Called to validate the user by providing context
 	ValidateUser(*echo.Context) error
 	//Completes authentication
@@ -25,7 +25,7 @@ type AuthType interface {
 }
 
 //setup local authentication
-func (svc *SecurityService) SetupLocalAuth(ctx interface{}, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupLocalAuth(ctx *echo.Context, conf map[string]interface{}) error {
 	//create local authentication type
 	localAuthType, err := NewLocalAuth(ctx, conf, svc)
 	if err != nil {
@@ -40,7 +40,7 @@ func (svc *SecurityService) SetupLocalAuth(ctx interface{}, conf map[string]inte
 }
 
 //setup api authentication
-func (svc *SecurityService) SetupKeyAuth(ctx interface{}, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupKeyAuth(ctx *echo.Context, conf map[string]interface{}) error {
 	//create local authentication type
 	keyAuthType, err := NewKeyAuth(ctx, conf, svc)
 	if err != nil {
@@ -55,7 +55,7 @@ func (svc *SecurityService) SetupKeyAuth(ctx interface{}, conf map[string]interf
 }
 
 //setup local authentication
-func (svc *SecurityService) SetupOAuth(ctx interface{}, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupOAuth(ctx *echo.Context, conf map[string]interface{}) error {
 	oAuthType, err := NewOAuth(ctx, conf, svc)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (svc *SecurityService) SetupOAuth(ctx interface{}, conf map[string]interfac
 }
 
 //The service starts serving when this method is called
-func (svc *SecurityService) initializeAuthType(ctx interface{}, authType AuthType) error {
+func (svc *SecurityService) initializeAuthType(ctx *echo.Context, authType AuthType) error {
 	//initialize auth type
 	initializationErr := authType.InitializeType(ctx,
 		func(ctx *echo.Context) error { ///  auth start method starts
@@ -126,17 +126,17 @@ func (svc *SecurityService) Logout(ctx *echo.Context) error {
 	return nil
 }
 
-func (svc *SecurityService) CreateUser(ctx interface{}) (interface{}, error) {
+func (svc *SecurityService) CreateUser(ctx *echo.Context) (interface{}, error) {
 	return laatoocore.CreateObject(ctx, svc.UserObject, nil)
 }
-func (svc *SecurityService) GetUserById(ctx interface{}, id string) (interface{}, error) {
+func (svc *SecurityService) GetUserById(ctx *echo.Context, id string) (interface{}, error) {
 	user, err := svc.UserDataService.GetById(ctx, svc.UserObject, id)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
-func (svc *SecurityService) LoadPermissions(ctx interface{}, usr auth.RbacUser, roleStorer data.DataService) error {
+func (svc *SecurityService) LoadPermissions(ctx *echo.Context, usr auth.RbacUser, roleStorer data.DataService) error {
 	roles, _ := usr.GetRoles()
 	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {

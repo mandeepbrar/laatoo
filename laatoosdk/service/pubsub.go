@@ -1,8 +1,12 @@
 package service
 
-type TopicListener func(ctx interface{}, topic string, message interface{})
+import (
+	"github.com/labstack/echo"
+)
+
+type TopicListener func(ctx *echo.Context, topic string, message interface{})
 
 type PubSub interface {
-	Publish(ctx interface{}, topic string, message interface{}) error
-	Subscribe(ctx interface{}, topics []string, lstnr TopicListener) error
+	Publish(ctx *echo.Context, topic string, message interface{}) error
+	Subscribe(ctx *echo.Context, topics []string, lstnr TopicListener) error
 }

@@ -2,6 +2,7 @@ package laatoocache
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"github.com/labstack/echo"
 	"laatoocore"
 	//	"laatoosdk/errors"
 	"laatoosdk/log"
@@ -11,7 +12,6 @@ import (
 
 type RedisCacheService struct {
 	name             string
-	context          service.ServiceContext
 	connectionstring string
 	database         string
 	conn             redis.Conn
@@ -29,7 +29,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_REDISCACHE_NAME, RedisCacheServiceFactory)
 }
 
-func RedisCacheServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func RedisCacheServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating redis cache service ")
 	redisSvc := &RedisCacheService{name: CONF_REDISCACHE_NAME}
 
@@ -87,21 +87,20 @@ func (svc *RedisCacheService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *RedisCacheService) Initialize(ctx service.ServiceContext) error {
-	svc.context = ctx
+func (svc *RedisCacheService) Initialize(ctx *echo.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *RedisCacheService) Serve(ctx interface{}) error {
+func (svc *RedisCacheService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
-func (svc *RedisCacheService) Delete(ctx interface{}, key string) error {
+func (svc *RedisCacheService) Delete(ctx *echo.Context, key string) error {
 	return nil
 }
 
-func (svc *RedisCacheService) PutObject(ctx interface{}, key string, val interface{}) error {
+func (svc *RedisCacheService) PutObject(ctx *echo.Context, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("SET", key, val)
@@ -112,7 +111,7 @@ func (svc *RedisCacheService) PutObject(ctx interface{}, key string, val interfa
 	return nil
 }
 
-func (svc *RedisCacheService) GetObject(ctx interface{}, key string, val interface{}) error {
+func (svc *RedisCacheService) GetObject(ctx *echo.Context, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	k, err := conn.Do("GET", key)
@@ -120,11 +119,11 @@ func (svc *RedisCacheService) GetObject(ctx interface{}, key string, val interfa
 	return err
 }
 
-func (svc *RedisCacheService) GetMulti(ctx interface{}, keys []string, val map[string]interface{}) error {
+func (svc *RedisCacheService) GetMulti(ctx *echo.Context, keys []string, val map[string]interface{}) error {
 	return nil
 }
 
 //Execute method
-func (svc *RedisCacheService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *RedisCacheService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

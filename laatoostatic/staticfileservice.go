@@ -24,7 +24,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func StaticServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func StaticServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating static service")
 	svc := &StaticService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -48,12 +48,12 @@ func (svc *StaticService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *StaticService) Initialize(ctx service.ServiceContext) error {
+func (svc *StaticService) Initialize(ctx *echo.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *StaticService) Serve(ctx interface{}) error {
+func (svc *StaticService) Serve(ctx *echo.Context) error {
 	return nil
 }
 
@@ -63,6 +63,6 @@ func (svc *StaticService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *StaticService) Execute(ctx interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *StaticService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

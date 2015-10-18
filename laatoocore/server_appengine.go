@@ -18,8 +18,9 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	router.Use(mw.Logger())
 	router.Use(mw.Recover())
 	router.Use(mw.Gzip())
+	ctx := echo.NewContext(nil, nil, router)
 	server := &Server{ServerType: serverType}
-	server.InitServer(configName, router)
+	server.InitServer(ctx, configName, router)
 	http.Handle("/", router)
 	if server.ServerType == CONF_SERVERTYPE_GOOGLEAPP {
 		log.Logger.Error(nil, "core.appengine.warmup", "setting up router for warmup")

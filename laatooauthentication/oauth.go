@@ -47,7 +47,7 @@ type OAuthType struct {
 }
 
 //method called for creating new auth type
-func NewOAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
+func NewOAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
 	//create the new auth type
 	oauth := &OAuthType{}
 	//store the reference to the parent
@@ -118,7 +118,7 @@ func NewOAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService
 }
 
 //initialize auth type called by base auth for initializing
-func (oauth *OAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (oauth *OAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	oauth.authCallback = authCallback
 	state := utils.RandomString(10)
 	for _, site := range oauth.sites {
@@ -216,7 +216,7 @@ func (oauth *OAuthType) InterceptorPage(ctx *echo.Context) error {
 	}
 	code := ctx.Query("code")
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "code", code)
-	return ctx.HTML(http.StatusOK, "<html><body onload='console.log(window.opener); window.opener.oauthLogin(\"%s\",\"%s\",\"%s\"); window.close();'></body></html", site.sitetype, state, code)
+	return ctx.HTML(http.StatusOK, "<html><body onload='var data = {type:\"%s\",state:\"%s\", code:\"%s\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html", site.sitetype, state, code)
 }
 
 //complete authentication

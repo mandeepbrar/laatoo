@@ -1,6 +1,7 @@
 package laatoocore
 
 import (
+	"github.com/labstack/echo"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
@@ -12,7 +13,7 @@ var (
 )
 
 //subscribe to a topic
-func (env *Environment) SubscribeTopic(ctx interface{}, topic string, handler service.TopicListener) {
+func (env *Environment) SubscribeTopic(ctx *echo.Context, topic string, handler service.TopicListener) {
 	listeners, prs := topicListeners[topic]
 	if !prs {
 		listeners = []service.TopicListener{}
@@ -21,14 +22,14 @@ func (env *Environment) SubscribeTopic(ctx interface{}, topic string, handler se
 }
 
 //publish message using
-func (env *Environment) PublishMessage(ctx interface{}, topic string, message interface{}) error {
+func (env *Environment) PublishMessage(ctx *echo.Context, topic string, message interface{}) error {
 	if env.CommunicationService != nil {
 		return env.CommunicationService.Publish(ctx, topic, message)
 	}
 	return errors.ThrowError(ctx, CORE_ERROR_NOCOMMSVC)
 }
 
-func (env *Environment) subscribeTopics(ctx interface{}) error {
+func (env *Environment) subscribeTopics(ctx *echo.Context) error {
 	if env.CommunicationService != nil {
 		topics := make([]string, len(topicListeners))
 		i := 0
@@ -37,7 +38,7 @@ func (env *Environment) subscribeTopics(ctx interface{}) error {
 			i++
 		}
 		log.Logger.Info(ctx, "core.pubsub", "Subscribing topics", "topics", topics)
-		err := env.CommunicationService.Subscribe(ctx, topics, func(ctx interface{}, topic string, message interface{}) {
+		err := env.CommunicationService.Subscribe(ctx, topics, func(ctx *echo.Context, topic string, message interface{}) {
 			lsnrs := topicListeners[topic]
 			for _, val := range lsnrs {
 				go val(ctx, topic, message)

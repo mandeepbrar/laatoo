@@ -1,11 +1,15 @@
 package data
 
+import (
+	"github.com/labstack/echo"
+)
+
 //Object stored by data service
 type Storable interface {
 	GetId() string
 	SetId(string)
-	PreSave(ctx interface{}) error
-	PostLoad(ctx interface{}) error
+	PreSave(ctx *echo.Context) error
+	PostLoad(ctx *echo.Context) error
 	GetIdField() string
 }
 

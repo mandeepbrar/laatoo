@@ -11,9 +11,9 @@ import (
 
 //authentication middleware that assigns the roles permissions and users
 // for all service requests to be authenticated
-func (env *Environment) setupAuthMiddleware(router *echo.Group) error {
+func (env *Environment) setupAuthMiddleware(ctx *echo.Context, router *echo.Group) error {
 	//create an anonymous user for unauthenticated requests
-	auserInt, err := CreateEmptyObject(env, env.SystemUser)
+	auserInt, err := CreateEmptyObject(ctx, env.SystemUser)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (env *Environment) setupAuthMiddleware(router *echo.Group) error {
 				log.Logger.Trace(ctx, "core.env.authmiddleware", "valid token")
 
 				//create empty user object
-				userInt, err := CreateEmptyObject(env, env.SystemUser)
+				userInt, err := CreateEmptyObject(ctx, env.SystemUser)
 				if err != nil {
 					return errors.RethrowError(ctx, AUTH_ERROR_WRONG_SIGNING_METHOD, err)
 				}

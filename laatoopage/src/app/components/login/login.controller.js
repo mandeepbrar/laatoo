@@ -34,6 +34,14 @@
     		});*/
 		var newwindow=window.open(url,'name', 'modal=true,height=600,width=600');
 		if (window.focus) {newwindow.focus()}
+		var receiveMessage = function (event)
+		{
+		  if (event.source != newwindow) {
+		    return;
+		  }
+		  window.oauthLogin(event.data.type, event.data.state, event.data.code);
+		};
+		window.addEventListener("message", receiveMessage, false);
 	  };
 	  window.oauthLogin = function(type, state, code) {
 		var url = $scope.google;

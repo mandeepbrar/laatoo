@@ -32,7 +32,7 @@ type keyAuthType struct {
 }
 
 //method called for creating new auth type
-func NewKeyAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
+func NewKeyAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
 	//create the new auth type
 	keyauth := &keyAuthType{}
 
@@ -52,7 +52,7 @@ func NewKeyAuth(ctx interface{}, conf map[string]interface{}, svc *SecurityServi
 }
 
 //initialize auth type called by base auth for initializing
-func (keyauth *keyAuthType) InitializeType(ctx interface{}, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (keyauth *keyAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Settingup Api Auth")
 	//setup path for listening to login post request
 	keyauth.securityService.Router.Post(CONF_AUTHSERVICE_KEYPATH, authStart)

@@ -48,8 +48,6 @@ type SecurityService struct {
 	AdminRole string
 	//data service to use for users
 	UserDataService data.DataService
-	//context for the service for getting other services like data service and objects
-	Context service.ServiceContext
 	//router to be used by the service. provided by the environment
 	Router *echo.Group
 	//login path for the applicaton
@@ -74,10 +72,10 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
+func SecurityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating auth service with alias")
-	serviceContext := ctx.(service.ServiceContext)
-	svc := &SecurityService{Context: serviceContext}
+	svc := &SecurityService{}
+	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 	//store configuration object
 	svc.Configuration = conf
 	svc.AuthTypes = make(map[string]AuthType, 5)
@@ -103,14 +101,14 @@ func SecurityServiceFactory(ctx interface{}, conf map[string]interface{}) (inter
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	svc.JWTSecret, _ = serviceContext.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
+	svc.JWTSecret, _ = svcenv.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
 
 	//check if auth header to be set has been provided, otherwise set default token
-	svc.AuthHeader, _ = serviceContext.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
+	svc.AuthHeader, _ = svcenv.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
 
-	svc.AdminRole = serviceContext.GetVariable(laatoocore.CONF_ENV_ADMINROLE).(string)
-	svc.UserObject = serviceContext.GetVariable(laatoocore.CONF_ENV_USER).(string)
-	svc.RoleObject = serviceContext.GetVariable(laatoocore.CONF_ENV_ROLE).(string)
+	svc.AdminRole = svcenv.GetVariable(laatoocore.CONF_ENV_ADMINROLE).(string)
+	svc.UserObject = svcenv.GetVariable(laatoocore.CONF_ENV_USER).(string)
+	svc.RoleObject = svcenv.GetVariable(laatoocore.CONF_ENV_ROLE).(string)
 
 	//set the router object from configuration
 	routerInt, ok := svc.Configuration[laatoocore.CONF_ENV_ROUTER]
@@ -164,14 +162,15 @@ func (svc *SecurityService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
+func (svc *SecurityService) Initialize(ctx *echo.Context) error {
 	//setup the user data service from the context
 	userDataInt, ok := svc.Configuration[CONF_SECURITYSERVICE_USERDATASERVICE]
+	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 
 	if ok {
 		//get the name of the data service to be used for accessing users database
 		svcAlias := userDataInt.(string)
-		userService, err := ctx.GetService(ctx, svcAlias)
+		userService, err := svcenv.GetService(ctx, svcAlias)
 		if err != nil {
 			return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 		}
@@ -190,7 +189,7 @@ func (svc *SecurityService) Initialize(ctx service.ServiceContext) error {
 }
 
 //The service starts serving when this method is called
-func (svc *SecurityService) Serve(ctx interface{}) error {
+func (svc *SecurityService) Serve(ctx *echo.Context) error {
 	seedUserInt, ok := svc.Configuration[CONF_SECURITYSERVICE_SEEDUSER]
 	if ok {
 		seedUserConf := seedUserInt.(map[string]interface{})
@@ -219,7 +218,7 @@ func (svc *SecurityService) GetServiceType() string {
 }
 
 //Execute method
-func (svc *SecurityService) Execute(reqContext interface{}, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *SecurityService) Execute(reqContext *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
 	switch name {
 	case "GetPermissions":
 		return svc.Permissions, nil

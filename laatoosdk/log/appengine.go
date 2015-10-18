@@ -4,6 +4,7 @@ package log
 
 import (
 	"bytes"
+	"github.com/labstack/echo"
 	glog "google.golang.org/appengine/log"
 	"laatoosdk/context"
 	logxi "logxi/v1"
@@ -18,22 +19,22 @@ type StandaloneLogger struct {
 	logger logxi.Logger
 }
 
-func (log *StandaloneLogger) Trace(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Trace(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Trace(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Debug(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Debug(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Debug(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Info(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Info(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Info(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Warn(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Warn(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Warn(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Error(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Error(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Error(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Fatal(reqContext interface{}, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Fatal(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, msg, loggingCtx, args...)
 }
 
@@ -70,7 +71,8 @@ type AppEngineHandler struct {
 }
 
 func (ah *AppEngineHandler) WriteLog(ctx interface{}, loggingCtx string, buf *bytes.Buffer, level int, msg string, args []interface{}) {
-	appengineContext := context.GetAppengineContext(ctx)
+	ectx, _ := ctx.(*echo.Context)
+	appengineContext := context.GetAppengineContext(ectx)
 	if appengineContext != nil {
 		switch level {
 		case logxi.LevelTrace:

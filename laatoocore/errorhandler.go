@@ -69,11 +69,7 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_SECURITY, errors.WARNING, echo.NewHTTPError(http.StatusUnauthorized, "Not allowed."), "core")
 }
 
-func AuthError(ctxInt interface{}, err *errors.Error, info ...interface{}) bool {
-	ctx, ok := ctxInt.(*echo.Context)
-	if !ok {
-		return false
-	}
+func AuthError(ctx *echo.Context, err *errors.Error, info ...interface{}) bool {
 	ctx.Set("User", nil)
 	//ctx.Response().Header().Set(svc.AuthHeader, "")
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_FAILED, ctx})

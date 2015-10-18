@@ -84,8 +84,9 @@ type Environment struct {
 }
 
 //creates a new environment
-func newEnvironment(envName string, conf string, router *echo.Echo, serverType string) (*Environment, error) {
+func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo.Echo, serverType string) (*Environment, error) {
 	env := &Environment{Name: envName, ServerType: serverType}
+	ctx.Set(CONF_ENV_CONTEXT, env)
 	//default admin role
 	env.AdminRole = "Admin"
 	//construct permissions set
@@ -108,14 +109,14 @@ func newEnvironment(envName string, conf string, router *echo.Echo, serverType s
 
 	env.Router = router.Group(envPath)
 	//create all services in the environment
-	if err := env.createServices(); err != nil {
-		return nil, errors.RethrowError(env, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
+	if err := env.createServices(ctx); err != nil {
+		return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
 	}
 	return env, nil
 }
 
 //create services within an environment
-func (env *Environment) createServices() error {
+func (env *Environment) createServices(ctx *echo.Context) error {
 
 	//check if user service name to be used has been provided, otherwise set default name
 	roleObject := env.Config.GetString(CONF_ENV_ROLE)
@@ -143,7 +144,7 @@ func (env *Environment) createServices() error {
 	svcs := env.Config.GetMap(CONF_ENV_SERVICES)
 	for alias, val := range svcs {
 		//create the service
-		svc, err := env.createService(alias, val)
+		svc, err := env.createService(ctx, alias, val)
 		if err != nil {
 			return err
 		}
@@ -156,17 +157,17 @@ func (env *Environment) createServices() error {
 }
 
 //this method creates a service with a given configuration
-func (env *Environment) createService(alias string, conf interface{}) (service.Service, error) {
+func (env *Environment) createService(ctx *echo.Context, alias string, conf interface{}) (service.Service, error) {
 
 	//get the config for the service with given alias
 	serviceConfig := conf.(map[string]interface{})
 	//get the service name to be created for the alias
-	log.Logger.Info(env, "core.env.createservice", "Creating service ", "service alias", alias)
+	log.Logger.Info(ctx, "core.env.createservice", "Creating service ", "service alias", alias)
 	//get the name of the service to be constructed for the alias
 	//services can be created multiple times
 	svcName, ok := serviceConfig[CONF_ENV_SERVICENAME].(string)
 	if !ok {
-		return nil, errors.ThrowError(env, CORE_ERROR_MISSING_SERVICE_NAME, "service alias", alias)
+		return nil, errors.ThrowError(ctx, CORE_ERROR_MISSING_SERVICE_NAME, "service alias", alias)
 	}
 
 	//get the type of the server for the service
@@ -200,7 +201,7 @@ func (env *Environment) createService(alias string, conf interface{}) (service.S
 					ExposedHeaders:   []string{env.AuthHeader},
 					AllowCredentials: true,
 				}).Handler
-				log.Logger.Info(env, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
+				log.Logger.Info(ctx, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
 				router.Use(corsMw)
 			}
 		}
@@ -219,15 +220,15 @@ func (env *Environment) createService(alias string, conf interface{}) (service.S
 		}
 		if !bypassauth {
 			//use authentication middleware for the service unless explicitly bypassed
-			env.setupAuthMiddleware(router)
+			env.setupAuthMiddleware(ctx, router)
 		}
 		serviceConfig[CONF_ENV_ROUTER] = router
 	}
 
 	//get the service with a given name alias and config
-	svcInt, err := CreateObject(env, svcName, serviceConfig)
+	svcInt, err := CreateObject(ctx, svcName, serviceConfig)
 	if err != nil {
-		return nil, errors.RethrowError(env, CORE_ERROR_SERVICE_CREATION, err, "Alias", alias)
+		return nil, errors.RethrowError(ctx, CORE_ERROR_SERVICE_CREATION, err, "Alias", alias)
 	}
 	//put the created service in the store
 	svc := svcInt.(service.Service)
@@ -235,13 +236,13 @@ func (env *Environment) createService(alias string, conf interface{}) (service.S
 }
 
 //Initialize an environment
-func (env *Environment) InitializeEnvironment() error {
+func (env *Environment) InitializeEnvironment(ctx *echo.Context) error {
 
 	commSvc := env.Config.GetString(CONF_ENV_COMMSVC)
 	if len(commSvc) > 0 {
 		svcInt, ok := env.ServicesStore[commSvc]
 		if !ok {
-			return errors.ThrowError(env, CORE_ERROR_SERVICE_NOT_FOUND, "Communication Service", commSvc)
+			return errors.ThrowError(ctx, CORE_ERROR_SERVICE_NOT_FOUND, "Communication Service", commSvc)
 		}
 		env.CommunicationService = svcInt.(service.PubSub)
 	}
@@ -250,7 +251,7 @@ func (env *Environment) InitializeEnvironment() error {
 	if len(cacheSvc) > 0 {
 		svcInt, ok := env.ServicesStore[cacheSvc]
 		if !ok {
-			return errors.ThrowError(env, CORE_ERROR_SERVICE_NOT_FOUND, "Cache Service", cacheSvc)
+			return errors.ThrowError(ctx, CORE_ERROR_SERVICE_NOT_FOUND, "Cache Service", cacheSvc)
 		}
 		env.Cache = svcInt.(data.Cache)
 	}
@@ -260,16 +261,16 @@ func (env *Environment) InitializeEnvironment() error {
 	//iterate through all the servicesand initialize them
 	for alias, svc := range env.ServicesStore {
 		//initialize service
-		err := svc.Initialize(env)
+		err := svc.Initialize(ctx)
 		if err != nil {
-			return errors.RethrowError(env, CORE_ERROR_SERVICE_INITIALIZATION, err, "Service Alias", alias)
+			return errors.RethrowError(ctx, CORE_ERROR_SERVICE_INITIALIZATION, err, "Service Alias", alias)
 		}
 	}
 	return nil
 }
 
 //Provides the service reference by alias
-func (env *Environment) GetService(ctx interface{}, alias string) (service.Service, error) {
+func (env *Environment) GetService(ctx *echo.Context, alias string) (service.Service, error) {
 	//get the service for the alias
 	svcInt, ok := env.ServicesStore[alias]
 	if !ok {
@@ -300,7 +301,7 @@ func (env *Environment) GetConfig() config.Config {
 }
 
 //start services
-func (env *Environment) StartEnvironment(ctx interface{}) error {
+func (env *Environment) StartEnvironment(ctx *echo.Context) error {
 	log.Logger.Info(ctx, "core.env", "Starting environment", "Env Name", env.Name)
 
 	err := env.subscribeTopics(ctx)
@@ -332,7 +333,7 @@ func (env *Environment) GetCache() data.Cache {
 }
 
 //load role permissions if needed from another environment
-func (env *Environment) loadRolePermissions(ctx interface{}) error {
+func (env *Environment) loadRolePermissions(ctx *echo.Context) error {
 	//check the authenticatino mode
 	mode := env.Config.GetString(CONF_AUTH_MODE)
 	if mode == CONF_AUTH_MODE_REMOTE {
@@ -373,7 +374,7 @@ func (env *Environment) loadRolePermissions(ctx interface{}) error {
 				return errors.ThrowError(ctx, CORE_ROLESAPI_NOT_FOUND)
 			}
 			//create remote system role
-			roles, err := CreateCollection(env, env.SystemRole)
+			roles, err := CreateCollection(ctx, env.SystemRole)
 			if err != nil {
 				return err
 			}

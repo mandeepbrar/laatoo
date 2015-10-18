@@ -22,7 +22,7 @@ func (env *Environment) ListAllPermissions() []string {
 }
 */
 //register the roles and permissions
-func (env *Environment) RegisterRoles(ctx interface{}, rolesInt interface{}) {
+func (env *Environment) RegisterRoles(ctx *echo.Context, rolesInt interface{}) {
 	if rolesInt != nil {
 		arr := reflect.ValueOf(rolesInt).Elem()
 		length := arr.Len()
@@ -33,7 +33,7 @@ func (env *Environment) RegisterRoles(ctx interface{}, rolesInt interface{}) {
 	}
 }
 
-func (env *Environment) RegisterRolePermissions(ctx interface{}, role auth.Role) {
+func (env *Environment) RegisterRolePermissions(ctx *echo.Context, role auth.Role) {
 	permissions := role.GetPermissions()
 	for _, perm := range permissions {
 		key := fmt.Sprintf("%s#%s", role.GetId(), perm)

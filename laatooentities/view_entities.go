@@ -21,18 +21,16 @@ const (
 )
 
 type EntitiesView struct {
-	Options        map[string]interface{}
-	serviceContext service.ServiceContext
-	entity         string
+	Options map[string]interface{}
+	entity  string
 }
 
-func NewEntitiesView(ctx interface{}, conf map[string]interface{}) (interface{}, error) {
-	serviceContext := ctx.(service.ServiceContext)
+func NewEntitiesView(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
 	entityInt, ok := conf[VIEW_ENTITY]
 	if !ok {
 		return nil, errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
 	}
-	return &EntitiesView{Options: conf, serviceContext: serviceContext, entity: entityInt.(string)}, nil
+	return &EntitiesView{Options: conf, entity: entityInt.(string)}, nil
 }
 
 func init() {
@@ -40,6 +38,7 @@ func init() {
 }
 
 func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService) error {
+	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 	var err error
 	pagesize := -1
 	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
@@ -60,7 +59,7 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 	args := ctx.Query(VIEW_ARGS)
 	perm := fmt.Sprintf("View %s", view.entity)
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", args, "Permission", perm)
-	if !view.serviceContext.IsAllowed(ctx, perm) {
+	if !svcenv.IsAllowed(ctx, perm) {
 		return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 
