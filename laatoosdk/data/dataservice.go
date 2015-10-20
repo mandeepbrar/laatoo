@@ -12,6 +12,8 @@ type DataService interface {
 	Save(ctx *echo.Context, objectType string, item interface{}) error
 	//Store an object against an id
 	Put(ctx *echo.Context, objectType string, id string, obj interface{}) error
+	//Store multiple objects
+	PutMulti(ctx *echo.Context, objectType string, ids []string, items interface{}) error
 	//Delete an object by id
 	Delete(ctx *echo.Context, objectType string, id string) error
 	//Get an object by id

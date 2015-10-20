@@ -106,6 +106,29 @@ func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item inte
 	return nil
 }
 
+func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids []string, items interface{}) error {
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
+	arr := reflect.ValueOf(items)
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		stor.PreSave(ctx)
+	}
+	err := connCopy.DB(ms.database).C(collection).Insert(items)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "ObjectType", objectType)
+	return nil
+}
+
 func (ms *mongoDataService) Put(ctx *echo.Context, objectType string, id string, item interface{}) error {
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()

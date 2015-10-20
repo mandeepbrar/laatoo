@@ -111,6 +111,33 @@ func (ms *DatastoreDataService) Put(ctx *echo.Context, objectType string, id str
 	return nil
 }
 
+func (ms *DatastoreDataService) PutMulti(ctx *echo.Context, objectType string, ids []string, items interface{}) error {
+	appEngineContext := context.GetAppengineContext(ctx)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	keys := make([]*datastore.Key, len(ids))
+	for ind, id := range ids {
+		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+		keys[ind] = key
+	}
+	arr := reflect.ValueOf(items)
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		stor.PreSave(ctx)
+	}
+	_, err := datastore.PutMulti(appEngineContext, keys, items)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "ObjectType", objectType)
+	return nil
+}
+
 func (ms *DatastoreDataService) GetById(ctx *echo.Context, objectType string, id string) (interface{}, error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]

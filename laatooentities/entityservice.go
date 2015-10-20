@@ -187,14 +187,15 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					arr := arrPtr.Elem()
 					length := arr.Len()
 					log.Logger.Trace(ctx, "Saving bulk entities", "Entity", entityName)
+					ids := make([]string, length)
 					for i := 0; i < length; i++ {
 						entity := arr.Index(i).Addr().Interface().(data.Storable)
-						err = svc.DataStore.Put(ctx, entityName, entity.GetId(), entity)
-						if err != nil {
-							return err
-						}
+						ids[i] = entity.GetId()
+					}
+					err = svc.DataStore.PutMulti(ctx, entityName, ids, arr.Interface())
+					for i := 0; i < length; i++ {
 						if svc.cache != nil {
-							svc.invalidateCache(ctx, entity.GetId())
+							svc.invalidateCache(ctx, ids[i])
 						}
 					}
 					return nil
