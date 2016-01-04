@@ -48,13 +48,28 @@
 	  });
       if($attrs.editable) {
       	$scope.editable = ($attrs.editable == 'true');
+      	$scope.qualifier = $attrs.qualifier;
 		$scope.submitText = "Save";
 		var actionUrl = "";
 	  	if($attrs.action) {
 			actionUrl = $attrs.action;
 	  	}
 		$scope.onSubmit = function() {
-			$http.put(actionUrl, $scope[$scope.modelname]).then(
+			var data = [];
+			if($scope.qualifier) {
+				var allrows = $scope[$scope.modelname];
+				for(var index in allrows) {
+					var row = allrows[index];
+					if(row[$scope.qualifier]) {
+						data.push(row);
+					}
+				}
+			}
+			else {
+				data = $scope[$scope.modelname];
+			}			
+			var objToSend = {data: data, params: $scope.params}
+			$http.put(actionUrl, objToSend).then(
 		       function(response) {
 					dialogs.notify('Success','Action completed successfully.');
 		       },
@@ -85,6 +100,14 @@
 		  }
 			$http.get(url, { params: $scope.params }).then(
 		       function(response) {
+					if($scope.qualifier) {
+						for (var index in response.data) {
+							var row = response.data[index];
+							if(!row[$scope.qualifier]) {
+								row[$scope.qualifier] = false;
+							}
+						}
+					}					
 					$scope[$scope.modelname] = response.data;
 					var headers = response.headers();
 					$scope.records = headers["records"]

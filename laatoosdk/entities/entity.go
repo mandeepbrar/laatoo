@@ -47,4 +47,5 @@ type Entity interface {
 	PostSave() error
 	PreLoad() error
 	PostLoad() error
+	Invoke(method string) error
 }

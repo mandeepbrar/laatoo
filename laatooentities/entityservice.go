@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/data"
+	"laatoosdk/entities"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
@@ -24,6 +25,7 @@ const (
 	CONF_ENTITY_METHODS  = "methods"
 	CONF_ENTITY_METHOD   = "method"
 	CONF_ENTITY_PATH     = "path"
+	CONF_ENTITY_INVOKE   = "invoke"
 )
 
 //Environment hosting an application
@@ -147,12 +149,7 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 				})
 			case "put":
 				router.Put(path, func(ctx *echo.Context) error {
-					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-					}
-					id := ctx.P(0)
-					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating entity", "ID", id)
-					ent, err := laatoocore.CreateEmptyObject(ctx, entityName)
+					ent, err := laatoocore.CreateEmptyObject(ctx, svc.EntityName)
 					if err != nil {
 						return err
 					}
@@ -160,14 +157,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					if err != nil {
 						return err
 					}
-					err = svc.DataStore.Put(ctx, entityName, id, ent)
-					if err != nil {
-						return err
-					}
-					if svc.cache != nil {
-						svc.invalidateCache(ctx, id)
-					}
-					return nil
+					_, err = svc.putEntity(ctx, ent)
+					return err
 				})
 			case "putbulk":
 				router.Put(path, func(ctx *echo.Context) error {
@@ -180,25 +171,14 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					}
 					arrPtr := reflect.New(typ)
 					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Binding entities with collection", "Entity", entityName)
-					err = ctx.Bind(arrPtr.Interface())
+					md := data.MethodData{}
+					md.Data = arrPtr.Interface()
+					err = ctx.Bind(&md)
 					if err != nil {
 						return err
 					}
-					arr := arrPtr.Elem()
-					length := arr.Len()
-					log.Logger.Trace(ctx, "Saving bulk entities", "Entity", entityName)
-					ids := make([]string, length)
-					for i := 0; i < length; i++ {
-						entity := arr.Index(i).Addr().Interface().(data.Storable)
-						ids[i] = entity.GetId()
-					}
-					err = svc.DataStore.PutMulti(ctx, entityName, ids, arr.Interface())
-					for i := 0; i < length; i++ {
-						if svc.cache != nil {
-							svc.invalidateCache(ctx, ids[i])
-						}
-					}
-					return nil
+					_, err = svc.putBulkEntity(ctx, arrPtr.Elem().Interface())
+					return err
 				})
 			case "delete":
 				router.Delete(path, func(ctx *echo.Context) error {
@@ -213,6 +193,28 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					}
 					if svc.cache != nil {
 						svc.invalidateCache(ctx, id)
+					}
+					return nil
+				})
+			case "invokeonEntity":
+				//incomplete
+				router.Put(path, func(ctx *echo.Context) error {
+					invokeReqInt, ok := methodConfig[CONF_ENTITY_INVOKE]
+					if !ok {
+						return errors.ThrowError(ctx, ENTITY_ERROR_MISSING_INV_METHOD, "Entity", entityName, "Invocation request", name)
+					}
+					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
+						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+					}
+					id := ctx.P(0)
+					obj, err := svc.getEntity(ctx, id)
+					if err != nil {
+						return err
+					}
+					ent, _ := obj.(entities.Entity)
+					err = ent.Invoke(invokeReqInt.(string))
+					if err != nil {
+						return err
 					}
 					return nil
 				})
@@ -265,10 +267,52 @@ func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[str
 	switch name {
 	case "Get":
 		return svc.getEntity(ctx, params["id"].(string))
+	case "Put":
+		return svc.putEntity(ctx, params["entity"])
+	case "PutBulk":
+		return svc.putBulkEntity(ctx, params["entities"])
 	case "GetBulk":
 		return svc.getEntities(ctx, params["ids"].([]string))
 	}
 	return nil, nil
+}
+
+func (svc *EntityService) putEntity(ctx *echo.Context, ent interface{}) (interface{}, error) {
+	if !svc.serviceEnv.IsAllowed(ctx, svc.createperm) {
+		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+	}
+	err := svc.DataStore.Save(ctx, svc.EntityName, ent)
+	if err != nil {
+		return nil, err
+	}
+	if svc.cache != nil {
+		stor := ent.(data.Storable)
+		svc.invalidateCache(ctx, stor.GetId())
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity", "Entity", ent)
+	return nil, nil
+}
+
+func (svc *EntityService) putBulkEntity(ctx *echo.Context, arrInt interface{}) (interface{}, error) {
+	if !svc.serviceEnv.IsAllowed(ctx, svc.editperm) {
+		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+	}
+	log.Logger.Trace(ctx, "Saving bulk entities", "arrInt", arrInt)
+	arr := reflect.ValueOf(arrInt)
+	length := arr.Len()
+	log.Logger.Trace(ctx, "Saving bulk entities", "Entity", svc.EntityName)
+	ids := make([]string, length)
+	for i := 0; i < length; i++ {
+		entity := arr.Index(i).Addr().Interface().(data.Storable)
+		ids[i] = entity.GetId()
+	}
+	err := svc.DataStore.PutMulti(ctx, svc.EntityName, ids, arrInt)
+	for i := 0; i < length; i++ {
+		if svc.cache != nil {
+			svc.invalidateCache(ctx, ids[i])
+		}
+	}
+	return nil, err
 }
 
 func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, error) {
