@@ -86,7 +86,7 @@ func (svc *mongoDataService) Serve(ctx *echo.Context) error {
 }
 
 func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item interface{}) error {
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving object", "Object", objectType, "Item", item)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving object", "Object", objectType)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
@@ -103,6 +103,7 @@ func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item inte
 	if err != nil {
 		return err
 	}
+	stor.PostSave(ctx)
 	return nil
 }
 
@@ -116,16 +117,24 @@ func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids [
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
 	arr := reflect.ValueOf(items)
 	length := arr.Len()
+	bulk := connCopy.DB(ms.database).C(collection).Bulk()
 	for i := 0; i < length; i++ {
 		valPtr := arr.Index(i).Addr().Interface()
 		stor := valPtr.(data.Storable)
 		stor.PreSave(ctx)
+		bulk.Upsert(bson.M{stor.GetIdField(): stor.GetId()}, stor)
 	}
-	err := connCopy.DB(ms.database).C(collection).Insert(items)
+
+	r, err := bulk.Run()
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "ObjectType", objectType)
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		stor.PostSave(ctx)
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "r", r, "err", err)
 	return nil
 }
 
@@ -145,6 +154,7 @@ func (ms *mongoDataService) Put(ctx *echo.Context, objectType string, id string,
 	if err != nil {
 		return err
 	}
+	stor.PostSave(ctx)
 	return nil
 }
 
@@ -154,6 +164,7 @@ func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id str
 		return nil, err
 	}
 	collection, ok := ms.objects[objectType]
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "objectType", objectType)
 
 	if !ok {
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
@@ -165,6 +176,7 @@ func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id str
 	condition := bson.M{}
 	condition[idkey] = id
 	err = connCopy.DB(ms.database).C(collection).Find(condition).One(object)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "condition", condition)
 	stor.PostLoad(ctx)
 	if err != nil {
 		if err.Error() == "not found" {
@@ -227,7 +239,7 @@ func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond 
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "Result", results)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "Result", results, "objectType", objectType)
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
@@ -261,6 +273,7 @@ func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond 
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Returning multiple objects ", "conditions", conditions, "objectType", objectType, "recsreturned", recsreturned)
 	return results, totalrecs, recsreturned, nil
 }
 

@@ -29,6 +29,9 @@ func (r *Role) SetPermissions(permissions []string) {
 func (ent *Role) PreSave(ctx *echo.Context) error {
 	return nil
 }
+func (ent *Role) PostSave(ctx *echo.Context) error {
+	return nil
+}
 func (ent *Role) PostLoad(ctx *echo.Context) error {
 	return nil
 }

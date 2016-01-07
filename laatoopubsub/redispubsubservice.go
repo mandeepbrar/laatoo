@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"laatoocore"
 	//	"laatoosdk/errors"
+	"encoding/json"
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"time"
@@ -99,7 +100,12 @@ func (svc *RedisPubSubService) Serve(ctx *echo.Context) error {
 func (svc *RedisPubSubService) Publish(ctx *echo.Context, topic string, message interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
-	_, err := conn.Do("PUBLISH", topic, message)
+	bytes, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	_, err = conn.Do("PUBLISH", topic, bytes)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Published message on topic", "topic", topic)
 	if err != nil {
 		return err
 	}
@@ -120,6 +126,7 @@ func (svc *RedisPubSubService) Subscribe(ctx *echo.Context, topics []string, lst
 		for {
 			switch v := psc.Receive().(type) {
 			case redis.Message:
+				log.Logger.Trace(ctx, LOGGING_CONTEXT, "Message received on Queue")
 				lstnr(ctx, v.Channel, v.Data)
 			case redis.Subscription:
 			case error:

@@ -144,7 +144,7 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 						stor := ent.(data.Storable)
 						svc.invalidateCache(ctx, stor.GetId())
 					}
-					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity", "Entity", ent)
+					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity")
 					return nil
 				})
 			case "put":
@@ -289,7 +289,7 @@ func (svc *EntityService) putEntity(ctx *echo.Context, ent interface{}) (interfa
 		stor := ent.(data.Storable)
 		svc.invalidateCache(ctx, stor.GetId())
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity", "Entity", ent)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity")
 	return nil, nil
 }
 
@@ -349,7 +349,7 @@ func (svc *EntityService) getEntities(ctx *echo.Context, ids []string) (map[stri
 		return nil, err
 	} else {
 		for k, v := range ents {
-			if v != nil {
+			if v != nil && svc.cache != nil {
 				svc.cache.PutObject(ctx, svc.getCacheKey(k), v)
 			}
 		}

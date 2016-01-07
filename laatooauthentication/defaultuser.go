@@ -38,6 +38,9 @@ func (ent *DefaultUser) PreSave(ctx *echo.Context) error {
 	}
 	return nil
 }
+func (ent *DefaultUser) PostSave(ctx *echo.Context) error {
+	return nil
+}
 func (ent *DefaultUser) PostLoad(ctx *echo.Context) error {
 	return nil
 }

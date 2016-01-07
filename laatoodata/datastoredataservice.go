@@ -90,6 +90,7 @@ func (ms *DatastoreDataService) Save(ctx *echo.Context, objectType string, item 
 	if err != nil {
 		return err
 	}
+	stor.PostSave(ctx)
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
@@ -107,6 +108,7 @@ func (ms *DatastoreDataService) Put(ctx *echo.Context, objectType string, id str
 	if err != nil {
 		return err
 	}
+	stor.PostSave(ctx)
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
@@ -133,6 +135,11 @@ func (ms *DatastoreDataService) PutMulti(ctx *echo.Context, objectType string, i
 	_, err := datastore.PutMulti(appEngineContext, keys, items)
 	if err != nil {
 		return err
+	}
+	for i := 0; i < length; i++ {
+		valPtr := arr.Index(i).Addr().Interface()
+		stor := valPtr.(data.Storable)
+		stor.PostSave(ctx)
 	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "ObjectType", objectType)
 	return nil
