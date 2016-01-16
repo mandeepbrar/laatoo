@@ -13,6 +13,7 @@
         var result = AuthenticationService.login({"Id": id,"Password":pass}, function(data, headers) {
 			localStorage.auth = headers(pageConf.AuthToken);
 			localStorage.permissions = data.Permissions;
+			localStorage.user = data;
 			window.location.href = pageConf.SuccessRedirect;
 		},
 		function(err) {

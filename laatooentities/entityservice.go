@@ -273,6 +273,13 @@ func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[str
 		return svc.putBulkEntity(ctx, params["entities"])
 	case "GetBulk":
 		return svc.getEntities(ctx, params["ids"].([]string))
+	case "Select":
+		view, err := newEntitiesView(ctx, map[string]interface{}{"entity": svc.EntityName})
+		if err != nil {
+			return nil, err
+		}
+		entities, _, _, err := view.getData(ctx, svc.DataStore, params, -1, -1)
+		return entities, err
 	}
 	return nil, nil
 }
@@ -297,10 +304,9 @@ func (svc *EntityService) putBulkEntity(ctx *echo.Context, arrInt interface{}) (
 	if !svc.serviceEnv.IsAllowed(ctx, svc.editperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
-	log.Logger.Trace(ctx, "Saving bulk entities", "arrInt", arrInt)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving bulk entities")
 	arr := reflect.ValueOf(arrInt)
 	length := arr.Len()
-	log.Logger.Trace(ctx, "Saving bulk entities", "Entity", svc.EntityName)
 	ids := make([]string, length)
 	for i := 0; i < length; i++ {
 		entity := arr.Index(i).Addr().Interface().(data.Storable)

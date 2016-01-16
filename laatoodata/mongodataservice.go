@@ -108,13 +108,13 @@ func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item inte
 }
 
 func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids []string, items interface{}) error {
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
 	arr := reflect.ValueOf(items)
 	length := arr.Len()
 	bulk := connCopy.DB(ms.database).C(collection).Bulk()
@@ -124,8 +124,7 @@ func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids [
 		stor.PreSave(ctx)
 		bulk.Upsert(bson.M{stor.GetIdField(): stor.GetId()}, stor)
 	}
-
-	r, err := bulk.Run()
+	_, err := bulk.Run()
 	if err != nil {
 		return err
 	}
@@ -134,11 +133,12 @@ func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids [
 		stor := valPtr.(data.Storable)
 		stor.PostSave(ctx)
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "r", r, "err", err)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects")
 	return nil
 }
 
 func (ms *mongoDataService) Put(ctx *echo.Context, objectType string, id string, item interface{}) error {
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Putting object", "ObjectType", objectType, "id", id)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
 	collection, ok := ms.objects[objectType]

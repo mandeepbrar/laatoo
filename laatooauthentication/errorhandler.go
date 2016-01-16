@@ -28,6 +28,9 @@ const (
 	AUTH_ERROR_INCORRECT_REQ_FORMAT       = "Auth_Error_Incorrect_Req_Format"
 	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
 	AUTH_ERROR_OAUTH_MISSING_PROFILEURL   = "Auth_Error_Oauth_Missing_Profileurl"
+
+	AUTH_ERROR_USER_EXISTS = "Auth_Error_User_Exists"
+	AUTH_ERROR_ENC_ERROR   = "Auth_Error_Enc_Error"
 )
 
 func init() {
@@ -41,6 +44,9 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_PROFILEURL, errors.FATAL, fmt.Errorf("Profile url not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_OAUTH_MISSING_TYPE, errors.FATAL, fmt.Errorf("Type not provided for oauth site."), LOGGING_CONTEXT)
 	errors.RegisterCode(AUTH_ERROR_KEYAUTH_MISSING_PVTKEY, errors.FATAL, fmt.Errorf("Private key could not be loaded for keyauth."), LOGGING_CONTEXT)
+
+	errors.RegisterCode(AUTH_ERROR_USER_EXISTS, errors.FATAL, fmt.Errorf("User already exists."), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_ENC_ERROR, errors.FATAL, fmt.Errorf("Internal Server error in encrypting password."), LOGGING_CONTEXT)
 
 	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_VALIDATION_FAILED, laatoocore.AuthError)

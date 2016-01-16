@@ -89,6 +89,8 @@ func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo
 	ctx.Set(CONF_ENV_CONTEXT, env)
 	//default admin role
 	env.AdminRole = "Admin"
+
+	ctx.Set("Roles", []string{env.AdminRole})
 	//construct permissions set
 	env.Permissions = utils.NewStringSet([]string{})
 	//map containing roles and permissions

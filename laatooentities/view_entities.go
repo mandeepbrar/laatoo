@@ -26,6 +26,9 @@ type EntitiesView struct {
 }
 
 func NewEntitiesView(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+	return newEntitiesView(ctx, conf)
+}
+func newEntitiesView(ctx *echo.Context, conf map[string]interface{}) (*EntitiesView, error) {
 	entityInt, ok := conf[VIEW_ENTITY]
 	if !ok {
 		return nil, errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
@@ -38,7 +41,6 @@ func init() {
 }
 
 func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService) error {
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 	var err error
 	pagesize := -1
 	pagesizeVal := ctx.Query(data.VIEW_PAGESIZE)
@@ -57,12 +59,6 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 		}
 	}
 	args := ctx.Query(VIEW_ARGS)
-	perm := fmt.Sprintf("View %s", view.entity)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", args, "Permission", perm)
-	if !svcenv.IsAllowed(ctx, perm) {
-		return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
-
 	var argsMap map[string]interface{}
 
 	if len(args) > 0 {
@@ -71,8 +67,7 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 			return err
 		}
 	}
-
-	entities, totalrecs, recsreturned, err := dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "")
+	entities, totalrecs, recsreturned, err := view.getData(ctx, dataStore, argsMap, pagesize, pagenum)
 	if err != nil {
 		return err
 	}
@@ -80,4 +75,14 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 	ctx.Response().Header().Set(data.VIEW_TOTALRECS, fmt.Sprint(totalrecs))
 	ctx.Response().Header().Set(data.VIEW_RECSRETURNED, fmt.Sprint(recsreturned))
 	return ctx.JSON(http.StatusOK, entities)
+}
+func (view *EntitiesView) getData(ctx *echo.Context, dataStore data.DataService, argsMap map[string]interface{}, pagesize int, pagenum int) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
+	perm := fmt.Sprintf("View %s", view.entity)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", argsMap, "Permission", perm)
+	if !svcenv.IsAllowed(ctx, perm) {
+		return nil, -1, -1, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+	}
+
+	return dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "")
 }
