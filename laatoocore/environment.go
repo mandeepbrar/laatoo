@@ -208,12 +208,6 @@ func (env *Environment) createService(ctx *echo.Context, alias string, conf inte
 			}
 		}
 
-		//provide environment context to every request using middleware
-		router.Use(func(ctx *echo.Context) error {
-			ctx.Set(CONF_ENV_CONTEXT, env)
-			return nil
-		})
-
 		bypassauth := false
 		//authentication required by default unless explicitly turned off
 		bypassauthInt, ok := serviceConfig[CONF_SERVICE_AUTHBYPASS]
@@ -224,6 +218,16 @@ func (env *Environment) createService(ctx *echo.Context, alias string, conf inte
 			//use authentication middleware for the service unless explicitly bypassed
 			env.setupAuthMiddleware(ctx, router)
 		}
+
+		//provide environment context to every request using middleware
+		router.Use(func(ctx *echo.Context) error {
+			ctx.Set(CONF_ENV_CONTEXT, env)
+			if bypassauth {
+				ctx.Set(CONF_SERVICE_AUTHBYPASS, true)
+			}
+			return nil
+		})
+
 		serviceConfig[CONF_ENV_ROUTER] = router
 	}
 

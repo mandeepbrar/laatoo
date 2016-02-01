@@ -46,6 +46,12 @@ func (env *Environment) IsAllowed(ctx *echo.Context, perm string) bool {
 	if perm == "" {
 		return true
 	}
+	bypass := ctx.Get(CONF_SERVICE_AUTHBYPASS)
+	if bypass != nil && bypass.(bool) {
+		log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "perm", perm, "bypass", bypass)
+		return true
+	}
+	log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "perm", perm, "bypass", bypass)
 	rolesInt := ctx.Get("Roles")
 	if rolesInt == nil {
 		return false

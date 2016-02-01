@@ -176,7 +176,7 @@ func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id str
 	condition := bson.M{}
 	condition[idkey] = id
 	err = connCopy.DB(ms.database).C(collection).Find(condition).One(object)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "condition", condition)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got the object ", "condition", condition, "object", object)
 	stor.PostLoad(ctx)
 	if err != nil {
 		if err.Error() == "not found" {
