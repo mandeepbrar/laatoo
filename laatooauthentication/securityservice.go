@@ -223,7 +223,8 @@ func (svc *SecurityService) Execute(reqContext *echo.Context, name string, param
 	case "GetPermissions":
 		return svc.Permissions, nil
 	case "GetRoles":
-		rolesInt, _, _, err := svc.UserDataService.Get(reqContext, svc.RoleObject, nil, -1, -1, "")
+		orderBy := "UpdatedOn"
+		rolesInt, _, _, err := svc.UserDataService.Get(reqContext, svc.RoleObject, nil, -1, -1, "", orderBy)
 		return rolesInt, err
 	case "SaveRole":
 		return nil, svc.UserDataService.Save(reqContext, svc.RoleObject, params["data"])

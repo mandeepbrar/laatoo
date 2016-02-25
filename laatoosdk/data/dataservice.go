@@ -19,11 +19,11 @@ type DataService interface {
 	//Get an object by id
 	GetById(ctx *echo.Context, objectType string, id string) (interface{}, error)
 	//Get multiple objects by id
-	GetMulti(ctx *echo.Context, objectType string, ids []string) (map[string]interface{}, error)
+	GetMulti(ctx *echo.Context, objectType string, ids []string, orderBy string) (map[string]interface{}, error)
 	//Get all object with given conditions
-	Get(ctx *echo.Context, objectType string, conditions interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
+	Get(ctx *echo.Context, objectType string, conditions interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
-	GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
+	GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error)
 }
 
 const (

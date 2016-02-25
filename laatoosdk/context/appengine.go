@@ -45,6 +45,9 @@ func GetCloudContext(ctx *echo.Context, scope string) context.Context {
 func HttpClient(ctx *echo.Context) *http.Client {
 	appenginectx := GetAppengineContext(ctx)
 	return &http.Client{
-		Transport: &urlfetch.Transport{Context: appenginectx},
+		Transport: &urlfetch.Transport{
+			Context: appenginectx,
+			AllowInvalidServerCertificate: true,
+		},
 	}
 }

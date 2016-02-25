@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	VIEW_NAME   = "view_entities"
-	VIEW_ENTITY = "entity"
-	VIEW_ARGS   = "args"
+	VIEW_NAME    = "view_entities"
+	VIEW_ENTITY  = "entity"
+	VIEW_ARGS    = "args"
+	VIEW_ORDERBY = "orderby"
 )
 
 type EntitiesView struct {
@@ -67,7 +68,12 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 			return err
 		}
 	}
-	entities, totalrecs, recsreturned, err := view.getData(ctx, dataStore, argsMap, pagesize, pagenum)
+	orderBy := ""
+	orderByInt, ok := view.Options[VIEW_ORDERBY]
+	if ok {
+		orderBy = orderByInt.(string)
+	}
+	entities, totalrecs, recsreturned, err := view.getData(ctx, dataStore, argsMap, pagesize, pagenum, orderBy)
 	if err != nil {
 		return err
 	}
@@ -76,7 +82,7 @@ func (view *EntitiesView) Execute(ctx *echo.Context, dataStore data.DataService)
 	ctx.Response().Header().Set(data.VIEW_RECSRETURNED, fmt.Sprint(recsreturned))
 	return ctx.JSON(http.StatusOK, entities)
 }
-func (view *EntitiesView) getData(ctx *echo.Context, dataStore data.DataService, argsMap map[string]interface{}, pagesize int, pagenum int) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (view *EntitiesView) getData(ctx *echo.Context, dataStore data.DataService, argsMap map[string]interface{}, pagesize int, pagenum int, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 	perm := fmt.Sprintf("View %s", view.entity)
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", argsMap, "Permission", perm)
@@ -84,5 +90,5 @@ func (view *EntitiesView) getData(ctx *echo.Context, dataStore data.DataService,
 		return nil, -1, -1, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 
-	return dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "")
+	return dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "", orderBy)
 }

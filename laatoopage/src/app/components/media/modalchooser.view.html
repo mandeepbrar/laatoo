@@ -4,35 +4,12 @@
 	</div>
 	<hr/>
 	<tabset class="row" style="height:250px;">
-        <tab heading="Library" >
-		    <div style="height:260px">
-				<media type="image" source="http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg" height="70px"></media>
-				<media type="image" source="http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg" height="70px"></media>
-				<media type="image" source="http://www.gettyimages.co.uk/gi-resources/images/Homepage/Category-Creative/UK/UK_Creative_462809583.jpg" height="70px"></media>
-			</div>
-			<hr/>
-			<div class="row">
-				<button class="btn btn-primary pull-right" ng-click="fileSelected('')">Select</button>
-	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button>
-			</div>
-		</tab>
-		<tab heading="URL">
-			<input class="form-control col-sm-4" type="text" placeholder="URL" ng-model="mediaurl"></input>
-		    <div class="row col-xs-12" style="height:250px">
-				<media source="{{mediaurl}}" type="{{mediatype}}" height="210px" width="280px" style="margin-top: 15px"></media>
-			</div>
-			<hr/>
-			<div class="row">
-				<button class="btn btn-primary pull-right" ng-click="fileSelected(mediaurl)">Select</button>
-	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button> 
-			</div>
-		</tab>
         <tab heading="Upload" ng-show="allowupload==='true'">
 			<div class="row" style="height:260px" >
 
                 <div class="col-md-12">
 
-                    <h3>Upload files{{allowupload}}</h3>
+                    <h3>Upload files</h3>
 
                     <div ng-show="uploader.isHTML5">
 						<div nv-file-drop="" uploader="uploader"  class="well my-drop-zone">
@@ -85,6 +62,26 @@
 		        <button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button>
 		    </div>
 			
+		</tab>
+        <tab heading="Library"  ng-show="allowlibrary==='true'">
+		    <div style="height:260px">
+			</div>
+			<hr/>
+			<div class="row">
+				<button class="btn btn-primary pull-right" ng-click="fileSelected('')">Select</button>
+	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button>
+			</div>
+		</tab>
+		<tab heading="URL" ng-show="allowexternalurl==='true'">
+			<input class="form-control col-sm-4" type="text" placeholder="URL" ng-model="mediaurl"></input>
+		    <div class="row col-xs-12" style="height:250px">
+				<media source="{{mediaurl}}" type="{{mediatype}}" height="210px" width="280px" style="margin-top: 15px"></media>
+			</div>
+			<hr/>
+			<div class="row">
+				<button class="btn btn-primary pull-right" ng-click="fileSelected(mediaurl)">Select</button>
+	      		<button class="btn btn-default pull-right" ng-click="closeDialog()">Cancel</button> 
+			</div>
 		</tab>
 	</tabset>	
 </div>

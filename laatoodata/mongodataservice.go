@@ -189,7 +189,7 @@ func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id str
 }
 
 //Get multiple objects by id
-func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids []string) (map[string]interface{}, error) {
+func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids []string, orderBy string) (map[string]interface{}, error) {
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
@@ -207,7 +207,11 @@ func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids [
 	operatorCond := bson.M{}
 	operatorCond["$in"] = ids
 	condition[idkey] = operatorCond
-	err = connCopy.DB(ms.database).C(collection).Find(condition).All(results)
+	query := connCopy.DB(ms.database).C(collection).Find(condition)
+	if len(orderBy) > 0 {
+		query = query.Sort(orderBy)
+	}
+	err = query.All(results)
 	if err != nil {
 		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error in getting multiple objects", "ids", ids, "Error", err)
 		return nil, err
@@ -232,7 +236,7 @@ func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids [
 	return retVal, nil
 }
 
-func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
 	results, err := laatoocore.CreateCollection(ctx, objectType)
@@ -260,6 +264,9 @@ func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond 
 		}
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
+	if len(orderBy) > 0 {
+		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
 	arr := reflect.ValueOf(results).Elem()
@@ -295,7 +302,7 @@ func (ms *mongoDataService) Delete(ctx *echo.Context, objectType string, id stri
 	return connCopy.DB(ms.database).C(collection).Remove(condition)
 }
 
-func (ms *mongoDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
 	results, err := laatoocore.CreateCollection(ctx, objectType)
@@ -317,6 +324,9 @@ func (ms *mongoDataService) GetList(ctx *echo.Context, objectType string, pageSi
 		}
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
+	if len(orderBy) > 0 {
+		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
 	arr := reflect.ValueOf(results).Elem()

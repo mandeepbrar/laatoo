@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+const (
+	CONF_SERVER_SSL = "ssl"
+	CONF_SSLCERT    = "sslcert"
+	CONF_SSLKEY     = "sslkey"
+)
+
 //Create a new server
 func NewServer(configName string, serverType string) (*Server, error) {
 	//initialize router
@@ -32,9 +38,19 @@ func NewServer(configName string, serverType string) (*Server, error) {
 		}
 		http.Handle("/", router)
 		go startServer(ctx, address, server)
-		log.Logger.Info(ctx, "core.server", "Starting server", "address", address)
-		//start listening
-		err := http.ListenAndServe(address, nil)
+		ssl := server.Config.GetBool(CONF_SERVER_SSL)
+		log.Logger.Info(ctx, "core.server", "Starting server", "address", address, "ssl", ssl)
+		var err error
+		if ssl {
+			cert := server.Config.GetString(CONF_SSLCERT)
+			key := server.Config.GetString(CONF_SSLKEY)
+			//start listening
+			err = http.ListenAndServeTLS(address, cert, key, nil)
+		} else {
+			//start listening
+			err = http.ListenAndServe(address, nil)
+		}
+
 		if err != nil {
 			log.Logger.Error(ctx, "core.server", "Error in listening", "address", address, "Error", err)
 		}

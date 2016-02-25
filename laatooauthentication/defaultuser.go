@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
+	"laatoosdk/errors"
 	"laatoosdk/utils"
 	"strings"
 )
@@ -14,12 +15,10 @@ type DefaultUser struct {
 	Password    string   `json:"Password" form:"Password" bson:"Password"`
 	Roles       []string `json:"Roles" bson:"Roles"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
-	Email       string   `json:"email"`
-	Name        string   `json:"name"`
-	Picture     string   `json:"picture"`
-	Gender      string   `json:"gender"`
-	Given_name  string   `json:"given_name"`
-	Family_name string   `json:"family_name"`
+	Email       string   `json:"Email"`
+	Name        string   `json:"Name"`
+	Picture     string   `json:"Picture"`
+	Gender      string   `json:"Gender"`
 }
 
 func (usr *DefaultUser) GetId() string {
@@ -32,9 +31,17 @@ func (usr *DefaultUser) GetIdField() string {
 	return "Id"
 }
 func (ent *DefaultUser) PreSave(ctx *echo.Context) error {
-	err := ent.encryptPassword()
-	if err != nil {
-		return err
+	passlen := len(ent.Password)
+	//pass length > 15 will indicate previously encrypted value as passwords > 15 chars are not suppported
+	//hack to prevent password from updating if a new one hasnt been provided
+	if passlen > 0 {
+		if passlen > 15 {
+			return errors.ThrowError(ctx, AUTH_ERROR_INVALID_PASSWORD)
+		}
+		err := ent.encryptPassword()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -42,6 +49,7 @@ func (ent *DefaultUser) PostSave(ctx *echo.Context) error {
 	return nil
 }
 func (ent *DefaultUser) PostLoad(ctx *echo.Context) error {
+	//ent.Password = ""
 	return nil
 }
 func (usr *DefaultUser) GetPassword() string {
@@ -87,12 +95,6 @@ func (usr *DefaultUser) GetPicture() string {
 }
 func (usr *DefaultUser) GetGender() string {
 	return usr.Gender
-}
-func (usr *DefaultUser) GetGivenName() string {
-	return usr.Given_name
-}
-func (usr *DefaultUser) GetFamilyName() string {
-	return usr.Family_name
 }
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {

@@ -11,7 +11,7 @@ import (
 
 //authentication middleware that assigns the roles permissions and users
 // for all service requests to be authenticated
-func (env *Environment) setupAuthMiddleware(ctx *echo.Context, router *echo.Group) error {
+func (env *Environment) setupAuthMiddleware(ctx *echo.Context, router *echo.Group, bypassauth bool) error {
 	//create an anonymous user for unauthenticated requests
 	auserInt, err := CreateEmptyObject(ctx, env.SystemUser)
 	if err != nil {
@@ -30,6 +30,10 @@ func (env *Environment) setupAuthMiddleware(ctx *echo.Context, router *echo.Grou
 			token, err := jwt.Parse(headerVal, func(token *jwt.Token) (interface{}, error) {
 				// Don't forget to validate the alg is what you expect:
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					if bypassauth {
+						ctx.Set("User", anonymousUser)
+						return nil, nil
+					}
 					return nil, errors.ThrowError(ctx, AUTH_ERROR_WRONG_SIGNING_METHOD)
 				}
 				return []byte(env.JWTSecret), nil
@@ -64,6 +68,10 @@ func (env *Environment) setupAuthMiddleware(ctx *echo.Context, router *echo.Grou
 				utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_COMPLETE, ctx})
 				return nil
 			} else {
+				if bypassauth {
+					ctx.Set("User", anonymousUser)
+					return nil
+				}
 				//if the token is invalid throw security error
 				if token == nil || !token.Valid {
 					return errors.RethrowError(ctx, AUTH_ERROR_INVALID_TOKEN, err)

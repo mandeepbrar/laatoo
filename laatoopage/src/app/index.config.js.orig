@@ -1,0 +1,64 @@
+(function() {
+  'use strict';
+
+  var mainapp = angular
+    .module('main')
+    .config(config);
+
+  /** @ngInject */
+  function config($stateProvider, $urlRouterProvider, $httpProvider, dialogsProvider, $translateProvider, $provide) {
+	mainapp.stateProvider = $stateProvider;
+	//mainapp.urlRouteProvider = $urlRouterProvider;
+	window.buildPermissions = function() {
+		var permissions = [];
+		if(localStorage.permissions != null) {
+			permissions = localStorage.permissions.split(",");		
+		}
+		window.isAllowed = function(action) {
+			return permissions.indexOf(action)>-1;
+		};
+		for(var i in window.pageConf.actions) {
+			var action = window.pageConf.actions[i];
+			if(action.permission) {
+				if(action.permission =="none") {
+					action.allowed = true;
+				} else {
+					action.allowed = window.isAllowed(action.permission);							
+				}
+			} else {
+				action.allowed = false;
+			}
+		}		
+	};
+	window.buildPermissions();	
+	dialogsProvider.useBackdrop('static');
+	dialogsProvider.setSize('sm');
+	$translateProvider.preferredLanguage('en-US');
+	$provide.factory('myHttpInterceptor', function($q) {
+		var token = localStorage.auth;
+		if(token && token!=null && token.length > 0) {				
+			$httpProvider.defaults.headers.common[pageConf.AuthToken] = token;
+		}
+	    return {
+		    'response': function(response) {
+		      // do something on success
+		      return response || $q.when(response);
+		    },		
+		   'responseError': function(rejection) {
+	            if(rejection.status == 401) {
+					localStorage.auth = "";
+					localStorage.user = "";
+					window.location.href = window.pageConf.AuthPage;								
+	                return;
+	            }
+		      // do something on error
+		      return $q.reject(rejection);
+		    }
+	    };
+	});
+	$httpProvider.defaults.useXDomain = true;
+
+	$httpProvider.interceptors.push('myHttpInterceptor');	
+  }
+
+})();

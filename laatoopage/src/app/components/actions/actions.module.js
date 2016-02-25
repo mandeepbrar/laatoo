@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-   angular.module('actions', ['ngResource', 'ngStorage', 'ui.router', 'ui.bootstrap', 'ui.router.tabs']);
+   angular.module('actions', ['ngResource', 'ngStorage', 'ui.router', 'ui.bootstrap']);
 
 
 })();

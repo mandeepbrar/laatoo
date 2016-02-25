@@ -55,7 +55,6 @@ func RegistrationServiceFactory(ctx *echo.Context, conf map[string]interface{}) 
 		return nil, errors.ThrowError(ctx, AUTH_ERROR_MISSING_ROUTER)
 	}
 	svc.Router = routerInt.(*echo.Group)
-
 	svc.Router.Post("", func(ctx *echo.Context) error {
 		ent, err := laatoocore.CreateEmptyObject(ctx, svc.UserObject)
 		if err != nil {

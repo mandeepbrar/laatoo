@@ -83,6 +83,7 @@ func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
 
 	//compare the user requested with the user from database
 	existingUser := testedUser.(auth.LocalAuthUser)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Comparing passwords", "existing", existingUser.GetPassword(), "to test", usr.GetPassword())
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	existingUser.SetPassword("")
 	if err != nil {

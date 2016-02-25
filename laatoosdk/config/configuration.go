@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"strconv"
 )
 
 //Json based viper implementation of Config interface
@@ -55,6 +56,19 @@ func (conf *ConfigImpl) GetString(configurationName string) string {
 	return ""
 }
 
+//Get string configuration value
+func (conf *ConfigImpl) GetBool(configurationName string) bool {
+	val := conf.Get(configurationName)
+	if val != nil {
+		config, err := strconv.ParseBool(val.(string))
+		if err != nil {
+			return false
+		}
+		return config
+	}
+	return false
+}
+
 func (conf *ConfigImpl) GetArray(configurationName string) []interface{} {
 	arrInt := conf.Get(configurationName)
 	if arrInt == nil {
@@ -77,6 +91,7 @@ func (conf *ConfigImpl) SetString(configurationName string, configurationValue s
 //Config Interface used by Laatoo
 type Config interface {
 	GetString(configurationName string) string
+	GetBool(configurationName string) bool
 	GetMap(configurationName string) map[string]interface{}
 	GetArray(configurationName string) []interface{}
 	SetString(configurationName string, configurationValue string)

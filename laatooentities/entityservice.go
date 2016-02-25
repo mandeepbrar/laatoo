@@ -117,7 +117,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 				router.Get(path, func(ctx *echo.Context) error {
 					idsstr := ctx.P(0)
 					ids := strings.Split(idsstr, ",")
-					ents, err := svc.getEntities(ctx, ids)
+					orderBy := ctx.Param(VIEW_ORDERBY)
+					ents, err := svc.getEntities(ctx, ids, orderBy)
 					if err != nil {
 						return err
 					}
@@ -157,7 +158,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					if err != nil {
 						return err
 					}
-					_, err = svc.putEntity(ctx, ent)
+					stor := ent.(data.Storable)
+					_, err = svc.putEntity(ctx, stor.GetId(), ent)
 					return err
 				})
 			case "putbulk":
@@ -165,19 +167,17 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
-					typ, err := laatoocore.GetCollectionType(ctx, entityName)
+					arr, err := laatoocore.CreateCollection(ctx, entityName)
 					if err != nil {
 						return err
 					}
-					arrPtr := reflect.New(typ)
 					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Binding entities with collection", "Entity", entityName)
-					md := data.MethodData{}
-					md.Data = arrPtr.Interface()
-					err = ctx.Bind(&md)
+					err = ctx.Bind(arr)
 					if err != nil {
 						return err
 					}
-					_, err = svc.putBulkEntity(ctx, arrPtr.Elem().Interface())
+					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Binding done")
+					_, err = svc.putBulkEntity(ctx, reflect.ValueOf(arr).Elem().Interface())
 					return err
 				})
 			case "delete":
@@ -188,6 +188,27 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					id := ctx.P(0)
 					log.Logger.Debug(ctx, LOGGING_CONTEXT, "Deleting entity", "ID", id)
 					err := svc.DataStore.Delete(ctx, entityName, id)
+					if err != nil {
+						return err
+					}
+					if svc.cache != nil {
+						svc.invalidateCache(ctx, id)
+					}
+					return nil
+				})
+			case "update":
+				router.Post(path, func(ctx *echo.Context) error {
+					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
+						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+					}
+					id := ctx.P(0)
+					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating entity", "ID", id)
+					vals := make(map[string]interface{}, 10)
+					err := ctx.Bind(&vals)
+					if err != nil {
+						return err
+					}
+					_, err = svc.updateEntity(ctx, id, vals)
 					if err != nil {
 						return err
 					}
@@ -268,27 +289,39 @@ func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[str
 	case "Get":
 		return svc.getEntity(ctx, params["id"].(string))
 	case "Put":
-		return svc.putEntity(ctx, params["entity"])
+		return svc.putEntity(ctx, params["id"].(string), params["entity"])
+	case "Update":
+		return svc.updateEntity(ctx, params["id"].(string), params["data"].(map[string]interface{}))
 	case "PutBulk":
 		return svc.putBulkEntity(ctx, params["entities"])
 	case "GetBulk":
-		return svc.getEntities(ctx, params["ids"].([]string))
+		orderBy := ""
+		orderByInt, ok := params[VIEW_ORDERBY]
+		if ok {
+			orderBy = orderByInt.(string)
+		}
+		return svc.getEntities(ctx, params["ids"].([]string), orderBy)
 	case "Select":
 		view, err := newEntitiesView(ctx, map[string]interface{}{"entity": svc.EntityName})
 		if err != nil {
 			return nil, err
 		}
-		entities, _, _, err := view.getData(ctx, svc.DataStore, params, -1, -1)
+		orderBy := ""
+		orderByInt, ok := params[VIEW_ORDERBY]
+		if ok {
+			orderBy = orderByInt.(string)
+		}
+		entities, _, _, err := view.getData(ctx, svc.DataStore, params, -1, -1, orderBy)
 		return entities, err
 	}
 	return nil, nil
 }
 
-func (svc *EntityService) putEntity(ctx *echo.Context, ent interface{}) (interface{}, error) {
+func (svc *EntityService) putEntity(ctx *echo.Context, id string, ent interface{}) (interface{}, error) {
 	if !svc.serviceEnv.IsAllowed(ctx, svc.createperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
-	err := svc.DataStore.Save(ctx, svc.EntityName, ent)
+	err := svc.DataStore.Put(ctx, svc.EntityName, id, ent)
 	if err != nil {
 		return nil, err
 	}
@@ -346,11 +379,52 @@ func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, 
 	return ent, nil
 }
 
-func (svc *EntityService) getEntities(ctx *echo.Context, ids []string) (map[string]interface{}, error) {
+func (svc *EntityService) updateEntity(ctx *echo.Context, id string, newVals map[string]interface{}) (interface{}, error) {
+	if !svc.serviceEnv.IsAllowed(ctx, svc.editperm) {
+		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
+	}
+	ent, err := svc.getEntity(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", svc.EntityName, id)
+	entVal := reflect.ValueOf(ent).Elem()
+	for k := range newVals {
+		v := newVals[k]
+		f := entVal.FieldByName(k)
+		if f.IsValid() {
+			// A Value can be changed only if it is
+			// addressable and was not obtained by
+			// the use of unexported struct fields.
+			if f.CanSet() {
+				// change value of N
+				if f.Kind() == reflect.Int {
+					f.SetInt(v.(int64))
+				}
+				// change value of N
+				if f.Kind() == reflect.String {
+					f.SetString(v.(string))
+				}
+				// change value of N
+				if f.Kind() == reflect.Bool {
+					f.SetBool(v.(bool))
+				}
+			}
+		}
+	}
+	_, err = svc.putEntity(ctx, id, ent)
+	if err != nil {
+		return nil, err
+	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "updated entity", "id", id)
+	return nil, nil
+}
+
+func (svc *EntityService) getEntities(ctx *echo.Context, ids []string, orderBy string) (map[string]interface{}, error) {
 	if !svc.serviceEnv.IsAllowed(ctx, svc.viewperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
-	ents, err := svc.DataStore.GetMulti(ctx, svc.EntityName, ids)
+	ents, err := svc.DataStore.GetMulti(ctx, svc.EntityName, ids, orderBy)
 	if err != nil {
 		return nil, err
 	} else {

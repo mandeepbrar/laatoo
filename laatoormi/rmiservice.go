@@ -101,7 +101,9 @@ func RmiServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfac
 func (svc *RmiService) invokeMethod(ctx *echo.Context, method laatoocore.InvokableMethod, methodConfig map[string]interface{}) error {
 	ctx.Set(CONF_RMI_DATASTORE, svc.DataStore)
 	ctx.Set(CONF_RMI_METHODCONFIG, methodConfig)
-	return method(ctx)
+	err := method(ctx)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in invoking method", "method", method, "err", err)
+	return err
 }
 
 //Provides the name of the service

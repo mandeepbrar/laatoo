@@ -28,6 +28,7 @@ const (
 	AUTH_ERROR_INCORRECT_REQ_FORMAT       = "Auth_Error_Incorrect_Req_Format"
 	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
 	AUTH_ERROR_OAUTH_MISSING_PROFILEURL   = "Auth_Error_Oauth_Missing_Profileurl"
+	AUTH_ERROR_INVALID_PASSWORD           = "Auth_Error_Invalid_Password"
 
 	AUTH_ERROR_USER_EXISTS = "Auth_Error_User_Exists"
 	AUTH_ERROR_ENC_ERROR   = "Auth_Error_Enc_Error"
@@ -50,6 +51,8 @@ func init() {
 
 	errors.RegisterCode(AUTH_ERROR_USER_VALIDATION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "User Validation Failed."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_VALIDATION_FAILED, laatoocore.AuthError)
+
+	errors.RegisterCode(AUTH_ERROR_INVALID_PASSWORD, errors.INFO, echo.NewHTTPError(http.StatusBadRequest, "Invalid Password."), LOGGING_CONTEXT)
 
 	errors.RegisterCode(AUTH_ERROR_AUTH_COMPLETION_FAILED, errors.INFO, echo.NewHTTPError(http.StatusUnauthorized, "Could not complete authentication of user."), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_AUTH_COMPLETION_FAILED, laatoocore.AuthError)

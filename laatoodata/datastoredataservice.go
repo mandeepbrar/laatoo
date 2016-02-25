@@ -168,7 +168,7 @@ func (ms *DatastoreDataService) GetById(ctx *echo.Context, objectType string, id
 }
 
 //Get multiple objects by id
-func (ms *DatastoreDataService) GetMulti(ctx *echo.Context, objectType string, ids []string) (map[string]interface{}, error) {
+func (ms *DatastoreDataService) GetMulti(ctx *echo.Context, objectType string, ids []string, orderBy string) (map[string]interface{}, error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	collection, ok := ms.objects[objectType]
 	if !ok {
@@ -185,6 +185,9 @@ func (ms *DatastoreDataService) GetMulti(ctx *echo.Context, objectType string, i
 		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
 		keys[ind] = key
 	}
+	/*if len(orderBy) > 0 {
+		query = query.Order(orderBy)
+	}*/
 
 	err = datastore.GetMulti(appEngineContext, keys, arr.Interface())
 	if err != nil {
@@ -209,7 +212,7 @@ func (ms *DatastoreDataService) GetMulti(ctx *echo.Context, objectType string, i
 	return retVal, nil
 }
 
-func (ms *DatastoreDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
@@ -241,6 +244,10 @@ func (ms *DatastoreDataService) Get(ctx *echo.Context, objectType string, queryC
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
+	if len(orderBy) > 0 {
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Order query by", "orderBy", orderBy)
+		query = query.Order(orderBy)
+	}
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = query.GetAll(appEngineContext, results)
@@ -268,7 +275,7 @@ func (ms *DatastoreDataService) Delete(ctx *echo.Context, objectType string, id 
 	return datastore.Delete(appEngineContext, key)
 }
 
-func (ms *DatastoreDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *DatastoreDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	appEngineContext := context.GetAppengineContext(ctx)
 	totalrecs = -1
 	recsreturned = -1
@@ -288,6 +295,10 @@ func (ms *DatastoreDataService) GetList(ctx *echo.Context, objectType string, pa
 		}
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)
+	}
+	if len(orderBy) > 0 {
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Order query by", "orderBy", orderBy)
+		query = query.Order(orderBy)
 	}
 
 	// To retrieve the results,

@@ -4,6 +4,7 @@ package laatoofiles
 
 import (
 	"github.com/labstack/echo"
+	"github.com/twinj/uuid"
 	"google.golang.org/cloud/storage"
 	"io"
 	"laatoocore"
@@ -12,6 +13,7 @@ import (
 	"laatoosdk/log"
 	"laatoosdk/service"
 	"net/http"
+	"path"
 )
 
 const (
@@ -68,7 +70,22 @@ func (svc *GoogleStorageService) GetServiceType() string {
 
 //Execute method
 func (svc *GoogleStorageService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+	if name == "CopyFile" {
+		return nil, svc.copyFile(ctx, params["filename"].(string), params["writer"].(io.Writer))
+	}
 	return nil, nil
+}
+
+func (svc *GoogleStorageService) copyFile(ctx *echo.Context, filepath string, writer io.Writer) error {
+	_, filename := path.Split(filepath)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Copying file", filename)
+	cloudCtx := context.GetCloudContext(ctx, storage.ScopeFullControl)
+	reader, err := storage.NewReader(cloudCtx, svc.bucket, filename)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(writer, reader)
+	return err
 }
 
 func (svc *GoogleStorageService) processFile(ctx *echo.Context) error {
@@ -91,12 +108,13 @@ func (svc *GoogleStorageService) processFile(ctx *echo.Context) error {
 			return err
 		}
 		defer src.Close()
+		fileName := uuid.NewV4().String()
 
-		dst := storage.NewWriter(cloudCtx, svc.bucket, f.Filename)
+		dst := storage.NewWriter(cloudCtx, svc.bucket, fileName)
 
 		dst.ContentType = f.Header.Get("Content-Type")
 		dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Copying file", "Name", f.Filename)
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Copying file", "Name", fileName)
 
 		if _, err = io.Copy(dst, src); err != nil {
 			return err

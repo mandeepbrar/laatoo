@@ -214,10 +214,7 @@ func (env *Environment) createService(ctx *echo.Context, alias string, conf inte
 		if ok {
 			bypassauth = (bypassauthInt == "true")
 		}
-		if !bypassauth {
-			//use authentication middleware for the service unless explicitly bypassed
-			env.setupAuthMiddleware(ctx, router)
-		}
+		env.setupAuthMiddleware(ctx, router, bypassauth)
 
 		//provide environment context to every request using middleware
 		router.Use(func(ctx *echo.Context) error {

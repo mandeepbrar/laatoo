@@ -4,6 +4,7 @@ package laatoofiles
 
 import (
 	"github.com/labstack/echo"
+	"github.com/twinj/uuid"
 	"io"
 	"laatoocore"
 	"laatoosdk/errors"
@@ -11,6 +12,7 @@ import (
 	"laatoosdk/service"
 	"net/http"
 	"os"
+	"path"
 )
 
 const (
@@ -76,7 +78,23 @@ func (svc *FileService) GetServiceType() string {
 
 //Execute method
 func (svc *FileService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "here1", "name", name)
+	if name == "CopyFile" {
+		return nil, svc.copyFile(ctx, params["filename"].(string), params["writer"].(io.Writer))
+	}
 	return nil, nil
+}
+
+func (svc *FileService) copyFile(ctx *echo.Context, filepath string, writer io.Writer) error {
+	_, filename := path.Split(filepath)
+	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Copying file", filename)
+	rd, err := os.Open(svc.filesDir + filename)
+	defer rd.Close()
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(writer, rd)
+	return err
 }
 
 func (svc *FileService) processFile(ctx *echo.Context) error {
@@ -105,11 +123,10 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 			return err
 		}
 		defer src.Close()
-
-		fileName := svc.filesDir + f.Filename
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Writing file", "Name", fileName)
+		fileName := uuid.NewV4().String()
+		fullpath := svc.filesDir + fileName
 		// Destination file
-		dst, err := os.Create(fileName)
+		dst, err := os.Create(fullpath)
 		if err != nil {
 			return err
 		}
@@ -119,7 +136,7 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 		if _, err = io.Copy(dst, src); err != nil {
 			return err
 		}
-		url[index] = svc.filesUrl + "/" + f.Filename
+		url[index] = svc.filesUrl + "/" + fileName
 	}
 	return ctx.JSON(http.StatusOK, url)
 }
