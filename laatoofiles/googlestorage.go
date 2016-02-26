@@ -3,6 +3,7 @@
 package laatoofiles
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/twinj/uuid"
 	"google.golang.org/cloud/storage"
@@ -123,8 +124,9 @@ func (svc *GoogleStorageService) processFile(ctx *echo.Context) error {
 		if err = dst.Close(); err != nil {
 			return err
 		}
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "updated object:", "Object", dst.Object().MediaLink)
-		url[index] = dst.Object().MediaLink
+		returl := fmt.Sprintf("http://storage.googleapis.com/%s/%s", svc.bucket, fileName)
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "updated object:", "Object", returl)
+		url[index] = returl
 	}
 	return ctx.JSON(http.StatusOK, url)
 }

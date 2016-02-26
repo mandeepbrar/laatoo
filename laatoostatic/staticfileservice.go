@@ -37,7 +37,7 @@ func StaticServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 	}
 	router := routerInt.(*echo.Group)
 
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "Designer service starting", "Page Path", publicdir)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "Image service starting", " Path", publicdir)
 	router.Static("/", publicdir.(string))
 	return svc, nil
 }

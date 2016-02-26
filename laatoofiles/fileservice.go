@@ -3,6 +3,7 @@
 package laatoofiles
 
 import (
+	"fmt"
 	"github.com/labstack/echo"
 	"github.com/twinj/uuid"
 	"io"
@@ -10,9 +11,10 @@ import (
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/service"
+	"laatoosdk/utils"
 	"net/http"
 	"os"
-	"path"
+	"strings"
 )
 
 const (
@@ -48,7 +50,7 @@ func FileServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_FILESURL)
 	}
 
-	svc.filesUrl = filesurlInt.(string)
+	svc.filesUrl = filesurlInt.(string) + "/"
 	router := routerInt.(*echo.Group)
 	svc.filesDir = filesdirInt.(string) + "/"
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Got files directory", "Name", filesdirInt)
@@ -82,19 +84,65 @@ func (svc *FileService) Execute(ctx *echo.Context, name string, params map[strin
 	if name == "CopyFile" {
 		return nil, svc.copyFile(ctx, params["filename"].(string), params["writer"].(io.Writer))
 	}
+	if name == "TransformFile" {
+		return svc.transformFile(ctx, params["srcpath"].(string), params["destfolder"].(string), params["transformation"].(utils.FileTransform))
+	}
 	return nil, nil
 }
 
-func (svc *FileService) copyFile(ctx *echo.Context, filepath string, writer io.Writer) error {
-	_, filename := path.Split(filepath)
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Copying file", filename)
-	rd, err := os.Open(svc.filesDir + filename)
+func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfolder string, transform utils.FileTransform) (string, error) {
+	pathinfolder, realsrcpath := svc.parsePath(srcpath)
+	destfile := fmt.Sprintf("%s%s/%s", svc.filesDir, destfolder, pathinfolder)
+	request := ctx.Request()
+	host := request.Host
+	scheme := "https"
+	if request.TLS == nil {
+		scheme = "http"
+	}
+	desturl := fmt.Sprintf("%s://%s/%s%s/%s", scheme, host, svc.filesUrl, destfolder, pathinfolder)
+	_, err := os.Stat(destfile)
+	if os.IsExist(err) {
+		return desturl, nil
+	}
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "file does not exist", "destfile", destfile, "realsrcpath", realsrcpath)
+
+	rd, err := os.Open(realsrcpath)
+	defer rd.Close()
+	if err != nil {
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "error opening source file", "realsrcpath", realsrcpath, "err", err)
+		return "", err
+	}
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "realsrcpath", realsrcpath)
+	os.MkdirAll(fmt.Sprintf("%s%s", svc.filesDir, destfolder), 0755)
+	writer, err := os.Create(destfile)
+	defer writer.Close()
+	if err != nil {
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "error creating file", "destfile", destfile, "err", err)
+		return "", err
+	}
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "transform", "destfile", destfile, "realsrcpath", realsrcpath)
+
+	err = transform(rd, writer)
+	if err != nil {
+		return "", err
+	}
+	return desturl, nil
+}
+
+func (svc *FileService) copyFile(ctx *echo.Context, fileurl string, writer io.Writer) error {
+	_, realpath := svc.parsePath(fileurl)
+	rd, err := os.Open(realpath)
 	defer rd.Close()
 	if err != nil {
 		return err
 	}
 	_, err = io.Copy(writer, rd)
 	return err
+}
+
+func (svc *FileService) parsePath(url string) (string, string) {
+	pathinfolder := strings.TrimPrefix(url, svc.filesUrl)
+	return pathinfolder, fmt.Sprintf("%s%s", svc.filesDir, pathinfolder)
 }
 
 func (svc *FileService) processFile(ctx *echo.Context) error {
@@ -136,7 +184,7 @@ func (svc *FileService) processFile(ctx *echo.Context) error {
 		if _, err = io.Copy(dst, src); err != nil {
 			return err
 		}
-		url[index] = svc.filesUrl + "/" + fileName
+		url[index] = svc.filesUrl + fileName
 	}
 	return ctx.JSON(http.StatusOK, url)
 }
