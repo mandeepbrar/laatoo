@@ -14,6 +14,7 @@ import (
 	"laatoosdk/utils"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -101,10 +102,10 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 	}
 	desturl := fmt.Sprintf("%s://%s/%s%s/%s", scheme, host, svc.filesUrl, destfolder, pathinfolder)
 	_, err := os.Stat(destfile)
-	if os.IsExist(err) {
+	if err == nil || os.IsExist(err) {
 		return desturl, nil
 	}
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "file does not exist", "destfile", destfile, "realsrcpath", realsrcpath)
+	log.Logger.Info(ctx, LOGGING_CONTEXT, "file does not exist... ", "destfile", destfile, "realsrcpath", realsrcpath, "err", err)
 
 	rd, err := os.Open(realsrcpath)
 	defer rd.Close()
@@ -113,7 +114,8 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 		return "", err
 	}
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "realsrcpath", realsrcpath)
-	os.MkdirAll(fmt.Sprintf("%s%s", svc.filesDir, destfolder), 0755)
+	destdir, _ := path.Split(destfile)
+	os.MkdirAll(destdir, 0755)
 	writer, err := os.Create(destfile)
 	defer writer.Close()
 	if err != nil {
@@ -124,6 +126,7 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 
 	err = transform(rd, writer)
 	if err != nil {
+		log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in transformation", "destfile", destfile, "err", err)
 		return "", err
 	}
 	return desturl, nil
@@ -141,7 +144,13 @@ func (svc *FileService) copyFile(ctx *echo.Context, fileurl string, writer io.Wr
 }
 
 func (svc *FileService) parsePath(url string) (string, string) {
-	pathinfolder := strings.TrimPrefix(url, svc.filesUrl)
+	var prefix string
+	if url[0] != '/' && svc.filesUrl[0] == '/' {
+		prefix = svc.filesUrl[1:]
+	} else {
+		prefix = svc.filesUrl
+	}
+	pathinfolder := strings.TrimPrefix(url, prefix)
 	return pathinfolder, fmt.Sprintf("%s%s", svc.filesDir, pathinfolder)
 }
 
