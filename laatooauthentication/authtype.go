@@ -2,9 +2,9 @@ package laatooauthentication
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
@@ -17,15 +17,15 @@ import (
 type AuthType interface {
 	GetName() string
 	//Initializes the authentication type module
-	InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error
+	InitializeType(ctx core.Context, authStart core.HandlerFunc, authCallback core.HandlerFunc) error
 	//Called to validate the user by providing context
-	ValidateUser(*echo.Context) error
+	ValidateUser(core.Context) error
 	//Completes authentication
-	CompleteAuthentication(*echo.Context) error
+	CompleteAuthentication(core.Context) error
 }
 
 //setup local authentication
-func (svc *SecurityService) SetupLocalAuth(ctx *echo.Context, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupLocalAuth(ctx core.Context, conf map[string]interface{}) error {
 	//create local authentication type
 	localAuthType, err := NewLocalAuth(ctx, conf, svc)
 	if err != nil {
@@ -40,7 +40,7 @@ func (svc *SecurityService) SetupLocalAuth(ctx *echo.Context, conf map[string]in
 }
 
 //setup api authentication
-func (svc *SecurityService) SetupKeyAuth(ctx *echo.Context, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupKeyAuth(ctx core.Context, conf map[string]interface{}) error {
 	//create local authentication type
 	keyAuthType, err := NewKeyAuth(ctx, conf, svc)
 	if err != nil {
@@ -55,7 +55,7 @@ func (svc *SecurityService) SetupKeyAuth(ctx *echo.Context, conf map[string]inte
 }
 
 //setup local authentication
-func (svc *SecurityService) SetupOAuth(ctx *echo.Context, conf map[string]interface{}) error {
+func (svc *SecurityService) SetupOAuth(ctx core.Context, conf map[string]interface{}) error {
 	oAuthType, err := NewOAuth(ctx, conf, svc)
 	if err != nil {
 		return err
@@ -69,10 +69,10 @@ func (svc *SecurityService) SetupOAuth(ctx *echo.Context, conf map[string]interf
 }
 
 //The service starts serving when this method is called
-func (svc *SecurityService) initializeAuthType(ctx *echo.Context, authType AuthType) error {
+func (svc *SecurityService) initializeAuthType(ctx core.Context, authType AuthType) error {
 	//initialize auth type
 	initializationErr := authType.InitializeType(ctx,
-		func(ctx *echo.Context) error { ///  auth start method starts
+		func(ctx core.Context) error { ///  auth start method starts
 			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Validating user")
 			err := authType.ValidateUser(ctx)
 			if err != nil {
@@ -80,7 +80,7 @@ func (svc *SecurityService) initializeAuthType(ctx *echo.Context, authType AuthT
 			}
 			return nil
 		}, ///  auth start method ends
-		func(ctx *echo.Context) error { ///  auth callback method starts
+		func(ctx core.Context) error { ///  auth callback method starts
 			err := authType.CompleteAuthentication(ctx)
 			if err != nil {
 				return errors.RethrowError(ctx, AUTH_ERROR_AUTH_COMPLETION_FAILED, err)
@@ -105,7 +105,7 @@ func (svc *SecurityService) initializeAuthType(ctx *echo.Context, authType AuthT
 			if err != nil {
 				return errors.RethrowError(ctx, AUTH_ERROR_JWT_CREATION, err)
 			}
-			ctx.Response().Header().Set(svc.AuthHeader, tokenString)
+			ctx.SetHeader(svc.AuthHeader, tokenString)
 			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Sending Token", svc.AuthHeader, tokenString)
 
 			utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGIN_COMPLETE, ctx})
@@ -115,28 +115,28 @@ func (svc *SecurityService) initializeAuthType(ctx *echo.Context, authType AuthT
 	if initializationErr != nil {
 		return errors.RethrowError(ctx, AUTH_ERROR_INITIALIZING_TYPE, initializationErr)
 	}
-	svc.Router.Get(svc.LogoutPath, svc.Logout)
+	svc.Router.Get(ctx, svc.LogoutPath, map[string]interface{}{}, svc.Logout)
 	return nil
 }
 
-func (svc *SecurityService) Logout(ctx *echo.Context) error {
-	ctx.Response().Header().Set(svc.AuthHeader, "")
+func (svc *SecurityService) Logout(ctx core.Context) error {
+	ctx.SetHeader(svc.AuthHeader, "")
 	ctx.Set("User", nil)
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGOUT_COMPLETE, ctx})
 	return nil
 }
 
-func (svc *SecurityService) CreateUser(ctx *echo.Context) (interface{}, error) {
+func (svc *SecurityService) CreateUser(ctx core.Context) (interface{}, error) {
 	return laatoocore.CreateObject(ctx, svc.UserObject, nil)
 }
-func (svc *SecurityService) GetUserById(ctx *echo.Context, id string) (interface{}, error) {
+func (svc *SecurityService) GetUserById(ctx core.Context, id string) (interface{}, error) {
 	user, err := svc.UserDataService.GetById(ctx, svc.UserObject, id)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
-func (svc *SecurityService) LoadPermissions(ctx *echo.Context, usr auth.RbacUser, roleStorer data.DataService) error {
+func (svc *SecurityService) LoadPermissions(ctx core.Context, usr auth.RbacUser, roleStorer data.DataService) error {
 	roles, _ := usr.GetRoles()
 	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {

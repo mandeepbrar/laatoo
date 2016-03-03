@@ -3,8 +3,10 @@
 package laatoocore
 
 import (
+	"crypto/tls"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
+	glctx "golang.org/x/net/context"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"net"
@@ -26,7 +28,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	router.Use(mw.Logger())
 	router.Use(mw.Recover())
 	router.Use(mw.Gzip())
-	ctx := echo.NewContext(nil, nil, router)
+	ctx := &Context{Context: echo.NewContext(nil, nil, router)}
 	server := &Server{ServerType: serverType}
 	server.InitServer(ctx, configName, router)
 	//listen if server type is standalone
@@ -58,7 +60,7 @@ func NewServer(configName string, serverType string) (*Server, error) {
 	return server, nil
 }
 
-func startServer(ctx *echo.Context, address string, server *Server) {
+func startServer(ctx *Context, address string, server *Server) {
 	for i := 0; i < 10; i++ {
 		_, err := net.Dial("tcp", address)
 		if err != nil {
@@ -69,4 +71,18 @@ func startServer(ctx *echo.Context, address string, server *Server) {
 		}
 	}
 	panic("Server could not be started")
+}
+
+func GetAppengineContext(ctx *Context) glctx.Context {
+	return nil
+}
+
+func GetCloudContext(ctx *Context, scope string) glctx.Context {
+	return nil
+}
+func HttpClient(ctx *Context) *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	return &http.Client{Transport: tr}
 }

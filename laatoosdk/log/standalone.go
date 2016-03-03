@@ -4,7 +4,7 @@ package log
 
 import (
 	//log "github.com/Sirupsen/logrus"
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 	logxi "logxi/v1"
 	"os"
 )
@@ -17,22 +17,22 @@ type StandaloneLogger struct {
 	logger logxi.Logger
 }
 
-func (log *StandaloneLogger) Trace(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Trace(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Trace(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Debug(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Debug(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Debug(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Info(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Info(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Info(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Warn(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Warn(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Warn(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Error(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Error(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Error(reqContext, loggingCtx, msg, args...)
 }
-func (log *StandaloneLogger) Fatal(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Fatal(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, loggingCtx, msg, args...)
 }
 

@@ -30,7 +30,7 @@ type Server struct {
 }
 
 //Initialize Server
-func (server *Server) InitServer(ctx *echo.Context, configName string, router *echo.Echo) {
+func (server *Server) InitServer(ctx *Context, configName string, router *echo.Echo) {
 	server.Applications = make(map[string]*Environment)
 	log.Logger.Info(ctx, "core.server", "Initializing server", "config", configName)
 	//read config for standalone
@@ -50,7 +50,7 @@ func (server *Server) InitServer(ctx *echo.Context, configName string, router *e
 		envConf := env[CONF_ENVCONF].(string)
 		envServerType, ok := env[CONF_ENV_SERVERTYPE]
 		if ok && (envServerType.(string) != server.ServerType) {
-			log.Logger.Info(nil, "core.server", "Skipping environment", "Environment", envName)
+			log.Logger.Info(ctx, "core.server", "Skipping environment", "Environment", envName)
 			continue
 		}
 		log.Logger.Debug(ctx, "core.server", "Creating environment", "Environment", envName)
@@ -70,7 +70,7 @@ func (server *Server) InitServer(ctx *echo.Context, configName string, router *e
 }
 
 //start the server
-func (server *Server) Start(ctx *echo.Context) {
+func (server *Server) Start(ctx *Context) {
 	//Initializes application environments to be hosted on this server
 	for _, app := range server.Applications {
 		app.StartEnvironment(ctx)

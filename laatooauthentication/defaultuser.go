@@ -2,9 +2,9 @@ package laatooauthentication
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/utils"
 	"strings"
@@ -30,7 +30,7 @@ func (usr *DefaultUser) SetId(id string) {
 func (usr *DefaultUser) GetIdField() string {
 	return "Id"
 }
-func (ent *DefaultUser) PreSave(ctx *echo.Context) error {
+func (ent *DefaultUser) PreSave(ctx core.Context) error {
 	passlen := len(ent.Password)
 	//pass length > 15 will indicate previously encrypted value as passwords > 15 chars are not suppported
 	//hack to prevent password from updating if a new one hasnt been provided
@@ -45,10 +45,10 @@ func (ent *DefaultUser) PreSave(ctx *echo.Context) error {
 	}
 	return nil
 }
-func (ent *DefaultUser) PostSave(ctx *echo.Context) error {
+func (ent *DefaultUser) PostSave(ctx core.Context) error {
 	return nil
 }
-func (ent *DefaultUser) PostLoad(ctx *echo.Context) error {
+func (ent *DefaultUser) PostLoad(ctx core.Context) error {
 	//ent.Password = ""
 	return nil
 }
@@ -108,7 +108,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_USER, NewUser)
 }
 
-func NewUser(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func NewUser(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	return &DefaultUser{}, nil
 }
 

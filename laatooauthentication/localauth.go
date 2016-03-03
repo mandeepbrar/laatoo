@@ -1,10 +1,10 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
 	"golang.org/x/crypto/bcrypt"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 )
@@ -18,13 +18,13 @@ type localAuthType struct {
 	//login path to register for local authentication
 	loginpath string
 	//method called in case of callback
-	authCallback echo.HandlerFunc
+	authCallback core.HandlerFunc
 	//reference to the main auth service
 	securityService *SecurityService
 }
 
 //method called for creating new auth type
-func NewLocalAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
+func NewLocalAuth(ctx core.Context, conf map[string]interface{}, svc *SecurityService) (*localAuthType, error) {
 	//create the new auth type
 	localauth := &localAuthType{}
 	//store the reference to the parent
@@ -41,16 +41,16 @@ func NewLocalAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityS
 }
 
 //initialize auth type called by base auth for initializing
-func (localauth *localAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (localauth *localAuthType) InitializeType(ctx core.Context, authStart core.HandlerFunc, authCallback core.HandlerFunc) error {
 	//setup path for listening to login post request
-	localauth.securityService.Router.Post(localauth.loginpath, authStart)
+	localauth.securityService.Router.Post(ctx, localauth.loginpath, map[string]interface{}{}, authStart)
 	localauth.authCallback = authCallback
 	return nil
 }
 
 //validate the local user
 //derive the data from context object
-func (localauth *localAuthType) ValidateUser(ctx *echo.Context) error {
+func (localauth *localAuthType) ValidateUser(ctx core.Context) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "localAuthProvider: Validating Credentials")
 
 	//create the user
@@ -100,7 +100,7 @@ func (localauth *localAuthType) GetName() string {
 }
 
 //complete authentication
-func (localauth *localAuthType) CompleteAuthentication(ctx *echo.Context) error {
+func (localauth *localAuthType) CompleteAuthentication(ctx core.Context) error {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "localAuthProvider: Authentication Successful")
 	return nil
 }

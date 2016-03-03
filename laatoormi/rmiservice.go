@@ -1,12 +1,11 @@
 package laatoormi
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 )
 
 const (
@@ -18,12 +17,10 @@ const (
 	CONF_RMI_PATH           = "path"
 	CONF_RMI_METHODNAME     = "method"
 	CONF_RMI_HTTPMETHODNAME = "httpmethod"
-	CONF_RMI_METHODCONFIG   = "methodconfig"
 )
 
 //Environment hosting an application
 type RmiService struct {
-	serviceEnv      service.Environment
 	dataServiceName string
 	DataStore       data.DataService
 }
@@ -34,13 +31,11 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func RmiServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating rmi service")
-	serviceEnv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	svc := &RmiService{serviceEnv: serviceEnv}
+	svc := &RmiService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
-	router := routerInt.(*echo.Group)
-
+	router := routerInt.(core.Router)
 	entitydatasvcInt, ok := conf[CONF_RMI_DATA_SVC]
 	svc.dataServiceName = entitydatasvcInt.(string)
 
@@ -79,16 +74,16 @@ func RmiServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfac
 			if ok {
 				switch httpmethodInt.(string) {
 				case "PUT":
-					router.Put(path, func(ctx *echo.Context) error {
+					router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
 						return svc.invokeMethod(ctx, method, methodConfig)
 					})
 				case "POST":
-					router.Post(path, func(ctx *echo.Context) error {
+					router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
 						return svc.invokeMethod(ctx, method, methodConfig)
 					})
 				}
 			} else {
-				router.Post(path, func(ctx *echo.Context) error {
+				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
 					return svc.invokeMethod(ctx, method, methodConfig)
 				})
 			}
@@ -98,9 +93,8 @@ func RmiServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfac
 	return svc, nil
 }
 
-func (svc *RmiService) invokeMethod(ctx *echo.Context, method laatoocore.InvokableMethod, methodConfig map[string]interface{}) error {
+func (svc *RmiService) invokeMethod(ctx core.Context, method laatoocore.InvokableMethod, methodConfig map[string]interface{}) error {
 	ctx.Set(CONF_RMI_DATASTORE, svc.DataStore)
-	ctx.Set(CONF_RMI_METHODCONFIG, methodConfig)
 	err := method(ctx)
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in invoking method", "method", method, "err", err)
 	return err
@@ -112,9 +106,8 @@ func (svc *RmiService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *RmiService) Initialize(ctx *echo.Context) error {
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	dataSvc, err := svcenv.GetService(ctx, svc.dataServiceName)
+func (svc *RmiService) Initialize(ctx core.Context) error {
+	dataSvc, err := ctx.GetService(svc.dataServiceName)
 	if err != nil {
 		return errors.RethrowError(ctx, RMI_ERROR_MISSING_DATASVC, err)
 	}
@@ -124,16 +117,16 @@ func (svc *RmiService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *RmiService) Serve(ctx *echo.Context) error {
+func (svc *RmiService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *RmiService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *RmiService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *RmiService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

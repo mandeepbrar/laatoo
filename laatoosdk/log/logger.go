@@ -1,8 +1,8 @@
 package log
 
 import (
-	"github.com/labstack/echo"
 	"laatoosdk/config"
+	"laatoosdk/core"
 )
 
 const (
@@ -11,12 +11,12 @@ const (
 )
 
 type LoggerInterface interface {
-	Trace(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
-	Debug(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
-	Info(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
-	Warn(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
-	Error(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
-	Fatal(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{})
+	Trace(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
+	Debug(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
+	Info(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
+	Warn(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
+	Error(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
+	Fatal(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
 
 	SetLevel(string)
 	IsTrace() bool

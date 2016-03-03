@@ -1,7 +1,7 @@
 package laatoocore
 
 import (
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 )
@@ -13,7 +13,7 @@ var (
 )
 
 //this method can be invoked remotely
-type InvokableMethod func(ctx *echo.Context) error
+type InvokableMethod func(ctx core.Context) error
 
 //register the invokable method in the global register
 func RegisterInvokableMethod(methodName string, method InvokableMethod) {
@@ -25,7 +25,7 @@ func RegisterInvokableMethod(methodName string, method InvokableMethod) {
 }
 
 //Provides an object with a given name
-func GetMethod(ctx *echo.Context, methodName string) (InvokableMethod, error) {
+func GetMethod(ctx core.Context, methodName string) (InvokableMethod, error) {
 	log.Logger.Trace(ctx, "core.methods", "Getting method ", "Method Name", methodName)
 
 	//get the factory func from the register

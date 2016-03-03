@@ -1,12 +1,11 @@
 package laatooview
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 )
 
 const (
@@ -24,7 +23,6 @@ const (
 //Environment hosting an application
 type ViewService struct {
 	DataStore   data.DataService
-	Router      *echo.Group
 	dataSvcName string
 	Views       map[string]data.View
 }
@@ -35,7 +33,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func ViewServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func ViewServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating view service")
 	svc := &ViewService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -43,8 +41,7 @@ func ViewServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 		return nil, errors.ThrowError(ctx, VIEW_ERROR_MISSING_ROUTER)
 	}
 
-	router := routerInt.(*echo.Group)
-	svc.Router = router
+	router := routerInt.(core.Router)
 
 	datasvcInt, ok := conf[CONF_VIEW_DATASVC]
 	if !ok {
@@ -94,7 +91,7 @@ func ViewServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 				conf = confInt.(map[string]interface{})
 			}*/
 
-			router.Get(path, func(ctx *echo.Context) error {
+			router.Get(ctx, path, viewConfig, func(ctx core.Context) error {
 				return view.Execute(ctx, svc.DataStore)
 			})
 			log.Logger.Trace(ctx, LOGGING_CONTEXT, "Registering view", "View Name", name)
@@ -102,12 +99,12 @@ func ViewServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 
 		}
 	}
-	router.Get("", svc.GetView)
+	//router.Get(ctx, "", svc.GetView)
 
 	return svc, nil
 }
 
-func (svc *ViewService) GetView(ctx *echo.Context) error {
+func (svc *ViewService) GetView(ctx core.Context) error {
 	name := ctx.Query("viewname")
 	if name == "" {
 		return errors.ThrowError(ctx, VIEW_ERROR_MISSING_VIEW)
@@ -125,9 +122,8 @@ func (svc *ViewService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *ViewService) Initialize(ctx *echo.Context) error {
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	dataSvc, err := svcenv.GetService(ctx, svc.dataSvcName)
+func (svc *ViewService) Initialize(ctx core.Context) error {
+	dataSvc, err := ctx.GetService(svc.dataSvcName)
 	if err != nil {
 		return errors.RethrowError(ctx, VIEW_ERROR_MISSING_DATASVC, err)
 	}
@@ -137,16 +133,16 @@ func (svc *ViewService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *ViewService) Serve(ctx *echo.Context) error {
+func (svc *ViewService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *ViewService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *ViewService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *ViewService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

@@ -3,13 +3,13 @@ package laatooauthentication
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/utils"
@@ -41,13 +41,13 @@ type OAuthSite struct {
 type OAuthType struct {
 	sites []*OAuthSite
 	//method called in case of callback
-	authCallback echo.HandlerFunc
+	authCallback core.HandlerFunc
 	//reference to the main auth service
 	securityService *SecurityService
 }
 
 //method called for creating new auth type
-func NewOAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
+func NewOAuth(ctx core.Context, conf map[string]interface{}, svc *SecurityService) (*OAuthType, error) {
 	//create the new auth type
 	oauth := &OAuthType{}
 	//store the reference to the parent
@@ -118,17 +118,17 @@ func NewOAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityServi
 }
 
 //initialize auth type called by base auth for initializing
-func (oauth *OAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (oauth *OAuthType) InitializeType(ctx core.Context, authStart core.HandlerFunc, authCallback core.HandlerFunc) error {
 	oauth.authCallback = authCallback
 	state := utils.RandomString(10)
 	for _, site := range oauth.sites {
 		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: Setting up site", "site", site)
-		oauth.securityService.Router.Get(site.systemAuthURL, func(ctx *echo.Context) error {
+		oauth.securityService.Router.Get(ctx, site.systemAuthURL, nil, func(ctx core.Context) error {
 			ctx.Set("Site", site)
 			ctx.Set("State", state)
 			return authStart(ctx)
 		})
-		oauth.securityService.Router.Get(site.systemAuthURL+"/callback", func(ctx *echo.Context) error {
+		oauth.securityService.Router.Get(ctx, site.systemAuthURL+"/callback", nil, func(ctx core.Context) error {
 			ctx.Set("Site", site)
 			ctx.Set("State", state)
 			if site.interceptor {
@@ -138,7 +138,7 @@ func (oauth *OAuthType) InitializeType(ctx *echo.Context, authStart echo.Handler
 			}
 		})
 		if site.interceptor {
-			oauth.securityService.Router.Post(site.systemAuthURL, func(ctx *echo.Context) error {
+			oauth.securityService.Router.Post(ctx, site.systemAuthURL, nil, func(ctx core.Context) error {
 				ctx.Set("Site", site)
 				ctx.Set("State", state)
 				return authCallback(ctx)
@@ -151,7 +151,7 @@ func (oauth *OAuthType) InitializeType(ctx *echo.Context, authStart echo.Handler
 
 //validate the local user
 //derive the data from context object
-func (oauth *OAuthType) ValidateUser(ctx *echo.Context) error {
+func (oauth *OAuthType) ValidateUser(ctx core.Context) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthProvider: Validating Credentials")
 
 	siteInt := ctx.Get("Site")
@@ -204,7 +204,7 @@ func (oauth *OAuthType) GetName() string {
 }
 
 //complete authentication
-func (oauth *OAuthType) InterceptorPage(ctx *echo.Context) error {
+func (oauth *OAuthType) InterceptorPage(ctx core.Context) error {
 	siteInt := ctx.Get("Site")
 	site, _ := siteInt.(*OAuthSite)
 	sentStateInt := ctx.Get("State")
@@ -220,7 +220,7 @@ func (oauth *OAuthType) InterceptorPage(ctx *echo.Context) error {
 }
 
 //complete authentication
-func (oauth *OAuthType) CompleteAuthentication(ctx *echo.Context) error {
+func (oauth *OAuthType) CompleteAuthentication(ctx core.Context) error {
 	siteInt := ctx.Get("Site")
 	site, _ := siteInt.(*OAuthSite)
 	sentStateInt := ctx.Get("State")

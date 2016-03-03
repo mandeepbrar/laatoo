@@ -3,12 +3,11 @@ package laatoostatic
 import (
 	"disintegration/imaging"
 	"fmt"
-	"github.com/labstack/echo"
 	"io"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"laatoosdk/utils"
 	"math/rand"
 	"strconv"
@@ -30,7 +29,7 @@ const (
 //Environment hosting an application
 type ImageService struct {
 	fileServiceName string
-	fileService     service.Service
+	fileService     core.Service
 	conf            map[string]interface{}
 }
 
@@ -41,7 +40,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func ImageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func ImageServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, IMAGE_LOGGING_CONTEXT, "Creating image service")
 	svc := &ImageService{}
 	svc.conf = conf
@@ -56,7 +55,7 @@ func ImageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interf
 	}
 	svc.fileServiceName = filesvcInt.(string)
 
-	router := routerInt.(*echo.Group)
+	router := routerInt.(core.Router)
 
 	//get a map of all the pages
 	displayModesInt, ok := conf[CONF_DISP_MODES]
@@ -87,9 +86,9 @@ func ImageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interf
 			transformer := svc.getTransformationMethod(ctx, oper, height, width)
 			defaultImgArr := svc.getDefaultImageArray(ctx, defaultInt)
 			log.Logger.Info(ctx, IMAGE_LOGGING_CONTEXT, "defaultImgArr", "name", name, "defaultImgArr", defaultImgArr)
-			router.Get(url, func(reqctx *echo.Context) error {
-				log.Logger.Info(ctx, IMAGE_LOGGING_CONTEXT, "narray check", "name", name, "defaultImgArr", defaultImgArr)
-				srcpath := reqctx.P(0)
+			router.Get(ctx, url, dispModeConf, func(reqctx core.Context) error {
+				log.Logger.Trace(reqctx, IMAGE_LOGGING_CONTEXT, "narray check", "name", name)
+				srcpath := reqctx.ParamByIndex(0)
 				if len(srcpath) > 0 {
 					log.Logger.Trace(reqctx, IMAGE_LOGGING_CONTEXT, "request", "url", url, "reqctx", reqctx, "srcpath", srcpath)
 					returl, err := svc.fileService.Execute(reqctx, "TransformFile", map[string]interface{}{"srcpath": srcpath, "destfolder": name, "transformation": transformer})
@@ -97,7 +96,7 @@ func ImageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interf
 						return svc.handleDefaultImage(reqctx, defaultImgArr)
 					}
 					log.Logger.Trace(reqctx, IMAGE_LOGGING_CONTEXT, "requestcomplete", "returl", returl)
-					return reqctx.Redirect(303, returl.(string))
+					return reqctx.Redirect(301, returl.(string))
 				}
 				return svc.handleDefaultImage(reqctx, defaultImgArr)
 			})
@@ -116,9 +115,8 @@ func (svc *ImageService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *ImageService) Initialize(ctx *echo.Context) error {
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	fileService, err := svcenv.GetService(ctx, svc.fileServiceName)
+func (svc *ImageService) Initialize(ctx core.Context) error {
+	fileService, err := ctx.GetService(svc.fileServiceName)
 	if err != nil {
 		return errors.RethrowError(ctx, IMAGE_ERROR_MISSING_FILESVC, err)
 	}
@@ -127,21 +125,21 @@ func (svc *ImageService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *ImageService) Serve(ctx *echo.Context) error {
+func (svc *ImageService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *ImageService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *ImageService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *ImageService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-func (svc *ImageService) getDefaultImageArray(ctx *echo.Context, defaultImageInt interface{}) *[]string {
+func (svc *ImageService) getDefaultImageArray(ctx core.Context, defaultImageInt interface{}) *[]string {
 	array := &[]string{}
 	if defaultImageInt == nil {
 		return array
@@ -164,7 +162,7 @@ func (svc *ImageService) getDefaultImageArray(ctx *echo.Context, defaultImageInt
 	return &([]string{defaultImage})
 }
 
-func (svc *ImageService) getTransformationMethod(ctx *echo.Context, oper string, height int, width int) utils.FileTransform {
+func (svc *ImageService) getTransformationMethod(ctx core.Context, oper string, height int, width int) utils.FileTransform {
 	var transformer utils.FileTransform
 	transformer = func(reader io.Reader, writer io.Writer) error {
 		img, format, err := imaging.Decode(reader)
@@ -213,14 +211,14 @@ func (svc *ImageService) getTransformationMethod(ctx *echo.Context, oper string,
 	return transformer
 }
 
-func (svc *ImageService) handleDefaultImage(ctx *echo.Context, arr *[]string) error {
+func (svc *ImageService) handleDefaultImage(ctx core.Context, arr *[]string) error {
 	defaultImageArr := *arr
 	length := len(defaultImageArr)
 	if length == 0 {
 		return ctx.NoContent(404)
 	}
 	randImage := defaultImageArr[rand.Intn(length)]
-	return ctx.Redirect(303, randImage)
+	return ctx.Redirect(301, randImage)
 }
 
 func getFormat(format string) imaging.Format {

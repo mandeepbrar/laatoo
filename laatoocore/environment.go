@@ -4,15 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/labstack/echo"
-	"github.com/rs/cors"
 	"io/ioutil"
 	"laatoosdk/auth"
 	"laatoosdk/config"
-	"laatoosdk/context"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"laatoosdk/utils"
 	"net/http"
 	"reflect"
@@ -23,7 +21,6 @@ const (
 	CONF_ENV_SERVICENAME = "servicename"
 	CONF_ENVPATH         = "settings.path"
 	CONF_ENV_USER        = "settings.user_object"
-	CONF_ENV_CORSHOSTS   = "settings.corshosts"
 	CONF_ENV_ROLE        = "settings.role_object"
 	//header set by the service
 	CONF_ENV_AUTHHEADER = "settings.auth_header"
@@ -49,18 +46,19 @@ const (
 	CONF_PERMISSIONS_API    = "settings.authorization.permissionsapi"
 	CONF_API_PUBKEY         = "settings.authorization.pubkey"
 	CONF_API_DOMAIN         = "settings.authorization.domain"
+	CONF_SERVICE_CORSHOSTS  = "corshosts"
 )
 
 //Environment hosting an application
 type Environment struct {
 	//router used by the environment
-	Router *echo.Group
+	Router core.Router
 	//environment config
 	Config config.Config
 	//store for services in an environment
-	ServicesStore map[string]service.Service
+	ServicesStore map[string]core.Service
 	//pubsub service reference for publishing and receiving messages
-	CommunicationService service.PubSub
+	CommunicationService core.PubSub
 	//header used for authentication tokens
 	AuthHeader string
 	//name of the environment
@@ -84,9 +82,9 @@ type Environment struct {
 }
 
 //creates a new environment
-func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo.Echo, serverType string) (*Environment, error) {
+func newEnvironment(ctx *Context, envName string, conf string, router *echo.Echo, serverType string) (*Environment, error) {
 	env := &Environment{Name: envName, ServerType: serverType}
-	ctx.Set(CONF_ENV_CONTEXT, env)
+	ctx.environment = env
 	//default admin role
 	env.AdminRole = "Admin"
 
@@ -96,7 +94,7 @@ func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo
 	//map containing roles and permissions
 	env.RolePermissions = make(map[string]bool)
 	//store of all services
-	env.ServicesStore = make(map[string]service.Service, 30)
+	env.ServicesStore = make(map[string]core.Service, 30)
 	//read config for standalone
 	env.Config = config.NewConfigFromFile(conf)
 
@@ -109,7 +107,7 @@ func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo
 		env.AuthHeader = authTokenInt
 	}
 
-	env.Router = router.Group(envPath)
+	env.Router = &Router{eRouter: router.Group(envPath), environment: env}
 	//create all services in the environment
 	if err := env.createServices(ctx); err != nil {
 		return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err, envName)
@@ -118,7 +116,7 @@ func newEnvironment(ctx *echo.Context, envName string, conf string, router *echo
 }
 
 //create services within an environment
-func (env *Environment) createServices(ctx *echo.Context) error {
+func (env *Environment) createServices(ctx *Context) error {
 
 	//check if user service name to be used has been provided, otherwise set default name
 	roleObject := env.Config.GetString(CONF_ENV_ROLE)
@@ -159,7 +157,7 @@ func (env *Environment) createServices(ctx *echo.Context) error {
 }
 
 //this method creates a service with a given configuration
-func (env *Environment) createService(ctx *echo.Context, alias string, conf interface{}) (service.Service, error) {
+func (env *Environment) createService(ctx *Context, alias string, conf interface{}) (core.Service, error) {
 
 	//get the config for the service with given alias
 	serviceConfig := conf.(map[string]interface{})
@@ -186,44 +184,7 @@ func (env *Environment) createService(ctx *echo.Context, alias string, conf inte
 	svcBindPath, ok := serviceConfig[CONF_SERVICE_BINDPATH]
 	if ok {
 		//router to be passed in the configuration
-		router := env.Router.Group(svcBindPath.(string))
-		_, ok := serviceConfig[CONF_SERVICE_USECORS]
-		if ok {
-			corsHostsInt := env.Config.GetArray(CONF_ENV_CORSHOSTS)
-			if corsHostsInt != nil {
-				allowedOrigins := make([]string, len(corsHostsInt))
-				i := 0
-				for _, k := range corsHostsInt {
-					allowedOrigins[i] = k.(string)
-					i++
-				}
-				corsMw := cors.New(cors.Options{
-					AllowedOrigins:   allowedOrigins,
-					AllowedHeaders:   []string{"*"},
-					ExposedHeaders:   []string{env.AuthHeader},
-					AllowCredentials: true,
-				}).Handler
-				log.Logger.Info(ctx, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
-				router.Use(corsMw)
-			}
-		}
-
-		bypassauth := false
-		//authentication required by default unless explicitly turned off
-		bypassauthInt, ok := serviceConfig[CONF_SERVICE_AUTHBYPASS]
-		if ok {
-			bypassauth = (bypassauthInt == "true")
-		}
-		env.setupAuthMiddleware(ctx, router, bypassauth)
-
-		//provide environment context to every request using middleware
-		router.Use(func(ctx *echo.Context) error {
-			ctx.Set(CONF_ENV_CONTEXT, env)
-			if bypassauth {
-				ctx.Set(CONF_SERVICE_AUTHBYPASS, true)
-			}
-			return nil
-		})
+		router := env.Router.Group(ctx, svcBindPath.(string), serviceConfig)
 
 		serviceConfig[CONF_ENV_ROUTER] = router
 	}
@@ -234,12 +195,12 @@ func (env *Environment) createService(ctx *echo.Context, alias string, conf inte
 		return nil, errors.RethrowError(ctx, CORE_ERROR_SERVICE_CREATION, err, "Alias", alias)
 	}
 	//put the created service in the store
-	svc := svcInt.(service.Service)
+	svc := svcInt.(core.Service)
 	return svc, nil
 }
 
 //Initialize an environment
-func (env *Environment) InitializeEnvironment(ctx *echo.Context) error {
+func (env *Environment) InitializeEnvironment(ctx *Context) error {
 
 	commSvc := env.Config.GetString(CONF_ENV_COMMSVC)
 	if len(commSvc) > 0 {
@@ -247,7 +208,7 @@ func (env *Environment) InitializeEnvironment(ctx *echo.Context) error {
 		if !ok {
 			return errors.ThrowError(ctx, CORE_ERROR_SERVICE_NOT_FOUND, "Communication Service", commSvc)
 		}
-		env.CommunicationService = svcInt.(service.PubSub)
+		env.CommunicationService = svcInt.(core.PubSub)
 	}
 
 	cacheSvc := env.Config.GetString(CONF_ENV_CACHESVC)
@@ -273,13 +234,13 @@ func (env *Environment) InitializeEnvironment(ctx *echo.Context) error {
 }
 
 //Provides the service reference by alias
-func (env *Environment) GetService(ctx *echo.Context, alias string) (service.Service, error) {
+func (env *Environment) GetService(ctx *Context, alias string) (core.Service, error) {
 	//get the service for the alias
 	svcInt, ok := env.ServicesStore[alias]
 	if !ok {
 		return nil, errors.ThrowError(ctx, CORE_ERROR_SERVICE_NOT_FOUND, "Service Alias", alias)
 	}
-	svc, _ := svcInt.(service.Service)
+	svc, _ := svcInt.(core.Service)
 	return svc, nil
 }
 
@@ -304,7 +265,7 @@ func (env *Environment) GetConfig() config.Config {
 }
 
 //start services
-func (env *Environment) StartEnvironment(ctx *echo.Context) error {
+func (env *Environment) StartEnvironment(ctx *Context) error {
 	log.Logger.Info(ctx, "core.env", "Starting environment", "Env Name", env.Name)
 
 	err := env.subscribeTopics(ctx)
@@ -322,7 +283,7 @@ func (env *Environment) StartEnvironment(ctx *echo.Context) error {
 	*/
 	//iterate through all the services
 	for alias, svc := range env.ServicesStore {
-		//svc := svcInt.(service.Service)
+		//svc := svcInt.(core.Service)
 		//start service
 		if err := svc.Serve(ctx); err != nil {
 			return errors.RethrowError(ctx, CORE_ERROR_SERVICE_NOT_STARTED, err, "Service Alias", alias)
@@ -336,7 +297,7 @@ func (env *Environment) GetCache() data.Cache {
 }
 
 //load role permissions if needed from another environment
-func (env *Environment) loadRolePermissions(ctx *echo.Context) error {
+func (env *Environment) loadRolePermissions(ctx *Context) error {
 	//check the authenticatino mode
 	mode := env.Config.GetString(CONF_AUTH_MODE)
 	if mode == CONF_AUTH_MODE_REMOTE {
@@ -353,7 +314,7 @@ func (env *Environment) loadRolePermissions(ctx *echo.Context) error {
 		if err != nil {
 			return err
 		}
-		client := context.HttpClient(ctx)
+		client := ctx.HttpClient()
 		form := &KeyAuth{Key: key}
 		load, _ := json.Marshal(form)
 		resp, err := client.Post(apiauth, "application/json", bytes.NewBuffer(load))

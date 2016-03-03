@@ -1,13 +1,12 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"net/http"
 )
 
@@ -31,7 +30,7 @@ type RegistrationService struct {
 	//data service to use for users
 	UserDataService data.DataService
 	//router to be used by the service. provided by the environment
-	Router *echo.Group
+	Router core.Router
 }
 
 //Initialize service, register provider with laatoo
@@ -40,13 +39,12 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func RegistrationServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func RegistrationServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating registration service ")
 	svc := &RegistrationService{}
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 
 	svc.DefaultRole = conf[CONF_DEF_ROLE].(string)
-	svc.UserObject = svcenv.GetVariable(laatoocore.CONF_ENV_USER).(string)
+	svc.UserObject = ctx.GetVariable(laatoocore.CONF_ENV_USER).(string)
 	svc.userDataSvcName = conf[CONF_REGISTRATIONSERVICE_USERDATASERVICE].(string)
 
 	//set the router object from configuration
@@ -54,8 +52,8 @@ func RegistrationServiceFactory(ctx *echo.Context, conf map[string]interface{}) 
 	if !ok {
 		return nil, errors.ThrowError(ctx, AUTH_ERROR_MISSING_ROUTER)
 	}
-	svc.Router = routerInt.(*echo.Group)
-	svc.Router.Post("", func(ctx *echo.Context) error {
+	svc.Router = routerInt.(core.Router)
+	svc.Router.Post(ctx, "", conf, func(ctx core.Context) error {
 		ent, err := laatoocore.CreateEmptyObject(ctx, svc.UserObject)
 		if err != nil {
 			return err
@@ -90,12 +88,11 @@ func (svc *RegistrationService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *RegistrationService) Initialize(ctx *echo.Context) error {
+func (svc *RegistrationService) Initialize(ctx core.Context) error {
 	//setup the user data service from the context
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 
 	if svc.userDataSvcName != "" {
-		userService, err := svcenv.GetService(ctx, svc.userDataSvcName)
+		userService, err := ctx.GetService(svc.userDataSvcName)
 		if err != nil {
 			return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 		}
@@ -114,16 +111,16 @@ func (svc *RegistrationService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *RegistrationService) Serve(ctx *echo.Context) error {
+func (svc *RegistrationService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *RegistrationService) GetServiceType() string {
-	return service.SERVICE_TYPE_APP
+	return core.SERVICE_TYPE_APP
 }
 
 //Execute method
-func (svc *RegistrationService) Execute(reqContext *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *RegistrationService) Execute(reqContext core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

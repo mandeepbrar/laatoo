@@ -7,10 +7,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/labstack/echo"
 	"io/ioutil"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 )
@@ -26,13 +26,13 @@ type keyAuthType struct {
 	//reference to the main auth service
 	securityService *SecurityService
 	//method called in case of callback
-	authCallback echo.HandlerFunc
+	authCallback core.HandlerFunc
 	pvtKeyPath   string
 	domains      map[string]interface{}
 }
 
 //method called for creating new auth type
-func NewKeyAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
+func NewKeyAuth(ctx core.Context, conf map[string]interface{}, svc *SecurityService) (*keyAuthType, error) {
 	//create the new auth type
 	keyauth := &keyAuthType{}
 
@@ -52,17 +52,17 @@ func NewKeyAuth(ctx *echo.Context, conf map[string]interface{}, svc *SecuritySer
 }
 
 //initialize auth type called by base auth for initializing
-func (keyauth *keyAuthType) InitializeType(ctx *echo.Context, authStart echo.HandlerFunc, authCallback echo.HandlerFunc) error {
+func (keyauth *keyAuthType) InitializeType(ctx core.Context, authStart core.HandlerFunc, authCallback core.HandlerFunc) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Settingup Api Auth")
 	//setup path for listening to login post request
-	keyauth.securityService.Router.Post(CONF_AUTHSERVICE_KEYPATH, authStart)
+	keyauth.securityService.Router.Post(ctx, CONF_AUTHSERVICE_KEYPATH, map[string]interface{}{}, authStart)
 	keyauth.authCallback = authCallback
 	return nil
 }
 
 //validate the local user
 //derive the data from context object
-func (keyauth *keyAuthType) ValidateUser(ctx *echo.Context) error {
+func (keyauth *keyAuthType) ValidateUser(ctx core.Context) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "keyauth: Validating Credentials")
 
 	if keyauth.domains == nil {
@@ -111,7 +111,7 @@ func (keyauth *keyAuthType) GetName() string {
 }
 
 //complete authentication
-func (keyauth *keyAuthType) CompleteAuthentication(ctx *echo.Context) error {
+func (keyauth *keyAuthType) CompleteAuthentication(ctx core.Context) error {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "keyAuthProvider: Authentication Successful")
 	return nil
 }

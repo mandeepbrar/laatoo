@@ -1,14 +1,13 @@
 package laatoodata
 
 import (
-	"github.com/labstack/echo"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"reflect"
 )
 
@@ -30,7 +29,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_MONGO_SERVICENAME, MongoServiceFactory)
 }
 
-func MongoServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func MongoServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	connectionStringInt, ok := conf[CONF_MONGO_CONNECTIONSTRING]
 	if !ok {
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_CONNECTION_STRING)
@@ -67,7 +66,7 @@ func (ms *mongoDataService) GetDataServiceType() string {
 }
 
 func (ms *mongoDataService) GetServiceType() string {
-	return service.SERVICE_TYPE_DATA
+	return core.SERVICE_TYPE_DATA
 }
 
 //name of the service
@@ -76,16 +75,16 @@ func (svc *mongoDataService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *mongoDataService) Initialize(ctx *echo.Context) error {
+func (svc *mongoDataService) Initialize(ctx core.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *mongoDataService) Serve(ctx *echo.Context) error {
+func (svc *mongoDataService) Serve(ctx core.Context) error {
 	return nil
 }
 
-func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item interface{}) error {
+func (ms *mongoDataService) Save(ctx core.Context, objectType string, item interface{}) error {
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving object", "Object", objectType)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -107,7 +106,7 @@ func (ms *mongoDataService) Save(ctx *echo.Context, objectType string, item inte
 	return nil
 }
 
-func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids []string, items interface{}) error {
+func (ms *mongoDataService) PutMulti(ctx core.Context, objectType string, ids []string, items interface{}) error {
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving multiple objects", "ObjectType", objectType)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -137,7 +136,7 @@ func (ms *mongoDataService) PutMulti(ctx *echo.Context, objectType string, ids [
 	return nil
 }
 
-func (ms *mongoDataService) Put(ctx *echo.Context, objectType string, id string, item interface{}) error {
+func (ms *mongoDataService) Put(ctx core.Context, objectType string, id string, item interface{}) error {
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Putting object", "ObjectType", objectType, "id", id)
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
@@ -158,7 +157,7 @@ func (ms *mongoDataService) Put(ctx *echo.Context, objectType string, id string,
 	return nil
 }
 
-func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id string) (interface{}, error) {
+func (ms *mongoDataService) GetById(ctx core.Context, objectType string, id string) (interface{}, error) {
 	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil, err
@@ -189,7 +188,7 @@ func (ms *mongoDataService) GetById(ctx *echo.Context, objectType string, id str
 }
 
 //Get multiple objects by id
-func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids []string, orderBy string) (map[string]interface{}, error) {
+func (ms *mongoDataService) GetMulti(ctx core.Context, objectType string, ids []string, orderBy string) (map[string]interface{}, error) {
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
@@ -236,7 +235,7 @@ func (ms *mongoDataService) GetMulti(ctx *echo.Context, objectType string, ids [
 	return retVal, nil
 }
 
-func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) Get(ctx core.Context, objectType string, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
 	results, err := laatoocore.CreateCollection(ctx, objectType)
@@ -284,7 +283,7 @@ func (ms *mongoDataService) Get(ctx *echo.Context, objectType string, queryCond 
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Delete(ctx *echo.Context, objectType string, id string) error {
+func (ms *mongoDataService) Delete(ctx core.Context, objectType string, id string) error {
 	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil
@@ -302,7 +301,7 @@ func (ms *mongoDataService) Delete(ctx *echo.Context, objectType string, id stri
 	return connCopy.DB(ms.database).C(collection).Remove(condition)
 }
 
-func (ms *mongoDataService) GetList(ctx *echo.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) GetList(ctx core.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
 	results, err := laatoocore.CreateCollection(ctx, objectType)
@@ -344,6 +343,6 @@ func (ms *mongoDataService) GetList(ctx *echo.Context, objectType string, pageSi
 }
 
 //Execute method
-func (svc *mongoDataService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *mongoDataService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

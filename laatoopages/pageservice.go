@@ -1,11 +1,10 @@
 package laatoopages
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	//"net/http"
 )
 
@@ -27,7 +26,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func PageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func PageServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating page service")
 	svc := &PageService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -38,7 +37,7 @@ func PageServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 	if !ok {
 		return nil, errors.ThrowError(ctx, PAGE_ERROR_MISSING_PAGESDIR)
 	}
-	router := routerInt.(*echo.Group)
+	router := routerInt.(core.Router)
 
 	//get a map of all the pages
 	pagesInt, ok := conf[CONF_PAGE_PAGES]
@@ -78,7 +77,7 @@ func (svc *PageService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *PageService) Initialize(ctx *echo.Context) error {
+func (svc *PageService) Initialize(ctx core.Context) error {
 	/*	actionSvcInt, err := ctx.GetService(svc.actionSvcName)
 		if err != nil {
 			return errors.ThrowError(PAGE_ERROR_ACTIONSVC_NOT_PROVIDED)
@@ -88,16 +87,16 @@ func (svc *PageService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *PageService) Serve(ctx *echo.Context) error {
+func (svc *PageService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *PageService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *PageService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *PageService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

@@ -4,9 +4,8 @@ package log
 
 import (
 	"bytes"
-	"github.com/labstack/echo"
 	glog "google.golang.org/appengine/log"
-	"laatoosdk/context"
+	"laatoosdk/core"
 	logxi "logxi/v1"
 	"os"
 )
@@ -19,22 +18,22 @@ type StandaloneLogger struct {
 	logger logxi.Logger
 }
 
-func (log *StandaloneLogger) Trace(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Trace(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Trace(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Debug(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Debug(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Debug(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Info(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Info(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Info(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Warn(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Warn(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Warn(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Error(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Error(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Error(reqContext, msg, loggingCtx, args...)
 }
-func (log *StandaloneLogger) Fatal(reqContext *echo.Context, loggingCtx string, msg string, args ...interface{}) {
+func (log *StandaloneLogger) Fatal(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, msg, loggingCtx, args...)
 }
 
@@ -71,22 +70,24 @@ type AppEngineHandler struct {
 }
 
 func (ah *AppEngineHandler) WriteLog(ctx interface{}, loggingCtx string, buf *bytes.Buffer, level int, msg string, args []interface{}) {
-	ectx, _ := ctx.(*echo.Context)
-	appengineContext := context.GetAppengineContext(ectx)
-	if appengineContext != nil {
-		switch level {
-		case logxi.LevelTrace:
-			glog.Debugf(appengineContext, buf.String())
-		case logxi.LevelDebug:
-			glog.Debugf(appengineContext, buf.String())
-		case logxi.LevelInfo:
-			glog.Infof(appengineContext, buf.String())
-		case logxi.LevelWarn:
-			glog.Warningf(appengineContext, buf.String())
-		default:
-			glog.Errorf(appengineContext, buf.String())
+	if ctx != nil {
+		ectx, _ := ctx.(core.Context)
+		appengineContext := ectx.GetAppengineContext()
+		if appengineContext != nil {
+			switch level {
+			case logxi.LevelTrace:
+				glog.Debugf(appengineContext, buf.String())
+			case logxi.LevelDebug:
+				glog.Debugf(appengineContext, buf.String())
+			case logxi.LevelInfo:
+				glog.Infof(appengineContext, buf.String())
+			case logxi.LevelWarn:
+				glog.Warningf(appengineContext, buf.String())
+			default:
+				glog.Errorf(appengineContext, buf.String())
+			}
+		} else {
+			buf.WriteTo(os.Stderr)
 		}
-	} else {
-		buf.WriteTo(os.Stderr)
 	}
 }

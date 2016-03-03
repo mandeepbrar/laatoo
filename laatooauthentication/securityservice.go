@@ -1,13 +1,12 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"net/http"
 )
 
@@ -49,7 +48,7 @@ type SecurityService struct {
 	//data service to use for users
 	UserDataService data.DataService
 	//router to be used by the service. provided by the environment
-	Router *echo.Group
+	Router core.Router
 	//login path for the applicaton
 	LoginPath string
 	//logout path for the application
@@ -72,10 +71,9 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func SecurityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func SecurityServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating auth service with alias")
 	svc := &SecurityService{}
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 	//store configuration object
 	svc.Configuration = conf
 	svc.AuthTypes = make(map[string]AuthType, 5)
@@ -101,21 +99,21 @@ func SecurityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (int
 	}
 
 	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	svc.JWTSecret, _ = svcenv.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
+	svc.JWTSecret, _ = ctx.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
 
 	//check if auth header to be set has been provided, otherwise set default token
-	svc.AuthHeader, _ = svcenv.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
+	svc.AuthHeader, _ = ctx.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
 
-	svc.AdminRole = svcenv.GetVariable(laatoocore.CONF_ENV_ADMINROLE).(string)
-	svc.UserObject = svcenv.GetVariable(laatoocore.CONF_ENV_USER).(string)
-	svc.RoleObject = svcenv.GetVariable(laatoocore.CONF_ENV_ROLE).(string)
+	svc.AdminRole = ctx.GetVariable(laatoocore.CONF_ENV_ADMINROLE).(string)
+	svc.UserObject = ctx.GetVariable(laatoocore.CONF_ENV_USER).(string)
+	svc.RoleObject = ctx.GetVariable(laatoocore.CONF_ENV_ROLE).(string)
 
 	//set the router object from configuration
 	routerInt, ok := svc.Configuration[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
 		return nil, errors.ThrowError(ctx, AUTH_ERROR_MISSING_ROUTER)
 	}
-	svc.Router = routerInt.(*echo.Group)
+	svc.Router = routerInt.(core.Router)
 
 	//local auth is enabled, set local auth type
 	if svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODALL || svc.AuthMode == CONF_SECURITYSERVICE_AUTHMODELOCAL {
@@ -139,7 +137,7 @@ func SecurityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (int
 	}
 
 	//register logout route
-	svc.Router.Get(svc.LogoutPath, svc.Logout)
+	svc.Router.Get(ctx, svc.LogoutPath, nil, svc.Logout)
 
 	permissionsPath := "/permissions"
 	//get the permissions path for the application
@@ -148,7 +146,7 @@ func SecurityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (int
 		permissionsPath = permissionsPathInt.(string)
 	}
 
-	svc.Router.Get(permissionsPath, func(ctx *echo.Context) error {
+	svc.Router.Get(ctx, permissionsPath, svc.Configuration, func(ctx core.Context) error {
 		return ctx.JSON(http.StatusOK, svc.Permissions)
 	})
 
@@ -162,15 +160,14 @@ func (svc *SecurityService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *SecurityService) Initialize(ctx *echo.Context) error {
+func (svc *SecurityService) Initialize(ctx core.Context) error {
 	//setup the user data service from the context
 	userDataInt, ok := svc.Configuration[CONF_SECURITYSERVICE_USERDATASERVICE]
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
 
 	if ok {
 		//get the name of the data service to be used for accessing users database
 		svcAlias := userDataInt.(string)
-		userService, err := svcenv.GetService(ctx, svcAlias)
+		userService, err := ctx.GetService(svcAlias)
 		if err != nil {
 			return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 		}
@@ -189,7 +186,7 @@ func (svc *SecurityService) Initialize(ctx *echo.Context) error {
 }
 
 //The service starts serving when this method is called
-func (svc *SecurityService) Serve(ctx *echo.Context) error {
+func (svc *SecurityService) Serve(ctx core.Context) error {
 	seedUserInt, ok := svc.Configuration[CONF_SECURITYSERVICE_SEEDUSER]
 	if ok {
 		seedUserConf := seedUserInt.(map[string]interface{})
@@ -214,11 +211,11 @@ func (svc *SecurityService) Serve(ctx *echo.Context) error {
 
 //Type of service
 func (svc *SecurityService) GetServiceType() string {
-	return service.SERVICE_TYPE_APP
+	return core.SERVICE_TYPE_APP
 }
 
 //Execute method
-func (svc *SecurityService) Execute(reqContext *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *SecurityService) Execute(reqContext core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	switch name {
 	case "GetPermissions":
 		return svc.Permissions, nil

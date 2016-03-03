@@ -1,30 +1,30 @@
 package laatoocore
 
 import (
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 )
 
 var (
 	//listeners for pubsub topics
-	topicListeners = make(map[string][]service.TopicListener)
+	topicListeners = make(map[string][]core.TopicListener)
 )
 
 //subscribe to a topic
-func (env *Environment) SubscribeTopic(ctx *echo.Context, topic string, handler service.TopicListener) {
+func (env *Environment) SubscribeTopic(ctx core.Context, topic string, handler core.TopicListener) error {
 	log.Logger.Info(ctx, "core.pubsub", "Subscribing topic", "topicListeners", topicListeners, "topic", topic)
 	listeners, prs := topicListeners[topic]
 	if !prs {
-		listeners = []service.TopicListener{}
+		listeners = []core.TopicListener{}
 	}
 	topicListeners[topic] = append(listeners, handler)
 	log.Logger.Trace(ctx, "core.pubsub", "Subscribed topic", "topicListeners", topicListeners, "topic", topic)
+	return nil
 }
 
 //publish message using
-func (env *Environment) PublishMessage(ctx *echo.Context, topic string, message interface{}) error {
+func (env *Environment) PublishMessage(ctx core.Context, topic string, message interface{}) error {
 	if env.CommunicationService != nil {
 		log.Logger.Trace(ctx, "core.pubsub", "posting message")
 		return env.CommunicationService.Publish(ctx, topic, message)
@@ -32,7 +32,7 @@ func (env *Environment) PublishMessage(ctx *echo.Context, topic string, message 
 	return errors.ThrowError(ctx, CORE_ERROR_NOCOMMSVC)
 }
 
-func (env *Environment) subscribeTopics(ctx *echo.Context) error {
+func (env *Environment) subscribeTopics(ctx core.Context) error {
 	if env.CommunicationService != nil {
 		topics := make([]string, len(topicListeners))
 		i := 0
@@ -41,15 +41,15 @@ func (env *Environment) subscribeTopics(ctx *echo.Context) error {
 			i++
 		}
 		log.Logger.Trace(ctx, "core.pubsub", "Subscribing topics", "topics", topics)
-		err := env.CommunicationService.Subscribe(ctx, topics, func(ctx *echo.Context, topic string, message interface{}) {
+		env.CommunicationService.Subscribe(ctx, topics, func(ctx core.Context, topic string, message interface{}) {
 			lsnrs := topicListeners[topic]
 			for _, val := range lsnrs {
 				go val(ctx, topic, message)
 			}
 		})
-		if err != nil {
+		/*if err != nil {
 			return err
-		}
+		}*/
 	}
 	return nil
 }

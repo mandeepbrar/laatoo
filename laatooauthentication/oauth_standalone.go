@@ -3,11 +3,11 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
-	"golang.org/x/net/context"
+	glctx "golang.org/x/net/context"
 	"golang.org/x/oauth2"
+	"laatoosdk/core"
 )
 
-func GetOAuthContext(ctx *echo.Context) context.Context {
+func GetOAuthContext(ctx core.Context) glctx.Context {
 	return oauth2.NoContext
 }

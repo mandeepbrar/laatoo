@@ -1,8 +1,8 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 )
 
 type Role struct {
@@ -26,13 +26,13 @@ func (r *Role) GetPermissions() []string {
 func (r *Role) SetPermissions(permissions []string) {
 	r.Permissions = permissions
 }
-func (ent *Role) PreSave(ctx *echo.Context) error {
+func (ent *Role) PreSave(ctx core.Context) error {
 	return nil
 }
-func (ent *Role) PostSave(ctx *echo.Context) error {
+func (ent *Role) PostSave(ctx core.Context) error {
 	return nil
 }
-func (ent *Role) PostLoad(ctx *echo.Context) error {
+func (ent *Role) PostLoad(ctx core.Context) error {
 	return nil
 }
 
@@ -40,6 +40,6 @@ func init() {
 	laatoocore.RegisterObjectProvider(laatoocore.DEFAULT_ROLE, CreateRole)
 }
 
-func CreateRole(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func CreateRole(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	return &Role{}, nil
 }

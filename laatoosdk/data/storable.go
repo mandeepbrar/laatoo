@@ -1,16 +1,16 @@
 package data
 
 import (
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 )
 
 //Object stored by data service
 type Storable interface {
 	GetId() string
 	SetId(string)
-	PreSave(ctx *echo.Context) error
-	PostSave(ctx *echo.Context) error
-	PostLoad(ctx *echo.Context) error
+	PreSave(ctx core.Context) error
+	PostSave(ctx core.Context) error
+	PostLoad(ctx core.Context) error
 	GetIdField() string
 }
 

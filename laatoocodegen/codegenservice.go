@@ -1,11 +1,10 @@
 package laatoocodegen
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 )
 
 const (
@@ -23,14 +22,14 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func CodegenServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func CodegenServiceFactory(ctx *core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating static service")
 	svc := &CodegenService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	if !ok {
 		return nil, errors.ThrowError(ctx, CODEGEN_ERROR_MISSING_ROUTER)
 	}
-	router := routerInt.(*echo.Group)
+	router := routerInt.(core.Router)
 
 	return svc, nil
 }
@@ -41,21 +40,21 @@ func (svc *CodegenService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *CodegenService) Initialize(ctx service.ServiceContext) error {
+func (svc *CodegenService) Initialize(ctx *core.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *CodegenService) Serve(ctx *echo.Context) error {
+func (svc *CodegenService) Serve(ctx *core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *CodegenService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *CodegenService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *CodegenService) Execute(ctx *core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

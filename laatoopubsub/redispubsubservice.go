@@ -2,12 +2,11 @@ package laatoopubsub
 
 import (
 	"github.com/garyburd/redigo/redis"
-	"github.com/labstack/echo"
 	"laatoocore"
 	//	"laatoosdk/errors"
 	"encoding/json"
+	"laatoosdk/core"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"time"
 )
 
@@ -30,7 +29,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_REDISPUBSUB_NAME, RedisPubSubServiceFactory)
 }
 
-func RedisPubSubServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func RedisPubSubServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating redis pubsub service ")
 	redisSvc := &RedisPubSubService{name: CONF_REDISPUBSUB_NAME}
 
@@ -79,7 +78,7 @@ func RedisPubSubServiceFactory(ctx *echo.Context, conf map[string]interface{}) (
 }
 
 func (svc *RedisPubSubService) GetServiceType() string {
-	return service.SERVICE_TYPE_DATA
+	return core.SERVICE_TYPE_DATA
 }
 
 //name of the service
@@ -88,16 +87,16 @@ func (svc *RedisPubSubService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *RedisPubSubService) Initialize(ctx *echo.Context) error {
+func (svc *RedisPubSubService) Initialize(ctx core.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *RedisPubSubService) Serve(ctx *echo.Context) error {
+func (svc *RedisPubSubService) Serve(ctx core.Context) error {
 	return nil
 }
 
-func (svc *RedisPubSubService) Publish(ctx *echo.Context, topic string, message interface{}) error {
+func (svc *RedisPubSubService) Publish(ctx core.Context, topic string, message interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	bytes, err := json.Marshal(message)
@@ -113,7 +112,7 @@ func (svc *RedisPubSubService) Publish(ctx *echo.Context, topic string, message 
 	return nil
 }
 
-func (svc *RedisPubSubService) Subscribe(ctx *echo.Context, topics []string, lstnr service.TopicListener) error {
+func (svc *RedisPubSubService) Subscribe(ctx core.Context, topics []string, lstnr core.TopicListener) error {
 	conn := svc.pool.Get()
 	psc := redis.PubSubConn{Conn: conn}
 	for _, topic := range topics {
@@ -138,6 +137,6 @@ func (svc *RedisPubSubService) Subscribe(ctx *echo.Context, topics []string, lst
 }
 
 //Execute method
-func (svc *RedisPubSubService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *RedisPubSubService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

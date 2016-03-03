@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 )
 
 const (
@@ -12,5 +12,5 @@ const (
 )
 
 type View interface {
-	Execute(*echo.Context, DataService) error
+	Execute(core.Context, DataService) error
 }

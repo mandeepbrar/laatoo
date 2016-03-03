@@ -3,15 +3,13 @@
 package laatoocache
 
 import (
-	"github.com/labstack/echo"
 	"laatoocore"
-	"laatoosdk/context"
+	"laatoosdk/core"
 	//	"laatoosdk/errors"
 	"bytes"
 	"encoding/gob"
 	"google.golang.org/appengine/memcache"
 	"laatoosdk/log"
-	"laatoosdk/service"
 )
 
 type AppEngineCacheService struct {
@@ -29,7 +27,7 @@ func init() {
 	laatoocore.RegisterObjectProvider(CONF_APPENGINECACHE_NAME, AppEngineCacheServiceFactory)
 }
 
-func AppEngineCacheServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func AppEngineCacheServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, APPNEGINE_LOGGING_CONTEXT, "Creating appengine cache service ")
 	appengineSvc := &AppEngineCacheService{name: CONF_APPENGINECACHE_NAME}
 
@@ -37,7 +35,7 @@ func AppEngineCacheServiceFactory(ctx *echo.Context, conf map[string]interface{}
 }
 
 func (svc *AppEngineCacheService) GetServiceType() string {
-	return service.SERVICE_TYPE_DATA
+	return core.SERVICE_TYPE_DATA
 }
 
 //name of the service
@@ -46,31 +44,31 @@ func (svc *AppEngineCacheService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *AppEngineCacheService) Initialize(ctx *echo.Context) error {
+func (svc *AppEngineCacheService) Initialize(ctx core.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *AppEngineCacheService) Serve(ctx *echo.Context) error {
+func (svc *AppEngineCacheService) Serve(ctx core.Context) error {
 	return nil
 }
 
-func (svc *AppEngineCacheService) Delete(ctx *echo.Context, key string) error {
-	return memcache.Delete(context.GetAppengineContext(ctx), key)
+func (svc *AppEngineCacheService) Delete(ctx core.Context, key string) error {
+	return memcache.Delete(ctx.GetAppengineContext(), key)
 }
 
-func (svc *AppEngineCacheService) PutObject(ctx *echo.Context, key string, val interface{}) error {
+func (svc *AppEngineCacheService) PutObject(ctx core.Context, key string, val interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(val)
 	if err != nil {
 		return err
 	}
-	return memcache.Set(context.GetAppengineContext(ctx), &memcache.Item{Key: key, Value: buf.Bytes()})
+	return memcache.Set(ctx.GetAppengineContext(), &memcache.Item{Key: key, Value: buf.Bytes()})
 }
 
-func (svc *AppEngineCacheService) GetObject(ctx *echo.Context, key string, val interface{}) error {
-	item, err := memcache.Get(context.GetAppengineContext(ctx), key)
+func (svc *AppEngineCacheService) GetObject(ctx core.Context, key string, val interface{}) error {
+	item, err := memcache.Get(ctx.GetAppengineContext(), key)
 	if err != nil {
 		return err
 	} else {
@@ -83,8 +81,8 @@ func (svc *AppEngineCacheService) GetObject(ctx *echo.Context, key string, val i
 	}
 }
 
-func (svc *AppEngineCacheService) GetMulti(ctx *echo.Context, keys []string, val map[string]interface{}) error {
-	_, err := memcache.GetMulti(context.GetAppengineContext(ctx), keys)
+func (svc *AppEngineCacheService) GetMulti(ctx core.Context, keys []string, val map[string]interface{}) error {
+	_, err := memcache.GetMulti(ctx.GetAppengineContext(), keys)
 	if err != nil {
 		return err
 	} else {
@@ -106,6 +104,6 @@ func (svc *AppEngineCacheService) GetMulti(ctx *echo.Context, keys []string, val
 }
 
 //Execute method
-func (svc *AppEngineCacheService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *AppEngineCacheService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
 }

@@ -3,11 +3,10 @@
 package laatooauthentication
 
 import (
-	"github.com/labstack/echo"
-	"golang.org/x/net/context"
-	appctx "laatoosdk/context"
+	glctx "golang.org/x/net/context"
+	"laatoosdk/core"
 )
 
-func GetOAuthContext(ctx *echo.Context) context.Context {
-	return appctx.GetAppengineContext(ctx)
+func GetOAuthContext(ctx core.Context) glctx.Context {
+	return ctx.GetAppengineContext()
 }

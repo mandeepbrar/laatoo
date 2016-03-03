@@ -4,13 +4,12 @@ package laatoofiles
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"github.com/twinj/uuid"
 	"io"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"laatoosdk/utils"
 	"net/http"
 	"os"
@@ -35,7 +34,7 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func FileServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func FileServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating file service")
 	svc := &FileService{}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
@@ -52,10 +51,10 @@ func FileServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interfa
 	}
 
 	svc.filesUrl = filesurlInt.(string) + "/"
-	router := routerInt.(*echo.Group)
+	router := routerInt.(core.Router)
 	svc.filesDir = filesdirInt.(string) + "/"
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Got files directory", "Name", filesdirInt)
-	router.Post("", svc.processFile)
+	router.Post(ctx, "", conf, svc.processFile)
 	return svc, nil
 }
 
@@ -65,22 +64,22 @@ func (svc *FileService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *FileService) Initialize(ctx *echo.Context) error {
+func (svc *FileService) Initialize(ctx core.Context) error {
 	return nil
 }
 
 //The service starts serving when this method is called
-func (svc *FileService) Serve(ctx *echo.Context) error {
+func (svc *FileService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *FileService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *FileService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *FileService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "here1", "name", name)
 	if name == "CopyFile" {
 		return nil, svc.copyFile(ctx, params["filename"].(string), params["writer"].(io.Writer))
@@ -91,7 +90,7 @@ func (svc *FileService) Execute(ctx *echo.Context, name string, params map[strin
 	return nil, nil
 }
 
-func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfolder string, transform utils.FileTransform) (string, error) {
+func (svc *FileService) transformFile(ctx core.Context, srcpath string, destfolder string, transform utils.FileTransform) (string, error) {
 	pathinfolder, realsrcpath := svc.parsePath(srcpath)
 	destfile := fmt.Sprintf("%s%s/%s", svc.filesDir, destfolder, pathinfolder)
 	request := ctx.Request()
@@ -105,7 +104,7 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 	if err == nil || os.IsExist(err) {
 		return desturl, nil
 	}
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "file does not exist... ", "destfile", destfile, "realsrcpath", realsrcpath, "err", err)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "file does not exist... ", "destfile", destfile, "realsrcpath", realsrcpath, "err", err)
 
 	rd, err := os.Open(realsrcpath)
 	defer rd.Close()
@@ -113,7 +112,7 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 		log.Logger.Info(ctx, LOGGING_CONTEXT, "error opening source file", "realsrcpath", realsrcpath, "err", err)
 		return "", err
 	}
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "realsrcpath", realsrcpath)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "realsrcpath", realsrcpath)
 	destdir, _ := path.Split(destfile)
 	os.MkdirAll(destdir, 0755)
 	writer, err := os.Create(destfile)
@@ -122,7 +121,7 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 		log.Logger.Info(ctx, LOGGING_CONTEXT, "error creating file", "destfile", destfile, "err", err)
 		return "", err
 	}
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "transform", "destfile", destfile, "realsrcpath", realsrcpath)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "transform", "destfile", destfile, "realsrcpath", realsrcpath)
 
 	err = transform(rd, writer)
 	if err != nil {
@@ -132,7 +131,7 @@ func (svc *FileService) transformFile(ctx *echo.Context, srcpath string, destfol
 	return desturl, nil
 }
 
-func (svc *FileService) copyFile(ctx *echo.Context, fileurl string, writer io.Writer) error {
+func (svc *FileService) copyFile(ctx core.Context, fileurl string, writer io.Writer) error {
 	_, realpath := svc.parsePath(fileurl)
 	rd, err := os.Open(realpath)
 	defer rd.Close()
@@ -154,7 +153,7 @@ func (svc *FileService) parsePath(url string) (string, string) {
 	return pathinfolder, fmt.Sprintf("%s%s", svc.filesDir, pathinfolder)
 }
 
-func (svc *FileService) processFile(ctx *echo.Context) error {
+func (svc *FileService) processFile(ctx core.Context) error {
 	req := ctx.Request()
 
 	err := req.ParseMultipartForm(16 << 20) // Max memory 16 MiB

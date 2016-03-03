@@ -1,7 +1,7 @@
 package laatoocore
 
 import (
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/utils"
@@ -20,7 +20,7 @@ var (
 
 //every object that needs to be created by configuration should register a factory func
 //this factory function provides a object if called
-type ObjectFactory func(ctx *echo.Context, conf map[string]interface{}) (interface{}, error)
+type ObjectFactory func(ctx core.Context, conf map[string]interface{}) (interface{}, error)
 
 //register the object factory in the global register
 func RegisterObjectProvider(objectName string, factory ObjectFactory) {
@@ -32,7 +32,7 @@ func RegisterObjectProvider(objectName string, factory ObjectFactory) {
 }
 
 //returns collection type for given object
-func GetCollectionType(ctx *echo.Context, objectName string) (reflect.Type, error) {
+func GetCollectionType(ctx core.Context, objectName string) (reflect.Type, error) {
 	//find the collection type from memory
 	typeInt, err := ObjectCollections.GetObject(objectName)
 
@@ -57,7 +57,7 @@ func GetCollectionType(ctx *echo.Context, objectName string) (reflect.Type, erro
 }
 
 //returns a collection of the object type
-func CreateCollection(ctx *echo.Context, objectName string) (interface{}, error) {
+func CreateCollection(ctx core.Context, objectName string) (interface{}, error) {
 	//get the collection type from registry
 	collectionType, err := GetCollectionType(ctx, objectName)
 	if err != nil {
@@ -69,12 +69,12 @@ func CreateCollection(ctx *echo.Context, objectName string) (interface{}, error)
 }
 
 //returns an object without any config
-func CreateEmptyObject(ctx *echo.Context, objectName string) (interface{}, error) {
+func CreateEmptyObject(ctx core.Context, objectName string) (interface{}, error) {
 	return CreateObject(ctx, objectName, nil)
 }
 
 //Provides an object with a given name
-func CreateObject(ctx *echo.Context, objectName string, confdata map[string]interface{}) (interface{}, error) {
+func CreateObject(ctx core.Context, objectName string, confdata map[string]interface{}) (interface{}, error) {
 	log.Logger.Trace(ctx, "core.objects", "Getting object ", "Object Name", objectName)
 
 	//get the factory func from the register

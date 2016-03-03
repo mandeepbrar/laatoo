@@ -2,8 +2,8 @@ package laatoopages
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"io/ioutil"
+	"laatoosdk/core"
 	"laatoosdk/entities"
 	"laatoosdk/errors"
 	"laatoosdk/log"
@@ -23,7 +23,7 @@ const (
 	CONF_PAGE_TYPE_REDIRECT   = "redirect"
 )
 
-func (svc *PageService) createPage(ctx *echo.Context, conf map[string]interface{}, router *echo.Group, pagesDir string) error {
+func (svc *PageService) createPage(ctx core.Context, conf map[string]interface{}, router core.Router, pagesDir string) error {
 	var pagePath, pageDest string
 	//	pagePerm := ""
 	pageType := CONF_PAGE_TYPE_FILE
@@ -60,7 +60,7 @@ func (svc *PageService) createPage(ctx *echo.Context, conf map[string]interface{
 
 	if pageType == CONF_PAGE_TYPE_FILE {
 		dest := fmt.Sprint(pagesDir, "/", pageDest)
-		router.ServeFile(pagePath, dest)
+		router.ServeFile(ctx, pagePath, conf, dest)
 
 		partialsInt, ok := conf[CONF_PAGE_PARTIALS]
 		var partialPages []*entities.Partial
@@ -98,7 +98,7 @@ func (svc *PageService) createPage(ctx *echo.Context, conf map[string]interface{
 
 		confURL := fmt.Sprint(pagePath, "/conf")
 
-		router.Get(confURL, func(ctx *echo.Context) error {
+		router.Get(ctx, confURL, conf, func(ctx core.Context) error {
 			/*config, err := svc.actionSvc.Execute(CONF_PAGE_GETALLACTIONS_METHOD, nil)
 			if err != nil {
 				return err

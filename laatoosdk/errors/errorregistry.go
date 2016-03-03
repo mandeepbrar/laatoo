@@ -2,7 +2,7 @@ package errors
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
+	"laatoosdk/core"
 	"laatoosdk/log"
 	"runtime/debug"
 )
@@ -28,7 +28,7 @@ var ShowStack = true
 
 //Error handler for interrupting the error process
 //Returns true if the error has been handled
-type ErrorHandler func(ctx *echo.Context, err *Error, info ...interface{}) bool
+type ErrorHandler func(ctx core.Context, err *Error, info ...interface{}) bool
 
 var (
 	//errors register to store all errors in the process
@@ -56,13 +56,13 @@ func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 	ErrorsHandlersRegister[internalErrorCode] = val
 }
 
-func ThrowError(ctx *echo.Context, internalErrorCode string, info ...interface{}) error {
+func ThrowError(ctx core.Context, internalErrorCode string, info ...interface{}) error {
 	return RethrowError(ctx, internalErrorCode, nil, info...)
 }
 
 //throw a registered error code
 //rethrow an error with an internal error code
-func RethrowError(ctx *echo.Context, internalErrorCode string, err error, info ...interface{}) error {
+func RethrowError(ctx core.Context, internalErrorCode string, err error, info ...interface{}) error {
 	registeredErr, ok := ErrorsRegister[internalErrorCode]
 	if !ok {
 		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))

@@ -2,13 +2,12 @@ package laatooentities
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"laatoocore"
+	"laatoosdk/core"
 	"laatoosdk/data"
 	"laatoosdk/entities"
 	"laatoosdk/errors"
 	"laatoosdk/log"
-	"laatoosdk/service"
 	"net/http"
 	"reflect"
 	"strings"
@@ -30,11 +29,10 @@ const (
 
 //Environment hosting an application
 type EntityService struct {
-	serviceEnv      service.Environment
 	EntityName      string
 	dataServiceName string
 	DataStore       data.DataService
-	cache           data.Cache
+	cache           bool
 	viewperm        string
 	createperm      string
 	editperm        string
@@ -47,12 +45,11 @@ func init() {
 }
 
 //factory method returns the service object to the environment
-func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (interface{}, error) {
+func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating entity service")
-	serviceEnv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	svc := &EntityService{serviceEnv: serviceEnv}
+	svc := &EntityService{cache: true}
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
-	router := routerInt.(*echo.Group)
+	router := routerInt.(core.Router)
 
 	//get a map of all the entities
 	entityInt, ok := conf[CONF_ENTITY]
@@ -105,8 +102,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 
 			switch method {
 			case "get":
-				router.Get(path, func(ctx *echo.Context) error {
-					id := ctx.P(0)
+				router.Get(ctx, path, methodConfig, func(ctx core.Context) error {
+					id := ctx.ParamByIndex(0)
 					ent, err := svc.getEntity(ctx, id)
 					if err != nil {
 						return err
@@ -114,8 +111,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					return ctx.JSON(http.StatusOK, ent)
 				})
 			case "getbulk":
-				router.Get(path, func(ctx *echo.Context) error {
-					idsstr := ctx.P(0)
+				router.Get(ctx, path, methodConfig, func(ctx core.Context) error {
+					idsstr := ctx.ParamByIndex(0)
 					ids := strings.Split(idsstr, ",")
 					orderBy := ctx.Param(VIEW_ORDERBY)
 					ents, err := svc.getEntities(ctx, ids, orderBy)
@@ -125,8 +122,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					return ctx.JSON(http.StatusOK, ents)
 				})
 			case "post":
-				router.Post(path, func(ctx *echo.Context) error {
-					if !serviceEnv.IsAllowed(ctx, svc.createperm) {
+				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
+					if !ctx.IsAllowed(svc.createperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					ent, err := laatoocore.CreateEmptyObject(ctx, entityName)
@@ -141,7 +138,7 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					if err != nil {
 						return err
 					}
-					if svc.cache != nil {
+					if svc.cache {
 						stor := ent.(data.Storable)
 						svc.invalidateCache(ctx, stor.GetId())
 					}
@@ -149,7 +146,7 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					return nil
 				})
 			case "put":
-				router.Put(path, func(ctx *echo.Context) error {
+				router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
 					ent, err := laatoocore.CreateEmptyObject(ctx, svc.EntityName)
 					if err != nil {
 						return err
@@ -163,8 +160,8 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					return err
 				})
 			case "putbulk":
-				router.Put(path, func(ctx *echo.Context) error {
-					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
+				router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
+					if !ctx.IsAllowed(svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					arr, err := laatoocore.CreateCollection(ctx, entityName)
@@ -181,27 +178,27 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					return err
 				})
 			case "delete":
-				router.Delete(path, func(ctx *echo.Context) error {
-					if !serviceEnv.IsAllowed(ctx, svc.deleteperm) {
+				router.Delete(ctx, path, methodConfig, func(ctx core.Context) error {
+					if !ctx.IsAllowed(svc.deleteperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
-					id := ctx.P(0)
+					id := ctx.ParamByIndex(0)
 					log.Logger.Debug(ctx, LOGGING_CONTEXT, "Deleting entity", "ID", id)
 					err := svc.DataStore.Delete(ctx, entityName, id)
 					if err != nil {
 						return err
 					}
-					if svc.cache != nil {
+					if svc.cache {
 						svc.invalidateCache(ctx, id)
 					}
 					return nil
 				})
 			case "update":
-				router.Post(path, func(ctx *echo.Context) error {
-					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
+				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
+					if !ctx.IsAllowed(svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
-					id := ctx.P(0)
+					id := ctx.ParamByIndex(0)
 					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating entity", "ID", id)
 					vals := make(map[string]interface{}, 10)
 					err := ctx.Bind(&vals)
@@ -212,22 +209,22 @@ func EntityServiceFactory(ctx *echo.Context, conf map[string]interface{}) (inter
 					if err != nil {
 						return err
 					}
-					if svc.cache != nil {
+					if svc.cache {
 						svc.invalidateCache(ctx, id)
 					}
 					return nil
 				})
 			case "invokeonEntity":
 				//incomplete
-				router.Put(path, func(ctx *echo.Context) error {
+				router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
 					invokeReqInt, ok := methodConfig[CONF_ENTITY_INVOKE]
 					if !ok {
 						return errors.ThrowError(ctx, ENTITY_ERROR_MISSING_INV_METHOD, "Entity", entityName, "Invocation request", name)
 					}
-					if !serviceEnv.IsAllowed(ctx, svc.editperm) {
+					if !ctx.IsAllowed(svc.editperm) {
 						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
-					id := ctx.P(0)
+					id := ctx.ParamByIndex(0)
 					obj, err := svc.getEntity(ctx, id)
 					if err != nil {
 						return err
@@ -251,21 +248,19 @@ func (svc *EntityService) GetName() string {
 }
 
 //Initialize the service. Consumer of a service passes the data
-func (svc *EntityService) Initialize(ctx *echo.Context) error {
-	svcenv := ctx.Get(laatoocore.CONF_ENV_CONTEXT).(service.Environment)
-	dataSvc, err := svcenv.GetService(ctx, svc.dataServiceName)
+func (svc *EntityService) Initialize(ctx core.Context) error {
+	dataSvc, err := ctx.GetService(svc.dataServiceName)
 	if err != nil {
 		return errors.RethrowError(ctx, ENTITY_ERROR_MISSING_DATASVC, err)
 	}
 
 	svc.DataStore = dataSvc.(data.DataService)
-	svc.cache = svcenv.GetCache()
 	return nil
 }
 
-func (svc *EntityService) invalidateCache(ctx *echo.Context, id string) {
-	if svc.cache != nil {
-		svc.cache.Delete(ctx, svc.getCacheKey(id))
+func (svc *EntityService) invalidateCache(ctx core.Context, id string) {
+	if svc.cache {
+		ctx.DeleteFromCache(svc.getCacheKey(id))
 	}
 }
 
@@ -274,17 +269,17 @@ func (svc *EntityService) getCacheKey(id string) string {
 }
 
 //The service starts serving when this method is called
-func (svc *EntityService) Serve(ctx *echo.Context) error {
+func (svc *EntityService) Serve(ctx core.Context) error {
 	return nil
 }
 
 //Type of service
 func (svc *EntityService) GetServiceType() string {
-	return service.SERVICE_TYPE_WEB
+	return core.SERVICE_TYPE_WEB
 }
 
 //Execute method
-func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[string]interface{}) (interface{}, error) {
+func (svc *EntityService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	switch name {
 	case "Get":
 		return svc.getEntity(ctx, params["id"].(string))
@@ -317,15 +312,15 @@ func (svc *EntityService) Execute(ctx *echo.Context, name string, params map[str
 	return nil, nil
 }
 
-func (svc *EntityService) putEntity(ctx *echo.Context, id string, ent interface{}) (interface{}, error) {
-	if !svc.serviceEnv.IsAllowed(ctx, svc.createperm) {
+func (svc *EntityService) putEntity(ctx core.Context, id string, ent interface{}) (interface{}, error) {
+	if !ctx.IsAllowed(svc.createperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	err := svc.DataStore.Put(ctx, svc.EntityName, id, ent)
 	if err != nil {
 		return nil, err
 	}
-	if svc.cache != nil {
+	if svc.cache {
 		stor := ent.(data.Storable)
 		svc.invalidateCache(ctx, stor.GetId())
 	}
@@ -333,8 +328,8 @@ func (svc *EntityService) putEntity(ctx *echo.Context, id string, ent interface{
 	return nil, nil
 }
 
-func (svc *EntityService) putBulkEntity(ctx *echo.Context, arrInt interface{}) (interface{}, error) {
-	if !svc.serviceEnv.IsAllowed(ctx, svc.editperm) {
+func (svc *EntityService) putBulkEntity(ctx core.Context, arrInt interface{}) (interface{}, error) {
+	if !ctx.IsAllowed(svc.editperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving bulk entities")
@@ -347,23 +342,24 @@ func (svc *EntityService) putBulkEntity(ctx *echo.Context, arrInt interface{}) (
 	}
 	err := svc.DataStore.PutMulti(ctx, svc.EntityName, ids, arrInt)
 	for i := 0; i < length; i++ {
-		if svc.cache != nil {
+		if svc.cache {
 			svc.invalidateCache(ctx, ids[i])
 		}
 	}
 	return nil, err
 }
 
-func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, error) {
-	if !svc.serviceEnv.IsAllowed(ctx, svc.viewperm) {
+func (svc *EntityService) getEntity(ctx core.Context, id string) (interface{}, error) {
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Getting Entity", "entity", svc.EntityName, "id", id)
+	if !ctx.IsAllowed(svc.viewperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
-	if svc.cache != nil {
+	if svc.cache {
 		ent, err := laatoocore.CreateEmptyObject(ctx, svc.EntityName)
 		if err != nil {
 			return nil, err
 		}
-		err = svc.cache.GetObject(ctx, svc.getCacheKey(id), ent)
+		err = ctx.GetFromCache(svc.getCacheKey(id), ent)
 		if err == nil {
 			return ent, nil
 		}
@@ -372,22 +368,22 @@ func (svc *EntityService) getEntity(ctx *echo.Context, id string) (interface{}, 
 	if err != nil {
 		return nil, err
 	} else {
-		if svc.cache != nil {
-			svc.cache.PutObject(ctx, svc.getCacheKey(id), ent)
+		if svc.cache {
+			ctx.PutInCache(svc.getCacheKey(id), ent)
 		}
 	}
 	return ent, nil
 }
 
-func (svc *EntityService) updateEntity(ctx *echo.Context, id string, newVals map[string]interface{}) (interface{}, error) {
-	if !svc.serviceEnv.IsAllowed(ctx, svc.editperm) {
+func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[string]interface{}) (interface{}, error) {
+	if !ctx.IsAllowed(svc.editperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	ent, err := svc.getEntity(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", svc.EntityName, id)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", "entity", svc.EntityName, "id", id)
 	entVal := reflect.ValueOf(ent).Elem()
 	for k := range newVals {
 		v := newVals[k]
@@ -420,8 +416,9 @@ func (svc *EntityService) updateEntity(ctx *echo.Context, id string, newVals map
 	return nil, nil
 }
 
-func (svc *EntityService) getEntities(ctx *echo.Context, ids []string, orderBy string) (map[string]interface{}, error) {
-	if !svc.serviceEnv.IsAllowed(ctx, svc.viewperm) {
+func (svc *EntityService) getEntities(ctx core.Context, ids []string, orderBy string) (map[string]interface{}, error) {
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Getting multiple entities", "entity", svc.EntityName)
+	if !ctx.IsAllowed(svc.viewperm) {
 		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 	}
 	ents, err := svc.DataStore.GetMulti(ctx, svc.EntityName, ids, orderBy)
@@ -429,8 +426,8 @@ func (svc *EntityService) getEntities(ctx *echo.Context, ids []string, orderBy s
 		return nil, err
 	} else {
 		for k, v := range ents {
-			if v != nil && svc.cache != nil {
-				svc.cache.PutObject(ctx, svc.getCacheKey(k), v)
+			if v != nil && svc.cache {
+				ctx.PutInCache(svc.getCacheKey(k), v)
 			}
 		}
 	}

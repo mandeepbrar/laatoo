@@ -2,8 +2,8 @@ package laatoocore
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"laatoosdk/auth"
+	"laatoosdk/core"
 	"laatoosdk/log"
 	"reflect"
 )
@@ -22,7 +22,7 @@ func (env *Environment) ListAllPermissions() []string {
 }
 */
 //register the roles and permissions
-func (env *Environment) RegisterRoles(ctx *echo.Context, rolesInt interface{}) {
+func (env *Environment) RegisterRoles(ctx *Context, rolesInt interface{}) {
 	if rolesInt != nil {
 		arr := reflect.ValueOf(rolesInt).Elem()
 		length := arr.Len()
@@ -33,7 +33,7 @@ func (env *Environment) RegisterRoles(ctx *echo.Context, rolesInt interface{}) {
 	}
 }
 
-func (env *Environment) RegisterRolePermissions(ctx *echo.Context, role auth.Role) {
+func (env *Environment) RegisterRolePermissions(ctx *Context, role auth.Role) {
 	permissions := role.GetPermissions()
 	for _, perm := range permissions {
 		key := fmt.Sprintf("%s#%s", role.GetId(), perm)
@@ -42,7 +42,7 @@ func (env *Environment) RegisterRolePermissions(ctx *echo.Context, role auth.Rol
 	log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "Role Permissions", env.RolePermissions)
 }
 
-func (env *Environment) IsAllowed(ctx *echo.Context, perm string) bool {
+func (env *Environment) IsAllowed(ctx core.Context, perm string) bool {
 	if perm == "" {
 		return true
 	}
