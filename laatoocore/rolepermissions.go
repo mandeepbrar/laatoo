@@ -8,19 +8,6 @@ import (
 	"reflect"
 )
 
-/*type PermissionsExchange struct {
-	Permissions []string
-}
-
-//register the object factory in the global register
-func (env *Environment) RegisterPermissions(ctx interface{}, perm []string) {
-	env.Permissions.Append(perm)
-}
-
-func (env *Environment) ListAllPermissions() []string {
-	return env.Permissions.Values()
-}
-*/
 //register the roles and permissions
 func (env *Environment) RegisterRoles(ctx *Context, rolesInt interface{}) {
 	if rolesInt != nil {
@@ -42,21 +29,21 @@ func (env *Environment) RegisterRolePermissions(ctx *Context, role auth.Role) {
 	log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "Role Permissions", env.RolePermissions)
 }
 
-func (env *Environment) IsAllowed(ctx core.Context, perm string) bool {
+func (env *Environment) HasPermission(ctx core.Context, perm string) bool {
 	if perm == "" {
 		return true
 	}
 	bypass := ctx.Get(CONF_SERVICE_AUTHBYPASS)
 	if bypass != nil && bypass.(bool) {
-		log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "perm", perm, "bypass", bypass)
+		log.Logger.Trace(ctx, "core.permissions", "Bypassed permission", "perm", perm, "bypass", bypass)
 		return true
 	}
-	log.Logger.Trace(ctx, "core.permissions", "Registered Role permissions", "perm", perm, "bypass", bypass)
 	rolesInt := ctx.Get("Roles")
 	if rolesInt == nil {
 		return false
 	}
 	roles := rolesInt.([]string)
+	log.Logger.Trace(ctx, "core.permissions", "Checking roles for permission", "perm", perm, "bypass", bypass, "roles", roles)
 	for _, role := range roles {
 		if role == env.AdminRole {
 			return true

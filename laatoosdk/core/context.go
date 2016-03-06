@@ -2,6 +2,7 @@ package core
 
 import (
 	glctx "golang.org/x/net/context"
+	"laatoosdk/auth"
 	"net/http"
 )
 
@@ -16,13 +17,15 @@ type Context interface {
 	Redirect(code int, url string) error
 	Get(key string) interface{}
 	Set(key string, val interface{})
+	GetUser() auth.User
+	SetUser(usr auth.User)
 	Param(key string) string
 	ParamByIndex(index int) string
 	Query(key string) string
 	GetConf() map[string]interface{}
 	GetVariable(variable string) interface{}
 	GetService(alias string) (Service, error)
-	IsAllowed(perm string) bool
+	HasPermission(perm string) bool
 	SubscribeTopic(topic string, handler TopicListener) error
 	PublishMessage(topic string, message interface{}) error
 	PutInCache(key string, item interface{}) error

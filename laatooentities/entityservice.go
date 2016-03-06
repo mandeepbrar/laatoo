@@ -33,10 +33,6 @@ type EntityService struct {
 	dataServiceName string
 	DataStore       data.DataService
 	cache           bool
-	viewperm        string
-	createperm      string
-	editperm        string
-	deleteperm      string
 }
 
 //Initialize service, register provider with laatoo
@@ -74,12 +70,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 	if !ok {
 		return nil, errors.ThrowError(ctx, ENTITY_ERROR_MISSING_METHODS)
 	}
-
-	svc.viewperm = fmt.Sprintf("View %s", entityName)
-	svc.createperm = fmt.Sprintf("Create %s", entityName)
-	svc.editperm = fmt.Sprintf("Edit %s", entityName)
-	svc.deleteperm = fmt.Sprintf("Delete %s", entityName)
-	//serviceContext.RegisterPermissions(ctx, []string{viewperm, createperm, editperm, deleteperm})
 
 	for name, val := range entityMethods {
 
@@ -123,9 +113,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 				})
 			case "post":
 				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-					if !ctx.IsAllowed(svc.createperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-					}
 					ent, err := laatoocore.CreateEmptyObject(ctx, entityName)
 					if err != nil {
 						return err
@@ -161,9 +148,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 				})
 			case "putbulk":
 				router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
-					if !ctx.IsAllowed(svc.editperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-					}
 					arr, err := laatoocore.CreateCollection(ctx, entityName)
 					if err != nil {
 						return err
@@ -179,9 +163,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 				})
 			case "delete":
 				router.Delete(ctx, path, methodConfig, func(ctx core.Context) error {
-					if !ctx.IsAllowed(svc.deleteperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-					}
 					id := ctx.ParamByIndex(0)
 					log.Logger.Debug(ctx, LOGGING_CONTEXT, "Deleting entity", "ID", id)
 					err := svc.DataStore.Delete(ctx, entityName, id)
@@ -195,9 +176,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 				})
 			case "update":
 				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-					if !ctx.IsAllowed(svc.editperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-					}
 					id := ctx.ParamByIndex(0)
 					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating entity", "ID", id)
 					vals := make(map[string]interface{}, 10)
@@ -220,9 +198,6 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 					invokeReqInt, ok := methodConfig[CONF_ENTITY_INVOKE]
 					if !ok {
 						return errors.ThrowError(ctx, ENTITY_ERROR_MISSING_INV_METHOD, "Entity", entityName, "Invocation request", name)
-					}
-					if !ctx.IsAllowed(svc.editperm) {
-						return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
 					}
 					id := ctx.ParamByIndex(0)
 					obj, err := svc.getEntity(ctx, id)
@@ -313,9 +288,6 @@ func (svc *EntityService) Execute(ctx core.Context, name string, params map[stri
 }
 
 func (svc *EntityService) putEntity(ctx core.Context, id string, ent interface{}) (interface{}, error) {
-	if !ctx.IsAllowed(svc.createperm) {
-		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
 	err := svc.DataStore.Put(ctx, svc.EntityName, id, ent)
 	if err != nil {
 		return nil, err
@@ -329,9 +301,6 @@ func (svc *EntityService) putEntity(ctx core.Context, id string, ent interface{}
 }
 
 func (svc *EntityService) putBulkEntity(ctx core.Context, arrInt interface{}) (interface{}, error) {
-	if !ctx.IsAllowed(svc.editperm) {
-		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saving bulk entities")
 	arr := reflect.ValueOf(arrInt)
 	length := arr.Len()
@@ -351,9 +320,6 @@ func (svc *EntityService) putBulkEntity(ctx core.Context, arrInt interface{}) (i
 
 func (svc *EntityService) getEntity(ctx core.Context, id string) (interface{}, error) {
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Getting Entity", "entity", svc.EntityName, "id", id)
-	if !ctx.IsAllowed(svc.viewperm) {
-		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
 	if svc.cache {
 		ent, err := laatoocore.CreateEmptyObject(ctx, svc.EntityName)
 		if err != nil {
@@ -376,9 +342,6 @@ func (svc *EntityService) getEntity(ctx core.Context, id string) (interface{}, e
 }
 
 func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[string]interface{}) (interface{}, error) {
-	if !ctx.IsAllowed(svc.editperm) {
-		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
 	ent, err := svc.getEntity(ctx, id)
 	if err != nil {
 		return nil, err
@@ -418,9 +381,6 @@ func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[
 
 func (svc *EntityService) getEntities(ctx core.Context, ids []string, orderBy string) (map[string]interface{}, error) {
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Getting multiple entities", "entity", svc.EntityName)
-	if !ctx.IsAllowed(svc.viewperm) {
-		return nil, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
 	ents, err := svc.DataStore.GetMulti(ctx, svc.EntityName, ids, orderBy)
 	if err != nil {
 		return nil, err

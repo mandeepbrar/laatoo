@@ -90,7 +90,7 @@ func (localauth *localAuthType) ValidateUser(ctx core.Context) error {
 		return errors.RethrowError(ctx, AUTH_ERROR_WRONG_PASSWORD, err)
 	} else {
 		existingUser.SetPassword("")
-		ctx.Set("User", testedUser)
+		ctx.SetUser(existingUser)
 		return localauth.authCallback(ctx)
 	}
 }

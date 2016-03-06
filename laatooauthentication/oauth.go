@@ -159,43 +159,6 @@ func (oauth *OAuthType) ValidateUser(ctx core.Context) error {
 	stateInt := ctx.Get("State")
 	url := site.config.AuthCodeURL(stateInt.(string))
 	ctx.Redirect(http.StatusTemporaryRedirect, url)
-
-	/*//create the user
-	usrInt, err := localauth.securityService.CreateUser()
-	if err != nil {
-		return errors.RethrowHttpError(laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED, ctx, err)
-	}
-
-	//ctx.Request().Body
-	err = ctx.Bind(usrInt)
-	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_INCORRECT_REQ_FORMAT, ctx, err)
-	}
-
-	//get the ide of the user to be tested
-	usr := usrInt.(auth.LocalAuthUser)
-	id := usr.GetId()
-
-	//get the tested user from database
-	testedUser, err := localauth.securityService.GetUserById(id)
-	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx, err)
-	}
-	if testedUser == nil {
-		return errors.ThrowHttpError(AUTH_ERROR_USER_NOT_FOUND, ctx)
-	}
-
-	//compare the user requested with the user from database
-	existingUser := testedUser.(auth.LocalAuthUser)
-	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
-	existingUser.SetPassword("")
-	if err != nil {
-		return errors.RethrowHttpError(AUTH_ERROR_WRONG_PASSWORD, ctx, err)
-	} else {
-		existingUser.SetPassword("")
-		ctx.Set("User", testedUser)
-		return localauth.authCallback(ctx)
-	}*/
 	return nil
 }
 

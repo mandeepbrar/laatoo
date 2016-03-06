@@ -82,11 +82,5 @@ func (view *EntitiesView) Execute(ctx core.Context, dataStore data.DataService) 
 	return ctx.JSON(http.StatusOK, entities)
 }
 func (view *EntitiesView) getData(ctx core.Context, dataStore data.DataService, argsMap map[string]interface{}, pagesize int, pagenum int, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
-	perm := fmt.Sprintf("View %s", view.entity)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Executing entity view", "Entity", view.entity, "Args", argsMap, "Permission", perm)
-	if !ctx.IsAllowed(perm) {
-		return nil, -1, -1, errors.ThrowError(ctx, laatoocore.AUTH_ERROR_SECURITY)
-	}
-
 	return dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "", orderBy)
 }

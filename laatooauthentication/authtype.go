@@ -85,11 +85,10 @@ func (svc *SecurityService) initializeAuthType(ctx core.Context, authType AuthTy
 			if err != nil {
 				return errors.RethrowError(ctx, AUTH_ERROR_AUTH_COMPLETION_FAILED, err)
 			}
-			userInt := ctx.Get("User")
-			if userInt == nil {
+			user := ctx.GetUser()
+			if user == nil {
 				return errors.ThrowError(ctx, AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH)
 			}
-			user := userInt.(auth.User)
 			token := jwt.New(jwt.SigningMethodHS256)
 			rbac, ok := user.(auth.RbacUser)
 			if ok {
@@ -121,7 +120,7 @@ func (svc *SecurityService) initializeAuthType(ctx core.Context, authType AuthTy
 
 func (svc *SecurityService) Logout(ctx core.Context) error {
 	ctx.SetHeader(svc.AuthHeader, "")
-	ctx.Set("User", nil)
+	ctx.SetUser(nil)
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_LOGOUT_COMPLETE, ctx})
 	return nil
 }

@@ -3,6 +3,7 @@ package laatoocore
 import (
 	"github.com/labstack/echo"
 	glctx "golang.org/x/net/context"
+	"laatoosdk/auth"
 	"laatoosdk/core"
 	"laatoosdk/errors"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 type Context struct {
 	Context     *echo.Context
 	Conf        map[string]interface{}
+	User        auth.User
 	environment *Environment
 }
 
@@ -73,8 +75,8 @@ func (ctx *Context) GetService(alias string) (core.Service, error) {
 	return ctx.environment.GetService(ctx, alias)
 }
 
-func (ctx *Context) IsAllowed(perm string) bool {
-	return ctx.environment.IsAllowed(ctx, perm)
+func (ctx *Context) HasPermission(perm string) bool {
+	return ctx.environment.HasPermission(ctx, perm)
 }
 
 func (ctx *Context) NoContent(errorcode int) error {
@@ -122,6 +124,12 @@ func (ctx *Context) HttpClient() *http.Client {
 }
 func (ctx *Context) GetAppengineContext() glctx.Context {
 	return GetAppengineContext(ctx)
+}
+func (ctx *Context) GetUser() auth.User {
+	return ctx.User
+}
+func (ctx *Context) SetUser(usr auth.User) {
+	ctx.User = usr
 }
 
 func (ctx *Context) GetCloudContext(scope string) glctx.Context {

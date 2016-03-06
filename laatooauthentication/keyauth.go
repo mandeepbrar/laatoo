@@ -97,7 +97,7 @@ func (keyauth *keyAuthType) ValidateUser(ctx core.Context) error {
 		usr := usrInt.(auth.RbacUser)
 		usr.SetId("system")
 		usr.SetRoles([]string{role.(string)})
-		ctx.Set("User", usr)
+		ctx.SetUser(usr)
 	} else {
 		return errors.ThrowError(ctx, AUTH_ERROR_DOMAIN_NOT_ALLOWED, "Domain", domain)
 	}

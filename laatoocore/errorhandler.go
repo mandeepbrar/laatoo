@@ -75,7 +75,6 @@ func init() {
 }
 
 func AuthError(ctx core.Context, err *errors.Error, info ...interface{}) bool {
-	ctx.Set("User", nil)
 	//ctx.Response().Header().Set(svc.AuthHeader, "")
 	utils.FireEvent(&utils.Event{EVENT_AUTHSERVICE_AUTH_FAILED, ctx})
 	return false
