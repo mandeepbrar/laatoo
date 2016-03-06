@@ -34,5 +34,6 @@ type Context interface {
 	DeleteFromCache(key string) error
 	HttpClient() *http.Client
 	GetAppengineContext() glctx.Context
+	IsAdmin() bool
 	GetCloudContext(scope string) glctx.Context
 }

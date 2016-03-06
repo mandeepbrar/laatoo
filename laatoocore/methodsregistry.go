@@ -13,7 +13,7 @@ var (
 )
 
 //this method can be invoked remotely
-type InvokableMethod func(ctx core.Context) error
+type InvokableMethod func(ctx core.Context, params map[string]interface{}) error
 
 //register the invokable method in the global register
 func RegisterInvokableMethod(methodName string, method InvokableMethod) {

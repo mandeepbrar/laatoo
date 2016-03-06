@@ -5,7 +5,6 @@ import (
 	"laatoocore"
 	"laatoosdk/auth"
 	"laatoosdk/core"
-	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"laatoosdk/utils"
@@ -90,16 +89,18 @@ func (svc *SecurityService) initializeAuthType(ctx core.Context, authType AuthTy
 				return errors.ThrowError(ctx, AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH)
 			}
 			token := jwt.New(jwt.SigningMethodHS256)
-			rbac, ok := user.(auth.RbacUser)
-			if ok {
-				svc.LoadPermissions(ctx, rbac, svc.UserDataService)
-			}
 			user.SetJWTClaims(token)
 			token.Claims["UserId"] = user.GetId()
 			token.Claims["AuthTypeName"] = authType.GetName()
 			//token.Claims["IP"] = ctx.ClientIP()
 			token.Claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
 			ctx.Set("JWT_Token", token)
+			rbac, ok := user.(auth.RbacUser)
+			if ok {
+				admin := svc.IsAdmin(ctx, rbac)
+				token.Claims["Admin"] = admin
+				ctx.Set("Admin", admin)
+			}
 			tokenString, err := token.SignedString([]byte(svc.JWTSecret))
 			if err != nil {
 				return errors.RethrowError(ctx, AUTH_ERROR_JWT_CREATION, err)
@@ -135,20 +136,12 @@ func (svc *SecurityService) GetUserById(ctx core.Context, id string) (interface{
 	}
 	return user, nil
 }
-func (svc *SecurityService) LoadPermissions(ctx core.Context, usr auth.RbacUser, roleStorer data.DataService) error {
+func (svc *SecurityService) IsAdmin(ctx core.Context, usr auth.RbacUser) bool {
 	roles, _ := usr.GetRoles()
-	permissions := utils.NewStringSet([]string{})
 	for _, k := range roles {
 		if k == svc.AdminRole {
-			usr.SetPermissions(svc.Permissions)
-			return nil
-		}
-		roleInt, err := roleStorer.GetById(ctx, laatoocore.DEFAULT_ROLE, k)
-		if err == nil && roleInt != nil {
-			role := roleInt.(auth.Role)
-			permissions.Append(role.GetPermissions())
+			return true
 		}
 	}
-	usr.SetPermissions(permissions.Values())
-	return nil
+	return false
 }

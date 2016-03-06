@@ -65,12 +65,13 @@ func (usr *DefaultUser) SetRoles(roles []string) error {
 	usr.Roles = roles
 	return nil
 }
-func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
+
+/*func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }
 func (usr *DefaultUser) SetPermissions(permissions []string) {
 	usr.Permissions = permissions
-}
+}*/
 func (usr *DefaultUser) AddRole(role string) error {
 	usr.Roles = append(usr.Roles, role)
 	return nil
@@ -98,6 +99,7 @@ func (usr *DefaultUser) GetGender() string {
 }
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
+	usr.SetId(token.Claims["UserId"].(string))
 	rolesInt := token.Claims["Roles"]
 	if rolesInt != nil {
 		usr.Roles = strings.Split(rolesInt.(string), ",")

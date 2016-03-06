@@ -10,8 +10,6 @@ type RbacUser interface {
 	GetIdField() string
 	GetRoles() ([]string, error)
 	SetRoles(roles []string) error
-	GetPermissions() (permissions []string, err error)
-	SetPermissions(permissions []string)
 	AddRole(role string) error
 	RemoveRole(role string) error
 	SetJWTClaims(*jwt.Token)

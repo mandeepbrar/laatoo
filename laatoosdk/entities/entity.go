@@ -1,8 +1,9 @@
 package entities
 
 import (
-//"fmt"
-//"laatoosdk/errors"
+	//"fmt"
+	//"laatoosdk/errors"
+	"laatoosdk/core"
 )
 
 /*
@@ -43,9 +44,15 @@ func init() {
 */
 //Object stored by data service
 type Entity interface {
-	PreSave() error
-	PostSave() error
-	PreLoad() error
-	PostLoad() error
-	Invoke(method string) error
+	GetId() string
+	SetId(string)
+	PreSave(ctx core.Context) error
+	PostSave(ctx core.Context) error
+	PostLoad(ctx core.Context) error
+	GetIdField() string
+	IsNew() bool
+	SetUpdatedOn(string)
+	SetUpdatedBy(string)
+	SetCreatedBy(string)
+	Invoke(ctx core.Context, method string) error
 }

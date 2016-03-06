@@ -69,7 +69,6 @@ func RegistrationServiceFactory(ctx core.Context, conf map[string]interface{}) (
 			return errors.ThrowError(ctx, AUTH_ERROR_USER_EXISTS)
 		}
 		user.SetRoles([]string{svc.DefaultRole})
-		user.SetPermissions(nil)
 		err = svc.UserDataService.Save(ctx, svc.UserObject, ent)
 		if err != nil {
 			return err

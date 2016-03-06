@@ -75,16 +75,16 @@ func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface
 				switch httpmethodInt.(string) {
 				case "PUT":
 					router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
-						return svc.invokeMethod(ctx, method, methodConfig)
+						return svc.invokeMethod(ctx, method, nil)
 					})
 				case "POST":
 					router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-						return svc.invokeMethod(ctx, method, methodConfig)
+						return svc.invokeMethod(ctx, method, nil)
 					})
 				}
 			} else {
 				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-					return svc.invokeMethod(ctx, method, methodConfig)
+					return svc.invokeMethod(ctx, method, nil)
 				})
 			}
 
@@ -93,9 +93,12 @@ func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface
 	return svc, nil
 }
 
-func (svc *RmiService) invokeMethod(ctx core.Context, method laatoocore.InvokableMethod, methodConfig map[string]interface{}) error {
-	ctx.Set(CONF_RMI_DATASTORE, svc.DataStore)
-	err := method(ctx)
+func (svc *RmiService) invokeMethod(ctx core.Context, method laatoocore.InvokableMethod, params map[string]interface{}) error {
+	if params == nil {
+		params = map[string]interface{}{}
+	}
+	params[CONF_RMI_DATASTORE] = svc.DataStore
+	err := method(ctx, params)
 	log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in invoking method", "method", method, "err", err)
 	return err
 }

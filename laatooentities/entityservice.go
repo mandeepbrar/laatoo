@@ -17,14 +17,13 @@ const (
 	LOGGING_CONTEXT         = "entity_service"
 	CONF_ENTITY_SERVICENAME = "entity_service"
 	CONF_ENTITY             = "entity"
-
-	CONF_ENTITY_DATA_SVC = "data_svc"
-	CONF_ENTITY_TYPE     = "type"
-	CONF_ENTITY_ID       = "id"
-	CONF_ENTITY_METHODS  = "methods"
-	CONF_ENTITY_METHOD   = "method"
-	CONF_ENTITY_PATH     = "path"
-	CONF_ENTITY_INVOKE   = "invoke"
+	CONF_ENTITY_DATA_SVC    = "data_svc"
+	CONF_ENTITY_TYPE        = "type"
+	CONF_ENTITY_ID          = "id"
+	CONF_ENTITY_METHODS     = "methods"
+	CONF_ENTITY_METHOD      = "method"
+	CONF_ENTITY_PATH        = "path"
+	CONF_ENTITY_INVOKE      = "invoke"
 )
 
 //Environment hosting an application
@@ -33,6 +32,8 @@ type EntityService struct {
 	dataServiceName string
 	DataStore       data.DataService
 	cache           bool
+	updateOwnership bool
+	viewOwnership   bool
 }
 
 //Initialize service, register provider with laatoo
@@ -121,6 +122,7 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 					if err != nil {
 						return err
 					}
+					data.Audit(ctx, ent)
 					err = svc.DataStore.Save(ctx, entityName, ent)
 					if err != nil {
 						return err
@@ -205,7 +207,7 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 						return err
 					}
 					ent, _ := obj.(entities.Entity)
-					err = ent.Invoke(invokeReqInt.(string))
+					err = ent.Invoke(ctx, invokeReqInt.(string))
 					if err != nil {
 						return err
 					}
@@ -288,6 +290,7 @@ func (svc *EntityService) Execute(ctx core.Context, name string, params map[stri
 }
 
 func (svc *EntityService) putEntity(ctx core.Context, id string, ent interface{}) (interface{}, error) {
+	data.Audit(ctx, ent)
 	err := svc.DataStore.Put(ctx, svc.EntityName, id, ent)
 	if err != nil {
 		return nil, err
@@ -306,8 +309,10 @@ func (svc *EntityService) putBulkEntity(ctx core.Context, arrInt interface{}) (i
 	length := arr.Len()
 	ids := make([]string, length)
 	for i := 0; i < length; i++ {
-		entity := arr.Index(i).Addr().Interface().(data.Storable)
+		entinter := arr.Index(i).Addr().Interface()
+		entity := entinter.(data.Storable)
 		ids[i] = entity.GetId()
+		data.Audit(ctx, entinter)
 	}
 	err := svc.DataStore.PutMulti(ctx, svc.EntityName, ids, arrInt)
 	for i := 0; i < length; i++ {
@@ -371,6 +376,7 @@ func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[
 			}
 		}
 	}
+	data.Audit(ctx, entVal)
 	_, err = svc.putEntity(ctx, id, ent)
 	if err != nil {
 		return nil, err

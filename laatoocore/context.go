@@ -12,7 +12,6 @@ import (
 type Context struct {
 	Context     *echo.Context
 	Conf        map[string]interface{}
-	User        auth.User
 	environment *Environment
 }
 
@@ -126,12 +125,23 @@ func (ctx *Context) GetAppengineContext() glctx.Context {
 	return GetAppengineContext(ctx)
 }
 func (ctx *Context) GetUser() auth.User {
-	return ctx.User
+	usr := ctx.Context.Get("User")
+	if usr == nil {
+		return nil
+	}
+	return usr.(auth.User)
 }
 func (ctx *Context) SetUser(usr auth.User) {
-	ctx.User = usr
+	ctx.Context.Set("User", usr)
 }
 
 func (ctx *Context) GetCloudContext(scope string) glctx.Context {
 	return GetCloudContext(ctx, scope)
+}
+func (ctx *Context) IsAdmin() bool {
+	adm := ctx.Context.Get("Admin")
+	if adm == nil {
+		return false
+	}
+	return adm.(bool)
 }

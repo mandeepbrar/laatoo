@@ -18,6 +18,8 @@ const (
 	ENTITY_ERROR_INCORRECT_METHOD_CONF = "Entity_Error_Incorrect_Method_Conf"
 	ENTITY_ERROR_CONF_INCORRECT        = "Entity_Error_Conf_Incorrect"
 	ENTITY_VIEW_MISSING_ARG            = "Entity_View_Missing_Arg"
+	ENTITY_ERROR_NOT_FOUND             = "Entity_Error_Not_Found"
+	ENTITY_ERROR_NOT_ALLOWED           = "Entity_Error_Not_Allowed"
 	ENTITY_ERROR_MISSING_INV_METHOD    = "Entity_Error_Missing_Inv_Method"
 )
 
@@ -34,6 +36,8 @@ func init() {
 	errors.RegisterCode(ENTITY_ERROR_INCORRECT_METHOD_CONF, errors.FATAL, fmt.Errorf("Incorrect conf provided for method."), LOGGING_CONTEXT)
 	errors.RegisterCode(ENTITY_ERROR_CONF_INCORRECT, errors.FATAL, fmt.Errorf("Incorrect conf provided for entity."), LOGGING_CONTEXT)
 	errors.RegisterCode(ENTITY_VIEW_MISSING_ARG, errors.FATAL, fmt.Errorf("Name of the entity not provided as an argument to the view."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_NOT_ALLOWED, errors.DEBUG, fmt.Errorf("Access to the entity is not allowed."), LOGGING_CONTEXT)
+	errors.RegisterCode(ENTITY_ERROR_NOT_FOUND, errors.DEBUG, fmt.Errorf("Entity being accessed was not found."), LOGGING_CONTEXT)
 	errors.RegisterCode(ENTITY_ERROR_MISSING_INV_METHOD, errors.FATAL, fmt.Errorf("Invocation method not provided as an argument."), LOGGING_CONTEXT)
 
 }

@@ -56,7 +56,7 @@ func (router *Router) Group(ctx core.Context, path string, conf map[string]inter
 
 	//provide environment context to every request using middleware
 	retRouter.Use(ctx, func(ctx core.Context) error {
-		ctx.Set(CONF_ENV_CONTEXT, env)
+		//ctx.Set(CONF_ENV_CONTEXT, env)
 		if bypassauth {
 			ctx.Set(CONF_SERVICE_AUTHBYPASS, true)
 		}
@@ -68,7 +68,10 @@ func (router *Router) Group(ctx core.Context, path string, conf map[string]inter
 		_, confok := conf[CONF_AUTHORIZATION]
 		if confok {
 			retRouter.Use(ctx, func(permCtx core.Context) error {
-				_, err := retRouter.authorize(permCtx, conf)
+				authorized, err := retRouter.authorize(permCtx, conf)
+				if !authorized {
+					return errors.ThrowError(ctx, AUTH_ERROR_SECURITY)
+				}
 				return err
 			})
 		}
@@ -79,7 +82,6 @@ func (router *Router) Group(ctx core.Context, path string, conf map[string]inter
 func (router *Router) Get(ctx core.Context, path string, conf map[string]interface{}, handler core.HandlerFunc) error {
 	router.eRouter.Get(path, func(pathCtx *echo.Context) error {
 		corectx := &Context{Context: pathCtx, Conf: conf, environment: router.environment}
-		log.Logger.Trace(ctx, "core.router", "Testing conf", "conf", conf)
 		authorized, err := router.authorize(corectx, conf)
 		if authorized {
 			err = handler(corectx)
@@ -106,7 +108,6 @@ func (router *Router) Put(ctx core.Context, path string, conf map[string]interfa
 func (router *Router) Post(ctx core.Context, path string, conf map[string]interface{}, handler core.HandlerFunc) error {
 	router.eRouter.Post(path, func(pathCtx *echo.Context) error {
 		corectx := &Context{Context: pathCtx, Conf: conf, environment: router.environment}
-		log.Logger.Trace(corectx, "core.router", "Testing conf", "conf", conf)
 		authorized, err := router.authorize(corectx, conf)
 		if authorized {
 			err = handler(corectx)
@@ -209,8 +210,10 @@ func (router *Router) setupAuthMiddleware(ctx core.Context, bypassauth bool) err
 				}
 				//load the jwt claims that were set int the token by the user object
 				user.LoadJWTClaims(token)
-				//set the id of the user object loaded from the header
-				user.SetId(token.Claims["UserId"].(string))
+				isAdmin := token.Claims["Admin"]
+				if isAdmin != nil {
+					ctx.Set("Admin", isAdmin.(bool))
+				}
 				//set the user in the context object
 				context.SetUser(user)
 				//get the roles of the user
