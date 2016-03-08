@@ -376,7 +376,8 @@ func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[
 			}
 		}
 	}
-	data.Audit(ctx, entVal)
+	data.Audit(ctx, ent)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", "ent", ent, "id", id)
 	_, err = svc.putEntity(ctx, id, ent)
 	if err != nil {
 		return nil, err

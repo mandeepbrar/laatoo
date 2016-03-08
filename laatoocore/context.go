@@ -6,6 +6,7 @@ import (
 	"laatoosdk/auth"
 	"laatoosdk/core"
 	"laatoosdk/errors"
+	"laatoosdk/log"
 	"net/http"
 )
 
@@ -141,7 +142,10 @@ func (ctx *Context) GetCloudContext(scope string) glctx.Context {
 func (ctx *Context) IsAdmin() bool {
 	adm := ctx.Context.Get("Admin")
 	if adm == nil {
+		log.Logger.Trace(ctx, "core.router", "Admin not logged in", "adm", adm)
 		return false
 	}
-	return adm.(bool)
+	val := adm.(bool)
+	log.Logger.Trace(ctx, "core.router", "Admin logged in", "adm", val)
+	return val
 }

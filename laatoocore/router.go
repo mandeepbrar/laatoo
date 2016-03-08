@@ -157,10 +157,7 @@ func (router *Router) Static(ctx core.Context, path string, conf map[string]inte
 }
 
 func (router *Router) ServeFile(ctx core.Context, pagePath string, conf map[string]interface{}, dest string) {
-	authorized, _ := router.authorize(ctx, conf)
-	if authorized {
-		router.eRouter.ServeFile(pagePath, dest)
-	}
+	router.eRouter.ServeFile(pagePath, dest)
 }
 
 //authentication middleware that assigns the roles permissions and users
@@ -211,6 +208,7 @@ func (router *Router) setupAuthMiddleware(ctx core.Context, bypassauth bool) err
 				//load the jwt claims that were set int the token by the user object
 				user.LoadJWTClaims(token)
 				isAdmin := token.Claims["Admin"]
+				log.Logger.Trace(ctx, "core.router", "Admin logged in", "isAdmin", isAdmin)
 				if isAdmin != nil {
 					ctx.Set("Admin", isAdmin.(bool))
 				}

@@ -8,6 +8,9 @@ import (
 type Role struct {
 	Role        string   `json:"Role" form:"Role" bson:"Role"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
+	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
+	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
+	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
 }
 
 func (r *Role) GetId() string {
@@ -42,4 +45,20 @@ func init() {
 
 func CreateRole(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
 	return &Role{}, nil
+}
+
+func (ent *Role) IsNew() bool {
+	return ent.CreatedBy == ""
+}
+func (ent *Role) SetUpdatedOn(val string) {
+	ent.UpdatedOn = val
+}
+func (ent *Role) SetUpdatedBy(val string) {
+	ent.UpdatedBy = val
+}
+func (ent *Role) SetCreatedBy(val string) {
+	ent.CreatedBy = val
+}
+func (ent *Role) GetCreatedBy() string {
+	return ent.CreatedBy
 }

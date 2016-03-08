@@ -3,7 +3,6 @@ package laatooentities
 import (
 	"laatoocore"
 	"laatoosdk/core"
-	"laatoosdk/data"
 	"laatoosdk/errors"
 	"laatoosdk/log"
 	"reflect"
@@ -22,6 +21,15 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	if id == "" {
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_FOUND)
 	}
+	usr := ctx.GetUser()
+	if usr == nil {
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity not accessible by anonymous user", "entity", id)
+		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
+	}
+	field := conf["ownerfield"]
+	if field == nil {
+		return errors.ThrowError(ctx, ENTITY_ERROR_INCORRECT_METHOD_CONF)
+	}
 	entsvc := conf["entitysvc"]
 	if entsvc == nil {
 		return errors.ThrowError(ctx, ENTITY_ERROR_INCORRECT_METHOD_CONF)
@@ -30,7 +38,6 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	if err != nil {
 		return errors.ThrowError(ctx, ENTITY_ERROR_INCORRECT_METHOD_CONF)
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Got Service", "entity", id, "entsvc", entsvc, "svc", svc, "type", reflect.TypeOf(svc))
 	entSvc := svc.(*EntityService)
 	if entSvc == nil {
 		return errors.ThrowError(ctx, ENTITY_ERROR_INCORRECT_METHOD_CONF)
@@ -39,16 +46,13 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	if err != nil {
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_FOUND)
 	}
-	auditable := ent.(data.Auditable)
-	owner := auditable.GetCreatedBy()
-	usr := ctx.GetUser()
-	if usr == nil {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity not accessible by anonymous user", "entity", id)
+	entVal := reflect.ValueOf(ent).Elem()
+	f := entVal.FieldByName(field.(string))
+	ownerVal := f.Interface().(string)
+	if ownerVal != usr.GetId() {
+		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity accessible only by owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
 	}
-	if owner != usr.GetId() {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity accessible only by owner", "entity", id, "user", usr.GetId(), "owner", owner)
-		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
-	}
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 	return nil
 }

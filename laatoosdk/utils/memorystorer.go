@@ -32,11 +32,8 @@ func (ms *MemoryStorer) GetObject(id string) (interface{}, error) {
 }
 
 //Delete an item from memory
-func (ms *MemoryStorer) Delete(id string) error {
-	err := ms.Delete(id)
-	if err != nil {
-		return fmt.Errorf("Object %s could not be deleted %s", id, err)
-	}
+func (ms *MemoryStorer) DeleteObject(id string) error {
+	ms.Delete(id)
 	return nil
 }
 

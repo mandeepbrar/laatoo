@@ -98,6 +98,7 @@ func (svc *SecurityService) initializeAuthType(ctx core.Context, authType AuthTy
 			rbac, ok := user.(auth.RbacUser)
 			if ok {
 				admin := svc.IsAdmin(ctx, rbac)
+				log.Logger.Trace(ctx, LOGGING_CONTEXT, "Admin logged in", "admin", admin)
 				token.Claims["Admin"] = admin
 				ctx.Set("Admin", admin)
 			}

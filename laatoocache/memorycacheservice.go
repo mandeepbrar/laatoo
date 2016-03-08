@@ -48,7 +48,7 @@ func (svc *MemoryCacheService) Serve(ctx core.Context) error {
 }
 
 func (svc *MemoryCacheService) Delete(ctx core.Context, key string) error {
-	return svc.memoryStorer.Delete(key)
+	return svc.memoryStorer.DeleteObject(key)
 }
 
 func (svc *MemoryCacheService) PutObject(ctx core.Context, key string, val interface{}) error {

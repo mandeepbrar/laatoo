@@ -29,6 +29,7 @@ const (
 	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
 	AUTH_ERROR_OAUTH_MISSING_PROFILEURL   = "Auth_Error_Oauth_Missing_Profileurl"
 	AUTH_ERROR_INVALID_PASSWORD           = "Auth_Error_Invalid_Password"
+	AUTH_ERROR_NOT_ALLOWED                = "Auth_Error_Not_Allowed"
 
 	AUTH_ERROR_USER_EXISTS = "Auth_Error_User_Exists"
 	AUTH_ERROR_ENC_ERROR   = "Auth_Error_Enc_Error"
@@ -69,7 +70,10 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_USER_NOT_FOUND, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "User name or password entered by you is wrong"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_USER_NOT_FOUND, laatoocore.AuthError)
 
-	errors.RegisterCode(AUTH_ERROR_INCORRECT_REQ_FORMAT, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Request for login was not in a correct format"), LOGGING_CONTEXT)
+	errors.RegisterCode(AUTH_ERROR_NOT_ALLOWED, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Transaction is not allowed"), LOGGING_CONTEXT)
+	errors.RegisterErrorHandler(AUTH_ERROR_NOT_ALLOWED, laatoocore.AuthError)
+
+	errors.RegisterCode(AUTH_ERROR_INCORRECT_REQ_FORMAT, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Request was not in a correct format"), LOGGING_CONTEXT)
 	errors.RegisterErrorHandler(AUTH_ERROR_INCORRECT_REQ_FORMAT, laatoocore.AuthError)
 
 	errors.RegisterCode(AUTH_ERROR_DOMAIN_NOT_ALLOWED, errors.ERROR, echo.NewHTTPError(http.StatusUnauthorized, "Domain not allowed by system"), LOGGING_CONTEXT)

@@ -19,6 +19,9 @@ type DefaultUser struct {
 	Name        string   `json:"Name"`
 	Picture     string   `json:"Picture"`
 	Gender      string   `json:"Gender"`
+	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
+	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
+	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
 }
 
 func (usr *DefaultUser) GetId() string {
@@ -121,4 +124,20 @@ func (usr *DefaultUser) encryptPassword() error {
 	}
 	usr.SetPassword(string(hash))
 	return nil
+}
+
+func (ent *DefaultUser) IsNew() bool {
+	return ent.CreatedBy == ""
+}
+func (ent *DefaultUser) SetUpdatedOn(val string) {
+	ent.UpdatedOn = val
+}
+func (ent *DefaultUser) SetUpdatedBy(val string) {
+	ent.UpdatedBy = val
+}
+func (ent *DefaultUser) SetCreatedBy(val string) {
+	ent.CreatedBy = val
+}
+func (ent *DefaultUser) GetCreatedBy() string {
+	return ent.CreatedBy
 }
