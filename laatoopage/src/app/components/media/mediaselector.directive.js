@@ -21,7 +21,9 @@
                 elem.ready(function() {
 				    try {
 						scope.model = scope.$eval(attrs.model);
-				        scope.mediasource = scope.model[scope.field];
+						if(scope.model) {										
+				       		scope.mediasource = scope.model[scope.field];
+						}
 				    } catch (ex) {}	
                 })
             },
@@ -60,8 +62,10 @@
 	        });
 			$attrs.$observe('model', function(passedVal) {
 				$scope.$watchCollection(passedVal, function(newmodelVal) {
-					$scope.model = newmodelVal; //$scope.$eval($attrs.model);					
-			        $scope.mediasource = $scope.model[$scope.field];
+					$scope.model = newmodelVal; //$scope.$eval($attrs.model);	
+					if($scope.model) {				
+			       		$scope.mediasource = $scope.model[$scope.field];
+					}
 				});					
 			});
 			
@@ -108,7 +112,6 @@
 	        $scope.removeMedia = function(field) {
 				var model = $scope.$eval($attrs.model);
 	            model[$scope.field] = "";
-				console.log(defaultimage);
 				if(defaultimage) {
 		            $scope.mediasource = defaultimage;					
 				} else {

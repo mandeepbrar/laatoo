@@ -41,6 +41,7 @@
                 //$scope.route = '#';
                 var successstate = $attrs.successstate;
                 var successmethod = $attrs.successmethod;
+				var successevent =  $attrs.successevent;
                 $scope.actionFunc = function() {
                     var url = $scope.action.url;
                     for (var prop in params) {
@@ -56,22 +57,26 @@
                             url: url
                         }).then(
                             function(response) {
-                                if (successstate) {
-                                    $state.go(successstate);
-                                } else {
-                                    if (successmethod) {
-                                        var method = $scope.$eval(successmethod);
-                                        method();
-                                    } else {
-										var reload = true;
-										if ($attrs.reload && $attrs.reload == "false") {
-											reload= false;
-										}
-                                        $state.go($state.current, {}, {
-                                            reload: reload
-                                        });											
-                                    }
-                                }
+								if(successevent) {
+									$scope.$emit(successevent);
+								} else {
+	                                if (successstate) {
+	                                    $state.go(successstate);
+	                                } else {
+	                                    if (successmethod) {
+	                                        var method = $scope.$eval(successmethod);
+	                                        method();
+	                                    } else {
+											var reload = true;
+											if ($attrs.reload && $attrs.reload == "false") {
+												reload= false;
+											}
+	                                        $state.go($state.current, {}, {
+	                                            reload: reload
+	                                        });											
+	                                    }
+	                                }									
+								}
                             },
                             function(errorResponse) {
                                 if (errorResponse.status == 0) {

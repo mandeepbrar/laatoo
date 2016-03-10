@@ -311,7 +311,8 @@ func (hd *HappyDevFormatter) Format(reqContext interface{}, loggingCtx string, w
 	// DBG, INF ...
 	hd.set(buf, "", entry[KeyMap.Level].(string), color)
 	// logger name
-	hd.set(buf, "", entry[KeyMap.Name], theme.Misc)
+	//hd.set(buf, "", entry[KeyMap.Name], theme.Misc)
+	hd.set(buf, "", loggingCtx, theme.Misc)
 	// message from user
 	hd.set(buf, "", message, theme.Message)
 

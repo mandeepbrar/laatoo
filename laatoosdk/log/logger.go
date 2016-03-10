@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	CONF_LOGGINGLEVEL = "logging.level"
-	CONF_LOGGER       = "logging.loggertype"
+	CONF_LOGGINGLEVEL   = "logging.level"
+	CONF_LOGGER         = "logging.loggertype"
+	CONF_LOGGING_FORMAT = "logging.format"
 )
 
 type LoggerInterface interface {
@@ -19,6 +20,8 @@ type LoggerInterface interface {
 	Fatal(reqContext core.Context, loggingCtx string, msg string, args ...interface{})
 
 	SetLevel(string)
+	SetType(string)
+	SetFormat(string)
 	IsTrace() bool
 	IsDebug() bool
 	IsInfo() bool
@@ -36,6 +39,12 @@ func init() {
 //configures logging level and returns true if its set to debug
 func ConfigLogger(conf config.Config) bool {
 	loggingLevel := conf.GetString(CONF_LOGGINGLEVEL)
+	loggingFormat := conf.GetString(CONF_LOGGING_FORMAT)
+	loggerType := conf.GetString(CONF_LOGGER)
+	if loggerType != "" {
+		Logger.SetType(loggerType)
+	}
 	Logger.SetLevel(loggingLevel)
+	Logger.SetFormat(loggingFormat)
 	return Logger.IsDebug()
 }

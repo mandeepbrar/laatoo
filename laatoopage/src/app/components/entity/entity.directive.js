@@ -9,9 +9,25 @@
     function entity() {
         var directive = {
             restrict: 'E',
-            templateUrl: 'app/components/entity/entity.view.html',
+			templateUrl: function($element, $attrs) {				
+				if($attrs.viewmode) {
+					var url = $attrs.name + "." + $attrs.viewmode + ".html";
+					return url;
+				}
+	            return 'app/components/entity/entity.view.html';
+			},
             scope: {},
             replace: true,
+			link: function (scope, elem, attrs) {
+				try {
+					scope.entitydata = scope.$eval(attrs.entitydata);		
+					scope.$watch(attrs.entitydata, function(passedval) {
+						scope.entitydata = passedval;
+					});
+				}catch(ex) {
+					console.log(ex);
+				}
+			},
             transclude: true,
             controller: EntityCtrl,
             controllerAs: 'entity',
@@ -35,9 +51,7 @@
             var id;
             if ($attrs.id) {
                 id = $attrs.id;
-            } else {
-                throw new Error("Server error. Entity id missing");
-            }
+            } 
             var entity = window.pageConf.entities[name];
             $attrs.$observe('id', function(passedId) {
                 return $http.get(entity.url + "/" + passedId).then(

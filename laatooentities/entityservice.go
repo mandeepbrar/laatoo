@@ -176,6 +176,20 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 					}
 					return nil
 				})
+			case "softdelete":
+				router.Delete(ctx, path, methodConfig, func(ctx core.Context) error {
+					id := ctx.ParamByIndex(0)
+					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Soft deleting entity", "ID", id)
+					vals := map[string]interface{}{"Deleted": true}
+					_, err := svc.updateEntity(ctx, id, vals)
+					if err != nil {
+						return err
+					}
+					if svc.cache {
+						svc.invalidateCache(ctx, id)
+					}
+					return nil
+				})
 			case "update":
 				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
 					id := ctx.ParamByIndex(0)

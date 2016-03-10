@@ -69,12 +69,12 @@ func (usr *DefaultUser) SetRoles(roles []string) error {
 	return nil
 }
 
-/*func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
+func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }
 func (usr *DefaultUser) SetPermissions(permissions []string) {
 	usr.Permissions = permissions
-}*/
+}
 func (usr *DefaultUser) AddRole(role string) error {
 	usr.Roles = append(usr.Roles, role)
 	return nil

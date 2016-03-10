@@ -29,11 +29,12 @@ func NewEntitiesView(ctx core.Context, conf map[string]interface{}) (interface{}
 	return newEntitiesView(ctx, conf)
 }
 func newEntitiesView(ctx core.Context, conf map[string]interface{}) (*EntitiesView, error) {
+	entView := &EntitiesView{Options: conf}
 	entityInt, ok := conf[VIEW_ENTITY]
-	if !ok {
-		return nil, errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG, "Entity", VIEW_ENTITY)
+	if ok {
+		entView.entity = entityInt.(string)
 	}
-	return &EntitiesView{Options: conf, entity: entityInt.(string)}, nil
+	return entView, nil
 }
 
 func init() {
@@ -66,6 +67,20 @@ func (view *EntitiesView) Execute(ctx core.Context, dataStore data.DataService) 
 		if err := json.Unmarshal(byt, &argsMap); err != nil {
 			return err
 		}
+	}
+	if view.entity == "" {
+		entity, ok := argsMap["entity"]
+		if ok {
+			delete(argsMap, "entity")
+		} else {
+			return errors.ThrowError(ctx, ENTITY_VIEW_MISSING_ARG)
+		}
+		view.entity = entity.(string)
+	}
+
+	softDeletes, ok := view.Options["Deleted"]
+	if ok {
+		argsMap["Deleted"] = softDeletes.(bool)
 	}
 	orderBy := ""
 	orderByInt, ok := view.Options[VIEW_ORDERBY]

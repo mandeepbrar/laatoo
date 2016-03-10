@@ -3,18 +3,15 @@
 package log
 
 import (
-	//log "github.com/Sirupsen/logrus"
 	"laatoosdk/core"
-	logxi "logxi/v1"
-	"os"
 )
 
 func NewLogger() LoggerInterface {
-	return &StandaloneLogger{logxi.NewLogger3(os.Stdout, "default", logxi.NewJSONFormatter("default"))}
+	return &StandaloneLogger{NewLogxiLogger()}
 }
 
 type StandaloneLogger struct {
-	logger logxi.Logger
+	logger LoggerInterface
 }
 
 func (log *StandaloneLogger) Trace(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
@@ -35,22 +32,18 @@ func (log *StandaloneLogger) Error(reqContext core.Context, loggingCtx string, m
 func (log *StandaloneLogger) Fatal(reqContext core.Context, loggingCtx string, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, loggingCtx, msg, args...)
 }
+func (log *StandaloneLogger) SetFormat(format string) {
+	log.logger.SetFormat(format)
+}
+
+func (log *StandaloneLogger) SetType(loggertype string) {
+	if loggertype == "logrus" {
+		log.logger = NewLogrus()
+	}
+}
 
 func (log *StandaloneLogger) SetLevel(level string) {
-	switch level {
-	case "all":
-		log.logger.SetLevel(logxi.LevelAll)
-	case "trace":
-		log.logger.SetLevel(logxi.LevelTrace)
-	case "debug":
-		log.logger.SetLevel(logxi.LevelDebug)
-	case "info":
-		log.logger.SetLevel(logxi.LevelInfo)
-	case "warn":
-		log.logger.SetLevel(logxi.LevelWarn)
-	default:
-		log.logger.SetLevel(logxi.LevelError)
-	}
+	log.logger.SetLevel(level)
 }
 func (log *StandaloneLogger) IsTrace() bool {
 	return log.logger.IsTrace()

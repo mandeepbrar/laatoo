@@ -37,6 +37,15 @@ func (log *StandaloneLogger) Fatal(reqContext core.Context, loggingCtx string, m
 	log.logger.Fatal(reqContext, msg, loggingCtx, args...)
 }
 
+func (log *StandaloneLogger) SetFormat(format string) {
+	switch format {
+	case "json":
+	case "happy":
+		logger := log.logger.(*logxi.DefaultLogger)
+		logger.SetFormatter(logxi.NewHappyDevFormatter("default"))
+	}
+}
+
 func (log *StandaloneLogger) SetLevel(level string) {
 	switch level {
 	case "all":
@@ -53,6 +62,11 @@ func (log *StandaloneLogger) SetLevel(level string) {
 		log.logger.SetLevel(logxi.LevelError)
 	}
 }
+
+func (log *StandaloneLogger) SetType(type string) {
+	
+}
+
 func (log *StandaloneLogger) IsTrace() bool {
 	return log.logger.IsTrace()
 }

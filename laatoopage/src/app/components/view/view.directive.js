@@ -54,11 +54,12 @@
                 $scope.editable = ($attrs.editable == 'true');
 		      	$scope.qualifier = $attrs.qualifier;
                 $scope.submitText = "Save";
-                var actionUrl = "";
-                if ($attrs.action) {
-                    actionUrl = $attrs.action;
-                }
                 $scope.onSubmit = function() {
+	                var actionUrl = "";
+	                if ($attrs.action) {
+	                    actionUrl = $attrs.action;
+	                }
+					console.log(actionUrl);
 					var data = [];
 					var qualifiedData = [];
 					if($scope.qualifier) {
