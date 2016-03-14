@@ -3,9 +3,9 @@ package laatoocache
 import (
 	"laatoocore"
 	"laatoosdk/core"
-	"laatoosdk/utils"
-	//	"laatoosdk/errors"
+	"laatoosdk/errors"
 	"laatoosdk/log"
+	"laatoosdk/utils"
 	"reflect"
 )
 
@@ -60,6 +60,9 @@ func (svc *MemoryCacheService) GetObject(ctx core.Context, key string, val inter
 	obj, err := svc.memoryStorer.GetObject(key)
 	if err != nil {
 		return err
+	}
+	if reflect.ValueOf(obj).IsNil() {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND)
 	}
 	reflect.ValueOf(val).Elem().Set(reflect.ValueOf(obj).Elem())
 	return nil

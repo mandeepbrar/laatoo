@@ -86,6 +86,8 @@ func (usr *DefaultUser) RemoveRole(role string) error {
 
 func (usr *DefaultUser) SetJWTClaims(token *jwt.Token) {
 	token.Claims["Roles"] = strings.Join(usr.Roles, ",")
+	token.Claims["Name"] = usr.Name
+	token.Claims["Picture"] = usr.Picture
 }
 
 func (usr *DefaultUser) GetEmail() string {
@@ -103,6 +105,8 @@ func (usr *DefaultUser) GetGender() string {
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
 	usr.SetId(token.Claims["UserId"].(string))
+	usr.Name = token.Claims["Name"].(string)
+	usr.Picture = token.Claims["Picture"].(string)
 	rolesInt := token.Claims["Roles"]
 	if rolesInt != nil {
 		usr.Roles = strings.Split(rolesInt.(string), ",")

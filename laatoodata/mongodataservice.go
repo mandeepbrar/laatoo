@@ -12,10 +12,14 @@ import (
 )
 
 type mongoDataService struct {
-	name       string
-	connection *mgo.Session
-	database   string
-	objects    map[string]string
+	name           string
+	connection     *mgo.Session
+	database       string
+	objects        map[string]string
+	deleteRefOpers map[string][]*refKeyOperation
+	getRefOpers    map[string][]*refKeyOperation
+	putRefOpers    map[string][]*refKeyOperation
+	updateRefOpers map[string][]*refKeyOperation
 }
 
 const (
@@ -57,6 +61,11 @@ func MongoServiceFactory(ctx core.Context, conf map[string]interface{}) (interfa
 
 		mongoSvc.objects[obj] = collection.(string)
 	}
+	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
+	if err != nil {
+		return nil, err
+	}
+	mongoSvc.deleteRefOpers = deleteOps
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)
 	return mongoSvc, nil
 }
@@ -104,6 +113,16 @@ func (ms *mongoDataService) Save(ctx core.Context, objectType string, item inter
 	}
 	stor.PostSave(ctx)
 	return nil
+}
+
+func (ms *mongoDataService) Supports(feature data.Feature) bool {
+	switch feature {
+	case data.InQueries:
+		return true
+	case data.Ancestors:
+		return false
+	}
+	return false
 }
 
 func (ms *mongoDataService) PutMulti(ctx core.Context, objectType string, ids []string, items interface{}) error {
@@ -249,13 +268,7 @@ func (ms *mongoDataService) Get(ctx core.Context, objectType string, queryCond i
 	}
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
-	var conditions map[string]interface{}
-	if queryCond != nil {
-		conditions = queryCond.(map[string]interface{})
-	} else {
-		conditions = bson.M{}
-	}
-	query := connCopy.DB(ms.database).C(collection).Find(conditions)
+	query := connCopy.DB(ms.database).C(collection).Find(queryCond)
 	if pageSize > 0 {
 		totalrecs, err = query.Count()
 		if err != nil {
@@ -279,11 +292,113 @@ func (ms *mongoDataService) Get(ctx core.Context, objectType string, queryCond i
 	if err != nil {
 		return nil, totalrecs, recsreturned, err
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Returning multiple objects ", "conditions", conditions, "objectType", objectType, "recsreturned", recsreturned)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Returning multiple objects ", "conditions", queryCond, "objectType", objectType, "recsreturned", recsreturned)
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Delete(ctx core.Context, objectType string, id string) error {
+func (ms *mongoDataService) Update(ctx core.Context, objectType string, id string, newVals map[string]interface{}) error {
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	updateInterface := map[string]interface{}{"$set": newVals}
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
+	if err != nil {
+		return nil
+	}
+	stor := object.(data.Storable)
+	idkey := stor.GetIdField()
+	condition := bson.M{}
+	condition[idkey] = id
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	return connCopy.DB(ms.database).C(collection).Update(condition, updateInterface)
+}
+
+//update objects by ids, fields to be updated should be provided as key value pairs
+func (ms *mongoDataService) UpdateAll(ctx core.Context, objectType string, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	results, err := laatoocore.CreateCollection(ctx, objectType)
+	if err != nil {
+		return nil, nil
+	}
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(ms.database).C(collection).Find(queryCond)
+	err = query.All(results)
+	if err != nil {
+		return nil, err
+	}
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	ids := make([]string, length)
+	if length == 0 {
+		return nil, nil
+	}
+	for i := 0; i < length; i++ {
+		stor := arr.Index(i).Addr().Interface().(data.Storable)
+		ids[i] = stor.GetId()
+	}
+	_, err = connCopy.DB(ms.database).C(collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
+	if err != nil {
+		return nil, err
+	}
+	return ids, err
+}
+
+//update objects by ids, fields to be updated should be provided as key value pairs
+func (ms *mongoDataService) UpdateMulti(ctx core.Context, objectType string, ids []string, newVals map[string]interface{}) error {
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	updateInterface := map[string]interface{}{"$set": newVals}
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
+	if err != nil {
+		return nil
+	}
+	stor := object.(data.Storable)
+	idkey := stor.GetIdField()
+	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, idkey, ids)
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	return connCopy.DB(ms.database).C(collection).Update(condition, updateInterface)
+}
+
+//create condition for passing to data service
+func (ms *mongoDataService) CreateCondition(ctx core.Context, operation data.ConditionType, args ...interface{}) (interface{}, error) {
+	switch operation {
+	case data.MATCHANCESTOR:
+		return nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_NOT_IMPLEMENTED)
+	case data.MATCHMULTIPLEVALUES:
+		{
+			if len(args) < 2 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			return bson.M{args[0].(string): bson.M{"$in": args[1]}}, nil
+		}
+	case data.FIELDVALUE:
+		{
+			if len(args) < 1 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			return args[0], nil
+		}
+	}
+	return nil, nil
+}
+
+func (ms *mongoDataService) Delete(ctx core.Context, objectType string, id string, softdelete bool) error {
+	if softdelete {
+		err := ms.Update(ctx, objectType, id, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
+		}
+		return err
+	}
 	object, err := laatoocore.CreateObject(ctx, objectType, nil)
 	if err != nil {
 		return nil
@@ -298,7 +413,85 @@ func (ms *mongoDataService) Delete(ctx core.Context, objectType string, id strin
 	condition[idkey] = id
 	connCopy := ms.connection.Copy()
 	defer connCopy.Close()
-	return connCopy.DB(ms.database).C(collection).Remove(condition)
+	err = connCopy.DB(ms.database).C(collection).Remove(condition)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
+	}
+	return err
+}
+
+//Delete object by ids
+func (ms *mongoDataService) DeleteMulti(ctx core.Context, objectType string, ids []string, softdelete bool) error {
+	if softdelete {
+		err := ms.UpdateMulti(ctx, objectType, ids, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		}
+		return err
+	}
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
+	if err != nil {
+		return nil
+	}
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	stor := object.(data.Storable)
+	idkey := stor.GetIdField()
+	conditionVal := bson.M{}
+	conditionVal["$in"] = ids
+	condition := bson.M{}
+	condition[idkey] = conditionVal
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	_, err = connCopy.DB(ms.database).C(collection).RemoveAll(condition)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+	}
+	return err
+}
+
+//Delete object by condition
+func (ms *mongoDataService) DeleteAll(ctx core.Context, objectType string, queryCond interface{}, softdelete bool) ([]string, error) {
+	if softdelete {
+		ids, err := ms.UpdateAll(ctx, objectType, queryCond, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		}
+		return ids, err
+	}
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	results, err := laatoocore.CreateCollection(ctx, objectType)
+	if err != nil {
+		return nil, nil
+	}
+	connCopy := ms.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(ms.database).C(collection).Find(queryCond)
+	err = query.All(results)
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "deleteall", "queryCond", queryCond, "length", length, "collection", collection)
+	ids := make([]string, length)
+	if length == 0 {
+		return nil, nil
+	}
+	for i := 0; i < length; i++ {
+		stor := arr.Index(i).Addr().Interface().(data.Storable)
+		ids[i] = stor.GetId()
+	}
+	_, err = connCopy.DB(ms.database).C(collection).RemoveAll(queryCond)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		if err != nil {
+			return ids, err
+		}
+	}
+	return ids, err
 }
 
 func (ms *mongoDataService) GetList(ctx core.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {

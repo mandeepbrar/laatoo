@@ -15,8 +15,19 @@ import (
 )
 
 type DatastoreDataService struct {
-	name    string
-	objects map[string]string
+	name           string
+	objects        map[string]string
+	deleteRefOpers map[string][]*refKeyOperation
+	getRefOpers    map[string][]*refKeyOperation
+	putRefOpers    map[string][]*refKeyOperation
+	updateRefOpers map[string][]*refKeyOperation
+}
+
+type DatastoreCondition struct {
+	operation data.ConditionType
+	arg1      interface{}
+	arg2      interface{}
+	arg3      interface{}
 }
 
 const (
@@ -44,6 +55,11 @@ func DatastoreServiceFactory(ctx core.Context, conf map[string]interface{}) (int
 
 		datastoreSvc.objects[obj] = collection.(string)
 	}
+	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
+	if err != nil {
+		return nil, err
+	}
+	datastoreSvc.deleteRefOpers = deleteOps
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Datastore service configured for objects ", "Objects", datastoreSvc.objects)
 	return datastoreSvc, nil
 }
@@ -69,6 +85,16 @@ func (svc *DatastoreDataService) Initialize(ctx core.Context) error {
 //The service starts serving when this method is called
 func (svc *DatastoreDataService) Serve(ctx core.Context) error {
 	return nil
+}
+
+func (ms *DatastoreDataService) Supports(feature data.Feature) bool {
+	switch feature {
+	case data.InQueries:
+		return false
+	case data.Ancestors:
+		return true
+	}
+	return false
 }
 
 func (ms *DatastoreDataService) Save(ctx core.Context, objectType string, item interface{}) error {
@@ -161,7 +187,6 @@ func (ms *DatastoreDataService) GetById(ctx core.Context, objectType string, id 
 		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error in getting object", "ID", id, "Error", err)
 		return nil, err
 	}
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Got object", "Key", datastore.NewKey(appEngineContext, collection, "some id", 0, nil))
 	return object, nil
 }
 
@@ -224,15 +249,9 @@ func (ms *DatastoreDataService) Get(ctx core.Context, objectType string, queryCo
 		return nil, totalrecs, recsreturned, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	query := datastore.NewQuery(collection)
-	if queryCond != nil {
-		queryCondMap, ok := queryCond.(map[string]interface{})
-		if ok {
-			for k, v := range queryCondMap {
-				query = query.Filter(fmt.Sprintf("%s =", k), v)
-				log.Logger.Trace(ctx, LOGGING_CONTEXT, "Get Resuls with condition", "k", k, "v", v)
-
-			}
-		}
+	query, err = ms.processCondition(ctx, query, queryCond)
+	if err != nil {
+		return nil, totalrecs, recsreturned, err
 	}
 	if pageSize > 0 {
 		totalrecs, err = query.Limit(500).Count(appEngineContext)
@@ -263,14 +282,277 @@ func (ms *DatastoreDataService) Get(ctx core.Context, objectType string, queryCo
 	return results, totalrecs, recsreturned, nil
 }
 
-func (ms *DatastoreDataService) Delete(ctx core.Context, objectType string, id string) error {
+//create condition for passing to data service
+func (ms *DatastoreDataService) CreateCondition(ctx core.Context, operation data.ConditionType, args ...interface{}) (interface{}, error) {
+	switch operation {
+	case data.MATCHANCESTOR:
+		{
+			if len(args) < 2 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			collection, ok := ms.objects[args[0].(string)]
+			if !ok {
+				return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+			}
+			return &DatastoreCondition{operation: operation, arg1: collection, arg2: args[1]}, nil
+		}
+	case data.MATCHMULTIPLEVALUES:
+		{
+			if len(args) < 2 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			return &DatastoreCondition{operation: operation, arg1: args[0], arg2: args[1]}, nil
+		}
+	case data.FIELDVALUE:
+		{
+			if len(args) < 1 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			return &DatastoreCondition{operation: operation, arg1: args[0]}, nil
+		}
+	}
+	return nil, nil
+}
+
+func (ms *DatastoreDataService) processCondition(ctx core.Context, query *datastore.Query, condition interface{}) (*datastore.Query, error) {
+	if condition == nil {
+		return query, nil
+	}
+	dqCondition := condition.(*DatastoreCondition)
+	switch dqCondition.operation {
+	case data.MATCHANCESTOR:
+		collection, ok := dqCondition.arg1.(string)
+		id, ok := dqCondition.arg2.(string)
+		if id == "" {
+			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+		}
+		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+		query = query.Ancestor(key), nil
+	case data.MATCHMULTIPLEVALUES:
+		return nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_NOT_IMPLEMENTED)
+	case data.FIELDVALUE:
+		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
+		if ok {
+			for k, v := range queryCondMap {
+				query = query.Filter(fmt.Sprintf("%s =", k), v)
+			}
+			return query, nil
+		} else {
+			return nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_TYPE_MISMATCH)
+		}
+
+	}
+	return query, nil
+}
+
+func (ms *DatastoreDataService) Update(ctx core.Context, objectType string, id string, newVals map[string]interface{}) error {
+	appEngineContext := ctx.GetAppengineContext()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	object, err := laatoocore.CreateObject(ctx, objectType, nil)
+	if err != nil {
+		return err
+	}
+	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+	err = datastore.Get(appEngineContext, key, object)
+	if err != nil {
+		return err
+	}
+	entVal := reflect.ValueOf(object).Elem()
+	for k, v := range newVals {
+		f := entVal.FieldByName(k)
+		if f.IsValid() {
+			// A Value can be changed only if it is
+			// addressable and was not obtained by
+			// the use of unexported struct fields.
+			if f.CanSet() {
+				f.Set(reflect.ValueOf(v))
+			}
+		}
+	}
+	key, err = datastore.Put(appEngineContext, key, object)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//update objects by ids, fields to be updated should be provided as key value pairs
+func (ms *DatastoreDataService) UpdateMulti(ctx core.Context, objectType string, ids []string, newVals map[string]interface{}) error {
+	appEngineContext := ctx.GetAppengineContext()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	ctype, err := laatoocore.GetCollectionType(ctx, objectType)
+	if err != nil {
+		return err
+	}
+	lenids := len(ids)
+	arr := reflect.MakeSlice(ctype, lenids, lenids)
+	keys := make([]*datastore.Key, len(ids))
+	for ind, id := range ids {
+		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+		keys[ind] = key
+	}
+	err = datastore.GetMulti(appEngineContext, keys, arr.Interface())
+	if err != nil {
+		if _, ok := err.(appengine.MultiError); !ok {
+			log.Logger.Debug(ctx, LOGGING_CONTEXT, "Geting object", "err", err)
+			return err
+		}
+	}
+	length := arr.Len()
+	for i := 0; i < length; i++ {
+		val := arr.Index(i)
+		for k, v := range newVals {
+			f := val.FieldByName(k)
+			if f.IsValid() {
+				// A Value can be changed only if it is
+				// addressable and was not obtained by
+				// the use of unexported struct fields.
+				if f.CanSet() {
+					f.Set(reflect.ValueOf(v))
+				}
+			}
+		}
+	}
+	_, err = datastore.PutMulti(appEngineContext, keys, arr.Interface())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+//update objects by ids, fields to be updated should be provided as key value pairs
+func (ms *DatastoreDataService) UpdateAll(ctx core.Context, objectType string, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	appEngineContext := ctx.GetAppengineContext()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	results, err := laatoocore.CreateCollection(ctx, objectType)
+	if err != nil {
+		return nil, err
+	}
+	query := datastore.NewQuery(collection)
+	query, err = ms.processCondition(ctx, query, queryCond)
+	if err != nil {
+		return nil, err
+	}
+	// To retrieve the results,
+	// you must execute the Query using its GetAll or Run methods.
+	keys, err := query.GetAll(appEngineContext, results)
+	arr := reflect.ValueOf(results).Elem()
+	length := arr.Len()
+	ids := make([]string, length)
+	for i := 0; i < length; i++ {
+		val := arr.Index(i)
+		stor := val.Addr().Interface().(data.Storable)
+		ids[i] = stor.GetId()
+		for k, v := range newVals {
+			f := val.FieldByName(k)
+			if f.IsValid() {
+				// A Value can be changed only if it is
+				// addressable and was not obtained by
+				// the use of unexported struct fields.
+				if f.CanSet() {
+					f.Set(reflect.ValueOf(v))
+				}
+			}
+		}
+	}
+	_, err = datastore.PutMulti(appEngineContext, keys, arr.Interface())
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+func (ms *DatastoreDataService) Delete(ctx core.Context, objectType string, id string, softdelete bool) error {
+	if softdelete {
+		err := ms.Update(ctx, objectType, id, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
+		}
+		return err
+	}
 	appEngineContext := ctx.GetAppengineContext()
 	collection, ok := ms.objects[objectType]
 	if !ok {
 		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
-	return datastore.Delete(appEngineContext, key)
+	err := datastore.Delete(appEngineContext, key)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
+	}
+	return err
+}
+
+//Delete object by ids
+func (ms *DatastoreDataService) DeleteMulti(ctx core.Context, objectType string, ids []string, softdelete bool) error {
+	if softdelete {
+		err := ms.UpdateMulti(ctx, objectType, ids, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		}
+		return err
+	}
+	appEngineContext := ctx.GetAppengineContext()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	keys := make([]*datastore.Key, len(ids))
+	for ind, id := range ids {
+		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
+		keys[ind] = key
+	}
+	err := datastore.DeleteMulti(appEngineContext, keys)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+	}
+	return err
+}
+
+//Delete object by condition
+func (ms *DatastoreDataService) DeleteAll(ctx core.Context, objectType string, queryCond interface{}, softdelete bool) ([]string, error) {
+	if softdelete {
+		ids, err := ms.UpdateAll(ctx, objectType, queryCond, map[string]interface{}{"Deleted": true})
+		if err == nil {
+			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		}
+		return ids, err
+	}
+	appEngineContext := ctx.GetAppengineContext()
+	collection, ok := ms.objects[objectType]
+	if !ok {
+		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
+	}
+	results, err := laatoocore.CreateCollection(ctx, objectType)
+	if err != nil {
+		return nil, err
+	}
+	query := datastore.NewQuery(collection)
+	query, err = ms.processCondition(ctx, query, queryCond)
+	if err != nil {
+		return nil, err
+	}
+	// To retrieve the results,
+	// you must execute the Query using its GetAll or Run methods.
+	keys, err := query.KeysOnly().GetAll(appEngineContext, results)
+	ids := make([]string, len(keys))
+	for i, val := range keys {
+		ids[i] = val.StringID()
+	}
+	err = datastore.DeleteMulti(appEngineContext, keys)
+	if err == nil {
+		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+	}
+	return ids, err
 }
 
 func (ms *DatastoreDataService) GetList(ctx core.Context, objectType string, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {

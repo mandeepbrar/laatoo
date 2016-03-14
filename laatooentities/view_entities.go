@@ -97,5 +97,9 @@ func (view *EntitiesView) Execute(ctx core.Context, dataStore data.DataService) 
 	return ctx.JSON(http.StatusOK, entities)
 }
 func (view *EntitiesView) getData(ctx core.Context, dataStore data.DataService, argsMap map[string]interface{}, pagesize int, pagenum int, orderBy string) (dataToReturn interface{}, totalrecs int, recsreturned int, err error) {
-	return dataStore.Get(ctx, view.entity, argsMap, pagesize, pagenum, "", orderBy)
+	condition, err := dataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	if err != nil {
+		return nil, -1, -1, err
+	}
+	return dataStore.Get(ctx, view.entity, condition, pagesize, pagenum, "", orderBy)
 }

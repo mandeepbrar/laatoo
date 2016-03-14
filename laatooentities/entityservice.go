@@ -24,6 +24,7 @@ const (
 	CONF_ENTITY_METHOD      = "method"
 	CONF_ENTITY_PATH        = "path"
 	CONF_ENTITY_INVOKE      = "invoke"
+	CONF_SOFT_DELETE        = "softdelete"
 )
 
 //Environment hosting an application
@@ -166,22 +167,13 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 			case "delete":
 				router.Delete(ctx, path, methodConfig, func(ctx core.Context) error {
 					id := ctx.ParamByIndex(0)
+					softdelete := false
+					sdconfig, sok := methodConfig[CONF_SOFT_DELETE]
+					if sok {
+						softdelete = (sdconfig.(string) == "true")
+					}
 					log.Logger.Debug(ctx, LOGGING_CONTEXT, "Deleting entity", "ID", id)
-					err := svc.DataStore.Delete(ctx, entityName, id)
-					if err != nil {
-						return err
-					}
-					if svc.cache {
-						svc.invalidateCache(ctx, id)
-					}
-					return nil
-				})
-			case "softdelete":
-				router.Delete(ctx, path, methodConfig, func(ctx core.Context) error {
-					id := ctx.ParamByIndex(0)
-					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Soft deleting entity", "ID", id)
-					vals := map[string]interface{}{"Deleted": true}
-					_, err := svc.updateEntity(ctx, id, vals)
+					err := svc.DataStore.Delete(ctx, entityName, id, softdelete)
 					if err != nil {
 						return err
 					}
@@ -361,38 +353,9 @@ func (svc *EntityService) getEntity(ctx core.Context, id string) (interface{}, e
 }
 
 func (svc *EntityService) updateEntity(ctx core.Context, id string, newVals map[string]interface{}) (interface{}, error) {
-	ent, err := svc.getEntity(ctx, id)
-	if err != nil {
-		return nil, err
-	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", "entity", svc.EntityName, "id", id)
-	entVal := reflect.ValueOf(ent).Elem()
-	for k := range newVals {
-		v := newVals[k]
-		f := entVal.FieldByName(k)
-		if f.IsValid() {
-			// A Value can be changed only if it is
-			// addressable and was not obtained by
-			// the use of unexported struct fields.
-			if f.CanSet() {
-				// change value of N
-				if f.Kind() == reflect.Int {
-					f.SetInt(v.(int64))
-				}
-				// change value of N
-				if f.Kind() == reflect.String {
-					f.SetString(v.(string))
-				}
-				// change value of N
-				if f.Kind() == reflect.Bool {
-					f.SetBool(v.(bool))
-				}
-			}
-		}
-	}
-	data.Audit(ctx, ent)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Updating Entity", "ent", ent, "id", id)
-	_, err = svc.putEntity(ctx, id, ent)
+	data.Audit(ctx, newVals)
+	err := svc.DataStore.Update(ctx, svc.EntityName, id, newVals)
 	if err != nil {
 		return nil, err
 	}

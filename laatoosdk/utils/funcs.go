@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"reflect"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -21,4 +22,22 @@ func Remove(arr []string, elem string) []string {
 		}
 	}
 	return arr
+}
+
+func MapValues(mapToProcess map[string]interface{}) interface{} {
+	maplen := len(mapToProcess)
+	if maplen < 1 {
+		return []interface{}{}
+	}
+	var arr reflect.Value
+	i := 0
+	for _, v := range mapToProcess {
+		if i == 0 {
+			sliceType := reflect.SliceOf(reflect.TypeOf(v))
+			arr = reflect.MakeSlice(sliceType, maplen, maplen)
+		}
+		arr.Index(i).Set(reflect.ValueOf(v))
+		i++
+	}
+	return arr.Interface()
 }

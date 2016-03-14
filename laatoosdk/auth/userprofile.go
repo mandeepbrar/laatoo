@@ -8,6 +8,4 @@ type UserProfile interface {
 	GetName() string
 	GetPicture() string
 	GetGender() string
-	GetGivenName() string
-	GetFamilyName() string
 }

@@ -39,7 +39,9 @@ func (server *Server) InitServer(ctx *Context, configName string, router *echo.E
 	//config logger
 	debug := log.ConfigLogger(server.Config)
 	router.SetDebug(debug)
-
+	if debug {
+		errors.ShowStack = true
+	}
 	log.Logger.Trace(ctx, "core.server", "Getting environments")
 	//read config
 	envs := server.Config.GetArray(CONF_ENVIRONMENTS)

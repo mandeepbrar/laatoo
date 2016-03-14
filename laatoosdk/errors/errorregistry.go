@@ -24,7 +24,7 @@ type Error struct {
 	Context           string
 }
 
-var ShowStack = true
+var ShowStack = false
 
 //Error handler for interrupting the error process
 //Returns true if the error has been handled
@@ -60,42 +60,57 @@ func ThrowError(ctx core.Context, internalErrorCode string, info ...interface{})
 	return RethrowError(ctx, internalErrorCode, nil, info...)
 }
 
-//throw a registered error code
-//rethrow an error with an internal error code
+func ThrowErrorInCtx(ctx core.Context, loggingCtx string, internalErrorCode string, info ...interface{}) error {
+	return RethrowErrorInCtx(ctx, loggingCtx, internalErrorCode, nil, info...)
+}
+
 func RethrowError(ctx core.Context, internalErrorCode string, err error, info ...interface{}) error {
 	registeredErr, ok := ErrorsRegister[internalErrorCode]
 	if !ok {
 		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
 	}
-	stack := ""
-	if ShowStack {
-		stack = string(debug.Stack())
+	return throwErrorInCtx(ctx, registeredErr.Context, registeredErr, err, info...)
+}
+
+func RethrowErrorInCtx(ctx core.Context, loggingCtx string, internalErrorCode string, err error, info ...interface{}) error {
+	registeredErr, ok := ErrorsRegister[internalErrorCode]
+	if !ok {
+		panic(fmt.Errorf("Invalid error code: %s", internalErrorCode))
 	}
+	return throwErrorInCtx(ctx, loggingCtx, registeredErr, err, info...)
+}
+
+//throw a registered error code
+//rethrow an error with an internal error code
+func throwErrorInCtx(ctx core.Context, loggingCtx string, registeredError *Error, rethrownError error, info ...interface{}) error {
 	var errDetails []interface{}
-	if err == nil {
-		errDetails = []interface{}{"Err", registeredErr.Error.Error(), "Internal Error Code", internalErrorCode, "Stack", stack}
+	if rethrownError == nil {
+		errDetails = []interface{}{"Err", registeredError.Error.Error(), "Internal Error Code", registeredError.InternalErrorCode}
 	} else {
-		errDetails = []interface{}{"Err", registeredErr.Error.Error(), "Internal Error Code", internalErrorCode, "Stack", stack, "Root Error", err}
+		errDetails = []interface{}{"Err", registeredError.Error.Error(), "Internal Error Code", registeredError.InternalErrorCode, "Root Error", rethrownError}
 	}
-	infoArr := append(errDetails, info)
-	switch registeredErr.Loglevel {
+	infoArr := append(errDetails, info...)
+	switch registeredError.Loglevel {
 	case FATAL:
-		log.Logger.Fatal(ctx, registeredErr.Context, "Encountered error", infoArr...)
+		log.Logger.Fatal(ctx, loggingCtx, "Encountered error", infoArr...)
 	case ERROR:
-		log.Logger.Error(ctx, registeredErr.Context, "Encountered error", infoArr...)
+		log.Logger.Error(ctx, loggingCtx, "Encountered error", infoArr...)
 	case WARNING:
-		log.Logger.Warn(ctx, registeredErr.Context, "Encountered warning", infoArr...)
+		log.Logger.Warn(ctx, loggingCtx, "Encountered warning", infoArr...)
 	case INFO:
-		log.Logger.Info(ctx, registeredErr.Context, "Info Error", infoArr...)
+		log.Logger.Info(ctx, loggingCtx, "Info Error", infoArr...)
 	case DEBUG:
-		log.Logger.Debug(ctx, registeredErr.Context, "Debug Error", infoArr...)
+		log.Logger.Debug(ctx, loggingCtx, "Debug Error", infoArr...)
+	}
+	if ShowStack {
+		log.Logger.Debug(ctx, loggingCtx, string(debug.Stack()))
 	}
 	//call the handlers while throwing an error
-	handlers := ErrorsHandlersRegister[internalErrorCode]
+	handlers := ErrorsHandlersRegister[registeredError.InternalErrorCode]
 	if handlers != nil {
 		handled := false
 		for _, val := range handlers {
-			handled = val(ctx, registeredErr, info...) || handled
+			handled = val(ctx, registeredError, info...) || handled
 		}
 		//if an error has been handled, dont throw it
 		if handled {
@@ -103,5 +118,5 @@ func RethrowError(ctx core.Context, internalErrorCode string, err error, info ..
 		}
 	}
 	//thwo the error
-	return registeredErr.Error
+	return registeredError.Error
 }

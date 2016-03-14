@@ -63,8 +63,8 @@ func (log *StandaloneLogger) SetLevel(level string) {
 	}
 }
 
-func (log *StandaloneLogger) SetType(type string) {
-	
+func (log *StandaloneLogger) SetType(logtype string) {
+
 }
 
 func (log *StandaloneLogger) IsTrace() bool {

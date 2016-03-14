@@ -2,7 +2,12 @@ package data
 
 import (
 	"laatoosdk/core"
+	"laatoosdk/log"
 	"time"
+)
+
+const (
+	LOGGING_CONTEXT = "sdk.data"
 )
 
 type Auditable interface {
@@ -15,8 +20,8 @@ type Auditable interface {
 
 func Audit(ctx core.Context, item interface{}) {
 	if item != nil {
-		auditable := item.(Auditable)
-		if auditable != nil {
+		auditable, aok := item.(Auditable)
+		if aok {
 			usr := ctx.GetUser()
 			if usr != nil {
 				id := usr.GetId()
@@ -25,6 +30,20 @@ func Audit(ctx core.Context, item interface{}) {
 				}
 				auditable.SetUpdatedBy(id)
 				auditable.SetUpdatedOn(time.Now().Format(time.UnixDate))
+			} else {
+				log.Logger.Info(ctx, LOGGING_CONTEXT, "Could not audit entity. User nil")
+			}
+		} else {
+			updateMap, mapok := item.(map[string]interface{})
+			if mapok {
+				usr := ctx.GetUser()
+				if usr != nil {
+					id := usr.GetId()
+					updateMap["UpdatedBy"] = id
+					updateMap["UpdatedOn"] = time.Now().Format(time.UnixDate)
+				} else {
+					log.Logger.Info(ctx, LOGGING_CONTEXT, "Could not audit map. User nil")
+				}
 			}
 		}
 	}

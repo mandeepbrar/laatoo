@@ -37,7 +37,9 @@ func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface
 	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
 	router := routerInt.(core.Router)
 	entitydatasvcInt, ok := conf[CONF_RMI_DATA_SVC]
-	svc.dataServiceName = entitydatasvcInt.(string)
+	if ok {
+		svc.dataServiceName = entitydatasvcInt.(string)
+	}
 
 	rmimethodsInt, ok := conf[CONF_RMI_METHODS]
 	if !ok {
@@ -75,16 +77,16 @@ func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface
 				switch httpmethodInt.(string) {
 				case "PUT":
 					router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
-						return svc.invokeMethod(ctx, method, nil)
+						return svc.invokeMethod(ctx, method, methodName, nil)
 					})
 				case "POST":
 					router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-						return svc.invokeMethod(ctx, method, nil)
+						return svc.invokeMethod(ctx, method, methodName, nil)
 					})
 				}
 			} else {
 				router.Post(ctx, path, methodConfig, func(ctx core.Context) error {
-					return svc.invokeMethod(ctx, method, nil)
+					return svc.invokeMethod(ctx, method, methodName, nil)
 				})
 			}
 
@@ -93,13 +95,15 @@ func RmiServiceFactory(ctx core.Context, conf map[string]interface{}) (interface
 	return svc, nil
 }
 
-func (svc *RmiService) invokeMethod(ctx core.Context, method laatoocore.InvokableMethod, params map[string]interface{}) error {
+func (svc *RmiService) invokeMethod(ctx core.Context, method laatoocore.InvokableMethod, methodName string, params map[string]interface{}) error {
 	if params == nil {
 		params = map[string]interface{}{}
 	}
-	params[CONF_RMI_DATASTORE] = svc.DataStore
+	if svc.DataStore != nil {
+		params[CONF_RMI_DATASTORE] = svc.DataStore
+	}
 	err := method(ctx, params)
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in invoking method", "method", method, "err", err)
+	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Invoked method", "method", methodName, "err", err)
 	return err
 }
 
@@ -110,12 +114,13 @@ func (svc *RmiService) GetName() string {
 
 //Initialize the service. Consumer of a service passes the data
 func (svc *RmiService) Initialize(ctx core.Context) error {
-	dataSvc, err := ctx.GetService(svc.dataServiceName)
-	if err != nil {
-		return errors.RethrowError(ctx, RMI_ERROR_MISSING_DATASVC, err)
+	if svc.dataServiceName != "" {
+		dataSvc, err := ctx.GetService(svc.dataServiceName)
+		if err != nil {
+			return errors.RethrowError(ctx, RMI_ERROR_MISSING_DATASVC, err)
+		}
+		svc.DataStore = dataSvc.(data.DataService)
 	}
-
-	svc.DataStore = dataSvc.(data.DataService)
 	return nil
 }
 
