@@ -14,7 +14,6 @@
             scope: {},
             replace: true,
             link: function(scope, elem, attrs) {
-				console.log("linking");
 				if(attrs.model) {
 					var modelVal = scope.$eval(attrs.model);
 					scope.entity.model = modelVal;

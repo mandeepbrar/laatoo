@@ -61,7 +61,7 @@ func (svc *MemoryCacheService) GetObject(ctx core.Context, key string, val inter
 	if err != nil {
 		return err
 	}
-	if reflect.ValueOf(obj).IsNil() {
+	if obj == nil || reflect.ValueOf(obj).IsNil() {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND)
 	}
 	reflect.ValueOf(val).Elem().Set(reflect.ValueOf(obj).Elem())

@@ -128,12 +128,13 @@ func EntityServiceFactory(ctx core.Context, conf map[string]interface{}) (interf
 					if err != nil {
 						return err
 					}
+					stor := ent.(data.Storable)
+					id := stor.GetId()
 					if svc.cache {
-						stor := ent.(data.Storable)
-						svc.invalidateCache(ctx, stor.GetId())
+						svc.invalidateCache(ctx, id)
 					}
-					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity")
-					return nil
+					log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved entity", "id", id)
+					return ctx.JSON(200, id)
 				})
 			case "put":
 				router.Put(ctx, path, methodConfig, func(ctx core.Context) error {
