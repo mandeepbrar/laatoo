@@ -24,7 +24,7 @@ func constructConfig() *ConfigImpl {
 func NewConfigFromFile(file string) *ConfigImpl {
 	conf := constructConfig()
 	//set file name to read
-	conf.SetConfigName(file)
+	conf.SetConfigFile(file)
 	//read the file
 	err := conf.ReadInConfig() // Find and read the config file
 	if err != nil {            // Handle errors reading the config file

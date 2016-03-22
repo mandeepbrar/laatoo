@@ -3,6 +3,7 @@ package laatoocore
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/labstack/echo"
 	"io/ioutil"
 	"laatoosdk/auth"
@@ -143,8 +144,11 @@ func (env *Environment) createServices(ctx *Context) error {
 	//get a map of all the services
 	svcs := env.Config.GetMap(CONF_ENV_SERVICES)
 	for alias, val := range svcs {
+		svcFileName := fmt.Sprintf("%s/%s", env.Name, val.(string))
+		log.Logger.Info(ctx, "core", "Creating Service", "alias", alias, "filename", svcFileName)
+		svcConfig := config.NewConfigFromFile(svcFileName)
 		//create the service
-		svc, err := env.createService(ctx, alias, val)
+		svc, err := env.createService(ctx, alias, svcConfig.AllSettings())
 		if err != nil {
 			return err
 		}
@@ -157,12 +161,12 @@ func (env *Environment) createServices(ctx *Context) error {
 }
 
 //this method creates a service with a given configuration
-func (env *Environment) createService(ctx *Context, alias string, conf interface{}) (core.Service, error) {
+func (env *Environment) createService(ctx *Context, alias string, serviceConfig map[string]interface{}) (core.Service, error) {
 
 	//get the config for the service with given alias
-	serviceConfig := conf.(map[string]interface{})
+	//	serviceConfig := conf.(map[string]interface{})
 	//get the service name to be created for the alias
-	log.Logger.Info(ctx, "core.env.createservice", "Creating service ", "service alias", alias)
+	log.Logger.Info(ctx, "core.env.createservice", "Creating service ", "serviceConfig", serviceConfig)
 	//get the name of the service to be constructed for the alias
 	//services can be created multiple times
 	svcName, ok := serviceConfig[CONF_ENV_SERVICENAME].(string)

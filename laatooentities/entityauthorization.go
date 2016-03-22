@@ -10,6 +10,7 @@ import (
 
 const (
 	CHECK_ENTITY_OWNERSHIP_AUTH_METHOD = "EnforceEntityOwnership"
+	AUTHORIZED_ENTITY                  = "AuthorizedEntity"
 )
 
 func init() {
@@ -53,6 +54,7 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity accessible only by owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
 	}
+	ctx.Set(AUTHORIZED_ENTITY, ent)
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 	return nil
 }
