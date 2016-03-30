@@ -7,7 +7,10 @@ import (
 
 //service method for doing various tasks
 func NewService(ctx core.ServerContext, servFunc core.ServiceFunc, conf config.Config) core.Service {
-	return &serviceImpl{servFunc: servFunc, conf: conf}
+	if servFunc != nil {
+		return &serviceImpl{servFunc: servFunc, conf: conf}
+	}
+	return nil
 }
 
 type serviceImpl struct {

@@ -6,22 +6,25 @@ import (
 	"laatoo/sdk/core"
 )
 
+type FactoryMethod func(ctx core.ServerContext, name string, conf config.Config) (core.ServiceFunc, error)
+
 type DefaultFactory struct {
-	Conf config.Config
+	Conf      config.Config
+	facMethod FactoryMethod
+}
+
+func NewDefaultFactory(facMethod FactoryMethod) *DefaultFactory {
+	return &DefaultFactory{facMethod: facMethod}
 }
 
 //Create the services configured for factory.
 func (df *DefaultFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
 	df.Conf = conf
-	method, err := df.GetMethod(ctx, name, conf)
+	svcFunc, err := df.facMethod(ctx, name, conf)
 	if err != nil {
 		return nil, err
 	}
-	return services.NewService(ctx, method, conf), nil
-}
-
-func (df *DefaultFactory) GetMethod(ctx core.ServerContext, name string, conf config.Config) (core.ServiceFunc, error) {
-	return nil, nil
+	return services.NewService(ctx, svcFunc, conf), nil
 }
 
 //The services start serving when this method is called

@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"encoding/json"
 	"fmt"
 	"laatoo/core/registry"
 	"laatoo/core/services"
@@ -150,7 +149,7 @@ func (es *EntityServiceFactory) GETBYID(ctx core.RequestContext) error {
 	}
 	result, err := es.GetById(ctx, id)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -188,7 +187,7 @@ func (es *EntityServiceFactory) GETMULTI(ctx core.RequestContext) error {
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	result, err := es.GetMulti(ctx, ids, orderBy)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -213,15 +212,19 @@ func (es *EntityServiceFactory) SELECT(ctx core.RequestContext) error {
 	pagesize, _ := ctx.GetInt(data.DATA_PAGESIZE)
 	pagenum, _ := ctx.GetInt(data.DATA_PAGENUM)
 
-	args, argsok := ctx.GetString(DATA_SELECT_ARGS)
 	var argsMap map[string]interface{}
 
-	if argsok {
-		argsbyt := []byte(args)
-		if err := json.Unmarshal(argsbyt, &argsMap); err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
+	/*	args, argsok := ctx.GetString(DATA_SELECT_ARGS)
+		var argsMap map[string]interface{}
+
+		if argsok {
+			argsbyt := []byte(args)
+			if err := json.Unmarshal(argsbyt, &argsMap); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}*/
+	body := ctx.GetRequestBody().(*map[string]interface{})
+	argsMap = *body
 
 	softDeletes, ok := ctx.GetString("Deleted")
 	if ok {
@@ -230,7 +233,7 @@ func (es *EntityServiceFactory) SELECT(ctx core.RequestContext) error {
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	retdata, _, _, err := es.Select(ctx, argsMap, pagesize, pagenum, orderBy)
 	if err == nil {
-		ctx.SetResponse(retdata)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, retdata))
 	}
 	return err
 }
@@ -260,7 +263,7 @@ func (es *EntityServiceFactory) SAVEENTITY(ctx core.RequestContext) error {
 	ent := ctx.GetRequestBody()
 	result, err := es.SaveEntity(ctx, ent.(data.Storable))
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -283,7 +286,7 @@ func (es *EntityServiceFactory) PUTENTITY(ctx core.RequestContext) error {
 	stor := ent.(data.Storable)
 	result, err := es.PutEntity(ctx, stor.GetId(), stor)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -313,7 +316,7 @@ func (es *EntityServiceFactory) DELETEENTITY(ctx core.RequestContext) error {
 	}
 	result, err := es.DeleteEntity(ctx, id, softdelete)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -335,10 +338,11 @@ func (es *EntityServiceFactory) UPDATEENTITY(ctx core.RequestContext) error {
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_ENTITY_ID)
 	}
-	vals := ctx.GetRequestBody().(map[string]interface{})
+	body := ctx.GetRequestBody().(*map[string]interface{})
+	vals := *body
 	result, err := es.UpdateEntity(ctx, id, vals)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -361,7 +365,7 @@ func (es *EntityServiceFactory) PUTMULTIPLEENTITIES(ctx core.RequestContext) err
 	storables, err := data.CastToStorableCollection(arr)
 	result, err := es.PutMultipleEntities(ctx, storables)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }
@@ -392,10 +396,11 @@ func (es *EntityServiceFactory) UPDATEMULTIPLEENTITIES(ctx core.RequestContext) 
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_ENTITY_IDS)
 	}
 	ids := strings.Split(idsstr, ",")
-	vals := ctx.GetRequestBody().(map[string]interface{})
+	body := ctx.GetRequestBody().(*map[string]interface{})
+	vals := *body
 	result, err := es.UpdateMultipleEntities(ctx, ids, vals)
 	if err == nil {
-		ctx.SetResponse(result)
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result))
 	}
 	return err
 }

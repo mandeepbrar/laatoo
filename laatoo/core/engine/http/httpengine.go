@@ -86,7 +86,7 @@ func (eng *HttpEngine) InitializeEngine(ctx core.ServerContext) error {
 		if err != nil {
 			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Router config name", routesConf)
 		}
-		eng.router = &Router{eRouter: eng.rootRouter.Group(""), config: config}
+		eng.router = &Router{eRouter: eng.rootRouter.Group(""), config: config, engine: eng}
 		if err = eng.router.ConfigureRoutes(ctx); err != nil {
 			return errors.RethrowError(ctx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
 		}

@@ -21,7 +21,7 @@ func NewConfigFromFile(file string) (Config, error) {
 	//read the file
 	err := conf.vpr.ReadInConfig() // Find and read the config file
 	if err != nil {                // Handle errors reading the config file
-		return nil, fmt.Errorf("Fatal error config file: %s \n", err)
+		return nil, fmt.Errorf("Fatal error reading config file: %s Error: %s \n", file, err)
 	}
 	return conf, nil
 }

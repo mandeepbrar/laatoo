@@ -29,6 +29,6 @@ type RequestContext interface {
 	IsAdmin() bool
 	SetRequestBody(interface{})
 	GetRequestBody() interface{}
-	SetResponse(interface{})
-	GetResponse() interface{}
+	SetResponse(*ServiceResponse)
+	GetResponse() *ServiceResponse
 }

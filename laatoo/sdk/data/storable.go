@@ -21,7 +21,7 @@ type Storable interface {
 
 func CastToStorableCollection(items interface{}) ([]Storable, error) {
 	arr := reflect.ValueOf(items).Elem()
-	if arr.Kind() != reflect.Array {
+	if arr.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("Invalid cast")
 	}
 	length := arr.Len()

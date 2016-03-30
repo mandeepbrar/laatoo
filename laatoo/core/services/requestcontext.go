@@ -15,7 +15,7 @@ type requestContext struct {
 	ParamsStore   map[string]interface{}
 	User          auth.User
 	Admin         bool
-	responseData  interface{}
+	responseData  *core.ServiceResponse
 	requestBody   interface{}
 	conf          config.Config
 	serverContext core.ServerContext
@@ -146,10 +146,10 @@ func (ctx *requestContext) IsAdmin() bool {
 	return ctx.Admin
 }
 
-func (ctx *requestContext) SetResponse(responseData interface{}) {
+func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 	ctx.responseData = responseData
 }
-func (ctx *requestContext) GetResponse() interface{} {
+func (ctx *requestContext) GetResponse() *core.ServiceResponse {
 	return ctx.responseData
 }
 func (ctx *requestContext) GetRequestBody() interface{} {

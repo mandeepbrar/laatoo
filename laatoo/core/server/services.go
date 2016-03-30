@@ -61,7 +61,7 @@ func (env *Environment) createService(ctx *serverContext, serviceAlias string, s
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Factory Alias", factoryAlias)
 	}
 	svc, err := factory.CreateService(ctx, serviceName, conf)
-	if err != nil {
+	if err != nil || svc == nil {
 		return nil, errors.RethrowError(ctx, CORE_ERROR_SERVICE_CREATION, err, "Service alias", serviceAlias, "Factory", factoryAlias)
 	}
 	return svc, nil

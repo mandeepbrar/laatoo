@@ -1,4 +1,4 @@
-package laatoostatic
+package static
 
 /*
 import (

@@ -14,21 +14,22 @@ const (
 
 type DataAccessFactory struct {
 	Conf      config.Config
+	facMethod FactoryMethod
 	DataStore data.DataService
+}
+
+func NewDataAccessFactory(facMethod FactoryMethod) *DataAccessFactory {
+	return &DataAccessFactory{facMethod: facMethod}
 }
 
 //Create the services configured for factory.
 func (df *DataAccessFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
 	df.Conf = conf
-	method, err := df.GetMethod(ctx, name, conf)
+	svcFunc, err := df.facMethod(ctx, name, conf)
 	if err != nil {
 		return nil, err
 	}
-	return services.NewService(ctx, method, conf), nil
-}
-
-func (df *DataAccessFactory) GetMethod(ctx core.ServerContext, name string, conf config.Config) (core.ServiceFunc, error) {
-	return nil, nil
+	return services.NewService(ctx, svcFunc, conf), nil
 }
 
 //The services start serving when this method is called
