@@ -2,6 +2,7 @@ package server
 
 import (
 	"laatoo/core/engine/http"
+	_ "laatoo/core/security"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/data"
@@ -12,20 +13,11 @@ import (
 
 const (
 	CONF_ENV_ENGINE      = "engine"
-	CONF_HTTPENGINE      = "http"
 	CONF_TCPENGINE       = "tcp"
 	CONF_ENV_ENGINE_NAME = "enginename"
 	//header set by the service
 	CONF_ENV_COMMSVC  = "commsvc"
 	CONF_ENV_CACHESVC = "cachesvc"
-)
-
-const (
-	JWTSECRETKEY int = iota
-	AUTHHEADER
-	ADMINROLE
-	USER
-	ROLE
 )
 
 //Environment hosting an application
@@ -75,6 +67,8 @@ func newEnvironment(ctx *serverContext, envName string, conf string, serverType 
 	//default admin role
 	env.AdminRole = "Admin"
 
+	env.SystemUser = "User"
+
 	//###########TODO
 	//ctx.Set("Roles", []string{env.AdminRole})
 
@@ -112,7 +106,7 @@ func newEnvironment(ctx *serverContext, envName string, conf string, serverType 
 	}
 	env.engineName = enginename
 	switch enginename {
-	case CONF_HTTPENGINE:
+	case http.CONF_ENGINE_NAME:
 		httpEngine, err := http.NewHttpEngine(ctx, engineConf)
 		if err != nil {
 			return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
@@ -152,9 +146,14 @@ func (env *Environment) InitializeEnvironment(ctx *serverContext) error {
 		log.Logger.Warn(ctx, "Cache service has not been initialized for the environment", "Env Name", env.Name)
 	}
 
+	log.Logger.Info(ctx, "Initializing Services", "Env Name", env.Name)
+	err = env.initializeServices(ctx)
+	if err != nil {
+		return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_INITIALIZED, err)
+	}
+	log.Logger.Info(ctx, "Initializing Engine", "Env Name", env.Name)
 	err = env.envEngine.InitializeEngine(ctx)
 	if err != nil {
-		log.Logger.Info(ctx, "Starting environment", "Env Name", env.Name)
 		return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_INITIALIZED, err)
 	}
 	return nil
@@ -170,17 +169,17 @@ func (env *Environment) GetService(ctx core.Context, alias string) (core.Service
 	return svc, nil
 }
 
-func (env *Environment) GetVariable(variable int) interface{} {
+func (env *Environment) GetVariable(variable core.ServerVariable) interface{} {
 	switch variable {
-	case JWTSECRETKEY:
+	case core.JWTSECRETKEY:
 		return env.JWTSecret
-	case AUTHHEADER:
+	case core.AUTHHEADER:
 		return env.AuthHeader
-	case ADMINROLE:
+	case core.ADMINROLE:
 		return env.AdminRole
-	case USER:
+	case core.USER:
 		return env.SystemUser
-	case ROLE:
+	case core.ROLE:
 		return env.SystemRole
 	}
 	return nil

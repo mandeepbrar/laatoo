@@ -1,5 +1,6 @@
-package laatoocore
+package security
 
+/*
 import (
 	"fmt"
 	"laatoosdk/auth"
@@ -56,3 +57,4 @@ func (env *Environment) HasPermission(ctx core.RequestContext, perm string) bool
 	}
 	return false
 }
+*/

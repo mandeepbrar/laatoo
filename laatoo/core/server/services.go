@@ -66,3 +66,15 @@ func (env *Environment) createService(ctx *serverContext, serviceAlias string, s
 	}
 	return svc, nil
 }
+
+//initialize services within an environment
+func (env *Environment) initializeServices(ctx *serverContext) error {
+	for svcname, service := range env.ServicesStore {
+		log.Logger.Info(ctx, "Initializing service", "service name", svcname)
+		err := service.Initialize(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
+	}
+	return nil
+}

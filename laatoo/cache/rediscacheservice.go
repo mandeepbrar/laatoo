@@ -146,3 +146,6 @@ func (rs *RedisCacheService) Invoke(ctx core.RequestContext) error {
 func (rs *RedisCacheService) GetConf() config.Config {
 	return rs.conf
 }
+func (rs *RedisCacheService) GetResponseHandler() core.ServiceResponseHandler {
+	return nil
+}

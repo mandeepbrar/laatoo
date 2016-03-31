@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	CONF_ENGINE_NAME         = "http"
 	CONF_SERVERTYPE_HOSTNAME = "hostname"
 	CONF_ENVPATH             = "path"
 	CONF_ROUTECONF           = "routes"
@@ -74,7 +75,7 @@ func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, err
 	return eng, nil
 }
 
-func (eng *HttpEngine) GetContext() core.EngineContext {
+func (eng *HttpEngine) GetContext() core.EngineServerContext {
 	return &HttpEngineContext{eng}
 }
 

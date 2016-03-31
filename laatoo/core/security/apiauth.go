@@ -1,5 +1,6 @@
-package laatoocore
+package security
 
+/*
 import (
 	"crypto/md5"
 	"crypto/rand"
@@ -47,3 +48,4 @@ func loadPublicKey(path string) (key *rsa.PublicKey, err error) {
 		return nil, fmt.Errorf("ssh: unsupported key type %q", block.Type)
 	}
 }
+*/

@@ -17,7 +17,7 @@ func (router *Router) ConfigureRoutes(ctx core.ServerContext) error {
 		routerFileName := fmt.Sprintf("%s/%s", ctx.GetServerName(), routefile)
 		routesconf, err := config.NewConfigFromFile(routerFileName)
 		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Name", routename, "Router file ", routerFileName)
+			return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Name", routename, "Router file ", routerFileName)
 		}
 		err = router.configureRoutesConf(ctx, routesconf)
 		if err != nil {
@@ -70,6 +70,7 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 	}
 	var service string
 	var svc core.Service
+	var respHandler core.ServiceResponseHandler
 	var err error
 	if method != CONF_ROUTE_METHOD_INVOKE {
 		service, ok = routeConf.GetString(CONF_ROUTE_SERVICE)
@@ -80,11 +81,24 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 		if err != nil || svc == nil {
 			return errors.RethrowError(ctx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err, "No such service has been created", path, "service", service)
 		}
+		respHandler = svc.GetResponseHandler()
+		if respHandler == nil {
+			respHandler = router
+		}
 	}
 	routeParamsConf, _ := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMS)
 	routeParams, err := createRouteParams(ctx, routeParamsConf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+	headerParams := make(map[string]string, 0)
+	headersConf, ok := routeConf.GetSubConfig(CONF_ROUTE_HEADERSTOINCLUDE)
+	if ok {
+		headersToInclude := headersConf.AllConfigurations()
+		for _, paramName := range headersToInclude {
+			header, _ := headersConf.GetString(paramName)
+			headerParams[paramName] = header
+		}
 	}
 	var dataObjectCreator core.ObjectCreator
 	var dataObjectCollectionCreator core.ObjectCollectionCreator
@@ -107,22 +121,22 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 
 	switch method {
 	case "GET":
-		router.Get(ctx, path, routeConf, processServiceRequest(ctx, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams))
+		router.Get(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
 	case "POST":
-		router.Post(ctx, path, routeConf, processServiceRequest(ctx, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
 	case "PUT":
-		router.Put(ctx, path, routeConf, processServiceRequest(ctx, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams))
+		router.Put(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
 	case "DELETE":
-		router.Delete(ctx, path, routeConf, processServiceRequest(ctx, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams))
+		router.Delete(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
 	case CONF_ROUTE_METHOD_INVOKE:
-		router.Post(ctx, path, routeConf, processServiceRequest(ctx, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
 	case CONF_ROUTE_METHOD_GETSTREAM:
 		{
-			router.Post(ctx, path, routeConf, processStreamServiceRequest(ctx, method, router.name, svc, service, routeParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, headerParams))
 		}
 	case CONF_ROUTE_METHOD_POSTSTREAM:
 		{
-			router.Post(ctx, path, routeConf, processStreamServiceRequest(ctx, method, router.name, svc, service, routeParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, headerParams))
 		}
 	}
 	return nil

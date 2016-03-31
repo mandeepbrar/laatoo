@@ -86,6 +86,10 @@ func (ms *mongoDataService) GetConf() config.Config {
 	return ms.conf
 }
 
+func (ms *mongoDataService) GetResponseHandler() core.ServiceResponseHandler {
+	return nil
+}
+
 func (ms *mongoDataService) GetDataServiceType() string {
 	return data.DATASERVICE_TYPE_NOSQL
 }

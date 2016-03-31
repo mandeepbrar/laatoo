@@ -11,7 +11,7 @@ import (
 type requestContext struct {
 	*common.Context
 	parentContext interface{}
-	engineContext interface{}
+	engineContext core.EngineRequestContext
 	ParamsStore   map[string]interface{}
 	User          auth.User
 	Admin         bool
@@ -29,7 +29,7 @@ func (ctx *requestContext) ParentContext() interface{} {
 	return ctx.parentContext
 }
 
-func (ctx *requestContext) EngineContext() core.EngineContext {
+func (ctx *requestContext) EngineContext() core.EngineRequestContext {
 	return ctx.engineContext
 }
 
@@ -145,7 +145,9 @@ func (ctx *requestContext) SetUser(usr auth.User) {
 func (ctx *requestContext) IsAdmin() bool {
 	return ctx.Admin
 }
-
+func (ctx *requestContext) SetAdmin(val bool) {
+	ctx.Admin = val
+}
 func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 	ctx.responseData = responseData
 }
@@ -157,4 +159,7 @@ func (ctx *requestContext) GetRequestBody() interface{} {
 }
 func (ctx *requestContext) SetRequestBody(requestBody interface{}) {
 	ctx.requestBody = requestBody
+}
+func (ctx *requestContext) GetServerVariable(variable core.ServerVariable) interface{} {
+	return ctx.serverContext.GetServerVariable(variable)
 }

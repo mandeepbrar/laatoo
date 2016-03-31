@@ -10,4 +10,5 @@ type Service interface {
 	GetConf() config.Config
 	Initialize(ServerContext) error
 	Invoke(RequestContext) error
+	GetResponseHandler() ServiceResponseHandler
 }

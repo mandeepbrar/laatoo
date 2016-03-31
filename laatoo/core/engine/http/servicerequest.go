@@ -7,10 +7,9 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"net/http"
 )
 
-func processServiceRequest(ctx core.ServerContext, method string, routename string, svc core.Service, service string, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator, dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]int) core.HandlerFunc {
+func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string, svc core.Service, service string, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator, dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]int, headers map[string]string) core.HandlerFunc {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
 		var err error
@@ -23,6 +22,10 @@ func processServiceRequest(ctx core.ServerContext, method string, routename stri
 			svc, err = webctx.GetService(service)
 			if err != nil || svc == nil {
 				return errors.RethrowError(webctx, errors.CORE_ERROR_BAD_ARG, err, "No such service has been created", service)
+			}
+			respHandler = svc.GetResponseHandler()
+			if respHandler == nil {
+				respHandler = router
 			}
 		}
 		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", service)
@@ -54,95 +57,50 @@ func processServiceRequest(ctx core.ServerContext, method string, routename stri
 				return errors.WrapError(webctx, err)
 			}
 		}
-		log.Logger.Trace(webctx, "Invoking service ", "router", routename, "service", service, "svc", svc)
-		reqctx := webctx.SubContext(service, svc.GetConf())
-		reqctx.SetRequestBody(reqData)
-		if routeParams != nil {
-			for param, index := range routeParams {
-				paramVal := engineContext.P(index)
-				reqctx.Set(param, paramVal)
-			}
-		} else {
-			paramNames := engineContext.ParamNames()
-			for _, param := range paramNames {
-				paramVal := engineContext.Param(param)
-				reqctx.Set(param, paramVal)
-			}
-		}
-		queryParams := engineContext.QueryParams()
-		for param, val := range queryParams {
-			reqctx.Set(param, val)
-		}
-		err = svc.Invoke(reqctx)
-		if err != nil {
-			return errors.WrapError(webctx, err)
-		}
-		resp := reqctx.GetResponse()
-		return processResponse(webctx, resp, engineContext)
+		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, service, routeParams, headers)
 	}
 }
 
-func processStreamServiceRequest(ctx core.ServerContext, method string, routename string, svc core.Service, service string, routeParams map[string]int) core.HandlerFunc {
+func (router *Router) processStreamServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string, svc core.Service, service string, routeParams map[string]int, headers map[string]string) core.HandlerFunc {
 	return func(webctx core.RequestContext) error {
 		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", service)
 		engineContext := webctx.EngineContext().(echo.Context)
-		reqStream := engineContext.Request().Body()
-		var err error
-		log.Logger.Trace(webctx, "Invoking service ", "router", routename, "service", service)
-		reqctx := webctx.SubContext(service, svc.GetConf())
-		reqctx.SetRequestBody(reqStream)
-		if routeParams != nil {
-			for param, index := range routeParams {
-				paramVal := engineContext.P(index)
-				reqctx.Set(param, paramVal)
-			}
-		} else {
-			paramNames := engineContext.ParamNames()
-			for _, param := range paramNames {
-				paramVal := engineContext.Param(param)
-				reqctx.Set(param, paramVal)
-			}
-		}
-		queryParams := engineContext.QueryParams()
-		for param, val := range queryParams {
-			reqctx.Set(param, val)
-		}
-		err = svc.Invoke(reqctx)
-		if err != nil {
-			return errors.WrapError(webctx, err)
-		}
-		resp := reqctx.GetResponse()
-		return processResponse(webctx, resp, engineContext)
+		return router.processRequest(webctx, engineContext.Request().Body(), engineContext, respHandler, routename, svc, service, routeParams, headers)
 	}
 }
-
-func processResponse(ctx core.RequestContext, resp *core.ServiceResponse, engineContext echo.Context) error {
-	if resp != nil {
-		switch resp.Status {
-		case core.StatusSuccess:
-			if resp.Data != nil {
-				/****TODO***********/
-				return engineContext.JSON(http.StatusOK, resp.Data)
-			}
-		case core.StatusServeFile:
-			return engineContext.File(resp.Data.(string))
-		case core.StatusServeBytes:
-			log.Logger.Trace(ctx, " service returning bytes")
-			bytestoreturn := *resp.Data.(*[]byte)
-			_, err := engineContext.Response().Write(bytestoreturn)
-			if err != nil {
-				return err
-			}
-			engineContext.Response().WriteHeader(http.StatusOK)
-			return nil
-		case core.StatusUnauthorized:
-			return engineContext.NoContent(http.StatusForbidden)
-		case core.StatusNotFound:
-			return engineContext.NoContent(http.StatusNotFound)
-		case core.StatusRedirect:
-			return engineContext.Redirect(http.StatusTemporaryRedirect, resp.Data.(string))
+func (router *Router) processRequest(webctx core.RequestContext, reqData interface{}, engineContext echo.Context, respHandler core.ServiceResponseHandler, routename string, svc core.Service, service string, routeParams map[string]int, headers map[string]string) error {
+	var err error
+	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "service", service)
+	reqctx := webctx.SubContext(service, svc.GetConf())
+	reqctx.SetRequestBody(reqData)
+	if routeParams != nil {
+		for param, index := range routeParams {
+			paramVal := engineContext.P(index)
+			reqctx.Set(param, paramVal)
+		}
+	} else {
+		paramNames := engineContext.ParamNames()
+		for _, param := range paramNames {
+			paramVal := engineContext.Param(param)
+			reqctx.Set(param, paramVal)
 		}
 	}
-	return engineContext.NoContent(http.StatusOK)
+	for param, header := range headers {
+		log.Logger.Trace(webctx, "Looking for headers ", "header", header)
+		headerVal := engineContext.Request().Header().Get(header)
+		if headerVal != "" {
+			reqctx.Set(param, headerVal)
+		}
+	}
+	queryParams := engineContext.QueryParams()
+	for param, val := range queryParams {
+		reqctx.Set(param, val)
+	}
+	err = svc.Invoke(reqctx)
+	if err != nil {
+		return errors.WrapError(webctx, err)
+	}
+	resp := reqctx.GetResponse()
+	return respHandler.HandleResponse(webctx, resp)
 
 }

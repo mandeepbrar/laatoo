@@ -100,3 +100,6 @@ func (ms *MemoryCacheService) Invoke(ctx core.RequestContext) error {
 func (ms *MemoryCacheService) GetConf() config.Config {
 	return ms.conf
 }
+func (ms *MemoryCacheService) GetResponseHandler() core.ServiceResponseHandler {
+	return nil
+}

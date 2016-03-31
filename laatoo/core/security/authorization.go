@@ -1,4 +1,4 @@
-package laatoocore
+package security
 
 import (
 //	"laatoosdk/config"

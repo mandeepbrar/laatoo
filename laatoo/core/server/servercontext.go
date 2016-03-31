@@ -17,7 +17,7 @@ func NewServerContext(name string, conf config.Config, env *Environment) *server
 	return &serverContext{Context: common.NewContext(name), conf: conf, environment: env}
 }
 
-func (ctx *serverContext) EngineContext() core.EngineContext {
+func (ctx *serverContext) EngineContext() core.EngineServerContext {
 	return ctx.environment.envEngine.GetContext()
 }
 
@@ -43,7 +43,7 @@ func (ctx *serverContext) subCtx(name string, conf config.Config, env *Environme
 	return duplicateContext
 }
 
-func (ctx *serverContext) GetServerVariable(variable int) interface{} {
+func (ctx *serverContext) GetServerVariable(variable core.ServerVariable) interface{} {
 	return ctx.environment.GetVariable(variable)
 }
 

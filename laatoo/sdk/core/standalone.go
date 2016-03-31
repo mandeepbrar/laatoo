@@ -5,6 +5,7 @@ package core
 import (
 	"crypto/tls"
 	glctx "golang.org/x/net/context"
+	"golang.org/x/oauth2"
 	"net/http"
 )
 
@@ -20,4 +21,8 @@ func HttpClient(ctx RequestContext) *http.Client {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	return &http.Client{Transport: tr}
+}
+
+func GetOAuthContext(ctx Context) glctx.Context {
+	return oauth2.NoContext
 }

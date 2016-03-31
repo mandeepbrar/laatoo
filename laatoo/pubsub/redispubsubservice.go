@@ -156,3 +156,7 @@ func (rs *RedisPubSubService) Invoke(ctx core.RequestContext) error {
 func (rs *RedisPubSubService) GetConf() config.Config {
 	return rs.conf
 }
+
+func (rs *RedisPubSubService) GetResponseHandler() core.ServiceResponseHandler {
+	return nil
+}

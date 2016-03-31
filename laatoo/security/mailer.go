@@ -1,4 +1,4 @@
-package laatooauthentication
+package security
 
 import (
 	"bytes"
@@ -10,9 +10,9 @@ import (
 )
 
 // SendMail uses the currently configured mailer to deliver e-mails.
-func (svc *SecurityService) SendMail(data Email) error {
+/*func (svc *SecurityService) SendMail(data Email) error {
 	return svc.Mailer.Send(data)
-}
+}*/
 
 // Mailer is a type that is capable of sending an e-mail.
 type Mailer interface {

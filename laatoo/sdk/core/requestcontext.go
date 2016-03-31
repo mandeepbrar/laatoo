@@ -8,7 +8,7 @@ import (
 type RequestContext interface {
 	Context
 	ParentContext() interface{}
-	EngineContext() EngineContext
+	EngineContext() EngineRequestContext
 	SubContext(name string, conf config.Config) RequestContext
 	Get(key string) (interface{}, bool)
 	Set(key string, val interface{})
@@ -26,9 +26,11 @@ type RequestContext interface {
 	GetFromCache(key string, val interface{}) bool
 	GetMultiFromCache(keys []string, val map[string]interface{}) bool
 	DeleteFromCache(key string) error
+	SetAdmin(val bool)
 	IsAdmin() bool
 	SetRequestBody(interface{})
 	GetRequestBody() interface{}
 	SetResponse(*ServiceResponse)
 	GetResponse() *ServiceResponse
+	GetServerVariable(variable ServerVariable) interface{}
 }

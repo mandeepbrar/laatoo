@@ -1,3 +1,8 @@
 package core
 
-type EngineContext interface{}
+type EngineRequestContext interface {
+}
+
+type EngineServerContext interface {
+	GetName() string
+}

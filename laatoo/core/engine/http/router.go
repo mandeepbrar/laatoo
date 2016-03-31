@@ -18,6 +18,7 @@ const (
 	CONF_ROUTES                  = "routes"
 	CONF_ROUTE_PATH              = "path"
 	CONF_ROUTE_ROUTEPARAMS       = "params"
+	CONF_ROUTE_HEADERSTOINCLUDE  = "headers"
 	CONF_ROUTE_METHOD            = "method"
 	CONF_ROUTE_METHOD_INVOKE     = "INVOKE"
 	CONF_ROUTE_METHOD_GETSTREAM  = "GETSTREAM"

@@ -46,3 +46,7 @@ func HttpClient(ctx RequestContext) *http.Client {
 		},
 	}
 }
+
+func GetOAuthContext(ctx Context) glctx.Context {
+	return GetAppengineContext()
+}

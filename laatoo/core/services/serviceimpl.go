@@ -31,6 +31,9 @@ func (gc *serviceImpl) Invoke(ctx core.RequestContext) error {
 func (gc *serviceImpl) GetConf() config.Config {
 	return gc.conf
 }
+func (gc *serviceImpl) GetResponseHandler() core.ServiceResponseHandler {
+	return nil
+}
 
 /*
 func createMW(conf config.Config, parentMW *Middleware) *Middleware {

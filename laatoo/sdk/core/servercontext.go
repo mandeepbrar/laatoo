@@ -9,6 +9,16 @@ const (
 	CONF_SERVERTYPE_GOOGLEAPP  = "GOOGLE_APP"
 )
 
+type ServerVariable int
+
+const (
+	JWTSECRETKEY ServerVariable = iota
+	AUTHHEADER
+	ADMINROLE
+	USER
+	ROLE
+)
+
 type ServerContext interface {
 	Context
 	SubContext(name string, conf config.Config) ServerContext
@@ -21,7 +31,7 @@ type ServerContext interface {
 	GetFromCache(key string, val interface{}) bool
 	GetMultiFromCache(keys []string, val map[string]interface{}) bool
 	DeleteFromCache(key string) error
-	GetServerVariable(variable int) interface{}
+	GetServerVariable(variable ServerVariable) interface{}
 	GetServerName() string
-	EngineContext() EngineContext
+	EngineContext() EngineServerContext
 }
