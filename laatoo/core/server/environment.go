@@ -162,7 +162,7 @@ func (env *Environment) processSecurityConfig(ctx *serverContext, conf config.Co
 	}
 	env.AuthHeader = authToken
 
-	env.Security = security.NewLocalSecurityHandler(ctx)
+	env.Security = security.NewLocalSecurityHandler(ctx, conf)
 	return
 }
 
@@ -191,6 +191,11 @@ func (env *Environment) InitializeEnvironment(ctx *serverContext) error {
 		env.Cache = svcInt.(data.Cache)
 	} else {
 		log.Logger.Warn(ctx, "Cache service has not been initialized for the environment", "Env Name", env.Name)
+	}
+
+	err = env.Security.Initialize(ctx, nil)
+	if err != nil {
+		return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_INITIALIZED, err)
 	}
 
 	log.Logger.Info(ctx, "Initializing Services", "Env Name", env.Name)

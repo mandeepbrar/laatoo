@@ -104,67 +104,7 @@ func (env *Environment) loadRolePermissions(ctx *Context) error {
 			env.RegisterRoles(ctx, roles)
 		}
 	} else {
-		//load permissions from remote system
-		secsvcname := env.Config.GetString(CONF_SECURITY_SVC)
-		if len(secsvcname) == 0 {
-			return errors.ThrowError(ctx, AUTH_MISSING_API)
-		}
-		secsvc, err := env.GetService(ctx, secsvcname)
-		if err != nil {
-			return errors.RethrowError(ctx, AUTH_MISSING_API, err)
-		}
-		rolesInt, err := secsvc.Execute(ctx, "GetRoles", nil)
-		if err != nil {
-			return err
-		}
-		log.Logger.Trace(ctx, "core.env.localroles", "Got Roles")
-		adminExists := false
-		anonExists := false
-		if rolesInt != nil {
-			arr := reflect.ValueOf(rolesInt).Elem()
-			length := arr.Len()
-			for i := 0; i < length; i++ {
-				role := arr.Index(i).Addr().Interface().(auth.Role)
-				if role.GetId() == "Anonymous" {
-					anonExists = true
-				}
-				if role.GetId() == env.AdminRole {
-					adminExists = true
-				}
-				env.RegisterRolePermissions(ctx, role)
-			}
-			log.Logger.Trace(ctx, "core.env.localroles", "Registered Roles")
-		}
 
-		if !anonExists {
-			aroleInt, err := CreateEmptyObject(ctx, env.SystemRole)
-			anonymousRole := aroleInt.(auth.Role)
-			anonymousRole.SetId("Anonymous")
-			data := make(map[string]interface{}, 1)
-			data["data"] = anonymousRole
-			_, err = secsvc.Execute(ctx, "SaveRole", data)
-			if err != nil {
-				return errors.WrapError(err)
-			}
-		}
-		if !adminExists {
-			aroleInt, err := CreateEmptyObject(ctx, env.SystemRole)
-			adminRole := aroleInt.(auth.Role)
-			adminRole.SetId(env.AdminRole)
-			permissionsInt, err := secsvc.Execute(ctx, "GetPermissions", nil)
-			if err != nil {
-				return errors.WrapError(err)
-			}
-			adminRole.SetPermissions(permissionsInt.([]string))
-			data := make(map[string]interface{}, 1)
-			data["data"] = adminRole
-			_, err = secsvc.Execute(ctx, "SaveRole", data)
-			if err != nil {
-				return errors.WrapError(err)
-			}
-		}
-		//log.Logger.Trace(ctx, "core.env.localroles", "Got Registering roles")
-		//env.RegisterRoles(ctx, rolesInt)
 	}
 	return nil
 }

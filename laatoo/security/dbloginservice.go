@@ -36,9 +36,9 @@ func (ls *LoginService) Initialize(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 	ls.userCreator = userCreator
-	userDataSvcName, ok := ls.conf.GetString(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+	userDataSvcName, ok := ls.conf.GetString(CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_LOGINSERVICE_USERDATASERVICE)
 	}
 	userService, err := ctx.GetService(userDataSvcName)
 	if err != nil {

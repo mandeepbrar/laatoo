@@ -104,7 +104,7 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 	return false
 }
 
-func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
+func (ms *mongoDataService) GetById(ctx core.Context, id string) (data.Storable, error) {
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
 	object, err := ms.objectCreator(ctx, nil)
 	if err != nil {
@@ -126,7 +126,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	return stor, nil
 }
 
-func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
+func (ms *mongoDataService) Save(ctx core.Context, item data.Storable) error {
 	log.Logger.Trace(ctx, "Saving object", "Object", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -143,7 +143,7 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	return nil
 }
 
-func (ms *mongoDataService) PutMulti(ctx core.RequestContext, ids []string, items []data.Storable) error {
+func (ms *mongoDataService) PutMulti(ctx core.Context, ids []string, items []data.Storable) error {
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -163,7 +163,7 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, ids []string, item
 	return nil
 }
 
-func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
+func (ms *mongoDataService) Put(ctx core.Context, id string, item data.Storable) error {
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -179,7 +179,7 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 }
 
 //Get multiple objects by id
-func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (ms *mongoDataService) GetMulti(ctx core.Context, ids []string, orderBy string) (map[string]data.Storable, error) {
 	results, err := ms.objectCollectionCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -215,8 +215,8 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	return retVal, nil
 }
 
-func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
-	totalrecs = -1
+func (ms *mongoDataService) GetList(ctx core.Context, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+	/*totalrecs = -1
 	recsreturned = -1
 	results, err := ms.objectCollectionCreator(ctx, nil)
 	if err != nil {
@@ -245,11 +245,11 @@ func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageN
 	recsreturned = len(resultStor)
 	for _, stor := range resultStor {
 		stor.PostLoad(ctx)
-	}
-	return resultStor, totalrecs, recsreturned, nil
+	}*/
+	return ms.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) Get(ctx core.Context, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
 	results, err := ms.objectCollectionCreator(ctx, nil)
@@ -283,7 +283,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	return resultStor, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+func (ms *mongoDataService) Update(ctx core.Context, id string, newVals map[string]interface{}) error {
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition := bson.M{}
 	condition[ms.objectid] = id
@@ -293,7 +293,7 @@ func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals m
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
-func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (ms *mongoDataService) UpdateAll(ctx core.Context, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
 	results, err := ms.objectCollectionCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -322,7 +322,7 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
-func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
+func (ms *mongoDataService) UpdateMulti(ctx core.Context, ids []string, newVals map[string]interface{}) error {
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.objectid, ids)
 	connCopy := ms.factory.connection.Copy()
@@ -331,7 +331,7 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 }
 
 //create condition for passing to data service
-func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
+func (ms *mongoDataService) CreateCondition(ctx core.Context, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	switch operation {
 	case data.MATCHANCESTOR:
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
@@ -353,7 +353,7 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 	return nil, nil
 }
 
-func (ms *mongoDataService) Delete(ctx core.RequestContext, id string, softdelete bool) error {
+func (ms *mongoDataService) Delete(ctx core.Context, id string, softdelete bool) error {
 	/*if softdelete {
 		err := ms.Update(ctx, objectType, id, map[string]interface{}{"Deleted": true})
 		if err == nil {
@@ -373,7 +373,7 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string, softdelet
 }
 
 //Delete object by ids
-func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string, softdelete bool) error {
+func (ms *mongoDataService) DeleteMulti(ctx core.Context, ids []string, softdelete bool) error {
 	/*if softdelete {
 		err := ms.UpdateMulti(ctx, objectType, ids, map[string]interface{}{"Deleted": true})
 		if err == nil {
@@ -395,7 +395,7 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string, s
 }
 
 //Delete object by condition
-func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}, softdelete bool) ([]string, error) {
+func (ms *mongoDataService) DeleteAll(ctx core.Context, queryCond interface{}, softdelete bool) ([]string, error) {
 	/*if softdelete {
 		ids, err := ms.UpdateAll(ctx, objectType, queryCond, map[string]interface{}{"Deleted": true})
 		if err == nil {

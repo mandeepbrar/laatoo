@@ -12,12 +12,18 @@ import (
 
 func (router *Router) ConfigureRoutes(ctx core.ServerContext) error {
 	routepairs := router.config.AllConfigurations()
+	var routesconf config.Config
+	var err error
 	for _, routename := range routepairs {
-		routefile, _ := router.config.GetString(routename)
-		routerFileName := fmt.Sprintf("%s/%s", ctx.GetServerName(), routefile)
-		routesconf, err := config.NewConfigFromFile(routerFileName)
-		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Name", routename, "Router file ", routerFileName)
+		routefile, ok := router.config.GetString(routename)
+		if ok {
+			routerFileName := fmt.Sprintf("%s/%s", ctx.GetServerName(), routefile)
+			routesconf, err = config.NewConfigFromFile(routerFileName)
+			if err != nil {
+				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Name", routename, "Router file ", routerFileName)
+			}
+		} else {
+			routesconf, _ = router.config.GetSubConfig(routename)
 		}
 		err = router.configureRoutesConf(ctx, routesconf)
 		if err != nil {
@@ -86,11 +92,27 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 			respHandler = router
 		}
 	}
-	routeParamsConf, _ := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMS)
-	routeParams, err := createRouteParams(ctx, routeParamsConf)
+
+	////build value parameters
+	var routeParamValues map[string]string
+	routeParamValuesConf, ok := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMVALUES)
+	if ok {
+		values := routeParamValuesConf.AllConfigurations()
+		routeParamValues = make(map[string]string, len(values))
+		for _, paramname := range values {
+			routeParamValues[paramname], _ = routeParamValuesConf.GetString(paramname)
+		}
+	}
+
+	//////build index parameters
+	///index parameter overrides all route parameters
+	routeParamIndicesConf, _ := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMINDICES)
+	routeParamIndices, err := createRouteParamIndices(ctx, routeParamIndicesConf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	//build header param mappings
 	headerParams := make(map[string]string, 0)
 	headersConf, ok := routeConf.GetSubConfig(CONF_ROUTE_HEADERSTOINCLUDE)
 	if ok {
@@ -100,6 +122,8 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 			headerParams[paramName] = header
 		}
 	}
+
+	//get any data creators for body objects that need to be bound
 	var dataObjectCreator core.ObjectCreator
 	var dataObjectCollectionCreator core.ObjectCollectionCreator
 	dataObjectName, isdataObject := routeConf.GetString(CONF_ROUTE_DATA_OBJECT)
@@ -121,28 +145,28 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 
 	switch method {
 	case "GET":
-		router.Get(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
+		router.Get(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
 	case "POST":
-		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
 	case "PUT":
-		router.Put(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
+		router.Put(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
 	case "DELETE":
-		router.Delete(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
+		router.Delete(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
 	case CONF_ROUTE_METHOD_INVOKE:
-		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, headerParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
 	case CONF_ROUTE_METHOD_GETSTREAM:
 		{
-			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, headerParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParamIndices, routeParamValues, headerParams))
 		}
 	case CONF_ROUTE_METHOD_POSTSTREAM:
 		{
-			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, headerParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParamIndices, routeParamValues, headerParams))
 		}
 	}
 	return nil
 }
 
-func createRouteParams(ctx core.ServerContext, paramsConf config.Config) (map[string]int, error) {
+func createRouteParamIndices(ctx core.ServerContext, paramsConf config.Config) (map[string]int, error) {
 	if paramsConf != nil {
 		retval := make(map[string]int, 5)
 		paramNames := paramsConf.AllConfigurations()

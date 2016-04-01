@@ -51,7 +51,6 @@ func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name strin
 	/*** Provides service for serving files whose path has been specified*****/
 	case CONF_STATICSVC_FILE:
 		{
-			log.Logger.Info(ctx, "creating service files", "filenames", CONF_STATICSVC_FILE)
 			return &FileService{conf: conf}, nil
 		}
 	case CONF_STATICSVC_FILEBUNDLE:
@@ -72,7 +71,6 @@ func CreateDirectorySvc(ctx core.ServerContext, name string, conf config.Config)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATICSVC_DIRECTORY)
 	}
-	log.Logger.Info(ctx, "Static service created", " Path", dir)
 	return func(ctx core.RequestContext) error {
 		filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
 		if ok {

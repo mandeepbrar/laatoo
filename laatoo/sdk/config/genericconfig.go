@@ -36,11 +36,19 @@ func (conf GenericConfig) Get(configurationName string) (interface{}, bool) {
 func (conf GenericConfig) GetStringArray(configurationName string) ([]string, bool) {
 	val, found := conf[configurationName]
 	if found {
-		arr, cok := val.([]string)
+		arr, cok := val.([]interface{})
 		if !cok {
 			return nil, false
 		}
-		return arr, true
+		retVal := make([]string, len(arr))
+		var ok bool
+		for index, val := range arr {
+			retVal[index], ok = val.(string)
+			if !ok {
+				return nil, false
+			}
+		}
+		return retVal, true
 	}
 	return nil, false
 }

@@ -9,7 +9,9 @@ import (
 	"laatoo/sdk/log"
 )
 
-func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string, svc core.Service, service string, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator, dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]int, headers map[string]string) core.HandlerFunc {
+func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string,
+	svc core.Service, service string, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
+	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParamIndices map[string]int, routeParamValues map[string]string, headers map[string]string) core.HandlerFunc {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
 		var err error
@@ -57,24 +59,26 @@ func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler 
 				return errors.WrapError(webctx, err)
 			}
 		}
-		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, service, routeParams, headers)
+		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, service, routeParamIndices, routeParamValues, headers)
 	}
 }
 
-func (router *Router) processStreamServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string, svc core.Service, service string, routeParams map[string]int, headers map[string]string) core.HandlerFunc {
+func (router *Router) processStreamServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string,
+	svc core.Service, service string, routeParamIndices map[string]int, routeParamValues map[string]string, headers map[string]string) core.HandlerFunc {
 	return func(webctx core.RequestContext) error {
 		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", service)
 		engineContext := webctx.EngineContext().(echo.Context)
-		return router.processRequest(webctx, engineContext.Request().Body(), engineContext, respHandler, routename, svc, service, routeParams, headers)
+		return router.processRequest(webctx, engineContext.Request().Body(), engineContext, respHandler, routename, svc, service, routeParamIndices, routeParamValues, headers)
 	}
 }
-func (router *Router) processRequest(webctx core.RequestContext, reqData interface{}, engineContext echo.Context, respHandler core.ServiceResponseHandler, routename string, svc core.Service, service string, routeParams map[string]int, headers map[string]string) error {
+func (router *Router) processRequest(webctx core.RequestContext, reqData interface{}, engineContext echo.Context, respHandler core.ServiceResponseHandler, routename string,
+	svc core.Service, service string, routeParamIndices map[string]int, routeParamValues map[string]string, headers map[string]string) error {
 	var err error
 	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "service", service)
 	reqctx := webctx.SubContext(service, svc.GetConf())
 	reqctx.SetRequestBody(reqData)
-	if routeParams != nil {
-		for param, index := range routeParams {
+	if routeParamIndices != nil {
+		for param, index := range routeParamIndices {
 			paramVal := engineContext.P(index)
 			reqctx.Set(param, paramVal)
 		}
@@ -95,6 +99,11 @@ func (router *Router) processRequest(webctx core.RequestContext, reqData interfa
 	queryParams := engineContext.QueryParams()
 	for param, val := range queryParams {
 		reqctx.Set(param, val)
+	}
+	if routeParamValues != nil {
+		for name, val := range routeParamValues {
+			reqctx.Set(name, val)
+		}
 	}
 	err = svc.Invoke(reqctx)
 	if err != nil {
