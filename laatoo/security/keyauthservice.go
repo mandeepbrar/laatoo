@@ -28,13 +28,11 @@ func NewKeyAuthService(ctx core.ServerContext, conf config.Config) (core.Service
 }
 
 type KeyAuthService struct {
-	conf           config.Config
-	pvtKey         *rsa.PrivateKey
-	domains        map[string]string
-	userCreator    core.ObjectCreator
-	rolesMap       map[string][]string
-	adminRole      string
-	allpermissions *[]string
+	conf        config.Config
+	pvtKey      *rsa.PrivateKey
+	domains     map[string]string
+	userCreator core.ObjectCreator
+	adminRole   string
 }
 
 func (ks *KeyAuthService) Initialize(ctx core.ServerContext) error {
@@ -86,7 +84,7 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext) error {
 		usr := usrInt.(auth.RbacUser)
 		usr.SetId("system")
 		usr.SetRoles([]string{role})
-		resp, err := completeAuthentication(ctx, usr, ks.rolesMap, ks.allpermissions)
+		resp, err := completeAuthentication(ctx, usr)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil

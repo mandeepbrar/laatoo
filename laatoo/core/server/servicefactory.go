@@ -49,40 +49,46 @@ func (env *Environment) processServiceFactoryGrp(ctx *serverContext, conf config
 		if !ok {
 			return errors.ThrowError(ctx, CORE_FACTORY_NOT_CREATED, "Wrong config for Factory Name", factoryName)
 		}
-		providerName, ok := factoryConfig.GetString(CONF_ENV_SERVICEFACTORYPROVIDER)
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYPROVIDER)
-		}
-		configuration, ok := factoryConfig.Get(CONF_ENV_SERVICEFACTORYCONFIG)
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYCONFIG)
-		}
-		factoryConfigFile, ok := configuration.(string)
-		var svcfacConfig config.Config
-		var err error
-		if ok {
-			svcFileName := fmt.Sprintf("%s/%s", env.Name, factoryConfigFile)
-			log.Logger.Info(ctx, "Creating Service Factory", "factoryName", factoryName, "filename", svcFileName)
-			svcfacConfig, err = config.NewConfigFromFile(svcFileName)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Could not read from file to create factory", factoryName)
-			}
-		} else {
-			svcfacConfig, ok = config.Cast(configuration)
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName)
-			}
-		}
+		env.processServiceFactoryConfig(ctx, factoryName, factoryConfig)
+	}
+	return nil
+}
 
-		//facmw := createMW(svcfacConfig, env.middleware)
-
-		//env.ServiceFactoryMiddleware[factoryName] = facmw
-
-		//create the service factory
-		err = env.createServiceFactory(ctx, factoryName, providerName, svcfacConfig)
+func (env *Environment) processServiceFactoryConfig(ctx *serverContext, factoryName string, factoryConfig config.Config) error {
+	providerName, ok := factoryConfig.GetString(CONF_ENV_SERVICEFACTORYPROVIDER)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYPROVIDER)
+	}
+	configuration, ok := factoryConfig.Get(CONF_ENV_SERVICEFACTORYCONFIG)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYCONFIG)
+	}
+	//supports both file names as well as subconfig
+	factoryConfigFile, ok := configuration.(string)
+	var svcfacConfig config.Config
+	var err error
+	if ok {
+		svcFileName := fmt.Sprintf("%s/%s", env.Name, factoryConfigFile)
+		log.Logger.Info(ctx, "Creating Service Factory", "factoryName", factoryName, "filename", svcFileName)
+		svcfacConfig, err = config.NewConfigFromFile(svcFileName)
 		if err != nil {
-			return errors.RethrowError(ctx, CORE_FACTORY_NOT_CREATED, err, "Could not create factory", factoryName)
+			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Could not read from file to create factory", factoryName)
 		}
+	} else {
+		svcfacConfig, ok = config.Cast(configuration)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName)
+		}
+	}
+
+	//facmw := createMW(svcfacConfig, env.middleware)
+
+	//env.ServiceFactoryMiddleware[factoryName] = facmw
+
+	//create the service factory
+	err = env.createServiceFactory(ctx, factoryName, providerName, svcfacConfig)
+	if err != nil {
+		return errors.RethrowError(ctx, CORE_FACTORY_NOT_CREATED, err, "Could not create factory", factoryName)
 	}
 	return nil
 }

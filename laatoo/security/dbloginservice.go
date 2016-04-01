@@ -22,11 +22,9 @@ func NewLoginService(ctx core.ServerContext, conf config.Config) (core.Service, 
 }
 
 type LoginService struct {
-	conf           config.Config
-	userCreator    core.ObjectCreator
-	rolesMap       map[string][]string
-	adminRole      string
-	allpermissions *[]string
+	conf        config.Config
+	userCreator core.ObjectCreator
+	adminRole   string
 	//data service to use for users
 	UserDataService data.DataService
 }
@@ -89,7 +87,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	} else {
 		existingUser.SetPassword("")
-		resp, err := completeAuthentication(ctx, existingUser, ls.rolesMap, ls.allpermissions)
+		resp, err := completeAuthentication(ctx, existingUser)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil

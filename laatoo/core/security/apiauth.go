@@ -1,6 +1,5 @@
 package security
 
-/*
 import (
 	"crypto/md5"
 	"crypto/rand"
@@ -11,10 +10,6 @@ import (
 	"io/ioutil"
 	//	"laatoosdk/log"
 )
-
-type KeyAuth struct {
-	Key []byte
-}
 
 func EncryptWithKey(publickeypath string, message string) ([]byte, error) {
 	publickey, err := loadPublicKey(publickeypath)
@@ -48,4 +43,3 @@ func loadPublicKey(path string) (key *rsa.PublicKey, err error) {
 		return nil, fmt.Errorf("ssh: unsupported key type %q", block.Type)
 	}
 }
-*/

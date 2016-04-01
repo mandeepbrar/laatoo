@@ -33,4 +33,5 @@ type RequestContext interface {
 	SetResponse(*ServiceResponse)
 	GetResponse() *ServiceResponse
 	GetServerVariable(variable ServerVariable) interface{}
+	GetRolePermissions(role []string) ([]string, bool)
 }

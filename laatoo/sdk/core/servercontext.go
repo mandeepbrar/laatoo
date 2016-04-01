@@ -4,19 +4,12 @@ import (
 	"laatoo/sdk/config"
 )
 
+/*application and engine types*/
 const (
 	CONF_SERVERTYPE_STANDALONE = "STANDALONE"
 	CONF_SERVERTYPE_GOOGLEAPP  = "GOOGLE_APP"
-)
-
-type ServerVariable int
-
-const (
-	JWTSECRETKEY ServerVariable = iota
-	AUTHHEADER
-	ADMINROLE
-	USER
-	ROLE
+	CONF_ENGINE_HTTP           = "http"
+	CONF_ENGINE_TCP            = "tcp"
 )
 
 type ServerContext interface {
@@ -34,4 +27,6 @@ type ServerContext interface {
 	GetServerVariable(variable ServerVariable) interface{}
 	GetServerName() string
 	EngineContext() EngineServerContext
+	HasPermission(RequestContext, string) bool
+	GetRolePermissions(role []string) ([]string, bool)
 }

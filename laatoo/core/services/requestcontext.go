@@ -103,11 +103,6 @@ func (ctx *requestContext) GetService(alias string) (core.Service, error) {
 	return ctx.serverContext.GetService(alias)
 }
 
-func (ctx *requestContext) HasPermission(perm string) bool {
-	//	return ctx.environment.HasPermission(ctx, perm)
-	return false
-}
-
 func (ctx *requestContext) SubscribeTopic(topic string, handler core.TopicListener) error {
 	//return ctx.environment.SubscribeTopic(ctx, topic, handler)
 	return nil
@@ -162,4 +157,10 @@ func (ctx *requestContext) SetRequestBody(requestBody interface{}) {
 }
 func (ctx *requestContext) GetServerVariable(variable core.ServerVariable) interface{} {
 	return ctx.serverContext.GetServerVariable(variable)
+}
+func (ctx *requestContext) HasPermission(perm string) bool {
+	return ctx.serverContext.HasPermission(ctx, perm)
+}
+func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
+	return ctx.serverContext.GetRolePermissions(role)
 }

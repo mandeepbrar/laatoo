@@ -18,15 +18,6 @@ import (
 )
 
 const (
-	CONF_ENV_USER = "settings.user_object"
-	CONF_ENV_ROLE = "settings.role_object"
-	//header set by the service
-	CONF_ENV_AUTHHEADER = "settings.auth_header"
-	//secret key for jwt
-	CONF_ENV_JWTSECRETKEY   = "settings.jwtsecretkey"
-	DEFAULT_USER            = "User"
-	DEFAULT_ROLE            = "Role"
-	CONF_ENV_ADMINROLE      = "AdminRole"
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
 	CONF_SERVICE_USECORS    = "usecors"
 	CONF_AUTH_MODE          = "settings.authorization.mode"
@@ -44,38 +35,6 @@ const (
 /*
 
 
-//create services within an environment
-func (env *Environment) configure(ctx *Context) error {
-
-	//check if user service name to be used has been provided, otherwise set default name
-	roleObject := env.Config.GetString(CONF_ENV_ROLE)
-	if len(roleObject) == 0 {
-		roleObject = DEFAULT_ROLE
-	}
-	env.SystemRole = roleObject
-
-	//check if user service name to be used has been provided, otherwise set default name
-	userObject := env.Config.GetString(CONF_ENV_USER)
-	if len(userObject) == 0 {
-		userObject = DEFAULT_USER
-	}
-	env.SystemUser = userObject
-
-	env.JWTSecret = utils.RandomString(15)
-
-	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	jwtSecretInt := env.Config.GetString(CONF_ENV_JWTSECRETKEY)
-	if len(jwtSecretInt) > 0 {
-		env.JWTSecret = jwtSecretInt
-	}
-
-	env.AuthHeader = "X-Auth-Token"
-	//check if auth header to be set has been provided, otherwise set default token
-	authTokenInt := env.Config.GetString(CONF_ENV_AUTHHEADER)
-	if len(authTokenInt) > 0 {
-		env.AuthHeader = authTokenInt
-	}
-}
 
 //load role permissions if needed from another environment
 func (env *Environment) loadRolePermissions(ctx *Context) error {

@@ -92,3 +92,9 @@ func (ctx *serverContext) DeleteFromCache(key string) error {
 	}
 	return errors.ThrowError(ctx, CORE_ERROR_NO_CACHE_SVC)
 }
+func (ctx *serverContext) HasPermission(req core.RequestContext, perm string) bool {
+	return ctx.environment.Security.HasPermission(req, perm)
+}
+func (ctx *serverContext) GetRolePermissions(role []string) ([]string, bool) {
+	return ctx.environment.Security.GetRolePermissions(role)
+}

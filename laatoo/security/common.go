@@ -6,33 +6,16 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	//	"laatoo/sdk/log"
-	"laatoo/sdk/utils"
 	"time"
 )
 
-func loadPermissions(ctx core.RequestContext, usr auth.RbacUser, rolesMap map[string][]string, allpermissions *[]string) bool {
-	roles, _ := usr.GetRoles()
-	permissions := utils.NewStringSet([]string{})
-	adminRole := ctx.GetServerVariable(core.ADMINROLE)
-	for _, rolename := range roles {
-		if rolename == adminRole {
-			usr.SetPermissions(*allpermissions)
-			return true
-		}
-		rolepermissions, ok := rolesMap[rolename]
-		if ok {
-			permissions.Append(rolepermissions)
-		}
-	}
-	usr.SetPermissions(permissions.Values())
-	return false
-}
-
-func completeAuthentication(ctx core.RequestContext, user auth.User, rolesMap map[string][]string, allpermissions *[]string) (*core.ServiceResponse, error) {
+func completeAuthentication(ctx core.RequestContext, user auth.User) (*core.ServiceResponse, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	rbac, ok := user.(auth.RbacUser)
 	if ok {
-		admin := loadPermissions(ctx, rbac, rolesMap, allpermissions)
+		roles, _ := rbac.GetRoles()
+		permissions, admin := ctx.GetRolePermissions(roles)
+		rbac.SetPermissions(permissions)
 		token.Claims["Admin"] = admin
 		ctx.SetAdmin(true)
 	}

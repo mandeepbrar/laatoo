@@ -2,22 +2,27 @@ package server
 
 import (
 	"laatoo/core/engine/http"
-	_ "laatoo/core/security"
+	"laatoo/core/security"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/utils"
 )
 
 const (
 	CONF_ENV_ENGINE      = "engine"
-	CONF_TCPENGINE       = "tcp"
 	CONF_ENV_ENGINE_NAME = "enginename"
+	CONF_ENV_SECURITY    = "security"
 	//header set by the service
 	CONF_ENV_COMMSVC  = "commsvc"
 	CONF_ENV_CACHESVC = "cachesvc"
+	CONF_ENV_USER     = "user_object"
+	CONF_ENV_ROLE     = "role_object"
+	//header set by the service
+	CONF_ENV_AUTHHEADER = "auth_header"
+	//secret key for jwt
+	CONF_ENV_JWTSECRETKEY = "jwtsecretkey"
 )
 
 //Environment hosting an application
@@ -44,14 +49,12 @@ type Environment struct {
 	SystemRole string
 	//Name of the admin role
 	AdminRole string
-	//permissions set for the environment
-	Permissions utils.StringSet
-	//permissions assigned to a role
-	RolePermissions map[string]bool
 	//type of server environment is hosted in
 	ServerType string
 	//caching service
 	Cache data.Cache
+	//security
+	Security core.SecurityHandler
 	/*	//environment middleware
 		middleware *Middleware
 		//store for service factory middleware
@@ -64,18 +67,15 @@ type Environment struct {
 func newEnvironment(ctx *serverContext, envName string, conf string, serverType string) (*Environment, error) {
 	env := &Environment{Name: envName, ServerType: serverType}
 	ctx.environment = env
+
 	//default admin role
-	env.AdminRole = "Admin"
+	env.AdminRole = core.CONF_SERVER_DEFAULT_ADMINROLE
 
-	env.SystemUser = "User"
+	env.SystemUser = core.CONF_SERVER_DEFAULT_USEROBJ
 
-	//###########TODO
+	/////************TODO***********/
 	//ctx.Set("Roles", []string{env.AdminRole})
 
-	//construct permissions set
-	env.Permissions = utils.NewStringSet([]string{})
-	//map containing roles and permissions
-	env.RolePermissions = make(map[string]bool)
 	//store of all services
 	env.ServicesStore = make(map[string]core.Service, 100)
 	/*	//store of all factory middleware
@@ -84,39 +84,86 @@ func newEnvironment(ctx *serverContext, envName string, conf string, serverType 
 	env.ServiceFactoryStore = make(map[string]core.ServiceFactory, 30)
 	//store of all service configs
 	env.ServiceFactoryConfig = make(map[string]config.Config, 30)
+	//process environment configuration
+	if err := env.processConfiguration(ctx, conf); err != nil {
+		return nil, err
+	}
+	return env, nil
+}
+
+func (env *Environment) processConfiguration(ctx *serverContext, conf string) error {
 	//read config for standalone
 	envconf, err := config.NewConfigFromFile(conf)
 	if err != nil {
-		return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
+		return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
 	}
 	env.Config = envconf
+
+	secConfig, ok := envconf.GetSubConfig(CONF_ENV_SECURITY)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENV_SECURITY)
+	}
+	env.processSecurityConfig(ctx, secConfig)
 
 	/*	env.middleware = createMW(envconf, nil)*/
 
 	if err = env.createServiceFactories(ctx); err != nil {
-		return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
+		return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
 	}
 	engineConf, ok := envconf.GetSubConfig(CONF_ENV_ENGINE)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENV_ENGINE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENV_ENGINE)
 	}
 	enginename, ok := engineConf.GetString(CONF_ENV_ENGINE_NAME)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENV_ENGINE_NAME)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENV_ENGINE_NAME)
 	}
 	env.engineName = enginename
 	switch enginename {
-	case http.CONF_ENGINE_NAME:
+	case core.CONF_ENGINE_HTTP:
 		httpEngine, err := http.NewHttpEngine(ctx, engineConf)
 		if err != nil {
-			return nil, errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
+			return errors.RethrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, err)
 		}
 		env.envEngine = httpEngine //httpDelivery
-	case CONF_TCPENGINE:
+	case core.CONF_ENGINE_TCP:
 	default:
-		return nil, errors.ThrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, "Wrong delivery mode", enginename)
+		return errors.ThrowError(ctx, CORE_ENVIRONMENT_NOT_CREATED, "Wrong delivery mode", enginename)
 	}
-	return env, nil
+	return nil
+}
+
+func (env *Environment) processSecurityConfig(ctx *serverContext, conf config.Config) {
+	//check if user service name to be used has been provided, otherwise set default name
+	roleObject, _ := conf.GetString(CONF_ENV_ROLE)
+	if len(roleObject) == 0 {
+		roleObject = core.CONF_SERVER_DEFAULT_ROLEOBJ
+	}
+	env.SystemRole = roleObject
+
+	//check if user service name to be used has been provided, otherwise set default name
+	userObject, _ := conf.GetString(CONF_ENV_USER)
+	if len(userObject) == 0 {
+		userObject = core.CONF_SERVER_DEFAULT_USEROBJ
+	}
+	env.SystemUser = userObject
+
+	//check if jwt secret key has been provided, otherwise create a key from random numbers
+	jwtSecret, _ := conf.GetString(CONF_ENV_JWTSECRETKEY)
+	if len(jwtSecret) > 0 {
+		jwtSecret = core.CONF_SERVER_DEFAULT_JWTSECRET
+	}
+	env.JWTSecret = jwtSecret
+
+	//check if auth header to be set has been provided, otherwise set default token
+	authToken, _ := conf.GetString(CONF_ENV_AUTHHEADER)
+	if len(authToken) > 0 {
+		authToken = core.CONF_SERVER_DEFAULT_AUTHHEADER
+	}
+	env.AuthHeader = authToken
+
+	env.Security = security.NewLocalSecurityHandler(ctx)
+	return
 }
 
 //Initialize an environment
