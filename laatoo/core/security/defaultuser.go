@@ -59,7 +59,7 @@ func (usr *DefaultUser) SetId(id string) {
 func (usr *DefaultUser) GetIdField() string {
 	return "Id"
 }
-func (ent *DefaultUser) PreSave(ctx core.Context) error {
+func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
 	passlen := len(ent.Password)
 	//pass length > 15 will indicate previously encrypted value as passwords > 15 chars are not suppported
 	//hack to prevent password from updating if a new one hasnt been provided
@@ -74,10 +74,10 @@ func (ent *DefaultUser) PreSave(ctx core.Context) error {
 	}
 	return nil
 }
-func (ent *DefaultUser) PostSave(ctx core.Context) error {
+func (ent *DefaultUser) PostSave(ctx core.RequestContext) error {
 	return nil
 }
-func (ent *DefaultUser) PostLoad(ctx core.Context) error {
+func (ent *DefaultUser) PostLoad(ctx core.RequestContext) error {
 	//ent.Password = ""
 	return nil
 }

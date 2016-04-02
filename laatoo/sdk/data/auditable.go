@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
+///auditable entities must have UpdatedBy and UpdatedOn fields to support auditing through update queries
 type Auditable interface {
+	Storable
 	IsNew() bool
 	SetUpdatedOn(string)
 	SetUpdatedBy(string)

@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/color"
 	"laatoo/sdk/core"
+	"strings"
 	"time"
 )
 
@@ -116,6 +118,54 @@ func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg
 			if err != nil {
 				fmt.Println(err)
 			}
+			return buffer.String()
+		}
+	case "happymaxcolor":
+		{
+			var buffer bytes.Buffer
+			firstline := ""
+			if level == STR_ERROR {
+				firstline = color.RedString("%s: %s", strings.ToUpper(level), msg)
+			} else {
+				firstline = color.BlueString("%s: %s", strings.ToUpper(level), msg)
+			}
+			argslen := len(args)
+			if argslen > 0 {
+				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), args[1]))
+			}
+			if argslen > 2 {
+				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), args[3]))
+			}
+			buffer.WriteString(fmt.Sprintln(firstline))
+			for i := 4; (i + 1) < argslen; i = i + 2 {
+				buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
+			}
+			buffer.WriteString(fmt.Sprintln("		", reqContext.GetName()))
+			buffer.WriteString(fmt.Sprintln("		TIME: ", time.Now().String()))
+			buffer.WriteString(fmt.Sprintln("		ID: ", reqContext.GetId()))
+			return buffer.String()
+		}
+	case "happycolor":
+		{
+			var buffer bytes.Buffer
+			firstline := ""
+			if level == STR_ERROR {
+				firstline = color.RedString("%s: %s", strings.ToUpper(level), msg)
+			} else {
+				firstline = color.BlueString("%s: %s", strings.ToUpper(level), msg)
+			}
+			argslen := len(args)
+			if argslen > 0 {
+				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), args[1]))
+			}
+			if argslen > 2 {
+				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), args[3]))
+			}
+			buffer.WriteString(fmt.Sprintln(firstline))
+			for i := 4; (i + 1) < argslen; i = i + 2 {
+				buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
+			}
+			buffer.WriteString(fmt.Sprintln("		", reqContext.GetName()))
 			return buffer.String()
 		}
 	case "happymax":

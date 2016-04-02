@@ -19,10 +19,12 @@ type requestContext struct {
 	requestBody   interface{}
 	conf          config.Config
 	serverContext core.ServerContext
+	appContext    core.ApplicationContext
 }
 
 func NewRequestContext(name string, conf config.Config, server core.ServerContext, engineCtx interface{}) *requestContext {
-	return &requestContext{Context: common.NewContext(name), conf: conf, serverContext: server, ParamsStore: make(map[string]interface{}), engineContext: engineCtx}
+	return &requestContext{Context: common.NewContext(name), conf: conf, serverContext: server, ParamsStore: make(map[string]interface{}),
+		engineContext: engineCtx, appContext: server.ApplicationContext()}
 }
 
 func (ctx *requestContext) ParentContext() interface{} {
@@ -48,7 +50,7 @@ func (ctx *requestContext) subCtx(name string, conf config.Config, serverContext
 		conf = ctx.conf
 	}
 	duplicateContext := &requestContext{Context: ctx.DupCtx(name), conf: conf, serverContext: serverContext, ParamsStore: duplicateMap,
-		parentContext: ctx, engineContext: ctx.engineContext}
+		parentContext: ctx, engineContext: ctx.engineContext, appContext: ctx.appContext}
 	return duplicateContext
 }
 
@@ -104,13 +106,11 @@ func (ctx *requestContext) GetService(alias string) (core.Service, error) {
 }
 
 func (ctx *requestContext) SubscribeTopic(topic string, handler core.TopicListener) error {
-	//return ctx.environment.SubscribeTopic(ctx, topic, handler)
-	return nil
+	return ctx.serverContext.SubscribeTopic(topic, handler)
 }
 
 func (ctx *requestContext) PublishMessage(topic string, message interface{}) error {
-	//return ctx.environment.PublishMessage(ctx, topic, message)
-	return nil
+	return ctx.serverContext.PublishMessage(topic, message)
 }
 
 func (ctx *requestContext) PutInCache(key string, item interface{}) error {
@@ -163,4 +163,7 @@ func (ctx *requestContext) HasPermission(perm string) bool {
 }
 func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
 	return ctx.serverContext.GetRolePermissions(role)
+}
+func (ctx *requestContext) ApplicationContext() core.ApplicationContext {
+	return ctx.appContext
 }

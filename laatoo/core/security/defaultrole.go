@@ -55,13 +55,13 @@ func (r *Role) GetPermissions() []string {
 func (r *Role) SetPermissions(permissions []string) {
 	r.Permissions = permissions
 }
-func (ent *Role) PreSave(ctx core.Context) error {
+func (ent *Role) PreSave(ctx core.RequestContext) error {
 	return nil
 }
-func (ent *Role) PostSave(ctx core.Context) error {
+func (ent *Role) PostSave(ctx core.RequestContext) error {
 	return nil
 }
-func (ent *Role) PostLoad(ctx core.Context) error {
+func (ent *Role) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
 

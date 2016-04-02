@@ -23,7 +23,7 @@ func init() {
 }
 
 func MemoryCacheServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Info(ctx, "Creating memory cache service ")
+	log.Logger.Trace(ctx, "Creating memory cache factory")
 	memoryFac := &MemoryCacheFactory{conf}
 	return memoryFac, nil
 }

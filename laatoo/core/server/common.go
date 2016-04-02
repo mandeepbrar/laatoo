@@ -1,18 +1,19 @@
 package server
 
 import (
-	"fmt"
+	"laatoo/core/common"
 	"laatoo/sdk/config"
+	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
 
 const (
 	CONF_SERVERTYPE_HOSTNAME = "hostname"
-	CONF_ENVIRONMENTS        = "environments"
-	CONF_ENVNAME             = "name"
-	CONF_ENVCONF             = "conf"
-	CONF_ENV_SERVERTYPE      = "servertype"
+	CONF_APPLICATIONS        = "applications"
+	CONF_APPNAME             = "name"
+	CONF_APPCONF             = "conf"
+	CONF_APP_SERVERTYPE      = "servertype"
 )
 
 var (
@@ -20,8 +21,8 @@ var (
 )
 
 //Initialize Server
-func (server *Server) InitServer(ctx *serverContext, configFileName string) error {
-	server.Applications = make(map[string]*Environment)
+func (server *Server) InitServer(ctx *serverContext, configFileName string, appContextProvider core.ApplicationContextProvider) error {
+	server.Applications = make(map[string]*Application)
 	log.Logger.Info(ctx, "Initializing server", "config", configFileName)
 	//read config for standalone
 	serverConf, err := config.NewConfigFromFile(configFileName)
@@ -35,48 +36,53 @@ func (server *Server) InitServer(ctx *serverContext, configFileName string) erro
 	if !debug {
 		errors.ShowStack = false
 	}
-	log.Logger.Trace(ctx, "Getting environments")
+	log.Logger.Trace(ctx, "Getting applications")
 	//read config
-	envs, ok := server.Config.GetConfigArray(CONF_ENVIRONMENTS)
+	apps, ok := server.Config.GetConfigArray(CONF_APPLICATIONS)
 	if !ok {
-		panic("No environments found")
+		panic("No applications found")
 	}
-	log.Logger.Debug(ctx, " Environments to be initialized", "Number of environments", len(envs))
-	createctx := ctx.subCtx("CreateEnvironment", serverConf, nil)
-	for _, val := range envs {
-		envName, ok := val.GetString(CONF_ENVNAME)
+	log.Logger.Debug(ctx, " Applications to be initialized", "Number of applications", len(apps))
+	createctx := ctx.subCtx("Create Application", serverConf, nil)
+	for _, val := range apps {
+		appName, ok := val.GetString(CONF_APPNAME)
 		if !ok {
-			panic("Environment name not provided")
+			panic("Application name not provided")
 		}
-		envConf, ok := val.GetString(CONF_ENVCONF)
+		appConf, err := common.ConfigFileAdapter(val, CONF_APPCONF)
+		if err != nil {
+			panic("Application conf not provided")
+		}
+		appServerType, ok := val.GetString(CONF_APP_SERVERTYPE)
 		if !ok {
-			panic("Environment conf not provided")
+			panic("Server type not provided for application")
 		}
-		envServerType, ok := val.GetString(CONF_ENV_SERVERTYPE)
-		if !ok {
-			panic("Server type not provided for environment")
-		}
-		if envServerType != server.ServerType {
-			log.Logger.Info(createctx, "Skipping environment", "Environment", envName)
+		if appServerType != server.ServerType {
+			log.Logger.Info(createctx, "Skipping application", "Application", appName)
 			continue
 		}
-		log.Logger.Debug(createctx, "Creating environment", "Environment", envName)
-		envctx := createctx.subCtx(envName, val, nil)
-		envConfFile := fmt.Sprintf("%s/%s", envName, envConf)
-		environment, err := newEnvironment(envctx, envName, envConfFile, server.ServerType)
-		if err != nil {
-			return errors.RethrowError(envctx, CORE_ENVIRONMENT_NOT_CREATED, err, "Environment", envName)
+		log.Logger.Debug(createctx, "Creating application", "Application", appName)
+		appserverctx := createctx.subCtx(appName, val, nil)
+		var appCtx core.ApplicationContext
+		if appContextProvider != nil {
+			appCtx, err = appContextProvider(appName)
+			if err != nil {
+				return errors.RethrowError(appserverctx, CORE_APPLICATION_NOT_CREATED, err, "Application", appName)
+			}
 		}
-		server.Applications[envName] = environment
-	}
-	initctx := ctx.subCtx("InitializeEnvironment", nil, nil)
-	//Initializes application environments to be hosted on this server
-	for envName, app := range server.Applications {
-		envctx := initctx.subCtx(envName, app.Config, app)
-		envctx.environment = app
-		err := app.InitializeEnvironment(envctx)
+		application, err := newApplication(appserverctx, appName, appCtx, appConf, server.ServerType)
 		if err != nil {
-			return errors.RethrowError(envctx, CORE_ENVIRONMENT_NOT_INITIALIZED, err, "Environment", envName)
+			return errors.RethrowError(appserverctx, CORE_APPLICATION_NOT_CREATED, err, "Application", appName)
+		}
+		server.Applications[appName] = application
+	}
+	initctx := ctx.subCtx("Initialize Applications", nil, nil)
+	//Initializes applications to be hosted on this server
+	for appName, app := range server.Applications {
+		intappctx := initctx.subCtx(appName, app.Config, app)
+		err := app.InitializeApplication(intappctx)
+		if err != nil {
+			return errors.RethrowError(intappctx, CORE_APPLICATION_NOT_INITIALIZED, err, "Application", appName)
 		}
 	}
 	return nil
@@ -84,11 +90,11 @@ func (server *Server) InitServer(ctx *serverContext, configFileName string) erro
 
 //start the server
 func (server *Server) Start(ctx *serverContext) error {
-	startctx := ctx.subCtx("StartEnvironment", nil, nil)
-	//Initializes application environments to be hosted on this server
-	for envName, app := range server.Applications {
-		envctx := startctx.subCtx(envName, app.Config, app)
-		err := app.StartEnvironment(envctx)
+	startctx := ctx.subCtx("Start Application", nil, nil)
+	//starts applications to be hosted on this server
+	for appName, app := range server.Applications {
+		appstartctx := startctx.subCtx(appName, app.Config, app)
+		err := app.StartApplication(appstartctx)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

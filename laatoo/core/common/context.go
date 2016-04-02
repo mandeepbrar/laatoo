@@ -23,5 +23,5 @@ func (ctx *Context) GetName() string {
 }
 
 func (ctx *Context) DupCtx(name string) *Context {
-	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name)}
+	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name)}
 }

@@ -16,6 +16,8 @@ func (router *Router) HandleResponse(ctx core.RequestContext, resp *core.Service
 			if resp.Data != nil {
 				/****TODO***********/
 				return engineContext.JSON(http.StatusOK, resp.Data)
+			} else {
+				return engineContext.NoContent(http.StatusOK)
 			}
 		case core.StatusServeFile:
 			return engineContext.File(resp.Data.(string))

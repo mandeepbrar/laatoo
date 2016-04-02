@@ -33,7 +33,12 @@ func (conf *FileConfig) AllConfigurations() []string {
 //Get string configuration value
 func (conf *FileConfig) GetString(configurationName string) (string, bool) {
 	if conf.vpr.InConfig(configurationName) {
-		return conf.vpr.GetString(configurationName), true
+		val := conf.vpr.Get(configurationName)
+		str, ok := val.(string)
+		if ok {
+			return str, true
+		}
+		return "", false
 	}
 	return "", false
 }

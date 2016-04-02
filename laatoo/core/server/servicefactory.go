@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"laatoo/core/common"
 	"laatoo/core/registry"
 	"laatoo/sdk/config"
 	"laatoo/sdk/errors"
@@ -9,84 +9,69 @@ import (
 )
 
 const (
-	CONF_ENV_SERVICEFACTORIES       = "servicefactories"
-	CONF_ENV_SERVICEFACTORYGROUPS   = "servicefactorygroups"
-	CONF_ENV_SERVICEFACTORYPROVIDER = "provider"
-	CONF_ENV_SERVICEFACTORYCONFIG   = "config"
+	CONF_APP_SERVICEFACTORIES       = "servicefactories"
+	CONF_APP_SERVICEFACTORYGROUPS   = "servicefactorygroups"
+	CONF_APP_SERVICEFACTORYPROVIDER = "provider"
+	CONF_APP_SERVICEFACTORYCONFIG   = "config"
 )
 
 //creates a new service factory
-func (env *Environment) createServiceFactories(ctx *serverContext) error {
-	return env.processServiceFactoryGrp(ctx, env.Config)
+func (app *Application) createServiceFactories(ctx *serverContext) error {
+	return app.processServiceFactoryGrp(ctx, app.Config)
 }
-func (env *Environment) processServiceFactoryGrp(ctx *serverContext, conf config.Config) error {
+func (app *Application) processServiceFactoryGrp(ctx *serverContext, conf config.Config) error {
 	//get a map of all the services
-	allgroups, ok := conf.GetSubConfig(CONF_ENV_SERVICEFACTORYGROUPS)
+	allgroups, ok := conf.GetSubConfig(CONF_APP_SERVICEFACTORYGROUPS)
 	if ok {
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
-			groupconfigname, _ := allgroups.GetString(groupname)
-			grpFileName := fmt.Sprintf("%s/%s", env.Name, groupconfigname)
-			log.Logger.Info(ctx, "Process Service Factory group", "groupname", groupname, "filename", grpFileName)
-			facgrpConfig, err := config.NewConfigFromFile(grpFileName)
+			log.Logger.Trace(ctx, "Process Service Factory group", "groupname", groupname)
+			facgrpConfig, err := common.ConfigFileAdapter(allgroups, groupname)
 			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for Factory group", groupname, "Missing Config", groupconfigname, "allgroups", allgroups, "groups", groups)
+				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for Factory group", groupname)
 			}
-			err = env.processServiceFactoryGrp(ctx, facgrpConfig)
+			grpCtx := ctx.subCtx("Group:"+groupname, facgrpConfig, app)
+			err = app.processServiceFactoryGrp(grpCtx, facgrpConfig)
 			if err != nil {
 				return err
 			}
 		}
 	}
 	//get a map of all the services
-	svcs, ok := conf.GetSubConfig(CONF_ENV_SERVICEFACTORIES)
+	svcs, ok := conf.GetSubConfig(CONF_APP_SERVICEFACTORIES)
 	if !ok {
 		return nil
 	}
 	factories := svcs.AllConfigurations()
 	for _, factoryName := range factories {
-		factoryConfig, ok := svcs.GetSubConfig(factoryName)
-		if !ok {
-			return errors.ThrowError(ctx, CORE_FACTORY_NOT_CREATED, "Wrong config for Factory Name", factoryName)
+		log.Logger.Trace(ctx, "Process Factory ", "Factory name", factoryName)
+		factoryConfig, err := common.ConfigFileAdapter(svcs, factoryName)
+		if err != nil {
+			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for factory", factoryName)
 		}
-		env.processServiceFactoryConfig(ctx, factoryName, factoryConfig)
+		facCtx := ctx.subCtx("Factory:"+factoryName, factoryConfig, app)
+		app.processServiceFactoryConfig(facCtx, factoryName, factoryConfig)
 	}
 	return nil
 }
 
-func (env *Environment) processServiceFactoryConfig(ctx *serverContext, factoryName string, factoryConfig config.Config) error {
-	providerName, ok := factoryConfig.GetString(CONF_ENV_SERVICEFACTORYPROVIDER)
+func (app *Application) processServiceFactoryConfig(ctx *serverContext, factoryName string, factoryConfig config.Config) error {
+	providerName, ok := factoryConfig.GetString(CONF_APP_SERVICEFACTORYPROVIDER)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYPROVIDER)
-	}
-	configuration, ok := factoryConfig.Get(CONF_ENV_SERVICEFACTORYCONFIG)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_ENV_SERVICEFACTORYCONFIG)
-	}
-	//supports both file names as well as subconfig
-	factoryConfigFile, ok := configuration.(string)
-	var svcfacConfig config.Config
-	var err error
-	if ok {
-		svcFileName := fmt.Sprintf("%s/%s", env.Name, factoryConfigFile)
-		log.Logger.Info(ctx, "Creating Service Factory", "factoryName", factoryName, "filename", svcFileName)
-		svcfacConfig, err = config.NewConfigFromFile(svcFileName)
-		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Could not read from file to create factory", factoryName)
-		}
-	} else {
-		svcfacConfig, ok = config.Cast(configuration)
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName)
-		}
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_APP_SERVICEFACTORYPROVIDER)
 	}
 
-	//facmw := createMW(svcfacConfig, env.middleware)
+	svcfacConfig, err := common.ConfigFileAdapter(factoryConfig, CONF_APP_SERVICEFACTORYCONFIG)
+	if err != nil {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName)
+	}
 
-	//env.ServiceFactoryMiddleware[factoryName] = facmw
+	//facmw := createMW(svcfacConfig, app.middleware)
+
+	//app.ServiceFactoryMiddleware[factoryName] = facmw
 
 	//create the service factory
-	err = env.createServiceFactory(ctx, factoryName, providerName, svcfacConfig)
+	err = app.createServiceFactory(ctx, factoryName, providerName, svcfacConfig)
 	if err != nil {
 		return errors.RethrowError(ctx, CORE_FACTORY_NOT_CREATED, err, "Could not create factory", factoryName)
 	}
@@ -94,8 +79,8 @@ func (env *Environment) processServiceFactoryConfig(ctx *serverContext, factoryN
 }
 
 //create service factory
-func (env *Environment) createServiceFactory(ctx *serverContext, alias string, factoryProviderName string, conf config.Config) error {
-	_, ok := env.ServiceFactoryStore[alias]
+func (app *Application) createServiceFactory(ctx *serverContext, alias string, factoryProviderName string, conf config.Config) error {
+	_, ok := app.ServiceFactoryStore[alias]
 	if ok {
 		return nil
 	}
@@ -110,9 +95,9 @@ func (env *Environment) createServiceFactory(ctx *serverContext, alias string, f
 		return errors.WrapError(ctx, err)
 	}
 	if factory != nil {
-		//add the service to the environment
-		env.ServiceFactoryStore[alias] = factory
+		//add the service to the application
+		app.ServiceFactoryStore[alias] = factory
 	}
-	env.ServiceFactoryConfig[alias] = conf
+	app.ServiceFactoryConfig[alias] = conf
 	return nil
 }

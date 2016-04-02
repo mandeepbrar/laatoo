@@ -12,7 +12,7 @@ var (
 )
 
 //subscribe to a topic
-func (env *Environment) SubscribeTopic(ctx core.Context, topic string, handler core.TopicListener) error {
+func (app *Application) SubscribeTopic(ctx core.Context, topic string, handler core.TopicListener) error {
 	listeners, prs := topicListeners[topic]
 	if !prs {
 		listeners = []core.TopicListener{}
@@ -23,16 +23,16 @@ func (env *Environment) SubscribeTopic(ctx core.Context, topic string, handler c
 }
 
 //publish message using
-func (env *Environment) PublishMessage(ctx core.Context, topic string, message interface{}) error {
-	if env.CommunicationService != nil {
+func (app *Application) PublishMessage(ctx core.Context, topic string, message interface{}) error {
+	if app.CommunicationService != nil {
 		log.Logger.Trace(ctx, "posting message")
-		return env.CommunicationService.Publish(ctx, topic, message)
+		return app.CommunicationService.Publish(ctx, topic, message)
 	}
 	return errors.ThrowError(ctx, CORE_ERROR_NOCOMMSVC)
 }
 
-func (env *Environment) subscribeTopics(ctx core.Context) error {
-	if env.CommunicationService != nil {
+func (app *Application) subscribeTopics(ctx core.Context) error {
+	if app.CommunicationService != nil {
 		topics := make([]string, len(topicListeners))
 		i := 0
 		for k := range topicListeners {
@@ -40,7 +40,7 @@ func (env *Environment) subscribeTopics(ctx core.Context) error {
 			i++
 		}
 		log.Logger.Trace(ctx, "Subscribing topics", "topics", topics)
-		env.CommunicationService.Subscribe(ctx, topics, func(ctx core.Context, topic string, message interface{}) {
+		app.CommunicationService.Subscribe(ctx, topics, func(ctx core.Context, topic string, message interface{}) {
 			lsnrs := topicListeners[topic]
 			for _, val := range lsnrs {
 				go val(ctx, topic, message)

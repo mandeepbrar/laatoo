@@ -1,10 +1,10 @@
 package http
 
 import (
-	"fmt"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	mw "github.com/labstack/echo/middleware"
+	"laatoo/core/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -15,7 +15,7 @@ import (
 const (
 	CONF_ENGINE_NAME         = "http"
 	CONF_SERVERTYPE_HOSTNAME = "hostname"
-	CONF_ENVPATH             = "path"
+	CONF_APPPATH             = "path"
 	CONF_ROUTECONF           = "routes"
 	CONF_SERVER_SSL          = "ssl"
 	CONF_SSLCERT             = "sslcert"
@@ -49,11 +49,11 @@ func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, err
 		eng.sslcert = cert
 		eng.sslkey = key
 	}
-	envPath, ok := conf.GetString(CONF_ENVPATH)
+	appPath, ok := conf.GetString(CONF_APPPATH)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_ENVPATH)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_APPPATH)
 	}
-	eng.path = envPath
+	eng.path = appPath
 	address, ok := conf.GetString(CONF_SERVERTYPE_HOSTNAME)
 	if !ok {
 		if ctx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
@@ -63,7 +63,7 @@ func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, err
 		eng.address = address
 	}
 
-	//create all service factories in the environment
+	//create all service factories in the application
 	//initialize router
 	router := echo.New()
 	// Middleware
@@ -80,17 +80,14 @@ func (eng *HttpEngine) GetContext() core.EngineServerContext {
 }
 
 func (eng *HttpEngine) InitializeEngine(ctx core.ServerContext) error {
-	routesConf, ok := eng.config.GetString(CONF_ROUTECONF)
-	if ok {
-		routerFileName := fmt.Sprintf("%s/%s", ctx.GetServerName(), routesConf)
-		config, err := config.NewConfigFromFile(routerFileName)
-		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Router config name", routesConf)
-		}
-		eng.router = &Router{eRouter: eng.rootRouter.Group(""), config: config, engine: eng}
-		if err = eng.router.ConfigureRoutes(ctx); err != nil {
-			return errors.RethrowError(ctx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
-		}
+	routesConf, err := common.ConfigFileAdapter(eng.config, CONF_ROUTECONF)
+	if err != nil {
+		return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Router config ", CONF_ROUTECONF)
+	}
+	eng.router = &Router{name: "Root", eRouter: eng.rootRouter.Group(""), config: routesConf, engine: eng}
+	engCtx := ctx.SubContext("Configuring engine", routesConf)
+	if err = eng.router.ConfigureRoutes(engCtx); err != nil {
+		return errors.RethrowError(engCtx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
 	}
 	if ctx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
 		s := standard.New("")
@@ -107,14 +104,14 @@ func (eng *HttpEngine) StartEngine(ctx core.ServerContext) error {
 			//start listening
 			eng.rootRouter.Run(standard.NewFromTLS(eng.address, eng.sslcert, eng.sslkey)) //http.ListenAndServeTLS(delivery.address, delivery.sslcert, delivery.sslkey, delivery.rootRouter)
 			/*if err != nil {
-				panic("Failed to start environment" + err.Error())
+				panic("Failed to start application" + err.Error())
 			}*/
 			return nil
 		} else {
 			//start listening
 			eng.rootRouter.Run(standard.New(eng.address)) //http.ListenAndServe(delivery.address, delivery.rootRouter)
 			/*if err != nil {
-				panic("Failed to start environment" + err.Error())
+				panic("Failed to start application" + err.Error())
 			}*/
 			return nil
 		}

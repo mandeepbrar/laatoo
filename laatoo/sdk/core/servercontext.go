@@ -29,4 +29,6 @@ type ServerContext interface {
 	EngineContext() EngineServerContext
 	HasPermission(RequestContext, string) bool
 	GetRolePermissions(role []string) ([]string, bool)
+	CreateNewRequest(name string) RequestContext
+	ApplicationContext() ApplicationContext
 }

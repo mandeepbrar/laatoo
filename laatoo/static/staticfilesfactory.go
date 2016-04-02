@@ -17,7 +17,6 @@ const (
 	CONF_STATIC_DIR            = "directory"
 )
 
-//Environment hosting an application
 type StaticServiceFactory struct {
 	Conf config.Config
 }
@@ -27,9 +26,9 @@ func init() {
 	registry.RegisterServiceFactoryProvider(CONF_STATIC_SERVICEFACTORY, NewStaticServiceFactory)
 }
 
-//factory method returns the service object to the environment
+//factory method returns the service object to the application
 func NewStaticServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Info(ctx, "Creating static service")
+	log.Logger.Trace(ctx, "Creating static service factory")
 	svc := &StaticServiceFactory{conf}
 	return svc, nil
 }
@@ -37,7 +36,7 @@ func NewStaticServiceFactory(ctx core.ServerContext, conf config.Config) (core.S
 //Create the services configured for factory.
 func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
 	sf.Conf = conf
-	log.Logger.Info(ctx, "creating service files", "name", name)
+	log.Logger.Trace(ctx, "Creating service for static factory", "name", name)
 	switch name {
 	/*** Provides service for serving any files in a directory*****/
 	case CONF_STATICSVC_DIRECTORY:

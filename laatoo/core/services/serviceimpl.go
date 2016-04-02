@@ -77,7 +77,7 @@ func (env *Environment) processMiddleware(ctx *serverContext, servicesStore map[
 			}
 
 			//add the service to the environment
-			env.ServicesStore[svcAlias] = func(mwsvcs []core.GenericService, gensvc core.GenericService) core.Service {
+			app.ServicesStore[svcAlias] = func(mwsvcs []core.GenericService, gensvc core.GenericService) core.Service {
 				log.Logger.Debug(ctx, "Registered service", "service name", svcAlias)
 				return func(svcctx core.RequestContext) error {
 					for _, mwsvc := range mwsvcs {

@@ -37,15 +37,15 @@ type Router struct {
 	engine  *HttpEngine
 }
 
-func (router *Router) Group(ctx core.ServerContext, path string, conf config.Config) core.Router {
-	return router.group(ctx, path, conf)
+func (router *Router) Group(ctx core.ServerContext, path string, name string, conf config.Config) core.Router {
+	return router.group(ctx, path, name, conf)
 }
 
-func (router *Router) group(ctx core.ServerContext, path string, conf config.Config) *Router {
-	retRouter := &Router{name: fmt.Sprintf("%s  %s", router.name, path), eRouter: router.eRouter.Group(path), config: conf, engine: router.engine}
-	log.Logger.Debug(ctx, "Created group router", "name", retRouter.name)
+func (router *Router) group(ctx core.ServerContext, path string, name string, conf config.Config) *Router {
+	retRouter := &Router{name: fmt.Sprintf("%s > %s", router.name, name), eRouter: router.eRouter.Group(path), config: conf, engine: router.engine}
+	log.Logger.Info(ctx, "Created group router", "name", retRouter.name)
 
-	/*env := router.environment
+	/*app := router.application
 
 	_, ok := conf[CONF_SERVICE_USECORS]
 	if ok {
@@ -55,7 +55,7 @@ func (router *Router) group(ctx core.ServerContext, path string, conf config.Con
 			corsMw := cors.New(cors.Options{
 				AllowedOrigins:   allowedOrigins,
 				AllowedHeaders:   []string{"*"},
-				ExposedHeaders:   []string{env.AuthHeader},
+				ExposedHeaders:   []string{app.AuthHeader},
 				AllowCredentials: true,
 			}).Handler
 			log.Logger.Info(ctx, "core.env", "CORS enabled for hosts ", "hosts", allowedOrigins)
@@ -70,7 +70,7 @@ func (router *Router) group(ctx core.ServerContext, path string, conf config.Con
 		bypassauth = (bypassauthInt == "true")
 	}
 
-	//provide environment context to every request using middleware
+	//provide application context to every request using middleware
 	retRouter.Use(ctx, func(ctx core.Context) error {
 		//ctx.Set(CONF_ENV_CONTEXT, env)
 		if bypassauth {
@@ -103,28 +103,28 @@ func (router *Router) httpAdapater(ctx core.ServerContext, conf config.Config, h
 }
 
 func (router *Router) Get(ctx core.ServerContext, path string, conf config.Config, handler core.HandlerFunc) error {
-	log.Logger.Debug(ctx, "Registering route", "router", router.name, "path", path, "method", "Get")
+	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Get")
 	router.eRouter.Get(path, router.httpAdapater(ctx, conf, handler))
 	return nil
 
 }
 
 func (router *Router) Put(ctx core.ServerContext, path string, conf config.Config, handler core.HandlerFunc) error {
-	log.Logger.Debug(ctx, "Registering route", "router", router.name, "path", path, "method", "Put")
+	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Put")
 	router.eRouter.Put(path, router.httpAdapater(ctx, conf, handler))
 	return nil
 
 }
 
 func (router *Router) Post(ctx core.ServerContext, path string, conf config.Config, handler core.HandlerFunc) error {
-	log.Logger.Debug(ctx, "Registering route", "router", router.name, "path", path, "method", "Post")
+	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Post")
 	router.eRouter.Post(path, router.httpAdapater(ctx, conf, handler))
 	return nil
 
 }
 
 func (router *Router) Delete(ctx core.ServerContext, path string, conf config.Config, handler core.HandlerFunc) error {
-	log.Logger.Debug(ctx, "Registering route", "router", router.name, "path", path, "method", "Delete")
+	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Delete")
 	router.eRouter.Delete(path, router.httpAdapater(ctx, conf, handler))
 	return nil
 

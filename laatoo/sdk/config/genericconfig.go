@@ -10,7 +10,11 @@ type GenericConfig map[string]interface{}
 func (conf GenericConfig) GetString(configurationName string) (string, bool) {
 	val, found := conf[configurationName]
 	if found {
-		return val.(string), true
+		str, ok := val.(string)
+		if ok {
+			return str, true
+		}
+		return "", false
 	}
 	return "", false
 }

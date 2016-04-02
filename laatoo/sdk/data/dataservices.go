@@ -37,31 +37,31 @@ type DataService interface {
 	//supported features
 	Supports(Feature) bool
 	//create condition for passing to data service
-	CreateCondition(ctx core.Context, operation ConditionType, args ...interface{}) (interface{}, error)
+	CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error)
 	//save an object
-	Save(ctx core.Context, item Storable) error
+	Save(ctx core.RequestContext, item Storable) error
 	//Store an object against an id
-	Put(ctx core.Context, id string, item Storable) error
+	Put(ctx core.RequestContext, id string, item Storable) error
 	//Store multiple objects
-	PutMulti(ctx core.Context, ids []string, items []Storable) error
+	PutMulti(ctx core.RequestContext, items []Storable) error
 	//update objects by ids, fields to be updated should be provided as key value pairs
-	UpdateMulti(ctx core.Context, ids []string, newVals map[string]interface{}) error
+	UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error
 	//update an object by ids, fields to be updated should be provided as key value pairs
-	Update(ctx core.Context, id string, newVals map[string]interface{}) error
+	Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error
 	//update with condition
-	UpdateAll(ctx core.Context, queryCond interface{}, newVals map[string]interface{}) ([]string, error)
+	UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error)
 	//Delete an object by id
-	Delete(ctx core.Context, id string, softdelete bool) error
+	Delete(ctx core.RequestContext, id string) error
 	//Delete object by ids
-	DeleteMulti(ctx core.Context, ids []string, softdelete bool) error
+	DeleteMulti(ctx core.RequestContext, ids []string) error
 	//delete with condition
-	DeleteAll(ctx core.Context, queryCond interface{}, softdelete bool) ([]string, error)
+	DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error)
 	//Get an object by id
-	GetById(ctx core.Context, id string) (Storable, error)
+	GetById(ctx core.RequestContext, id string) (Storable, error)
 	//Get multiple objects by id
-	GetMulti(ctx core.Context, ids []string, orderBy string) (map[string]Storable, error)
+	GetMulti(ctx core.RequestContext, ids []string, orderBy string) (map[string]Storable, error)
 	//Get all object with given conditions
-	Get(ctx core.Context, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, totalrecs int, recsreturned int, err error)
+	Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, totalrecs int, recsreturned int, err error)
 	//Get a list of all items
-	GetList(ctx core.Context, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, totalrecs int, recsreturned int, err error)
+	GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []Storable, totalrecs int, recsreturned int, err error)
 }

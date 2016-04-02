@@ -1,7 +1,7 @@
 package http
 
 import (
-	"fmt"
+	"laatoo/core/common"
 	"laatoo/core/registry"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -11,28 +11,65 @@ import (
 )
 
 func (router *Router) ConfigureRoutes(ctx core.ServerContext) error {
-	routepairs := router.config.AllConfigurations()
-	var routesconf config.Config
-	var err error
-	for _, routename := range routepairs {
-		routefile, ok := router.config.GetString(routename)
-		if ok {
-			routerFileName := fmt.Sprintf("%s/%s", ctx.GetServerName(), routefile)
-			routesconf, err = config.NewConfigFromFile(routerFileName)
+	router.processRoutesGrp(ctx, router.config)
+	/*	routepairs := router.config.AllConfigurations()
+		for _, routename := range routepairs {
+			routesconf, err := common.ConfigFileAdapter(router.config, routename)
 			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Name", routename, "Router file ", routerFileName)
+				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Router Name", routename)
 			}
-		} else {
-			routesconf, _ = router.config.GetSubConfig(routename)
+			routeCtx := ctx.SubContext(routename, routesconf)
+			err = router.configureRoutesConf(routeCtx, routesconf)
+			if err != nil {
+				return err
+			}
+		}*/
+	return nil
+}
+
+func (router *Router) processRoutesGrp(ctx core.ServerContext, conf config.Config) error {
+	allroutegroups, ok := conf.GetSubConfig(CONF_GROUPS)
+	if ok {
+		routegroups := allroutegroups.AllConfigurations()
+		for _, routegroupname := range routegroups {
+			log.Logger.Trace(ctx, "Process Route group", "Route group", routegroupname)
+			routegrpConfig, err := common.ConfigFileAdapter(allroutegroups, routegroupname)
+			if err != nil {
+				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for Route group", routegroupname)
+			}
+			rtgrpCtx := ctx.SubContext("Route Group:"+routegroupname, routegrpConfig)
+			path, ok := routegrpConfig.GetString(CONF_ROUTE_PATH)
+			if !ok {
+				path = ""
+			}
+			grpRouter := router.group(rtgrpCtx, path, routegroupname, routegrpConfig)
+
+			err = grpRouter.processRoutesGrp(rtgrpCtx, routegrpConfig)
+			if err != nil {
+				return err
+			}
 		}
-		err = router.configureRoutesConf(ctx, routesconf)
+	}
+
+	//get a map of all the services
+	routes, ok := conf.GetSubConfig(CONF_ROUTES)
+	if !ok {
+		return nil
+	}
+	routeCfgs := routes.AllConfigurations()
+	for _, routeName := range routeCfgs {
+		log.Logger.Trace(ctx, "Process Route ", "Route name", routeName)
+		routeConfig, err := common.ConfigFileAdapter(routes, routeName)
 		if err != nil {
-			return err
+			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for route", routeName)
 		}
+		routeCtx := ctx.SubContext("Route:"+routeName, routeConfig)
+		router.createRoute(routeCtx, routeConfig)
 	}
 	return nil
 }
 
+/*
 func (router *Router) configureRoutesConf(ctx core.ServerContext, conf config.Config) error {
 	groups, ok := conf.GetConfigArray(CONF_GROUPS)
 	if !ok {
@@ -63,7 +100,7 @@ func (router *Router) createGroup(ctx core.ServerContext, groupConf config.Confi
 		}
 	}
 	return nil
-}
+}*/
 
 func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Config) error {
 	path, ok := routeConf.GetString(CONF_ROUTE_PATH)
@@ -141,7 +178,7 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Service got data object ", "isdataObject", isdataObject, "isdataCollection", isdataCollection, "service", service, "svc", svc)
+	log.Logger.Trace(ctx, "Service got data object ", "isdataObject", isdataObject, "isdataCollection", isdataCollection, "service", service)
 
 	switch method {
 	case "GET":

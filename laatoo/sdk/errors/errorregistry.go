@@ -84,8 +84,8 @@ func throwError(ctx core.Context, registeredError *Error, rethrownError error, i
 	}
 	var infoArr []interface{}
 	if ShowStack {
-		infoArr = append(errDetails, "Stack", string(debug.Stack()))
-		infoArr = append(infoArr, info...)
+		infoArr = append(errDetails, info...)
+		infoArr = append(infoArr, "Stack", string(debug.Stack()))
 	} else {
 		infoArr = append(errDetails, info...)
 	}

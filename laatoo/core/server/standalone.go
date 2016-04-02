@@ -11,10 +11,10 @@ import (
 )
 
 //Create a new server
-func NewServer(configName string) (*Server, error) {
+func NewServer(configName string, appCtxProvider core.ApplicationContextProvider) (*Server, error) {
 	server := &Server{ServerType: core.CONF_SERVERTYPE_STANDALONE}
 	ctx := NewServerContext("ServerInit", nil, nil) // //Context: echo.NewContext(nil, nil, router)}
-	err := server.InitServer(ctx, configName)
+	err := server.InitServer(ctx, configName, appCtxProvider)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

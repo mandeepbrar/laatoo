@@ -13,6 +13,9 @@ import (
 type mongoDataService struct {
 	conf                    config.Config
 	database                string
+	auditable               bool
+	softdelete              bool
+	cacheable               bool
 	factory                 *mongoDataServicesFactory
 	collection              string
 	object                  string
@@ -29,6 +32,9 @@ const (
 	CONF_MONGO_DATABASE   = "database"
 	CONF_MONGO_OBJECT     = "object"
 	CONF_MONGO_OBJECT_ID  = "id"
+	CONF_MONGO_CACHEABLE  = "cacheable"
+	CONF_MONGO_AUDITABLE  = "auditable"
+	CONF_MONGO_SOFTDELETE = "softdelete"
 	CONF_MONGO_COLLECTION = "collection"
 )
 
@@ -60,6 +66,18 @@ func newMongoDataService(ctx core.ServerContext, ms *mongoDataServicesFactory, c
 
 	mongoSvc := &mongoDataService{factory: ms, conf: conf, object: object, objectCreator: objectCreator,
 		collection: collection, objectid: objectid, objectCollectionCreator: objectCollectionCreator, database: database}
+	cacheable, ok := conf.GetString(CONF_MONGO_CACHEABLE)
+	if ok {
+		mongoSvc.cacheable = (cacheable == "true")
+	}
+	softdelete, ok := conf.GetString(CONF_MONGO_SOFTDELETE)
+	if ok {
+		mongoSvc.softdelete = (softdelete == "true")
+	}
+	auditable, ok := conf.GetString(CONF_MONGO_AUDITABLE)
+	if ok {
+		mongoSvc.auditable = (auditable == "true")
+	}
 	/*mongoSvc.objects = make(map[string]string, len(objs))
 	for obj, collection := range objs {
 
@@ -104,33 +122,14 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 	return false
 }
 
-func (ms *mongoDataService) GetById(ctx core.Context, id string) (data.Storable, error) {
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
-	object, err := ms.objectCreator(ctx, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	condition := bson.M{}
-	condition[ms.objectid] = id
-	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
-	if err != nil {
-		if err.Error() == "not found" {
-			return nil, nil
-		}
-		return nil, errors.RethrowError(ctx, DATA_ERROR_OPERATION, err, "ID", id)
-	}
-	stor := object.(data.Storable)
-	stor.PostLoad(ctx)
-	return stor, nil
-}
-
-func (ms *mongoDataService) Save(ctx core.Context, item data.Storable) error {
+func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	log.Logger.Trace(ctx, "Saving object", "Object", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	item.PreSave(ctx)
+	if ms.auditable {
+		data.Audit(ctx, item)
+	}
 	id := item.GetId()
 	if id == "" {
 		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", ms.object)
@@ -140,17 +139,27 @@ func (ms *mongoDataService) Save(ctx core.Context, item data.Storable) error {
 		return errors.WrapError(ctx, err)
 	}
 	item.PostSave(ctx)
+	if ms.cacheable {
+		ctx.PutInCache(getCacheKey(ms.object, id), item)
+	}
 	return nil
 }
 
-func (ms *mongoDataService) PutMulti(ctx core.Context, ids []string, items []data.Storable) error {
+func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
 	for _, item := range items {
+		id := item.GetId()
+		if ms.cacheable {
+			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		}
 		item.PreSave(ctx)
-		bulk.Upsert(bson.M{ms.objectid: item.GetId()}, item)
+		if ms.auditable {
+			data.Audit(ctx, item)
+		}
+		bulk.Upsert(bson.M{ms.objectid: id}, item)
 	}
 	_, err := bulk.Run()
 	if err != nil {
@@ -163,13 +172,19 @@ func (ms *mongoDataService) PutMulti(ctx core.Context, ids []string, items []dat
 	return nil
 }
 
-func (ms *mongoDataService) Put(ctx core.Context, id string, item data.Storable) error {
+func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
+	if ms.cacheable {
+		ctx.DeleteFromCache(getCacheKey(ms.object, id))
+	}
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
 	condition[ms.objectid] = id
 	item.PreSave(ctx)
+	if ms.auditable {
+		data.Audit(ctx, item)
+	}
 	err := connCopy.DB(ms.database).C(ms.collection).Update(condition, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -178,112 +193,13 @@ func (ms *mongoDataService) Put(ctx core.Context, id string, item data.Storable)
 	return nil
 }
 
-//Get multiple objects by id
-func (ms *mongoDataService) GetMulti(ctx core.Context, ids []string, orderBy string) (map[string]data.Storable, error) {
-	results, err := ms.objectCollectionCreator(ctx, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
+func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+	if ms.cacheable {
+		ctx.DeleteFromCache(getCacheKey(ms.object, id))
 	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	condition := bson.M{}
-	operatorCond := bson.M{}
-	operatorCond["$in"] = ids
-	condition[ms.objectid] = operatorCond
-	query := connCopy.DB(ms.database).C(ms.collection).Find(condition)
-	if len(orderBy) > 0 {
-		query = query.Sort(orderBy)
+	if ms.auditable {
+		data.Audit(ctx, newVals)
 	}
-	err = query.All(results)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	retVal := make(map[string]data.Storable, len(ids))
-	// To retrieve the results,
-	// you must execute the Query using its GetAll or Run methods.
-	resultStor, err := data.CastToStorableCollection(results)
-	for _, stor := range resultStor {
-		retVal[stor.GetId()] = stor
-		stor.PostLoad(ctx)
-	}
-	for _, id := range ids {
-		_, ok := retVal[id]
-		if !ok {
-			retVal[id] = nil
-		}
-	}
-	return retVal, nil
-}
-
-func (ms *mongoDataService) GetList(ctx core.Context, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
-	/*totalrecs = -1
-	recsreturned = -1
-	results, err := ms.objectCollectionCreator(ctx, nil)
-	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	condition := bson.M{}
-	query := connCopy.DB(ms.database).C(ms.collection).Find(condition)
-	if pageSize > 0 {
-		totalrecs, err = query.Count()
-		if err != nil {
-			return nil, totalrecs, recsreturned, err
-		}
-		recsToSkip := (pageNum - 1) * pageSize
-		query = query.Limit(pageSize).Skip(recsToSkip)
-	}
-	if len(orderBy) > 0 {
-		query = query.Sort(orderBy)
-	}
-	err = query.All(results)
-	resultStor, err := data.CastToStorableCollection(results)
-	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
-	recsreturned = len(resultStor)
-	for _, stor := range resultStor {
-		stor.PostLoad(ctx)
-	}*/
-	return ms.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
-}
-
-func (ms *mongoDataService) Get(ctx core.Context, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
-	totalrecs = -1
-	recsreturned = -1
-	results, err := ms.objectCollectionCreator(ctx, nil)
-	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
-	if pageSize > 0 {
-		totalrecs, err = query.Count()
-		if err != nil {
-			return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-		}
-		recsToSkip := (pageNum - 1) * pageSize
-		query = query.Limit(pageSize).Skip(recsToSkip)
-	}
-	if len(orderBy) > 0 {
-		query = query.Sort(orderBy)
-	}
-	err = query.All(results)
-	resultStor, err := data.CastToStorableCollection(results)
-	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
-	recsreturned = len(resultStor)
-	for _, stor := range resultStor {
-		stor.PostLoad(ctx)
-	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "recsreturned", recsreturned)
-	return resultStor, totalrecs, recsreturned, nil
-}
-
-func (ms *mongoDataService) Update(ctx core.Context, id string, newVals map[string]interface{}) error {
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition := bson.M{}
 	condition[ms.objectid] = id
@@ -293,7 +209,7 @@ func (ms *mongoDataService) Update(ctx core.Context, id string, newVals map[stri
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
-func (ms *mongoDataService) UpdateAll(ctx core.Context, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
 	results, err := ms.objectCollectionCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -313,6 +229,12 @@ func (ms *mongoDataService) UpdateAll(ctx core.Context, queryCond interface{}, n
 	}
 	for i := 0; i < length; i++ {
 		ids[i] = resultStor[i].GetId()
+		if ms.cacheable {
+			ctx.DeleteFromCache(getCacheKey(ms.object, ids[i]))
+		}
+	}
+	if ms.auditable {
+		data.Audit(ctx, newVals)
 	}
 	_, err = connCopy.DB(ms.database).C(ms.collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
 	if err != nil {
@@ -322,7 +244,15 @@ func (ms *mongoDataService) UpdateAll(ctx core.Context, queryCond interface{}, n
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
-func (ms *mongoDataService) UpdateMulti(ctx core.Context, ids []string, newVals map[string]interface{}) error {
+func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
+	if ms.cacheable {
+		for _, id := range ids {
+			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		}
+	}
+	if ms.auditable {
+		data.Audit(ctx, newVals)
+	}
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.objectid, ids)
 	connCopy := ms.factory.connection.Copy()
@@ -330,37 +260,18 @@ func (ms *mongoDataService) UpdateMulti(ctx core.Context, ids []string, newVals 
 	return connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
 }
 
-//create condition for passing to data service
-func (ms *mongoDataService) CreateCondition(ctx core.Context, operation data.ConditionType, args ...interface{}) (interface{}, error) {
-	switch operation {
-	case data.MATCHANCESTOR:
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
-	case data.MATCHMULTIPLEVALUES:
-		{
-			if len(args) < 2 {
-				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
-			}
-			return bson.M{args[0].(string): bson.M{"$in": args[1]}}, nil
-		}
-	case data.FIELDVALUE:
-		{
-			if len(args) < 1 {
-				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
-			}
-			return args[0], nil
-		}
-	}
-	return nil, nil
-}
-
-func (ms *mongoDataService) Delete(ctx core.Context, id string, softdelete bool) error {
-	/*if softdelete {
-		err := ms.Update(ctx, objectType, id, map[string]interface{}{"Deleted": true})
-		if err == nil {
+//item must support Deleted field for soft deletes
+func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
+	if ms.softdelete {
+		err := ms.Update(ctx, id, map[string]interface{}{"Deleted": true})
+		/*if err == nil
 			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
-		}
+		}*/
 		return err
-	}*/
+	}
+	if ms.cacheable {
+		ctx.DeleteFromCache(getCacheKey(ms.object, id))
+	}
 	condition := bson.M{}
 	condition[ms.objectid] = id
 	connCopy := ms.factory.connection.Copy()
@@ -373,14 +284,19 @@ func (ms *mongoDataService) Delete(ctx core.Context, id string, softdelete bool)
 }
 
 //Delete object by ids
-func (ms *mongoDataService) DeleteMulti(ctx core.Context, ids []string, softdelete bool) error {
-	/*if softdelete {
-		err := ms.UpdateMulti(ctx, objectType, ids, map[string]interface{}{"Deleted": true})
-		if err == nil {
+func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
+	if ms.softdelete {
+		err := ms.UpdateMulti(ctx, ids, map[string]interface{}{"Deleted": true})
+		/*if err == nil {
 			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
-		}
+		}*/
 		return err
-	}*/
+	}
+	if ms.cacheable {
+		for _, id := range ids {
+			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		}
+	}
 	conditionVal := bson.M{}
 	conditionVal["$in"] = ids
 	condition := bson.M{}
@@ -395,14 +311,14 @@ func (ms *mongoDataService) DeleteMulti(ctx core.Context, ids []string, softdele
 }
 
 //Delete object by condition
-func (ms *mongoDataService) DeleteAll(ctx core.Context, queryCond interface{}, softdelete bool) ([]string, error) {
-	/*if softdelete {
-		ids, err := ms.UpdateAll(ctx, objectType, queryCond, map[string]interface{}{"Deleted": true})
-		if err == nil {
+func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+	if ms.softdelete {
+		ids, err := ms.UpdateAll(ctx, queryCond, map[string]interface{}{"Deleted": true})
+		/*if err == nil {
 			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
-		}
+		}*/
 		return ids, err
-	}*/
+	}
 	results, err := ms.objectCollectionCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -418,7 +334,11 @@ func (ms *mongoDataService) DeleteAll(ctx core.Context, queryCond interface{}, s
 		return nil, nil
 	}
 	for i := 0; i < length; i++ {
-		ids[i] = resultStor[i].GetId()
+		id := resultStor[i].GetId()
+		ids[i] = id
+		if ms.cacheable {
+			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		}
 	}
 	_, err = connCopy.DB(ms.database).C(ms.collection).RemoveAll(queryCond)
 	if err == nil {

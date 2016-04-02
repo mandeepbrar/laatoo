@@ -27,7 +27,7 @@ func init() {
 }
 
 func NewRedisPubSubFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Info(ctx, "Creating redis pubsub factory ")
+	log.Logger.Trace(ctx, "Creating redis pubsub factory ")
 	redisFac := &RedisPubSubFactory{conf}
 	return redisFac, nil
 }
@@ -58,7 +58,7 @@ type RedisPubSubService struct {
 }
 
 func NewRedisPubSubService(ctx core.Context, conf config.Config) (core.PubSub, error) {
-	log.Logger.Info(ctx, "Creating redis pubsub service ")
+	log.Logger.Trace(ctx, "Creating redis pubsub service ")
 	redisSvc := &RedisPubSubService{conf: conf}
 
 	connectionString, ok := conf.GetString(CONF_REDIS_CONNECTIONSTRING)

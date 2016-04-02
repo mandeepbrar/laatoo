@@ -20,23 +20,13 @@ func init() {
 }
 
 type SecurityServiceFactory struct {
-	//configuration provided by the environment
+	//configuration provided by the application
 	Configuration config.Config
 }
 
 func NewSecurityServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Info(ctx, "Creating security service provider")
+	log.Logger.Debug(ctx, "Creating security service factory")
 	svc := &SecurityServiceFactory{Configuration: conf}
-	/*
-		//check if jwt secret key has been provided, otherwise create a key from random numbers
-		svc.JWTSecret, _ = ctx.GetVariable(laatoocore.CONF_ENV_JWTSECRETKEY).(string)
-
-		//check if auth header to be set has been provided, otherwise set default token
-		svc.AuthHeader, _ = ctx.GetVariable(laatoocore.CONF_ENV_AUTHHEADER).(string)
-
-		svc.AdminRole = ctx.GetVariable(core.CONF_ENV_ADMINROLE).(string)
-		svc.UserObject = ctx.GetVariable(laatoocore.CONF_ENV_USER).(string)
-		svc.RoleObject = ctx.GetVariable(laatoocore.CONF_ENV_ROLE).(string)*/
 	return svc, nil
 }
 

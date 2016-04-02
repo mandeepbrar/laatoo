@@ -89,7 +89,7 @@ func (lsh *LocalSecurityHandler) HasPermission(ctx core.RequestContext, perm str
 }
 
 func (lsh *LocalSecurityHandler) loadRoles(ctx core.ServerContext) error {
-	roles, _, _, err := lsh.roleDataService.GetList(ctx, -1, -1, "", "")
+	roles, _, _, err := lsh.roleDataService.GetList(ctx.CreateNewRequest("LoadRoles"), -1, -1, "", "")
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -128,7 +128,7 @@ func (lsh *LocalSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		if !ok {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 		}
-		err := lsh.roleDataService.Save(ctx, storable)
+		err := lsh.roleDataService.Save(ctx.CreateNewRequest("Save Anonymous Role"), storable)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -142,7 +142,7 @@ func (lsh *LocalSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		if !ok {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 		}
-		err := lsh.roleDataService.Save(ctx, storable)
+		err := lsh.roleDataService.Save(ctx.CreateNewRequest("Create Admin Role"), storable)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

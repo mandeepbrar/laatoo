@@ -27,7 +27,7 @@ func init() {
 }
 
 func RedisCacheServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Info(ctx, "Creating memory cache service ")
+	log.Logger.Trace(ctx, "Creating redis cache service ")
 	redisFac := &RedisCacheFactory{conf}
 	return redisFac, nil
 }
