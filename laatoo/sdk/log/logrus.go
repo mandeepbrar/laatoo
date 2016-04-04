@@ -2,6 +2,7 @@
 
 package log
 
+/*
 import (
 	"github.com/Sirupsen/logrus"
 	"laatoo/sdk/core"
@@ -70,3 +71,4 @@ func (log *LogrusLogger) IsInfo() bool {
 func (log *LogrusLogger) IsWarn() bool {
 	return log.logger.Level == logrus.WarnLevel
 }
+*/

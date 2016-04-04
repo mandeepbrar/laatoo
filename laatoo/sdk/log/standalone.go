@@ -4,7 +4,6 @@ package log
 
 import (
 	"laatoo/sdk/core"
-	stdlog "log"
 	"os"
 )
 
@@ -39,11 +38,15 @@ func (log *StandaloneLogger) SetFormat(format string) {
 	log.logger.SetFormat(format)
 }
 
+func (log *StandaloneLogger) Write(p []byte) (n int, err error) {
+	return log.logger.Write(p)
+}
+
 func (log *StandaloneLogger) SetType(loggertype string) {
-	if loggertype == "logrus" {
+	/*if loggertype == "logrus" {
 		log.logger = NewLogrus()
 	}
-	/*if loggertype == "logxi" {
+	if loggertype == "logxi" {
 		log.logger = NewLogxiLogger()
 	}*/
 }
@@ -66,14 +69,16 @@ func (log *StandaloneLogger) IsWarn() bool {
 }
 
 func stdSimpleLogsHandler() SimpleWriteHandler {
-	wh := &StdSimpleWriteHandler{logger: stdlog.New(os.Stdout, "", 0)}
+	wh := &StdSimpleWriteHandler{}
 	return wh
 }
 
 type StdSimpleWriteHandler struct {
-	logger *stdlog.Logger
 }
 
-func (jh *StdSimpleWriteHandler) Print(reqContext core.Context, msg string) {
-	jh.logger.Print(msg)
+func (jh *StdSimpleWriteHandler) Print(msg string) {
+	os.Stderr.WriteString(msg)
+}
+func (jh *StdSimpleWriteHandler) PrintBytes(msg []byte) (int, error) {
+	return os.Stderr.Write(msg)
 }

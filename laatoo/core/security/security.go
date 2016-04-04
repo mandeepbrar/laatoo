@@ -19,7 +19,6 @@ import (
 
 const (
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
-	CONF_SERVICE_USECORS    = "usecors"
 	CONF_AUTH_MODE          = "settings.authorization.mode"
 	CONF_AUTH_MODE_LOCAL    = "local"
 	CONF_AUTH_MODE_REMOTE   = "remote"
@@ -29,5 +28,4 @@ const (
 	CONF_PERMISSIONS_API    = "settings.authorization.permissionsapi"
 	CONF_API_PUBKEY         = "settings.authorization.pubkey"
 	CONF_API_DOMAIN         = "settings.authorization.domain"
-	CONF_SERVICE_CORSHOSTS  = "corshosts"
 )

@@ -88,7 +88,11 @@ func (es *DataAdapterFactory) GETBYID(ctx core.RequestContext) error {
 	}
 	result, err := es.DataStore.GetById(ctx, id)
 	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+		if result == nil {
+			ctx.SetResponse(core.StatusNotFoundResponse)
+		} else {
+			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+		}
 	}
 	return err
 }
@@ -139,9 +143,13 @@ func (es *DataAdapterFactory) SAVE(ctx core.RequestContext) error {
 }
 
 func (es *DataAdapterFactory) PUT(ctx core.RequestContext) error {
+	id, ok := ctx.GetString(CONF_DATA_ID)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
+	}
 	ent := ctx.GetRequestBody()
 	stor := ent.(data.Storable)
-	err := es.DataStore.Put(ctx, stor.GetId(), stor)
+	err := es.DataStore.Put(ctx, id, stor)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
 	}

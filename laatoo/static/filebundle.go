@@ -1,6 +1,8 @@
 package static
 
 import (
+	"github.com/tdewolff/minify"
+	"github.com/tdewolff/minify/html"
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -8,23 +10,26 @@ import (
 	"laatoo/sdk/log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 const (
 	CONF_STATICSVC_FILEBUNDLE = "filebundle"
 	CONF_STATIC_BUNDLEPARAM   = "bundle"
+	CONF_STATIC_BUNDLEFILES   = "files"
 	CONF_STATIC_FILEBUNDLES   = "bundles"
+	CONF_STATIC_MINIFY        = "minify"
 )
 
 type BundledFile struct {
 	filepath string `json:"-"`
-	Content  *[]byte
+	Content  string
 	Info     config.Config
 }
 
 type Bundle struct {
-	files        map[string]*BundledFile
+	Files        map[string]*BundledFile
 	fullcontent  bool       `json:"-"`
 	lastModified *time.Time `json:"-"`
 }
@@ -46,6 +51,7 @@ func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
 				return err
 			}
 			bs.bundlesMap[bundlename] = bundle
+			log.Logger.Debug(ctx, "Created Bundle", "Name", bundlename)
 		}
 	}
 	log.Logger.Info(ctx, "Bundle service initialized")
@@ -54,9 +60,9 @@ func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
 
 func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 	bundlename, ok := ctx.GetString(CONF_STATIC_BUNDLEPARAM)
-	log.Logger.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename)
 	if ok {
 		bundle, ok := bs.bundlesMap[bundlename]
+		log.Logger.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
 		if ok {
 			lastModTimeStr, ok := ctx.GetString(core.LastModified)
 			if ok {
@@ -68,6 +74,7 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 					}
 				}
 			}
+			log.Logger.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
 			if !bundle.fullcontent {
 				newbundle, err := buildFullContentBundle(ctx, bundle)
 				if err != nil {
@@ -95,13 +102,20 @@ func (bs *BundledFileService) GetResponseHandler() core.ServiceResponseHandler {
 }
 
 func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, error) {
-	filenames := bundleconfig.AllConfigurations()
+	bundlefiles, ok := bundleconfig.GetSubConfig(CONF_STATIC_BUNDLEFILES)
+	if !ok {
+		return nil, nil
+	}
+	minifyStr, _ := bundleconfig.GetString(CONF_STATIC_MINIFY)
+	minify := (minifyStr == "true")
 	cacheStr, _ := bundleconfig.GetString(CONF_STATIC_CACHE)
 	cache := (cacheStr == "true")
 	var lastModified *time.Time
+	filenames := bundlefiles.AllConfigurations()
 	bundleFiles := make(map[string]*BundledFile, len(filenames))
 	for _, filename := range filenames {
-		fileconfig, _ := bundleconfig.GetSubConfig(filename)
+		log.Logger.Trace(ctx, "Reading file for bundle", "Name", filename)
+		fileconfig, _ := bundlefiles.GetSubConfig(filename)
 		path, ok := fileconfig.GetString(CONF_STATIC_FILE_PATH)
 		if !ok {
 			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATIC_FILE_PATH)
@@ -119,36 +133,49 @@ func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, e
 			}
 		}
 		info, _ := fileconfig.GetSubConfig(CONF_STATIC_FILE_INFO)
-		bundledFile, err := buildBundledFile(ctx, path, info, cache)
+		bundledFile, err := buildBundledFile(ctx, path, info, cache, minify)
 		if err != nil {
 			return nil, err
 		}
 		bundleFiles[filename] = bundledFile
 	}
-	return &Bundle{files: bundleFiles, fullcontent: cache, lastModified: lastModified}, nil
+	return &Bundle{Files: bundleFiles, fullcontent: cache, lastModified: lastModified}, nil
 }
 
-func buildBundledFile(ctx core.Context, path string, info config.Config, readContent bool) (*BundledFile, error) {
+func buildBundledFile(ctx core.Context, path string, info config.Config, readContent bool, minifyfiles bool) (*BundledFile, error) {
 	bundledFile := &BundledFile{filepath: path, Info: info}
 	if readContent {
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		bundledFile.Content = &content
+		if minifyfiles {
+			extension := filepath.Ext(path)
+			log.Logger.Trace(ctx, "Minifying file", "extension", extension, "path", path)
+			if extension == ".html" {
+				m := minify.New()
+				m.AddFunc("text/html", html.Minify)
+				content, err = m.Bytes("text/html", content)
+				if err != nil {
+					return nil, errors.WrapError(ctx, err)
+				}
+
+			}
+		}
+		bundledFile.Content = string(content)
 	}
 	return bundledFile, nil
 }
 
 func buildFullContentBundle(ctx core.RequestContext, bundle *Bundle) (*Bundle, error) {
-	bundleFiles := make(map[string]*BundledFile, len(bundle.files))
-	for filename, bundledFile := range bundle.files {
-		bundledFile, err := buildBundledFile(ctx, bundledFile.filepath, bundledFile.Info, true)
+	bundleFiles := make(map[string]*BundledFile, len(bundle.Files))
+	for filename, bundledFile := range bundle.Files {
+		bundledFile, err := buildBundledFile(ctx, bundledFile.filepath, bundledFile.Info, true, false)
 		if err != nil {
 			return nil, err
 		}
 		bundleFiles[filename] = bundledFile
 	}
-	return &Bundle{files: bundleFiles, fullcontent: true}, nil
+	return &Bundle{Files: bundleFiles, fullcontent: true}, nil
 
 }

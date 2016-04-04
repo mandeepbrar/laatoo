@@ -9,7 +9,7 @@ type RequestContext interface {
 	Context
 	ParentContext() interface{}
 	EngineContext() EngineRequestContext
-	SubContext(name string, conf config.Config) RequestContext
+	SubRequest(name string, conf config.Config) RequestContext
 	Get(key string) (interface{}, bool)
 	Set(key string, val interface{})
 	GetString(key string) (string, bool)
@@ -35,4 +35,5 @@ type RequestContext interface {
 	GetServerVariable(variable ServerVariable) interface{}
 	GetRolePermissions(role []string) ([]string, bool)
 	ApplicationContext() ApplicationContext
+	CompleteRequest()
 }

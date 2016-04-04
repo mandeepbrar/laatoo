@@ -159,6 +159,7 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 		if ms.auditable {
 			data.Audit(ctx, item)
 		}
+		log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.object, "Id", id)
 		bulk.Upsert(bson.M{ms.objectid: id}, item)
 	}
 	_, err := bulk.Run()
@@ -181,6 +182,7 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	defer connCopy.Close()
 	condition := bson.M{}
 	condition[ms.objectid] = id
+	item.SetId(id)
 	item.PreSave(ctx)
 	if ms.auditable {
 		data.Audit(ctx, item)

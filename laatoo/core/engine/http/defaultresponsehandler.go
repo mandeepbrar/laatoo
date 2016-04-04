@@ -1,16 +1,18 @@
 package http
 
 import (
-	"github.com/labstack/echo"
+	"laatoo/core/engine/http/net"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"net/http"
 )
 
-func (router *Router) HandleResponse(ctx core.RequestContext, resp *core.ServiceResponse) error {
-	engineContext := ctx.EngineContext().(echo.Context)
-	engineResp := engineContext.Response()
+func (router *Router) HandleResponse(ctx core.RequestContext) error {
+	log.Logger.Trace(ctx, "Returning request with default response handler")
+	resp := ctx.GetResponse()
+	engineContext := ctx.EngineContext().(net.WebContext)
 	if resp != nil {
+		log.Logger.Trace(ctx, "Returning request with status", "Status", resp.Status)
 		switch resp.Status {
 		case core.StatusSuccess:
 			if resp.Data != nil {
@@ -27,15 +29,14 @@ func (router *Router) HandleResponse(ctx core.RequestContext, resp *core.Service
 				for key, val := range resp.Info {
 					switch key {
 					case core.ContentType:
-						engineResp.Header().Set(core.ContentType, val.(string))
+						engineContext.SetHeader(core.ContentType, val.(string))
 					case core.LastModified:
-						engineResp.Header().Set(core.LastModified, val.(string))
+						engineContext.SetHeader(core.LastModified, val.(string))
 					}
 				}
 			}
-			engineContext.Response().WriteHeader(http.StatusOK)
 			bytestoreturn := *resp.Data.(*[]byte)
-			_, err := engineContext.Response().Write(bytestoreturn)
+			_, err := engineContext.Write(bytestoreturn)
 			if err != nil {
 				return err
 			}
@@ -46,6 +47,8 @@ func (router *Router) HandleResponse(ctx core.RequestContext, resp *core.Service
 			return engineContext.NoContent(http.StatusForbidden)
 		case core.StatusNotFound:
 			return engineContext.NoContent(http.StatusNotFound)
+		case core.StatusBadRequest:
+			return engineContext.NoContent(http.StatusBadRequest)
 		case core.StatusRedirect:
 			return engineContext.Redirect(http.StatusTemporaryRedirect, resp.Data.(string))
 		}

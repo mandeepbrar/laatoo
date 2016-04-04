@@ -1,13 +1,14 @@
 package core
 
 const (
-	StatusSuccess      = 1
-	StatusServeFile    = 2
-	StatusServeBytes   = 3
-	StatusUnauthorized = 4
-	StatusNotFound     = 5
-	StatusRedirect     = 6
-	StatusNotModified  = 7
+	StatusSuccess      = 200
+	StatusServeFile    = 201
+	StatusServeBytes   = 202
+	StatusUnauthorized = 401
+	StatusNotFound     = 404
+	StatusRedirect     = 301
+	StatusNotModified  = 305
+	StatusBadRequest   = 400
 )
 
 /***Header****/
@@ -29,9 +30,10 @@ func NewServiceResponse(status int, data interface{}, info map[string]interface{
 var (
 	StatusUnauthorizedResponse = NewServiceResponse(StatusUnauthorized, nil, nil)
 	StatusNotFoundResponse     = NewServiceResponse(StatusNotFound, nil, nil)
+	StatusBadRequestResponse   = NewServiceResponse(StatusBadRequest, nil, nil)
 	StatusNotModifiedResponse  = NewServiceResponse(StatusNotModified, nil, nil)
 )
 
 type ServiceResponseHandler interface {
-	HandleResponse(ctx RequestContext, res *ServiceResponse) error
+	HandleResponse(ctx RequestContext) error
 }

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 )
@@ -19,6 +20,7 @@ const (
 )
 
 type LoggerInterface interface {
+	io.Writer
 	Trace(reqContext core.Context, msg string, args ...interface{})
 	Debug(reqContext core.Context, msg string, args ...interface{})
 	Info(reqContext core.Context, msg string, args ...interface{})

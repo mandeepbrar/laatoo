@@ -5,7 +5,9 @@ import (
 	"laatoo/sdk/auth"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	"strconv"
+	"time"
 )
 
 type requestContext struct {
@@ -20,11 +22,13 @@ type requestContext struct {
 	conf          config.Config
 	serverContext core.ServerContext
 	appContext    core.ApplicationContext
+	createTime    time.Time
+	subRequest    bool
 }
 
 func NewRequestContext(name string, conf config.Config, server core.ServerContext, engineCtx interface{}) *requestContext {
 	return &requestContext{Context: common.NewContext(name), conf: conf, serverContext: server, ParamsStore: make(map[string]interface{}),
-		engineContext: engineCtx, appContext: server.ApplicationContext()}
+		engineContext: engineCtx, appContext: server.ApplicationContext(), createTime: time.Now(), subRequest: false}
 }
 
 func (ctx *requestContext) ParentContext() interface{} {
@@ -35,10 +39,10 @@ func (ctx *requestContext) EngineContext() core.EngineRequestContext {
 	return ctx.engineContext
 }
 
-func (ctx *requestContext) SubContext(name string, conf config.Config) core.RequestContext {
-	return ctx.subCtx(name, conf, ctx.serverContext)
+func (ctx *requestContext) SubRequest(name string, conf config.Config) core.RequestContext {
+	return ctx.subReq(name, conf, ctx.serverContext)
 }
-func (ctx *requestContext) subCtx(name string, conf config.Config, serverContext core.ServerContext) *requestContext {
+func (ctx *requestContext) subReq(name string, conf config.Config, serverContext core.ServerContext) *requestContext {
 	duplicateMap := make(map[string]interface{}, len(ctx.ParamsStore))
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
@@ -50,7 +54,7 @@ func (ctx *requestContext) subCtx(name string, conf config.Config, serverContext
 		conf = ctx.conf
 	}
 	duplicateContext := &requestContext{Context: ctx.DupCtx(name), conf: conf, serverContext: serverContext, ParamsStore: duplicateMap,
-		parentContext: ctx, engineContext: ctx.engineContext, appContext: ctx.appContext}
+		parentContext: ctx, engineContext: ctx.engineContext, appContext: ctx.appContext, subRequest: true}
 	return duplicateContext
 }
 
@@ -166,4 +170,21 @@ func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
 }
 func (ctx *requestContext) ApplicationContext() core.ApplicationContext {
 	return ctx.appContext
+}
+func (ctx *requestContext) CompleteRequest() {
+	if !ctx.subRequest {
+		completionTime := time.Now()
+		elapsedTime := completionTime.Sub(ctx.createTime)
+		log.Logger.Info(ctx, "Request Complete", "Time taken", elapsedTime)
+	}
+	ctx.parentContext = nil
+	ctx.engineContext = nil
+	ctx.ParamsStore = nil
+	ctx.User = nil
+	ctx.Admin = false
+	ctx.responseData = nil
+	ctx.requestBody = nil
+	ctx.conf = nil
+	ctx.serverContext = nil
+	ctx.appContext = nil
 }

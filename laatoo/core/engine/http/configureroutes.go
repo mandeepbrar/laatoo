@@ -12,18 +12,6 @@ import (
 
 func (router *Router) ConfigureRoutes(ctx core.ServerContext) error {
 	router.processRoutesGrp(ctx, router.config)
-	/*	routepairs := router.config.AllConfigurations()
-		for _, routename := range routepairs {
-			routesconf, err := common.ConfigFileAdapter(router.config, routename)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "Router Name", routename)
-			}
-			routeCtx := ctx.SubContext(routename, routesconf)
-			err = router.configureRoutesConf(routeCtx, routesconf)
-			if err != nil {
-				return err
-			}
-		}*/
 	return nil
 }
 
@@ -68,39 +56,6 @@ func (router *Router) processRoutesGrp(ctx core.ServerContext, conf config.Confi
 	}
 	return nil
 }
-
-/*
-func (router *Router) configureRoutesConf(ctx core.ServerContext, conf config.Config) error {
-	groups, ok := conf.GetConfigArray(CONF_GROUPS)
-	if !ok {
-		return nil
-	}
-	for _, groupConf := range groups {
-		if err := router.createGroup(ctx, groupConf); err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-	return nil
-
-}
-
-func (router *Router) createGroup(ctx core.ServerContext, groupConf config.Config) error {
-	path, ok := groupConf.GetString(CONF_ROUTE_PATH)
-	if !ok {
-		return errors.ThrowError(ctx, CORE_ERROR_INCORRECT_DELIVERY_CONF, "Missing path variable in group", groupConf)
-	}
-	grpRouter := router.group(ctx, path, groupConf)
-	routes, ok := groupConf.GetConfigArray(CONF_ROUTES)
-	if !ok {
-		return nil
-	}
-	for _, routeConf := range routes {
-		if err := grpRouter.createRoute(ctx, routeConf); err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-	return nil
-}*/
 
 func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Config) error {
 	path, ok := routeConf.GetString(CONF_ROUTE_PATH)
@@ -178,7 +133,7 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Service got data object ", "isdataObject", isdataObject, "isdataCollection", isdataCollection, "service", service)
+	log.Logger.Trace(ctx, "Service mapping for route", "service", service, "name", router.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
 
 	switch method {
 	case "GET":

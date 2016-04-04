@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fatih/color"
+	//"io"
 	"laatoo/sdk/core"
 	"strings"
 	"time"
@@ -20,7 +21,8 @@ const (
 )
 
 type SimpleWriteHandler interface {
-	Print(reqContext core.Context, msg string)
+	Print(msg string)
+	PrintBytes(msg []byte) (int, error)
 }
 
 func NewSimpleLogger(wh SimpleWriteHandler) LoggerInterface {
@@ -28,38 +30,39 @@ func NewSimpleLogger(wh SimpleWriteHandler) LoggerInterface {
 }
 
 type SimpleLogger struct {
-	wh     SimpleWriteHandler
+	wh SimpleWriteHandler
+	//buffer bytes.Buffer
 	format string
 	level  int
 }
 
 func (log *SimpleLogger) Trace(reqContext core.Context, msg string, args ...interface{}) {
 	if log.level > DEBUG {
-		log.wh.Print(reqContext, log.buildMessage(STR_TRACE, reqContext, msg, args...))
+		log.wh.Print(log.buildMessage(STR_TRACE, reqContext, msg, args...))
 	}
 }
 func (log *SimpleLogger) Debug(reqContext core.Context, msg string, args ...interface{}) {
 	if log.level > INFO {
-		log.wh.Print(reqContext, log.buildMessage(STR_DEBUG, reqContext, msg, args...))
+		log.wh.Print(log.buildMessage(STR_DEBUG, reqContext, msg, args...))
 	}
 }
 func (log *SimpleLogger) Info(reqContext core.Context, msg string, args ...interface{}) {
 	if log.level > WARN {
-		log.wh.Print(reqContext, log.buildMessage(STR_INFO, reqContext, msg, args...))
+		log.wh.Print(log.buildMessage(STR_INFO, reqContext, msg, args...))
 	}
 }
 func (log *SimpleLogger) Warn(reqContext core.Context, msg string, args ...interface{}) {
 	if log.level > ERROR {
-		log.wh.Print(reqContext, log.buildMessage(STR_WARN, reqContext, msg, args...))
+		log.wh.Print(log.buildMessage(STR_WARN, reqContext, msg, args...))
 	}
 }
 func (log *SimpleLogger) Error(reqContext core.Context, msg string, args ...interface{}) {
 	if log.level > FATAL {
-		log.wh.Print(reqContext, log.buildMessage(STR_ERROR, reqContext, msg, args...))
+		log.wh.Print(log.buildMessage(STR_ERROR, reqContext, msg, args...))
 	}
 }
 func (log *SimpleLogger) Fatal(reqContext core.Context, msg string, args ...interface{}) {
-	log.wh.Print(reqContext, log.buildMessage(STR_FATAL, reqContext, msg, args...))
+	log.wh.Print(log.buildMessage(STR_FATAL, reqContext, msg, args...))
 }
 
 func (log *SimpleLogger) SetFormat(format string) {
@@ -83,6 +86,10 @@ func (log *SimpleLogger) IsInfo() bool {
 }
 func (log *SimpleLogger) IsWarn() bool {
 	return log.level == WARN
+}
+
+func (log *SimpleLogger) Write(p []byte) (int, error) {
+	return log.wh.PrintBytes(p)
 }
 
 func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg string, args ...interface{}) string {
@@ -131,10 +138,10 @@ func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg
 			}
 			argslen := len(args)
 			if argslen > 0 {
-				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), args[1]))
+				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), fmt.Sprint(args[1])))
 			}
 			if argslen > 2 {
-				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), args[3]))
+				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), fmt.Sprint(args[3])))
 			}
 			buffer.WriteString(fmt.Sprintln(firstline))
 			for i := 4; (i + 1) < argslen; i = i + 2 {
@@ -156,10 +163,10 @@ func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg
 			}
 			argslen := len(args)
 			if argslen > 0 {
-				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), args[1]))
+				firstline = fmt.Sprintf("%s    %s", firstline, color.MagentaString("%s:%s", strings.ToUpper(args[0].(string)), fmt.Sprint(args[1])))
 			}
 			if argslen > 2 {
-				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), args[3]))
+				firstline = fmt.Sprintf("%s    %s", firstline, color.CyanString("%s:%s", strings.ToUpper(args[2].(string)), fmt.Sprint(args[3])))
 			}
 			buffer.WriteString(fmt.Sprintln(firstline))
 			for i := 4; (i + 1) < argslen; i = i + 2 {

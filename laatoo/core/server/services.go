@@ -56,7 +56,7 @@ func (app *Application) processServiceGrp(ctx *serverContext, svcgroup string, f
 			}
 			serviceConfig, err := common.ConfigFileAdapter(svcsConf, svcAlias)
 			if err != nil {
-				return errors.ThrowError(ctx, CORE_ERROR_SERVICE_CREATION, "Wrong Config for Service Name", svcAlias)
+				return errors.RethrowError(ctx, CORE_ERROR_SERVICE_CREATION, err, "Wrong Config for Service Name", svcAlias)
 			}
 			svcCtx := ctx.subCtx("Service:"+svcAlias, serviceConfig, app)
 
