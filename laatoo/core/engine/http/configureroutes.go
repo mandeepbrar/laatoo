@@ -11,12 +11,33 @@ import (
 )
 
 func (router *Router) ConfigureRoutes(ctx core.ServerContext) error {
-	router.processRoutesGrp(ctx, router.config)
+	router.processGrps(ctx, router.config)
 	return nil
 }
 
-func (router *Router) processRoutesGrp(ctx core.ServerContext, conf config.Config) error {
-	allroutegroups, ok := conf.GetSubConfig(CONF_GROUPS)
+func (router *Router) processGrps(ctx core.ServerContext, conf config.Config) error {
+	allgrouprouters, ok := conf.GetSubConfig(CONF_GROUPS)
+	if ok {
+		grouprouters := allgrouprouters.AllConfigurations()
+		for _, grouproutername := range grouprouters {
+			log.Logger.Trace(ctx, "Process Group Router", "Group router", grouproutername)
+			grprouterConfig, err := common.ConfigFileAdapter(allgrouprouters, grouproutername)
+			if err != nil {
+				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for group router", grouproutername)
+			}
+			grprtCtx := ctx.SubContext("Group Router:"+grouproutername, grprouterConfig)
+			grpRouter := router.Group(grprtCtx, grouproutername, grprouterConfig)
+			err = grpRouter.processGrps(grprtCtx, grprouterConfig)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return router.processRoutes(ctx, conf)
+}
+
+func (router *Router) processRoutes(ctx core.ServerContext, conf config.Config) error {
+	allroutegroups, ok := conf.GetSubConfig(CONF_ROUTEGROUPS)
 	if ok {
 		routegroups := allroutegroups.AllConfigurations()
 		for _, routegroupname := range routegroups {
@@ -26,13 +47,7 @@ func (router *Router) processRoutesGrp(ctx core.ServerContext, conf config.Confi
 				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for Route group", routegroupname)
 			}
 			rtgrpCtx := ctx.SubContext("Route Group:"+routegroupname, routegrpConfig)
-			path, ok := routegrpConfig.GetString(CONF_ROUTE_PATH)
-			if !ok {
-				path = ""
-			}
-			grpRouter := router.group(rtgrpCtx, path, routegroupname, routegrpConfig)
-
-			err = grpRouter.processRoutesGrp(rtgrpCtx, routegrpConfig)
+			err = router.processRoutes(rtgrpCtx, routegrpConfig)
 			if err != nil {
 				return err
 			}
@@ -40,14 +55,15 @@ func (router *Router) processRoutesGrp(ctx core.ServerContext, conf config.Confi
 	}
 
 	//get a map of all the services
-	routes, ok := conf.GetSubConfig(CONF_ROUTES)
+	allroutes, ok := conf.GetSubConfig(CONF_ROUTES)
 	if !ok {
 		return nil
 	}
-	routeCfgs := routes.AllConfigurations()
+	routeCfgs := allroutes.AllConfigurations()
+	log.Logger.Trace(ctx, "Process Route ", "Routes", routeCfgs)
 	for _, routeName := range routeCfgs {
 		log.Logger.Trace(ctx, "Process Route ", "Route name", routeName)
-		routeConfig, err := common.ConfigFileAdapter(routes, routeName)
+		routeConfig, err := common.ConfigFileAdapter(allroutes, routeName)
 		if err != nil {
 			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for route", routeName)
 		}
@@ -86,32 +102,35 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 	}
 
 	////build value parameters
-	var routeParamValues map[string]string
+	var routeParams map[string]string
 	routeParamValuesConf, ok := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMVALUES)
 	if ok {
 		values := routeParamValuesConf.AllConfigurations()
-		routeParamValues = make(map[string]string, len(values))
+		routeParams = make(map[string]string, len(values))
 		for _, paramname := range values {
-			routeParamValues[paramname], _ = routeParamValuesConf.GetString(paramname)
+			routeParams[paramname], _ = routeParamValuesConf.GetString(paramname)
 		}
 	}
 
-	//////build index parameters
-	///index parameter overrides all route parameters
-	routeParamIndicesConf, _ := routeConf.GetSubConfig(CONF_ROUTE_ROUTEPARAMINDICES)
-	routeParamIndices, err := createRouteParamIndices(ctx, routeParamIndicesConf)
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	////build value parameters
+	var staticValues map[string]string
+	staticValuesConf, ok := routeConf.GetSubConfig(CONF_ROUTE_STATICVALUES)
+	if ok {
+		values := staticValuesConf.AllConfigurations()
+		staticValues = make(map[string]string, len(values))
+		for _, paramname := range values {
+			staticValues[paramname], _ = staticValuesConf.GetString(paramname)
+		}
 	}
 
 	//build header param mappings
-	headerParams := make(map[string]string, 0)
+	headers := make(map[string]string, 0)
 	headersConf, ok := routeConf.GetSubConfig(CONF_ROUTE_HEADERSTOINCLUDE)
 	if ok {
 		headersToInclude := headersConf.AllConfigurations()
 		for _, paramName := range headersToInclude {
 			header, _ := headersConf.GetString(paramName)
-			headerParams[paramName] = header
+			headers[paramName] = header
 		}
 	}
 
@@ -137,22 +156,22 @@ func (router *Router) createRoute(ctx core.ServerContext, routeConf config.Confi
 
 	switch method {
 	case "GET":
-		router.Get(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
+		router.Get(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 	case "POST":
-		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 	case "PUT":
-		router.Put(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
+		router.Put(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 	case "DELETE":
-		router.Delete(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
+		router.Delete(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 	case CONF_ROUTE_METHOD_INVOKE:
-		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParamIndices, routeParamValues, headerParams))
+		router.Post(ctx, path, routeConf, router.processServiceRequest(ctx, respHandler, method, router.name, svc, service, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 	case CONF_ROUTE_METHOD_GETSTREAM:
 		{
-			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParamIndices, routeParamValues, headerParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, staticValues, headers))
 		}
 	case CONF_ROUTE_METHOD_POSTSTREAM:
 		{
-			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParamIndices, routeParamValues, headerParams))
+			router.Post(ctx, path, routeConf, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, service, routeParams, staticValues, headers))
 		}
 	}
 	return nil

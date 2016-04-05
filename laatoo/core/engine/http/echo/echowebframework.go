@@ -26,8 +26,8 @@ func (wf *EchoWebFramework) Initialize() error {
 	return nil
 }
 
-func (wf *EchoWebFramework) GetParentRouter() net.Router {
-	return &EchoRouter{routerGrp: wf.rootRouter.Group("")}
+func (wf *EchoWebFramework) GetParentRouter(path string) net.Router {
+	return &EchoRouter{routerGrp: wf.rootRouter.Group(path)}
 }
 
 func (wf *EchoWebFramework) GetRootHandler() http.Handler {

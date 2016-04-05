@@ -16,11 +16,13 @@ import (
 const (
 	CONF_AUTHORIZATION           = "authorization"
 	CONF_GROUPS                  = "groups"
+	CONF_ROUTEGROUPS             = "routegroups"
 	CONF_ROUTES                  = "routes"
 	CONF_ROUTE_USECORS           = "usecors"
+	CONF_ROUTE_CORSOPTIONSPATH   = "corsoptionspath"
 	CONF_ROUTE_CORSHOSTS         = "corshosts"
 	CONF_ROUTE_PATH              = "path"
-	CONF_ROUTE_ROUTEPARAMINDICES = "paramindices"
+	CONF_ROUTE_STATICVALUES      = "staticvalues"
 	CONF_ROUTE_ROUTEPARAMVALUES  = "paramvalues"
 	CONF_ROUTE_HEADERSTOINCLUDE  = "headers"
 	CONF_ROUTE_METHOD            = "method"
@@ -40,26 +42,59 @@ type Router struct {
 	engine *HttpEngine
 }
 
-func (router *Router) Group(ctx core.ServerContext, path string, name string, conf config.Config) *Router {
-	return router.group(ctx, path, name, conf)
-}
+func newRouter(ctx core.ServerContext, name string, conf config.Config, engine *HttpEngine, parentRouter *Router) *Router {
+	var routername string
+	var router net.Router
+	path, ok := conf.GetString(CONF_ROUTE_PATH)
+	if !ok {
+		path = ""
+	}
+	if parentRouter == nil {
+		routername = name
+		router = engine.framework.GetParentRouter(path)
+	} else {
+		routername = fmt.Sprintf("%s > %s", parentRouter.name, name)
+		router = parentRouter.Router.Group(path)
+	}
 
-func (router *Router) group(ctx core.ServerContext, path string, name string, conf config.Config) *Router {
-	retRouter := &Router{name: fmt.Sprintf("%s > %s", router.name, name), Router: router.Router.Group(path), config: conf, engine: router.engine}
-	log.Logger.Info(ctx, "Created group router", "name", retRouter.name)
+	retRouter := &Router{name: routername, Router: router, config: conf, engine: engine}
 
 	usecors, _ := conf.GetBool(CONF_ROUTE_USECORS)
+
+	log.Logger.Info(ctx, "Created group router", "name", retRouter.name, "using cors", usecors)
 	if usecors {
 		allowedOrigins, ok := conf.GetStringArray(CONF_ROUTE_CORSHOSTS)
 		if ok {
+			corsOptionsPath, _ := conf.GetString(CONF_ROUTE_CORSOPTIONSPATH)
 			corsMw := cors.New(cors.Options{
 				AllowedOrigins:   allowedOrigins,
 				AllowedHeaders:   []string{"*"},
-				ExposedHeaders:   []string{router.engine.authHeader},
+				ExposedHeaders:   []string{engine.authHeader},
 				AllowCredentials: true,
-			}).Handler
+			})
+			switch engine.fwname {
+			case "Echo":
+				if corsOptionsPath == "" {
+					corsOptionsPath = "/*"
+				}
+				retRouter.UseMW(ctx, corsMw.Handler)
+			case "Gin":
+				if corsOptionsPath == "" {
+					corsOptionsPath = "/*f"
+				}
+				retRouter.UseMiddleware(ctx, corsMw.HandlerFunc)
+			case "Goji":
+				if corsOptionsPath == "" {
+					corsOptionsPath = "/*"
+				}
+				retRouter.UseMW(ctx, corsMw.Handler)
+			}
+			retRouter.Router.Options(corsOptionsPath, func(webctx net.WebContext) error {
+				webctx.NoContent(200)
+				return nil
+			})
+			//retRouter.UseMiddleware(ctx, corsMw.HandlerFunc)
 			log.Logger.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
-			retRouter.UseMW(ctx, corsMw)
 		}
 	}
 
@@ -93,7 +128,12 @@ func (router *Router) group(ctx core.ServerContext, path string, name string, co
 				})
 			}
 		}*/
+
 	return retRouter
+}
+
+func (router *Router) Group(ctx core.ServerContext, name string, conf config.Config) *Router {
+	return newRouter(ctx, name, conf, router.engine, router)
 }
 
 func (router *Router) httpAdapater(ctx core.ServerContext, conf config.Config, handler core.ServiceFunc) net.HandlerFunc {
@@ -107,6 +147,11 @@ func (router *Router) httpAdapater(ctx core.ServerContext, conf config.Config, h
 func (router *Router) Get(ctx core.ServerContext, path string, conf config.Config, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Get")
 	router.Router.Get(path, router.httpAdapater(ctx, conf, handler))
+}
+
+func (router *Router) Options(ctx core.ServerContext, path string, conf config.Config, handler core.ServiceFunc) {
+	log.Logger.Info(ctx, "Registering route", "router", router.name, "path", path, "method", "Options")
+	router.Router.Options(path, router.httpAdapater(ctx, conf, handler))
 }
 
 func (router *Router) Put(ctx core.ServerContext, path string, conf config.Config, handler core.ServiceFunc) {
@@ -130,4 +175,7 @@ func (router *Router) Use(ctx core.ServerContext, handler core.ServiceFunc) {
 
 func (router *Router) UseMW(ctx core.ServerContext, handler func(http.Handler) http.Handler) {
 	router.Router.UseMW(handler)
+}
+func (router *Router) UseMiddleware(ctx core.ServerContext, handler http.HandlerFunc) {
+	router.Router.UseMiddleware(handler)
 }

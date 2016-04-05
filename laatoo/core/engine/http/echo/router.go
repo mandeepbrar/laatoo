@@ -19,7 +19,9 @@ func (router *EchoRouter) Group(path string) net.Router {
 func (router *EchoRouter) Get(path string, handler net.HandlerFunc) {
 	router.routerGrp.Get(path, router.httpAdapater(handler))
 }
-
+func (router *EchoRouter) Options(path string, handler net.HandlerFunc) {
+	router.routerGrp.Options(path, router.httpAdapater(handler))
+}
 func (router *EchoRouter) Put(path string, handler net.HandlerFunc) {
 	router.routerGrp.Put(path, router.httpAdapater(handler))
 }
@@ -40,15 +42,22 @@ func (router *EchoRouter) httpAdapater(handler net.HandlerFunc) echo.HandlerFunc
 }
 
 func (router *EchoRouter) Use(handler net.HandlerFunc) {
-	router.routerGrp.Use(func(echoFunc echo.HandlerFunc) echo.HandlerFunc {
+	router.routerGrp.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(echoCtx echo.Context) error {
 			corectx := &EchoContext{baseCtx: echoCtx}
 			//defer corectx.CompleteRequest()
-			return handler(corectx)
+			err := handler(corectx)
+			if err != nil {
+				return err
+			}
+			return next(echoCtx)
 		}
 	})
 }
 
 func (router *EchoRouter) UseMW(handler func(http.Handler) http.Handler) {
 	router.routerGrp.Use(standard.WrapMiddleware(handler))
+}
+func (router *EchoRouter) UseMiddleware(handler http.HandlerFunc) {
+	panic("not implemented")
 }

@@ -3,6 +3,8 @@ package http
 import (
 	"laatoo/core/common"
 	"laatoo/core/engine/http/echo"
+	"laatoo/core/engine/http/gin"
+	"laatoo/core/engine/http/goji"
 	"laatoo/core/engine/http/net"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -12,13 +14,14 @@ import (
 )
 
 const (
-	CONF_ENGINE_NAME         = "http"
-	CONF_SERVERTYPE_HOSTNAME = "hostname"
-	CONF_APPPATH             = "path"
-	CONF_ROUTECONF           = "routes"
-	CONF_SERVER_SSL          = "ssl"
-	CONF_SSLCERT             = "sslcert"
-	CONF_SSLKEY              = "sslkey"
+	CONF_ENGINE_NAME          = "http"
+	CONF_HTTPENGINE_FRAMEWORK = "framework"
+	CONF_SERVERTYPE_HOSTNAME  = "hostname"
+	CONF_APPPATH              = "path"
+	CONF_ROUTECONF            = "routes"
+	CONF_SERVER_SSL           = "ssl"
+	CONF_SSLCERT              = "sslcert"
+	CONF_SSLKEY               = "sslkey"
 )
 
 type HttpEngine struct {
@@ -31,11 +34,24 @@ type HttpEngine struct {
 	path       string
 	authHeader string
 	config     config.Config
+	fwname     string
 }
 
 func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, error) {
 	eng := &HttpEngine{config: conf, ssl: false}
-	eng.framework = &echo.EchoWebFramework{}
+	eng.fwname = "Echo"
+	fw, ok := conf.GetString(CONF_HTTPENGINE_FRAMEWORK)
+	if ok {
+		eng.fwname = fw
+	}
+	switch eng.fwname {
+	case "Echo":
+		eng.framework = &echo.EchoWebFramework{}
+	case "Gin":
+		eng.framework = &gin.GinWebFramework{}
+	case "Goji":
+		eng.framework = &goji.GojiWebFramework{}
+	}
 	ssl, ok := conf.GetBool(CONF_SERVER_SSL)
 	if ok && ssl {
 		cert, ok := conf.GetString(CONF_SSLCERT)
@@ -77,7 +93,7 @@ func (eng *HttpEngine) InitializeEngine(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Router config ", CONF_ROUTECONF)
 	}
-	router := &Router{name: "Root", Router: eng.framework.GetParentRouter(), config: routesConf, engine: eng}
+	router := newRouter(ctx, "Root", routesConf, eng, nil)
 	eng.router = router
 	engCtx := ctx.SubContext("Configuring engine", routesConf)
 	if err = eng.router.ConfigureRoutes(engCtx); err != nil {

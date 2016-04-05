@@ -53,7 +53,7 @@ func (conf *FileConfig) GetBool(configurationName string) (bool, bool) {
 
 func (conf *FileConfig) GetStringArray(configurationName string) ([]string, bool) {
 	if conf.vpr.InConfig(configurationName) {
-		return conf.vpr.GetStringSlice(configurationName), false
+		return conf.vpr.GetStringSlice(configurationName), true
 	}
 	return nil, false
 }
