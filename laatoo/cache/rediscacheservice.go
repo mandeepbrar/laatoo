@@ -2,17 +2,15 @@ package cache
 
 import (
 	"github.com/garyburd/redigo/redis"
-	"laatoo/core/registry"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
-	"laatoo/sdk/errors"
+	//	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"time"
 )
 
 type RedisCacheFactory struct {
-	Conf config.Config
 }
 
 const (
@@ -23,29 +21,27 @@ const (
 )
 
 func init() {
-	registry.RegisterServiceFactoryProvider(CONF_REDISCACHE_NAME, RedisCacheServiceFactory)
+	objects.RegisterObject(CONF_REDISCACHE_NAME, createRedisCacheServiceFactory, nil)
 }
 
-func RedisCacheServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Trace(ctx, "Creating redis cache service ")
-	redisFac := &RedisCacheFactory{conf}
-	return redisFac, nil
+func createRedisCacheServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &RedisCacheFactory{}, nil
 }
 
 //Create the services configured for factory.
-func (mf *RedisCacheFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
+func (mf *RedisCacheFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
 	if name == CONF_REDISCACHE_SVC {
-		svc, err := NewRedisCacheService(ctx, conf)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		}
-		return svc, nil
+		return &RedisCacheService{name: name}, nil
 	}
 	return nil, nil
 }
 
+func (ds *RedisCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+	return nil
+}
+
 //The services start serving when this method is called
-func (ds *RedisCacheFactory) StartServices(ctx core.ServerContext) error {
+func (ds *RedisCacheFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 
@@ -54,12 +50,10 @@ type RedisCacheService struct {
 	database         string
 	conn             redis.Conn
 	pool             *redis.Pool
-	conf             config.Config
+	name             string
 }
 
-func NewRedisCacheService(ctx core.Context, conf config.Config) (data.Cache, error) {
-	log.Logger.Info(ctx, "Creating redis cache service ")
-	redisSvc := &RedisCacheService{}
+func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
 
 	connectionString, ok := conf.GetString(CONF_REDIS_CONNECTIONSTRING)
 	if ok {
@@ -102,7 +96,7 @@ func NewRedisCacheService(ctx core.Context, conf config.Config) (data.Cache, err
 			return conn, nil
 		}}
 
-	return redisSvc, nil
+	return nil
 }
 
 func (svc *RedisCacheService) Delete(ctx core.Context, key string) error {
@@ -135,17 +129,10 @@ func (svc *RedisCacheService) GetMulti(ctx core.Context, keys []string, val map[
 	return false
 }
 
-func (rs *RedisCacheService) Initialize(ctx core.ServerContext) error {
-	return nil
-}
-
 func (rs *RedisCacheService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (rs *RedisCacheService) GetConf() config.Config {
-	return rs.conf
-}
-func (rs *RedisCacheService) GetResponseHandler() core.ServiceResponseHandler {
+func (rs *RedisCacheService) Start(ctx core.ServerContext) error {
 	return nil
 }

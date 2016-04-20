@@ -2,7 +2,6 @@ package security
 
 import (
 	"golang.org/x/crypto/bcrypt"
-	"laatoo/core/registry"
 	"laatoo/sdk/auth"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -16,27 +15,43 @@ const (
 	CONF_LOGINSERVICE_USERDATASERVICE = "user_data_svc"
 )
 
-//service method for doing various tasks
-func NewLoginService(ctx core.ServerContext, conf config.Config) (core.Service, error) {
-	return &LoginService{conf: conf}, nil
-}
-
 type LoginService struct {
-	conf        config.Config
+	name        string
+	jwtSecret   string
+	authHeader  string
+	userObject  string
 	userCreator core.ObjectCreator
 	adminRole   string
 	//data service to use for users
 	UserDataService data.DataService
 }
 
-func (ls *LoginService) Initialize(ctx core.ServerContext) error {
-	userobject := ctx.GetServerVariable(core.USER)
-	userCreator, err := registry.GetObjectCreator(ctx, userobject.(string))
+func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sechandler == nil {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	jwtSecret, ok := sechandler.GetString(config.JWTSECRET)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ls.jwtSecret = jwtSecret
+	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ls.authHeader = authHeader
+	userObject, ok := sechandler.GetString(config.USER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ls.userObject = userObject
+	userCreator, err := ctx.GetObjectCreator(userObject)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	ls.userCreator = userCreator
-	userDataSvcName, ok := ls.conf.GetString(CONF_LOGINSERVICE_USERDATASERVICE)
+	userDataSvcName, ok := conf.GetString(CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_LOGINSERVICE_USERDATASERVICE)
 	}
@@ -56,7 +71,7 @@ func (ls *LoginService) Initialize(ctx core.ServerContext) error {
 
 //Expects Local user to be provided inside the request
 func (ls *LoginService) Invoke(ctx core.RequestContext) error {
-	ent := ctx.GetRequestBody()
+	ent := ctx.GetRequest()
 	usr, ok := ent.(auth.LocalAuthUser)
 	if !ok {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
@@ -87,7 +102,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	} else {
 		existingUser.SetPassword("")
-		resp, err := completeAuthentication(ctx, existingUser)
+		resp, err := completeAuthentication(ctx, existingUser, ls.jwtSecret, ls.authHeader)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
@@ -97,9 +112,6 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (ks *LoginService) GetConf() config.Config {
-	return ks.conf
-}
-func (ks *LoginService) GetResponseHandler() core.ServiceResponseHandler {
+func (ls *LoginService) Start(ctx core.ServerContext) error {
 	return nil
 }

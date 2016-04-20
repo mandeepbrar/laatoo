@@ -1,7 +1,6 @@
 package http
 
 import (
-	"laatoo/core/common"
 	"laatoo/core/engine/http/echo"
 	"laatoo/core/engine/http/gin"
 	"laatoo/core/engine/http/goji"
@@ -10,37 +9,29 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 	"net/http"
 )
 
-const (
-	CONF_ENGINE_NAME          = "http"
-	CONF_HTTPENGINE_FRAMEWORK = "framework"
-	CONF_SERVERTYPE_HOSTNAME  = "hostname"
-	CONF_APPPATH              = "path"
-	CONF_ROUTECONF            = "routes"
-	CONF_SERVER_SSL           = "ssl"
-	CONF_SSLCERT              = "sslcert"
-	CONF_SSLKEY               = "sslkey"
-)
-
-type HttpEngine struct {
-	framework  net.Webframework
-	router     *Router
-	ssl        bool
-	sslcert    string
-	sslkey     string
-	address    string
-	path       string
-	authHeader string
-	config     config.Config
-	fwname     string
+type httpEngine struct {
+	framework   net.Webframework
+	name        string
+	ssl         bool
+	sslcert     string
+	sslkey      string
+	address     string
+	path        string
+	authHeader  string
+	proxy       server.Engine
+	rootChannel *httpChannel
+	conf        config.Config
+	fwname      string
 }
 
-func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, error) {
-	eng := &HttpEngine{config: conf, ssl: false}
+func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
+	initCtx := eng.createContext(ctx, "InitializeEngine: "+eng.name)
 	eng.fwname = "Echo"
-	fw, ok := conf.GetString(CONF_HTTPENGINE_FRAMEWORK)
+	fw, ok := conf.GetString(config.CONF_HTTP_FRAMEWORK)
 	if ok {
 		eng.fwname = fw
 	}
@@ -52,62 +43,56 @@ func NewHttpEngine(ctx core.ServerContext, conf config.Config) (*HttpEngine, err
 	case "Goji":
 		eng.framework = &goji.GojiWebFramework{}
 	}
-	ssl, ok := conf.GetBool(CONF_SERVER_SSL)
+	ssl, ok := conf.GetBool(config.CONF_ENG_SSL)
 	if ok && ssl {
-		cert, ok := conf.GetString(CONF_SSLCERT)
+		cert, ok := conf.GetString(config.CONF_ENG_SSLCERT)
 		if !ok {
-			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_SSLCERT)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENG_SSLCERT)
 		}
-		key, ok := conf.GetString(CONF_SSLKEY)
+		key, ok := conf.GetString(config.CONF_ENG_SSLKEY)
 		if !ok {
-			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_SSLKEY)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENG_SSLKEY)
 		}
 		eng.ssl = ssl
 		eng.sslcert = cert
 		eng.sslkey = key
 	}
-	appPath, ok := conf.GetString(CONF_APPPATH)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_APPPATH)
-	}
-	eng.path = appPath
-	address, ok := conf.GetString(CONF_SERVERTYPE_HOSTNAME)
-	if !ok {
-		if ctx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config name", CONF_SERVERTYPE_HOSTNAME)
+	if initCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
+		address, ok := conf.GetString(config.CONF_SERVER_ADDRESS)
+		if !ok {
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", config.CONF_SERVER_ADDRESS)
+		} else {
+			eng.address = address
 		}
 	} else {
-		eng.address = address
+		rootPath, ok := conf.GetString(config.CONF_HTTPENGINE_PATH)
+		if !ok {
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_HTTPENGINE_PATH)
+		}
+		eng.path = rootPath
 	}
+	log.Logger.Trace(initCtx, "Initializing framework")
 	eng.framework.Initialize()
-	return eng, nil
-}
 
-func (eng *HttpEngine) GetContext() core.EngineServerContext {
-	return &HttpEngineContext{eng}
-}
+	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
+	eng.conf = conf
 
-func (eng *HttpEngine) InitializeEngine(ctx core.ServerContext) error {
-	eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
-	routesConf, err := common.ConfigFileAdapter(eng.config, CONF_ROUTECONF)
-	if err != nil {
-		return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Router config ", CONF_ROUTECONF)
-	}
-	router := newRouter(ctx, "Root", routesConf, eng, nil)
-	eng.router = router
-	engCtx := ctx.SubContext("Configuring engine", routesConf)
-	if err = eng.router.ConfigureRoutes(engCtx); err != nil {
+	eng.rootChannel = newHttpChannel(ctx, eng.name, eng.conf, eng, nil)
+
+	//engCtx := ctx.SubContext("Configuring engine")
+	/*if err = eng.router.ConfigureRoutes(engCtx); err != nil {
 		return errors.RethrowError(engCtx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
-	}
-	if ctx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
-		http.Handle(eng.path, eng.framework.GetRootHandler())
-	}
+	}*/
+	/*loaderCtx := ctx.GetElement(core.ServerElementLoader)
+	return facMgr.createServiceFactories(ctx, conf, loaderCtx.(server.ObjectLoader))*/
+	log.Logger.Debug(initCtx, "Initialized engine")
 	return nil
 }
 
-func (eng *HttpEngine) StartEngine(ctx core.ServerContext) error {
-	if ctx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-		log.Logger.Info(ctx, "Starting server", "address", eng.address, "ssl", eng.ssl)
+func (eng *httpEngine) Start(ctx core.ServerContext) error {
+	startCtx := eng.createContext(ctx, "Start Engine: "+eng.name)
+	if startCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
+		log.Logger.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
 		if eng.ssl {
 			//start listening
 			err := eng.framework.StartSSLServer(eng.address, eng.sslcert, eng.sslkey)
@@ -124,5 +109,15 @@ func (eng *HttpEngine) StartEngine(ctx core.ServerContext) error {
 			return nil
 		}
 	}
+	if startCtx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
+		http.Handle(eng.path, eng.framework.GetRootHandler())
+	}
+	log.Logger.Info(startCtx, "Started engine")
 	return nil
+}
+
+//creates a context specific to environment
+func (eng *httpEngine) createContext(ctx core.ServerContext, name string) core.ServerContext {
+	return ctx.NewContextWithElements(name,
+		core.ContextMap{core.ServerElementEngine: eng.proxy}, core.ServerElementEngine)
 }

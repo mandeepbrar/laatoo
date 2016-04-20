@@ -3,63 +3,88 @@
 package server
 
 import (
+	"crypto/tls"
+	"fmt"
+	glctx "golang.org/x/net/context"
+	"golang.org/x/oauth2"
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"log"
+	"laatoo/sdk/log"
 	"net"
+	"net/http"
 	"time"
 )
 
-//Create a new server
-func NewServer(configName string, appCtxProvider core.ApplicationContextProvider) (*Server, error) {
-	server := &Server{ServerType: core.CONF_SERVERTYPE_STANDALONE}
-	ctx := NewServerContext("ServerInit", nil, nil) // //Context: echo.NewContext(nil, nil, router)}
-	err := server.InitServer(ctx, configName, appCtxProvider)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+const (
+	//if this file is built the server type will be standalone
+	SERVER_TYPE = core.CONF_SERVERTYPE_STANDALONE
+)
+
+func startListening(ctx core.ServerContext, conf config.Config) error {
 	//find the address to bind from the server
-	address, ok := server.Config.GetString(CONF_SERVERTYPE_HOSTNAME)
+	address, ok := conf.GetString(config.CONF_SERVER_ADDRESS)
 	if !ok {
 		panic("Host name not provided for standalone server")
 	}
 
-	go startServer(ctx, address, server)
+	go dialServer(ctx, address)
 
 	//start the standalone tcp loop
 	// Listen on TCP port 2000 on all interfaces.
+	//this is an admin port and not environment address
+	// more functionality to be built on the admin port
 	l, err := net.Listen("tcp", address)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer l.Close()
+	log.Logger.Info(ctx, "Listening...")
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
 		if err != nil {
-			return nil, errors.WrapError(ctx, err)
+			return errors.WrapError(ctx, err)
 		}
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
 		go func(c net.Conn) {
-			// Echo all incoming data.
-			//io.Copy(c, c)
 			// Shut down the connection.
 			c.Close()
 		}(conn)
 	}
-	return server, nil
+
 }
 
-func startServer(ctx *serverContext, address string, server *Server) error {
+//try tcp connection to the server... it will allow connection if the server is bound to the address
+func dialServer(ctx core.ServerContext, address string) error {
 	for i := 0; i < 10; i++ {
 		_, err := net.Dial("tcp", address)
 		if err != nil {
-			time.Sleep(100 * time.Millisecond)
+			fmt.Print(err)
+			time.Sleep(1000 * time.Millisecond)
 		} else {
-			return server.Start(ctx)
+			return nil
 		}
 	}
 	panic("Server could not be started")
+}
+
+func GetAppengineContext(ctx core.RequestContext) glctx.Context {
+	return nil
+}
+
+func GetCloudContext(ctx core.RequestContext, scope string) glctx.Context {
+	return nil
+}
+func HttpClient(ctx core.RequestContext) *http.Client {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	return &http.Client{Transport: tr}
+}
+
+func GetOAuthContext(ctx core.Context) glctx.Context {
+	return oauth2.NoContext
 }

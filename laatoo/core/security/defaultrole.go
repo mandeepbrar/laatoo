@@ -1,14 +1,13 @@
 package security
 
 import (
-	"laatoo/core/registry"
-	"laatoo/sdk/auth"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 )
 
 func init() {
-	registry.RegisterObjectFactory(auth.DEFAULT_ROLE, &RoleFactory{})
+	objects.RegisterObjectFactory(config.DEFAULT_ROLE, &RoleFactory{})
 }
 
 //interface that needs to be implemented by any object provider in a system
@@ -17,6 +16,9 @@ type RoleFactory struct {
 
 //Initialize the object factory
 func (rf *RoleFactory) Initialize(ctx core.ServerContext, config config.Config) error {
+	return nil
+}
+func (rf *RoleFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 

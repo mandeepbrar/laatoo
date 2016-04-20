@@ -1,11 +1,6 @@
 package net
 
-import (
-	"laatoo/sdk/core"
-)
-
 type WebContext interface {
-	core.EngineRequestContext
 	GetHeader(header string) string
 	GetRouteParam(paramname string) string
 	GetQueryParams() map[string][]string

@@ -19,7 +19,7 @@ func (wf *EchoWebFramework) Initialize() error {
 	router := echo.New()
 	// Middleware
 	loggerconfig := mw.LoggerConfig{Output: log.Logger, Format: "{\"time\":\"${time_rfc3339}\", \"remote_ip\":\"${remote_ip}\", \"method\":\"${method}\", \"uri\":\"${uri}\", \"status\":\"${status}\", \"took\":\"${response_time}\", \"sent\":\"${response_size} bytes\"}\n"}
-	router.Use(mw.LoggerFromConfig(loggerconfig))
+	router.Use(mw.LoggerWithConfig(loggerconfig))
 	router.Use(mw.Recover())
 	router.Use(mw.Gzip())
 	wf.rootRouter = router
@@ -42,6 +42,6 @@ func (wf *EchoWebFramework) StartServer(address string) error {
 }
 
 func (wf *EchoWebFramework) StartSSLServer(address string, certpath string, keypath string) error {
-	wf.rootRouter.Run(standard.NewFromTLS(address, certpath, keypath))
+	wf.rootRouter.Run(standard.WithTLS(address, certpath, keypath))
 	return nil
 }

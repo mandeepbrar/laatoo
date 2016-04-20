@@ -34,6 +34,7 @@ const (
 type DataService interface {
 	core.Service
 	GetDataServiceType() string
+	GetObject() string
 	//supported features
 	Supports(Feature) bool
 	//create condition for passing to data service

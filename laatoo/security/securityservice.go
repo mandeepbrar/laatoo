@@ -1,10 +1,9 @@
 package security
 
 import (
-	"laatoo/core/registry"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/log"
 )
 
 const (
@@ -16,26 +15,22 @@ const (
 )
 
 func init() {
-	registry.RegisterServiceFactoryProvider(CONF_SECURITYSERVICE_SERVICEPROVIDER, NewSecurityServiceFactory)
+	objects.RegisterObject(CONF_SECURITYSERVICE_SERVICEPROVIDER, createSecurityServiceFactory, nil)
+}
+
+func createSecurityServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &SecurityServiceFactory{}, nil
 }
 
 type SecurityServiceFactory struct {
-	//configuration provided by the application
-	Configuration config.Config
-}
-
-func NewSecurityServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Debug(ctx, "Creating security service factory")
-	svc := &SecurityServiceFactory{Configuration: conf}
-	return svc, nil
 }
 
 //Create the services configured for factory.
-func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
-	switch name {
+func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+	switch method {
 	case CONF_SECURITYSERVICE_DB:
 		{
-			return NewLoginService(ctx, conf)
+			return &LoginService{name: name}, nil
 		}
 	case CONF_SECURITYSERVICE_OAUTH:
 		{
@@ -43,18 +38,23 @@ func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name str
 		}
 	case CONF_SECURITYSERVICE_KEYAUTH:
 		{
-			return NewKeyAuthService(ctx, conf)
+			return &KeyAuthService{name: name}, nil
 		}
 	case CONF_SECURITYSERVICE_REGISTRATIONSERVICE:
 		{
-			return NewRegistrationService(ctx, conf)
+			return &RegistrationService{name: name}, nil
 		}
 	}
 	return nil, nil
 }
 
 //The services start serving when this method is called
-func (sf *SecurityServiceFactory) StartServices(ctx core.ServerContext) error {
+func (sf *SecurityServiceFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+	return nil
+}
+
+//The services start serving when this method is called
+func (sf *SecurityServiceFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 

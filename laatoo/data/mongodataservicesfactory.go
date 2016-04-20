@@ -2,7 +2,7 @@ package data
 
 import (
 	"gopkg.in/mgo.v2"
-	"laatoo/core/registry"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -20,17 +20,21 @@ const (
 )
 
 func init() {
-	registry.RegisterServiceFactoryProvider(CONF_MONGO_SERVICES, MongoServicesFactory)
+	objects.RegisterObject(CONF_MONGO_SERVICES, createMongoDataServicesFactory, nil)
 }
 
-func MongoServicesFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
+func createMongoDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &mongoDataServicesFactory{}, nil
+}
+
+func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	connectionString, ok := conf.GetString(CONF_MONGO_CONNECTIONSTRING)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_CONNECTIONSTRING)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_CONNECTIONSTRING)
 	}
 	sess, err := mgo.Dial(connectionString)
 	if err != nil {
-		return nil, errors.RethrowError(ctx, DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
+		return errors.RethrowError(ctx, DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}
 
 	/*mongoSvc.objects = make(map[string]string, len(objs))
@@ -44,17 +48,17 @@ func MongoServicesFactory(ctx core.ServerContext, conf config.Config) (core.Serv
 	}
 	mongoSvc.deleteRefOpers = deleteOps
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
-	mongoSvcFactory := &mongoDataServicesFactory{connection: sess}
-	return mongoSvcFactory, nil
+	mf.connection = sess
+	return nil
 }
 
 //Create the services configured for factory.
-func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
-	switch name {
+func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+	switch method {
 	case CONF_MONGO_DATA_SVCS:
 		{
 
-			return newMongoDataService(ctx, ms, conf)
+			return newMongoDataService(ctx, name, ms)
 
 		}
 	}
@@ -62,6 +66,6 @@ func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name s
 }
 
 //The services start serving when this method is called
-func (ms *mongoDataServicesFactory) StartServices(ctx core.ServerContext) error {
+func (ms *mongoDataServicesFactory) Start(ctx core.ServerContext) error {
 	return nil
 }

@@ -1,120 +1,104 @@
 package data
 
-/*
 import (
-	"laatoosdk/core"
-	"laatoosdk/data"
-	"laatoosdk/errors"
-	"laatoosdk/log"
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+	"laatoo/sdk/data"
+	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 )
 
 const (
-	CONF_REF_OPS                = "reference_object_operations"
+	CONF_REF_OPS                = "reference_operations"
 	CONF_REF_OP                 = "operation"
-	CONF_REF_PRIMARY_OBJ        = "primaryobj"
-	CONF_REF_PRIMARY_OBJ_METHOD = "method"
-	CONF_REF_CD_TARG_OBJ        = "target"
-	CONF_REF_CD_TARG_FIELD      = "targetfield"
+	CONF_REF_TARG_SVC           = "targetsvc"
+	CONF_REF_TARG_FIELD         = "targetfield"
 	CONF_REF_CD_TARG_SOFTDELETE = "softdelete"
 )
 
-type refKeyOperation struct {
-	operation           string
-	primaryObjectName   string
-	primaryObjectMethod string
-	operationData       map[string]interface{}
-	do                  func(ctx core.Context, args ...interface{}) error
+type refOperation struct {
+	name          string
+	targetsvcname string
+	targetService data.DataService
+	data          []interface{}
+	do            func(ctx core.RequestContext, args ...interface{}) error
 }
 
-func buildRefOps(ctx core.Context, conf map[string]interface{}) (map[string][]*refKeyOperation, map[string][]*refKeyOperation, map[string][]*refKeyOperation, map[string][]*refKeyOperation, error) {
-	deleteOps := map[string][]*refKeyOperation{}
-	refOpsInt, ok := conf[CONF_REF_OPS]
+func buildRefOps(ctx core.ServerContext, conf config.Config) (deleterefops []*refOperation, updaterefops []*refOperation, saverefops []*refOperation, getrefops []*refOperation, err error) {
+	deleteOps := []*refOperation{}
+	updaterefOps := []*refOperation{}
+	saverefOps := []*refOperation{}
+	getrefOps := []*refOperation{}
+	refOps, ok := conf.GetSubConfig(CONF_REF_OPS)
 	if ok {
-		refOps, _ := refOpsInt.(map[string]interface{})
-		if refOps != nil {
-			for k, v := range refOps {
-				operConf, _ := v.(map[string]interface{})
-				methodInt, ok := operConf[CONF_REF_PRIMARY_OBJ_METHOD]
-				if !ok {
-					return nil, nil, nil, nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", CONF_REF_PRIMARY_OBJ_METHOD, "Operation", k)
+		opnames := refOps.AllConfigurations()
+		for _, opname := range opnames {
+			operConf, _ := refOps.GetSubConfig(opname)
+			operation, ok := operConf.GetString(CONF_REF_OP)
+			if !ok {
+				return nil, nil, nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_REF_OP, "Operation", opname)
+			}
+			targetsvc, ok := operConf.GetString(CONF_REF_TARG_SVC)
+			if !ok {
+				return nil, nil, nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_REF_TARG_SVC, "Operation", opname)
+			}
+			switch operation {
+			case "CascadedDelete":
+				oper, err := buildCascadedDeleteOperation(ctx, conf, opname, targetsvc)
+				if err != nil {
+					return nil, nil, nil, nil, errors.WrapError(ctx, err)
 				}
-				if ok {
-					method := methodInt.(string)
-					objInt, ok := operConf[CONF_REF_PRIMARY_OBJ]
-					if !ok {
-						return nil, nil, nil, nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", CONF_REF_PRIMARY_OBJ, "Operation", k)
-					}
-					if objInt != "" {
-						obj := objInt.(string)
-						operInt, ok := operConf[CONF_REF_OP]
-						if !ok {
-							return nil, nil, nil, nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", CONF_REF_OP, "Operation", k)
-						}
-						if ok {
-							oper := operInt.(string)
-							opr := &refKeyOperation{operation: oper, primaryObjectName: obj, primaryObjectMethod: method, operationData: operConf}
-							function, err := opr.getOperMethod(ctx)
-							if err != nil {
-								return nil, nil, nil, nil, err
-							}
-							opr.do = function
-							switch method {
-							case "Delete":
-								opsArr, ok := deleteOps[obj]
-								if !ok {
-									opsArr = make([]*refKeyOperation, 0, 10)
-								}
-								deleteOps[obj] = append(opsArr, opr)
-							case "Get":
-							case "Put":
-							case "Update":
+				deleteOps = append(deleteOps, oper)
+			/*case "CompleteEntity":
+			oper, err := buildCompleteEntityOperation(ctx, conf, opname, targetsvc)
+			if err != nil {
+				return nil, nil, nil, nil, errors.WrapError(ctx, err)
+			}
+			getrefOps = append(getrefOps, oper)*/
+			case "Save":
+			case "Update":
 
-							}
-						}
-					}
-				}
 			}
 		}
 	}
-	return deleteOps, nil, nil, nil, nil
+	return deleteOps, updaterefOps, saverefOps, getrefOps, nil
 }
 
-func (oper *refKeyOperation) getOperMethod(ctx core.Context) (func(ctx core.Context, args ...interface{}) error, error) {
-	switch oper.operation {
-	case "CascadedDelete":
-		{
-			targetobjInt, ok := oper.operationData[CONF_REF_CD_TARG_OBJ]
-			if !ok {
-				return nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", CONF_REF_CD_TARG_OBJ, "Operation", "CascadedDelete")
-			}
-			targetfieldInt, ok := oper.operationData[CONF_REF_CD_TARG_FIELD]
-			if !ok {
-				return nil, errors.ThrowErrorInCtx(ctx, LOGGING_CONTEXT, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", CONF_REF_CD_TARG_FIELD, "Operation", "CascadedDelete")
-			}
-			targetSoftDelete := false
-			softDelete, ok := oper.operationData[CONF_REF_CD_TARG_SOFTDELETE]
-			if ok {
-				targetSoftDelete = (softDelete.(string) == "true")
-			}
-			return func(newctx core.Context, args ...interface{}) error {
-				ds := args[0].(data.DataService)
-				ids := args[1].([]string)
-				return oper.cascadeDelete(newctx, ds, targetobjInt.(string), targetfieldInt.(string), ids, targetSoftDelete)
-			}, nil
-		}
+func (oper *refOperation) Initialize(ctx core.ServerContext) error {
+	svc, err := ctx.GetService(oper.targetsvcname)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
-	return nil, nil
+	targetsvc, ok := svc.(data.DataService)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
+	}
+	oper.targetService = targetsvc
+	return nil
 }
 
-func (oper *refKeyOperation) cascadeDelete(ctx core.Context, dataService data.DataService, targetobj string, targetfield string, ids []string, softDelete bool) error {
+func buildCascadedDeleteOperation(ctx core.ServerContext, conf config.Config, opname string, targetsvcname string) (*refOperation, error) {
+	targetfield, ok := conf.GetString(CONF_REF_TARG_FIELD)
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_REF_TARG_FIELD, "Operation", opname)
+	}
+	opr := &refOperation{name: opname, targetsvcname: targetsvcname}
+	opr.do = func(newctx core.RequestContext, args ...interface{}) error {
+		ids := args[0].([]string)
+		return cascadeDelete(newctx, opr.targetService, targetfield, ids)
+	}
+	return opr, nil
+}
+
+func cascadeDelete(ctx core.RequestContext, dataService data.DataService, targetfield string, ids []string) error {
 	if dataService.Supports(data.InQueries) {
 		condition, _ := dataService.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, targetfield, ids)
-		_, err := dataService.DeleteAll(ctx, targetobj, condition, softDelete)
+		_, err := dataService.DeleteAll(ctx, condition)
 		return err
 	} else {
 		for _, id := range ids {
 			condition, _ := dataService.CreateCondition(ctx, data.FIELDVALUE, targetfield, id)
-			_, err := dataService.DeleteAll(ctx, targetobj, condition, softDelete)
+			_, err := dataService.DeleteAll(ctx, condition)
 			if err != nil {
 				return err
 			}
@@ -123,14 +107,12 @@ func (oper *refKeyOperation) cascadeDelete(ctx core.Context, dataService data.Da
 	return nil
 }
 
-func deleteRefOps(ctx core.Context, svc data.DataService, refops map[string][]*refKeyOperation, objectType string, ids []string) error {
-	opers := refops[objectType]
+func deleteRefOps(ctx core.RequestContext, opers []*refOperation, ids []string) error {
 	if opers != nil {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "deleterefops", "refops", refops, "opers", opers)
+		log.Logger.Trace(ctx, "deleterefops")
 		for _, oper := range opers {
-			log.Logger.Trace(ctx, LOGGING_CONTEXT, "deleterefops", "oper", oper)
-			//only cascaded delete ref ops supported for delete
-			err := oper.do(ctx, svc, ids)
+			log.Logger.Trace(ctx, "deleterefops", "oper", oper.name)
+			err := oper.do(ctx, ids)
 			if err != nil {
 				return err
 			}
@@ -138,4 +120,27 @@ func deleteRefOps(ctx core.Context, svc data.DataService, refops map[string][]*r
 	}
 	return nil
 }
-*/
+
+/*
+func buildCompleteEntityOperation(ctx core.ServerContext, conf config.Config, opname string, targetsvcname string) (*refOperation, error) {
+	targetfield, ok := conf.GetString(CONF_REF_TARG_FIELD)
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_REF_TARG_FIELD, "Operation", opname)
+	}
+	opr := &refOperation{name: opname, targetsvcname: targetsvcname}
+	opr.do = func(newctx core.RequestContext, args ...interface{}) error {
+		entities := args[0].([]data.Storable)
+		return completeEntity(newctx, opr.targetService, targetfield, entities)
+	}
+	return opr, nil
+}
+
+func completeEntity(ctx core.RequestContext, dataService data.DataService, targetfield string, entities []data.Storable) error {
+
+	condition, _ := dataService.CreateCondition(ctx, data.FIELDVALUE, targetfield, id)
+	_, err := dataService.DeleteAll(ctx, condition)
+	if err != nil {
+		return err
+	}
+	return nil
+}*/

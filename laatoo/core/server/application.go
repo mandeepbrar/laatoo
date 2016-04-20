@@ -1,291 +1,201 @@
 package server
 
 import (
-	"laatoo/core/engine/http"
-	"laatoo/core/registry"
-	"laatoo/core/security"
-	"laatoo/sdk/auth"
+	"laatoo/core/common"
+	"laatoo/core/factory"
+	"laatoo/core/objects"
+	"laatoo/core/service"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 )
 
-const (
-	CONF_APP_ENGINE      = "engine"
-	CONF_APP_ENGINE_NAME = "enginename"
-	CONF_APP_SECURITY    = "security"
-	CONF_APP_SETTINGS    = "settings"
-	//header set by the service
-	CONF_APP_COMMSVC  = "commsvc"
-	CONF_APP_CACHESVC = "cachesvc"
-	CONF_APP_USER     = "user_object"
-	CONF_APP_ROLE     = "role_object"
-	//header set by the service
-	CONF_APP_AUTHHEADER = "auth_header"
-	//secret key for jwt
-	CONF_APP_JWTSECRETKEY = "jwtsecretkey"
-)
+type application struct {
+	name string
 
-type Application struct {
-	//application config
-	Config config.Config
-	//store for service s in an application
-	ServicesStore map[string]core.Service
-	//store for service factory in an application
-	ServiceFactoryStore map[string]core.ServiceFactory
-	//store for service factory configuration
-	ServiceFactoryConfig map[string]config.Config
-	//pubsub service reference for publishing and receiving messages
-	CommunicationService core.PubSub
-	//header used for authentication tokens
-	AuthHeader string
-	//name of the application
-	Name string
-	//secret key for auth
-	JWTSecret string
-	//system user object
-	SystemUser string
-	//system role object
-	SystemRole string
-	//Name of the admin role
-	AdminRole string
-	//type of server application is hosted in
-	ServerType string
-	//caching service
-	Cache data.Cache
-	//security
-	Security core.SecurityHandler
-	/*	//application middleware
-		middleware *Middleware
-		//store for service factory middleware
-		ServiceFactoryMiddleware map[string]*Middleware*/
-	engineName string
-	appEngine  core.Engine
-	serverUser auth.User
-	appContext core.ApplicationContext
+	objectLoader       server.ObjectLoader
+	objectLoaderHandle server.ServerElementHandle
+
+	channelMgr       server.ChannelManager
+	channelMgrHandle server.ServerElementHandle
+
+	factoryManager       server.FactoryManager
+	factoryManagerHandle server.ServerElementHandle
+
+	serviceManager       server.ServiceManager
+	serviceManagerHandle server.ServerElementHandle
+
+	securityHandler server.SecurityHandler
+
+	env *environment
+
+	//all applets deployed on this server
+	applet server.Applet
+	proxy  server.Application
 }
 
-//creates a new application
-func newApplication(ctx *serverContext, appName string, appContext core.ApplicationContext, conf config.Config, serverType string) (*Application, error) {
-	app := &Application{Name: appName, ServerType: serverType, appContext: appContext, Config: conf}
-	ctx.application = app
-
-	//default admin role
-	app.AdminRole = core.CONF_SERVER_DEFAULT_ADMINROLE
-
-	app.SystemUser = core.CONF_SERVER_DEFAULT_USEROBJ
-	obj, _ := registry.CreateObject(ctx, app.SystemUser, nil)
-	usr := obj.(auth.RbacUser)
-	usr.SetId("__system__")
-	usr.SetRoles([]string{"Admin"})
-	app.serverUser = usr
-
-	/////************TODO***********/
-	//ctx.Set("Roles", []string{app.AdminRole})
-
-	//store of all services
-	app.ServicesStore = make(map[string]core.Service, 100)
-	/*	//store of all factory middleware
-		app.ServiceFactoryMiddleware = make(map[string]*Middleware, 30)*/
-	//store of all services
-	app.ServiceFactoryStore = make(map[string]core.ServiceFactory, 30)
-	//store of all service configs
-	app.ServiceFactoryConfig = make(map[string]config.Config, 30)
-	//process application configuration
-	if err := app.processConfiguration(ctx); err != nil {
-		return nil, err
-	}
-	return app, nil
+func newApplication(svrCtx core.ServerContext, name string, filterConf config.Config) (*application, *applicationProxy) {
+	envProxy := svrCtx.GetServerElement(core.ServerElementEnvironment).(*environmentProxy)
+	env := envProxy.env
+	app := &application{name: name, env: env}
+	//create application context as a child of environment
+	appCtx := envProxy.NewCtx(name)
+	proxy := &applicationProxy{Context: appCtx.(*common.Context), app: app}
+	app.proxy = proxy
+	loader := env.objectLoader
+	factoryManager := env.factoryManager
+	serviceManager := env.serviceManager
+	channelMgr := env.channelMgr
+	appLoaderHandle, appLoader := objects.ChildLoader(svrCtx, name, loader)
+	app.objectLoaderHandle = appLoaderHandle
+	app.objectLoader = appLoader.(server.ObjectLoader)
+	factoryManagerHandle, appfactoryManager := factory.ChildFactoryManager(svrCtx, name, factoryManager, proxy)
+	app.factoryManagerHandle = factoryManagerHandle
+	app.factoryManager = appfactoryManager.(server.FactoryManager)
+	serviceManagerHandle, appserviceManager := service.ChildServiceManager(svrCtx, name, serviceManager, proxy)
+	app.serviceManagerHandle = serviceManagerHandle
+	app.serviceManager = appserviceManager.(server.ServiceManager)
+	chanMgrHandle, appChannelMgr := childChannelManager(svrCtx, name, channelMgr, proxy)
+	app.channelMgrHandle = chanMgrHandle
+	app.channelMgr = appChannelMgr.(server.ChannelManager)
+	log.Logger.Debug(svrCtx, "Created application", "Name", name)
+	return app, proxy
 }
 
-func (app *Application) processConfiguration(ctx *serverContext) error {
+//initialize application with object loader, factory manager, service manager
+func (app *application) Initialize(ctx core.ServerContext, conf config.Config) error {
+	appInitCtx := app.createContext(ctx, "InitializeApplication: "+app.name)
 
-	secConfig, ok := app.Config.GetSubConfig(CONF_APP_SECURITY)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_APP_SECURITY)
+	objinit := appInitCtx.SubContext("Initialize object loader")
+	err := initializeObjectLoader(objinit, conf, app.objectLoaderHandle)
+	if err != nil {
+		return err
 	}
-	app.processSecurityConfig(ctx, secConfig)
+	log.Logger.Trace(objinit, "Initialized application object loader")
 
-	/*	app.middleware = createMW(appconf, nil)*/
+	secinit := appInitCtx.SubContext("Initialize security handler")
+	err = app.initializeSecurityHandler(secinit, conf)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(secinit, "Initialized application security handler")
 
-	if err := app.createServiceFactories(ctx); err != nil {
-		return errors.RethrowError(ctx, CORE_APPLICATION_NOT_CREATED, err)
+	chaninit := appInitCtx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
+	err = initializeChannelManager(chaninit, conf, app.channelMgrHandle)
+	if err != nil {
+		return err
 	}
-	engineConf, ok := app.Config.GetSubConfig(CONF_APP_ENGINE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_APP_ENGINE)
+	log.Logger.Debug(chaninit, "Initialized application channel manager")
+
+	facinit := appInitCtx.SubContext("Initialize factory manager")
+	err = initializeFactoryManager(facinit, conf, app.factoryManagerHandle)
+	if err != nil {
+		return err
 	}
-	enginename, ok := engineConf.GetString(CONF_APP_ENGINE_NAME)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", CONF_APP_ENGINE_NAME)
+	log.Logger.Trace(facinit, "Initialized application factory manager")
+
+	svcinit := appInitCtx.SubContext("Initialize service manager")
+	err = initializeServiceManager(svcinit, conf, app.serviceManagerHandle)
+	if err != nil {
+		return err
 	}
-	app.engineName = enginename
-	switch enginename {
-	case core.CONF_ENGINE_HTTP:
-		httpEngine, err := http.NewHttpEngine(ctx, engineConf)
-		if err != nil {
-			return errors.RethrowError(ctx, CORE_APPLICATION_NOT_CREATED, err)
-		}
-		app.appEngine = httpEngine //httpDelivery
-	case core.CONF_ENGINE_TCP:
-	default:
-		return errors.ThrowError(ctx, CORE_APPLICATION_NOT_CREATED, "Wrong delivery mode", enginename)
-	}
+	log.Logger.Trace(appInitCtx, "Initialized application")
+
 	return nil
 }
 
-func (app *Application) processSecurityConfig(ctx *serverContext, conf config.Config) {
-	//check if user service name to be used has been provided, otherwise set default name
-	roleObject, _ := conf.GetString(CONF_APP_ROLE)
-	if len(roleObject) == 0 {
-		roleObject = core.CONF_SERVER_DEFAULT_ROLEOBJ
-	}
-	app.SystemRole = roleObject
+//start application with object loader, factory manager, service manager
+func (app *application) Start(ctx core.ServerContext) error {
+	applicationStartCtx := app.createContext(ctx, "Start Application: "+app.name)
 
-	//check if user service name to be used has been provided, otherwise set default name
-	userObject, _ := conf.GetString(CONF_APP_USER)
-	if len(userObject) == 0 {
-		userObject = core.CONF_SERVER_DEFAULT_USEROBJ
-	}
-	app.SystemUser = userObject
-
-	//check if jwt secret key has been provided, otherwise create a key from random numbers
-	jwtSecret, _ := conf.GetString(CONF_APP_JWTSECRETKEY)
-	if len(jwtSecret) > 0 {
-		jwtSecret = core.CONF_SERVER_DEFAULT_JWTSECRET
-	}
-	app.JWTSecret = jwtSecret
-
-	//check if auth header to be set has been provided, otherwise set default token
-	authToken, _ := conf.GetString(CONF_APP_AUTHHEADER)
-	if len(authToken) > 0 {
-		authToken = core.CONF_SERVER_DEFAULT_AUTHHEADER
-	}
-	app.AuthHeader = authToken
-
-	app.Security = security.NewLocalSecurityHandler(ctx, conf)
-	return
-}
-
-//Initialize an applicaiton
-func (app *Application) InitializeApplication(ctx *serverContext) error {
-	err := app.createServices(ctx)
+	appobjldrCtx := applicationStartCtx.SubContextWithElement("Start ObjectLoader", core.ServerElementLoader)
+	err := app.objectLoaderHandle.Start(appobjldrCtx)
 	if err != nil {
-		return errors.RethrowError(ctx, CORE_APPLICATION_NOT_INITIALIZED, err)
+		return errors.WrapError(appobjldrCtx, err)
+	}
+	log.Logger.Trace(appobjldrCtx, "Started Object Loader")
+
+	chanstart := applicationStartCtx.SubContextWithElement("Start Channel manager", core.ServerElementChannelManager)
+	err = app.channelMgrHandle.Start(chanstart)
+	if err != nil {
+		return errors.WrapError(chanstart, err)
 	}
 
-	commSvc, ok := app.Config.GetString(CONF_APP_COMMSVC)
-	if ok {
-		svcInt, ok := app.ServicesStore[commSvc]
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Communication Service", commSvc)
-		}
-		app.CommunicationService = svcInt.(core.PubSub)
+	appfmCtx := applicationStartCtx.SubContextWithElement("Start Factory Manager", core.ServerElementFactoryManager)
+	err = app.factoryManagerHandle.Start(appfmCtx)
+	if err != nil {
+		return errors.WrapError(appfmCtx, err)
 	}
+	log.Logger.Trace(appfmCtx, "Started factory manager")
 
-	cacheSvc, ok := app.Config.GetString(CONF_APP_CACHESVC)
+	appsmCtx := applicationStartCtx.SubContextWithElement("Start Service Manager", core.ServerElementServiceManager)
+	err = app.serviceManagerHandle.Start(appsmCtx)
+	if err != nil {
+		return errors.WrapError(appsmCtx, err)
+	}
+	log.Logger.Trace(appsmCtx, "Started service manager")
+	log.Logger.Debug(applicationStartCtx, "Started application")
+	return nil
+}
+func (app *application) initializeSecurityHandler(ctx core.ServerContext, conf config.Config) error {
+	secConf, ok := conf.GetSubConfig(config.CONF_SECURITY)
 	if ok {
-		svcInt, ok := app.ServicesStore[cacheSvc]
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Cache Service", cacheSvc)
+		shElem, sh := newSecurityHandler(ctx, "Application:"+app.name, app.proxy)
+		err := shElem.Initialize(ctx, secConf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
-		app.Cache = svcInt.(data.Cache)
+		app.securityHandler = sh.(server.SecurityHandler)
 	} else {
-		log.Logger.Warn(ctx, "Cache service has not been initialized for the application", "App Name", app.Name)
-	}
-
-	err = app.Security.Initialize(ctx, nil)
-	if err != nil {
-		return errors.RethrowError(ctx, CORE_APPLICATION_NOT_INITIALIZED, err)
-	}
-
-	log.Logger.Info(ctx, "Initializing Services", "App Name", app.Name)
-	err = app.initializeServices(ctx)
-	if err != nil {
-		return errors.RethrowError(ctx, CORE_APPLICATION_NOT_INITIALIZED, err)
-	}
-	log.Logger.Info(ctx, "Initializing Engine", "App Name", app.Name)
-	err = app.appEngine.InitializeEngine(ctx)
-	if err != nil {
-		return errors.RethrowError(ctx, CORE_APPLICATION_NOT_INITIALIZED, err)
-	}
-	if app.appContext != nil {
-		settingsConf, _ := app.Config.GetSubConfig(CONF_APP_SETTINGS)
-		newctx := ctx.subCtx("Init App Context:"+app.Name, settingsConf, app)
-		log.Logger.Info(newctx, "Initializing App Context")
-		err = app.appContext.Initialize(newctx, settingsConf)
-		if err != nil {
-			return errors.RethrowError(newctx, CORE_APPLICATION_NOT_INITIALIZED, err)
-		}
+		app.securityHandler = app.env.securityHandler
 	}
 	return nil
 }
 
-//Provides the service reference by alias
-func (app *Application) GetService(ctx core.Context, alias string) (core.Service, error) {
-	//get the service for the alias
-	svc, ok := app.ServicesStore[alias]
+//create applets
+func (app *application) createApplet(ctx core.ServerContext, name string, appletConf config.Config) error {
+	appletCreateCtx := app.createContext(ctx, "Creating applet: "+name)
+	applprovider, ok := appletConf.GetString(config.CONF_APPL_OBJECT)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", alias)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Applet Name", name, "Missing Config", config.CONF_APPL_OBJECT)
 	}
-	return svc, nil
-}
 
-func (app *Application) GetVariable(variable core.ServerVariable) interface{} {
-	switch variable {
-	case core.JWTSECRETKEY:
-		return app.JWTSecret
-	case core.AUTHHEADER:
-		return app.AuthHeader
-	case core.ADMINROLE:
-		return app.AdminRole
-	case core.USER:
-		return app.SystemUser
-	case core.ROLE:
-		return app.SystemRole
+	log.Logger.Debug(appletCreateCtx, "Creating applet")
+	obj, err := appletCreateCtx.CreateObject(applprovider, nil)
+	if err != nil {
+		return errors.RethrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, err)
 	}
+	applet, ok := obj.(server.Applet)
+	if !ok {
+		return errors.ThrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, "Not an applet", applprovider)
+	}
+
+	appletCtx := appletCreateCtx.NewContextWithElements(name, core.ContextMap{core.ServerElementApplet: applet}, core.ServerElementApplet)
+	log.Logger.Trace(ctx, "Initializing applet")
+	err = applet.Initialize(appletCtx, appletConf)
+	if err != nil {
+		return errors.WrapError(appletCtx, err)
+	}
+
+	log.Logger.Trace(appletCtx, "Starting applet")
+	err = applet.Start(appletCtx)
+	if err != nil {
+		return errors.WrapError(appletCtx, err)
+	}
+	app.applet = applet
+	log.Logger.Debug(appletCtx, "Created applet")
 	return nil
 }
 
-func (app *Application) GetConfig() config.Config {
-	return app.Config
-}
-
-//start services
-func (app *Application) StartApplication(ctx *serverContext) error {
-	log.Logger.Info(ctx, "Starting Application", "App Name", app.Name)
-	/*err := app.subscribeTopics(ctx)
-	if err != nil {
-		return errors.RethrowError(ctx, CORE_ERROR_PUBSUB_INITIALIZATION, err)
-	}
-
-	//load role permissions
-	err = app.loadRolePermissions(ctx)
-	if err != nil {
-		return errors.RethrowError(ctx, CORE_ROLES_INIT_ERROR, err)
-	}*/
-	/*//get list of all the services
-	svcs := app.ServicesStore.GetList()
-	*/
-	//iterate through all the services
-	for alias, svcFactory := range app.ServiceFactoryStore {
-		if err := svcFactory.StartServices(ctx); err != nil {
-			return errors.RethrowError(ctx, CORE_ERROR_SERVICES_NOT_STARTED, err, "Service factory", alias)
-		}
-	}
-	if app.appContext != nil {
-		err := app.appContext.Start(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	go app.appEngine.StartEngine(ctx)
-
-	return nil
-}
-
-func (app *Application) GetCache() data.Cache {
-	return app.Cache
+//creates a context specific to environment
+func (app *application) createContext(ctx core.ServerContext, name string) core.ServerContext {
+	return ctx.NewContextWithElements(name,
+		core.ContextMap{core.ServerElementApplication: app.proxy,
+			core.ServerElementLoader:          app.objectLoader,
+			core.ServerElementSecurityHandler: app.securityHandler,
+			core.ServerElementChannelManager:  app.channelMgr,
+			core.ServerElementFactoryManager:  app.factoryManager,
+			core.ServerElementServiceManager:  app.serviceManager}, core.ServerElementApplication)
 }

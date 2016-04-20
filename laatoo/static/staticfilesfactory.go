@@ -1,12 +1,9 @@
 package static
 
 import (
-	"fmt"
-	"laatoo/core/registry"
-	"laatoo/core/services"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
 
@@ -18,65 +15,47 @@ const (
 )
 
 type StaticServiceFactory struct {
-	Conf config.Config
+	conf config.Config
 }
 
-//Initialize service, register provider with laatoo
 func init() {
-	registry.RegisterServiceFactoryProvider(CONF_STATIC_SERVICEFACTORY, NewStaticServiceFactory)
+	objects.RegisterObject(CONF_STATIC_SERVICEFACTORY, createStaticServicesFactory, nil)
 }
 
-//factory method returns the service object to the application
-func NewStaticServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Trace(ctx, "Creating static service factory")
-	svc := &StaticServiceFactory{conf}
-	return svc, nil
+func createStaticServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &StaticServiceFactory{}, nil
+}
+
+//The services start serving when this method is called
+func (ds *StaticServiceFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ds.conf = conf
+	return nil
 }
 
 //Create the services configured for factory.
-func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
-	sf.Conf = conf
-	log.Logger.Trace(ctx, "Creating service for static factory", "name", name)
+func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+	log.Logger.Trace(ctx, "Creating service for static factory", "name", name, "method", method)
 	switch name {
 	/*** Provides service for serving any files in a directory*****/
 	case CONF_STATICSVC_DIRECTORY:
 		{
-			svcFunc, err := CreateDirectorySvc(ctx, name, conf)
-			if err != nil {
-				return nil, err
-			}
-			return services.NewService(ctx, svcFunc, conf), nil
+			return &staticFiles{name: name}, nil
+
 		}
 	/*** Provides service for serving files whose path has been specified*****/
 	case CONF_STATICSVC_FILE:
 		{
-			return &FileService{conf: conf}, nil
+			return &FileService{name: name}, nil
 		}
 	case CONF_STATICSVC_FILEBUNDLE:
 		{
-			return &BundledFileService{conf: conf}, nil
+			return &BundledFileService{name: name}, nil
 		}
 	}
 	return nil, nil
 }
 
 //The services start serving when this method is called
-func (ds *StaticServiceFactory) StartServices(ctx core.ServerContext) error {
+func (ds *StaticServiceFactory) Start(ctx core.ServerContext) error {
 	return nil
-}
-
-func CreateDirectorySvc(ctx core.ServerContext, name string, conf config.Config) (core.ServiceFunc, error) {
-	dir, ok := conf.GetString(CONF_STATICSVC_DIRECTORY)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATICSVC_DIRECTORY)
-	}
-	return func(ctx core.RequestContext) error {
-		filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
-		if ok {
-			ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, fmt.Sprintf("%s/%s", dir, filename), nil))
-		} else {
-			ctx.SetResponse(core.StatusNotFoundResponse)
-		}
-		return nil
-	}, nil
 }

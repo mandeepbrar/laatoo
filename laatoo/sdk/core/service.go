@@ -7,8 +7,7 @@ import (
 type ServiceFunc func(ctx RequestContext) error
 
 type Service interface {
-	GetConf() config.Config
-	Initialize(ServerContext) error
+	Initialize(ctx ServerContext, conf config.Config) error
+	Start(ctx ServerContext) error
 	Invoke(RequestContext) error
-	GetResponseHandler() ServiceResponseHandler
 }

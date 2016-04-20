@@ -21,19 +21,19 @@ type ServiceResponse struct {
 	Status int
 	Data   interface{}
 	Info   map[string]interface{}
+	Return bool
 }
 
 func NewServiceResponse(status int, data interface{}, info map[string]interface{}) *ServiceResponse {
-	return &ServiceResponse{status, data, info}
+	return newServiceResponse(status, data, info, false)
+}
+func newServiceResponse(status int, data interface{}, info map[string]interface{}, ReturnVal bool) *ServiceResponse {
+	return &ServiceResponse{status, data, info, ReturnVal}
 }
 
 var (
-	StatusUnauthorizedResponse = NewServiceResponse(StatusUnauthorized, nil, nil)
-	StatusNotFoundResponse     = NewServiceResponse(StatusNotFound, nil, nil)
-	StatusBadRequestResponse   = NewServiceResponse(StatusBadRequest, nil, nil)
-	StatusNotModifiedResponse  = NewServiceResponse(StatusNotModified, nil, nil)
+	StatusUnauthorizedResponse = newServiceResponse(StatusUnauthorized, nil, nil, true)
+	StatusNotFoundResponse     = newServiceResponse(StatusNotFound, nil, nil, true)
+	StatusBadRequestResponse   = newServiceResponse(StatusBadRequest, nil, nil, true)
+	StatusNotModifiedResponse  = newServiceResponse(StatusNotModified, nil, nil, true)
 )
-
-type ServiceResponseHandler interface {
-	HandleResponse(ctx RequestContext) error
-}

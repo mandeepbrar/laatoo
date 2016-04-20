@@ -30,13 +30,13 @@ type File struct {
 }
 
 type FileService struct {
-	conf     config.Config
 	filesMap map[string]*File
+	name     string
 }
 
-func (fs *FileService) Initialize(ctx core.ServerContext) error {
+func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	fs.filesMap = make(map[string]*File, 10)
-	filesConf, ok := fs.conf.GetSubConfig(CONF_STATIC_FILES)
+	filesConf, ok := conf.GetSubConfig(CONF_STATIC_FILES)
 	if ok {
 		filenames := filesConf.AllConfigurations()
 		for _, filename := range filenames {
@@ -110,10 +110,6 @@ func (fs *FileService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (bs *FileService) GetConf() config.Config {
-	return bs.conf
-}
-
-func (bs *FileService) GetResponseHandler() core.ServiceResponseHandler {
+func (fs *FileService) Start(ctx core.ServerContext) error {
 	return nil
 }

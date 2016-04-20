@@ -152,6 +152,24 @@ func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg
 			buffer.WriteString(fmt.Sprintln("		ID: ", reqContext.GetId()))
 			return buffer.String()
 		}
+	case "happy":
+		{
+			var buffer bytes.Buffer
+			firstline := fmt.Sprintf("%s: %s", strings.ToUpper(level), msg)
+			argslen := len(args)
+			if argslen > 0 {
+				firstline = fmt.Sprintf("%s    %s:%s", firstline, strings.ToUpper(args[0].(string)), fmt.Sprint(args[1]))
+			}
+			if argslen > 2 {
+				firstline = fmt.Sprintf("%s    %s:%s", firstline, strings.ToUpper(args[2].(string)), fmt.Sprint(args[3]))
+			}
+			buffer.WriteString(fmt.Sprintln(firstline))
+			for i := 4; (i + 1) < argslen; i = i + 2 {
+				buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
+			}
+			buffer.WriteString(fmt.Sprintln("		", reqContext.GetName()))
+			return buffer.String()
+		}
 	case "happycolor":
 		{
 			var buffer bytes.Buffer

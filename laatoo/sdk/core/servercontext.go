@@ -1,7 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/config"
+	glctx "golang.org/x/net/context"
+	"net/http"
 )
 
 /*application and engine types*/
@@ -12,23 +13,52 @@ const (
 	CONF_ENGINE_TCP            = "tcp"
 )
 
+type ServerElementType int
+
+const (
+	ServerElementEngine ServerElementType = iota
+	ServerElementEnvironment
+	ServerElementLoader
+	ServerElementServiceFactory
+	ServerElementServiceManager
+	ServerElementChannel
+	ServerElementChannelManager
+	ServerElementFactoryManager
+	ServerElementApplication
+	ServerElementApplet
+	ServerElementService
+	ServerElementServiceResponseHandler
+	ServerElementServer
+	ServerElementSecurityHandler
+	ServerElementOpen1
+	ServerElementOpen2
+	ServerElementOpen3
+)
+
+type ContextMap map[ServerElementType]ServerElement
+
+type ServerElement interface {
+	Context
+}
+
 type ServerContext interface {
 	Context
-	SubContext(name string, conf config.Config) ServerContext
 	GetServerType() string
-	GetConf() config.Config
+	GetElement() ServerElement
+	GetServerElement(ServerElementType) ServerElement
 	GetService(alias string) (Service, error)
-	SubscribeTopic(topic string, handler TopicListener) error
-	PublishMessage(topic string, message interface{}) error
-	PutInCache(key string, item interface{}) error
-	GetFromCache(key string, val interface{}) bool
-	GetMultiFromCache(keys []string, val map[string]interface{}) bool
-	DeleteFromCache(key string) error
-	GetServerVariable(variable ServerVariable) interface{}
-	GetServerName() string
-	EngineContext() EngineServerContext
-	HasPermission(RequestContext, string) bool
-	GetRolePermissions(role []string) ([]string, bool)
-	CreateNewRequest(name string) RequestContext
-	ApplicationContext() ApplicationContext
+	GetElementType() ServerElementType
+	NewContext(name string) ServerContext
+	NewContextWithElements(name string, elements ContextMap, primaryElement ServerElementType) ServerContext
+	SubContext(name string) ServerContext
+	SubContextWithElement(name string, primaryElement ServerElementType) ServerContext
+	CreateNewRequest(name string, engineCtx interface{}) RequestContext
+	GetAppengineContext(ctx RequestContext) glctx.Context
+	GetCloudContext(ctx RequestContext, scope string) glctx.Context
+	HttpClient(ctx RequestContext) *http.Client
+	GetOAuthContext(ctx Context) glctx.Context
+	CreateCollection(objectName string, args MethodArgs) (interface{}, error)
+	CreateObject(objectName string, args MethodArgs) (interface{}, error)
+	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
+	GetObjectCreator(objectName string) (ObjectCreator, error)
 }

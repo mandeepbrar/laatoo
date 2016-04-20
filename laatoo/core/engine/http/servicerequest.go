@@ -2,24 +2,27 @@ package http
 
 import (
 	"laatoo/core/engine/http/net"
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 )
 
-func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string,
-	svc core.Service, service string, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
+func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
+	svc server.Service, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
 	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
 		var err error
-		engineContext := webctx.EngineContext().(net.WebContext)
-		if method == CONF_ROUTE_METHOD_INVOKE {
-			service = engineContext.GetQueryParam(CONF_ROUTE_SERVICE)
+		engineContext := webctx.EngineRequestContext().(net.WebContext)
+		/*if method == CONF_ROUTE_METHOD_INVOKE {
+			service := engineContext.GetQueryParam(CONF_ROUTE_SERVICE)
 			if len(service) == 0 {
 				return errors.ThrowError(webctx, errors.CORE_ERROR_MISSING_ARG, "Missing argument", CONF_ROUTE_SERVICE)
 			}
-			svc, err = webctx.GetService(service)
+			serverCtx := webctx.ParentContext().(core.ServerContext)
+			svc, serverElement, err = serverCtx.GetService(service)
 			if err != nil || svc == nil {
 				return errors.RethrowError(webctx, errors.CORE_ERROR_BAD_ARG, err, "No such service has been created", service)
 			}
@@ -27,10 +30,10 @@ func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler 
 			if respHandler == nil {
 				respHandler = router
 			}
-		}
-		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", service, "dataObjectName", dataObjectName)
+		}*/
+		log.Logger.Trace(webctx, "Received request ", "route", routename, "dataObjectName", dataObjectName)
 		if isdataObject {
-			if dataObjectName == CONF_STRINGMAP_DATA_OBJECT {
+			if dataObjectName == config.CONF_ENGINE_STRINGMAP_DATA_OBJECT {
 				mapobj := make(map[string]interface{}, 10)
 				reqData = &mapobj
 			} else {
@@ -61,14 +64,15 @@ func (router *Router) processServiceRequest(ctx core.ServerContext, respHandler 
 				return respHandler.HandleResponse(webctx)
 			}
 		}
-		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, service, routeParams, staticValues, headers)
+		return channel.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, routeParams, staticValues, headers)
 	}
 }
 
-func (router *Router) processStreamServiceRequest(ctx core.ServerContext, respHandler core.ServiceResponseHandler, method string, routename string,
-	svc core.Service, service string, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
+/*
+func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
+	svc core.Service, serverElement core.ServerElement, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
 	return func(webctx core.RequestContext) error {
-		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", service)
+		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", serverElement.GetName())
 		engineContext := webctx.EngineContext().(net.WebContext)
 		reqData, err := engineContext.GetBody()
 		if err != nil {
@@ -76,16 +80,16 @@ func (router *Router) processStreamServiceRequest(ctx core.ServerContext, respHa
 			webctx.SetResponse(core.StatusBadRequestResponse)
 			return respHandler.HandleResponse(webctx)
 		}
-		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, service, routeParams, staticValues, headers)
+		return router.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, serverElement, routeParams, staticValues, headers)
 	}
-}
-func (router *Router) processRequest(webctx core.RequestContext, reqData interface{}, engineContext net.WebContext, respHandler core.ServiceResponseHandler, routename string,
-	svc core.Service, service string, routeParams map[string]string, staticValues map[string]string, headers map[string]string) error {
+}*/
+func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData interface{}, engineContext net.WebContext, respHandler server.ServiceResponseHandler, routename string,
+	svc server.Service, routeParams map[string]string, staticValues map[string]string, headers map[string]string) error {
 	var err error
-	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "service", service, "routeParams", routeParams, "staticValues", staticValues, "headers", headers)
-	reqctx := webctx.SubRequest(service, svc.GetConf())
+	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers)
+	reqctx := webctx.SubContext(svc.GetName())
 	defer reqctx.CompleteRequest()
-	reqctx.SetRequestBody(reqData)
+	reqctx.SetRequest(reqData)
 	if routeParams != nil {
 		for param, routeParamName := range routeParams {
 			paramVal := engineContext.GetRouteParam(routeParamName)
@@ -109,11 +113,11 @@ func (router *Router) processRequest(webctx core.RequestContext, reqData interfa
 			reqctx.Set(name, val)
 		}
 	}
-	err = svc.Invoke(reqctx)
+	err = svc.Service().Invoke(reqctx)
 	if err != nil {
 		return errors.WrapError(webctx, err)
 	}
-	log.Logger.Trace(webctx, "Completed request for service. Handling Response", "service", service)
+	log.Logger.Trace(webctx, "Completed request for service. Handling Response")
 	return respHandler.HandleResponse(reqctx)
 
 }

@@ -1,16 +1,15 @@
 package cache
 
 import (
-	"laatoo/core/registry"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	//	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"reflect"
 )
 
 type MemoryCacheFactory struct {
-	Conf config.Config
 }
 
 const (
@@ -19,31 +18,33 @@ const (
 )
 
 func init() {
-	registry.RegisterServiceFactoryProvider(CONF_MEMORYCACHE_NAME, MemoryCacheServiceFactory)
+	objects.RegisterObject(CONF_MEMORYCACHE_NAME, createMemoryCacheFactory, nil)
 }
 
-func MemoryCacheServiceFactory(ctx core.ServerContext, conf config.Config) (core.ServiceFactory, error) {
-	log.Logger.Trace(ctx, "Creating memory cache factory")
-	memoryFac := &MemoryCacheFactory{conf}
-	return memoryFac, nil
+func createMemoryCacheFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &MemoryCacheFactory{}, nil
 }
 
 //Create the services configured for factory.
-func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, conf config.Config) (core.Service, error) {
-	if name == CONF_MEMORYCACHE_SVC {
-		return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), conf: conf}, nil
+func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+	if method == CONF_MEMORYCACHE_SVC {
+		return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), name: name}, nil
 	}
 	return nil, nil
 }
 
+func (ds *MemoryCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+	return nil
+}
+
 //The services start serving when this method is called
-func (ds *MemoryCacheFactory) StartServices(ctx core.ServerContext) error {
+func (ds *MemoryCacheFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 
 type MemoryCacheService struct {
 	memoryStorer *utils.MemoryStorer
-	conf         config.Config
+	name         string
 }
 
 func (svc *MemoryCacheService) Delete(ctx core.Context, key string) error {
@@ -51,6 +52,11 @@ func (svc *MemoryCacheService) Delete(ctx core.Context, key string) error {
 }
 
 func (svc *MemoryCacheService) PutObject(ctx core.Context, key string, val interface{}) error {
+	svc.memoryStorer.PutObject(key, val)
+	return nil
+}
+
+func (svc *MemoryCacheService) PutDerivedObject(ctx core.Context, key string, val interface{}) error {
 	svc.memoryStorer.PutObject(key, val)
 	return nil
 }
@@ -89,7 +95,7 @@ func (svc *MemoryCacheService) GetMulti(ctx core.Context, keys []string, val map
 	return false
 }
 
-func (ms *MemoryCacheService) Initialize(ctx core.ServerContext) error {
+func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
@@ -97,9 +103,6 @@ func (ms *MemoryCacheService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (ms *MemoryCacheService) GetConf() config.Config {
-	return ms.conf
-}
-func (ms *MemoryCacheService) GetResponseHandler() core.ServiceResponseHandler {
+func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
 	return nil
 }

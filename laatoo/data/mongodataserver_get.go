@@ -11,15 +11,13 @@ import (
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
 
-	var cachekey string
 	//try cache if the object is cacheable
 	if ms.cacheable {
-		cachekey = getCacheKey(ms.object, id)
 		ent, err := ms.objectCreator(ctx, nil)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		ok := ctx.GetFromCache(cachekey, ent)
+		ok := getFromCache(ctx, ms.object, id, ent)
 		if ok {
 			return ent.(data.Storable), nil
 		}
@@ -41,9 +39,11 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 		return nil, errors.RethrowError(ctx, DATA_ERROR_OPERATION, err, "ID", id)
 	}
 	stor := object.(data.Storable)
-	stor.PostLoad(ctx)
+	if ms.postload {
+		stor.PostLoad(ctx)
+	}
 	if ms.cacheable {
-		ctx.PutInCache(cachekey, object)
+		putInCache(ctx, ms.object, stor.GetId(), stor)
 	}
 	return stor, nil
 }
@@ -75,9 +75,11 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	for _, stor := range resultStor {
 		id := stor.GetId()
 		retVal[id] = stor
-		stor.PostLoad(ctx)
+		if ms.postload {
+			stor.PostLoad(ctx)
+		}
 		if ms.cacheable {
-			ctx.PutInCache(getCacheKey(ms.object, id), stor)
+			putInCache(ctx, ms.object, stor.GetId(), stor)
 		}
 	}
 	for _, id := range ids {
@@ -115,16 +117,18 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "results", results)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection, "results", results)
 	resultStor, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
 	recsreturned = len(resultStor)
 	for _, stor := range resultStor {
-		stor.PostLoad(ctx)
+		if ms.postload {
+			stor.PostLoad(ctx)
+		}
 		if ms.cacheable {
-			ctx.PutInCache(getCacheKey(ms.object, stor.GetId()), stor)
+			putInCache(ctx, ms.object, stor.GetId(), stor)
 		}
 	}
 	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "recsreturned", recsreturned)

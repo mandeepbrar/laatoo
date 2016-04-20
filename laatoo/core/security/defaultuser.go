@@ -3,8 +3,7 @@ package security
 import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"laatoo/core/registry"
-	"laatoo/sdk/auth"
+	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -13,7 +12,7 @@ import (
 )
 
 func init() {
-	registry.RegisterObjectFactory(auth.DEFAULT_USER, &UserFactory{})
+	objects.RegisterObjectFactory(config.DEFAULT_USER, &UserFactory{})
 }
 
 //interface that needs to be implemented by any object provider in a system
@@ -22,6 +21,10 @@ type UserFactory struct {
 
 //Initialize the object factory
 func (rf *UserFactory) Initialize(ctx core.ServerContext, config config.Config) error {
+	return nil
+}
+
+func (rf *UserFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 

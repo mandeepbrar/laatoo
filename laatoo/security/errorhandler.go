@@ -79,11 +79,12 @@ func init() {
 }
 */
 const (
-	AUTH_ERROR_DOMAIN_NOT_ALLOWED        = "Auth_Error_Domain_Not_Allowed"
-	AUTH_ERROR_JWT_CREATION              = "Auth_Error_JWT_Creation"
-	AUTH_ERROR_MISSING_USER_DATA_SERVICE = "Auth_Error_Missing_User_Data_Service"
-	AUTH_ERROR_USER_EXISTS               = "Auth_Error_User_Exists"
-	AUTH_ERROR_ENC_ERROR                 = "Auth_Error_Enc_Error"
+	AUTH_ERROR_DOMAIN_NOT_ALLOWED         = "Auth_Error_Domain_Not_Allowed"
+	AUTH_ERROR_JWT_CREATION               = "Auth_Error_JWT_Creation"
+	AUTH_ERROR_MISSING_USER_DATA_SERVICE  = "Auth_Error_Missing_User_Data_Service"
+	AUTH_ERROR_INCORRECT_SECURITY_HANDLER = "Auth_Error_Incorrect_Security_Handler"
+	AUTH_ERROR_USER_EXISTS                = "Auth_Error_User_Exists"
+	AUTH_ERROR_ENC_ERROR                  = "Auth_Error_Enc_Error"
 )
 
 func init() {
@@ -91,5 +92,6 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_JWT_CREATION, errors.ERROR, fmt.Errorf("Could not create JWT Token."))
 	errors.RegisterCode(AUTH_ERROR_MISSING_USER_DATA_SERVICE, errors.FATAL, fmt.Errorf("User data service not provided to authentication service."))
 	errors.RegisterCode(AUTH_ERROR_USER_EXISTS, errors.ERROR, fmt.Errorf("User already exists."))
+	errors.RegisterCode(AUTH_ERROR_INCORRECT_SECURITY_HANDLER, errors.ERROR, fmt.Errorf("Security handler has not been correctly configured."))
 	errors.RegisterCode(AUTH_ERROR_ENC_ERROR, errors.ERROR, fmt.Errorf("Internal Server error in encrypting password."))
 }

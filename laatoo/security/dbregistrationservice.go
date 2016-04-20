@@ -1,7 +1,6 @@
 package security
 
 import (
-	"laatoo/core/registry"
 	"laatoo/sdk/auth"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -18,11 +17,14 @@ const (
 
 // SecurityService contains a configuration and other details for running.
 type RegistrationService struct {
-	conf config.Config
 	//authentication mode for service
 	AuthMode string
 	//admin role
 	DefaultRole string
+	jwtSecret   string
+	authHeader  string
+	userObject  string
+	name        string
 	userCreator core.ObjectCreator
 	//user data service name
 	userDataSvcName string
@@ -30,46 +32,47 @@ type RegistrationService struct {
 	UserDataService data.DataService
 }
 
-//service method for doing various tasks
-func NewRegistrationService(ctx core.ServerContext, conf config.Config) (core.Service, error) {
-	rs := &RegistrationService{conf: conf}
-	defrole, ok := rs.conf.GetString(CONF_DEF_ROLE)
+func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sechandler == nil {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	jwtSecret, ok := sechandler.GetString(config.JWTSECRET)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	rs.jwtSecret = jwtSecret
+	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	rs.authHeader = authHeader
+	userObject, ok := sechandler.GetString(config.USER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	rs.userObject = userObject
+	defrole, ok := conf.GetString(CONF_DEF_ROLE)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
 	}
 	rs.DefaultRole = defrole
-	userObject := ctx.GetServerVariable(core.USER).(string)
-	userCreator, err := registry.GetObjectCreator(ctx, userObject)
+	userCreator, err := ctx.GetObjectCreator(userObject)
 	if err != nil {
-		return nil, errors.WrapError(ctx, err)
+		return errors.WrapError(ctx, err)
 	}
 	rs.userCreator = userCreator
-	userDataSvcName, ok := rs.conf.GetString(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+	userDataSvcName, ok := conf.GetString(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
 	}
 	rs.userDataSvcName = userDataSvcName
-	return rs, nil
-}
-
-func (rs *RegistrationService) Initialize(ctx core.ServerContext) error {
-	userService, err := ctx.GetService(rs.userDataSvcName)
-	if err != nil {
-		return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
-	}
-	userDataService, ok := userService.(data.DataService)
-	if !ok {
-		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
-	}
-	log.Logger.Debug(ctx, "User storer set for registration")
-	//get and set the data service for accessing users
-	rs.UserDataService = userDataService
 	return nil
 }
 
 //Expects Rbac user to be provided inside the request
 func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
-	ent := ctx.GetRequestBody()
+	ent := ctx.GetRequest()
 	user, ok := ent.(auth.RbacUser)
 	id := user.GetId()
 	existinguser, _ := rs.UserDataService.GetById(ctx, id)
@@ -89,9 +92,17 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (rs *RegistrationService) GetConf() config.Config {
-	return rs.conf
-}
-func (rs *RegistrationService) GetResponseHandler() core.ServiceResponseHandler {
+func (rs *RegistrationService) Start(ctx core.ServerContext) error {
+	userService, err := ctx.GetService(rs.userDataSvcName)
+	if err != nil {
+		return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
+	}
+	userDataService, ok := userService.(data.DataService)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
+	}
+	log.Logger.Debug(ctx, "User storer set for registration")
+	//get and set the data service for accessing users
+	rs.UserDataService = userDataService
 	return nil
 }

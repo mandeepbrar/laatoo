@@ -35,13 +35,13 @@ type Bundle struct {
 }
 
 type BundledFileService struct {
-	conf       config.Config
 	bundlesMap map[string]*Bundle
+	name       string
 }
 
-func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
+func (bs *BundledFileService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	bs.bundlesMap = make(map[string]*Bundle, 10)
-	bundlesConf, ok := bs.conf.GetSubConfig(CONF_STATIC_FILEBUNDLES)
+	bundlesConf, ok := conf.GetSubConfig(CONF_STATIC_FILEBUNDLES)
 	if ok {
 		bundlenames := bundlesConf.AllConfigurations()
 		for _, bundlename := range bundlenames {
@@ -93,11 +93,7 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (bs *BundledFileService) GetConf() config.Config {
-	return bs.conf
-}
-
-func (bs *BundledFileService) GetResponseHandler() core.ServiceResponseHandler {
+func (svc *BundledFileService) Start(ctx core.ServerContext) error {
 	return nil
 }
 

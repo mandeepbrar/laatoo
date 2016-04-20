@@ -2,7 +2,6 @@ package data
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"laatoo/core/registry"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/data"
@@ -12,87 +11,118 @@ import (
 
 type mongoDataService struct {
 	conf                    config.Config
+	name                    string
 	database                string
 	auditable               bool
 	softdelete              bool
 	cacheable               bool
+	presave                 bool
+	postsave                bool
+	postload                bool
+	notifynew               bool
+	notifyupdates           bool
 	factory                 *mongoDataServicesFactory
 	collection              string
 	object                  string
 	objectid                string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
-	/*deleteRefOpers map[string][]*refKeyOperation
-	getRefOpers    map[string][]*refKeyOperation
+	deleteRefOpers          []*refOperation
+	/*getRefOpers    map[string][]*refKeyOperation
 	putRefOpers    map[string][]*refKeyOperation
 	updateRefOpers map[string][]*refKeyOperation*/
 }
 
 const (
-	CONF_MONGO_DATABASE   = "database"
-	CONF_MONGO_OBJECT     = "object"
-	CONF_MONGO_OBJECT_ID  = "id"
-	CONF_MONGO_CACHEABLE  = "cacheable"
-	CONF_MONGO_AUDITABLE  = "auditable"
-	CONF_MONGO_SOFTDELETE = "softdelete"
-	CONF_MONGO_COLLECTION = "collection"
+	CONF_MONGO_DATABASE = "database"
 )
 
-func newMongoDataService(ctx core.ServerContext, ms *mongoDataServicesFactory, conf config.Config) (data.DataService, error) {
-	database, ok := conf.GetString(CONF_MONGO_DATABASE)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_DATABASE)
-	}
-	collection, ok := conf.GetString(CONF_MONGO_COLLECTION)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_COLLECTION)
-	}
-	object, ok := conf.GetString(CONF_MONGO_OBJECT)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_OBJECT)
-	}
-	objectid, ok := conf.GetString(CONF_MONGO_OBJECT_ID)
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_OBJECT_ID)
-	}
-	objectCreator, err := registry.GetObjectCreator(ctx, object)
-	if err != nil {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object creator for", object)
-	}
-	objectCollectionCreator, err := registry.GetObjectCollectionCreator(ctx, object)
-	if err != nil {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object Collection creator for", object)
-	}
-
-	mongoSvc := &mongoDataService{factory: ms, conf: conf, object: object, objectCreator: objectCreator,
-		collection: collection, objectid: objectid, objectCollectionCreator: objectCollectionCreator, database: database}
-	cacheable, ok := conf.GetString(CONF_MONGO_CACHEABLE)
-	if ok {
-		mongoSvc.cacheable = (cacheable == "true")
-	}
-	softdelete, ok := conf.GetString(CONF_MONGO_SOFTDELETE)
-	if ok {
-		mongoSvc.softdelete = (softdelete == "true")
-	}
-	auditable, ok := conf.GetString(CONF_MONGO_AUDITABLE)
-	if ok {
-		mongoSvc.auditable = (auditable == "true")
-	}
-	/*mongoSvc.objects = make(map[string]string, len(objs))
-	for obj, collection := range objs {
-
-		mongoSvc.objects[obj] = collection.(string)
-	}
-	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
-	if err != nil {
-		return nil, err
-	}
-	mongoSvc.deleteRefOpers = deleteOps
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
+func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (data.DataService, error) {
+	mongoSvc := &mongoDataService{name: name, factory: ms}
 	return mongoSvc, nil
 }
 
-func (ms *mongoDataService) Initialize(ctx core.ServerContext) error {
+func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+
+	database, ok := conf.GetString(CONF_MONGO_DATABASE)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_DATABASE)
+	}
+	collection, ok := conf.GetString(CONF_DATA_COLLECTION)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_COLLECTION)
+	}
+	object, ok := conf.GetString(CONF_DATA_OBJECT)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_OBJECT)
+	}
+	objectid, ok := conf.GetString(CONF_DATA_OBJECT_ID)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_OBJECT_ID)
+	}
+	objectCreator, err := ctx.GetObjectCreator(object)
+	if err != nil {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object creator for", object)
+	}
+	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(object)
+	if err != nil {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object Collection creator for", object)
+	}
+
+	ms.conf = conf
+	ms.object = object
+	ms.objectCreator = objectCreator
+	ms.collection = collection
+	ms.objectid = objectid
+	ms.objectCollectionCreator = objectCollectionCreator
+	ms.database = database
+
+	cacheable, ok := conf.GetBool(CONF_DATA_CACHEABLE)
+	if ok {
+		ms.cacheable = cacheable
+	}
+	softdelete, ok := conf.GetBool(CONF_DATA_SOFTDELETE)
+	if ok {
+		ms.softdelete = softdelete
+	}
+	auditable, ok := conf.GetBool(CONF_DATA_AUDITABLE)
+	if ok {
+		ms.auditable = auditable
+	}
+	postsave, ok := conf.GetBool(CONF_DATA_POSTSAVE)
+	if ok {
+		ms.postsave = postsave
+	}
+	presave, ok := conf.GetBool(CONF_DATA_PRESAVE)
+	if ok {
+		ms.presave = presave
+	}
+	postload, ok := conf.GetBool(CONF_DATA_POSTLOAD)
+	if ok {
+		ms.postload = postload
+	}
+	notifyupdates, ok := conf.GetBool(CONF_DATA_NOTIFYUPDATES)
+	if ok {
+		ms.notifyupdates = notifyupdates
+	}
+	notifynew, ok := conf.GetBool(CONF_DATA_NOTIFYNEW)
+	if ok {
+		ms.notifynew = notifynew
+	}
+	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
+	if err != nil {
+		return err
+	}
+	ms.deleteRefOpers = deleteOps
+	if ms.deleteRefOpers != nil {
+		for _, refop := range ms.deleteRefOpers {
+			refop.Initialize(ctx)
+		}
+	}
+	return nil
+}
+
+func (ms *mongoDataService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
@@ -100,16 +130,16 @@ func (ms *mongoDataService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (ms *mongoDataService) GetConf() config.Config {
-	return ms.conf
-}
-
-func (ms *mongoDataService) GetResponseHandler() core.ServiceResponseHandler {
-	return nil
+func (fs *mongoDataService) GetName() string {
+	return fs.name
 }
 
 func (ms *mongoDataService) GetDataServiceType() string {
 	return data.DATASERVICE_TYPE_NOSQL
+}
+
+func (ms *mongoDataService) GetObject() string {
+	return ms.object
 }
 
 func (ms *mongoDataService) Supports(feature data.Feature) bool {
@@ -126,7 +156,9 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	log.Logger.Trace(ctx, "Saving object", "Object", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
-	item.PreSave(ctx)
+	if ms.presave {
+		item.PreSave(ctx)
+	}
 	if ms.auditable {
 		data.Audit(ctx, item)
 	}
@@ -138,9 +170,8 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	item.PostSave(ctx)
-	if ms.cacheable {
-		ctx.PutInCache(getCacheKey(ms.object, id), item)
+	if ms.postsave {
+		item.PostSave(ctx)
 	}
 	return nil
 }
@@ -152,10 +183,10 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
 	for _, item := range items {
 		id := item.GetId()
-		if ms.cacheable {
-			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		invalidateCache(ctx, ms.object, id)
+		if ms.presave {
+			item.PreSave(ctx)
 		}
-		item.PreSave(ctx)
 		if ms.auditable {
 			data.Audit(ctx, item)
 		}
@@ -166,24 +197,31 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	for _, item := range items {
-		item.PostSave(ctx)
+	if ms.postsave || ms.notifyupdates {
+		for _, item := range items {
+			if ms.postsave {
+				item.PostSave(ctx)
+			}
+			if ms.notifyupdates {
+				notifyUpdate(ctx, ms.object, item.GetId())
+			}
+		}
 	}
 	log.Logger.Trace(ctx, "Saved multiple objects")
 	return nil
 }
 
 func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
-	if ms.cacheable {
-		ctx.DeleteFromCache(getCacheKey(ms.object, id))
-	}
+	invalidateCache(ctx, ms.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
 	condition[ms.objectid] = id
 	item.SetId(id)
-	item.PreSave(ctx)
+	if ms.presave {
+		item.PreSave(ctx)
+	}
 	if ms.auditable {
 		data.Audit(ctx, item)
 	}
@@ -191,14 +229,16 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	item.PostSave(ctx)
+	if ms.postsave {
+		item.PostSave(ctx)
+	}
+	if ms.notifyupdates {
+		notifyUpdate(ctx, ms.object, id)
+	}
 	return nil
 }
 
 func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
-	if ms.cacheable {
-		ctx.DeleteFromCache(getCacheKey(ms.object, id))
-	}
 	if ms.auditable {
 		data.Audit(ctx, newVals)
 	}
@@ -207,7 +247,15 @@ func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals m
 	condition[ms.objectid] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
-	return connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+	err := connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+	if err != nil {
+		return err
+	}
+	invalidateCache(ctx, ms.object, id)
+	if ms.notifyupdates {
+		notifyUpdate(ctx, ms.object, id)
+	}
+	return nil
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
@@ -231,9 +279,7 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 	}
 	for i := 0; i < length; i++ {
 		ids[i] = resultStor[i].GetId()
-		if ms.cacheable {
-			ctx.DeleteFromCache(getCacheKey(ms.object, ids[i]))
-		}
+		invalidateCache(ctx, ms.object, ids[i])
 	}
 	if ms.auditable {
 		data.Audit(ctx, newVals)
@@ -242,46 +288,56 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+	if ms.notifyupdates {
+		for _, id := range ids {
+			notifyUpdate(ctx, ms.object, id)
+		}
+	}
 	return ids, err
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
-	if ms.cacheable {
-		for _, id := range ids {
-			ctx.DeleteFromCache(getCacheKey(ms.object, id))
-		}
-	}
 	if ms.auditable {
 		data.Audit(ctx, newVals)
 	}
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.objectid, ids)
+	for _, id := range ids {
+		invalidateCache(ctx, ms.object, id)
+	}
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
-	return connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+	err := connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+	if err != nil {
+		return err
+	}
+	if ms.notifyupdates {
+		for _, id := range ids {
+			notifyUpdate(ctx, ms.object, id)
+		}
+	}
+	return nil
 }
 
 //item must support Deleted field for soft deletes
 func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 	if ms.softdelete {
 		err := ms.Update(ctx, id, map[string]interface{}{"Deleted": true})
-		/*if err == nil
-			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
-		}*/
+		if err == nil {
+			err = deleteRefOps(ctx, ms.deleteRefOpers, []string{id})
+		}
 		return err
 	}
-	if ms.cacheable {
-		ctx.DeleteFromCache(getCacheKey(ms.object, id))
-	}
+	invalidateCache(ctx, ms.object, id)
 	condition := bson.M{}
 	condition[ms.objectid] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	err := connCopy.DB(ms.database).C(ms.collection).Remove(condition)
-	/*if err == nil {
-		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, []string{id})
-	}*/
+	if err == nil {
+		err = deleteRefOps(ctx, ms.deleteRefOpers, []string{id})
+	}
 	return err
 }
 
@@ -289,26 +345,24 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	if ms.softdelete {
 		err := ms.UpdateMulti(ctx, ids, map[string]interface{}{"Deleted": true})
-		/*if err == nil {
-			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
-		}*/
-		return err
-	}
-	if ms.cacheable {
-		for _, id := range ids {
-			ctx.DeleteFromCache(getCacheKey(ms.object, id))
+		if err == nil {
+			err = deleteRefOps(ctx, ms.deleteRefOpers, ids)
 		}
+		return err
 	}
 	conditionVal := bson.M{}
 	conditionVal["$in"] = ids
 	condition := bson.M{}
 	condition[ms.objectid] = conditionVal
+	for _, id := range ids {
+		invalidateCache(ctx, ms.object, id)
+	}
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	_, err := connCopy.DB(ms.database).C(ms.collection).RemoveAll(condition)
-	/*if err == nil {
-		err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
-	}*/
+	if err == nil {
+		err = deleteRefOps(ctx, ms.deleteRefOpers, ids)
+	}
 	return err
 }
 
@@ -316,9 +370,9 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	if ms.softdelete {
 		ids, err := ms.UpdateAll(ctx, queryCond, map[string]interface{}{"Deleted": true})
-		/*if err == nil {
-			err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
-		}*/
+		if err == nil {
+			err = deleteRefOps(ctx, ms.deleteRefOpers, ids)
+		}
 		return ids, err
 	}
 	results, err := ms.objectCollectionCreator(ctx, nil)
@@ -338,16 +392,14 @@ func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interfa
 	for i := 0; i < length; i++ {
 		id := resultStor[i].GetId()
 		ids[i] = id
-		if ms.cacheable {
-			ctx.DeleteFromCache(getCacheKey(ms.object, id))
-		}
+		invalidateCache(ctx, ms.object, id)
 	}
 	_, err = connCopy.DB(ms.database).C(ms.collection).RemoveAll(queryCond)
 	if err == nil {
-		/*err = deleteRefOps(ctx, ms, ms.deleteRefOpers, objectType, ids)
+		err = deleteRefOps(ctx, ms.deleteRefOpers, ids)
 		if err != nil {
 			return ids, err
-		}*/
+		}
 	} else {
 		return nil, err
 	}

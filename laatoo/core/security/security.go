@@ -1,23 +1,23 @@
 package security
 
 import (
-/*	"bytes"
-		"encoding/json"
-		"github.com/labstack/echo"
-		"laatoosdk/auth"
-		"laatoosdk/config"
-		"laatoosdk/core"
-		"laatoosdk/utils"
-		"net/http"
-		"io/ioutil"
-	"fmt"
-	"laatoosdk/data"
-	"laatoosdk/errors"
-	"laatoosdk/log"
-	"reflect"*/
-)
+	"laatoo/sdk/auth"
+	"laatoo/sdk/core"
+	/*	"bytes"
+			"encoding/json"
+			"github.com/labstack/echo"
+			"laatoosdk/auth"
+			"laatoosdk/config"
+			"laatoosdk/utils"
+			"net/http"
+			"io/ioutil"
+		"fmt"
+		"laatoosdk/data"
+		"laatoosdk/errors"
+		"laatoosdk/log"
+		"reflect"*/)
 
-const (
+/*const (
 	CONF_SERVICE_AUTHBYPASS = "bypassauth"
 	CONF_AUTH_MODE          = "settings.authorization.mode"
 	CONF_AUTH_MODE_LOCAL    = "local"
@@ -28,4 +28,10 @@ const (
 	CONF_PERMISSIONS_API    = "settings.authorization.permissionsapi"
 	CONF_API_PUBKEY         = "settings.authorization.pubkey"
 	CONF_API_DOMAIN         = "settings.authorization.domain"
-)
+)*/
+
+type SecurityPlugin interface {
+	HasPermission(core.RequestContext, string) bool
+	GetRolePermissions(ctx core.RequestContext, role []string) ([]string, bool)
+	GetUser(ctx core.RequestContext) (auth.User, bool, error)
+}

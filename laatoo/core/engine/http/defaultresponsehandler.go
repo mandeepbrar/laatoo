@@ -1,22 +1,42 @@
 package http
 
 import (
+	"fmt"
+	"laatoo/core/common"
 	"laatoo/core/engine/http/net"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"net/http"
+	"strings"
 )
 
-func (router *Router) HandleResponse(ctx core.RequestContext) error {
+type defaultResponseHandler struct {
+	*common.Context
+}
+
+func DefaultResponseHandler(ctx core.ServerContext) *defaultResponseHandler {
+	return nil
+}
+
+func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error {
 	log.Logger.Trace(ctx, "Returning request with default response handler")
 	resp := ctx.GetResponse()
-	engineContext := ctx.EngineContext().(net.WebContext)
+	engineContext := ctx.EngineRequestContext().(net.WebContext)
 	if resp != nil {
 		log.Logger.Trace(ctx, "Returning request with status", "Status", resp.Status)
 		switch resp.Status {
 		case core.StatusSuccess:
 			if resp.Data != nil {
-				/****TODO***********/
+				if resp.Info != nil {
+					keyNames := make([]string, len(resp.Info))
+					i := 0
+					for key, val := range resp.Info {
+						engineContext.SetHeader(key, fmt.Sprint(val))
+						keyNames[i] = key
+						i++
+					}
+					engineContext.SetHeader("Access-Control-Expose-Headers", strings.Join(keyNames, ","))
+				}
 				return engineContext.JSON(http.StatusOK, resp.Data)
 			} else {
 				return engineContext.NoContent(http.StatusOK)
@@ -29,9 +49,9 @@ func (router *Router) HandleResponse(ctx core.RequestContext) error {
 				for key, val := range resp.Info {
 					switch key {
 					case core.ContentType:
-						engineContext.SetHeader(core.ContentType, val.(string))
+						engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
 					case core.LastModified:
-						engineContext.SetHeader(core.LastModified, val.(string))
+						engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
 					}
 				}
 			}

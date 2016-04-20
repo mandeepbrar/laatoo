@@ -17,6 +17,9 @@ import (
 type DatastoreDataService struct {
 	name           string
 	objects        map[string]string
+	presave        bool
+	postsave       bool
+	postload       bool
 	deleteRefOpers map[string][]*refKeyOperation
 	getRefOpers    map[string][]*refKeyOperation
 	putRefOpers    map[string][]*refKeyOperation
@@ -49,7 +52,7 @@ func DatastoreServiceFactory(ctx core.Context, conf map[string]interface{}) (int
 		return nil, errors.ThrowError(ctx, DATA_ERROR_MISSING_OBJECTS)
 	}
 
-	datastoreSvc := &DatastoreDataService{name: "Datastore Data Service"}
+	datastoreSvc := &DatastoreDataService{name: "Datastore Data Service", presave: false, postload: false}
 	datastoreSvc.objects = make(map[string]string, len(objs))
 	for obj, collection := range objs {
 
@@ -105,7 +108,9 @@ func (ms *DatastoreDataService) Save(ctx core.Context, objectType string, item i
 		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
-	stor.PreSave(ctx)
+	if ms.presave {
+		stor.PreSave(ctx)
+	}
 	id := stor.GetId()
 	if id == "" {
 		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", objectType)
@@ -114,7 +119,9 @@ func (ms *DatastoreDataService) Save(ctx core.Context, objectType string, item i
 	if err != nil {
 		return err
 	}
-	stor.PostSave(ctx)
+	if ms.postsave {
+		stor.PostSave(ctx)
+	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
@@ -127,12 +134,16 @@ func (ms *DatastoreDataService) Put(ctx core.Context, objectType string, id stri
 		return errors.ThrowError(ctx, DATA_ERROR_MISSING_COLLECTION, "ObjectType", objectType)
 	}
 	stor := item.(data.Storable)
-	stor.PreSave(ctx)
+	if ms.presave {
+		stor.PreSave(ctx)
+	}
 	key, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, collection, id, 0, nil), item)
 	if err != nil {
 		return err
 	}
-	stor.PostSave(ctx)
+	if ms.postsave {
+		stor.PostSave(ctx)
+	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved with key", "ObjectType", objectType, "Key", key)
 	return nil
 }
@@ -149,21 +160,25 @@ func (ms *DatastoreDataService) PutMulti(ctx core.Context, objectType string, id
 		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
 		keys[ind] = key
 	}
-	arr := reflect.ValueOf(items)
-	length := arr.Len()
-	for i := 0; i < length; i++ {
-		valPtr := arr.Index(i).Addr().Interface()
-		stor := valPtr.(data.Storable)
-		stor.PreSave(ctx)
+	if ms.presave {
+		arr := reflect.ValueOf(items)
+		length := arr.Len()
+		for i := 0; i < length; i++ {
+			valPtr := arr.Index(i).Addr().Interface()
+			stor := valPtr.(data.Storable)
+			stor.PreSave(ctx)
+		}
 	}
 	_, err := datastore.PutMulti(appEngineContext, keys, items)
 	if err != nil {
 		return err
 	}
-	for i := 0; i < length; i++ {
-		valPtr := arr.Index(i).Addr().Interface()
-		stor := valPtr.(data.Storable)
-		stor.PostSave(ctx)
+	if ms.postsave {
+		for i := 0; i < length; i++ {
+			valPtr := arr.Index(i).Addr().Interface()
+			stor := valPtr.(data.Storable)
+			stor.PostSave(ctx)
+		}
 	}
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Saved multiple objects", "ObjectType", objectType)
 	return nil
