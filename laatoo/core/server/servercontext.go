@@ -37,6 +37,8 @@ type serverContext struct {
 	securityHandler server.SecurityHandler
 	//service response handler applicable when a request is being executed
 	serviceResponseHandler server.ServiceResponseHandler
+	//pubsub
+	msgManager server.MessagingManager
 	//factory for which operation is being done
 	factory server.Factory
 	//service for which an operation/request is being executed
@@ -106,6 +108,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.channelManager
 	case core.ServerElementSecurityHandler:
 		return ctx.securityHandler
+	case core.ServerElementMessagingManager:
+		return ctx.msgManager
 	case core.ServerElementServiceResponseHandler:
 		return ctx.serviceResponseHandler
 	case core.ServerElementOpen1:
@@ -143,7 +147,7 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, applet: ctx.applet, environment: ctx.environment, securityHandler: ctx.securityHandler,
-		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel,
+		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
 		channelManager: ctx.channelManager, open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
 }
 
@@ -186,6 +190,8 @@ func (ctx *serverContext) NewContextWithElements(name string, elements core.Cont
 			newctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
 		case core.ServerElementSecurityHandler:
 			newctx.securityHandler = element.(server.SecurityHandler)
+		case core.ServerElementMessagingManager:
+			newctx.msgManager = element.(server.MessagingManager)
 		case core.ServerElementOpen1:
 			newctx.open1 = element
 		case core.ServerElementOpen2:
@@ -243,4 +249,10 @@ func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.Ob
 
 func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreator, error) {
 	return ctx.objectLoader.GetObjectCreator(ctx, objectName)
+}
+func (ctx *serverContext) Publish(topic string, message interface{}) error {
+	return ctx.msgManager.Publish(ctx, topic, message)
+}
+func (ctx *serverContext) Subscribe(topics []string, lstnr core.TopicListener) error {
+	return ctx.msgManager.Subscribe(ctx, topics, lstnr)
 }

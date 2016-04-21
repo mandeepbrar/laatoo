@@ -27,21 +27,29 @@ type environment struct {
 	serviceManager       server.ServiceManager
 	serviceManagerHandle server.ServerElementHandle
 
-	securityHandler server.SecurityHandler
+	securityHandler       server.SecurityHandler
+	securityHandlerHandle server.ServerElementHandle
+
+	messagingManager       server.MessagingManager
+	messagingManagerHandle server.ServerElementHandle
+
 	//all applets deployed on this server
 	applications map[string]server.Application
 	proxy        server.Environment
+	server       *serverObject
 }
 
 func newEnvironment(svrCtx core.ServerContext, name string, filterConf config.Config) (*environment, core.ServerElement) {
-	env := &environment{name: name, applications: make(map[string]server.Application, 5)}
+	svr := svrCtx.GetServerElement(core.ServerElementServer).(*serverProxy).server
+	env := &environment{name: name, applications: make(map[string]server.Application, 5), server: svr}
 	envCtx := svrCtx.NewCtx(name)
 	proxy := &environmentProxy{Context: envCtx.(*common.Context), env: env}
 	env.proxy = proxy
-	loader := svrCtx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
-	factoryManager := svrCtx.GetServerElement(core.ServerElementFactoryManager).(server.FactoryManager)
-	serviceManager := svrCtx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
-	channelMgr := svrCtx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
+	loader := svr.objectLoader
+	factoryManager := svr.factoryManager
+	serviceManager := svr.serviceManager
+	channelMgr := svr.channelMgr
+	msgMgr := svr.messagingManager
 	envLoaderHandle, envLoader := objects.ChildLoader(svrCtx, name, loader)
 	env.objectLoaderHandle = envLoaderHandle
 	env.objectLoader = envLoader.(server.ObjectLoader)
@@ -54,6 +62,9 @@ func newEnvironment(svrCtx core.ServerContext, name string, filterConf config.Co
 	chanMgrHandle, envChannelMgr := childChannelManager(svrCtx, name, channelMgr, proxy)
 	env.channelMgrHandle = chanMgrHandle
 	env.channelMgr = envChannelMgr.(server.ChannelManager)
+	msgMgrHandle, envmsgMgr := childMessagingManager(svrCtx, name, msgMgr, proxy)
+	env.messagingManagerHandle = msgMgrHandle
+	env.messagingManager = envmsgMgr.(server.MessagingManager)
 	log.Logger.Debug(svrCtx, "Created environment", "Name", name)
 	return env, proxy
 }
@@ -61,12 +72,12 @@ func newEnvironment(svrCtx core.ServerContext, name string, filterConf config.Co
 func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) error {
 	envInitCtx := env.createContext(ctx, "InitializeEnvironment")
 
-	objinit := envInitCtx.SubContextWithElement("Initialize object loader", core.ServerElementLoader)
-	err := initializeObjectLoader(objinit, conf, env.objectLoaderHandle)
+	msginit := envInitCtx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
+	err := initializeMessagingManager(msginit, conf, env.messagingManagerHandle)
 	if err != nil {
 		return err
 	}
-	log.Logger.Debug(objinit, "Initialized environment object loader")
+	log.Logger.Debug(msginit, "Initialized environment messaging manager")
 
 	secinit := envInitCtx.SubContext("Initialize security handler")
 	err = env.initializeSecurityHandler(secinit, conf)
@@ -74,6 +85,13 @@ func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) e
 		return err
 	}
 	log.Logger.Trace(secinit, "Initialized environment security handler")
+
+	objinit := envInitCtx.SubContextWithElement("Initialize object loader", core.ServerElementLoader)
+	err = initializeObjectLoader(objinit, conf, env.objectLoaderHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Debug(objinit, "Initialized environment object loader")
 
 	chaninit := envInitCtx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
 	err = initializeChannelManager(chaninit, conf, env.channelMgrHandle)
@@ -102,8 +120,19 @@ func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) e
 func (env *environment) Start(ctx core.ServerContext) error {
 	envStartCtx := env.createContext(ctx, "StartEnvironment")
 
+	msgstart := envStartCtx.SubContextWithElement("Start messaging manager", core.ServerElementMessagingManager)
+	err := env.messagingManagerHandle.Start(msgstart)
+	if err != nil {
+		return errors.WrapError(msgstart, err)
+	}
+
+	err = env.startSecurityHandler(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	objstart := envStartCtx.SubContextWithElement("Start object loader", core.ServerElementLoader)
-	err := env.objectLoaderHandle.Start(objstart)
+	err = env.objectLoaderHandle.Start(objstart)
 	if err != nil {
 		return errors.WrapError(objstart, err)
 	}
@@ -125,21 +154,33 @@ func (env *environment) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(svcstart, err)
 	}
+
 	log.Logger.Debug(ctx, "Started environment", "Name", env.name)
 	return nil
 }
+
 func (env *environment) initializeSecurityHandler(ctx core.ServerContext, conf config.Config) error {
+	envSecCtx := env.createContext(ctx, "Security Handler")
 	secConf, ok := conf.GetSubConfig(config.CONF_SECURITY)
 	if ok {
-		shElem, sh := newSecurityHandler(ctx, "Environment:"+env.name, env.proxy)
-		err := shElem.Initialize(ctx, secConf)
+		shElem, sh := newSecurityHandler(envSecCtx, "Environment:"+env.name, env.proxy)
+		err := shElem.Initialize(envSecCtx, secConf)
 		if err != nil {
-			return errors.WrapError(ctx, err)
+			return errors.WrapError(envSecCtx, err)
 		}
+		env.securityHandlerHandle = shElem
 		env.securityHandler = sh.(server.SecurityHandler)
 	} else {
-		svrCtx := ctx.(*serverContext)
-		env.securityHandler = svrCtx.server.(*serverProxy).server.securityHandler
+		env.securityHandler = env.server.securityHandler
+	}
+	return nil
+}
+
+func (env *environment) startSecurityHandler(ctx core.ServerContext) error {
+	if env.securityHandler != env.server.securityHandler {
+		envSecCtx := ctx.SubContextWithElement("Start Security Handler", core.ServerElementSecurityHandler)
+		log.Logger.Trace(envSecCtx, "Starting Security Handler")
+		return env.securityHandlerHandle.Start(envSecCtx)
 	}
 	return nil
 }
@@ -175,9 +216,10 @@ func (env *environment) createApplications(ctx core.ServerContext, name string, 
 func (env *environment) createContext(ctx core.ServerContext, name string) core.ServerContext {
 	return ctx.NewContextWithElements(name,
 		core.ContextMap{core.ServerElementEnvironment: env.proxy,
-			core.ServerElementLoader:          env.objectLoader,
-			core.ServerElementChannelManager:  env.channelMgr,
-			core.ServerElementSecurityHandler: env.securityHandler,
-			core.ServerElementFactoryManager:  env.factoryManager,
-			core.ServerElementServiceManager:  env.serviceManager}, core.ServerElementEnvironment)
+			core.ServerElementLoader:           env.objectLoader,
+			core.ServerElementChannelManager:   env.channelMgr,
+			core.ServerElementMessagingManager: env.messagingManager,
+			core.ServerElementSecurityHandler:  env.securityHandler,
+			core.ServerElementFactoryManager:   env.factoryManager,
+			core.ServerElementServiceManager:   env.serviceManager}, core.ServerElementEnvironment)
 }

@@ -27,7 +27,11 @@ type application struct {
 	serviceManager       server.ServiceManager
 	serviceManagerHandle server.ServerElementHandle
 
-	securityHandler server.SecurityHandler
+	securityHandler       server.SecurityHandler
+	securityHandlerHandle server.ServerElementHandle
+
+	messagingManager       server.MessagingManager
+	messagingManagerHandle server.ServerElementHandle
 
 	env *environment
 
@@ -48,6 +52,7 @@ func newApplication(svrCtx core.ServerContext, name string, filterConf config.Co
 	factoryManager := env.factoryManager
 	serviceManager := env.serviceManager
 	channelMgr := env.channelMgr
+	msgMgr := env.messagingManager
 	appLoaderHandle, appLoader := objects.ChildLoader(svrCtx, name, loader)
 	app.objectLoaderHandle = appLoaderHandle
 	app.objectLoader = appLoader.(server.ObjectLoader)
@@ -60,6 +65,9 @@ func newApplication(svrCtx core.ServerContext, name string, filterConf config.Co
 	chanMgrHandle, appChannelMgr := childChannelManager(svrCtx, name, channelMgr, proxy)
 	app.channelMgrHandle = chanMgrHandle
 	app.channelMgr = appChannelMgr.(server.ChannelManager)
+	msgMgrHandle, appmsgMgr := childMessagingManager(svrCtx, name, msgMgr, proxy)
+	app.messagingManagerHandle = msgMgrHandle
+	app.messagingManager = appmsgMgr.(server.MessagingManager)
 	log.Logger.Debug(svrCtx, "Created application", "Name", name)
 	return app, proxy
 }
@@ -68,12 +76,12 @@ func newApplication(svrCtx core.ServerContext, name string, filterConf config.Co
 func (app *application) Initialize(ctx core.ServerContext, conf config.Config) error {
 	appInitCtx := app.createContext(ctx, "InitializeApplication: "+app.name)
 
-	objinit := appInitCtx.SubContext("Initialize object loader")
-	err := initializeObjectLoader(objinit, conf, app.objectLoaderHandle)
+	msginit := appInitCtx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
+	err := initializeMessagingManager(msginit, conf, app.messagingManagerHandle)
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(objinit, "Initialized application object loader")
+	log.Logger.Debug(msginit, "Initialized application messaging manager")
 
 	secinit := appInitCtx.SubContext("Initialize security handler")
 	err = app.initializeSecurityHandler(secinit, conf)
@@ -81,6 +89,13 @@ func (app *application) Initialize(ctx core.ServerContext, conf config.Config) e
 		return err
 	}
 	log.Logger.Trace(secinit, "Initialized application security handler")
+
+	objinit := appInitCtx.SubContext("Initialize object loader")
+	err = initializeObjectLoader(objinit, conf, app.objectLoaderHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(objinit, "Initialized application object loader")
 
 	chaninit := appInitCtx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
 	err = initializeChannelManager(chaninit, conf, app.channelMgrHandle)
@@ -101,6 +116,8 @@ func (app *application) Initialize(ctx core.ServerContext, conf config.Config) e
 	if err != nil {
 		return err
 	}
+	log.Logger.Trace(svcinit, "Initialized application service manager")
+
 	log.Logger.Trace(appInitCtx, "Initialized application")
 
 	return nil
@@ -110,8 +127,19 @@ func (app *application) Initialize(ctx core.ServerContext, conf config.Config) e
 func (app *application) Start(ctx core.ServerContext) error {
 	applicationStartCtx := app.createContext(ctx, "Start Application: "+app.name)
 
+	msgstart := applicationStartCtx.SubContextWithElement("Start messaging manager", core.ServerElementMessagingManager)
+	err := app.messagingManagerHandle.Start(msgstart)
+	if err != nil {
+		return errors.WrapError(msgstart, err)
+	}
+
+	err = app.startSecurityHandler(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	appobjldrCtx := applicationStartCtx.SubContextWithElement("Start ObjectLoader", core.ServerElementLoader)
-	err := app.objectLoaderHandle.Start(appobjldrCtx)
+	err = app.objectLoaderHandle.Start(appobjldrCtx)
 	if err != nil {
 		return errors.WrapError(appobjldrCtx, err)
 	}
@@ -136,20 +164,33 @@ func (app *application) Start(ctx core.ServerContext) error {
 		return errors.WrapError(appsmCtx, err)
 	}
 	log.Logger.Trace(appsmCtx, "Started service manager")
+
 	log.Logger.Debug(applicationStartCtx, "Started application")
 	return nil
 }
+
 func (app *application) initializeSecurityHandler(ctx core.ServerContext, conf config.Config) error {
+	appSecCtx := app.createContext(ctx, "Security Handler")
 	secConf, ok := conf.GetSubConfig(config.CONF_SECURITY)
 	if ok {
-		shElem, sh := newSecurityHandler(ctx, "Application:"+app.name, app.proxy)
-		err := shElem.Initialize(ctx, secConf)
+		shElem, sh := newSecurityHandler(appSecCtx, "Application:"+app.name, app.proxy)
+		err := shElem.Initialize(appSecCtx, secConf)
 		if err != nil {
-			return errors.WrapError(ctx, err)
+			return errors.WrapError(appSecCtx, err)
 		}
+		app.securityHandlerHandle = shElem
 		app.securityHandler = sh.(server.SecurityHandler)
 	} else {
 		app.securityHandler = app.env.securityHandler
+	}
+	return nil
+}
+
+func (app *application) startSecurityHandler(ctx core.ServerContext) error {
+	if app.securityHandler != app.env.securityHandler {
+		appSecCtx := ctx.SubContextWithElement("Start Security Handler", core.ServerElementSecurityHandler)
+		log.Logger.Trace(appSecCtx, "Starting Security Handler")
+		return app.securityHandlerHandle.Start(appSecCtx)
 	}
 	return nil
 }
@@ -193,9 +234,10 @@ func (app *application) createApplet(ctx core.ServerContext, name string, applet
 func (app *application) createContext(ctx core.ServerContext, name string) core.ServerContext {
 	return ctx.NewContextWithElements(name,
 		core.ContextMap{core.ServerElementApplication: app.proxy,
-			core.ServerElementLoader:          app.objectLoader,
-			core.ServerElementSecurityHandler: app.securityHandler,
-			core.ServerElementChannelManager:  app.channelMgr,
-			core.ServerElementFactoryManager:  app.factoryManager,
-			core.ServerElementServiceManager:  app.serviceManager}, core.ServerElementApplication)
+			core.ServerElementLoader:           app.objectLoader,
+			core.ServerElementSecurityHandler:  app.securityHandler,
+			core.ServerElementMessagingManager: app.messagingManager,
+			core.ServerElementChannelManager:   app.channelMgr,
+			core.ServerElementFactoryManager:   app.factoryManager,
+			core.ServerElementServiceManager:   app.serviceManager}, core.ServerElementApplication)
 }

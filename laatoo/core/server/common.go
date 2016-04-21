@@ -54,3 +54,15 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 	}
 	return nil
 }
+
+func initializeMessagingManager(ctx core.ServerContext, conf config.Config, messagingManagerHandle server.ServerElementHandle) error {
+	msgConf, ok := conf.GetSubConfig(config.CONF_MSGMGR)
+	if !ok {
+		msgConf = make(config.GenericConfig, 0)
+	}
+	err := messagingManagerHandle.Initialize(ctx, msgConf)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}

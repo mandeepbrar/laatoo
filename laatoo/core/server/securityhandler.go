@@ -54,6 +54,17 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.userObject = userObject
 	sh.Set(config.USER, sh.userObject)
+	usr, err := ctx.CreateObject(userObject, nil)
+	if err != nil {
+		return err
+	}
+	anonymousUser, ok := usr.(auth.RbacUser)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+	}
+	anonymousUser.SetId("Anonymous")
+	anonymousUser.SetRoles([]string{"Anonymous"})
+	sh.anonymousUser = anonymousUser
 
 	jwtSecret, ok := conf.GetString(config.JWTSECRET)
 	if !ok {
@@ -85,7 +96,7 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 }
 
 func (sh *securityHandler) Start(ctx core.ServerContext) error {
-	return nil
+	return sh.handler.Start(ctx)
 }
 
 func (sh *securityHandler) CreateSystemRequest(ctx core.ServerContext, name string) core.RequestContext {

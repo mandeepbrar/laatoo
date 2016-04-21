@@ -42,7 +42,11 @@ type serverObject struct {
 	channelMgr       server.ChannelManager
 	channelMgrHandle server.ServerElementHandle
 
-	securityHandler server.SecurityHandler
+	securityHandler       server.SecurityHandler
+	securityHandlerHandle server.ServerElementHandle
+
+	messagingManager       server.MessagingManager
+	messagingManagerHandle server.ServerElementHandle
 
 	//config for the server
 	conf  config.Config
@@ -100,12 +104,11 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	log.Logger.Trace(initctx, "Initializing")
 	svr.conf = conf
 
-	objinit := initctx.SubContextWithElement("Initialize object loader", core.ServerElementLoader)
-	err := initializeObjectLoader(objinit, conf, svr.objectLoaderHandle)
+	err := svr.initializeMessagingManager(initctx, conf)
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(objinit, "Initialized server object loader")
+	log.Logger.Debug(initctx, "Initialized messaging manager")
 
 	secinit := initctx.SubContext("Initialize security handler")
 	err = svr.initializeSecurityHandler(secinit, conf)
@@ -113,6 +116,13 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 		return err
 	}
 	log.Logger.Trace(secinit, "Initialized server security handler")
+
+	objinit := initctx.SubContextWithElement("Initialize object loader", core.ServerElementLoader)
+	err = initializeObjectLoader(objinit, conf, svr.objectLoaderHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(objinit, "Initialized server object loader")
 
 	log.Logger.Trace(ctx, "Initializing engines")
 	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
@@ -145,6 +155,13 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	}
 	log.Logger.Debug(initctx, "Initialized Engines")
 
+	chminit := initctx.SubContext("Initialize channel manager")
+	err = initializeChannelManager(chminit, conf, svr.channelMgrHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Debug(chminit, "Initialized server channel manager")
+
 	//initializine the factory manager. The context already has object loader form server creation
 	facinit := initctx.SubContext("Initialize factory manager")
 	log.Logger.Trace(facinit, "Initializing server factory manager")
@@ -161,13 +178,6 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	if err != nil {
 		return err
 	}
-
-	chminit := initctx.SubContext("Initialize channel manager")
-	err = initializeChannelManager(chminit, conf, svr.channelMgrHandle)
-	if err != nil {
-		return err
-	}
-
 	log.Logger.Debug(svcinit, "Initialized server service manager")
 
 	return nil
@@ -176,6 +186,25 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 func (svr *serverObject) Start(ctx core.ServerContext) error {
 	startCtx := svr.createContext(ctx, "StartingServer")
 	log.Logger.Trace(startCtx, "Starting server")
+
+	if svr.messagingManagerHandle != nil {
+		msgHCtx := startCtx.SubContextWithElement("Start Messaging Manager", core.ServerElementMessagingManager)
+		log.Logger.Trace(msgHCtx, "Starting Messaging Manager")
+		err := svr.messagingManagerHandle.Start(msgHCtx)
+		if err != nil {
+			return errors.WrapError(msgHCtx, err)
+		}
+	}
+
+	if svr.securityHandlerHandle != nil {
+		secCtx := ctx.SubContextWithElement("Start Security Handler", core.ServerElementSecurityHandler)
+		log.Logger.Trace(secCtx, "Starting Security Handler")
+		err := svr.securityHandlerHandle.Start(secCtx)
+		if err != nil {
+			return errors.WrapError(secCtx, err)
+		}
+	}
+
 	objStart := startCtx.SubContextWithElement("Start object loader", core.ServerElementLoader)
 	log.Logger.Trace(objStart, "Started server object loader")
 	err := svr.objectLoaderHandle.Start(objStart)
@@ -197,6 +226,13 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 	}
 	log.Logger.Trace(startCtx, "Started engines")
 
+	cmStart := startCtx.SubContextWithElement("Start server channel manager", core.ServerElementChannelManager)
+	err = svr.channelMgrHandle.Start(cmStart)
+	if err != nil {
+		return errors.WrapError(cmStart, err)
+	}
+	log.Logger.Trace(cmStart, "Started server channel manager")
+
 	facStart := startCtx.SubContext("Start server factory manager")
 	err = svr.factoryManagerHandle.Start(facStart)
 	if err != nil {
@@ -211,26 +247,36 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 	}
 	log.Logger.Trace(smStart, "Started server service manager")
 
-	cmStart := startCtx.SubContextWithElement("Start server channel manager", core.ServerElementChannelManager)
-	err = svr.channelMgrHandle.Start(cmStart)
-	if err != nil {
-		return errors.WrapError(cmStart, err)
-	}
-	log.Logger.Trace(cmStart, "Started server channel manager")
-
 	log.Logger.Info(ctx, "Started server")
 	return nil
 }
 
+func (svr *serverObject) initializeMessagingManager(ctx core.ServerContext, conf config.Config) error {
+	svrMsgCtx := svr.createContext(ctx, "Messaging Manager")
+	msgSvcName, ok := conf.GetString(config.CONF_MESSAGING_SVC)
+	if ok {
+		msgHandle, msgElem := newMessagingManager(svrMsgCtx, "Server", svr.proxy, msgSvcName)
+		err := initializeMessagingManager(ctx, conf, msgHandle)
+		if err != nil {
+			return errors.WrapError(svrMsgCtx, err)
+		}
+		svr.messagingManager = msgElem
+		svr.messagingManagerHandle = msgHandle
+	}
+	return nil
+}
+
 func (svr *serverObject) initializeSecurityHandler(ctx core.ServerContext, conf config.Config) error {
+	svrSecCtx := svr.createContext(ctx, "Security Handler")
 	secConf, ok := conf.GetSubConfig(config.CONF_SECURITY)
 	if ok {
-		shElem, sh := newSecurityHandler(ctx, "Server", svr.proxy)
-		err := shElem.Initialize(ctx, secConf)
+		shElem, sh := newSecurityHandler(svrSecCtx, "Server", svr.proxy)
+		err := shElem.Initialize(svrSecCtx, secConf)
 		if err != nil {
-			return errors.WrapError(ctx, err)
+			return errors.WrapError(svrSecCtx, err)
 		}
 		svr.securityHandler = sh.(server.SecurityHandler)
+		svr.securityHandlerHandle = shElem
 	}
 	return nil
 }
@@ -280,9 +326,10 @@ func (svr *serverObject) createEngine(ctx core.ServerContext, name string, engCo
 func (svr *serverObject) createContext(ctx core.ServerContext, name string) core.ServerContext {
 	return ctx.NewContextWithElements(name,
 		core.ContextMap{core.ServerElementServer: svr.proxy,
-			core.ServerElementLoader:          svr.objectLoader,
-			core.ServerElementSecurityHandler: svr.securityHandler,
-			core.ServerElementChannelManager:  svr.channelMgr,
-			core.ServerElementFactoryManager:  svr.factoryManager,
-			core.ServerElementServiceManager:  svr.serviceManager}, core.ServerElementServer)
+			core.ServerElementLoader:           svr.objectLoader,
+			core.ServerElementSecurityHandler:  svr.securityHandler,
+			core.ServerElementMessagingManager: svr.messagingManager,
+			core.ServerElementChannelManager:   svr.channelMgr,
+			core.ServerElementFactoryManager:   svr.factoryManager,
+			core.ServerElementServiceManager:   svr.serviceManager}, core.ServerElementServer)
 }

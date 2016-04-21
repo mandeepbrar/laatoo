@@ -31,6 +31,7 @@ import (
 )*/
 
 type SecurityPlugin interface {
+	Start(core.ServerContext) error
 	HasPermission(core.RequestContext, string) bool
 	GetRolePermissions(ctx core.RequestContext, role []string) ([]string, bool)
 	GetUser(ctx core.RequestContext) (auth.User, bool, error)

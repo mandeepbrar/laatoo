@@ -25,6 +25,7 @@ type localSecurityHandler struct {
 	//data service to use for users
 	//UserDataService    data.DataService
 	roleDataService data.DataService
+	roleDataSvcName string
 	parent          server.SecurityHandler
 	rolesMap        map[string]auth.Role
 	allPermissions  []string
@@ -61,20 +62,24 @@ func NewLocalSecurityHandler(ctx core.ServerContext, parent server.SecurityHandl
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
 	}
-	roleService, err := ctx.GetService(roleDataSvcName)
+	lsh.roleDataSvcName = roleDataSvcName
+	return lsh, nil
+}
+func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
+	roleService, err := ctx.GetService(lsh.roleDataSvcName)
 	if err != nil {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
 	}
 	roleDataService, ok := roleService.(data.DataService)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
 	}
 	lsh.roleDataService = roleDataService
 	err = lsh.loadRoles(ctx)
 	if err != nil {
-		return nil, errors.WrapError(ctx, err)
+		return errors.WrapError(ctx, err)
 	}
-	return lsh, nil
+	return nil
 }
 
 func (lsh *localSecurityHandler) GetRolePermissions(ctx core.RequestContext, roles []string) ([]string, bool) {

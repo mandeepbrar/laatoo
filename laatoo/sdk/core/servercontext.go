@@ -15,6 +15,8 @@ const (
 
 type ServerElementType int
 
+type TopicListener func(ctx Context, topic string, message interface{})
+
 const (
 	ServerElementEngine ServerElementType = iota
 	ServerElementEnvironment
@@ -30,6 +32,7 @@ const (
 	ServerElementServiceResponseHandler
 	ServerElementServer
 	ServerElementSecurityHandler
+	ServerElementMessagingManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -61,4 +64,6 @@ type ServerContext interface {
 	CreateObject(objectName string, args MethodArgs) (interface{}, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
 	GetObjectCreator(objectName string) (ObjectCreator, error)
+	Publish(topic string, message interface{}) error
+	Subscribe(topics []string, lstnr TopicListener) error
 }
