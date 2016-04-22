@@ -99,13 +99,6 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	return sh.handler.Start(ctx)
 }
 
-func (sh *securityHandler) CreateSystemRequest(ctx core.ServerContext, name string) core.RequestContext {
-	reqCtx := ctx.CreateNewRequest(name, nil).(*requestContext)
-	reqCtx.user = nil
-	reqCtx.admin = true
-	return reqCtx
-}
-
 func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
 	usr, isadmin, err := sh.handler.GetUser(ctx)
 	if err != nil {

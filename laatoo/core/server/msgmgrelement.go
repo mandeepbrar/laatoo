@@ -12,12 +12,12 @@ type messagingManagerProxy struct {
 }
 
 //subscribe to a topic
-func (mgr *messagingManagerProxy) Subscribe(ctx core.Context, topics []string, handler core.TopicListener) error {
+func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.TopicListener) error {
 	return mgr.manager.subscribeTopic(ctx, topics, handler)
 }
 
 //publish message using
-func (mgr *messagingManagerProxy) Publish(ctx core.Context, topic string, message interface{}) error {
+func (mgr *messagingManagerProxy) Publish(ctx core.RequestContext, topic string, message interface{}) error {
 	return mgr.manager.publishMessage(ctx, topic, message)
 }
 

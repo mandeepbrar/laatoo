@@ -6,5 +6,4 @@ import (
 
 type Application interface {
 	core.ServerElement
-	GetService(ctx core.ServerContext, alias string) (Service, error)
 }

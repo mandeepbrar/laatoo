@@ -45,6 +45,7 @@ type serverContext struct {
 	service        server.Service
 	channel        server.Channel
 	channelManager server.ChannelManager
+	rulesManager   server.RulesManager
 	//open element for client applications
 	open1 core.ServerElement
 	open2 core.ServerElement
@@ -112,6 +113,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.msgManager
 	case core.ServerElementServiceResponseHandler:
 		return ctx.serviceResponseHandler
+	case core.ServerElementRulesManager:
+		return ctx.rulesManager
 	case core.ServerElementOpen1:
 		return ctx.open1
 	case core.ServerElementOpen2:
@@ -148,10 +151,13 @@ func (ctx *serverContext) newservercontext(context core.Context) *serverContext 
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, applet: ctx.applet, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
+		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
 }
 
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
+	return ctx.newContext(name)
+}
+func (ctx *serverContext) newContext(name string) *serverContext {
 	return ctx.newservercontext(ctx.NewCtx(name))
 }
 
@@ -159,6 +165,9 @@ func (ctx *serverContext) NewContext(name string) core.ServerContext {
 //id of the context is changed when new context is created
 //sets a context element
 func (ctx *serverContext) NewContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) core.ServerContext {
+	return ctx.newContextWithElements(name, elements, primaryElement)
+}
+func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
 	newctx := ctx.newservercontext(ctx.NewCtx(name))
 	for elementToSet, element := range elements {
 		switch elementToSet {
@@ -192,6 +201,8 @@ func (ctx *serverContext) NewContextWithElements(name string, elements core.Cont
 			newctx.securityHandler = element.(server.SecurityHandler)
 		case core.ServerElementMessagingManager:
 			newctx.msgManager = element.(server.MessagingManager)
+		case core.ServerElementRulesManager:
+			newctx.rulesManager = element.(server.RulesManager)
 		case core.ServerElementOpen1:
 			newctx.open1 = element
 		case core.ServerElementOpen2:
@@ -215,9 +226,13 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) c
 	if ctx.service == nil {
 		return nil
 	}
+	return ctx.createNewRequest(name, engineCtx, ctx.service)
+}
+
+func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, parent core.ServerElement) *requestContext {
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
-	newctx := ctx.service.NewCtx(name)
+	newctx := parent.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx,
 		engineContext: engineCtx, createTime: time.Now(), subRequest: false}
 }
@@ -250,9 +265,17 @@ func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.Ob
 func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreator, error) {
 	return ctx.objectLoader.GetObjectCreator(ctx, objectName)
 }
-func (ctx *serverContext) Publish(topic string, message interface{}) error {
-	return ctx.msgManager.Publish(ctx, topic, message)
+
+func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
+	reqCtx := ctx.createNewRequest(name, nil, ctx.element)
+	reqCtx.user = nil
+	reqCtx.admin = true
+	return reqCtx
 }
-func (ctx *serverContext) Subscribe(topics []string, lstnr core.TopicListener) error {
-	return ctx.msgManager.Subscribe(ctx, topics, lstnr)
+
+func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.TopicListener) error {
+	if ctx.msgManager != nil {
+		return ctx.msgManager.Subscribe(ctx, topics, lstnr)
+	}
+	return nil
 }

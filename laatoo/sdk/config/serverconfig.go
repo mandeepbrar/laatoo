@@ -12,6 +12,7 @@ const (
 	CONF_APPLICATION_ENGINE = "engine"
 	CONF_APPL_APPLICATION   = "application"
 	CONF_CHANNEL_MGR        = "channelmanager"
+	CONF_RULESMGR           = "rulesmanager"
 	CONF_APPL_OBJECT        = "object"
 	CONF_APPLETS            = "applets"
 	CONF_SERVER_ADDRESS     = "address"

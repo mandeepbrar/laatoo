@@ -5,6 +5,6 @@ import (
 )
 
 type PubSub interface {
-	Publish(ctx core.Context, topic string, message interface{}) error
-	Subscribe(ctx core.Context, topics []string, lstnr core.TopicListener) error
+	Publish(ctx core.RequestContext, topic string, message interface{}) error
+	Subscribe(ctx core.ServerContext, topics []string, lstnr core.TopicListener) error
 }

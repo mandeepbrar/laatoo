@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/core/rules"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -8,11 +9,14 @@ import (
 )
 
 func initializeObjectLoader(ctx core.ServerContext, conf config.Config, objectLoaderHandle server.ServerElementHandle) error {
-	ldrconf, ok := conf.GetSubConfig(config.CONF_OBJECTLDR)
+	ldrconf, err, ok := config.ConfigFileAdapter(conf, config.CONF_OBJECTLDR)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		ldrconf = make(config.GenericConfig, 0)
 	}
-	err := objectLoaderHandle.Initialize(ctx, ldrconf)
+	err = objectLoaderHandle.Initialize(ctx, ldrconf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -20,11 +24,14 @@ func initializeObjectLoader(ctx core.ServerContext, conf config.Config, objectLo
 }
 
 func initializeChannelManager(ctx core.ServerContext, conf config.Config, channelManagerHandle server.ServerElementHandle) error {
-	chmgrconf, ok := conf.GetSubConfig(config.CONF_CHANNEL_MGR)
+	chmgrconf, err, ok := config.ConfigFileAdapter(conf, config.CONF_CHANNEL_MGR)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		chmgrconf = make(config.GenericConfig, 0)
 	}
-	err := channelManagerHandle.Initialize(ctx, chmgrconf)
+	err = channelManagerHandle.Initialize(ctx, chmgrconf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -32,11 +39,14 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 }
 
 func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle server.ServerElementHandle) error {
-	facConf, ok := conf.GetSubConfig(config.CONF_FACMGR)
+	facConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_FACMGR)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		facConf = make(config.GenericConfig, 0)
 	}
-	err := factoryManagerHandle.Initialize(ctx, facConf)
+	err = factoryManagerHandle.Initialize(ctx, facConf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -44,11 +54,14 @@ func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factor
 }
 
 func initializeServiceManager(ctx core.ServerContext, conf config.Config, serviceManagerHandle server.ServerElementHandle) error {
-	svcConf, ok := conf.GetSubConfig(config.CONF_SVCMGR)
+	svcConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_SVCMGR)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		svcConf = make(config.GenericConfig, 0)
 	}
-	err := serviceManagerHandle.Initialize(ctx, svcConf)
+	err = serviceManagerHandle.Initialize(ctx, svcConf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -56,13 +69,33 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 }
 
 func initializeMessagingManager(ctx core.ServerContext, conf config.Config, messagingManagerHandle server.ServerElementHandle) error {
-	msgConf, ok := conf.GetSubConfig(config.CONF_MSGMGR)
+	msgConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_MSGMGR)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		msgConf = make(config.GenericConfig, 0)
 	}
-	err := messagingManagerHandle.Initialize(ctx, msgConf)
+	err = messagingManagerHandle.Initialize(ctx, msgConf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	return nil
+}
+
+func createRulesManager(ctx core.ServerContext, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.RulesManager, error) {
+	rulesConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_RULESMGR)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, nil
+	}
+	rulesCreateCtx := ctx.SubContext("Create Rules Manager")
+	rulesMgrHandle, rulesMgr := rules.NewRulesManager(rulesCreateCtx, "Server Rules Manager", parent)
+	err = rulesMgrHandle.Initialize(ctx, rulesConf)
+	if err != nil {
+		return nil, nil, errors.WrapError(ctx, err)
+	}
+	return rulesMgrHandle, rulesMgr, nil
 }

@@ -45,7 +45,7 @@ func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config
 	if ok {
 		topicNames := topicsConf.AllConfigurations()
 		for _, topicName := range topicNames {
-			topicConf, err := config.ConfigFileAdapter(topicsConf, topicName)
+			topicConf, err, _ := config.ConfigFileAdapter(topicsConf, topicName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -64,7 +64,7 @@ func (msgMgr *messagingManager) createTopic(ctx core.ServerContext, name string,
 }
 
 //subscribe to a topic
-func (mgr *messagingManager) subscribeTopic(ctx core.Context, topics []string, handler core.TopicListener) error {
+func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []string, handler core.TopicListener) error {
 	for _, topic := range topics {
 		listeners, prs := mgr.topicStore[topic]
 		if !prs {
@@ -78,7 +78,7 @@ func (mgr *messagingManager) subscribeTopic(ctx core.Context, topics []string, h
 }
 
 //publish message using
-func (mgr *messagingManager) publishMessage(ctx core.Context, topic string, message interface{}) error {
+func (mgr *messagingManager) publishMessage(ctx core.RequestContext, topic string, message interface{}) error {
 	_, ok := mgr.topicStore[topic]
 	if !ok {
 		log.Logger.Error(ctx, "Topic not allowed for Publishing", "Topic", topic)
@@ -91,7 +91,7 @@ func (mgr *messagingManager) publishMessage(ctx core.Context, topic string, mess
 	return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Name", "Messaging Manager")
 }
 
-func (mgr *messagingManager) subscribeTopics(ctx core.Context) error {
+func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 	if mgr.commSvc != nil {
 		topics := make([]string, len(mgr.topicStore))
 		i := 0
@@ -100,10 +100,10 @@ func (mgr *messagingManager) subscribeTopics(ctx core.Context) error {
 			i++
 		}
 		log.Logger.Trace(ctx, "Subscribing topics", "topics", topics)
-		mgr.commSvc.Subscribe(ctx, topics, func(ctx core.Context, topic string, message interface{}) {
+		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, topic string, message interface{}) {
 			lsnrs := mgr.topicStore[topic]
 			for _, val := range lsnrs {
-				go val(ctx, topic, message)
+				go val(reqctx, topic, message)
 			}
 		})
 		/*if err != nil {

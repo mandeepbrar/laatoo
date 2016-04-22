@@ -54,9 +54,9 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
 			log.Logger.Trace(ctx, "Process Service Factory group", "groupname", groupname)
-			facgrpConfig, err := config.ConfigFileAdapter(allgroups, groupname)
+			facgrpConfig, err, _ := config.ConfigFileAdapter(allgroups, groupname)
 			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for Factory group", groupname)
+				return errors.WrapError(ctx, err)
 			}
 			grpCtx := ctx.SubContext("Group:" + groupname)
 			err = facMgr.createServiceFactories(grpCtx, facgrpConfig)
@@ -73,9 +73,9 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	factories := factoriesConfig.AllConfigurations()
 	for _, factoryName := range factories {
 		log.Logger.Trace(ctx, "Process Factory ", "Factory name", factoryName)
-		factoryConfig, err := config.ConfigFileAdapter(factoriesConfig, factoryName)
+		factoryConfig, err, _ := config.ConfigFileAdapter(factoriesConfig, factoryName)
 		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for factory", factoryName)
+			return errors.WrapError(ctx, err)
 		}
 		facCtx := ctx.SubContext("Create Factory:" + factoryName)
 		err = facMgr.createServiceFactory(facCtx, factoryName, factoryConfig)
@@ -92,8 +92,11 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", CONF_SERVICEFACTORY)
 	}
 
-	svcfacConfig, err := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
+	svcfacConfig, err, ok := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
 	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_SERVICEFACTORYCONFIG)
 	}
 

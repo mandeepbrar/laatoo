@@ -8,7 +8,6 @@ import (
 	"laatoo/sdk/core"
 	//"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/services"
 	"time"
 )
 
@@ -57,7 +56,7 @@ type RedisPubSubService struct {
 	pool             *redis.Pool
 }
 
-func (svc *RedisPubSubService) Publish(ctx core.Context, topic string, message interface{}) error {
+func (svc *RedisPubSubService) Publish(ctx core.ServerContext, topic string, message interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	bytes, err := json.Marshal(message)
@@ -73,7 +72,7 @@ func (svc *RedisPubSubService) Publish(ctx core.Context, topic string, message i
 	return nil
 }
 
-func (svc *RedisPubSubService) Subscribe(ctx core.Context, topics []string, lstnr services.TopicListener) error {
+func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string, lstnr core.TopicListener) error {
 	conn := svc.pool.Get()
 	psc := redis.PubSubConn{Conn: conn}
 	for _, topic := range topics {
@@ -87,7 +86,8 @@ func (svc *RedisPubSubService) Subscribe(ctx core.Context, topics []string, lstn
 			switch v := psc.Receive().(type) {
 			case redis.Message:
 				log.Logger.Trace(ctx, "Message received on Queue")
-				lstnr(ctx, v.Channel, v.Data)
+				req := ctx.CreateSystemRequest("Message Received")
+				lstnr(req, v.Channel, v.Data)
 			case redis.Subscription:
 			case error:
 				log.Logger.Info(ctx, "Pubsub error ", "Error", v)

@@ -58,10 +58,6 @@ func (ctx *requestContext) NewContext(name string) core.RequestContext {
 		engineContext: ctx.engineContext, createTime: time.Now(), subRequest: false}
 }
 
-func (ctx *requestContext) PublishMessage(topic string, message interface{}) error {
-	return nil //ctx.serverContext.PublishMessage(topic, message)
-}
-
 func (ctx *requestContext) PutInCache(key string, item interface{}) error {
 	return nil //ctx.serverContext.PutInCache(key, item)
 }
@@ -113,6 +109,26 @@ func (ctx *requestContext) HasPermission(perm string) bool {
 }
 func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
 	return nil, false //ctx.serverContext.GetRolePermissions(role)
+}
+
+func (ctx *requestContext) FireEvent(eventType string, eventObject string, data map[string]interface{}) {
+	if ctx.serverContext.rulesManager != nil {
+		go ctx.serverContext.rulesManager.FireEvent(ctx, eventType, eventObject, data)
+	}
+	log.Logger.Error(ctx, "Rules Manager not created")
+}
+
+func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
+	if ctx.serverContext.msgManager != nil {
+		go func(ctx *requestContext, topic string, message interface{}) {
+			err := ctx.serverContext.msgManager.Publish(ctx, topic, message)
+			if err != nil {
+				log.Logger.Error(ctx, err.Error())
+			}
+		}(ctx, topic, message)
+	}
+	log.Logger.Error(ctx, "Publishing message to non existent manager")
+	return
 }
 
 //completes a request

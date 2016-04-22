@@ -13,7 +13,8 @@ type RequestContext interface {
 	GetUser() auth.User
 	HasPermission(perm string) bool
 	GetRolePermissions(role []string) ([]string, bool)
-	PublishMessage(topic string, message interface{}) error
+	PublishMessage(topic string, message interface{})
+	FireEvent(eventType string, eventObject string, data map[string]interface{})
 	PutInCache(key string, item interface{}) error
 	GetFromCache(key string, val interface{}) bool
 	GetMultiFromCache(keys []string, val map[string]interface{}) bool

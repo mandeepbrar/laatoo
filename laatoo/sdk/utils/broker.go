@@ -4,7 +4,7 @@ import (
 	"github.com/pmylund/go-cache"
 )
 
-type EventHandler func(interface{}) error
+type EventHandler func(map[string]interface{}) error
 
 var (
 	registeredHandlers = cache.New(cache.NoExpiration, 0)
@@ -12,7 +12,7 @@ var (
 
 type Event struct {
 	Type      string
-	EventData interface{}
+	EventData map[string]interface{}
 }
 
 func RegisterEventHandler(eventType string, handler EventHandler) {

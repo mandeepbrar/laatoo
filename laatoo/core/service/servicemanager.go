@@ -56,7 +56,10 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 			if ok {
 				channelnames := svcChannels.AllConfigurations()
 				for _, channelName := range channelnames {
-					svcChannelConfig, err := config.ConfigFileAdapter(svcChannels, channelName)
+					svcChannelConfig, err, _ := config.ConfigFileAdapter(svcChannels, channelName)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
 					svcServeCtx := ctx.NewContextWithElements("Serve: "+svcStruct.name, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 					err = chanMgr.Serve(svcServeCtx, channelName, svcStruct, svcChannelConfig)
 					if err != nil {
@@ -78,9 +81,9 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
 			log.Logger.Debug(ctx, "Process Service group", "groupname", groupname)
-			svcgrpConfig, err := config.ConfigFileAdapter(allgroups, groupname)
+			svcgrpConfig, err, _ := config.ConfigFileAdapter(allgroups, groupname)
 			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_CONF, err, "Wrong config for service group", groupname)
+				return errors.WrapError(ctx, err)
 			}
 			grpCtx := ctx.SubContext("ServiceGroup:" + groupname)
 			err = svcMgr.createServices(grpCtx, svcgrpConfig)
@@ -98,7 +101,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 			if ok {
 				continue
 			}
-			serviceConfig, err := config.ConfigFileAdapter(svcsConf, svcAlias)
+			serviceConfig, err, _ := config.ConfigFileAdapter(svcsConf, svcAlias)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

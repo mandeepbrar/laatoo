@@ -73,9 +73,9 @@ func createEnvironments(ctx core.ServerContext, conf config.Config) error {
 	if ok {
 		envNames := envs.AllConfigurations()
 		for _, envName := range envNames {
-			envConfig, err := config.ConfigFileAdapter(envs, envName)
+			envConfig, err, _ := config.ConfigFileAdapter(envs, envName)
 			if err != nil {
-				return err
+				return errors.WrapError(ctx, err)
 			}
 			//create named environment from a config
 			err = svrProx.server.createEnvironment(ctx, envName, envConfig)
@@ -96,9 +96,9 @@ func createApplications(ctx core.ServerContext, conf config.Config) error {
 		appNames := apps.AllConfigurations()
 		//iterate applications
 		for _, appName := range appNames {
-			appConfig, err := config.ConfigFileAdapter(apps, appName)
+			appConfig, err, _ := config.ConfigFileAdapter(apps, appName)
 			if err != nil {
-				return err
+				return errors.WrapError(ctx, err)
 			}
 			//find the environment on which the application is to be hosted
 			envName, ok := appConfig.GetString(config.CONF_APP_ENVIRONMENT)
@@ -131,9 +131,9 @@ func createApplets(ctx core.ServerContext, conf config.Config) error {
 		appletNames := applets.AllConfigurations()
 		//iterate all applets
 		for _, appletName := range appletNames {
-			appletConfig, err := config.ConfigFileAdapter(applets, appletName)
+			appletConfig, err, _ := config.ConfigFileAdapter(applets, appletName)
 			if err != nil {
-				return err
+				return errors.WrapError(ctx, err)
 			}
 			//get the envrionment and application on which the applet is to be created
 			envName, ok := appletConfig.GetString(config.CONF_APP_ENVIRONMENT)

@@ -34,7 +34,7 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 	if ok {
 		channelNames := channelsConf.AllConfigurations()
 		for _, channelName := range channelNames {
-			channelConf, err := config.ConfigFileAdapter(channelsConf, channelName)
+			channelConf, err, _ := config.ConfigFileAdapter(channelsConf, channelName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
