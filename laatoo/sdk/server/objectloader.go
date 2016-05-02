@@ -12,4 +12,5 @@ type ObjectLoader interface {
 	CreateObject(ctx core.Context, objectName string, args core.MethodArgs) (interface{}, error)
 	GetObjectCollectionCreator(ctx core.Context, objectName string) (core.ObjectCollectionCreator, error)
 	GetObjectCreator(ctx core.Context, objectName string) (core.ObjectCreator, error)
+	GetMethod(ctx core.Context, methodName string) (core.ServiceFunc, error)
 }

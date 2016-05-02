@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/auth"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
+	"laatoo/sdk/services"
 	"time"
 )
 
@@ -12,6 +13,8 @@ import (
 //through all the layers of execution
 type requestContext struct {
 	*common.Context
+
+	cache services.Cache
 	//any context from the engine that received a service request
 	engineContext interface{}
 	//user who is executing the request
@@ -41,13 +44,16 @@ func (ctx *requestContext) EngineRequestContext() interface{} {
 func (ctx *requestContext) ServerContext() core.ServerContext {
 	return ctx.serverContext
 }
+func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) core.ServerElement {
+	return ctx.serverContext.GetServerElement(elemType)
+}
 
 //subcontext of the request
 //retains id and tracks flow along with variables
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	newctx := ctx.SubCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, requestBody: ctx.requestBody,
-		engineContext: ctx.engineContext, createTime: time.Now(), subRequest: true}
+		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: true}
 }
 
 //new context from the request if a part of the request needs to be tracked separately
@@ -55,23 +61,39 @@ func (ctx *requestContext) SubContext(name string) core.RequestContext {
 func (ctx *requestContext) NewContext(name string) core.RequestContext {
 	newctx := ctx.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, requestBody: ctx.requestBody,
-		engineContext: ctx.engineContext, createTime: time.Now(), subRequest: false}
+		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: false}
 }
 
 func (ctx *requestContext) PutInCache(key string, item interface{}) error {
-	return nil //ctx.serverContext.PutInCache(key, item)
+	if ctx.cache != nil {
+		return ctx.cache.PutObject(ctx, key, item)
+	} else {
+		return nil
+	}
 }
 
 func (ctx *requestContext) GetFromCache(key string, val interface{}) bool {
-	return false //ctx.serverContext.GetFromCache(key, val)
+	if ctx.cache != nil {
+		return ctx.cache.GetObject(ctx, key, val)
+	} else {
+		return false
+	}
 }
 
 func (ctx *requestContext) GetMultiFromCache(keys []string, val map[string]interface{}) bool {
-	return false //ctx.serverContext.GetMultiFromCache(keys, val)
+	if ctx.cache != nil {
+		return ctx.cache.GetMulti(ctx, keys, val)
+	} else {
+		return false
+	}
 }
 
 func (ctx *requestContext) InvalidateCache(key string) error {
-	return nil //ctx.serverContext.DeleteFromCache(key)
+	if ctx.cache != nil {
+		return ctx.cache.Delete(ctx, key)
+	} else {
+		return nil
+	}
 }
 
 //returns user executing a request

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/core/cache"
 	"laatoo/core/rules"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -83,7 +84,7 @@ func initializeMessagingManager(ctx core.ServerContext, conf config.Config, mess
 	return nil
 }
 
-func createRulesManager(ctx core.ServerContext, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.RulesManager, error) {
+func createRulesManager(ctx core.ServerContext, name string, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.RulesManager, error) {
 	rulesConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_RULESMGR)
 	if err != nil {
 		return nil, nil, err
@@ -92,10 +93,33 @@ func createRulesManager(ctx core.ServerContext, conf config.Config, parent core.
 		return nil, nil, nil
 	}
 	rulesCreateCtx := ctx.SubContext("Create Rules Manager")
-	rulesMgrHandle, rulesMgr := rules.NewRulesManager(rulesCreateCtx, "Server Rules Manager", parent)
+	rulesMgrHandle, rulesMgr := rules.NewRulesManager(rulesCreateCtx, name, parent)
 	err = rulesMgrHandle.Initialize(ctx, rulesConf)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
 	return rulesMgrHandle, rulesMgr, nil
+}
+
+func createCacheManager(ctx core.ServerContext, name string, conf config.Config, parentCacheMgr core.ServerElement, parent core.ServerElement) (server.ServerElementHandle, server.CacheManager, error) {
+	cacheManagerConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_CACHE_MGR)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, nil
+	}
+	cacheMgrCreateCtx := ctx.SubContext("Create Cache Manager")
+	var cacheMgrHandle server.ServerElementHandle
+	var cacheMgr server.CacheManager
+	if parentCacheMgr == nil {
+		cacheMgrHandle, cacheMgr = cache.NewCacheManager(cacheMgrCreateCtx, "Root", parent)
+	} else {
+		cacheMgrHandle, cacheMgr = cache.ChildCacheManager(cacheMgrCreateCtx, name, parent, parentCacheMgr)
+	}
+	err = cacheMgrHandle.Initialize(ctx, cacheManagerConf)
+	if err != nil {
+		return nil, nil, errors.WrapError(ctx, err)
+	}
+	return cacheMgrHandle, cacheMgr, nil
 }

@@ -78,7 +78,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	}
 	id := usr.GetId()
-	log.Logger.Debug(ctx, "getting user from service", "ls", ls, "id", id)
+	log.Logger.Trace(ctx, "getting user from service", "id", id)
 	//get the tested user from database
 	testedUser, err := ls.UserDataService.GetById(ctx, id)
 	if err != nil {
@@ -94,7 +94,6 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
 	//compare the user requested with the user from database
 	existingUser := testedUser.(auth.LocalAuthUser)
-	log.Logger.Info(ctx, "Comparing passwords", "existing", existingUser.GetPassword(), "to test", usr.GetPassword())
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	existingUser.SetPassword("")
 	if err != nil {

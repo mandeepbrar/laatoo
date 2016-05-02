@@ -34,6 +34,7 @@ const (
 	ServerElementServer
 	ServerElementSecurityHandler
 	ServerElementMessagingManager
+	ServerElementCacheManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -63,6 +64,7 @@ type ServerContext interface {
 	GetOAuthContext(ctx Context) glctx.Context
 	CreateCollection(objectName string, args MethodArgs) (interface{}, error)
 	CreateObject(objectName string, args MethodArgs) (interface{}, error)
+	GetMethod(methodName string) (ServiceFunc, error)
 	GetObjectCollectionCreator(objectName string) (ObjectCollectionCreator, error)
 	GetObjectCreator(objectName string) (ObjectCreator, error)
 	CreateSystemRequest(name string) RequestContext

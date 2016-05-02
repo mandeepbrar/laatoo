@@ -9,8 +9,7 @@ import (
 )
 
 type channelManager struct {
-	parent core.ServerElement
-	proxy  server.ChannelManager
+	proxy server.ChannelManager
 	//store for service factory in an application
 	channelStore map[string]server.Channel
 }

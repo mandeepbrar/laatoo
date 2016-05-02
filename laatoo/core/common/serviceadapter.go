@@ -14,10 +14,8 @@ func NewService(ctx core.ServerContext, alias string, servFunc core.ServiceFunc)
 }
 
 type serviceImpl struct {
-	name           string
-	servFunc       core.ServiceFunc
-	mwServiceNames []string
-	middleware     []core.Service
+	name     string
+	servFunc core.ServiceFunc
 }
 
 func (svc *serviceImpl) GetName() string {

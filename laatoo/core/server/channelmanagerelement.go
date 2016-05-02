@@ -24,8 +24,8 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{parent: parentElem, channelStore: make(map[string]server.Channel, 10)}
-	cmElemCtx := parentElem.NewCtx(name)
+	cm := &channelManager{channelStore: make(map[string]server.Channel, 10)}
+	cmElemCtx := parentElem.NewCtx("Channel Manager:" + name)
 	cmElem := &channelManagerProxy{Context: cmElemCtx.(*common.Context), manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
@@ -47,8 +47,8 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 			store[k] = v
 		}
 	}
-	cm := &channelManager{parent: parent, channelStore: store}
-	cmElemCtx := parentChannelMgr.NewCtx(name)
+	cm := &channelManager{channelStore: store}
+	cmElemCtx := parent.NewCtx("Channel Manager:" + name)
 	cmElem := &channelManagerProxy{Context: cmElemCtx.(*common.Context), manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem

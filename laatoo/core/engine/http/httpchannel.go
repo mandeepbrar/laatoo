@@ -134,7 +134,7 @@ func (channel *httpChannel) group(ctx core.ServerContext, name string, conf conf
 	return newHttpChannel(ctx, name, conf, channel.engine, channel)
 }
 
-func (channel *httpChannel) httpAdapater(ctx core.ServerContext, handler core.ServiceFunc) net.HandlerFunc {
+func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.ServiceFunc) net.HandlerFunc {
 	var shandler server.SecurityHandler
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
@@ -156,31 +156,31 @@ func (channel *httpChannel) httpAdapater(ctx core.ServerContext, handler core.Se
 
 func (channel *httpChannel) get(ctx core.ServerContext, path string, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Get(path, channel.httpAdapater(ctx, handler))
+	channel.Router.Get(path, channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) options(ctx core.ServerContext, path string, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
-	channel.Router.Options(path, channel.httpAdapater(ctx, handler))
+	channel.Router.Options(path, channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) put(ctx core.ServerContext, path string, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Put(path, channel.httpAdapater(ctx, handler))
+	channel.Router.Put(path, channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) post(ctx core.ServerContext, path string, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Post(path, channel.httpAdapater(ctx, handler))
+	channel.Router.Post(path, channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) delete(ctx core.ServerContext, path string, handler core.ServiceFunc) {
 	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Delete(path, channel.httpAdapater(ctx, handler))
+	channel.Router.Delete(path, channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) use(ctx core.ServerContext, handler core.ServiceFunc) {
-	channel.Router.Use(channel.httpAdapater(ctx, handler))
+	channel.Router.Use(channel.httpAdapter(ctx, handler))
 }
 
 func (channel *httpChannel) useMW(ctx core.ServerContext, handler func(http.Handler) http.Handler) {

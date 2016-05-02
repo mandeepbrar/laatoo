@@ -10,7 +10,7 @@ import (
 
 func NewServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
 	sm := &serviceManager{parent: parentElem, servicesStore: make(map[string]*service, 100)}
-	smElemCtx := parentElem.NewCtx(name)
+	smElemCtx := parentElem.NewCtx("Service Manager:" + name)
 	smElem := &serviceManagerProxy{Context: smElemCtx.(*common.Context), manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
@@ -33,7 +33,7 @@ func ChildServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.
 		}
 	}
 	sm := &serviceManager{parent: parent, servicesStore: store}
-	smElemCtx := parentSvcMgr.NewCtx(name)
+	smElemCtx := parentSvcMgr.NewCtx("Service Manager:" + name)
 	smElem := &serviceManagerProxy{Context: smElemCtx.(*common.Context), manager: sm}
 	sm.proxy = smElem
 	return sm, smElem

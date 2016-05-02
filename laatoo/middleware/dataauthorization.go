@@ -1,11 +1,10 @@
 package middleware
 
-/*
 import (
-	"laatoocore"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoocore"
 	"reflect"
 )
 
@@ -15,7 +14,7 @@ const (
 )
 
 func init() {
-	laatoocore.RegisterInvokableMethod(CHECK_ENTITY_OWNERSHIP_AUTH_METHOD, EnforceEntityOwnership)
+	objects.RegisterInvokableMethod(CHECK_ENTITY_OWNERSHIP_AUTH_METHOD, EnforceEntityOwnership)
 }
 
 func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error {
@@ -59,4 +58,3 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 	return nil
 }
-*/

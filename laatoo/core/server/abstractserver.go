@@ -35,6 +35,9 @@ type abstractserver struct {
 	rulesManager       server.RulesManager
 	rulesManagerHandle server.ServerElementHandle
 
+	cacheManager       server.CacheManager
+	cacheManagerHandle server.ServerElementHandle
+
 	parent *abstractserver
 
 	proxy core.ServerElement
@@ -44,22 +47,22 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 	as := &abstractserver{name: name, parent: parent, proxy: proxy}
 	if parent == nil {
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
-		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, "Root Object Loader", proxy)
+		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, "Root", proxy)
 		as.objectLoaderHandle = objectLoaderHandle
 		as.objectLoader = objectLoader.(server.ObjectLoader)
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
-		factoryManagerHandle, factoryManager := factory.NewFactoryManager(fmCreateCtx, "Root Factory Manager", proxy)
+		factoryManagerHandle, factoryManager := factory.NewFactoryManager(fmCreateCtx, "Root", proxy)
 		as.factoryManagerHandle = factoryManagerHandle
 		as.factoryManager = factoryManager.(server.FactoryManager)
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
-		serviceManagerHandle, serviceManager := service.NewServiceManager(smCreateCtx, "Root Service Manager", proxy)
+		serviceManagerHandle, serviceManager := service.NewServiceManager(smCreateCtx, "Root", proxy)
 		as.serviceManagerHandle = serviceManagerHandle
 		as.serviceManager = serviceManager.(server.ServiceManager)
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
-		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, "Root Channel Manager", proxy)
+		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, "Root", proxy)
 		as.channelMgr = channelMgr
 		as.channelMgrHandle = channelMgrHandle
 	} else {
@@ -67,8 +70,7 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 		factoryManager := parent.factoryManager
 		serviceManager := parent.serviceManager
 		channelMgr := parent.channelMgr
-		msgMgr := parent.messagingManager
-		childLoaderHandle, childLoader := objects.ChildLoader(svrCtx, name, loader)
+		childLoaderHandle, childLoader := objects.ChildLoader(svrCtx, name, loader, proxy)
 		as.objectLoaderHandle = childLoaderHandle
 		as.objectLoader = childLoader.(server.ObjectLoader)
 		childFactoryManagerHandle, childFactoryManager := factory.ChildFactoryManager(svrCtx, name, factoryManager, proxy)
@@ -80,9 +82,6 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 		childChanMgrHandle, childChannelMgr := childChannelManager(svrCtx, name, channelMgr, proxy)
 		as.channelMgrHandle = childChanMgrHandle
 		as.channelMgr = childChannelMgr.(server.ChannelManager)
-		childMsgMgrHandle, childMsgMgr := childMessagingManager(svrCtx, name, msgMgr, proxy)
-		as.messagingManagerHandle = childMsgMgrHandle
-		as.messagingManager = childMsgMgr.(server.MessagingManager)
 
 	}
 	return as
@@ -90,14 +89,32 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 
 //initialize application with object loader, factory manager, service manager
 func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
-	msginit := ctx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
-	err := initializeMessagingManager(msginit, conf, as.messagingManagerHandle)
-	if err != nil {
-		return err
-	}
-	log.Logger.Debug(msginit, "Initialized messaging manager")
 
-	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, conf, as.proxy)
+	if (as.parent == nil) || (as.parent.messagingManager == nil) {
+		msgSvcName, ok := conf.GetString(config.CONF_MESSAGING_SVC)
+		if ok {
+			msgCtx := ctx.SubContext("Create Messaging Manager")
+			msgHandle, msgElem := newMessagingManager(msgCtx, "Root", as.proxy, msgSvcName)
+			as.messagingManager = msgElem
+			as.messagingManagerHandle = msgHandle
+			log.Logger.Trace(msgCtx, "Created messaging manager")
+		}
+	} else {
+		childMsgMgrHandle, childMsgMgr := childMessagingManager(ctx, as.name, as.parent.messagingManager, as.proxy)
+		as.messagingManagerHandle = childMsgMgrHandle
+		as.messagingManager = childMsgMgr.(server.MessagingManager)
+	}
+	ctx.msgManager = as.messagingManager
+	if as.messagingManagerHandle != nil {
+		msginit := ctx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
+		err := initializeMessagingManager(msginit, conf, as.messagingManagerHandle)
+		if err != nil {
+			return err
+		}
+		log.Logger.Debug(msginit, "Initialized messaging manager")
+	}
+
+	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, as.name, conf, as.proxy)
 	if err != nil {
 		return err
 	} else {
@@ -107,12 +124,34 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 			log.Logger.Debug(ctx, "Created rules manager")
 		}
 	}
+	ctx.rulesManager = as.rulesManager
+
+	var parentCacheMgr server.CacheManager
+	if as.parent != nil {
+		parentCacheMgr = as.parent.cacheManager
+	}
+	cacheMgrHandle, cacheMgr, err := createCacheManager(ctx, as.name, conf, parentCacheMgr, as.proxy)
+	if err != nil {
+		return err
+	}
+	if cacheMgr == nil {
+		as.cacheManager = parentCacheMgr
+	} else {
+		as.cacheManager = cacheMgr
+		as.cacheManagerHandle = cacheMgrHandle
+	}
+	ctx.cacheManager = as.cacheManager
+	cacheToUse, ok := conf.GetString(config.CONF_CACHE_NAME)
+	if ok {
+		as.proxy.Set("__cache", cacheToUse)
+	}
 
 	err = as.initializeSecurityHandler(ctx, conf)
 	if err != nil {
 		return err
 	}
 	log.Logger.Trace(ctx, "Initialized security handler")
+	ctx.securityHandler = as.securityHandler
 
 	objinit := ctx.SubContext("Initialize object loader")
 	err = initializeObjectLoader(objinit, conf, as.objectLoaderHandle)
@@ -141,6 +180,15 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		return err
 	}
 	log.Logger.Trace(svcinit, "Initialized service manager")
+
+	middleware, ok := conf.GetStringArray(config.CONF_MIDDLEWARE)
+	if ok {
+		parentMw, ok := as.proxy.GetStringArray(config.CONF_MIDDLEWARE)
+		if ok {
+			middleware = append(parentMw, middleware...)
+		}
+		as.proxy.Set(config.CONF_MIDDLEWARE, middleware)
+	}
 
 	return nil
 }
@@ -196,6 +244,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Logger.Trace(smCtx, "Started service manager")
 
+	if (as.cacheManagerHandle != nil) && ((as.parent == nil) || (as.cacheManager != as.parent.cacheManager)) {
+		cmCtx := ctx.SubContextWithElement("Start Cache Manager", core.ServerElementCacheManager)
+		err = as.cacheManagerHandle.Start(cmCtx)
+		if err != nil {
+			return errors.WrapError(smCtx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -219,7 +275,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 }
 
 func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
-	if as.securityHandler != as.parent.securityHandler {
+	if (as.securityHandlerHandle != nil) && ((as.parent == nil) || (as.securityHandler != as.parent.securityHandler)) {
 		secCtx := ctx.SubContextWithElement("Start Security Handler", core.ServerElementSecurityHandler)
 		log.Logger.Trace(secCtx, "Starting Security Handler")
 		return as.securityHandlerHandle.Start(secCtx)
@@ -234,6 +290,7 @@ func (as *abstractserver) contextMap(ctx core.ServerContext, name string) core.C
 		core.ServerElementSecurityHandler:  as.securityHandler,
 		core.ServerElementMessagingManager: as.messagingManager,
 		core.ServerElementChannelManager:   as.channelMgr,
+		core.ServerElementCacheManager:     as.cacheManager,
 		core.ServerElementRulesManager:     as.rulesManager,
 		core.ServerElementFactoryManager:   as.factoryManager,
 		core.ServerElementServiceManager:   as.serviceManager}

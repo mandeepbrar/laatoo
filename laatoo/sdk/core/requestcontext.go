@@ -9,6 +9,7 @@ type RequestContext interface {
 	ServerContext() ServerContext
 	EngineRequestContext() interface{}
 	SubContext(name string) RequestContext
+	GetServerElement(elemType ServerElementType) ServerElement
 	NewContext(name string) RequestContext
 	GetUser() auth.User
 	HasPermission(perm string) bool

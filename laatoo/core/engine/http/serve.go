@@ -82,15 +82,19 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 	log.Logger.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
 
+	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers)
+	if err != nil {
+		return err
+	}
 	switch method {
 	case "GET":
-		channel.get(ctx, path, channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
+		channel.get(ctx, path, webReqHandler)
 	case "POST":
-		channel.post(ctx, path, channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
+		channel.post(ctx, path, webReqHandler)
 	case "PUT":
-		channel.put(ctx, path, channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
+		channel.put(ctx, path, webReqHandler)
 	case "DELETE":
-		channel.delete(ctx, path, channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
+		channel.delete(ctx, path, webReqHandler)
 		/*	case CONF_ROUTE_METHOD_INVOKE:
 					router.Post(ctx, path, router.processServiceRequest(ctx, respHandler, method, router.name, svc, serverElement, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 			case CONF_ROUTE_METHOD_GETSTREAM:

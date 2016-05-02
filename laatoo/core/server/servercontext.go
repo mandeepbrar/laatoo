@@ -46,6 +46,7 @@ type serverContext struct {
 	channel        server.Channel
 	channelManager server.ChannelManager
 	rulesManager   server.RulesManager
+	cacheManager   server.CacheManager
 	//open element for client applications
 	open1 core.ServerElement
 	open2 core.ServerElement
@@ -115,6 +116,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.serviceResponseHandler
 	case core.ServerElementRulesManager:
 		return ctx.rulesManager
+	case core.ServerElementCacheManager:
+		return ctx.cacheManager
 	case core.ServerElementOpen1:
 		return ctx.open1
 	case core.ServerElementOpen2:
@@ -151,7 +154,8 @@ func (ctx *serverContext) newservercontext(context core.Context) *serverContext 
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, applet: ctx.applet, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
+		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager,
+		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
 }
 
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
@@ -172,37 +176,107 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 	for elementToSet, element := range elements {
 		switch elementToSet {
 		case core.ServerElementServer:
-			newctx.server = element.(server.Server)
+			if element == nil {
+				newctx.server = nil
+			} else {
+				newctx.server = element.(server.Server)
+			}
 		case core.ServerElementEngine:
-			newctx.engine = element.(server.Engine)
+			if element == nil {
+				newctx.engine = nil
+			} else {
+				newctx.engine = element.(server.Engine)
+			}
 		case core.ServerElementEnvironment:
-			newctx.environment = element.(server.Environment)
+			if element == nil {
+				newctx.environment = nil
+			} else {
+				newctx.environment = element.(server.Environment)
+			}
 		case core.ServerElementLoader:
-			newctx.objectLoader = element.(server.ObjectLoader)
+			if element == nil {
+				newctx.objectLoader = nil
+			} else {
+				newctx.objectLoader = element.(server.ObjectLoader)
+			}
 		case core.ServerElementServiceFactory:
-			newctx.factory = element.(server.Factory)
+			if element == nil {
+				newctx.factory = nil
+			} else {
+				newctx.factory = element.(server.Factory)
+			}
 		case core.ServerElementApplet:
-			newctx.applet = element.(server.Applet)
+			if element == nil {
+				newctx.applet = nil
+			} else {
+				newctx.applet = element.(server.Applet)
+			}
 		case core.ServerElementApplication:
-			newctx.application = element.(server.Application)
+			if element == nil {
+				newctx.application = nil
+			} else {
+				newctx.application = element.(server.Application)
+			}
 		case core.ServerElementService:
-			newctx.service = element.(server.Service)
+			if element == nil {
+				newctx.service = nil
+			} else {
+				newctx.service = element.(server.Service)
+			}
 		case core.ServerElementChannelManager:
-			newctx.channelManager = element.(server.ChannelManager)
+			if element == nil {
+				newctx.channelManager = nil
+			} else {
+				newctx.channelManager = element.(server.ChannelManager)
+			}
 		case core.ServerElementChannel:
-			newctx.channel = element.(server.Channel)
+			if element == nil {
+				newctx.channel = nil
+			} else {
+				newctx.channel = element.(server.Channel)
+			}
 		case core.ServerElementServiceManager:
-			newctx.serviceManager = element.(server.ServiceManager)
+			if element == nil {
+				newctx.serviceManager = nil
+			} else {
+				newctx.serviceManager = element.(server.ServiceManager)
+			}
 		case core.ServerElementFactoryManager:
-			newctx.factoryManager = element.(server.FactoryManager)
+			if element == nil {
+				newctx.factoryManager = nil
+			} else {
+				newctx.factoryManager = element.(server.FactoryManager)
+			}
 		case core.ServerElementServiceResponseHandler:
-			newctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
+			if element == nil {
+				newctx.serviceResponseHandler = nil
+			} else {
+				newctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
+			}
 		case core.ServerElementSecurityHandler:
-			newctx.securityHandler = element.(server.SecurityHandler)
+			if element == nil {
+				newctx.securityHandler = nil
+			} else {
+				newctx.securityHandler = element.(server.SecurityHandler)
+			}
 		case core.ServerElementMessagingManager:
-			newctx.msgManager = element.(server.MessagingManager)
+			if element == nil {
+				newctx.msgManager = nil
+			} else {
+				newctx.msgManager = element.(server.MessagingManager)
+			}
 		case core.ServerElementRulesManager:
-			newctx.rulesManager = element.(server.RulesManager)
+			if element == nil {
+				newctx.rulesManager = nil
+			} else {
+				newctx.rulesManager = element.(server.RulesManager)
+			}
+		case core.ServerElementCacheManager:
+			if element == nil {
+				newctx.cacheManager = nil
+			} else {
+				newctx.cacheManager = element.(server.CacheManager)
+			}
 		case core.ServerElementOpen1:
 			newctx.open1 = element
 		case core.ServerElementOpen2:
@@ -226,7 +300,15 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) c
 	if ctx.service == nil {
 		return nil
 	}
-	return ctx.createNewRequest(name, engineCtx, ctx.service)
+	reqCtx := ctx.createNewRequest(name, engineCtx, ctx.service)
+	cacheToUse, ok := ctx.service.GetString("__cache")
+	if ok {
+		if ctx.cacheManager != nil {
+			cache := ctx.cacheManager.GetCache(ctx, cacheToUse)
+			reqCtx.cache = cache
+		}
+	}
+	return reqCtx
 }
 
 func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, parent core.ServerElement) *requestContext {
@@ -264,6 +346,10 @@ func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.Ob
 
 func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreator, error) {
 	return ctx.objectLoader.GetObjectCreator(ctx, objectName)
+}
+
+func (ctx *serverContext) GetMethod(methodName string) (core.ServiceFunc, error) {
+	return ctx.objectLoader.GetMethod(ctx, methodName)
 }
 
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {

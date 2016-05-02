@@ -10,7 +10,8 @@ var (
 	__regContext__ = common.NewContext("__registry__")
 	//global objects register
 	//objects factory register exists for every server
-	objectsFactoryRegister = make(map[string]core.ObjectFactory, 30)
+	objectsFactoryRegister   = make(map[string]core.ObjectFactory, 30)
+	invokableMethodsRegister = make(map[string]core.ServiceFunc, 30)
 )
 
 //register the object factory in the global register
@@ -25,4 +26,13 @@ func RegisterObjectFactory(objectName string, factory core.ObjectFactory) {
 //register the object factory in the global register
 func RegisterObject(objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) {
 	RegisterObjectFactory(objectName, NewObjectFactory(objectCreator, objectCollectionCreator))
+}
+
+//register the object factory in the global register
+func RegisterInvokableMethod(methodName string, method core.ServiceFunc) {
+	_, ok := invokableMethodsRegister[methodName]
+	if !ok {
+		log.Logger.Debug(__regContext__, "Registering method ", "Method Name", methodName)
+		invokableMethodsRegister[methodName] = method
+	}
 }

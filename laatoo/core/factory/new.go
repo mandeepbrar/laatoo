@@ -10,7 +10,7 @@ import (
 
 func NewFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
 	fm := &factoryManager{parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactory, 30)}
-	fmElemCtx := parentElem.NewCtx(name)
+	fmElemCtx := parentElem.NewCtx("Factory Manager:" + name)
 	fmElem := &factoryManagerProxy{Context: fmElemCtx.(*common.Context), manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
@@ -33,7 +33,7 @@ func ChildFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.
 		}
 	}
 	fm := &factoryManager{parent: parent, serviceFactoryStore: store}
-	fmElemCtx := parentFacMgr.NewCtx(name)
+	fmElemCtx := parentFacMgr.NewCtx("Factory Manager:" + name)
 	fmElem := &factoryManagerProxy{Context: fmElemCtx.(*common.Context), manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem

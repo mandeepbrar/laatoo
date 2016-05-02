@@ -38,6 +38,9 @@ func (echctx *EchoContext) GetRouteParamNames() []string {
 	return echctx.baseCtx.ParamNames()
 }
 func (echctx *EchoContext) GetRouteParam(paramname string) string {
+	if paramname == "__0" {
+		return echctx.baseCtx.P(0)
+	}
 	return echctx.baseCtx.Param(paramname)
 }
 func (echctx *EchoContext) GetRouteParamByIndex(index int) string {

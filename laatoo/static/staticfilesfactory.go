@@ -35,7 +35,7 @@ func (ds *StaticServiceFactory) Initialize(ctx core.ServerContext, conf config.C
 //Create the services configured for factory.
 func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
 	log.Logger.Trace(ctx, "Creating service for static factory", "name", name, "method", method)
-	switch name {
+	switch method {
 	/*** Provides service for serving any files in a directory*****/
 	case CONF_STATICSVC_DIRECTORY:
 		{

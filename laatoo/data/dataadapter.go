@@ -7,26 +7,30 @@ import (
 	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"reflect"
 	"strings"
 )
 
 const (
-	CONF_DATAADAPTER_SERVICES = "dataadapter"
-	CONF_DATAADAPTER_DATA_SVC = "data_svc"
-	CONF_DATA_ID              = "id"
-	CONF_DATA_IDS             = "ids"
-	CONF_SVC_GET              = "GET"
-	CONF_SVC_PUT              = "PUT"
-	CONF_SVC_PUTMULTIPLE      = "PUTMULTIPLE"
-	CONF_SVC_GETMULTIPLE      = "GETMULTIPLE"
-	CONF_SVC_SAVE             = "SAVE"
-	CONF_SVC_DELETE           = "DELETE"
-	CONF_SVC_SELECT           = "SELECT"
-	CONF_SVC_UPDATE           = "UPDATE"
-	CONF_SVC_UPDATEMULTIPLE   = "UPDATEMULTIPLE"
-	CONF_FIELD_ORDERBY        = "orderby"
-	CONF_DATA_TOTALRECS       = "totalrecords"
-	CONF_DATA_RECSRETURNED    = "records"
+	CONF_DATAADAPTER_SERVICES      = "dataadapter"
+	CONF_DATAADAPTER_DATA_SVC      = "data_svc"
+	CONF_DATA_ID                   = "id"
+	CONF_DATA_IDS                  = "ids"
+	CONF_SVC_GET                   = "GET"
+	CONF_SVC_PUT                   = "PUT"
+	CONF_SVC_PUTMULTIPLE           = "PUTMULTIPLE"
+	CONF_SVC_GETMULTIPLE           = "GETMULTIPLE"
+	CONF_SVC_GETMULTIPLE_SELECTIDS = "GETMULTIPLE_SELECTIDS"
+	CONF_SVC_SAVE                  = "SAVE"
+	CONF_SVC_DELETE                = "DELETE"
+	CONF_SVC_SELECT                = "SELECT"
+	CONF_SVC_UPDATE                = "UPDATE"
+	CONF_SVC_UPDATEMULTIPLE        = "UPDATEMULTIPLE"
+	CONF_FIELD_ORDERBY             = "orderby"
+	CONF_DATA_TOTALRECS            = "totalrecords"
+	CONF_DATA_RECSRETURNED         = "records"
+	CONF_SVC_LOOKUPSVC             = "lookupsvc"
+	CONF_SVC_LOOKUP_FIELD          = "lookupfield"
 )
 
 func init() {
@@ -67,15 +71,19 @@ func (es *DataAdapterFactory) Start(ctx core.ServerContext) error {
 }
 
 type dataAdapterService struct {
-	name      string
-	svcfunc   core.ServiceFunc
-	conf      config.Config
-	fac       *DataAdapterFactory
-	DataStore data.DataService
+	name          string
+	method        string
+	svcfunc       core.ServiceFunc
+	conf          config.Config
+	fac           *DataAdapterFactory
+	lookupSvcName string
+	lookupSvc     data.DataService
+	lookupField   string
+	DataStore     data.DataService
 }
 
 func newDataAdapterService(ctx core.ServerContext, name string, method string, fac *DataAdapterFactory) (*dataAdapterService, error) {
-	ds := &dataAdapterService{name: name, fac: fac}
+	ds := &dataAdapterService{name: name, fac: fac, method: method}
 	//exported methods
 	switch method {
 	case CONF_SVC_GET:
@@ -96,6 +104,8 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.PUTMULTIPLE
 	case CONF_SVC_UPDATEMULTIPLE:
 		ds.svcfunc = ds.UPDATEMULTIPLE
+	case CONF_SVC_GETMULTIPLE_SELECTIDS:
+		ds.svcfunc = ds.GETMULTI_SELECTIDS
 	default:
 		return nil, nil
 	}
@@ -111,11 +121,34 @@ func (ds *dataAdapterService) GetName() string {
 
 func (ds *dataAdapterService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ds.conf = conf
-	ds.DataStore = ds.fac.DataStore
+	if ds.method == CONF_SVC_GETMULTIPLE_SELECTIDS {
+		lookupSvcName, ok := conf.GetString(CONF_SVC_LOOKUPSVC)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "arg", CONF_SVC_LOOKUPSVC)
+		}
+		lookupField, ok := conf.GetString(CONF_SVC_LOOKUP_FIELD)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "arg", CONF_SVC_LOOKUP_FIELD)
+		}
+		ds.lookupSvcName = lookupSvcName
+		ds.lookupField = lookupField
+	}
 	return nil
 }
 
 func (ds *dataAdapterService) Start(ctx core.ServerContext) error {
+	ds.DataStore = ds.fac.DataStore
+	if ds.method == CONF_SVC_GETMULTIPLE_SELECTIDS {
+		lookupSvcInt, err := ctx.GetService(ds.lookupSvcName)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		lookupSvc, ok := lookupSvcInt.(data.DataService)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG)
+		}
+		ds.lookupSvc = lookupSvc
+	}
 	return nil
 }
 
@@ -153,8 +186,28 @@ func (es *dataAdapterService) GETMULTI(ctx core.RequestContext) error {
 	return err
 }
 
-func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
-	var err error
+func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error {
+	retdata, totalrecs, recsreturned, err := es.selectMethod(ctx, es.lookupSvc)
+	ids := make([]string, len(retdata))
+	for ind, item := range retdata {
+		entVal := reflect.ValueOf(item).Elem()
+		f := entVal.FieldByName(es.lookupField)
+		if !f.IsValid() {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG)
+		}
+		ids[ind] = f.String()
+	}
+	result, err := es.DataStore.GetMulti(ctx, ids, "")
+	if err == nil {
+		requestinfo := make(map[string]interface{}, 2)
+		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
+		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, requestinfo))
+	}
+	return err
+}
+
+func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataService) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
 	pagesize, _ := ctx.GetInt(data.DATA_PAGESIZE)
 	pagenum, _ := ctx.GetInt(data.DATA_PAGENUM)
 
@@ -162,12 +215,17 @@ func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
 
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap = *body
+	log.Logger.Trace(ctx, "debg", "argsMap", argsMap)
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return nil, -1, -1, errors.WrapError(ctx, err)
 	}
-	retdata, totalrecs, recsreturned, err := es.DataStore.Get(ctx, condition, pagesize, pagenum, "", orderBy)
+	return datastore.Get(ctx, condition, pagesize, pagenum, "", orderBy)
+}
+
+func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
+	retdata, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned

@@ -38,11 +38,10 @@ func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.
 
 	//create a proxy for the server
 	svrElem := &serverProxy{server: svr, Context: rootctx.NewCtx("Server").(*common.Context)}
-	svrctx := svr.createContext(rootctx, "Server Elements Creation")
-	svr.abstractserver = newAbstractServer(svrctx, "Server", nil, svrElem, nil)
+	svr.abstractserver = newAbstractServer(rootctx, "Server", nil, svrElem, nil)
 	svr.proxy = svrElem
 
-	log.Logger.Info(svrctx, "Created server")
+	log.Logger.Info(rootctx, "Created server")
 	return svr, svrElem, svr.createContext(rootctx, "Server")
 }
 
@@ -52,14 +51,14 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	initctx := svr.createContext(ctx, "InitializingServer")
 	svr.conf = conf
 
-	svrMsgCtx := initctx.SubContext("Create Messaging Manager")
+	/*svrMsgCtx := initctx.SubContext("Create Messaging Manager")
 	msgSvcName, ok := conf.GetString(config.CONF_MESSAGING_SVC)
 	if ok {
 		msgHandle, msgElem := newMessagingManager(svrMsgCtx, "Server", svr.proxy, msgSvcName)
 		svr.messagingManager = msgElem
 		svr.messagingManagerHandle = msgHandle
 		log.Logger.Trace(initctx, "Created server messaging manager")
-	}
+	}*/
 
 	log.Logger.Trace(ctx, "Initializing engines")
 	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
@@ -107,16 +106,16 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 	startCtx := svr.createContext(ctx, "Starting Server")
 
 	engStartCtx := startCtx.SubContext("Start Engines")
-	for _, engineHandle := range svr.engineHandles {
+	for engName, engineHandle := range svr.engineHandles {
 		errorsChan := make(chan error)
-		go func() {
-			log.Logger.Info(engStartCtx, "Starting engine")
-			errorsChan <- engineHandle.Start(engStartCtx)
+		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
+			log.Logger.Info(ctx, "Starting engine*****", "name", name)
+			errorsChan <- engHandle.Start(ctx)
 			err := <-errorsChan
 			if err != nil {
 				panic(err.Error())
 			}
-		}()
+		}(engStartCtx, engineHandle, engName)
 	}
 	log.Logger.Trace(startCtx, "Started engines")
 

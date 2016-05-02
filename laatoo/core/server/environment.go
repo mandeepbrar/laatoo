@@ -54,9 +54,10 @@ func (env *environment) createApplications(ctx core.ServerContext, name string, 
 	applHandle, applElem := newApplication(appCreateCtx, name, env, filterConf)
 	log.Logger.Debug(appCreateCtx, "Created")
 
-	err := applHandle.Initialize(ctx, applicationConf)
+	appInitCtx := env.createContext(ctx, "InitializeApplication: "+name)
+	err := applHandle.Initialize(appInitCtx, applicationConf)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(appInitCtx, err)
 	}
 
 	err = applHandle.Start(ctx)

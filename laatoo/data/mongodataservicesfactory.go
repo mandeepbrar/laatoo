@@ -11,6 +11,7 @@ import (
 
 type mongoDataServicesFactory struct {
 	connection *mgo.Session
+	database   string
 }
 
 const (
@@ -32,6 +33,10 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_CONNECTIONSTRING)
 	}
+	database, ok := conf.GetString(CONF_MONGO_DATABASE)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_DATABASE)
+	}
 	sess, err := mgo.Dial(connectionString)
 	if err != nil {
 		return errors.RethrowError(ctx, DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
@@ -49,6 +54,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 	mongoSvc.deleteRefOpers = deleteOps
 	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
 	mf.connection = sess
+	mf.database = database
 	return nil
 }
 

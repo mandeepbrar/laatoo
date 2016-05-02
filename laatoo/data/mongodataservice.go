@@ -43,11 +43,6 @@ func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServi
 }
 
 func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
-
-	database, ok := conf.GetString(CONF_MONGO_DATABASE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_MONGO_DATABASE)
-	}
 	collection, ok := conf.GetString(CONF_DATA_COLLECTION)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_COLLECTION)
@@ -68,14 +63,13 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 	if err != nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object Collection creator for", object)
 	}
-
+	ms.database = ms.factory.database
 	ms.conf = conf
 	ms.object = object
 	ms.objectCreator = objectCreator
 	ms.collection = collection
 	ms.objectid = objectid
 	ms.objectCollectionCreator = objectCollectionCreator
-	ms.database = database
 
 	cacheable, ok := conf.GetBool(CONF_DATA_CACHEABLE)
 	if ok {
@@ -84,7 +78,10 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 	softdelete, ok := conf.GetBool(CONF_DATA_SOFTDELETE)
 	if ok {
 		ms.softdelete = softdelete
+	} else {
+		ms.softdelete = true
 	}
+
 	auditable, ok := conf.GetBool(CONF_DATA_AUDITABLE)
 	if ok {
 		ms.auditable = auditable

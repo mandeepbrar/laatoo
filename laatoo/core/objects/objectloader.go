@@ -8,7 +8,8 @@ import (
 )
 
 type objectLoader struct {
-	objectsFactoryRegister map[string]core.ObjectFactory
+	objectsFactoryRegister   map[string]core.ObjectFactory
+	invokableMethodsRegister map[string]core.ServiceFunc
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -20,6 +21,17 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 				objLoader.registerObjectFactory(ctx, objectName, fac)
 			} else {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
+			}
+		}
+	}
+	methodNames, ok := conf.GetStringArray(config.CONF_OBJECTLDR_METHODS)
+	if ok {
+		for _, methodName := range methodNames {
+			method, ok := invokableMethodsRegister[methodName]
+			if ok {
+				objLoader.registerInvokableMethod(ctx, methodName, method)
+			} else {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Method Name", methodName)
 			}
 		}
 	}
@@ -37,6 +49,13 @@ func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectNam
 	if !ok {
 		log.Logger.Info(ctx, "Registering object factory ", "Object Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
+	}
+}
+func (objLoader *objectLoader) registerInvokableMethod(ctx core.Context, methodName string, method core.ServiceFunc) {
+	_, ok := objLoader.invokableMethodsRegister[methodName]
+	if !ok {
+		log.Logger.Debug(ctx, "Registering method ", "Method Name", methodName)
+		objLoader.invokableMethodsRegister[methodName] = method
 	}
 }
 
@@ -79,4 +98,13 @@ func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, obje
 
 	}
 	return factory.CreateObjectCollection, nil
+}
+
+func (objLoader *objectLoader) getMethod(ctx core.Context, methodName string) (core.ServiceFunc, error) {
+	method, ok := objLoader.invokableMethodsRegister[methodName]
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Method Name", methodName)
+
+	}
+	return method, nil
 }

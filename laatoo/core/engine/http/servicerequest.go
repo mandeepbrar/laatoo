@@ -11,7 +11,7 @@ import (
 
 func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
 	svc server.Service, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
-	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
+	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]string, headers map[string]string) (core.ServiceFunc, error) {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
 		var err error
@@ -65,7 +65,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 			}
 		}
 		return channel.processRequest(webctx, reqData, engineContext, respHandler, routename, svc, routeParams, staticValues, headers)
-	}
+	}, nil
 }
 
 /*
@@ -113,9 +113,9 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 			reqctx.Set(name, val)
 		}
 	}
-	err = svc.Service().Invoke(reqctx)
+	err = svc.Invoke(reqctx)
 	if err != nil {
-		return errors.WrapError(webctx, err)
+		return err
 	}
 	log.Logger.Trace(webctx, "Completed request for service. Handling Response")
 	return respHandler.HandleResponse(reqctx)

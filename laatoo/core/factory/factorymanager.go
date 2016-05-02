@@ -92,13 +92,13 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", CONF_SERVICEFACTORY)
 	}
 
-	svcfacConfig, err, ok := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
+	/*svcfacConfig, err, ok := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryName, "Missing Config", CONF_SERVICEFACTORYCONFIG)
-	}
+		svcfacConfig = make(config.GenericConfig, 0)
+	}*/
 
 	//facmw := createMW(svcfacConfig, app.middleware)
 
@@ -122,7 +122,22 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 	if factory != nil {
 		//creates a factory context from the parent
 		facElem := facMgr.parent.NewCtx(factoryAlias).(*common.Context)
-		fac := &serviceFactory{Context: facElem, name: factoryAlias, factory: factory, owner: facMgr, conf: svcfacConfig}
+		fac := &serviceFactory{Context: facElem, name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig}
+
+		middleware, ok := factoryConfig.GetStringArray(config.CONF_MIDDLEWARE)
+		if ok {
+			parentMw, ok := facMgr.parent.GetStringArray(config.CONF_MIDDLEWARE)
+			if ok {
+				middleware = append(parentMw, middleware...)
+			}
+			facElem.Set(config.CONF_MIDDLEWARE, middleware)
+		}
+
+		cacheToUse, ok := factoryConfig.GetString(config.CONF_CACHE_NAME)
+		if ok {
+			fac.Set("__cache", cacheToUse)
+		}
+
 		//add the service to the application
 		facMgr.serviceFactoryStore[factoryAlias] = fac
 	}
