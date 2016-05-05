@@ -65,10 +65,12 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		if ok {
 			corsOptionsPath, _ := conf.GetString(config.CONF_HTTPENGINE_CORSOPTIONSPATH)
 			corsMw := cors.New(cors.Options{
-				AllowedOrigins:   allowedOrigins,
-				AllowedHeaders:   []string{"*"},
-				ExposedHeaders:   []string{"*"},
-				AllowCredentials: true,
+				AllowedOrigins:     allowedOrigins,
+				AllowedHeaders:     []string{"*"},
+				AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+				ExposedHeaders:     []string{"*"},
+				OptionsPassthrough: true,
+				AllowCredentials:   true,
 			})
 			switch engine.fwname {
 			case "Echo":

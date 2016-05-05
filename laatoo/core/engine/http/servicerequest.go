@@ -2,15 +2,23 @@ package http
 
 import (
 	"laatoo/core/engine/http/net"
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 )
 
+type objectType int
+
+const (
+	stringmap objectType = iota
+	bytes
+	files
+	custom
+)
+
 func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
-	svc server.Service, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
+	svc server.Service, otype objectType, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
 	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]string, headers map[string]string) (core.ServiceFunc, error) {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
@@ -33,10 +41,35 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 		}*/
 		log.Logger.Trace(webctx, "Received request ", "route", routename, "dataObjectName", dataObjectName)
 		if isdataObject {
-			if dataObjectName == config.CONF_ENGINE_STRINGMAP_DATA_OBJECT {
+			switch otype {
+			case stringmap:
 				mapobj := make(map[string]interface{}, 10)
 				reqData = &mapobj
-			} else {
+				if method != "GET" {
+					err = engineContext.Bind(reqData)
+					if err != nil {
+						log.Logger.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
+						webctx.SetResponse(core.StatusBadRequestResponse)
+						return respHandler.HandleResponse(webctx)
+					}
+					log.Logger.Trace(webctx, "Request data bound ", "data", reqData)
+				}
+			case bytes:
+				reqData, err = engineContext.GetBody()
+				if err != nil {
+					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					webctx.SetResponse(core.StatusBadRequestResponse)
+					return respHandler.HandleResponse(webctx)
+				}
+			case files:
+				files, err := engineContext.GetFiles()
+				reqData = &files
+				if err != nil {
+					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					webctx.SetResponse(core.StatusBadRequestResponse)
+					return respHandler.HandleResponse(webctx)
+				}
+			default:
 				if isdataCollection {
 					reqData, err = dataObjectCollectionCreator(webctx, nil)
 					if err != nil {
@@ -48,16 +81,18 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 						return errors.WrapError(webctx, err)
 					}
 				}
+				if method != "GET" {
+					err = engineContext.Bind(reqData)
+					if err != nil {
+						log.Logger.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
+						webctx.SetResponse(core.StatusBadRequestResponse)
+						return respHandler.HandleResponse(webctx)
+					}
+					log.Logger.Trace(webctx, "Request data bound ", "data", reqData)
+				}
 			}
-			err = engineContext.Bind(reqData)
-			if err != nil {
-				log.Logger.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
-				webctx.SetResponse(core.StatusBadRequestResponse)
-				return respHandler.HandleResponse(webctx)
-			}
-			log.Logger.Trace(webctx, "Request data bound ", "data", reqData)
 		} else {
-			reqData, err = engineContext.GetBody()
+			reqData, err = engineContext.GetRequestStream()
 			if err != nil {
 				log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 				webctx.SetResponse(core.StatusBadRequestResponse)

@@ -2,9 +2,9 @@ package data
 
 import (
 	"laatoo/core/objects"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"reflect"
@@ -38,7 +38,7 @@ func init() {
 }
 
 type DataAdapterFactory struct {
-	DataStore       data.DataService
+	DataStore       data.DataComponent
 	dataServiceName string
 }
 
@@ -66,7 +66,7 @@ func (es *DataAdapterFactory) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, err, "Name", es.dataServiceName)
 	}
-	es.DataStore = dataSvc.(data.DataService)
+	es.DataStore = dataSvc.(data.DataComponent)
 	return nil
 }
 
@@ -77,9 +77,9 @@ type dataAdapterService struct {
 	conf          config.Config
 	fac           *DataAdapterFactory
 	lookupSvcName string
-	lookupSvc     data.DataService
+	lookupSvc     data.DataComponent
 	lookupField   string
-	DataStore     data.DataService
+	DataStore     data.DataComponent
 }
 
 func newDataAdapterService(ctx core.ServerContext, name string, method string, fac *DataAdapterFactory) (*dataAdapterService, error) {
@@ -143,7 +143,7 @@ func (ds *dataAdapterService) Start(ctx core.ServerContext) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		lookupSvc, ok := lookupSvcInt.(data.DataService)
+		lookupSvc, ok := lookupSvcInt.(data.DataComponent)
 		if !ok {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG)
 		}
@@ -207,7 +207,7 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 	return err
 }
 
-func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataService) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
 	pagesize, _ := ctx.GetInt(data.DATA_PAGESIZE)
 	pagenum, _ := ctx.GetInt(data.DATA_PAGENUM)
 

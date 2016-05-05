@@ -31,8 +31,7 @@ const (
 
 //Service that provides data from various data sources
 //Service interface that needs to be implemented by any data service
-type DataService interface {
-	core.Service
+type DataComponent interface {
 	GetDataServiceType() string
 	GetObject() string
 	//supported features

@@ -2,7 +2,7 @@ package echo
 
 import (
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine"
+	"io"
 	"io/ioutil"
 )
 
@@ -55,6 +55,24 @@ func (echctx *EchoContext) GetQueryParam(paramname string) string {
 func (echctx *EchoContext) Bind(data interface{}) error {
 	return echctx.baseCtx.Bind(data)
 }
+func (echctx *EchoContext) GetRequestStream() (io.Reader, error) {
+	return echctx.baseCtx.Request().Body(), nil
+}
 func (echctx *EchoContext) GetBody() ([]byte, error) {
-	return ioutil.ReadAll(echctx.baseCtx.Request().(engine.Request).Body())
+	return ioutil.ReadAll(echctx.baseCtx.Request().Body())
+}
+func (echctx *EchoContext) GetFiles() (map[string]io.ReadCloser, error) {
+	form, err := echctx.baseCtx.Request().MultipartForm()
+	if err != nil {
+		return nil, err
+	}
+	files := make(map[string]io.ReadCloser, len(form.File))
+	for fieldname, headers := range form.File {
+		mpfile, err := headers[0].Open()
+		if err != nil {
+			return nil, err
+		}
+		files[fieldname] = mpfile
+	}
+	return files, nil
 }

@@ -3,9 +3,9 @@ package server
 import (
 	"laatoo/core/common"
 	"laatoo/sdk/auth"
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
-	"laatoo/sdk/services"
 	"time"
 )
 
@@ -14,7 +14,7 @@ import (
 type requestContext struct {
 	*common.Context
 
-	cache services.Cache
+	cache components.CacheComponent
 	//any context from the engine that received a service request
 	engineContext interface{}
 	//user who is executing the request
@@ -26,7 +26,7 @@ type requestContext struct {
 	//request body
 	//this can be plain bytes, data objects or collections depending upon
 	//engine configuration and service expectation
-	requestBody interface{}
+	request interface{}
 	//server context that generated this request
 	serverContext *serverContext
 	//time at which the request was created
@@ -52,7 +52,7 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 //retains id and tracks flow along with variables
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	newctx := ctx.SubCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, requestBody: ctx.requestBody,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
 		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: true}
 }
 
@@ -60,7 +60,7 @@ func (ctx *requestContext) SubContext(name string) core.RequestContext {
 //as a subflow.
 func (ctx *requestContext) NewContext(name string) core.RequestContext {
 	newctx := ctx.NewCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, requestBody: ctx.requestBody,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
 		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: false}
 }
 
@@ -118,12 +118,12 @@ func (ctx *requestContext) GetResponse() *core.ServiceResponse {
 
 //gets request
 func (ctx *requestContext) GetRequest() interface{} {
-	return ctx.requestBody
+	return ctx.request
 }
 
 //sets the request
-func (ctx *requestContext) SetRequest(requestBody interface{}) {
-	ctx.requestBody = requestBody
+func (ctx *requestContext) SetRequest(request interface{}) {
+	ctx.request = request
 }
 
 func (ctx *requestContext) HasPermission(perm string) bool {
@@ -154,6 +154,12 @@ func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
 }
 
 //completes a request
+func (ctx *requestContext) PrintElapsedTime() {
+	elapsedTime := time.Now().Sub(ctx.createTime)
+	log.Logger.Debug(ctx, "Elapsed Time", "Time taken", elapsedTime)
+}
+
+//completes a request
 func (ctx *requestContext) CompleteRequest() {
 	if !ctx.subRequest {
 		completionTime := time.Now()
@@ -166,6 +172,6 @@ func (ctx *requestContext) CompleteRequest() {
 	ctx.user = nil
 	ctx.admin = false
 	ctx.responseData = nil
-	ctx.requestBody = nil
+	ctx.request = nil
 	ctx.serverContext = nil
 }

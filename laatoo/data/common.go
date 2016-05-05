@@ -1,8 +1,8 @@
 package data
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
-	"laatoo/sdk/services"
 )
 
 const (
@@ -28,14 +28,14 @@ func notifyDelete(ctx core.RequestContext, objectType string, id string) {
 }
 
 func getFromCache(ctx core.RequestContext, objectType string, id string, object interface{}) bool {
-	cachekey := services.GetCacheKey(objectType, id)
+	cachekey := components.GetCacheKey(objectType, id)
 	return ctx.GetFromCache(cachekey, object)
 }
 
 func putInCache(ctx core.RequestContext, objectType string, id string, object interface{}) {
-	ctx.PutInCache(services.GetCacheKey(objectType, id), object)
+	ctx.PutInCache(components.GetCacheKey(objectType, id), object)
 }
 
 func invalidateCache(ctx core.RequestContext, objectType string, id string) {
-	ctx.InvalidateCache(services.GetCacheKey(objectType, id))
+	ctx.InvalidateCache(components.GetCacheKey(objectType, id))
 }

@@ -2,13 +2,13 @@ package cache
 
 import (
 	"laatoo/core/common"
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
-	"laatoo/sdk/services"
 )
 
 func NewCacheManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*cacheManager, *cacheManagerProxy) {
-	cacheMgr := &cacheManager{registeredCacheNames: make(map[string]string, 10), registeredCaches: make(map[string]services.Cache, 10)}
+	cacheMgr := &cacheManager{registeredCacheNames: make(map[string]string, 10), registeredCaches: make(map[string]components.CacheComponent, 10)}
 	cacheElemCtx := parentElem.NewCtx("Cache Manager:" + name)
 	cacheElem := &cacheManagerProxy{Context: cacheElemCtx.(*common.Context), manager: cacheMgr}
 	cacheMgr.proxy = cacheElem
@@ -18,7 +18,7 @@ func NewCacheManager(ctx core.ServerContext, name string, parentElem core.Server
 func ChildCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, parentElem core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {
 	cacheMgrProxy := parentCacheManager.(*cacheManagerProxy)
 	cacheMgr := cacheMgrProxy.manager
-	registeredCaches := make(map[string]services.Cache, len(cacheMgr.registeredCaches))
+	registeredCaches := make(map[string]components.CacheComponent, len(cacheMgr.registeredCaches))
 	registeredCacheNames := make(map[string]string, len(cacheMgr.registeredCacheNames))
 	for k, v := range cacheMgr.registeredCaches {
 		allowed := true

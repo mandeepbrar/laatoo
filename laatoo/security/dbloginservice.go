@@ -3,9 +3,9 @@ package security
 import (
 	"golang.org/x/crypto/bcrypt"
 	"laatoo/sdk/auth"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
@@ -23,7 +23,7 @@ type LoginService struct {
 	userCreator core.ObjectCreator
 	adminRole   string
 	//data service to use for users
-	UserDataService data.DataService
+	UserDataService data.DataComponent
 }
 
 func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -59,7 +59,7 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 	if err != nil {
 		return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 	}
-	userDataService, ok := userService.(data.DataService)
+	userDataService, ok := userService.(data.DataComponent)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}

@@ -13,4 +13,6 @@ const (
 	CONF_ENGINE_DATA_OBJECT           = "dataobject"
 	CONF_ENGINE_DATA_COLLECTION       = "datacollection"
 	CONF_ENGINE_STRINGMAP_DATA_OBJECT = "__stringmap__"
+	CONF_ENGINE_BYTES_DATA_OBJECT     = "__bytes__"
+	CONF_ENGINE_FILES_DATA_OBJECT     = "__files__"
 )

@@ -2,9 +2,9 @@ package security
 
 import (
 	"laatoo/sdk/auth"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
@@ -29,7 +29,7 @@ type RegistrationService struct {
 	//user data service name
 	userDataSvcName string
 	//data service to use for users
-	UserDataService data.DataService
+	UserDataService data.DataComponent
 }
 
 func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -97,7 +97,7 @@ func (rs *RegistrationService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 	}
-	userDataService, ok := userService.(data.DataService)
+	userDataService, ok := userService.(data.DataComponent)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}

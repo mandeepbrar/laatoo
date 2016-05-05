@@ -2,6 +2,7 @@ package gin
 
 import (
 	"github.com/gin-gonic/gin"
+	"io"
 	"io/ioutil"
 )
 
@@ -60,4 +61,23 @@ func (ginctx *GinContext) Bind(data interface{}) error {
 }
 func (ginctx *GinContext) GetBody() ([]byte, error) {
 	return ioutil.ReadAll(ginctx.baseCtx.Request.Body)
+}
+func (ginctx *GinContext) GetRequestStream() (io.Reader, error) {
+	return ginctx.baseCtx.Request.Body, nil
+}
+func (ginctx *GinContext) GetFiles() (map[string]io.ReadCloser, error) {
+	err := ginctx.baseCtx.Request.ParseMultipartForm(2000000000)
+	if err != nil {
+		return nil, err
+	}
+	form := ginctx.baseCtx.Request.MultipartForm
+	files := make(map[string]io.ReadCloser, len(form.File))
+	for fieldname, headers := range form.File {
+		mpfile, err := headers[0].Open()
+		if err != nil {
+			return nil, err
+		}
+		files[fieldname] = mpfile
+	}
+	return files, nil
 }

@@ -1,9 +1,9 @@
 package data
 
 import (
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
@@ -19,7 +19,7 @@ const (
 type refOperation struct {
 	name          string
 	targetsvcname string
-	targetService data.DataService
+	targetService data.DataComponent
 	data          []interface{}
 	do            func(ctx core.RequestContext, args ...interface{}) error
 }
@@ -69,7 +69,7 @@ func (oper *refOperation) Initialize(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	targetsvc, ok := svc.(data.DataService)
+	targetsvc, ok := svc.(data.DataComponent)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
 	}
@@ -90,7 +90,7 @@ func buildCascadedDeleteOperation(ctx core.ServerContext, conf config.Config, op
 	return opr, nil
 }
 
-func cascadeDelete(ctx core.RequestContext, dataService data.DataService, targetfield string, ids []string) error {
+func cascadeDelete(ctx core.RequestContext, dataService data.DataComponent, targetfield string, ids []string) error {
 	if dataService.Supports(data.InQueries) {
 		condition, _ := dataService.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, targetfield, ids)
 		_, err := dataService.DeleteAll(ctx, condition)

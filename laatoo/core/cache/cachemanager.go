@@ -1,15 +1,15 @@
 package cache
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/services"
 )
 
 type cacheManager struct {
 	registeredCacheNames map[string]string
-	registeredCaches     map[string]services.Cache
+	registeredCaches     map[string]components.CacheComponent
 	proxy                *cacheManagerProxy
 }
 
@@ -34,7 +34,7 @@ func (cm *cacheManager) Start(ctx core.ServerContext) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		cacheSvc, ok := svc.(services.Cache)
+		cacheSvc, ok := svc.(components.CacheComponent)
 		if !ok {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_CACHE_SVC, "Cache Name", cacheName)
 		}

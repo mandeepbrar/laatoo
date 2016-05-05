@@ -67,7 +67,20 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	var dataObjectCollectionCreator core.ObjectCollectionCreator
 	dataObjectName, isdataObject := routeConf.GetString(config.CONF_ENGINE_DATA_OBJECT)
 	_, isdataCollection := routeConf.GetString(config.CONF_ENGINE_DATA_COLLECTION)
-	if isdataObject && (dataObjectName != config.CONF_ENGINE_STRINGMAP_DATA_OBJECT) {
+
+	var otype objectType
+	switch dataObjectName {
+	case config.CONF_ENGINE_STRINGMAP_DATA_OBJECT:
+		otype = stringmap
+	case config.CONF_ENGINE_BYTES_DATA_OBJECT:
+		otype = bytes
+	case config.CONF_ENGINE_FILES_DATA_OBJECT:
+		otype = files
+	default:
+		otype = custom
+	}
+
+	if isdataObject && (otype == custom) {
 		if isdataCollection {
 			dataObjectCollectionCreator, err = ctx.GetObjectCollectionCreator(dataObjectName)
 			if err != nil {
@@ -82,7 +95,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 	log.Logger.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
 
-	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers)
+	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, otype, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers)
 	if err != nil {
 		return err
 	}

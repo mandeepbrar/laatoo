@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"goji.io/pat"
 	"golang.org/x/net/context"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -37,6 +38,7 @@ func (gojictx *GojiContext) SetHeader(headerName string, headerVal string) {
 func (gojictx *GojiContext) Write(bytes []byte) (int, error) {
 	return gojictx.res.Write(bytes)
 }
+
 func (gojictx *GojiContext) Redirect(status int, path string) error {
 	http.Redirect(gojictx.res, gojictx.req, path, status)
 	return nil
@@ -82,4 +84,23 @@ func (gojictx *GojiContext) Bind(data interface{}) error {
 }
 func (gojictx *GojiContext) GetBody() ([]byte, error) {
 	return ioutil.ReadAll(gojictx.req.Body)
+}
+func (gojictx *GojiContext) GetRequestStream() (io.Reader, error) {
+	return gojictx.req.Body, nil
+}
+func (gojictx *GojiContext) GetFiles() (map[string]io.ReadCloser, error) {
+	err := gojictx.req.ParseMultipartForm(2000000000)
+	if err != nil {
+		return nil, err
+	}
+	form := gojictx.req.MultipartForm
+	files := make(map[string]io.ReadCloser, len(form.File))
+	for fieldname, headers := range form.File {
+		mpfile, err := headers[0].Open()
+		if err != nil {
+			return nil, err
+		}
+		files[fieldname] = mpfile
+	}
+	return files, nil
 }

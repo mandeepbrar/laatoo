@@ -2,8 +2,8 @@ package data
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )

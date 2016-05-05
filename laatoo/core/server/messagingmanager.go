@@ -1,17 +1,17 @@
 package server
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/sdk/services"
 )
 
 type messagingManager struct {
 	commSvcName string
-	commSvc     services.PubSub
+	commSvc     components.PubSubComponent
 	parent      core.ServerElement
 	proxy       server.MessagingManager
 	topicStore  map[string][]core.TopicListener
@@ -32,7 +32,7 @@ func (msgMgr *messagingManager) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	pubsub, ok := commSvc.(services.PubSub)
+	pubsub, ok := commSvc.(components.PubSubComponent)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
 	}

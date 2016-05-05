@@ -6,11 +6,11 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/services"
+	"laatoo/sdk/rules"
 )
 
 type rulesManager struct {
-	registeredRules map[string][]services.Rule
+	registeredRules map[string][]rules.Rule
 	proxy           *rulesManagerProxy
 }
 
@@ -33,7 +33,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		rule, ok := obj.(services.Rule)
+		rule, ok := obj.(rules.Rule)
 		if !ok {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_OBJECT)
 		}
@@ -43,9 +43,9 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 			if !ok {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MESSAGETOPIC)
 			}
-			ruleMethod := func(rule services.Rule) core.TopicListener {
+			ruleMethod := func(rule rules.Rule) core.TopicListener {
 				return func(msgctx core.RequestContext, topic string, message interface{}) {
-					tr := &services.Trigger{Event: topic, TriggerType: services.Message, Data: map[string]interface{}{"message": message}}
+					tr := &rules.Trigger{Event: topic, TriggerType: rules.Message, Data: map[string]interface{}{"message": message}}
 					if rule.Condition(msgctx, tr) {
 						err := rule.Action(msgctx, tr)
 						if err != nil {
@@ -75,23 +75,23 @@ func (rm *rulesManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (rm *rulesManager) subscribeEvent(ctx core.ServerContext, eventType string, eventObject string, rule services.Rule) {
+func (rm *rulesManager) subscribeEvent(ctx core.ServerContext, eventType string, eventObject string, rule rules.Rule) {
 	key := fmt.Sprintf("%s#%s", eventType, eventObject)
-	rules, prs := rm.registeredRules[key]
+	regrules, prs := rm.registeredRules[key]
 	if !prs {
-		rules = []services.Rule{}
+		regrules = []rules.Rule{}
 	}
-	rules = append(rules, rule)
-	rm.registeredRules[key] = rules
+	regrules = append(regrules, rule)
+	rm.registeredRules[key] = regrules
 }
 
 func (rm *rulesManager) fireEvent(ctx core.RequestContext, eventType string, eventObject string, data map[string]interface{}) {
-	tr := &services.Trigger{Event: eventType, EventObject: eventObject, TriggerType: services.Event, Data: data}
+	tr := &rules.Trigger{Event: eventType, EventObject: eventObject, TriggerType: rules.Event, Data: data}
 	key := fmt.Sprintf("%s#%s", eventType, eventObject)
-	rules, present := rm.registeredRules[key]
+	regrules, present := rm.registeredRules[key]
 	if present {
-		for _, rule := range rules {
-			go func(rule services.Rule) {
+		for _, rule := range regrules {
+			go func(rule rules.Rule) {
 				if rule.Condition(ctx, tr) {
 					err := rule.Action(ctx, tr)
 					if err != nil {

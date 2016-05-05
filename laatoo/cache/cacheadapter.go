@@ -2,11 +2,11 @@ package cache
 
 import (
 	"laatoo/core/objects"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/services"
 )
 
 const (
@@ -126,7 +126,7 @@ func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
 	var retResponse core.ServiceResponse
 	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
-	cacheKey := services.GetCacheKey(cachedVal, body)
+	cacheKey := components.GetCacheKey(cachedVal, body)
 	log.Logger.Trace(ctx, "Looking up key", "key", cacheKey)
 	prs := ctx.GetFromCache(cacheKey, &retResponse)
 	if prs {

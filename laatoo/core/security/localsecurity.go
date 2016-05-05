@@ -3,9 +3,9 @@ package security
 import (
 	"fmt"
 	"laatoo/sdk/auth"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
@@ -24,7 +24,7 @@ type localSecurityHandler struct {
 	authheader  string
 	//data service to use for users
 	//UserDataService    data.DataService
-	roleDataService data.DataService
+	roleDataService data.DataComponent
 	roleDataSvcName string
 	parent          server.SecurityHandler
 	rolesMap        map[string]auth.Role
@@ -70,7 +70,7 @@ func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
 	}
-	roleDataService, ok := roleService.(data.DataService)
+	roleDataService, ok := roleService.(data.DataComponent)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
 	}

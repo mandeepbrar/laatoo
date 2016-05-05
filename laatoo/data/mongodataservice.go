@@ -2,9 +2,9 @@ package data
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 )
@@ -37,7 +37,7 @@ const (
 	CONF_MONGO_DATABASE = "database"
 )
 
-func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (data.DataService, error) {
+func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (*mongoDataService, error) {
 	mongoSvc := &mongoDataService{name: name, factory: ms}
 	return mongoSvc, nil
 }

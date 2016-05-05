@@ -25,5 +25,6 @@ type RequestContext interface {
 	GetRequest() interface{}
 	SetResponse(*ServiceResponse)
 	GetResponse() *ServiceResponse
+	PrintElapsedTime()
 	CompleteRequest()
 }

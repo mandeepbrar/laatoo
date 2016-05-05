@@ -2,8 +2,8 @@ package cache
 
 import (
 	"laatoo/core/common"
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
-	"laatoo/sdk/services"
 )
 
 type cacheManagerProxy struct {
@@ -11,7 +11,7 @@ type cacheManagerProxy struct {
 	manager *cacheManager
 }
 
-func (cm *cacheManagerProxy) GetCache(ctx core.ServerContext, name string) services.Cache {
+func (cm *cacheManagerProxy) GetCache(ctx core.ServerContext, name string) components.CacheComponent {
 	cacheObj, ok := cm.manager.registeredCaches[name]
 	if !ok {
 		return nil

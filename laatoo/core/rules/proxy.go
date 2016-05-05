@@ -3,7 +3,7 @@ package rules
 import (
 	"laatoo/core/common"
 	"laatoo/sdk/core"
-	"laatoo/sdk/services"
+	"laatoo/sdk/rules"
 )
 
 type rulesManagerProxy struct {
@@ -11,7 +11,7 @@ type rulesManagerProxy struct {
 	manager *rulesManager
 }
 
-func (rm *rulesManagerProxy) SubscribeEvent(ctx core.ServerContext, eventType string, eventObject string, rule services.Rule) {
+func (rm *rulesManagerProxy) SubscribeEvent(ctx core.ServerContext, eventType string, eventObject string, rule rules.Rule) {
 	rm.manager.subscribeEvent(ctx, eventType, eventObject, rule)
 }
 
