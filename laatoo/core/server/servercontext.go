@@ -25,8 +25,6 @@ type serverContext struct {
 	objectLoader server.ObjectLoader
 	//application on which work is being done
 	application server.Application
-	//applet being worked on
-	applet server.Applet
 	//environment on which operations are being carried out
 	environment server.Environment
 	//factory manager applicable in a context
@@ -47,6 +45,7 @@ type serverContext struct {
 	channelManager server.ChannelManager
 	rulesManager   server.RulesManager
 	cacheManager   server.CacheManager
+	taskManager    server.TaskManager
 	//open element for client applications
 	open1 core.ServerElement
 	open2 core.ServerElement
@@ -94,8 +93,6 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.objectLoader
 	case core.ServerElementServiceFactory:
 		return ctx.factory
-	case core.ServerElementApplet:
-		return ctx.applet
 	case core.ServerElementApplication:
 		return ctx.application
 	case core.ServerElementService:
@@ -118,6 +115,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.rulesManager
 	case core.ServerElementCacheManager:
 		return ctx.cacheManager
+	case core.ServerElementTaskManager:
+		return ctx.taskManager
 	case core.ServerElementOpen1:
 		return ctx.open1
 	case core.ServerElementOpen2:
@@ -152,10 +151,10 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 //creates a new server context that is duplicate of the parent.
 func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
-		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, applet: ctx.applet, environment: ctx.environment, securityHandler: ctx.securityHandler,
+		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager,
-		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
+		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager,
+		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3, element: ctx.element, elementType: ctx.elementType}
 }
 
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
@@ -204,12 +203,6 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 				newctx.factory = nil
 			} else {
 				newctx.factory = element.(server.Factory)
-			}
-		case core.ServerElementApplet:
-			if element == nil {
-				newctx.applet = nil
-			} else {
-				newctx.applet = element.(server.Applet)
 			}
 		case core.ServerElementApplication:
 			if element == nil {
@@ -276,6 +269,12 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 				newctx.cacheManager = nil
 			} else {
 				newctx.cacheManager = element.(server.CacheManager)
+			}
+		case core.ServerElementTaskManager:
+			if element == nil {
+				newctx.taskManager = nil
+			} else {
+				newctx.taskManager = element.(server.TaskManager)
 			}
 		case core.ServerElementOpen1:
 			newctx.open1 = element
@@ -359,7 +358,7 @@ func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	return reqCtx
 }
 
-func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.TopicListener) error {
+func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.ServiceFunc) error {
 	if ctx.msgManager != nil {
 		return ctx.msgManager.Subscribe(ctx, topics, lstnr)
 	}

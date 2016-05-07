@@ -14,6 +14,8 @@ const (
 	CONF_APPL_APPLICATION   = "application"
 	CONF_CHANNEL_MGR        = "channelmanager"
 	CONF_CACHE_MGR          = "cachemanager"
+	CONF_TASKMGR            = "taskmanager"
+	CONF_TASK_QUEUES        = "taskqueues"
 	CONF_CACHE_SVC          = "service"
 	CONF_CACHE_NAME         = "cache"
 	CONF_RULESMGR           = "rulesmanager"

@@ -117,7 +117,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection, "results", results)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection)
 	resultStor, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)

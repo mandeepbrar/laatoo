@@ -3,6 +3,7 @@ package server
 import (
 	"laatoo/core/cache"
 	"laatoo/core/rules"
+	"laatoo/core/tasks"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -99,6 +100,23 @@ func createRulesManager(ctx core.ServerContext, name string, conf config.Config,
 		return nil, nil, errors.WrapError(ctx, err)
 	}
 	return rulesMgrHandle, rulesMgr, nil
+}
+
+func createTaskManager(ctx core.ServerContext, name string, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.TaskManager, error) {
+	taskMgrConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_TASKMGR)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !ok {
+		return nil, nil, nil
+	}
+	taskCreateCtx := ctx.SubContext("Create Task Manager")
+	taskMgrHandle, taskMgr := tasks.NewTaskManager(taskCreateCtx, name, parent)
+	err = taskMgrHandle.Initialize(ctx, taskMgrConf)
+	if err != nil {
+		return nil, nil, errors.WrapError(ctx, err)
+	}
+	return taskMgrHandle, taskMgr, nil
 }
 
 func createCacheManager(ctx core.ServerContext, name string, conf config.Config, parentCacheMgr core.ServerElement, parent core.ServerElement) (server.ServerElementHandle, server.CacheManager, error) {

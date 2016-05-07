@@ -148,8 +148,10 @@ func (log *SimpleLogger) buildMessage(level string, reqContext core.Context, msg
 				buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
 			}
 			buffer.WriteString(fmt.Sprintln("		", reqContext.GetName()))
-			buffer.WriteString(fmt.Sprintln("		TIME: ", time.Now().String()))
-			buffer.WriteString(fmt.Sprintln("		ID: ", reqContext.GetId()))
+			buffer.WriteString(fmt.Sprintln("		TIME ", time.Now().String()))
+			buffer.WriteString(fmt.Sprintln("		LEVEL ", level))
+			buffer.WriteString(fmt.Sprintln("		CONTEXT ", reqContext.GetName()))
+			buffer.WriteString(fmt.Sprintln("		ID ", reqContext.GetId()))
 			return buffer.String()
 		}
 	case "happy":

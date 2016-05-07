@@ -51,12 +51,6 @@ func Main(configFile string) error {
 		return err
 	}
 
-	//create applets for an application
-	err = createApplets(ctx, conf)
-	if err != nil {
-		return err
-	}
-
 	err = startListening(ctx, conf)
 	if err != nil {
 		return err
@@ -113,51 +107,6 @@ func createApplications(ctx core.ServerContext, conf config.Config) error {
 			//ask the environment to create application using the config
 			envProxy := envElem.(*environmentProxy)
 			err = envProxy.env.createApplications(ctx, appName, appConfig)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-//applets are application components and provided in application code
-//applets can allow context to be passed between services on the client application
-func createApplets(ctx core.ServerContext, conf config.Config) error {
-	svrCtx := ctx.(*serverContext)
-	svrProx := svrCtx.server.(*serverProxy)
-	applets, ok := conf.GetSubConfig(config.CONF_APPLETS)
-	if ok {
-		appletNames := applets.AllConfigurations()
-		//iterate all applets
-		for _, appletName := range appletNames {
-			appletConfig, err, _ := config.ConfigFileAdapter(applets, appletName)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			//get the envrionment and application on which the applet is to be created
-			envName, ok := appletConfig.GetString(config.CONF_APP_ENVIRONMENT)
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_APP_ENVIRONMENT)
-			}
-			envElem, ok := svrProx.server.environments[envName]
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_APP_ENVIRONMENT)
-			}
-
-			appName, ok := appletConfig.GetString(config.CONF_APPL_APPLICATION)
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_APPL_APPLICATION)
-			}
-			envProxy := envElem.(*environmentProxy)
-			appElem, ok := envProxy.env.applications[appName]
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_APPL_APPLICATION)
-			}
-			appProxy := appElem.(*applicationProxy)
-
-			//ask the application to create applet
-			err = appProxy.app.createApplet(ctx, appletName, appletConfig)
 			if err != nil {
 				return err
 			}

@@ -2,8 +2,8 @@ package rules
 
 import (
 	"laatoo/core/common"
+	"laatoo/sdk/components/rules"
 	"laatoo/sdk/core"
-	"laatoo/sdk/rules"
 )
 
 func NewRulesManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*rulesManager, *rulesManagerProxy) {

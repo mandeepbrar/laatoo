@@ -10,6 +10,7 @@ import (
 type Storable interface {
 	GetId() string
 	SetId(string)
+	GetObjectType() string
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error

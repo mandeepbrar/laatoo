@@ -72,6 +72,14 @@ func (ctx *requestContext) PutInCache(key string, item interface{}) error {
 	}
 }
 
+func (ctx *requestContext) PushTask(queue string, task interface{}) error {
+	if ctx.serverContext.taskManager != nil {
+		return ctx.serverContext.taskManager.PushTask(ctx, queue, task)
+	}
+	log.Logger.Error(ctx, "No task manager", "queue", queue)
+	return nil
+}
+
 func (ctx *requestContext) GetFromCache(key string, val interface{}) bool {
 	if ctx.cache != nil {
 		return ctx.cache.GetObject(ctx, key, val)
@@ -133,11 +141,11 @@ func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
 	return nil, false //ctx.serverContext.GetRolePermissions(role)
 }
 
-func (ctx *requestContext) FireEvent(eventType string, eventObject string, data map[string]interface{}) {
+func (ctx *requestContext) SendSynchronousMessage(msgType string, data interface{}) error {
 	if ctx.serverContext.rulesManager != nil {
-		go ctx.serverContext.rulesManager.FireEvent(ctx, eventType, eventObject, data)
+		return ctx.serverContext.rulesManager.SendSynchronousMessage(ctx, msgType, data)
 	}
-	log.Logger.Error(ctx, "Rules Manager not created")
+	return nil
 }
 
 func (ctx *requestContext) PublishMessage(topic string, message interface{}) {

@@ -35,6 +35,7 @@ type mongoDataService struct {
 
 const (
 	CONF_MONGO_DATABASE = "database"
+	CONF_PRESAVE_MSG    = "storable_presave"
 )
 
 func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (*mongoDataService, error) {
@@ -154,6 +155,10 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	if ms.presave {
+		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+		if err != nil {
+			return err
+		}
 		item.PreSave(ctx)
 	}
 	if ms.auditable {
@@ -182,6 +187,10 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 		id := item.GetId()
 		invalidateCache(ctx, ms.object, id)
 		if ms.presave {
+			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			if err != nil {
+				return err
+			}
 			item.PreSave(ctx)
 		}
 		if ms.auditable {
@@ -217,6 +226,10 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	condition[ms.objectid] = id
 	item.SetId(id)
 	if ms.presave {
+		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+		if err != nil {
+			return err
+		}
 		item.PreSave(ctx)
 	}
 	if ms.auditable {

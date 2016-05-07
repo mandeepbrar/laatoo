@@ -50,6 +50,11 @@ func (r *Role) SetId(id string) {
 func (r *Role) GetIdField() string {
 	return "Role"
 }
+
+func (r *Role) GetObjectType() string {
+	return config.DEFAULT_ROLE
+}
+
 func (r *Role) GetPermissions() []string {
 	return r.Permissions
 }

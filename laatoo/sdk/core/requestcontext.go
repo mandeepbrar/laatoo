@@ -15,10 +15,11 @@ type RequestContext interface {
 	HasPermission(perm string) bool
 	GetRolePermissions(role []string) ([]string, bool)
 	PublishMessage(topic string, message interface{})
-	FireEvent(eventType string, eventObject string, data map[string]interface{})
+	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(key string, item interface{}) error
 	GetFromCache(key string, val interface{}) bool
 	GetMultiFromCache(keys []string, val map[string]interface{}) bool
+	PushTask(queue string, task interface{}) error
 	InvalidateCache(key string) error
 	IsAdmin() bool
 	SetRequest(interface{})

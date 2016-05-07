@@ -3,7 +3,6 @@ package laatoopubsub
 import (
 	"encoding/json"
 	"github.com/garyburd/redigo/redis"
-	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	//"laatoo/sdk/errors"
@@ -11,42 +10,10 @@ import (
 	"time"
 )
 
-type RedisPubSubFactory struct {
-	Conf config.Config
-}
-
 const (
-	CONF_REDISPUBSUB_NAME       = "redis_pubsub"
-	CONF_REDISPUBSUB_SVC        = "pubsub"
 	CONF_REDIS_CONNECTIONSTRING = "server"
 	CONF_REDIS_DATABASE         = "db"
 )
-
-func init() {
-	objects.RegisterObject(CONF_REDISPUBSUB_NAME, createRedisPubSubFactory, nil)
-}
-
-func createRedisPubSubFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &RedisPubSubFactory{}, nil
-}
-
-//Create the services configured for factory.
-func (mf *RedisPubSubFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
-	if method == CONF_REDISPUBSUB_SVC {
-		return &RedisPubSubService{name: name}, nil
-	}
-	return nil, nil
-}
-
-//The services start serving when this method is called
-func (ds *RedisPubSubFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (ds *RedisPubSubFactory) Start(ctx core.ServerContext) error {
-	return nil
-}
 
 type RedisPubSubService struct {
 	connectionstring string
@@ -72,7 +39,7 @@ func (svc *RedisPubSubService) Publish(ctx core.ServerContext, topic string, mes
 	return nil
 }
 
-func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string, lstnr core.TopicListener) error {
+func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string, lstnr core.ServiceFunc) error {
 	conn := svc.pool.Get()
 	psc := redis.PubSubConn{Conn: conn}
 	for _, topic := range topics {
@@ -87,7 +54,9 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 			case redis.Message:
 				log.Logger.Trace(ctx, "Message received on Queue")
 				req := ctx.CreateSystemRequest("Message Received")
-				lstnr(req, v.Channel, v.Data)
+				req.Set("messagetype", v.Channel)
+				req.SetRequest(v.Data)
+				lstnr(req)
 			case redis.Subscription:
 			case error:
 				log.Logger.Info(ctx, "Pubsub error ", "Error", v)

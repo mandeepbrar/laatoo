@@ -12,7 +12,7 @@ type messagingManagerProxy struct {
 }
 
 //subscribe to a topic
-func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.TopicListener) error {
+func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.ServiceFunc) error {
 	return mgr.manager.subscribeTopic(ctx, topics, handler)
 }
 
@@ -22,7 +22,7 @@ func (mgr *messagingManagerProxy) Publish(ctx core.RequestContext, topic string,
 }
 
 func newMessagingManager(ctx core.ServerContext, name string, parentElem core.ServerElement, commSvcName string) (*messagingManager, *messagingManagerProxy) {
-	msgMgr := &messagingManager{parent: parentElem, topicStore: make(map[string][]core.TopicListener, 10), commSvcName: commSvcName}
+	msgMgr := &messagingManager{parent: parentElem, topicStore: make(map[string][]core.ServiceFunc, 10), commSvcName: commSvcName}
 	msgElemCtx := parentElem.NewCtx(name)
 	msgElem := &messagingManagerProxy{Context: msgElemCtx.(*common.Context), manager: msgMgr}
 	msgMgr.proxy = msgElem
@@ -32,7 +32,7 @@ func newMessagingManager(ctx core.ServerContext, name string, parentElem core.Se
 func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	msgMgrProxy := parentMessageMgr.(*messagingManagerProxy)
 	msgMgr := msgMgrProxy.manager
-	store := make(map[string][]core.TopicListener, len(msgMgr.topicStore))
+	store := make(map[string][]core.ServiceFunc, len(msgMgr.topicStore))
 	for k, _ := range msgMgr.topicStore {
 		allowed := true
 		for _, filter := range filters {
@@ -42,7 +42,7 @@ func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr
 			}
 		}
 		if allowed {
-			store[k] = []core.TopicListener{}
+			store[k] = []core.ServiceFunc{}
 		}
 	}
 	childmsgMgr := &messagingManager{parent: parent, topicStore: store, commSvcName: msgMgr.commSvcName}

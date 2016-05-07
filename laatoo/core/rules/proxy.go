@@ -2,8 +2,8 @@ package rules
 
 import (
 	"laatoo/core/common"
+	"laatoo/sdk/components/rules"
 	"laatoo/sdk/core"
-	"laatoo/sdk/rules"
 )
 
 type rulesManagerProxy struct {
@@ -11,10 +11,10 @@ type rulesManagerProxy struct {
 	manager *rulesManager
 }
 
-func (rm *rulesManagerProxy) SubscribeEvent(ctx core.ServerContext, eventType string, eventObject string, rule rules.Rule) {
-	rm.manager.subscribeEvent(ctx, eventType, eventObject, rule)
+func (rm *rulesManagerProxy) SubscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule) {
+	rm.manager.subscribeSynchronousMessage(ctx, msgType, rule)
 }
 
-func (rm *rulesManagerProxy) FireEvent(ctx core.RequestContext, eventType string, eventObject string, data map[string]interface{}) {
-	rm.manager.fireEvent(ctx, eventType, eventObject, data)
+func (rm *rulesManagerProxy) SendSynchronousMessage(ctx core.RequestContext, msgType string, data interface{}) error {
+	return rm.manager.sendSynchronousMessage(ctx, msgType, data)
 }

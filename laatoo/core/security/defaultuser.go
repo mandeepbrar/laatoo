@@ -77,6 +77,9 @@ func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
 	}
 	return nil
 }
+func (ent *DefaultUser) GetObjectType() string {
+	return config.DEFAULT_USER
+}
 func (ent *DefaultUser) PostSave(ctx core.RequestContext) error {
 	return nil
 }

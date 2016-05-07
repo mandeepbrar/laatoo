@@ -7,15 +7,14 @@ import (
 type TriggerType int
 
 const (
-	Message TriggerType = iota
-	Event
+	AsynchronousMessage TriggerType = iota
+	SynchronousMessage
 )
 
 type Trigger struct {
 	TriggerType TriggerType
-	Event       string
-	EventObject string
-	Data        map[string]interface{}
+	MessageType string
+	Message     interface{}
 }
 
 type Rule interface {

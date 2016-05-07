@@ -1,5 +1,6 @@
 package rmi
 
+/*
 import (
 	"laatoo/core/objects"
 	"laatoo/sdk/config"
@@ -42,3 +43,4 @@ func (ds *MethodInvokerFactory) Initialize(ctx core.ServerContext, conf config.C
 func (ds *MethodInvokerFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
+*/
