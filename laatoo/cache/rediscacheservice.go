@@ -99,11 +99,17 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 	return nil
 }
 
-func (svc *RedisCacheService) Delete(ctx core.Context, key string) error {
+func (svc *RedisCacheService) Delete(ctx core.RequestContext, key string) error {
+	conn := svc.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("DEL", key)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (svc *RedisCacheService) PutObject(ctx core.Context, key string, val interface{}) error {
+func (svc *RedisCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("SET", key, val)
@@ -114,7 +120,7 @@ func (svc *RedisCacheService) PutObject(ctx core.Context, key string, val interf
 	return nil
 }
 
-func (svc *RedisCacheService) GetObject(ctx core.Context, key string, val interface{}) bool {
+func (svc *RedisCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) bool {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	k, err := conn.Do("GET", key)
@@ -125,7 +131,7 @@ func (svc *RedisCacheService) GetObject(ctx core.Context, key string, val interf
 	return true
 }
 
-func (svc *RedisCacheService) GetMulti(ctx core.Context, keys []string, val map[string]interface{}) bool {
+func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) bool {
 	return false
 }
 

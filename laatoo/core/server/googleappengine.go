@@ -3,53 +3,116 @@
 package server
 
 import (
-	glctx "golang.org/x/net/context"
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+	//	"laatoo/sdk/errors"
+	//	"laatoo/sdk/log"
 	"net/http"
+	"sync"
 )
 
 const (
-	SERVER_TYPE = "CONF_SERVERTYPE_GOOGLEAPP"
+	SERVER_TYPE = core.CONF_SERVERTYPE_GOOGLEAPP
 )
 
-func GetAppengineContext(ctx RequestContext) glctx.Context {
-	if ctx == nil || ctx.Request() == nil {
-		return nil
+func Main(configFile string) error {
+	var once sync.Once
+	var request *http.Request
+	warmupFunc := func() {
+		rootctx := newServerContext()
+		rootctx.GaeReq = request
+		err := main(rootctx, configFile)
+		panic(err)
 	}
-	/*	echoContext, ok := ctx.(*echo.Context)
-		if !ok {
-			appengineCtx, ok := ctx.(context.Context)
-			if ok {
-				return appengineCtx
-			}
+	http.HandleFunc("/_ah/warmup", func(w http.ResponseWriter, req *http.Request) {
+		request = req
+		once.Do(warmupFunc)
+	})
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		request = req
+		once.Do(warmupFunc)
+	})
+	return nil
+}
+
+func startListening(ctx core.ServerContext, conf config.Config) error {
+	/*//find the address to bind from the server
+	address, ok := conf.GetString(config.CONF_SERVER_ADDRESS)
+	if !ok {
+		panic("Host name not provided for standalone server")
+	}
+
+	go dialServer(ctx, address)
+
+	//start the standalone tcp loop
+	// Listen on TCP port 2000 on all interfaces.
+	//this is an admin port and not environment address
+	// more functionality to be built on the admin port
+	l, err := net.Listen("tcp", address)
+	if err != nil {
+		return err
+	}
+	defer l.Close()
+	log.Logger.Info(ctx, "Listening...")
+	for {
+		// Wait for a connection.
+		conn, err := l.Accept()
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		// Handle the connection in a new goroutine.
+		// The loop then returns to accepting, so that
+		// multiple connections may be served concurrently.
+		go func(c net.Conn) {
+			// Shut down the connection.
+			c.Close()
+		}(conn)
+	}
+	*/
+	return nil
+}
+
+/*
+//try tcp connection to the server... it will allow connection if the server is bound to the address
+func dialServer(ctx core.ServerContext, address string) error {
+	for i := 0; i < 10; i++ {
+		_, err := net.Dial("tcp", address)
+		if err != nil {
+			fmt.Print(err)
+			time.Sleep(1000 * time.Millisecond)
+		} else {
 			return nil
-		}*/
-	return appengine.NewContext(ctx.Request())
-
-}
-
-func GetCloudContext(ctx RequestContext, scope string) glctx.Context {
-	appenginectx := GetAppengineContext(ctx)
-	hc := &http.Client{
-		Transport: &oauth2.Transport{
-			Source: google.AppEngineTokenSource(appenginectx, scope),
-			Base: &urlfetch.Transport{
-				Context: appenginectx,
-			},
-		},
+		}
 	}
-	return cloud.NewContext(appengine.AppID(appenginectx), hc)
+	panic("Server could not be started")
 }
 
-func HttpClient(ctx RequestContext) *http.Client {
-	appenginectx := GetAppengineContext(ctx)
-	return &http.Client{
-		Transport: &urlfetch.Transport{
-			Context: appenginectx,
-			AllowInvalidServerCertificate: true,
-		},
+//Create a new server
+func NewServer(configName string) (*Server, error) {
+	ctx := &Context{Context: echo.NewContext(nil, nil, router)}
+	server := &Server{ServerType: CONF_SERVERTYPE_GOOGLEAPP}
+	err := server.InitServer(ctx, configName, router)
+	if err != nil {
+		return nil, errors.WrapError(err)
 	}
+	http.Handle("/", router)
+	log.Logger.Error(ctx, "core.appengine.warmup", "setting up router for warmup")
+	var req *Context
+	var once sync.Once
+	warmupFunc := func() {
+		log.Logger.Error(req, "core.appengine.warmup", "starting server")
+		server.Start(req)
+	}
+	router.Use(func(ctx *echo.Context) error {
+		req = &Context{Context: ctx}
+		once.Do(warmupFunc)
+		return nil
+	})
+	router.Get("/_ah/warmup", func(ctx *echo.Context) error {
+		req = &Context{Context: ctx}
+		once.Do(warmupFunc)
+		return nil
+	})
+	return server, nil
 }
-
-func GetOAuthContext(ctx Context) glctx.Context {
-	return GetAppengineContext()
-}
+*/

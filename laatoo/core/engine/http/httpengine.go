@@ -1,7 +1,7 @@
 package http
 
 import (
-	"laatoo/core/engine/http/echo"
+	//"laatoo/core/engine/http/echo"
 	"laatoo/core/engine/http/gin"
 	"laatoo/core/engine/http/goji"
 	"laatoo/core/engine/http/net"
@@ -37,7 +37,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	}
 	switch eng.fwname {
 	case "Echo":
-		eng.framework = &echo.EchoWebFramework{}
+		//eng.framework = &echo.EchoWebFramework{}
 	case "Gin":
 		eng.framework = &gin.GinWebFramework{}
 	case "Goji":

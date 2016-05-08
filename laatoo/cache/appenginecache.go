@@ -1,61 +1,64 @@
 // +build appengine
 
-package laatoocache
+package cache
 
 import (
-	"laatoocore"
-	"laatoosdk/core"
-	//	"laatoosdk/errors"
 	"bytes"
 	"encoding/gob"
 	"google.golang.org/appengine/memcache"
-	"laatoosdk/log"
+	"laatoo/core/objects"
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+	//	"laatoo/sdk/errors"
+	//"laatoo/sdk/log"
+	//"time"
 )
 
-type AppEngineCacheService struct {
-	name string
+type AppengineCacheFactory struct {
 }
 
 const (
-	APPNEGINE_LOGGING_CONTEXT = "appenginecache"
-	CONF_APPENGINECACHE_NAME  = "appengine_cache"
+	CONF_APPENGINECACHE_FACTORY = "appenginecache"
+	CONF_APPENGINECACHE_SVC     = "cache"
 )
 
 func init() {
-	laatoocore.RegisterObjectProvider(CONF_APPENGINECACHE_NAME, AppEngineCacheServiceFactory)
+	objects.RegisterObject(CONF_APPENGINECACHE_FACTORY, createAppengineCacheServiceFactory, nil)
 }
 
-func AppEngineCacheServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(ctx, APPNEGINE_LOGGING_CONTEXT, "Creating appengine cache service ")
-	appengineSvc := &AppEngineCacheService{name: CONF_APPENGINECACHE_NAME}
-
-	return appengineSvc, nil
+func createAppengineCacheServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+	return &AppengineCacheFactory{}, nil
 }
 
-func (svc *AppEngineCacheService) GetServiceType() string {
-	return core.SERVICE_TYPE_DATA
+//Create the services configured for factory.
+func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+	if name == CONF_APPENGINECACHE_SVC {
+		return &AppengineCacheService{}, nil
+	}
+	return nil, nil
 }
 
-//name of the service
-func (svc *AppEngineCacheService) GetName() string {
-	return svc.name
-}
-
-//Initialize the service. Consumer of a service passes the data
-func (svc *AppEngineCacheService) Initialize(ctx core.Context) error {
+func (ds *AppengineCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-//The service starts serving when this method is called
-func (svc *AppEngineCacheService) Serve(ctx core.Context) error {
+//The services start serving when this method is called
+func (ds *AppengineCacheFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *AppEngineCacheService) Delete(ctx core.Context, key string) error {
+type AppengineCacheService struct {
+}
+
+func (svc *AppengineCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	return nil
+}
+
+func (svc *AppengineCacheService) Delete(ctx core.RequestContext, key string) error {
 	return memcache.Delete(ctx.GetAppengineContext(), key)
 }
 
-func (svc *AppEngineCacheService) PutObject(ctx core.Context, key string, val interface{}) error {
+func (svc *AppengineCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(val)
@@ -65,8 +68,9 @@ func (svc *AppEngineCacheService) PutObject(ctx core.Context, key string, val in
 	return memcache.Set(ctx.GetAppengineContext(), &memcache.Item{Key: key, Value: buf.Bytes()})
 }
 
-func (svc *AppEngineCacheService) GetObject(ctx core.Context, key string, val interface{}) error {
+func (svc *AppengineCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) error {
 	item, err := memcache.Get(ctx.GetAppengineContext(), key)
+
 	if err != nil {
 		return err
 	} else {
@@ -79,7 +83,7 @@ func (svc *AppEngineCacheService) GetObject(ctx core.Context, key string, val in
 	}
 }
 
-func (svc *AppEngineCacheService) GetMulti(ctx core.Context, keys []string, val map[string]interface{}) error {
+func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) error {
 	_, err := memcache.GetMulti(ctx.GetAppengineContext(), keys)
 	if err != nil {
 		return err
@@ -101,7 +105,10 @@ func (svc *AppEngineCacheService) GetMulti(ctx core.Context, keys []string, val 
 	return nil
 }
 
-//Execute method
-func (svc *AppEngineCacheService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
-	return nil, nil
+func (svc *AppengineCacheService) Invoke(ctx core.RequestContext) error {
+	return nil
+}
+
+func (svc *AppengineCacheService) Start(ctx core.ServerContext) error {
+	return nil
 }

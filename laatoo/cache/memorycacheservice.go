@@ -47,21 +47,21 @@ type MemoryCacheService struct {
 	name         string
 }
 
-func (svc *MemoryCacheService) Delete(ctx core.Context, key string) error {
+func (svc *MemoryCacheService) Delete(ctx core.RequestContext, key string) error {
 	return svc.memoryStorer.DeleteObject(key)
 }
 
-func (svc *MemoryCacheService) PutObject(ctx core.Context, key string, val interface{}) error {
+func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
 	svc.memoryStorer.PutObject(key, val)
 	return nil
 }
 
-func (svc *MemoryCacheService) PutDerivedObject(ctx core.Context, key string, val interface{}) error {
+func (svc *MemoryCacheService) PutDerivedObject(ctx core.RequestContext, key string, val interface{}) error {
 	svc.memoryStorer.PutObject(key, val)
 	return nil
 }
 
-func (svc *MemoryCacheService) GetObject(ctx core.Context, key string, val interface{}) bool {
+func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) bool {
 	obj, err := svc.memoryStorer.GetObject(key)
 	if err != nil {
 		return false
@@ -73,7 +73,7 @@ func (svc *MemoryCacheService) GetObject(ctx core.Context, key string, val inter
 	return true
 }
 
-func (svc *MemoryCacheService) GetMulti(ctx core.Context, keys []string, val map[string]interface{}) bool {
+func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) bool {
 	/*_, err := memcache.GetMulti(ctx.GetAppengineContext(), keys)
 	if err != nil {
 		return err

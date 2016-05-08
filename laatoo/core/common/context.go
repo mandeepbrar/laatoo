@@ -3,11 +3,14 @@ package common
 import (
 	"fmt"
 	"github.com/twinj/uuid"
+	glctx "golang.org/x/net/context"
 	"laatoo/sdk/core"
+	"net/http"
 	"strconv"
 )
 
 type Context struct {
+	GaeReq      *http.Request
 	Id          string
 	Name        string
 	ParamsStore map[string]interface{}
@@ -35,7 +38,7 @@ func (ctx *Context) SetName(name string) {
 }
 
 func (ctx *Context) SubCtx(name string) core.Context {
-	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id}
+	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, GaeReq: ctx.GaeReq}
 }
 
 func (ctx *Context) NewCtx(name string) core.Context {
@@ -43,7 +46,7 @@ func (ctx *Context) NewCtx(name string) core.Context {
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String()}
+	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), GaeReq: ctx.GaeReq}
 }
 
 func (ctx *Context) Get(key string) (interface{}, bool) {
@@ -87,4 +90,28 @@ func (ctx *Context) GetStringArray(key string) ([]string, bool) {
 
 func (ctx *Context) Set(key string, val interface{}) {
 	ctx.ParamsStore[key] = val
+}
+func (ctx *Context) GetAppengineContext() glctx.Context {
+	if ctx.GaeReq != nil {
+		return GetAppengineContext(ctx)
+	}
+	return nil
+}
+func (ctx *Context) GetCloudContext(scope string) glctx.Context {
+	if ctx.GaeReq != nil {
+		return GetCloudContext(ctx, scope)
+	}
+	return nil
+}
+func (ctx *Context) HttpClient() *http.Client {
+	if ctx.GaeReq != nil {
+		return HttpClient(ctx)
+	}
+	return nil
+}
+func (ctx *Context) GetOAuthContext() glctx.Context {
+	if ctx.GaeReq != nil {
+		return GetOAuthContext(ctx)
+	}
+	return nil
 }

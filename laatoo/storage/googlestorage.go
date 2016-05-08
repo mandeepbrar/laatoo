@@ -1,7 +1,106 @@
 // +build appengine
 
-package laatoofiles
+package storage
 
+import (
+	"github.com/twinj/uuid"
+	"google.golang.org/cloud/storage"
+	"io"
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
+	"os"
+	//"net/http"
+	//"strings"
+)
+
+const (
+	CONF_GOOGLESTORAGE_SERVICENAME = "googlestorage"
+	CONF_GS_FILESBUCKET            = "bucket"
+)
+
+type GoogleStorageSvc struct {
+	bucket string
+}
+
+func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
+	bucket, ok := conf.GetString(CONF_GS_FILESBUCKET)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_GS_FILESBUCKET)
+	}
+	svc.bucket = bucket
+	return nil
+}
+
+func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
+	files := *ctx.GetRequest().(*map[string]io.ReadCloser)
+	urls := make([]string, len(files))
+	i := 0
+	for _, inpStr := range files {
+		fileName := uuid.NewV4().String()
+		url, err := svc.SaveFile(ctx, inpStr, fileName)
+		if err != nil {
+			return err
+		}
+		urls[i] = url
+		i++
+	}
+	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
+	return nil
+}
+func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error) {
+	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
+	client, err := storage.NewClient(cloudCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(cloudCtx)
+	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+	return dst, nil
+}
+
+func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bool {
+	fullpath := svc.GetFullPath(ctx, fileName)
+	_, err := os.Stat(fullpath)
+	if err == nil || os.IsExist(err) {
+		return true
+	}
+	return false
+}
+func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.ReadCloser, error) {
+	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
+	client, err := storage.NewClient(cloudCtx)
+	if err != nil {
+		return nil, err
+	}
+	return client.Bucket(svc.bucket).Object(fileName).NewReader(cloudCtx)
+}
+
+func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
+	return svc.bucket + fileName
+}
+
+func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error) {
+	// Destination file
+	dst, err := svc.CreateFile(ctx, fileName)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err = io.Copy(dst, inpStr); err != nil {
+		return "", err
+	}
+	inpStr.Close()
+	return fileName, nil
+}
+
+func (svc *GoogleStorageSvc) Start(ctx core.ServerContext) error {
+	return nil
+}
+
+/*
 import (
 	"fmt"
 	"github.com/twinj/uuid"
@@ -26,60 +125,7 @@ type GoogleStorageService struct {
 	prefix string
 }
 
-//Initialize service, register provider with laatoo
-func init() {
-	laatoocore.RegisterObjectProvider(CONF_GS_SERVICENAME, GoogleStorageServiceFactory)
-}
 
-//factory method returns the service object to the environment
-func GoogleStorageServiceFactory(ctx core.Context, conf map[string]interface{}) (interface{}, error) {
-	log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating google storage file service")
-	svc := &GoogleStorageService{}
-	routerInt, ok := conf[laatoocore.CONF_ENV_ROUTER]
-	if !ok {
-		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_ROUTER)
-	}
-	bucketInt, ok := conf[CONF_GS_FILESBUCKET]
-	if !ok {
-		return nil, errors.ThrowError(ctx, FILE_ERROR_MISSING_BUCKET)
-	}
-	svc.bucket = bucketInt.(string)
-	svc.prefix = fmt.Sprintf("storage.cloud.google.com/%s/", svc.bucket)
-	router := routerInt.(core.Router)
-	router.Post(ctx, "", conf, svc.processFile)
-	return svc, nil
-}
-
-//Provides the name of the service
-func (svc *GoogleStorageService) GetName() string {
-	return CONF_GS_SERVICENAME
-}
-
-//Initialize the service. Consumer of a service passes the data
-func (svc *GoogleStorageService) Initialize(ctx core.Context) error {
-	return nil
-}
-
-//The service starts serving when this method is called
-func (svc *GoogleStorageService) Serve(ctx core.Context) error {
-	return nil
-}
-
-//Type of service
-func (svc *GoogleStorageService) GetServiceType() string {
-	return core.SERVICE_TYPE_WEB
-}
-
-//Execute method
-func (svc *GoogleStorageService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
-	if name == "CopyFile" {
-		return nil, svc.copyFile(ctx, params["filename"].(string), params["writer"].(io.Writer))
-	}
-	if name == "TransformFile" {
-		return svc.transformFile(ctx, params["srcpath"].(string), params["destfolder"].(string), params["transformation"].(utils.FileTransform))
-	}
-	return nil, nil
-}
 
 func (svc *GoogleStorageService) copyFile(ctx core.Context, srcpath string, writer io.Writer) error {
 	filepath := svc.parsePath(srcpath)
@@ -201,4 +247,4 @@ func (svc *GoogleStorageService) parsePath(url string) string {
 		return url
 	}
 	return url[indexOfPrefix+len(svc.prefix):]
-}
+}*/

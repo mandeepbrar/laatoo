@@ -1,10 +1,5 @@
 package core
 
-import (
-	glctx "golang.org/x/net/context"
-	"net/http"
-)
-
 /*application and engine types*/
 const (
 	CONF_SERVERTYPE_STANDALONE = "STANDALONE"
@@ -56,10 +51,6 @@ type ServerContext interface {
 	SubContext(name string) ServerContext
 	SubContextWithElement(name string, primaryElement ServerElementType) ServerContext
 	CreateNewRequest(name string, engineCtx interface{}) RequestContext
-	GetAppengineContext(ctx RequestContext) glctx.Context
-	GetCloudContext(ctx RequestContext, scope string) glctx.Context
-	HttpClient(ctx RequestContext) *http.Client
-	GetOAuthContext(ctx Context) glctx.Context
 	CreateCollection(objectName string, args MethodArgs) (interface{}, error)
 	CreateObject(objectName string, args MethodArgs) (interface{}, error)
 	GetMethod(methodName string) (ServiceFunc, error)

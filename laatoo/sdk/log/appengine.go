@@ -3,6 +3,48 @@
 package log
 
 import (
+	glog "google.golang.org/appengine/log"
+	"laatoo/sdk/core"
+	stdlog "log"
+)
+
+func NewLogger() LoggerInterface {
+	return &LogWrapper{logger: NewSimpleLogger(gaeSimpleLogsHandler()), level: TRACE}
+}
+
+func gaeSimpleLogsHandler() SimpleWriteHandler {
+	wh := &gaeSimpleWriteHandler{}
+	return wh
+}
+
+type gaeSimpleWriteHandler struct {
+}
+
+func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, msg string, level int) {
+	appengineContext := ctx.GetAppengineContext()
+	if appengineContext != nil {
+		switch level {
+		case TRACE:
+			glog.Debugf(appengineContext, msg)
+		case DEBUG:
+			glog.Debugf(appengineContext, msg)
+		case INFO:
+			glog.Infof(appengineContext, msg)
+		case WARN:
+			glog.Warningf(appengineContext, msg)
+		default:
+			glog.Errorf(appengineContext, msg)
+		}
+	}
+	stdlog.Print(msg)
+}
+func (jh *gaeSimpleWriteHandler) PrintBytes(ctx core.Context, msg []byte) (int, error) {
+	stdlog.Print(string(msg))
+	return len(msg), nil
+}
+
+/*
+import (
 	"bytes"
 	glog "google.golang.org/appengine/log"
 	"laatoosdk/core"
@@ -118,3 +160,4 @@ type StdJsonWriteHandler struct {
 func (jh *StdJsonWriteHandler) Print(msg string) {
 	glog.Errorf(msg)
 }
+*/

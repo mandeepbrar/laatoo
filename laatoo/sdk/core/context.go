@@ -1,5 +1,10 @@
 package core
 
+import (
+	glctx "golang.org/x/net/context"
+	"net/http"
+)
+
 type Context interface {
 	GetId() string
 	GetName() string
@@ -11,4 +16,8 @@ type Context interface {
 	GetStringArray(key string) ([]string, bool)
 	SubCtx(name string) Context
 	NewCtx(flow string) Context
+	GetAppengineContext() glctx.Context
+	GetCloudContext(scope string) glctx.Context
+	HttpClient() *http.Client
+	GetOAuthContext() glctx.Context
 }

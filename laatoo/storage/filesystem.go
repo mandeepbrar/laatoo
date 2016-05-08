@@ -1,5 +1,3 @@
-// +build !appengine
-
 package storage
 
 import (
@@ -15,8 +13,8 @@ import (
 )
 
 const (
-	CONF_UPLOADFILE_SERVICENAME = "upload"
-	CONF_FILESDIR               = "filesdir"
+	CONF_FILE_SERVICENAME = "filesystem"
+	CONF_FILESDIR         = "filesdir"
 )
 
 type FileSystemSvc struct {
@@ -73,9 +71,8 @@ func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) 
 }
 
 func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error) {
-	fullpath := svc.GetFullPath(ctx, fileName)
 	// Destination file
-	dst, err := os.Create(fullpath)
+	dst, err := svc.CreateFile(ctx, fileName)
 	if err != nil {
 		return "", err
 	}

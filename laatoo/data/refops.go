@@ -44,7 +44,7 @@ func buildRefOps(ctx core.ServerContext, conf config.Config) (deleterefops []*re
 			}
 			switch operation {
 			case "CascadedDelete":
-				oper, err := buildCascadedDeleteOperation(ctx, conf, opname, targetsvc)
+				oper, err := buildCascadedDeleteOperation(ctx, operConf, opname, targetsvc)
 				if err != nil {
 					return nil, nil, nil, nil, errors.WrapError(ctx, err)
 				}

@@ -3,16 +3,12 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
-	glctx "golang.org/x/net/context"
-	"golang.org/x/oauth2"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"net"
-	"net/http"
 	"time"
 )
 
@@ -20,6 +16,11 @@ const (
 	//if this file is built the server type will be standalone
 	SERVER_TYPE = core.CONF_SERVERTYPE_STANDALONE
 )
+
+func Main(configFile string) error {
+	rootctx := newServerContext()
+	return main(rootctx, configFile)
+}
 
 func startListening(ctx core.ServerContext, conf config.Config) error {
 	//find the address to bind from the server
@@ -69,22 +70,4 @@ func dialServer(ctx core.ServerContext, address string) error {
 		}
 	}
 	panic("Server could not be started")
-}
-
-func GetAppengineContext(ctx core.RequestContext) glctx.Context {
-	return nil
-}
-
-func GetCloudContext(ctx core.RequestContext, scope string) glctx.Context {
-	return nil
-}
-func HttpClient(ctx core.RequestContext) *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	return &http.Client{Transport: tr}
-}
-
-func GetOAuthContext(ctx core.Context) glctx.Context {
-	return oauth2.NoContext
 }

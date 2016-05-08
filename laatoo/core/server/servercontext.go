@@ -1,13 +1,11 @@
 package server
 
 import (
-	glctx "golang.org/x/net/context"
 	"laatoo/core/common"
 	"laatoo/sdk/core"
 	//"laatoo/sdk/log"
 	//	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
-	"net/http"
 	"time"
 )
 
@@ -316,19 +314,6 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 	newctx := parent.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx,
 		engineContext: engineCtx, createTime: time.Now(), subRequest: false}
-}
-
-func (ctx *serverContext) GetAppengineContext(reqctx core.RequestContext) glctx.Context {
-	return GetAppengineContext(reqctx)
-}
-func (ctx *serverContext) GetCloudContext(reqctx core.RequestContext, scope string) glctx.Context {
-	return GetCloudContext(reqctx, scope)
-}
-func (ctx *serverContext) HttpClient(reqctx core.RequestContext) *http.Client {
-	return HttpClient(reqctx)
-}
-func (ctx *serverContext) GetOAuthContext(reqctx core.Context) glctx.Context {
-	return GetOAuthContext(reqctx)
 }
 
 func (ctx *serverContext) CreateCollection(objectName string, args core.MethodArgs) (interface{}, error) {

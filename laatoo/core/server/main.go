@@ -7,8 +7,7 @@ import (
 	"laatoo/sdk/log"
 )
 
-func Main(configFile string) error {
-	rootctx := newServerContext()
+func main(rootctx *serverContext, configFile string) error {
 	//read the config file
 	conf, err := config.NewConfigFromFile(configFile)
 	if err != nil {
