@@ -28,8 +28,8 @@ func (rf *RoleFactory) CreateObject(ctx core.Context, args core.MethodArgs) (int
 }
 
 //Creates collection
-func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	rolecollection := make([]Role, 10)
+func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
+	rolecollection := make([]Role, length)
 	return &rolecollection, nil
 }
 

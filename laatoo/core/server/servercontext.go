@@ -316,8 +316,8 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 		engineContext: engineCtx, createTime: time.Now(), subRequest: false}
 }
 
-func (ctx *serverContext) CreateCollection(objectName string, args core.MethodArgs) (interface{}, error) {
-	return ctx.objectLoader.CreateCollection(ctx, objectName, args)
+func (ctx *serverContext) CreateCollection(objectName string, length int, args core.MethodArgs) (interface{}, error) {
+	return ctx.objectLoader.CreateCollection(ctx, objectName, length, args)
 }
 
 func (ctx *serverContext) CreateObject(objectName string, args core.MethodArgs) (interface{}, error) {

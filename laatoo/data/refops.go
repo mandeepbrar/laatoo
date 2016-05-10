@@ -97,7 +97,7 @@ func cascadeDelete(ctx core.RequestContext, dataService data.DataComponent, targ
 		return err
 	} else {
 		for _, id := range ids {
-			condition, _ := dataService.CreateCondition(ctx, data.FIELDVALUE, targetfield, id)
+			condition, _ := dataService.CreateCondition(ctx, data.FIELDVALUE, map[string]interface{}{targetfield: id})
 			_, err := dataService.DeleteAll(ctx, condition)
 			if err != nil {
 				return err

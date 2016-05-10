@@ -71,7 +71,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				}
 			default:
 				if isdataCollection {
-					reqData, err = dataObjectCollectionCreator(webctx, nil)
+					reqData, err = dataObjectCollectionCreator(webctx, 5, nil)
 					if err != nil {
 						return errors.WrapError(webctx, err)
 					}

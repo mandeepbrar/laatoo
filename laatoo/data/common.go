@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	CONF_DATA_SVCS          = "dataservices"
 	CONF_DATA_OBJECT        = "object"
 	CONF_DATA_OBJECT_ID     = "id"
 	CONF_DATA_POSTSAVE      = "postsave"
@@ -17,6 +18,7 @@ const (
 	CONF_DATA_COLLECTION    = "collection"
 	CONF_DATA_NOTIFYUPDATES = "notifyupdates"
 	CONF_DATA_NOTIFYNEW     = "notifynew"
+	CONF_PRESAVE_MSG        = "storable_presave"
 )
 
 func notifyUpdate(ctx core.RequestContext, objectType string, id string) {

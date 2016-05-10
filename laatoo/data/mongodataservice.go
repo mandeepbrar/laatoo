@@ -35,7 +35,6 @@ type mongoDataService struct {
 
 const (
 	CONF_MONGO_DATABASE = "database"
-	CONF_PRESAVE_MSG    = "storable_presave"
 )
 
 func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (*mongoDataService, error) {
@@ -196,7 +195,6 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 		if ms.auditable {
 			data.Audit(ctx, item)
 		}
-		log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.object, "Id", id)
 		bulk.Upsert(bson.M{ms.objectid: id}, item)
 	}
 	_, err := bulk.Run()
@@ -270,7 +268,7 @@ func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals m
 
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
-	results, err := ms.objectCollectionCreator(ctx, nil)
+	results, err := ms.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -385,7 +383,7 @@ func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interfa
 		}
 		return ids, err
 	}
-	results, err := ms.objectCollectionCreator(ctx, nil)
+	results, err := ms.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

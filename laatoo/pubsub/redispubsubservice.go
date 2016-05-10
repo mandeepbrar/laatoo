@@ -1,4 +1,4 @@
-package laatoopubsub
+package pubsub
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ type RedisPubSubService struct {
 	pool             *redis.Pool
 }
 
-func (svc *RedisPubSubService) Publish(ctx core.ServerContext, topic string, message interface{}) error {
+func (svc *RedisPubSubService) Publish(ctx core.RequestContext, topic string, message interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	bytes, err := json.Marshal(message)

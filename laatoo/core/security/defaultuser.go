@@ -34,8 +34,8 @@ func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (int
 }
 
 //Creates collection
-func (rf *UserFactory) CreateObjectCollection(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	usercollection := make([]DefaultUser, 10)
+func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
+	usercollection := make([]DefaultUser, length)
 	return &usercollection, nil
 }
 

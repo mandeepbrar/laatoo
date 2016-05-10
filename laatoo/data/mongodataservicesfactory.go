@@ -17,7 +17,6 @@ type mongoDataServicesFactory struct {
 const (
 	CONF_MONGO_CONNECTIONSTRING = "connectionstring"
 	CONF_MONGO_SERVICES         = "mongo_services"
-	CONF_MONGO_DATA_SVCS        = "dataservices"
 )
 
 func init() {
@@ -61,7 +60,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 //Create the services configured for factory.
 func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
 	switch method {
-	case CONF_MONGO_DATA_SVCS:
+	case CONF_DATA_SVCS:
 		{
 
 			return newMongoDataService(ctx, name, ms)

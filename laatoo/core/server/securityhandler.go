@@ -126,3 +126,8 @@ func (sh *securityHandler) createContext(ctx core.ServerContext, name string) co
 	return ctx.NewContextWithElements(name,
 		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
 }
+
+func (sh *securityHandler) createAuthenticatedContext(ctx core.ServerContext, name string) core.ServerContext {
+	return ctx.NewContextWithElements(name,
+		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
+}

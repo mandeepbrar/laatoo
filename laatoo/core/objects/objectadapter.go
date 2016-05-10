@@ -25,6 +25,6 @@ func (fac *objectFactory) CreateObject(ctx core.Context, args core.MethodArgs) (
 }
 
 //Creates collection
-func (fac *objectFactory) CreateObjectCollection(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return fac.objectCollectionCreator(ctx, args)
+func (fac *objectFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
+	return fac.objectCollectionCreator(ctx, length, args)
 }

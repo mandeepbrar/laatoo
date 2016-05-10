@@ -27,6 +27,8 @@ const (
 	CONF_TASKS_FACTORY            = "tasksfactory"
 	CONF_TASKS_BEANSTALK_PRODUCER = "beanstalktaskpublisher"
 	CONF_TASKS_BEANSTALK_CONSUMER = "beanstalktaskprocessor"
+	CONF_TASKS_GAE_PRODUCER       = "gaetaskpublisher"
+	CONF_TASKS_GAE_CONSUMER       = "gaetaskprocessor"
 )
 
 func init() {
@@ -44,6 +46,10 @@ func (tf *tasksFactory) CreateService(ctx core.ServerContext, name string, metho
 		return &beanstalkProducer{}, nil
 	case CONF_TASKS_BEANSTALK_CONSUMER:
 		return &beanstalkConsumer{queues: make(map[string]*taskQueue, 10)}, nil
+	case CONF_TASKS_GAE_PRODUCER:
+		return &gaeProducer{}, nil
+	case CONF_TASKS_GAE_CONSUMER:
+		return &gaeConsumer{queues: make(map[string]*taskQueue, 10)}, nil
 	}
 	return nil, nil
 }

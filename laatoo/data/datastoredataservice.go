@@ -2,6 +2,7 @@
 
 package data
 
+/*
 import (
 	"fmt"
 	"google.golang.org/appengine"
@@ -223,9 +224,9 @@ func (ms *DatastoreDataService) GetMulti(ctx core.Context, objectType string, id
 		key := datastore.NewKey(appEngineContext, collection, id, 0, nil)
 		keys[ind] = key
 	}
-	/*if len(orderBy) > 0 {
+	if len(orderBy) > 0 {
 		query = query.Order(orderBy)
-	}*/
+	}
 
 	err = datastore.GetMulti(appEngineContext, keys, arr.Interface())
 	if err != nil {
@@ -233,7 +234,7 @@ func (ms *DatastoreDataService) GetMulti(ctx core.Context, objectType string, id
 			log.Logger.Debug(ctx, LOGGING_CONTEXT, "Geting object", "err", err)
 			return nil, err
 		}
-	}
+	}id
 	retVal := make(map[string]interface{}, lenids)
 	length := arr.Len()
 	for i := 0; i < length; i++ {
@@ -616,4 +617,4 @@ func (ms *DatastoreDataService) GetList(ctx core.Context, objectType string, pag
 //Execute method
 func (svc *DatastoreDataService) Execute(ctx core.Context, name string, params map[string]interface{}) (interface{}, error) {
 	return nil, nil
-}
+}*/

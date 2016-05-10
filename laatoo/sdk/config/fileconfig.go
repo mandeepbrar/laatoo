@@ -3,8 +3,22 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
+	"strings"
 )
+
+var confVariables map[string]string
+
+func init() {
+	confVariables = make(map[string]string, 0)
+	vardata, err := ioutil.ReadFile("confvariables.json")
+	if err == nil {
+		err = json.Unmarshal(vardata, &confVariables)
+		if err != nil {
+			fmt.Println("Could not read conf variables")
+		}
+	}
+}
 
 //Json based viper implementation of Config interface
 type FileConfig struct {
@@ -15,16 +29,19 @@ type FileConfig struct {
 //only works for json configs
 func NewConfigFromFile(file string) (Config, error) {
 	rootElement := make(GenericConfig, 50)
-	configFile, err := os.Open(file)
-	defer configFile.Close()
-	if err != nil {
+	fileData, err := ioutil.ReadFile(file)
+	if err == nil {
+		fileStr := string(fileData)
+		for variable, value := range confVariables {
+			fileStr = strings.Replace(fileStr, variable, value, -1)
+		}
+		fileData = []byte(fileStr)
+	} else {
 		return nil, fmt.Errorf("Error opening config file %s. Error: %s", file, err.Error())
 	}
-	jsonParser := json.NewDecoder(configFile)
-	if err = jsonParser.Decode(&rootElement); err != nil {
+	if err = json.Unmarshal(fileData, &rootElement); err != nil {
 		return nil, fmt.Errorf("Error parsing config file %s. Error: %s", file, err.Error())
 	}
-
 	conf := &FileConfig{root: rootElement}
 
 	return conf, nil

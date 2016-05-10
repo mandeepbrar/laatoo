@@ -16,8 +16,8 @@ func (ldr *objectLoaderProxy) RegisterObjectFactory(ctx core.Context, objectName
 func (ldr *objectLoaderProxy) RegisterObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) {
 	ldr.loader.registerObject(ctx, objectName, objectCreator, objectCollectionCreator)
 }
-func (ldr *objectLoaderProxy) CreateCollection(ctx core.Context, objectName string, args core.MethodArgs) (interface{}, error) {
-	return ldr.loader.createCollection(ctx, objectName, args)
+func (ldr *objectLoaderProxy) CreateCollection(ctx core.Context, objectName string, length int, args core.MethodArgs) (interface{}, error) {
+	return ldr.loader.createCollection(ctx, objectName, length, args)
 }
 func (ldr *objectLoaderProxy) CreateObject(ctx core.Context, objectName string, args core.MethodArgs) (interface{}, error) {
 	return ldr.loader.createObject(ctx, objectName, args)

@@ -60,14 +60,14 @@ func (objLoader *objectLoader) registerInvokableMethod(ctx core.Context, methodN
 }
 
 //returns a collection of the object type
-func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, args core.MethodArgs) (interface{}, error) {
+func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, length int, args core.MethodArgs) (interface{}, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 
 	}
-	return factory.CreateObjectCollection(ctx, args)
+	return factory.CreateObjectCollection(ctx, length, args)
 }
 
 //Provides an object with a given name

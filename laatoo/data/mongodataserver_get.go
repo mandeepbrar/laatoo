@@ -50,7 +50,8 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 
 //Get multiple objects by id
 func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
-	results, err := ms.objectCollectionCreator(ctx, nil)
+	lenids := len(ids)
+	results, err := ms.objectCollectionCreator(ctx, lenids, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -68,7 +69,7 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	retVal := make(map[string]data.Storable, len(ids))
+	retVal := make(map[string]data.Storable, lenids)
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	resultStor, err := data.CastToStorableCollection(results)
@@ -98,7 +99,8 @@ func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageN
 func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
 	totalrecs = -1
 	recsreturned = -1
-	results, err := ms.objectCollectionCreator(ctx, nil)
+	//0 is just a placeholder... mongo provides results of its own
+	results, err := ms.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
 		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}

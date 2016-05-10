@@ -1,4 +1,4 @@
-package laatoopubsub
+package pubsub
 
 import (
 	"laatoo/core/objects"
@@ -12,6 +12,7 @@ type PubSubFactory struct {
 const (
 	CONF_PUBSUB_NAME     = "pubsub"
 	CONF_REDISPUBSUB_SVC = "redis"
+	CONF_APPPUBSUB_SVC   = "apppubsub"
 )
 
 func init() {
@@ -24,8 +25,15 @@ func createPubSubFactory(ctx core.Context, args core.MethodArgs) (interface{}, e
 
 //Create the services configured for factory.
 func (mf *PubSubFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
-	if method == CONF_REDISPUBSUB_SVC {
-		return &RedisPubSubService{name: name}, nil
+	switch method {
+	case CONF_REDISPUBSUB_SVC:
+		{
+			return &RedisPubSubService{name: name}, nil
+		}
+	case CONF_APPPUBSUB_SVC:
+		{
+			return &RedisPubSubService{name: name}, nil
+		}
 	}
 	return nil, nil
 }

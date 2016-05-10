@@ -28,10 +28,10 @@ func Main(configFile string) error {
 		request = req
 		once.Do(warmupFunc)
 	})
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	/*http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		request = req
 		once.Do(warmupFunc)
-	})
+	})*/
 	return nil
 }
 
