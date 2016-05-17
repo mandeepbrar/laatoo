@@ -21,19 +21,22 @@ type gaeSimpleWriteHandler struct {
 }
 
 func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, msg string, level int) {
-	appengineContext := ctx.GetAppengineContext()
-	if appengineContext != nil {
-		switch level {
-		case TRACE:
-			glog.Debugf(appengineContext, msg)
-		case DEBUG:
-			glog.Debugf(appengineContext, msg)
-		case INFO:
-			glog.Infof(appengineContext, msg)
-		case WARN:
-			glog.Warningf(appengineContext, msg)
-		default:
-			glog.Errorf(appengineContext, msg)
+	if ctx != nil {
+		appengineContext := ctx.GetAppengineContext()
+		if appengineContext != nil {
+			switch level {
+			case TRACE:
+				glog.Debugf(appengineContext, msg)
+			case DEBUG:
+				glog.Debugf(appengineContext, msg)
+			case INFO:
+				glog.Infof(appengineContext, msg)
+			case WARN:
+				glog.Warningf(appengineContext, msg)
+			default:
+				glog.Errorf(appengineContext, msg)
+			}
+			return
 		}
 	}
 	stdlog.Print(msg)

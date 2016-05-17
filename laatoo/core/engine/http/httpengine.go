@@ -1,7 +1,7 @@
 package http
 
 import (
-	//"laatoo/core/engine/http/echo"
+	"laatoo/core/engine/http/echo"
 	"laatoo/core/engine/http/gin"
 	"laatoo/core/engine/http/goji"
 	"laatoo/core/engine/http/net"
@@ -37,9 +37,9 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	}
 	switch eng.fwname {
 	case "Echo":
-		//eng.framework = &echo.EchoWebFramework{}
+		eng.framework = &echo.EchoWebFramework{}
 	case "Gin":
-		eng.framework = &gin.GinWebFramework{}
+		eng.framework = &gin.GinWebFramework{Name: eng.name}
 	case "Goji":
 		eng.framework = &goji.GojiWebFramework{}
 	}
@@ -112,7 +112,7 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	if startCtx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
 		http.Handle(eng.path, eng.framework.GetRootHandler())
 	}
-	log.Logger.Info(startCtx, "Started engine")
+	log.Logger.Info(startCtx, "Started engine*********************************")
 	return nil
 }
 

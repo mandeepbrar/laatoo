@@ -11,4 +11,6 @@ const (
 	ADMINROLE          = "__adminrole"
 	USER               = "__user"
 	ROLE               = "__role"
+	CONF_PVTKEYPATH    = "pvtkey"
+	CONF_PUBLICKEYPATH = "publickey"
 )

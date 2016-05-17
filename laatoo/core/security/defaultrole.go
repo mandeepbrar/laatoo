@@ -36,6 +36,7 @@ func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args
 type Role struct {
 	Role        string   `json:"Role" form:"Role" bson:"Role"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
+	Deleted     bool     `json:"Deleted" bson:"Deleted"`
 	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
 	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`

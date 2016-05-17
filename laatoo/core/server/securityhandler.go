@@ -1,6 +1,8 @@
 package server
 
 import (
+	"crypto/rsa"
+	jwt "github.com/dgrijalva/jwt-go"
 	"laatoo/core/common"
 	"laatoo/core/security"
 	"laatoo/sdk/auth"
@@ -8,17 +10,18 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
+	"laatoo/sdk/utils"
 )
 
 type securityHandler struct {
 	*common.Context
 	handler       security.SecurityPlugin
+	userCreator   core.ObjectCreator
+	roleCreator   core.ObjectCreator
 	anonymousUser auth.User
-	adminRole     string
 	roleObject    string
-	userObject    string
-	jwtSecret     string
 	authHeader    string
+	publicKey     *rsa.PublicKey
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
@@ -28,50 +31,58 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 }
 
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
-	mode, ok := conf.GetString(config.CONF_SECURITY_MODE)
+	initCtx := sh.createContext(ctx, "Initialize Security Handler")
+	adminRole, ok := conf.GetString(config.ADMINROLE)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_SECURITY_MODE)
+		adminRole = config.DEFAULT_ADMIN
 	}
-	adminRole, ok := ctx.GetString(config.ADMINROLE)
-	if ok {
-		sh.adminRole = adminRole
-	} else {
-		sh.adminRole = config.DEFAULT_ADMIN
-	}
-	sh.Set(config.ADMINROLE, sh.adminRole)
+	sh.Set(config.ADMINROLE, adminRole)
 
-	roleobject, ok := ctx.GetString(config.ROLE)
+	roleobject, ok := conf.GetString(config.ROLE)
 	if !ok {
-		sh.roleObject = config.DEFAULT_ROLE
-	} else {
-		sh.roleObject = roleobject
+		roleobject = config.DEFAULT_ROLE
 	}
-	sh.Set(config.ROLE, sh.roleObject)
+	sh.Set(config.ROLE, roleobject)
+
+	roleCreator, err := initCtx.GetObjectCreator(roleobject)
+	if err != nil {
+		return errors.WrapError(initCtx, err)
+	}
+	sh.roleCreator = roleCreator
 
 	userObject, ok := conf.GetString(config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
 	}
-	sh.userObject = userObject
-	sh.Set(config.USER, sh.userObject)
-	usr, err := ctx.CreateObject(userObject, nil)
+	sh.Set(config.USER, userObject)
+
+	userCreator, err := initCtx.GetObjectCreator(userObject)
+	if err != nil {
+		return errors.WrapError(initCtx, err)
+	}
+	sh.userCreator = userCreator
+
+	publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
+	if !ok {
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PUBLICKEYPATH)
+	}
+	publicKey, err := utils.LoadPublicKey(publicKeyPath)
+	if err != nil {
+		return errors.RethrowError(initCtx, errors.CORE_ERROR_BAD_CONF, err, "conf", config.CONF_PUBLICKEYPATH)
+	}
+	sh.publicKey = publicKey
+
+	usr, err := userCreator(initCtx, nil)
 	if err != nil {
 		return err
 	}
 	anonymousUser, ok := usr.(auth.RbacUser)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_TYPE_MISMATCH)
 	}
 	anonymousUser.SetId("Anonymous")
 	anonymousUser.SetRoles([]string{"Anonymous"})
 	sh.anonymousUser = anonymousUser
-
-	jwtSecret, ok := conf.GetString(config.JWTSECRET)
-	if !ok {
-		jwtSecret = config.DEFAULT_JWTSECRET
-	}
-	sh.jwtSecret = jwtSecret
-	sh.Set(config.JWTSECRET, jwtSecret)
 
 	authToken, ok := conf.GetString(config.AUTHHEADER)
 	if !ok {
@@ -80,18 +91,28 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	sh.authHeader = authToken
 	sh.Set(config.AUTHHEADER, authToken)
 
+	mode, ok := conf.GetString(config.CONF_SECURITY_MODE)
+	if !ok {
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_SECURITY_MODE)
+	}
+
 	switch mode {
 	case config.CONF_SECURITY_LOCAL:
-		plugin, err := security.NewLocalSecurityHandler(ctx, sh, conf, sh.roleObject, sh.adminRole, sh.userObject, sh.jwtSecret, sh.authHeader)
+		plugin, err := security.NewLocalSecurityHandler(initCtx, conf, adminRole, sh.roleCreator)
 		if err != nil {
 			return err
 		}
 		sh.handler = plugin
 		return nil
 	case config.CONF_SECURITY_REMOTE:
+		plugin, err := security.NewRemoteSecurityHandler(initCtx, conf, adminRole, authToken, roleobject)
+		if err != nil {
+			return err
+		}
+		sh.handler = plugin
 		return nil
 	default:
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_SECURITY_MODE)
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_SECURITY_MODE)
 	}
 }
 
@@ -100,7 +121,7 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 }
 
 func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
-	usr, isadmin, err := sh.handler.GetUser(ctx)
+	usr, isadmin, err := sh.getUserFromToken(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -117,9 +138,6 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
 func (sh *securityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
 	return sh.handler.HasPermission(ctx, perm)
 }
-func (sh *securityHandler) GetRolePermissions(ctx core.RequestContext, roles []string) ([]string, bool) {
-	return sh.handler.GetRolePermissions(ctx, roles)
-}
 
 //creates a context specific to environment
 func (sh *securityHandler) createContext(ctx core.ServerContext, name string) core.ServerContext {
@@ -127,7 +145,36 @@ func (sh *securityHandler) createContext(ctx core.ServerContext, name string) co
 		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
 }
 
-func (sh *securityHandler) createAuthenticatedContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
+func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User, bool, error) {
+	tokenVal, ok := ctx.GetString(sh.authHeader)
+	if ok {
+		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || method != jwt.SigningMethodHS256 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
+			}
+			return sh.publicKey, nil
+		})
+		if err == nil && token.Valid {
+			userInt, err := sh.userCreator(ctx, nil)
+			if err != nil {
+				return nil, false, errors.WrapError(ctx, err)
+			}
+			user, ok := userInt.(auth.RbacUser)
+			if !ok {
+				return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+			}
+			user.LoadJWTClaims(token)
+			admin := false
+			adminClaim := token.Claims["Admin"]
+			if adminClaim != nil {
+				adminVal, ok := adminClaim.(bool)
+				if ok {
+					admin = adminVal
+				}
+			}
+			return user, admin, nil
+		}
+	}
+	return nil, false, nil
 }

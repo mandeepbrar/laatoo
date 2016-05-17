@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/core"
 	//	"laatoo/sdk/errors"
 	//	"laatoo/sdk/log"
+	"log"
 	"net/http"
 	"sync"
 )
@@ -20,9 +21,14 @@ func Main(configFile string) error {
 	var request *http.Request
 	warmupFunc := func() {
 		rootctx := newServerContext()
-		rootctx.GaeReq = request
+		rootctx.SetGaeReq(request)
 		err := main(rootctx, configFile)
-		panic(err)
+		if err == nil {
+			log.Println("**********Listening")
+		} else {
+			log.Fatal(err)
+			panic(err)
+		}
 	}
 	http.HandleFunc("/_ah/warmup", func(w http.ResponseWriter, req *http.Request) {
 		request = req

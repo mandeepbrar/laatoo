@@ -203,6 +203,9 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 	case data.FIELDVALUE:
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
 		if ok {
+			if svc.softdelete {
+				queryCondMap["Deleted"] = false
+			}
 			for k, v := range queryCondMap {
 				query = query.Filter(fmt.Sprintf("%s =", k), v)
 			}

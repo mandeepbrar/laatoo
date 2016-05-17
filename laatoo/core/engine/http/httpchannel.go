@@ -45,7 +45,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 	var router net.Router
 	path, ok := conf.GetString(config.CONF_HTTPENGINE_PATH)
 	if !ok {
-		path = ""
+		path = engine.path
 	}
 	if parentChannel == nil {
 		routername = name
@@ -144,6 +144,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.Ser
 	}
 	return func(pathCtx net.WebContext) error {
 		corectx := ctx.CreateNewRequest(ctx.GetName(), pathCtx)
+		corectx.SetGaeReq(pathCtx.GetRequest())
 		defer corectx.CompleteRequest()
 		if shandler != nil {
 			err := shandler.AuthenticateRequest(corectx)

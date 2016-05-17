@@ -1,17 +1,18 @@
 package security
 
-/*
 import (
-	//"fmt"
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/json"
+	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
-	//"io/ioutil"
-	"laatoo/core/registry"
-	//"laatoo/sdk/auth"
+	"io/ioutil"
+	"laatoo/sdk/auth"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/data"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	//"net/http"
@@ -19,61 +20,82 @@ import (
 
 const (
 	//login path to be used for local and oauth authentication
-	CONF_OAUTHLOGINSERVICE_USERDATASERVICE      = "user_data_svc"
-	CONF_OAUTHLOGINSERVICE_OAUTH_TYPE           = "sitetype"
-	CONF_OAUTHLOGINSERVICE_CLIENTID             = "clientid"
-	CONF_OAUTHLOGINSERVICE_CLIENTSECRET         = "clientsecret"
-	CONF_OAUTHLOGINSERVICE_SITE                 = "oauthsite"
-	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHURL        = "authurl"
-	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK   = "callbackurl"
-	CONF_OAUTHLOGINSERVICE_OAUTH_LOGININTERCEPT = "intercept"
-	CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL     = "profileurl"
+	CONF_OAUTHLOGINSERVICE_CALLBACKMODE       = "callbackmode"
+	CONF_OAUTHLOGINSERVICE_USERDATASERVICE    = "user_data_svc"
+	CONF_OAUTHLOGINSERVICE_OAUTH_TYPE         = "sitetype"
+	CONF_OAUTHLOGINSERVICE_CLIENTID           = "clientid"
+	CONF_OAUTHLOGINSERVICE_CLIENTSECRET       = "clientsecret"
+	CONF_OAUTHLOGINSERVICE_KEY                = "key"
+	CONF_OAUTHLOGINSERVICE_SITE               = "oauthsite"
+	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHURL      = "authurl"
+	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK = "callbackurl"
+	CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL   = "profileurl"
 )
 
-//service method for doing various tasks
-func NewOAuthLoginService(ctx core.ServerContext, conf config.Config) (core.Service, error) {
-	return &OAuthLoginService{conf: conf}, nil
-}
-
 type OAuthLoginService struct {
-	conf        config.Config
-	userCreator core.ObjectCreator
-	adminRole   string
-	//data service to use for users
-	UserDataService data.DataService
+	adminRole       string
+	authHeader      string
+	tokenGenerator  func(auth.User) (string, auth.User, error)
+	userDataService data.DataComponent
+	userCreator     core.ObjectCreator
+	cipher          cipher.Block
 	config          *oauth2.Config
 	sitetype        string
 	systemAuthURL   string
 	callbackURL     string
 	profileURL      string
-	state string
-	interceptor bool
+	callbackmode    bool
 }
 
-func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
-	userobject := ctx.GetServerVariable(core.USER)
-	userCreator, err := registry.GetObjectCreator(ctx, userobject.(string))
-	if err != nil {
-		return errors.WrapError(ctx, err)
+func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sechandler == nil {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	os.userCreator = userCreator
-	userDataSvcName, ok := os.conf.GetString(CONF_OAUTHLOGINSERVICE_USERDATASERVICE)
+	userDataSvcName, ok := conf.GetString(CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_LOGINSERVICE_USERDATASERVICE)
 	}
 	userService, err := ctx.GetService(userDataSvcName)
 	if err != nil {
 		return errors.RethrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 	}
-	userDataService, ok := userService.(data.DataService)
+	userDataService, ok := userService.(data.DataComponent)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
-	log.Logger.Debug(ctx, "User storer set for registration")
+	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	os.authHeader = authHeader
+
+	key, ok := conf.GetString(CONF_OAUTHLOGINSERVICE_KEY)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_KEY)
+	}
+	cipher, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return err
+	}
+	os.cipher = cipher
+
+	os.callbackmode, _ = conf.GetBool(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
+
+	userObject, ok := sechandler.GetString(config.USER)
+	if !ok {
+		userObject = config.DEFAULT_USER
+	}
+
+	userCreator, err := ctx.GetObjectCreator(userObject)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	os.userCreator = userCreator
+
 	//get and set the data service for accessing users
-	os.UserDataService = userDataService
-	siteconf, ok := os.conf.GetSubConfig(CONF_OAUTHLOGINSERVICE_SITE)
-	os.state := utils.RandomString(10)
+	os.userDataService = userDataService
+	siteconf, ok := conf.GetSubConfig(CONF_OAUTHLOGINSERVICE_SITE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_SITE)
 	}
@@ -82,75 +104,73 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
-	os.initialRequest(ctx)
-	os.callbackRequest(ctx)
+	if os.callbackmode {
+		return os.callbackRequest(ctx)
+	} else {
+		return os.initialRequest(ctx)
+	}
 	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
-	url := os.config.AuthCodeURL(os.state)
-	ctx.Redirect(http.StatusTemporaryRedirect, url)
+	req := ctx.GetRequest()
+	body := req.(map[string]interface{})
+	returl, ok := body["callbackurl"]
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
+	}
+	stateVal, ok := body["state"]
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
+	}
+	st := stateInfo{url: returl.(string), state: stateVal.(string)}
+	state, err := json.Marshal(st)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	ciphertext := make([]byte, len(state))
+	os.cipher.Encrypt(ciphertext, state)
+	url := os.config.AuthCodeURL(string(ciphertext))
+	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, url, nil))
 	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 	receivedState, ok := ctx.GetString("State")
-	if !ok || (receivedState != os.state) {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-	code, ok := ctx.GetString("code")
 	if !ok {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
-	if (os.interceptor) {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "code", code)
-		return ctx.HTML(http.StatusOK, "<html><body onload='var data = {type:\"%s\",state:\"%s\", code:\"%s\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html", site.sitetype, state, code)
-	} else {
-		return os.authenticate(ctx)
+	encBytes := []byte(receivedState)
+	jsonBytes := make([]byte, len(encBytes))
+	os.cipher.Decrypt(jsonBytes, encBytes)
+	st := new(stateInfo)
+	err := json.Unmarshal(jsonBytes, st)
+	if err != nil {
+		errors.WrapError(ctx, err)
+		return nil
 	}
+	code, ok := ctx.GetString("code")
+	if !ok {
+		log.Logger.Error(ctx, "No code found on oauth return")
+		return nil
+	}
+	return os.authenticate(ctx, code, st)
 }
 
-func interceptorRequest() error {
-	method := ctx.Request().Method
-	state := ""
-	code := ""
-	if method == "GET" {
-		state = ctx.Query("state")
-		code = ctx.Query("code")
-	} else {
-		req := &OAuthLoginReq{}
-		err := ctx.Bind(req)
-		if err != nil {
-			return err
-		}
-		state = req.State
-		code = req.Code
-	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "state", state, "method", method)
-	if state != sentStateInt.(string) {
-		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
-		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
-	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received code", "code", code, "method", method)
-
-}
-
-func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string) error {
-
-	oauthCtx := core.GetOAuthContext(ctx)
+func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, st *stateInfo) error {
+	oauthCtx := ctx.GetOAuthContext()
 	token, err := os.config.Exchange(oauthCtx, code)
 	if err != nil {
-		return errors.RethrowError(ctx, AUTH_ERROR_INTERNAL_SERVER_ERROR_AUTH, err)
+		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: Received token", "code", code, "token", token)
+	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code, "token", token)
 
 	client := os.config.Client(oauthCtx, token)
 
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "OAuthType: end point profile")
+	log.Logger.Trace(ctx, "OAuthType: end point profile")
 
 	response, err := client.Get(os.profileURL)
 	if err != nil {
@@ -167,45 +187,35 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string) 
 	usr, _ := os.userCreator(ctx, nil)
 
 	if err := json.Unmarshal(bits, usr); err != nil {
-		return errors.RethrowError(ctx, AUTH_ERROR_USEROBJECT_NOT_CREATED, err)
+		errors.WrapError(ctx, err)
+		return nil
 	}
 
 	oauthUsr, ok := usr.(auth.OAuthUser)
 	if !ok {
-		return errors.ThrowError(ctx, laatoocore.AUTH_ERROR_USEROBJECT_NOT_CREATED)
+		log.Logger.Error(ctx, "Wrong user type")
+		return nil
 	}
 
 	usrId := fmt.Sprintf("%s_%s", os.sitetype, oauthUsr.GetEmail())
 
-	log.Logger.Debug(ctx, "OAuthProvider: Authentication Successful", "usr", usr)
-
-	//get the ide of the user to be tested
+	log.Logger.Debug(ctx, "OAuthProvider: Authorizing user", "usr", usr)
 
 	//get the tested user from database
-	testedUser, err := os.UserDataService.GetUserById(ctx, usrId)
-	if err != nil {
-		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found", "Err", err)
-		return errors.RethrowError(ctx, AUTH_ERROR_USER_NOT_FOUND, err)
+	testedUser, err := os.userDataService.GetById(ctx, usrId)
+	if err != nil || testedUser == nil {
+		log.Logger.Info(ctx, "Tested user not found", "Err", err)
+		return nil
 	}
-	if testedUser == nil {
-		log.Logger.Info(ctx, LOGGING_CONTEXT, "Tested user not found")
-		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
-	}
-	resp, err := completeAuthentication(ctx, existingtestedUserUser)
+	tokenstr, _, err := os.tokenGenerator(testedUser.(auth.User))
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
+	resp := core.NewServiceResponse(core.StatusRedirect, st.url, map[string]interface{}{os.authHeader: tokenstr})
 	ctx.SetResponse(resp)
 	return nil
 
-}
-
-func (os *OAuthLoginService) GetConf() config.Config {
-	return os.conf
-}
-func (os *OAuthLoginService) GetResponseHandler() core.ServiceResponseHandler {
-	return nil
 }
 
 //Expects Local user to be provided inside the request
@@ -247,18 +257,23 @@ func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf conf
 		Scopes:       []string{"openid", "profile", "email"},
 		Endpoint:     endpoint,
 	}
-	interceptor := true
-	intercept, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_OAUTH_LOGININTERCEPT)
-	if ok {
-		interceptor = (intercept != "false")
-	}
 	//oauth.sites[i] = &OAuthSite{sitetype: siteType, interceptor: interceptor, profileURL: profileInt.(string), systemAuthURL: systemAuthUrlInt.(string), callbackURL: callbackURLInt.(string), config: conf}
 	os.config = conf
-	os.interceptor = interceptor
 	os.profileURL = profile
 	return nil
 }
-*/
+func (os *OAuthLoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User) (string, auth.User, error)) {
+	os.tokenGenerator = gen
+}
+func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
+	return nil
+}
+
+type stateInfo struct {
+	state string
+	url   string
+}
+
 /*
 
 
@@ -272,6 +287,30 @@ const (
 
 )
 
+func interceptorRequest() error {
+	method := ctx.Request().Method
+	state := ""
+	code := ""
+	if method == "GET" {
+		state = ctx.Query("state")
+		code = ctx.Query("code")
+	} else {
+		req := &OAuthLoginReq{}
+		err := ctx.Bind(req)
+		if err != nil {
+			return err
+		}
+		state = req.State
+		code = req.Code
+	}
+	log.Logger.Trace(ctx, "OAuthType: Received code", "state", state, "method", method)
+	if state != sentStateInt.(string) {
+		log.Logger.Debug(ctx, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
+		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
+	}
+	log.Logger.Trace(ctx, "OAuthType: Received code", "code", code, "method", method)
+
+}
 
 
 //initialize auth type called by base auth for initializing

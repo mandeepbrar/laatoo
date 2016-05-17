@@ -2,6 +2,7 @@ package net
 
 import (
 	"io"
+	"net/http"
 )
 
 type WebContext interface {
@@ -18,5 +19,6 @@ type WebContext interface {
 	Write(bytes []byte) (int, error)
 	Redirect(status int, path string) error
 	GetRequestStream() (io.Reader, error)
+	GetRequest() *http.Request
 	GetFiles() (map[string]io.ReadCloser, error)
 }

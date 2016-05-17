@@ -10,7 +10,7 @@ import (
 )
 
 type Context struct {
-	GaeReq      *http.Request
+	gaeReq      *http.Request
 	Id          string
 	Name        string
 	ParamsStore map[string]interface{}
@@ -36,9 +36,11 @@ func (ctx *Context) GetName() string {
 func (ctx *Context) SetName(name string) {
 	ctx.Name = name
 }
-
+func (ctx *Context) SetGaeReq(req *http.Request) {
+	ctx.gaeReq = req
+}
 func (ctx *Context) SubCtx(name string) core.Context {
-	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, GaeReq: ctx.GaeReq}
+	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, gaeReq: ctx.gaeReq}
 }
 
 func (ctx *Context) NewCtx(name string) core.Context {
@@ -46,7 +48,7 @@ func (ctx *Context) NewCtx(name string) core.Context {
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), GaeReq: ctx.GaeReq}
+	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), gaeReq: ctx.gaeReq}
 }
 
 func (ctx *Context) Get(key string) (interface{}, bool) {
@@ -92,26 +94,20 @@ func (ctx *Context) Set(key string, val interface{}) {
 	ctx.ParamsStore[key] = val
 }
 func (ctx *Context) GetAppengineContext() glctx.Context {
-	if ctx.GaeReq != nil {
+	if ctx.gaeReq != nil {
 		return GetAppengineContext(ctx)
 	}
 	return nil
 }
 func (ctx *Context) GetCloudContext(scope string) glctx.Context {
-	if ctx.GaeReq != nil {
+	if ctx.gaeReq != nil {
 		return GetCloudContext(ctx, scope)
 	}
 	return nil
 }
 func (ctx *Context) HttpClient() *http.Client {
-	if ctx.GaeReq != nil {
-		return HttpClient(ctx)
-	}
-	return nil
+	return HttpClient(ctx)
 }
 func (ctx *Context) GetOAuthContext() glctx.Context {
-	if ctx.GaeReq != nil {
-		return GetOAuthContext(ctx)
-	}
-	return nil
+	return GetOAuthContext(ctx)
 }

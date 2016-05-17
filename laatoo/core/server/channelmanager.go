@@ -33,32 +33,33 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 	if ok {
 		channelNames := channelsConf.AllConfigurations()
 		for _, channelName := range channelNames {
+			createCtx := chanMgr.createContext(ctx, "Create Channel"+channelName)
 			channelConf, err, _ := config.ConfigFileAdapter(channelsConf, channelName)
 			if err != nil {
-				return errors.WrapError(ctx, err)
+				return errors.WrapError(createCtx, err)
 			}
 			parentChannelName, ok := channelConf.GetString(config.CONF_ENGINE_PARENTCHANNEL)
 			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
+				return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
 			}
 			parentChannel, ok := chanMgr.channelStore[parentChannelName]
 			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
+				return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
 			}
-			channel, err := parentChannel.Child(ctx, channelName, channelConf)
+			channel, err := parentChannel.Child(createCtx, channelName, channelConf)
 			if err != nil {
-				return errors.WrapError(ctx, err)
+				return errors.WrapError(createCtx, err)
 			}
 			chanMgr.channelStore[channelName] = channel
 			_, childChannels := channelConf.Get(config.CONF_ENGINE_CHANNELS)
 			if childChannels {
-				err := chanMgr.createChannels(ctx, channelConf)
+				err := chanMgr.createChannels(createCtx, channelConf)
 				if err != nil {
-					return errors.WrapError(ctx, err)
+					return errors.WrapError(createCtx, err)
 				}
 			}
 			//log.Logger.Trace(ctx, "Creating channel", "Name:", channelName)
-			log.Logger.Info(ctx, "Created channel", "Name:", channelName)
+			log.Logger.Info(createCtx, "Created channel", "Name:", channelName)
 		}
 	}
 	return nil

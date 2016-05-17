@@ -39,7 +39,11 @@ func printJSONMax(ctx core.Context, strlevel string, wh SimpleWriteHandler, leve
 	}
 	var buffer bytes.Buffer
 	enc := json.NewEncoder(&buffer)
-	mapToPrint := map[string]string{"TIME": time.Now().String(), "LEVEL": strlevel, "CONTEXT": ctx.GetName(), "ID": ctx.GetId(), "MESSAGE": msg}
+	mapToPrint := map[string]string{"TIME": time.Now().String(), "LEVEL": strlevel, "MESSAGE": msg}
+	if ctx != nil {
+		mapToPrint["CONTEXT"] = ctx.GetName()
+		mapToPrint["ID"] = ctx.GetId()
+	}
 	argslen := len(args)
 	for i := 0; (i + 1) < argslen; i = i + 2 {
 		mapToPrint[args[i].(string)] = fmt.Sprint(args[i+1])
@@ -67,7 +71,9 @@ func printHappy(ctx core.Context, strlevel string, wh SimpleWriteHandler, level 
 	for i := 4; (i + 1) < argslen; i = i + 2 {
 		buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
 	}
-	buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
+	if ctx != nil {
+		buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
+	}
 	wh.Print(ctx, buffer.String(), level)
 }
 func printHappyMax(ctx core.Context, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
@@ -78,8 +84,10 @@ func printHappyMax(ctx core.Context, strlevel string, wh SimpleWriteHandler, lev
 	buffer.WriteString(fmt.Sprintln("MESSAGE ", msg))
 	buffer.WriteString(fmt.Sprintln("		TIME ", time.Now().String()))
 	buffer.WriteString(fmt.Sprintln("		LEVEL ", strlevel))
-	buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
-	buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
+	if ctx != nil {
+		buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
+		buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
+	}
 	argslen := len(args)
 	for i := 0; (i + 1) < argslen; i = i + 2 {
 		buffer.WriteString(fmt.Sprintln("		", args[i], " ", args[i+1]))

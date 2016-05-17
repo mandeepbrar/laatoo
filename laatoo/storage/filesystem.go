@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"os"
 	//"net/http"
 	"path"
@@ -67,6 +68,7 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 }
 
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
+	log.Logger.Error(ctx, "Full Path:***********", "path", svc.filesDir+fileName)
 	return svc.filesDir + fileName
 }
 

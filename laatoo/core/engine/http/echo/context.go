@@ -2,8 +2,10 @@ package echo
 
 import (
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
 	"io"
 	"io/ioutil"
+	"net/http"
 )
 
 type EchoContext struct {
@@ -58,6 +60,10 @@ func (echctx *EchoContext) Bind(data interface{}) error {
 func (echctx *EchoContext) GetRequestStream() (io.Reader, error) {
 	return echctx.baseCtx.Request().Body(), nil
 }
+func (echctx *EchoContext) GetRequest() *http.Request {
+	return echctx.baseCtx.Request().(*standard.Request).Request
+}
+
 func (echctx *EchoContext) GetBody() ([]byte, error) {
 	return ioutil.ReadAll(echctx.baseCtx.Request().Body())
 }

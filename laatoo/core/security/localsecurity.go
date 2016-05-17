@@ -1,88 +1,127 @@
 package security
 
 import (
+	"crypto/rsa"
 	"fmt"
+	jwt "github.com/dgrijalva/jwt-go"
 	"laatoo/sdk/auth"
+	"laatoo/sdk/components"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
+	"time"
 )
 
 const (
-	CONF_SECURIY_ROLEDATASERVICE = "role_data_svc"
-	CONF_SECURIY_PERMISSIONS     = "permissions"
+	CONF_SECURITY_ROLEDATASERVICE = "role_data_svc"
+	CONF_SECURITY_PERMISSIONS     = "permissions"
+	CONF_SECURITY_AUTHSERVICES    = "authservices"
 )
 
 type localSecurityHandler struct {
-	userCreator core.ObjectCreator
-	roleCreator core.ObjectCreator
-	adminRole   string
-	jwtsecret   string
-	authheader  string
-	//data service to use for users
-	//UserDataService    data.DataService
+	roleCreator     core.ObjectCreator
+	adminRole       string
+	pvtKey          *rsa.PrivateKey
 	roleDataService data.DataComponent
 	roleDataSvcName string
-	parent          server.SecurityHandler
 	rolesMap        map[string]auth.Role
+	authServices    []string
 	allPermissions  []string
 	//permissions assigned to a role
 	rolePermissions map[string]bool
 }
 
-func NewLocalSecurityHandler(ctx core.ServerContext, parent server.SecurityHandler, conf config.Config, role string, adminrole string, user string, jwtsecret string, authheader string) (SecurityPlugin, error) {
-	lsh := &localSecurityHandler{adminRole: adminrole, parent: parent, jwtsecret: jwtsecret, authheader: authheader}
+func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, roleCreator core.ObjectCreator) (SecurityPlugin, error) {
+	lsh := &localSecurityHandler{adminRole: adminrole, roleCreator: roleCreator}
 	lsh.rolesMap = make(map[string]auth.Role, 10)
 	//map containing roles and permissions
 	lsh.rolePermissions = make(map[string]bool, 50)
 
-	permissions, ok := conf.GetStringArray(CONF_SECURIY_PERMISSIONS)
+	permissions, ok := conf.GetStringArray(CONF_SECURITY_PERMISSIONS)
 	if ok {
 		lsh.allPermissions = permissions
 	} else {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURIY_PERMISSIONS)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURITY_PERMISSIONS)
 	}
 
-	roleCreator, err := ctx.GetObjectCreator(role)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	lsh.roleCreator = roleCreator
-
-	userCreator, err := ctx.GetObjectCreator(user)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	lsh.userCreator = userCreator
-
-	roleDataSvcName, ok := conf.GetString(CONF_SECURIY_ROLEDATASERVICE)
+	pvtKeyPath, ok := conf.GetString(config.CONF_PVTKEYPATH)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PVTKEYPATH)
+	}
+	pvtKey, err := utils.LoadPrivateKey(pvtKeyPath)
+	if err != nil {
+		return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "conf", config.CONF_PVTKEYPATH)
+	}
+	lsh.pvtKey = pvtKey
+
+	roleDataSvcName, ok := conf.GetString(CONF_SECURITY_ROLEDATASERVICE)
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_ROLEDATASERVICE)
 	}
 	lsh.roleDataSvcName = roleDataSvcName
+	authServices, ok := conf.GetStringArray(CONF_SECURITY_AUTHSERVICES)
+	if ok {
+		lsh.authServices = authServices
+	}
 	return lsh, nil
 }
+
 func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 	roleService, err := ctx.GetService(lsh.roleDataSvcName)
 	if err != nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_ROLEDATASERVICE)
 	}
 	roleDataService, ok := roleService.(data.DataComponent)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURIY_ROLEDATASERVICE)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_ROLEDATASERVICE)
 	}
 	lsh.roleDataService = roleDataService
+
 	err = lsh.loadRoles(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	if lsh.authServices != nil {
+		for _, svcName := range lsh.authServices {
+			svc, err := ctx.GetService(svcName)
+			if err != nil {
+				return err
+			}
+			authComp, ok := svc.(components.AuthenticationComponent)
+			if !ok {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_AUTHSERVICES, "svcname", svcName)
+			}
+			authComp.SetTokenGenerator(ctx, lsh.tokenGenerator(ctx))
+		}
+	}
 	return nil
 }
 
-func (lsh *localSecurityHandler) GetRolePermissions(ctx core.RequestContext, roles []string) ([]string, bool) {
+func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(auth.User) (string, auth.User, error) {
+	return func(user auth.User) (string, auth.User, error) {
+		token := jwt.New(jwt.SigningMethodRS256)
+		rbac, ok := user.(auth.RbacUser)
+		if ok {
+			roles, _ := rbac.GetRoles()
+			permissions, admin := lsh.getRolePermissions(roles)
+			rbac.SetPermissions(permissions)
+			token.Claims["Admin"] = admin
+		}
+		user.SetJWTClaims(token)
+		token.Claims["UserId"] = user.GetId()
+		//token.Claims["IP"] = ctx.ClientIP()
+		token.Claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
+		tokenString, err := token.SignedString(lsh.pvtKey)
+		if err != nil {
+			return "", nil, errors.WrapError(ctx, err)
+		}
+		return tokenString, user, nil
+	}
+}
+
+func (lsh *localSecurityHandler) getRolePermissions(roles []string) ([]string, bool) {
 	permissions := utils.NewStringSet([]string{})
 	for _, rolename := range roles {
 		role, ok := lsh.rolesMap[rolename]
@@ -96,9 +135,7 @@ func (lsh *localSecurityHandler) GetRolePermissions(ctx core.RequestContext, rol
 func (lsh *localSecurityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
 	return hasPermission(ctx, perm, lsh.rolePermissions)
 }
-func (lsh *localSecurityHandler) GetUser(ctx core.RequestContext) (auth.User, bool, error) {
-	return getUserFromToken(ctx, lsh.userCreator, lsh.authheader, lsh.jwtsecret)
-}
+
 func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 	loadRolesReq := ctx.CreateSystemRequest("LoadRoles")
 	defer loadRolesReq.CompleteRequest()

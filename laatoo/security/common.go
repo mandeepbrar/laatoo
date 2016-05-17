@@ -1,14 +1,20 @@
 package security
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
-	"laatoo/sdk/auth"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	//	"laatoo/sdk/log"
-	"time"
+//jwt "github.com/dgrijalva/jwt-go"
+//"laatoo/sdk/auth"
+//"laatoo/sdk/core"
+//"laatoo/sdk/errors"
+//	"laatoo/sdk/log"
+//"time"
 )
 
+const (
+	CONF_PVTKEYPATH    = "pvtkey"
+	CONF_PUBLICKEYPATH = "pvtkey"
+)
+
+/*
 func completeAuthentication(ctx core.RequestContext, user auth.User, jwtSecret string, authHeader string) (*core.ServiceResponse, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	rbac, ok := user.(auth.RbacUser)
@@ -28,3 +34,4 @@ func completeAuthentication(ctx core.RequestContext, user auth.User, jwtSecret s
 	}
 	return core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{authHeader: tokenString}), nil
 }
+*/

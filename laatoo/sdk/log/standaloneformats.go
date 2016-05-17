@@ -38,11 +38,12 @@ func printHappyMaxColor(ctx core.Context, strlevel string, wh SimpleWriteHandler
 	for i := 4; (i + 1) < argslen; i = i + 2 {
 		buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
 	}
-	buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
 	buffer.WriteString(fmt.Sprintln("		TIME ", time.Now().String()))
 	buffer.WriteString(fmt.Sprintln("		LEVEL ", strlevel))
-	buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
-	buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
+	if ctx != nil {
+		buffer.WriteString(fmt.Sprintln("		CONTEXT ", ctx.GetName()))
+		buffer.WriteString(fmt.Sprintln("		ID ", ctx.GetId()))
+	}
 	wh.Print(ctx, buffer.String(), level)
 }
 func printHappyColor(ctx core.Context, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
@@ -67,6 +68,8 @@ func printHappyColor(ctx core.Context, strlevel string, wh SimpleWriteHandler, l
 	for i := 4; (i + 1) < argslen; i = i + 2 {
 		buffer.WriteString(fmt.Sprintln("		", args[i], ":", args[i+1]))
 	}
-	buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
+	if ctx != nil {
+		buffer.WriteString(fmt.Sprintln("		", ctx.GetName()))
+	}
 	wh.Print(ctx, buffer.String(), level)
 }

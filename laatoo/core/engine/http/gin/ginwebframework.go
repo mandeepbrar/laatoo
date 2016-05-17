@@ -9,6 +9,7 @@ import (
 
 type GinWebFramework struct {
 	rootRouter *gin.Engine
+	Name       string
 }
 
 func (wf *GinWebFramework) Initialize() error {

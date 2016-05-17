@@ -88,6 +88,10 @@ func (gojictx *GojiContext) GetBody() ([]byte, error) {
 func (gojictx *GojiContext) GetRequestStream() (io.Reader, error) {
 	return gojictx.req.Body, nil
 }
+func (gojictx *GojiContext) GetRequest() *http.Request {
+	return gojictx.req
+}
+
 func (gojictx *GojiContext) GetFiles() (map[string]io.ReadCloser, error) {
 	err := gojictx.req.ParseMultipartForm(2000000000)
 	if err != nil {

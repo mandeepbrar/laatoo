@@ -34,7 +34,7 @@ func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name str
 		}
 	case CONF_SECURITYSERVICE_OAUTH:
 		{
-
+			return &OAuthLoginService{}, nil
 		}
 	case CONF_SECURITYSERVICE_KEYAUTH:
 		{

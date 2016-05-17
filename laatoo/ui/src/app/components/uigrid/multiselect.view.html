@@ -1,0 +1,22 @@
+<div class="clearfix">
+	<label>{{label}}</label>
+	<table st-table="griditems" class="table table-striped">
+		<thead>
+		<tr>
+			<th></th>
+			<th ng-repeat="column in columns">
+				{{column.name}}
+			</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr ng-repeat="item in griditems">
+		    <td>
+			<input ng-click="oncheckboxchange($event, '{{item[valueField]}}');" val="{{item[valueField]}}" ng-model="status[item[valueField]]" type="checkbox" ng-if="valueField!='='"></input>	
+			<input ng-click="oncheckboxchange($event, '{{item}}');"  val="{{item}}" ng-model="status[item]" type="checkbox" ng-if="valueField=='='"></input>	
+			</td>
+			<td ng-repeat="column in columns">{{column.key =="=" ? item: item[column.key]}}</td>
+		</tr>
+		</tbody>		
+	</table>
+</div>

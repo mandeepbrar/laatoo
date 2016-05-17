@@ -46,6 +46,7 @@ type DefaultUser struct {
 	Permissions []string `json:"Permissions" bson:"Permissions"`
 	Email       string   `json:"Email" bson:"Email"`
 	Name        string   `json:"Name" bson:"Name"`
+	Deleted     bool     `json:"Deleted" bson:"Deleted"`
 	Picture     string   `json:"Picture" bson:"Picture"`
 	Gender      string   `json:"Gender" bson:"Gender"`
 	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`

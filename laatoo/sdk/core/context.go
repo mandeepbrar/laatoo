@@ -10,6 +10,7 @@ type Context interface {
 	GetName() string
 	GetParent() Context
 	Get(key string) (interface{}, bool)
+	SetGaeReq(req *http.Request)
 	Set(key string, value interface{})
 	GetString(key string) (string, bool)
 	GetInt(key string) (int, bool)

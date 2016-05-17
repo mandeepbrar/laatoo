@@ -1,7 +1,7 @@
 package security
 
 import (
-	"laatoo/sdk/auth"
+	//	"laatoo/sdk/auth"
 	"laatoo/sdk/core"
 	/*	"bytes"
 			"encoding/json"
@@ -33,6 +33,4 @@ import (
 type SecurityPlugin interface {
 	Start(core.ServerContext) error
 	HasPermission(core.RequestContext, string) bool
-	GetRolePermissions(ctx core.RequestContext, role []string) ([]string, bool)
-	GetUser(ctx core.RequestContext) (auth.User, bool, error)
 }

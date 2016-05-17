@@ -137,9 +137,6 @@ func (ctx *requestContext) SetRequest(request interface{}) {
 func (ctx *requestContext) HasPermission(perm string) bool {
 	return false //ctx.serverContext.HasPermission(ctx, perm)
 }
-func (ctx *requestContext) GetRolePermissions(role []string) ([]string, bool) {
-	return nil, false //ctx.serverContext.GetRolePermissions(role)
-}
 
 func (ctx *requestContext) SendSynchronousMessage(msgType string, data interface{}) error {
 	if ctx.serverContext.rulesManager != nil {

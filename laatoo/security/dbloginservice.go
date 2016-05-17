@@ -16,12 +16,10 @@ const (
 )
 
 type LoginService struct {
-	name        string
-	jwtSecret   string
-	authHeader  string
-	userObject  string
-	userCreator core.ObjectCreator
-	adminRole   string
+	name           string
+	authHeader     string
+	adminRole      string
+	tokenGenerator func(auth.User) (string, auth.User, error)
 	//data service to use for users
 	UserDataService data.DataComponent
 }
@@ -31,26 +29,11 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 	if sechandler == nil {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	jwtSecret, ok := sechandler.GetString(config.JWTSECRET)
-	if !ok {
-		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
-	}
-	ls.jwtSecret = jwtSecret
 	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ls.authHeader = authHeader
-	userObject, ok := sechandler.GetString(config.USER)
-	if !ok {
-		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
-	}
-	ls.userObject = userObject
-	userCreator, err := ctx.GetObjectCreator(userObject)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	ls.userCreator = userCreator
 	userDataSvcName, ok := conf.GetString(CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_LOGINSERVICE_USERDATASERVICE)
@@ -101,14 +84,18 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	} else {
 		existingUser.SetPassword("")
-		resp, err := completeAuthentication(ctx, existingUser, ls.jwtSecret, ls.authHeader)
+		token, user, err := ls.tokenGenerator(existingUser)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
 		}
+		resp := core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token})
 		ctx.SetResponse(resp)
 	}
 	return nil
+}
+func (ls *LoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User) (string, auth.User, error)) {
+	ls.tokenGenerator = gen
 }
 
 func (ls *LoginService) Start(ctx core.ServerContext) error {

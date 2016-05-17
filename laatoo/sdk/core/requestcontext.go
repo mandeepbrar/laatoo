@@ -13,7 +13,6 @@ type RequestContext interface {
 	NewContext(name string) RequestContext
 	GetUser() auth.User
 	HasPermission(perm string) bool
-	GetRolePermissions(role []string) ([]string, bool)
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(key string, item interface{}) error

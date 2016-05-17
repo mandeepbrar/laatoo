@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
+	"net/http"
 )
 
 type GinContext struct {
@@ -65,6 +66,10 @@ func (ginctx *GinContext) GetBody() ([]byte, error) {
 func (ginctx *GinContext) GetRequestStream() (io.Reader, error) {
 	return ginctx.baseCtx.Request.Body, nil
 }
+func (ginctx *GinContext) GetRequest() *http.Request {
+	return ginctx.baseCtx.Request
+}
+
 func (ginctx *GinContext) GetFiles() (map[string]io.ReadCloser, error) {
 	err := ginctx.baseCtx.Request.ParseMultipartForm(2000000000)
 	if err != nil {

@@ -13,10 +13,10 @@ import (
 )
 
 func GetAppengineContext(ctx *Context) glctx.Context {
-	if ctx == nil || ctx.GaeReq == nil {
+	if ctx == nil || ctx.gaeReq == nil {
 		return nil
 	}
-	return appengine.NewContext(ctx.GaeReq)
+	return appengine.NewContext(ctx.gaeReq)
 }
 
 func GetCloudContext(ctx *Context, scope string) glctx.Context {

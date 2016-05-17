@@ -154,7 +154,11 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 			if len(args) < 1 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			return args[0], nil
+			argsMap := args[0].(map[string]interface{})
+			if ms.softdelete {
+				argsMap["Deleted"] = false
+			}
+			return argsMap, nil
 		}
 	}
 	return nil, nil
