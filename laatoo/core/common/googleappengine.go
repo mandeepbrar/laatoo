@@ -10,7 +10,39 @@ import (
 	"google.golang.org/appengine/urlfetch"
 	"google.golang.org/cloud"
 	"net/http"
+	"sync"
 )
+
+var (
+	gaeMux *laatooGaeMux
+)
+
+func init() {
+	gaeMux = &laatooGaeMux{ServeMux: http.NewServeMux()}
+	http.Handle("/", gaeMux)
+}
+
+type laatooGaeMux struct {
+	*http.ServeMux
+	initializeGae func(*http.Request)
+	once          sync.Once
+}
+
+func (mux *laatooGaeMux) ServeHTTP(w http.ResponseWriter, request *http.Request) {
+	warmupFunc := func() {
+		mux.initializeGae(request)
+	}
+	mux.once.Do(warmupFunc)
+	mux.ServeMux.ServeHTTP(w, request)
+}
+
+func ConfigureGae(initializer func(*http.Request)) {
+	gaeMux.initializeGae = initializer
+}
+
+func GaeHandle(pattern string, handler http.Handler) {
+	gaeMux.Handle(pattern, handler)
+}
 
 func GetAppengineContext(ctx *Context) glctx.Context {
 	if ctx == nil || ctx.gaeReq == nil {

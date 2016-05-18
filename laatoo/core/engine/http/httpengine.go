@@ -1,6 +1,7 @@
 package http
 
 import (
+	"laatoo/core/common"
 	"laatoo/core/engine/http/echo"
 	"laatoo/core/engine/http/gin"
 	"laatoo/core/engine/http/goji"
@@ -10,7 +11,6 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"net/http"
 )
 
 type httpEngine struct {
@@ -110,7 +110,7 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 		}
 	}
 	if startCtx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
-		http.Handle(eng.path, eng.framework.GetRootHandler())
+		common.GaeHandle(eng.path, eng.framework.GetRootHandler())
 	}
 	log.Logger.Info(startCtx, "Started engine*********************************")
 	return nil

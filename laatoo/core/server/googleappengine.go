@@ -3,13 +3,13 @@
 package server
 
 import (
+	"laatoo/core/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	//	"laatoo/sdk/errors"
 	//	"laatoo/sdk/log"
 	"log"
 	"net/http"
-	"sync"
 )
 
 const (
@@ -17,9 +17,8 @@ const (
 )
 
 func Main(configFile string) error {
-	var once sync.Once
-	var request *http.Request
-	warmupFunc := func() {
+
+	gaeInitializer := func(request *http.Request) {
 		rootctx := newServerContext()
 		rootctx.SetGaeReq(request)
 		err := main(rootctx, configFile)
@@ -30,14 +29,7 @@ func Main(configFile string) error {
 			panic(err)
 		}
 	}
-	http.HandleFunc("/_ah/warmup", func(w http.ResponseWriter, req *http.Request) {
-		request = req
-		once.Do(warmupFunc)
-	})
-	/*http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		request = req
-		once.Do(warmupFunc)
-	})*/
+	common.ConfigureGae(gaeInitializer)
 	return nil
 }
 
