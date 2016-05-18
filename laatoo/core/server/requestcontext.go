@@ -135,6 +135,9 @@ func (ctx *requestContext) SetRequest(request interface{}) {
 }
 
 func (ctx *requestContext) HasPermission(perm string) bool {
+	if ctx.serverContext.securityHandler != nil {
+		return ctx.serverContext.securityHandler.HasPermission(ctx, perm)
+	}
 	return false //ctx.serverContext.HasPermission(ctx, perm)
 }
 

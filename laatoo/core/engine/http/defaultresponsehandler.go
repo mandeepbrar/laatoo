@@ -64,7 +64,7 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 		case core.StatusNotModified:
 			return engineContext.NoContent(http.StatusNotModified)
 		case core.StatusUnauthorized:
-			return engineContext.NoContent(http.StatusForbidden)
+			return engineContext.NoContent(http.StatusUnauthorized)
 		case core.StatusNotFound:
 			return engineContext.NoContent(http.StatusNotFound)
 		case core.StatusBadRequest:

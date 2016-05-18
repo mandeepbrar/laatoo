@@ -21,7 +21,7 @@ func hasPermission(ctx core.RequestContext, perm string, rolePermissions map[str
 	}
 	usr := ctx.GetUser().(auth.RbacUser)
 	roles, _ := usr.GetRoles()
-	log.Logger.Trace(ctx, "Checking roles for permission", "perm", perm) //, "bypass", bypass, "roles", roles)
+	log.Logger.Trace(ctx, "Checking roles for permission", "perm", perm, "roles", roles)
 	for _, role := range roles {
 		key := fmt.Sprintf("%s#%s", role, perm)
 		val, ok := rolePermissions[key]

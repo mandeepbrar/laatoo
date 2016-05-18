@@ -26,3 +26,6 @@ func HttpClient(ctx *Context) *http.Client {
 func GetOAuthContext(ctx *Context) glctx.Context {
 	return oauth2.NoContext
 }
+
+func GaeHandle(pattern string, handler http.Handler) {
+}

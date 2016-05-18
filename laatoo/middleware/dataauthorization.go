@@ -1,5 +1,6 @@
 package middleware
 
+/*
 import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -58,3 +59,4 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	log.Logger.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 	return nil
 }
+*/
