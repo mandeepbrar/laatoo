@@ -139,21 +139,26 @@ func (channel *httpChannel) group(ctx core.ServerContext, name string, conf conf
 func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.ServiceFunc) net.HandlerFunc {
 	var shandler server.SecurityHandler
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	authtoken := ""
 	if sh != nil {
 		shandler = sh.(server.SecurityHandler)
+		authtoken, _ = sh.GetString(config.AUTHHEADER)
 	}
 	return func(pathCtx net.WebContext) error {
 		corectx := ctx.CreateNewRequest(ctx.GetName(), pathCtx)
 		corectx.SetGaeReq(pathCtx.GetRequest())
 		defer corectx.CompleteRequest()
 		if shandler != nil {
+			corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
 			err := shandler.AuthenticateRequest(corectx)
 			if err != nil {
 				pathCtx.NoContent(http.StatusUnauthorized)
 				return err
 			}
 		}
-		return handler(corectx)
+		err := handler(corectx)
+		log.Logger.Info(ctx, "Got error in the request", "error", err)
+		return err
 	}
 }
 

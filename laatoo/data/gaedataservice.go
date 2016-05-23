@@ -152,7 +152,10 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 		if err != nil {
 			return err
 		}
-		item.PreSave(ctx)
+		err = item.PreSave(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if svc.auditable {
 		data.Audit(ctx, item)
@@ -166,7 +169,10 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 		return errors.WrapError(ctx, err)
 	}
 	if svc.postsave {
-		item.PostSave(ctx)
+		err = item.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
 	}
 	return nil
 }
@@ -185,7 +191,10 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 			if err != nil {
 				return err
 			}
-			item.PreSave(ctx)
+			err = item.PreSave(ctx)
+			if err != nil {
+				return err
+			}
 		}
 		if svc.auditable {
 			data.Audit(ctx, item)
@@ -198,7 +207,10 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	if svc.postsave || svc.notifyupdates {
 		for _, item := range items {
 			if svc.postsave {
-				item.PostSave(ctx)
+				err = item.PostSave(ctx)
+				if err != nil {
+					errors.WrapError(ctx, err)
+				}
 			}
 			if svc.notifyupdates {
 				notifyUpdate(ctx, svc.object, item.GetId())
@@ -219,7 +231,10 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		if err != nil {
 			return err
 		}
-		item.PreSave(ctx)
+		err = item.PreSave(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if svc.auditable {
 		data.Audit(ctx, item)
@@ -229,7 +244,10 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		return errors.WrapError(ctx, err)
 	}
 	if svc.postsave {
-		item.PostSave(ctx)
+		err = item.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
 	}
 	if svc.notifyupdates {
 		notifyUpdate(ctx, svc.object, id)

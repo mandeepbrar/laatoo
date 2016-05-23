@@ -64,17 +64,9 @@ func (usr *DefaultUser) GetIdField() string {
 	return "Id"
 }
 func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
-	passlen := len(ent.Password)
-	//pass length > 15 will indicate previously encrypted value as passwords > 15 chars are not suppported
-	//hack to prevent password from updating if a new one hasnt been provided
-	if passlen > 0 {
-		if passlen > 15 {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Password", "Password does not comply with guidelines")
-		}
-		err := ent.encryptPassword()
-		if err != nil {
-			return err
-		}
+	err := ent.encryptPassword()
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }

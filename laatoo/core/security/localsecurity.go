@@ -101,7 +101,7 @@ func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 
 func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(auth.User) (string, auth.User, error) {
 	return func(user auth.User) (string, auth.User, error) {
-		token := jwt.New(jwt.SigningMethodRS256)
+		token := jwt.New(jwt.SigningMethodRS512)
 		rbac, ok := user.(auth.RbacUser)
 		if ok {
 			roles, _ := rbac.GetRoles()

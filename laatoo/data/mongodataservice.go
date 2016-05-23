@@ -158,7 +158,10 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 		if err != nil {
 			return err
 		}
-		item.PreSave(ctx)
+		err = item.PreSave(ctx)
+		if err != nil {
+			return err
+		}
 	}
 	if ms.auditable {
 		data.Audit(ctx, item)
@@ -172,7 +175,10 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 		return errors.WrapError(ctx, err)
 	}
 	if ms.postsave {
-		item.PostSave(ctx)
+		err = item.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
 	}
 	return nil
 }
@@ -190,7 +196,10 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 			if err != nil {
 				return err
 			}
-			item.PreSave(ctx)
+			err = item.PreSave(ctx)
+			if err != nil {
+				return err
+			}
 		}
 		if ms.auditable {
 			data.Audit(ctx, item)
@@ -204,7 +213,10 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	if ms.postsave || ms.notifyupdates {
 		for _, item := range items {
 			if ms.postsave {
-				item.PostSave(ctx)
+				err = item.PostSave(ctx)
+				if err != nil {
+					errors.WrapError(ctx, err)
+				}
 			}
 			if ms.notifyupdates {
 				notifyUpdate(ctx, ms.object, item.GetId())
@@ -228,7 +240,11 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 		if err != nil {
 			return err
 		}
-		item.PreSave(ctx)
+		err = item.PreSave(ctx)
+		log.Logger.Trace(ctx, "Putting object", "err", err)
+		if err != nil {
+			return err
+		}
 	}
 	if ms.auditable {
 		data.Audit(ctx, item)
@@ -238,7 +254,10 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 		return errors.WrapError(ctx, err)
 	}
 	if ms.postsave {
-		item.PostSave(ctx)
+		err = item.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
 	}
 	if ms.notifyupdates {
 		notifyUpdate(ctx, ms.object, id)

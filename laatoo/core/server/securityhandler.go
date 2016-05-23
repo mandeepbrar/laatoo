@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
 )
@@ -129,6 +130,7 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
 		usr = sh.anonymousUser
 		isadmin = false
 	}
+	log.Logger.Info(ctx, "Authenticated request", "User", usr.GetId())
 	reqCtx := ctx.(*requestContext)
 	reqCtx.user = usr
 	reqCtx.admin = isadmin
@@ -150,7 +152,8 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User,
 	if ok {
 		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
-			if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || method != jwt.SigningMethodHS256 {
+			if method, ok := token.Method.(*jwt.SigningMethodRSA); !ok || method != jwt.SigningMethodRS512 {
+				log.Logger.Trace(ctx, "Invalid Token", "method", method)
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
 			}
 			return sh.publicKey, nil

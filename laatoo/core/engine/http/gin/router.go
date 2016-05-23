@@ -38,7 +38,10 @@ func (router *GinRouter) Delete(path string, handler net.HandlerFunc) {
 func (router *GinRouter) httpAdapater(handler net.HandlerFunc) gin.HandlerFunc {
 	return func(pathCtx *gin.Context) {
 		corectx := &GinContext{baseCtx: pathCtx}
-		handler(corectx)
+		err := handler(corectx)
+		if err != nil {
+			pathCtx.AbortWithError(400, err)
+		}
 	}
 }
 
@@ -46,7 +49,10 @@ func (router *GinRouter) Use(handler net.HandlerFunc) {
 	router.routerGrp.Use(func(ginctx *gin.Context) {
 		corectx := &GinContext{baseCtx: ginctx}
 		//defer corectx.CompleteRequest()
-		handler(corectx)
+		err := handler(corectx)
+		if err != nil {
+			ginctx.AbortWithError(400, err)
+		}
 		ginctx.Next()
 	})
 }
