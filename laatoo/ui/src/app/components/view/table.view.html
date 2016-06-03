@@ -1,8 +1,0 @@
-<div class="container">
-	<table class="table col-xs-12" ng-transclude>
-	</table>
-	<pagination boundary-links="true" ng-change="refreshView()" total-items="totalrecords" max-size="pagesize" ng-model="pagenum" class="pagination-sm" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;"  ng-show="paginate"></pagination>	
-	<div class="row col-xs-12" ng-show="editable">
-	  <button type="submit" class="btn btn-default" ng-click="onSubmit()">{{submitText}}</button>
-	</div>
-</div>	

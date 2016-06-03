@@ -3,7 +3,6 @@ package security
 import (
 	"crypto/rsa"
 	"fmt"
-	jwt "github.com/dgrijalva/jwt-go"
 	"laatoo/sdk/auth"
 	"laatoo/sdk/components"
 	"laatoo/sdk/components/data"
@@ -12,6 +11,8 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 const (
@@ -134,6 +135,10 @@ func (lsh *localSecurityHandler) getRolePermissions(roles []string) ([]string, b
 
 func (lsh *localSecurityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
 	return hasPermission(ctx, perm, lsh.rolePermissions)
+}
+
+func (lsh *localSecurityHandler) AllPermissions(core.RequestContext) []string {
+	return lsh.allPermissions
 }
 
 func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {

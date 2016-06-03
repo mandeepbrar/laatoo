@@ -33,4 +33,5 @@ import (
 type SecurityPlugin interface {
 	Start(core.ServerContext) error
 	HasPermission(core.RequestContext, string) bool
+	AllPermissions(core.RequestContext) []string
 }

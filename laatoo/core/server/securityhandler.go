@@ -2,7 +2,6 @@ package server
 
 import (
 	"crypto/rsa"
-	jwt "github.com/dgrijalva/jwt-go"
 	"laatoo/core/common"
 	"laatoo/core/security"
 	"laatoo/sdk/auth"
@@ -12,6 +11,8 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 type securityHandler struct {
@@ -139,6 +140,10 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
 
 func (sh *securityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
 	return sh.handler.HasPermission(ctx, perm)
+}
+
+func (sh *securityHandler) AllPermissions(ctx core.RequestContext) []string {
+	return sh.handler.AllPermissions(ctx)
 }
 
 //creates a context specific to environment

@@ -15,7 +15,6 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"net/http"
 	"reflect"
@@ -79,7 +78,7 @@ func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminr
 	d := h.Sum(nil)
 	signedIdentifier, err := rsa.SignPKCS1v15(rand.Reader, pvtKey, crypto.SHA256, d)
 	if err != nil {
-		fmt.Errorf("could not sign request: %v", err)
+		return nil, errors.WrapError(ctx, err)
 	}
 	rsh.domainidentifier = signedIdentifier
 	return rsh, nil
@@ -97,9 +96,12 @@ func (rsh *remoteSecurityHandler) HasPermission(ctx core.RequestContext, perm st
 	return hasPermission(ctx, perm, rsh.rolePermissions)
 }
 
+func (rsh *remoteSecurityHandler) AllPermissions(core.RequestContext) []string {
+	return []string{}
+}
+
 func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 	client := ctx.HttpClient()
-	log.Logger.Error(ctx, "******************client", "client", client, "remoteAuthServer", rsh.remoteAuthServer)
 	resp, err := client.Post(rsh.remoteAuthServer, "application/json", bytes.NewBuffer(rsh.domainidentifier))
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -112,7 +114,6 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 		token := resp.Header.Get(rsh.authHeader)
 		data := make(map[string]interface{})
 		dat, _ := json.Marshal(data)
-		log.Logger.Error(ctx, "******************client", "data", string(dat))
 
 		req, err := http.NewRequest("POST", rsh.rolesService, bytes.NewBuffer(dat))
 		req.Header.Add(rsh.authHeader, token)
@@ -136,7 +137,6 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 		for i := 0; i < rolesVal.Len(); i++ {
 			role := rolesVal.Index(i).Addr().Interface().(auth.Role)
 			id := role.GetId()
-			log.Logger.Error(ctx, "****************** loaded role", "id", id)
 			permissions := role.GetPermissions()
 			for _, perm := range permissions {
 				key := fmt.Sprintf("%s#%s", id, perm)
