@@ -1,13 +1,9 @@
 package security
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/facebook"
-	"golang.org/x/oauth2/google"
 	"io/ioutil"
 	"laatoo/sdk/auth"
 	"laatoo/sdk/components/data"
@@ -15,6 +11,10 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/facebook"
+	"golang.org/x/oauth2/google"
 	//"net/http"
 )
 
@@ -25,7 +25,6 @@ const (
 	CONF_OAUTHLOGINSERVICE_OAUTH_TYPE         = "sitetype"
 	CONF_OAUTHLOGINSERVICE_CLIENTID           = "clientid"
 	CONF_OAUTHLOGINSERVICE_CLIENTSECRET       = "clientsecret"
-	CONF_OAUTHLOGINSERVICE_KEY                = "key"
 	CONF_OAUTHLOGINSERVICE_SITE               = "oauthsite"
 	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHURL      = "authurl"
 	CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK = "callbackurl"
@@ -38,7 +37,6 @@ type OAuthLoginService struct {
 	tokenGenerator  func(auth.User) (string, auth.User, error)
 	userDataService data.DataComponent
 	userCreator     core.ObjectCreator
-	cipher          cipher.Block
 	config          *oauth2.Config
 	sitetype        string
 	systemAuthURL   string
@@ -70,18 +68,6 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Conf
 	}
 	os.authHeader = authHeader
 
-	key, ok := conf.GetString(CONF_OAUTHLOGINSERVICE_KEY)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_KEY)
-	}
-	cipher, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		return err
-	}
-	os.cipher = cipher
-
-	os.callbackmode, _ = conf.GetBool(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
-
 	userObject, ok := sechandler.GetString(config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
@@ -104,50 +90,48 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Conf
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
-	if os.callbackmode {
+	callbackmode, _ := ctx.GetBool(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
+	if callbackmode {
 		return os.callbackRequest(ctx)
 	} else {
 		return os.initialRequest(ctx)
 	}
-	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
-	req := ctx.GetRequest()
-	body := req.(map[string]interface{})
-	returl, ok := body["callbackurl"]
+	returl, ok := ctx.GetString("callbackurl")
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
+		returl = ""
 	}
-	stateVal, ok := body["state"]
+	stateVal, ok := ctx.GetString("state")
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
+		stateVal = ""
 	}
-	st := stateInfo{url: returl.(string), state: stateVal.(string)}
+	st := stateInfo{url: returl, state: stateVal}
 	state, err := json.Marshal(st)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	ciphertext := make([]byte, len(state))
-	os.cipher.Encrypt(ciphertext, state)
-	url := os.config.AuthCodeURL(string(ciphertext))
+	encodedState := base64.StdEncoding.EncodeToString(state)
+	url := os.config.AuthCodeURL(encodedState)
+	log.Logger.Info(ctx, "redirecting to url", "url", url)
 	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, url, nil))
 	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
-	receivedState, ok := ctx.GetString("State")
+	log.Logger.Info(ctx, "callback received")
+	receivedState, ok := ctx.GetString("state")
 	if !ok {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
-	encBytes := []byte(receivedState)
-	jsonBytes := make([]byte, len(encBytes))
-	os.cipher.Decrypt(jsonBytes, encBytes)
+	log.Logger.Info(ctx, "received state", "receivedState", receivedState)
+	decodedState, err := base64.StdEncoding.DecodeString(receivedState)
 	st := new(stateInfo)
-	err := json.Unmarshal(jsonBytes, st)
+	err = json.Unmarshal(decodedState, st)
 	if err != nil {
 		errors.WrapError(ctx, err)
 		return nil
@@ -157,6 +141,7 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 		log.Logger.Error(ctx, "No code found on oauth return")
 		return nil
 	}
+	log.Logger.Info(ctx, "received code", "code", code)
 	return os.authenticate(ctx, code, st)
 }
 
@@ -169,8 +154,6 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code, "token", token)
 
 	client := os.config.Client(oauthCtx, token)
-
-	log.Logger.Trace(ctx, "OAuthType: end point profile")
 
 	response, err := client.Get(os.profileURL)
 	if err != nil {
@@ -212,10 +195,19 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
+	if st.url == "" {
+		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
+		log.Logger.Info(ctx, "Empty callback url", "permissions", permissions)
+		permissionsArr, _ := json.Marshal(permissions)
+		script := []byte(fmt.Sprintf("<html><body onload='var data = {token:\"%s\", id:\"%s\", permissions:%s};window.opener.login(data); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
+		log.Logger.Info(ctx, "Empty callback url", "script", script)
+		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
+		ctx.SetResponse(resp)
+		return nil
+	}
 	resp := core.NewServiceResponse(core.StatusRedirect, st.url, map[string]interface{}{os.authHeader: tokenstr})
 	ctx.SetResponse(resp)
 	return nil
-
 }
 
 //Expects Local user to be provided inside the request
@@ -233,6 +225,7 @@ func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf conf
 	default:
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_OAUTH_TYPE)
 	}
+	os.sitetype = siteType
 	clientId, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_CLIENTID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_CLIENTID)

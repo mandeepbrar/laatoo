@@ -1,7 +1,6 @@
 'use strict';
 
 import React from 'react';
-
 require('./Login.scss');
 
 class LoginWeb extends React.Component {
@@ -33,18 +32,18 @@ class LoginWeb extends React.Component {
   facebook() {
       if(this.props.facebook && this.props.facebook === 'true') {
           return(
-              <div className="col-xs-6 col-sm-6 col-md-6">
-               <a href="{{facebook}}" className="btn btn-lg btn-primary btn-block">Facebook</a>
-             </div>
+            <div className="col-xs-6 col-sm-6 col-md-6">
+              <a href={"javascript:window.open('"+ this.props.facebookAuthUrl +"', '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')"} className="btn btn-lg btn-info btn-block">Facebook</a>
+            </div>
           )
       }
   }
   google() {
       if(this.props.google && this.props.google === 'true') {
           return(
-              <div className="col-xs-6 col-sm-6 col-md-6">
-                <a className="btn btn-lg btn-info btn-block">Google</a>
-              </div>
+            <div className="col-xs-6 col-sm-6 col-md-6">
+              <a href={"javascript:window.open('"+ this.props.googleAuthUrl +"', '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')"} className="btn btn-lg btn-info btn-block">Google</a>
+            </div>
           )
       }
   }
@@ -105,7 +104,9 @@ LoginWeb.displayName = 'LoginComponent';
 LoginWeb.propTypes = {
   handleLogin: React.PropTypes.func.isRequired,
   facebook:  React.PropTypes.string,
+  facebookAuthUrl: React.PropTypes.string,
   google:  React.PropTypes.string,
+  googleAuthUrl: React.PropTypes.string,
   signup:  React.PropTypes.string
 };
 // LoginComponent.defaultProps = {};

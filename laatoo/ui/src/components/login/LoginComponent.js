@@ -10,7 +10,9 @@ import {createAction} from '../../utils';
 const mapStateToProps = (state, ownProps) => {
   return {
     facebook: ownProps.facebook,
+    facebookAuthUrl: ownProps.facebookAuthUrl,
     google: ownProps.google,
+    googleAuthUrl: ownProps.googleAuthUrl,
     signup: ownProps.signup
   }
 }
@@ -35,7 +37,9 @@ LoginComponent.propTypes = {
   loginService: React.PropTypes.string.isRequired,
   successpage: React.PropTypes.string,
   facebook: React.PropTypes.string,
+  facebookAuthUrl: React.PropTypes.string,
   google: React.PropTypes.string,
+  googleAuthUrl: React.PropTypes.string,
   signup: React.PropTypes.string
 };
 // LoginComponent.defaultProps = {};

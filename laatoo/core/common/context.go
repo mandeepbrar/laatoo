@@ -2,11 +2,12 @@ package common
 
 import (
 	"fmt"
-	"github.com/twinj/uuid"
-	glctx "golang.org/x/net/context"
 	"laatoo/sdk/core"
 	"net/http"
 	"strconv"
+
+	"github.com/twinj/uuid"
+	glctx "golang.org/x/net/context"
 )
 
 type Context struct {
@@ -66,6 +67,24 @@ func (ctx *Context) GetString(key string) (string, bool) {
 	}
 	return "", false
 }
+func (ctx *Context) GetBool(key string) (bool, bool) {
+	val, found := ctx.Get(key)
+	if found {
+		boolval, ok := val.(bool)
+		if ok {
+			return boolval, true
+		}
+		strval, ok := val.(string)
+		if ok {
+			boolval, err := strconv.ParseBool(strval)
+			if err == nil {
+				return boolval, true
+			}
+		}
+	}
+	return false, false
+}
+
 func (ctx *Context) GetInt(key string) (int, bool) {
 	valInt, ok := ctx.Get(key)
 	if ok {

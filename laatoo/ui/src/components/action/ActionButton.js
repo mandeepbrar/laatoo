@@ -11,7 +11,11 @@ const ActionButton = (props) =>(
 // Uncomment properties you need
 ActionButton.propTypes = {
   actionFunc:  React.PropTypes.func.isRequired,
-  actionchildren: React.PropTypes.array
+  actionchildren: React.PropTypes.oneOfType([
+    React.PropTypes.array,
+    React.PropTypes.string
+  ])
+    
 };
 // View.defaultProps = {};
 

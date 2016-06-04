@@ -74,7 +74,6 @@ class EntitiesViewTable extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  console.log("mapp state", state, ownProps);
   let props = {
     name: ownProps.name,
     reducer: ownProps.reducer,

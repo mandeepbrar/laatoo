@@ -11,7 +11,10 @@ const ActionLink = (props) =>(
 // Uncomment properties you need
 ActionLink.propTypes = {
   actionFunc:  React.PropTypes.func.isRequired,
-  actionchildren: React.PropTypes.array
+  actionchildren: React.PropTypes.oneOfType([
+    React.PropTypes.array,
+    React.PropTypes.string
+  ])
 };
 // View.defaultProps = {};
 

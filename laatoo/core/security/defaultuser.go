@@ -1,14 +1,15 @@
 package security
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
 	"laatoo/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"strings"
+
+	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func init() {
