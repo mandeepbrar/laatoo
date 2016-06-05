@@ -11,6 +11,7 @@ class EntitiesViewTable extends React.Component {
   constructor(props) {
     super(props);
     this.deleteEntity = this.deleteEntity.bind(this);
+    this.getRow = this.getRow.bind(this);
   }
   componentDidMount() {
     if(this.props.load) {
@@ -31,13 +32,30 @@ class EntitiesViewTable extends React.Component {
     };
     EntityData.DeleteEntity(this.props.name, params.id).then(successMethod, failureMethod);
   }
+  getRow(x, i) {
+    let id = x[this.props.idField];
+    let title = x[this.props.titleField];
+    let encodedid = encodeURIComponent(id)
+    return (
+      <tr key={i + 1}>
+        <td style={{width:"40%"}}>
+          <Action name={"Edit "+this.props.name} params={{ id: encodedid }}>{title}</Action>
+        </td>
+        <td>
+          <Action name={"Edit "+this.props.name} params={{ id: encodedid }}>{id}</Action>
+        </td>
+        <td>
+          <Action name={"Delete "+this.props.name} method={this.deleteEntity} params={{ id: encodedid }}>delete</Action>
+        </td>
+      </tr>
+    )
+
+  }
   render() {
-    let idField = this.props.idField;
-    let titleField = this.props.titleField;
     return (
       <div className="container">
         <div className="row">
-          <Action className="pull-right  m20" widget="button" name={"Create "+this.props.name}>{"Create "+this.props.name}</Action>
+          <Action className="pull-right  m20" widget="button" key={"Create "+this.props.name} name={"Create "+this.props.name}>{"Create "+this.props.name}</Action>
         </div>
         <table className="table table-striped ">
           <thead>
@@ -54,17 +72,7 @@ class EntitiesViewTable extends React.Component {
           </thead>
           <tbody>
           {[...this.props.items].map((x, i) =>
-            <tr key={i + 1}>
-              <td style={{width:"40%"}}>
-                <Action name={"Edit "+this.props.name} params={{ id: x[idField] }}>{x[titleField]}</Action>
-              </td>
-              <td>
-                <Action name={"Edit "+this.props.name} params={{ id: x[idField] }}>{x[idField]}</Action>
-              </td>
-              <td>
-                <Action name={"Delete "+this.props.name} method={this.deleteEntity} params={{ id: x[idField] }}>delete</Action>
-              </td>
-            </tr>
+            this.getRow(x,i)
           )}
           </tbody>
         </table>
