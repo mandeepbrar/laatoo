@@ -4,13 +4,14 @@ import (
 	//	jwt "github.com/dgrijalva/jwt-go"
 	//	"laatoosdk/auth"
 	"fmt"
-	"github.com/rs/cors"
 	"laatoo/core/engine/http/net"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 const (
@@ -146,7 +147,9 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.Ser
 	}
 	return func(pathCtx net.WebContext) error {
 		corectx := ctx.CreateNewRequest(ctx.GetName(), pathCtx)
-		corectx.SetGaeReq(pathCtx.GetRequest())
+		req := pathCtx.GetRequest()
+		corectx.SetGaeReq(req)
+		log.Logger.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
 		defer corectx.CompleteRequest()
 		if shandler != nil {
 			corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
@@ -157,7 +160,9 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.Ser
 			}
 		}
 		err := handler(corectx)
-		log.Logger.Info(ctx, "Got error in the request", "error", err)
+		if err != nil {
+			log.Logger.Info(corectx, "Got error in the request", "error", err)
+		}
 		return err
 	}
 }

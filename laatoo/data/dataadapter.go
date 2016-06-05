@@ -259,6 +259,7 @@ func (es *dataAdapterService) PUT(ctx core.RequestContext) error {
 }
 
 func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
+	log.Logger.Info(ctx, "Deleting")
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)

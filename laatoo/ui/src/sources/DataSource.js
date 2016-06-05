@@ -24,8 +24,7 @@ class DefaultDataSource {
     if (service != null && serviceRequest != null) {
       return this.ExecuteServiceObject(service, serviceRequest);
     } else {
-      errorMethod(this.buildSvcResponse(Response.InternalError, 'Service not found', serviceName));
-      return null;
+      throw new Error('Service not found' + serviceName);
     }
   }
   ExecuteServiceObject(service, serviceRequest) {
@@ -38,8 +37,7 @@ class DefaultDataSource {
         return this.HttpCall(url, method, req.params, req.data);
       }
     } else {
-      errorMethod(this.buildSvcResponse(Response.InternalError, 'Invalid Request', ""));
-      return null;
+      throw new Error('Invalid Request' );
     }
   }
   HttpCall(url, method, params, data) {
@@ -61,6 +59,9 @@ class DefaultDataSource {
         let errorCallback = function(response) {
           reject(service.buildHttpSvcResponse(Response.Failure, "", response));
         };
+        if(method == 'DELETE') {
+          data = null;
+        }
         let headers = {};
         headers[document.Application.Security.AuthToken] = localStorage.auth;
         let req = {
