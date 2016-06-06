@@ -20,9 +20,11 @@ class Entity {
       let reducer = this.name.toUpperCase()+"_View";
       let idField = this.entityProperties.idField;
       let titleField = this.entityProperties.titleField;
+      let header = this.entityProperties.viewHeader;
+      let row = this.entityProperties.viewRow;
       let viewService = this.entityProperties.viewService;
       return () => (
-          <EntityView name={this.name} idField={idField} reducer={reducer} titleField={titleField} viewService={viewService} ></EntityView>
+          <EntityView name={this.name} idField={idField} header={header} row={row} reducer={reducer} titleField={titleField} viewService={viewService} ></EntityView>
         )
     }
     CreateComponent() {

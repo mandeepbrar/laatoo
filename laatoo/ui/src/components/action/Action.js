@@ -11,11 +11,14 @@ class ActionComp extends React.Component {
   constructor(props) {
     super(props);
     this.renderView = this.renderView.bind(this);
-    let action = document.Actions[props.name];
-    this.action = action;
-    this.hasPermission =  hasPermission(action.permission);
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
+    this.hasPermission = false
+    let action = document.Actions[props.name];
+    if(action) {
+      this.action = action;
+      this.hasPermission =  hasPermission(action.permission);
+    }
   }
 
   dispatchAction() {
@@ -49,7 +52,7 @@ class ActionComp extends React.Component {
 
   renderView() {
     if (!this.hasPermission) {
-      return;
+      return null;
     }
     let actionF = this.actionFunc;
     switch(this.props.widget) {

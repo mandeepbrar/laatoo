@@ -12,6 +12,7 @@ class EntitiesViewTable extends React.Component {
     super(props);
     this.deleteEntity = this.deleteEntity.bind(this);
     this.getRow = this.getRow.bind(this);
+    this.getHeader = this.getHeader.bind(this);
   }
   componentDidMount() {
     if(this.props.load) {
@@ -32,7 +33,7 @@ class EntitiesViewTable extends React.Component {
     };
     EntityData.DeleteEntity(this.props.name, params.id).then(successMethod, failureMethod);
   }
-  getRow(x, i) {
+  getRow(view, x, i) {
     let id = x[this.props.idField];
     let title = x[this.props.titleField];
     let encodedid = encodeURIComponent(id)
@@ -49,7 +50,20 @@ class EntitiesViewTable extends React.Component {
         </td>
       </tr>
     )
-
+  }
+  getHeader() {
+    return (
+      <tr>
+        <th>
+          Entity
+        </th>
+        <th>
+          Id
+        </th>
+        <th>
+        </th>
+      </tr>
+    )
   }
   render() {
     return (
@@ -59,20 +73,11 @@ class EntitiesViewTable extends React.Component {
         </div>
         <table className="table table-striped ">
           <thead>
-            <tr>
-              <th>
-                Entity
-              </th>
-              <th>
-                Id
-              </th>
-              <th>
-              </th>
-            </tr>
+            {this.props.header? this.props.header(): this.getHeader()}
           </thead>
           <tbody>
           {[...this.props.items].map((x, i) =>
-            this.getRow(x,i)
+            this.props.row? this.props.row(this, x, i): this.getRow(this, x,i)
           )}
           </tbody>
         </table>
@@ -86,6 +91,8 @@ const mapStateToProps = (state, ownProps) => {
     name: ownProps.name,
     reducer: ownProps.reducer,
     idField: ownProps.idField,
+    header: ownProps.header,
+    row: ownProps.row,
     titleField: ownProps.titleField,
     load: false,
     items: []

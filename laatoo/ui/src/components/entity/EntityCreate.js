@@ -4,12 +4,12 @@ import React from 'react';
 import {EntityForm} from './EntityForm'
 import t from 'tcomb-form';
 import {  Response,  DataSource,  RequestBuilder } from '../../sources/DataSource';
-import { browserHistory } from 'react-router';
 import { connect } from 'react-redux';
 
 class CreateForm extends React.Component {
   constructor(props) {
     super(props);
+    this.title = this.title.bind(this);
     this.state = {schema: props.schema};
   }
   componentDidMount() {
@@ -24,11 +24,19 @@ class CreateForm extends React.Component {
       }
     }
   }
-
+  title() {
+    if(this.props.schemaOptions.template) {
+      return null
+    } else {
+      return (
+        <h1>Create {this.props.name}</h1>
+      )
+    }
+  }
   render() {
     return (
       <div>
-        <h1>Create Entity</h1>
+        {this.title()}
         <EntityForm name={this.props.name} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
         </EntityForm>
       </div>
