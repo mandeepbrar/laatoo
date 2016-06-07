@@ -1,7 +1,8 @@
-import {getCreateReducer, getViewReducer, getUpdateReducer} from './Reducers';
+import {getCreateReducer, getViewReducer, getUpdateReducer, getDisplayReducer} from './Reducers';
 import {EntityView} from './EntityWebView';
 import {CreateEntity} from './EntityCreate';
 import {UpdateEntity} from './EntityUpdate';
+import {DisplayEntity} from './EntityDisplay';
 import React from 'react';
 
 class Entity {
@@ -14,6 +15,8 @@ class Entity {
       this.ViewReducer = this.ViewReducer.bind(this)
       this.CreateReducer = this.CreateReducer.bind(this)
       this.UpdateReducer = this.UpdateReducer.bind(this)
+      this.DisplayReducer = this.DisplayReducer.bind(this)
+      this.DisplayComponent = this.DisplayComponent.bind(this)
       //schema, schemaoptions,
     }
     ViewComponent() {
@@ -50,6 +53,13 @@ class Entity {
           <UpdateEntity name={this.name} id={props.params.id} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
         )
     }
+    DisplayComponent() {
+      let reducer = this.name.toUpperCase()+"_Display";
+      let display = this.entityProperties.display;
+      return (props) => (
+          <DisplayEntity name={this.name} id={props.params.id} reducer={reducer} display={display}></DisplayEntity>
+        )
+    }
     ViewReducer() {
       return getViewReducer(this.name);
     }
@@ -58,6 +68,9 @@ class Entity {
     }
     UpdateReducer() {
       return getUpdateReducer(this.name);
+    }
+    DisplayReducer() {
+      return getDisplayReducer(this.name);
     }
 }
 
