@@ -12,6 +12,7 @@ import createSagaMiddleware from 'redux-saga';
 import {createAction} from './utils';
 import {formatUrl} from './utils';
 import {Sagas, runSagas} from './sagas';
+import {VideoEdit, TextEdit, ImageEdit} from './utils/form';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -49,6 +50,9 @@ module.exports = {
     EntityForm:EntityForm,
     createStore: createStore,
     createAction: createAction,
+    VideoEdit: VideoEdit,
+    TextEdit: TextEdit,
+    ImageEdit: ImageEdit,
     formatUrl: formatUrl,
     Sagas: Sagas
 };

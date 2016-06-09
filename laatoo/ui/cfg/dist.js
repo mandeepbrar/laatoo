@@ -40,6 +40,10 @@ let config = Object.assign({}, baseConfig, {
       "redux":"redux",
       "redux-saga":"redux-saga",
       "core-js":"core-js",
+      "react-tinymce-input":"react-tinymce-input",
+      "react-player":"react-player",
+      "react-dropzone":"react-dropzone",
+      "react-bootstrap":"react-bootstrap",
       "normalize.css":"normalize.css"
   },
   cache: false,

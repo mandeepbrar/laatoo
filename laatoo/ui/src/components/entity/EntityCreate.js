@@ -25,7 +25,7 @@ class CreateForm extends React.Component {
     }
   }
   title() {
-    if(this.props.schemaOptions.template) {
+    if(this.props.schemaOptions && this.props.schemaOptions.template) {
       return null
     } else {
       return (
