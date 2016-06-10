@@ -44,6 +44,9 @@ let config = Object.assign({}, baseConfig, {
       "react-player":"react-player",
       "react-dropzone":"react-dropzone",
       "react-bootstrap":"react-bootstrap",
+      "react-pagify-preset-bootstrap":"react-pagify-preset-bootstrap",
+      "segmentize":"segmentize",
+      "react-pagify":"react-pagify",
       "normalize.css":"normalize.css"
   },
   cache: false,

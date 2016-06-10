@@ -215,7 +215,7 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap = *body
-	log.Logger.Trace(ctx, "debg", "argsMap", argsMap)
+	log.Logger.Trace(ctx, "select", "argsMap", argsMap, "pagesize", pagesize, "pagenum", pagenum)
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {

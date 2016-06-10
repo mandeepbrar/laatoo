@@ -2,14 +2,15 @@ package data
 
 import (
 	"fmt"
-	glctx "golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"reflect"
+
+	glctx "golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 type gaeDatastoreCondition struct {
@@ -152,6 +153,9 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 		if svc.cacheable {
 			putInCache(ctx, svc.object, stor.GetId(), stor)
 		}
+	}
+	if recsreturned > totalrecs {
+		totalrecs = recsreturned
 	}
 	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.object, "recsreturned", recsreturned)
 	return resultStor, totalrecs, recsreturned, nil

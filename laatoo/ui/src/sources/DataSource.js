@@ -19,28 +19,28 @@ class DefaultDataSource {
     this.HttpCall = this.HttpCall.bind(this);
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this);
   }
-  ExecuteService(serviceName, serviceRequest) {
+  ExecuteService(serviceName, serviceRequest, config=null) {
     var service = document.Services[serviceName];
     if (service != null && serviceRequest != null) {
-      return this.ExecuteServiceObject(service, serviceRequest);
+      return this.ExecuteServiceObject(service, serviceRequest, config);
     } else {
       throw new Error('Service not found' + serviceName);
     }
   }
-  ExecuteServiceObject(service, serviceRequest) {
+  ExecuteServiceObject(service, serviceRequest, config=null) {
     if (service != null && serviceRequest != null) {
       var protocol = this.getProtocol();
       var req = serviceRequest.GetRequest(protocol);
       if (protocol === 'http') {
         var method = this.getMethod(service);
         var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data);
+        return this.HttpCall(url, method, req.params, req.data, config);
       }
     } else {
       throw new Error('Invalid Request' );
     }
   }
-  HttpCall(url, method, params, data) {
+  HttpCall(url, method, params, data, config=null) {
     let service = this;
     var promise = new Promise(
       function (resolve, reject) {
@@ -72,6 +72,9 @@ class DefaultDataSource {
           params: params,
           responseType: 'json'
         };
+        if(config) {
+          req = Object.assign({}, req, config)
+        }
         console.log("Request.. ",req);
         axios(req).then(successCallback, errorCallback);
       });

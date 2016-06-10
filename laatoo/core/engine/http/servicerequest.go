@@ -62,8 +62,8 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 					return respHandler.HandleResponse(webctx)
 				}
 			case files:
-				files, err := engineContext.GetFiles()
-				reqData = &files
+				fileObjs, err := engineContext.GetFiles()
+				reqData = &fileObjs
 				if err != nil {
 					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 					webctx.SetResponse(core.StatusBadRequestResponse)

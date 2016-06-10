@@ -6,6 +6,9 @@ import {ActionNames} from '../../actions/ActionNames';
 import {Action} from '../action/Action';
 import {createAction} from '../../utils';
 import {  Response,  EntityData } from '../../sources/DataSource';
+import Paginator from 'react-pagify';
+import pagifyBootstrapPreset from 'react-pagify-preset-bootstrap';
+import segmentize from 'segmentize';
 
 class EntitiesViewTable extends React.Component {
   constructor(props) {
@@ -13,15 +16,16 @@ class EntitiesViewTable extends React.Component {
     this.deleteEntity = this.deleteEntity.bind(this);
     this.getRow = this.getRow.bind(this);
     this.getHeader = this.getHeader.bind(this);
+    this.pagination = this.pagination.bind(this);
   }
   componentDidMount() {
     if(this.props.load) {
-      this.props.loadView();
+      this.props.loadView(this.props.currentPage);
     }
   }
   componentWillReceiveProps(nextprops) {
     if(nextprops.load) {
-      nextprops.loadView();
+      nextprops.loadView(nextprops.currentPage);
     }
   }
   deleteEntity(params) {
@@ -65,6 +69,40 @@ class EntitiesViewTable extends React.Component {
       </tr>
     )
   }
+  pagination() {
+    if(this.props.paginate) {
+      let pages = this.props.totalPages
+      let page = this.props.currentPage
+      return (
+        <Paginator.Context
+          {...pagifyBootstrapPreset}
+          segments={segmentize({
+              pages,
+              page,
+              beginPages: 1,
+              endPages: 1,
+              sidePages: 3
+          })}
+          onSelect={(newPage, event) => {
+              event.preventDefault();
+              this.props.loadView(newPage);
+          }}
+        >
+          <Paginator.Button page={page - 1}>Previous</Paginator.Button>
+          <Paginator.Segment field="beginPages" />
+          <Paginator.Ellipsis previousField="beginPages" nextField="previousPages" />
+          <Paginator.Segment field="previousPages" />
+          <Paginator.Segment field="centerPage" className="active" />
+          <Paginator.Segment field="nextPages" />
+          <Paginator.Ellipsis previousField="nextPages" nextField="endPages" />
+          <Paginator.Segment field="endPages" />
+          <Paginator.Button page={page + 1}>Next</Paginator.Button>
+        </Paginator.Context>
+      )
+    } else {
+      return null
+    }
+  }
   render() {
     return (
       <div className="container">
@@ -81,6 +119,7 @@ class EntitiesViewTable extends React.Component {
           )}
           </tbody>
         </table>
+        {this.pagination()}
       </div>
     )
   }
@@ -92,6 +131,10 @@ const mapStateToProps = (state, ownProps) => {
     reducer: ownProps.reducer,
     idField: ownProps.idField,
     header: ownProps.header,
+    paginate: ownProps.paginate,
+    pageSize: ownProps.pageSize,
+    currentPage: 1,
+    totalPages: 1,
     row: ownProps.row,
     titleField: ownProps.titleField,
     load: false,
@@ -102,6 +145,8 @@ const mapStateToProps = (state, ownProps) => {
     if(entityView) {
       if(entityView.status == "Loaded") {
           props.items = entityView.data
+          props.currentPage = entityView.currentPage
+          props.totalPages = entityView.totalPages
           return props
       }
       if(entityView.status == "NotLoaded") {
@@ -115,8 +160,14 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    loadView: () => {
-      let payload = {};
+    loadView: (pagenum) => {
+      let queryParams={}
+      if (ownProps.paginate) {
+            queryParams.pagesize = ownProps.pageSize;
+            queryParams.pagenum = pagenum;
+        }
+      console.log("query params", queryParams)
+      let payload = {queryParams};
       let meta = {serviceName: ownProps.viewService, reducer: ownProps.reducer};
       dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));
     }

@@ -1,11 +1,12 @@
 package data
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
@@ -132,6 +133,9 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 		if ms.cacheable {
 			putInCache(ctx, ms.object, stor.GetId(), stor)
 		}
+	}
+	if recsreturned > totalrecs {
+		totalrecs = recsreturned
 	}
 	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "recsreturned", recsreturned)
 	return resultStor, totalrecs, recsreturned, nil

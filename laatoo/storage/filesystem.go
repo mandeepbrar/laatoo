@@ -1,13 +1,14 @@
 package storage
 
 import (
-	"github.com/twinj/uuid"
 	"io"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"os"
+
+	"github.com/twinj/uuid"
 	//"net/http"
 	"path"
 	//"strings"
@@ -32,18 +33,22 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 }
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
+	log.Logger.Info(ctx, "writing file")
 	files := *ctx.GetRequest().(*map[string]io.ReadCloser)
 	urls := make([]string, len(files))
 	i := 0
 	for _, inpStr := range files {
 		fileName := uuid.NewV4().String()
+		log.Logger.Info(ctx, "writing file", "name", fileName)
 		url, err := svc.SaveFile(ctx, inpStr, fileName)
 		if err != nil {
 			return err
 		}
+		log.Logger.Info(ctx, "writing file", "url", url)
 		urls[i] = url
 		i++
 	}
+	log.Logger.Info(ctx, "writing file", "urls", urls)
 	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
 	return nil
 }

@@ -6,6 +6,7 @@ import Dropzone from 'react-dropzone';
 import Tab from 'react-bootstrap/lib/Tab'
 import Image from 'react-bootstrap/lib/Image'
 import Tabs from 'react-bootstrap/lib/Tabs'
+import {  Response,  DataSource,  RequestBuilder } from '../sources/DataSource';
 
 const TINYMCE_CONFIG = {
   'language'  : 'en',
@@ -69,7 +70,29 @@ class ImageChooser extends React.Component {
         }
     };*/
     if(files.length >0) {
-      this.props.onChange(files[0].name)
+      let data = new FormData()
+      data.append(files[0].name, files[0]);
+      var config = {
+        progress: function(progressEvent) {
+          var percentCompleted = progressEvent.loaded / progressEvent.total;
+          console.log("complete", percentCompleted);
+        }
+      };
+      let comp = this;
+      let req = RequestBuilder.DefaultRequest(null, data)
+      let prom = DataSource.ExecuteService(this.props.uploadService, req, config)
+      prom.then(
+        function (res) {
+          let img = res.data[0];
+          if(comp.props.prefix) {
+            img = comp.props.prefix + img
+          }
+          console.log(img);
+          comp.props.onChange(img)
+        },
+        function (res) {
+          console.log(res);
+        });
     }
   }
   uselink(evt) {
@@ -115,13 +138,14 @@ class ImageChooser extends React.Component {
 class ImageEdit extends t.form.Component { // extend the base class
   getTemplate() {
     return (locals) => {
+      console.log("locals....", locals)
       let choose = (file) => {
         console.log(file);
       }
       return (
         <div>
           <label>{locals.label}</label>
-          <ImageChooser value={locals.value} onChange={locals.onChange}/>
+          <ImageChooser value={locals.value} onChange={locals.onChange} prefix={locals.config.prefix} uploadService={locals.config.service}/>
         </div>
       );
     };

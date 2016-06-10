@@ -73,12 +73,15 @@
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
     "react-dropzone": "^3.5.0",
+    "react-pagify": "^2.0.4",
+    "react-pagify-preset-bootstrap": "^1.0.2",
     "react-player": "^0.7.2",
     "react-redux": "^4.4.5",
     "react-tinymce-input": "^1.2.0",
     "redux": "^3.5.2",
     "redux-director": "*",
     "redux-saga": "*",
+    "segmentize": "^0.4.1",
     "tcomb-form": "*"
   }
 }

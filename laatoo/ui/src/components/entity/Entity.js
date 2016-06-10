@@ -24,10 +24,12 @@ class Entity {
       let idField = this.entityProperties.idField;
       let titleField = this.entityProperties.titleField;
       let header = this.entityProperties.viewHeader;
+      let paginate = this.entityProperties.paginate;
+      let pageSize = this.entityProperties.pageSize;
       let row = this.entityProperties.viewRow;
       let viewService = this.entityProperties.viewService;
       return () => (
-          <EntityView name={this.name} idField={idField} header={header} row={row} reducer={reducer} titleField={titleField} viewService={viewService} ></EntityView>
+          <EntityView name={this.name} idField={idField} paginate={paginate} pageSize={pageSize} header={header} row={row} reducer={reducer} titleField={titleField} viewService={viewService} ></EntityView>
         )
     }
     CreateComponent() {
