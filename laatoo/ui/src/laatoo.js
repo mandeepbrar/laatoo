@@ -12,7 +12,11 @@ import createSagaMiddleware from 'redux-saga';
 import {createAction} from './utils';
 import {formatUrl} from './utils';
 import {Sagas, runSagas} from './sagas';
-import {VideoEdit, TextEdit, ImageEdit} from './utils/form';
+import {VideoEdit} from './components/form/videoedit';
+import {TextEdit} from './components/form/textedit';
+import {ImageEdit} from './components/form/imageedit';
+import {WebTableView} from './components/view/WebTableView';
+import {ViewReducer} from './reducers/View';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -43,6 +47,7 @@ module.exports = {
     Response: Response,
     Reducers: Reducers,
     RequestBuilder: RequestBuilder,
+    ViewReducer: ViewReducer,
     Action: Action,
     ActionNames: ActionNames,
     Entity: Entity,
@@ -50,6 +55,7 @@ module.exports = {
     EntityForm:EntityForm,
     createStore: createStore,
     createAction: createAction,
+    WebTableView: WebTableView,
     VideoEdit: VideoEdit,
     TextEdit: TextEdit,
     ImageEdit: ImageEdit,

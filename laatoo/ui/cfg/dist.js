@@ -77,9 +77,9 @@ config.module.loaders.push({
     [ path.join(__dirname, '/../src') ]
   )
 });
-
+/*
 config.module.loaders.push({
   test: /\.(js|jsx)$/,
   loader: 'strip-loader?strip[]=console.log'
-});
+});*/
 module.exports = config;
