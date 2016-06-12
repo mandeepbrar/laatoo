@@ -17,6 +17,14 @@ class ViewDisplay extends React.Component {
     this.getPagination = this.getPagination.bind(this);
     this.setPage = this.setPage.bind(this);
     this.selectedItems = this.selectedItems.bind(this);
+    this.itemStatus = this.itemStatus.bind(this);
+    this.viewrefs = this.viewrefs.bind(this);
+    this.itemCount = this.itemCount.bind(this);
+    this.getFilter = this.getFilter.bind(this);
+    this.reload = this.reload.bind(this);
+    this.setFilter = this.setFilter.bind(this);
+    this.methods = {reload: this.reload, setFilter:this.setFilter, itemCount: this.itemCount, viewrefs: this.viewrefs, itemStatus: this.itemStatus, selectedItems: this.selectedItems, setPage: this.setPage}
+    this.addMethod = this.addMethod.bind(this);
     this.numItems = 0
   }
   componentDidMount() {
@@ -29,6 +37,18 @@ class ViewDisplay extends React.Component {
       nextprops.loadView(nextprops.currentPage);
     }
   }
+  addMethod(name, method) {
+    this.methods[name] = method
+  }
+  reload() {
+    this.props.loadView(this.props.currentPage);
+  }
+  viewrefs() {
+    return this.refs
+  }
+  itemCount() {
+    return this.numItems
+  }
   selectedItems() {
     let selectedItems = []
     for(var i=0; i<this.numItems;i++) {
@@ -40,12 +60,31 @@ class ViewDisplay extends React.Component {
     }
     return selectedItems
   }
+  itemStatus() {
+    let items = {}
+    for(var i=0; i<this.numItems;i++) {
+      let refName = "item"+i
+      let item = this.refs[refName]
+      items[item.id] = item.selected
+    }
+    return items
+  }
   setPage(newPage) {
     this.props.loadView(newPage)
   }
-  getView(header, groups, pagination) {
+  setFilter(filter) {
+    console.log("filter", filter)
+    this.props.loadView(1, filter)
+  }
+  getView(header, groups, pagination, filter) {
     if(this.props.getView) {
-      return this.props.getView(this, header, groups, pagination)
+      return this.props.getView(this, header, groups, pagination, filter)
+    }
+    return null
+  }
+  getFilter(filterTitle, filterForm, filterGo) {
+    if(this.props.getFilter) {
+      return this.props.getFilter(this, filterTitle, filterForm, filterGo)
     }
     return null
   }
@@ -91,8 +130,9 @@ class ViewDisplay extends React.Component {
       }
     }
     let header = this.getHeader()
+    let filter = this.getFilter(this.props.filterTitle, this.props.filterForm, this.props.filterGo)
     let pagination = this.getPagination()
-    let view = this.getView(header, groups, pagination)
+    let view = this.getView(header, groups, pagination, filter)
     return view
   }
 }
@@ -102,12 +142,17 @@ const mapStateToProps = (state, ownProps) => {
     reducer: ownProps.reducer,
     paginate: ownProps.paginate,
     pageSize: ownProps.pageSize,
+    filterTitle: ownProps.filterTitle,
+    filterForm: ownProps.filterForm,
+    filterGo: ownProps.filterGo,
     getView: ownProps.getView,
     getItem: ownProps.getItem,
     getItemGroup: ownProps.getItemGroup,
     getHeader: ownProps.getHeader,
+    getFilter: ownProps.getFilter,
     getPagination: ownProps.getPagination,
     currentPage: ownProps.currentPage,
+    className: ownProps.className,
     totalPages: 1,
     load: false,
     items: []
@@ -132,7 +177,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
-    loadView: (pagenum) => {
+    loadView: (pagenum, filter) => {
       if(!pagenum) {
         pagenum = 1
       }
@@ -141,8 +186,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             queryParams.pagesize = ownProps.pageSize;
             queryParams.pagenum = pagenum;
         }
-      console.log("query params", queryParams)
-      let payload = {queryParams};
+      let postArgs = Object.assign({}, ownProps.viewParams, filter);
+      let payload = {queryParams, postArgs};
       let meta = {serviceName: ownProps.viewService, reducer: ownProps.reducer};
       dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));
     }

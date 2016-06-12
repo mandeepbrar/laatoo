@@ -12,10 +12,14 @@ class WebTableView extends React.Component {
     this.getView = this.getView.bind(this);
     this.getItem = this.getItem.bind(this);
     this.getHeader = this.getHeader.bind(this);
-    this.selectedItems = this.selectedItems.bind(this);
+    this.methods = this.methods.bind(this);
+    this.addMethod = this.addMethod.bind(this);
   }
-  selectedItems() {
-    return this.refs.view.selectedItems()
+  methods() {
+    return this.refs.view.methods()
+  }
+  addMethod(name, method) {
+    this.refs.view.addMethod(name, method)
   }
   getView(view, header, groups) {
     return (
@@ -64,7 +68,7 @@ class WebTableView extends React.Component {
           <Action name={"Edit "+this.props.name} params={{ id: encodedid }}>{id}</Action>
         </td>
         <td>
-          <Action name={"Delete "+this.props.name} method={this.props.deleteItem} params={{ id: encodedid }}>delete</Action>
+          <Action name={"Delete "+this.props.name} method={view.methods.deleteItem} params={{ id: encodedid }}>delete</Action>
         </td>
       </tr>
     )
@@ -78,11 +82,17 @@ class WebTableView extends React.Component {
         paginate = {this.props.paginate}
         pageSize = {this.props.pageSize}
         viewService = {this.props.viewService}
+        viewParams = {this.props.viewParams}
         currentPage = {this.props.currentPage}
+        filterTitle= {this.props.filterTitle}
+        filterForm={this.props.filterForm}
+        filterGo={ this.props.filterGo}
+        getFilter={this.props.getFilter}
         getView =  {this.getView}
         getItem = {this.getItem}
         getItemGroup = {this.getItemGroup}
         getHeader = {this.getHeader}
+        className={this.props.className}
       >
       </WebView>
     )

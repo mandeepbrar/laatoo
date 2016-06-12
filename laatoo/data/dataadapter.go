@@ -299,14 +299,43 @@ func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 }
 
 func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
-	idsstr, ok := ctx.GetString(CONF_DATA_IDS)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_IDS)
-	}
-	ids := strings.Split(idsstr, ",")
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
-	err := es.DataStore.UpdateMulti(ctx, ids, vals)
+	ids, ok := vals["ids"]
+	if !ok {
+		log.Logger.Error(ctx, "Missing argument", "Name", "ids")
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
+	}
+	log.Logger.Info(ctx, "Value of ids", "IDs", ids, "Type", reflect.TypeOf(ids))
+	idsArr, ok := ids.([]interface{})
+	if !ok {
+		log.Logger.Error(ctx, "Bad argument", "Name", "ids")
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
+	}
+	stringIds := make([]string, len(idsArr))
+	for i, val := range idsArr {
+		stringIds[i], ok = val.(string)
+		if !ok {
+			log.Logger.Error(ctx, "Bad argument")
+			ctx.SetResponse(core.StatusBadRequestResponse)
+			return nil
+		}
+	}
+	data, ok := vals["data"]
+	if !ok {
+		log.Logger.Error(ctx, "Missing argument", "Name", "data")
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
+	}
+	updatesMap, ok := data.(map[string]interface{})
+	if !ok {
+		log.Logger.Error(ctx, "Bad argument", "Name", "data")
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
+	}
+	err := es.DataStore.UpdateMulti(ctx, stringIds, updatesMap)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
 	}

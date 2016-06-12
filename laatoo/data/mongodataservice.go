@@ -1,12 +1,13 @@
 package data
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type mongoDataService struct {
@@ -335,9 +336,9 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 	}
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
-	err := connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+	_, err := connCopy.DB(ms.database).C(ms.collection).UpdateAll(condition, updateInterface)
 	if err != nil {
-		return err
+		return errors.WrapError(ctx, err)
 	}
 	if ms.notifyupdates {
 		for _, id := range ids {

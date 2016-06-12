@@ -36,7 +36,10 @@ class ActionComp extends React.Component {
         this.dispatchAction();
       return;
       case "method":
-        this.props.method(this.props.params);
+        let params = this.props.params
+        let method = this.props.method
+        console.log("method and params", method, params)
+        method(params);
       return;
       default:
       if(this.action.url) {

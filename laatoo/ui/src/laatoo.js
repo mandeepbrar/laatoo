@@ -17,6 +17,7 @@ import {TextEdit} from './components/form/textedit';
 import {ImageEdit} from './components/form/imageedit';
 import {WebTableView} from './components/view/WebTableView';
 import {ViewReducer} from './reducers/View';
+import {ViewFilter} from './components/view/Filter';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -59,6 +60,7 @@ module.exports = {
     VideoEdit: VideoEdit,
     TextEdit: TextEdit,
     ImageEdit: ImageEdit,
+    ViewFilter: ViewFilter,
     formatUrl: formatUrl,
     Sagas: Sagas
 };
