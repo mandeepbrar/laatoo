@@ -31,7 +31,11 @@ class EntityView extends React.Component {
         <div className="row ma20">
           <Action className="pull-right  m20" widget="button" key={"Create "+this.name} name={"Create "+this.name}>{"Create "+this.name}</Action>
         </div>
-        <WebTableView className="ma20" ref="view" filterTitle="Search" filterGo="Go" filterForm={this.props.filterForm} name={this.name} idField={this.props.idField} paginate={this.props.paginate} pageSize={this.props.pageSize} getHeader={this.props.getHeader} getItem={this.props.getItem} reducer={this.props.reducer} titleField={this.props.titleField} viewService={this.props.viewService} currentPage={this.props.currentPage}>
+        <WebTableView className="ma20" ref="view" name={this.name}
+          filterTitle="Search" filterGo="Go" filterForm={this.props.filterForm} defaultFilter={this.props.defaultFilter}
+          idField={this.props.idField} paginate={this.props.paginate} pageSize={this.props.pageSize} getHeader={this.props.getHeader}
+          getItem={this.props.getItem} reducer={this.props.reducer} titleField={this.props.titleField} viewService={this.props.viewService}
+          urlParams={this.props.urlParams} postArgs={this.props.postArgs} currentPage={this.props.currentPage}>
         </WebTableView>
       </div>
     )

@@ -82,7 +82,9 @@ class WebTableView extends React.Component {
         paginate = {this.props.paginate}
         pageSize = {this.props.pageSize}
         viewService = {this.props.viewService}
-        viewParams = {this.props.viewParams}
+        urlParams = {this.props.urlParams}
+        postArgs = {this.props.postArgs}
+        defaultFilter = {this.props.defaultFilter}
         currentPage = {this.props.currentPage}
         filterTitle= {this.props.filterTitle}
         filterForm={this.props.filterForm}

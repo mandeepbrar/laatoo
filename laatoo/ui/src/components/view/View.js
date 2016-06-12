@@ -27,21 +27,24 @@ class ViewDisplay extends React.Component {
     this.addMethod = this.addMethod.bind(this);
     this.numItems = 0
   }
+  componentWillMount() {
+    this.filter = this.props.defaultFilter
+  }
   componentDidMount() {
     if(this.props.load) {
-      this.props.loadView(this.props.currentPage);
+      this.props.loadView(this.props.currentPage, this.filter);
     }
   }
   componentWillReceiveProps(nextprops) {
     if(nextprops.load) {
-      nextprops.loadView(nextprops.currentPage);
+      nextprops.loadView(nextprops.currentPage, this.filter);
     }
   }
   addMethod(name, method) {
     this.methods[name] = method
   }
   reload() {
-    this.props.loadView(this.props.currentPage);
+    this.props.loadView(this.props.currentPage, this.filter);
   }
   viewrefs() {
     return this.refs
@@ -70,11 +73,11 @@ class ViewDisplay extends React.Component {
     return items
   }
   setPage(newPage) {
-    this.props.loadView(newPage)
+    this.props.loadView(newPage, this.filter)
   }
   setFilter(filter) {
-    console.log("filter", filter)
-    this.props.loadView(1, filter)
+    this.filter = filter
+    this.props.loadView(1, this.filter)
   }
   getView(header, groups, pagination, filter) {
     if(this.props.getView) {
@@ -130,9 +133,9 @@ class ViewDisplay extends React.Component {
       }
     }
     let header = this.getHeader()
-    let filter = this.getFilter(this.props.filterTitle, this.props.filterForm, this.props.filterGo)
+    let filterCtrl = this.getFilter(this.props.filterTitle, this.props.filterForm, this.props.filterGo, this.filter)
     let pagination = this.getPagination()
-    let view = this.getView(header, groups, pagination, filter)
+    let view = this.getView(header, groups, pagination, filterCtrl)
     return view
   }
 }
@@ -142,6 +145,9 @@ const mapStateToProps = (state, ownProps) => {
     reducer: ownProps.reducer,
     paginate: ownProps.paginate,
     pageSize: ownProps.pageSize,
+    defaultFilter: ownProps.defaultFilter,
+    urlParams: ownProps.urlParams,
+    postArgs: ownProps.postArgs,
     filterTitle: ownProps.filterTitle,
     filterForm: ownProps.filterForm,
     filterGo: ownProps.filterGo,
@@ -186,7 +192,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             queryParams.pagesize = ownProps.pageSize;
             queryParams.pagenum = pagenum;
         }
-      let postArgs = Object.assign({}, ownProps.viewParams, filter);
+      let postArgs = Object.assign({}, ownProps.postArgs, filter);
       let payload = {queryParams, postArgs};
       let meta = {serviceName: ownProps.viewService, reducer: ownProps.reducer};
       dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));

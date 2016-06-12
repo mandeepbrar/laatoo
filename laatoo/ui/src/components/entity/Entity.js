@@ -33,9 +33,14 @@ class Entity {
       let row = this.entityProperties.viewRow;
       let currentPage = 1;
       let viewService = this.entityProperties.viewService;
+      let urlParams = this.entityProperties.urlParams;
+      let viewArgs = this.entityProperties.viewArgs;
       let filterForm = this.entityProperties.filterForm;
+      let defaultFilter = this.entityProperties.defaultFilter;
       return () => (
-          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate} pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} titleField={titleField} viewService={viewService} currentPage={currentPage}>
+          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate}
+            pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
+            titleField={titleField} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
           </EntityView>
         )
     }

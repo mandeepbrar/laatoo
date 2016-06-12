@@ -37,7 +37,7 @@ class ViewFilter extends React.Component {
           <Modal.Title>{this.props.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <t.form.Form ref="form" type={this.props.schema} value={this.props.formdata} options={this.props.schemaOptions}/>
+          <t.form.Form ref="form" type={this.props.schema} value={this.props.defaultFilter} options={this.props.schemaOptions}/>
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.close}>{this.props.goBtn}</Button>

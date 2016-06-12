@@ -23,9 +23,9 @@ class WebView extends React.Component {
   methods() {
     return this.refs.view.getWrappedInstance().methods
   }
-  getFilter(view, filterTitle, filterForm, filterGo) {
+  getFilter(view, filterTitle, filterForm, filterGo, filter) {
     if(this.props.getFilter) {
-      return this.props.getFilter(filterTitle, filterForm, filterGo)
+      return this.props.getFilter(filterTitle, filterForm, filterGo, filter)
     }
     if(!filterForm) {
       return null
@@ -37,7 +37,7 @@ class WebView extends React.Component {
       filterGo = "Go"
     }
     return (
-      <ViewFilter title={filterTitle} schema={filterForm} setFilter={view.methods.setFilter} goBtn={filterGo} >
+      <ViewFilter title={filterTitle} schema={filterForm} defaultFilter={filter} setFilter={view.methods.setFilter} goBtn={filterGo} >
         <div className="row m20">
           <i className="fa fa-search pull-right"></i>
         </div>
@@ -108,7 +108,9 @@ class WebView extends React.Component {
         paginate={this.props.paginate}
         pageSize={this.props.pageSize}
         viewService={this.props.viewService}
-        viewParams = {this.props.viewParams}
+        urlParams = {this.props.urlParams}
+        postArgs = {this.props.postArgs}
+        defaultFilter = {this.props.defaultFilter}
         currentPage={this.props.currentPage}
         filterTitle= {this.props.filterTitle}
         filterForm={this.props.filterForm}
