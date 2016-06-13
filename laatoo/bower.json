@@ -1,0 +1,16 @@
+{
+  "name": "laatoo",
+  "authors": [
+    "Mandeep <mandeep@virsainfomedia.com>"
+  ],
+  "description": "Laatoo",
+  "main": "ui/dist/assets/index.js",
+  "license": "Private",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "*",
+    "!ui/dist/assets"
+  ]
+}
