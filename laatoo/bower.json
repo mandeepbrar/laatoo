@@ -6,6 +6,8 @@
   "description": "Laatoo",
   "main": "ui/dist/assets/index.js",
   "license": "Private",
+  "dependencies": {
+  },
   "homepage": "",
   "private": true,
   "ignore": [
