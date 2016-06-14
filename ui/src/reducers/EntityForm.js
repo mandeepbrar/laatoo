@@ -80,6 +80,28 @@ function EntityFormReducer(reducerName) {
           });
         }
 
+        case ActionNames.ENTITY_PUTTING: {
+          return Object.assign({}, initialState, {
+            status:"Updating",
+            entityName: action.payload.entityName,
+            entityId: action.payload.entityId,
+            data: action.payload.data
+          });
+        }
+
+        case ActionNames.ENTITY_PUT_SUCCESS: {
+          return Object.assign({}, initialState, {
+            status:"Updated"
+          });
+        }
+
+        case ActionNames.ENTITY_PUT_FAILURE: {
+          return Object.assign({}, initialState, {
+            status:"UpdateFailed",
+            data: action.payload
+          });
+        }
+
 
         default:
           if (!state) {

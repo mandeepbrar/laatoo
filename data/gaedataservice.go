@@ -1,14 +1,15 @@
 package data
 
 import (
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"reflect"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 type gaeDataService struct {
@@ -270,6 +271,7 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
+	stor := object.(data.Storable)
 	entVal := reflect.ValueOf(object).Elem()
 	for k, v := range newVals {
 		f := entVal.FieldByName(k)
@@ -282,9 +284,25 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 			}
 		}
 	}
-	key, err = datastore.Put(appEngineContext, key, object)
+	if svc.presave {
+		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, stor)
+		if err != nil {
+			return err
+		}
+		err = stor.PreSave(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = datastore.Put(appEngineContext, key, object)
 	if err != nil {
 		return err
+	}
+	if svc.postsave {
+		err = stor.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
 	}
 	invalidateCache(ctx, svc.object, id)
 	if svc.notifyupdates {
@@ -329,12 +347,30 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 				}
 			}
 		}
+		if svc.presave {
+			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			if err != nil {
+				return nil, err
+			}
+			err = item.PreSave(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	_, err = datastore.PutMulti(appEngineContext, keys, results)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 
+	if svc.postsave {
+		for _, stor := range resultStor {
+			err = stor.PostSave(ctx)
+			if err != nil {
+				errors.WrapError(ctx, err)
+			}
+		}
+	}
 	if svc.notifyupdates {
 		for _, id := range ids {
 			notifyUpdate(ctx, svc.object, id)
@@ -380,10 +416,28 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 				}
 			}
 		}
+		if svc.presave {
+			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			if err != nil {
+				return err
+			}
+			err = item.PreSave(ctx)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	_, err = datastore.PutMulti(appEngineContext, keys, results)
 	if err != nil {
 		return err
+	}
+	if svc.postsave {
+		for _, stor := range resultStor {
+			err = stor.PostSave(ctx)
+			if err != nil {
+				errors.WrapError(ctx, err)
+			}
+		}
 	}
 	if svc.notifyupdates {
 		for _, id := range ids {

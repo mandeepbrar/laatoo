@@ -32,7 +32,7 @@ class UpdateForm extends React.Component {
       return null
     } else {
       return (
-        <h1>Create {this.props.name}</h1>
+        <h1>Update {this.props.name}</h1>
       )
     }
   }
@@ -40,7 +40,7 @@ class UpdateForm extends React.Component {
     return (
       <div>
         {this.title()}
-        <EntityForm name={this.props.name} entityData={this.props.data} id={this.props.id} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
+        <EntityForm name={this.props.name} usePut={this.props.usePut} entityData={this.props.data} id={this.props.id} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
         </EntityForm>
       </div>
     )
@@ -54,6 +54,7 @@ const mapStateToProps = (state, ownProps) => {
     schema: ownProps.schema,
     schemaOptions: ownProps.schemaOptions,
     reducer: ownProps.reducer,
+    usePut: ownProps.usePut,
     mountForm: ownProps.mountForm,
     preSave: ownProps.preSave,
     postSave: ownProps.postSave

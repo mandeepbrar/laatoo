@@ -36,6 +36,16 @@ function* saveEntityData(action) {
   }
 }
 
+function* putEntityData(action) {
+  try {
+    yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {reducer: action.meta.reducer}));
+    const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
+    yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, {}, {reducer: action.meta.reducer}));
+  } catch (e) {
+    yield put(createAction(ActionNames.ENTITY_PUT_FAILURE, e, {reducer: action.meta.reducer}));
+  }
+}
+
 function* updateEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {reducer: action.meta.reducer}));
@@ -46,11 +56,13 @@ function* updateEntityData(action) {
   }
 }
 
+
 function* entitySaga() {
   yield [
     takeEvery(ActionNames.ENTITY_GET, getEntityData),
     takeEvery(ActionNames.ENTITY_SAVE, saveEntityData),
     takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData),
+    takeEvery(ActionNames.ENTITY_PUT, putEntityData),
     takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
   ]
 }

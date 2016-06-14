@@ -62,9 +62,10 @@ class Entity {
       let mountForm = this.entityProperties.mountForm;
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
+      let usePut = this.entityProperties.usePut;
       let schemaOptions = this.entityProperties.schemaOptions;
       return (props) => (
-          <UpdateEntity name={this.name} id={props.params.id} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
+          <UpdateEntity name={this.name} id={props.params.id} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
         )
     }
     DisplayComponent() {

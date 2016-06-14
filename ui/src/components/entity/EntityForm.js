@@ -26,7 +26,11 @@ class TCombWebForm extends React.Component {
     if(!this.props.id || this.props.id==="") {
       this.props.save(data);
     } else {
-      this.props.update(data);
+      if(this.props.usePut) {
+        this.props.put(data);
+      } else {
+        this.props.update(data);
+      }
     }
   }
 
@@ -53,6 +57,7 @@ const mapStateToProps = (state, ownProps) => {
     entityData: ownProps.entityData,
     schema: ownProps.schema,
     preSave: ownProps.preSave,
+    usePut: ownProps.usePut,
     schemaOptions: ownProps.schemaOptions
   }
 }
@@ -61,6 +66,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     save: (data) => {
       dispatch(createAction(ActionNames.ENTITY_SAVE, {data:data, entityName: ownProps.name}, {reducer: ownProps.reducer}));
+    },
+    put: (data) => {
+      dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer}));
     },
     update: (data) => {
       dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer}));
