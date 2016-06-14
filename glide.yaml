@@ -1,0 +1,50 @@
+package: laatoo
+version: "1.2"
+import:
+- package: github.com/dgrijalva/jwt-go
+- package: github.com/fatih/color
+- package: github.com/garyburd/redigo
+  subpackages:
+  - redis
+- package: github.com/gin-gonic/gin
+- package: github.com/labstack/echo
+  subpackages:
+  - engine/standard
+  - middleware
+- package: github.com/pmylund/go-cache
+- package: github.com/prep/beanstalk
+- package: github.com/rs/cors
+- package: github.com/tdewolff/minify
+  subpackages:
+  - html
+- package: github.com/twinj/uuid
+- package: goji.io
+  subpackages:
+  - pat
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: golang.org/x/image
+  subpackages:
+  - bmp
+  - tiff
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: golang.org/x/oauth2
+  subpackages:
+  - facebook
+  - google
+- package: google.golang.org/appengine
+  subpackages:
+  - datastore
+  - log
+  - memcache
+  - taskqueue
+  - urlfetch
+- package: google.golang.org/cloud
+  subpackages:
+  - storage
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
