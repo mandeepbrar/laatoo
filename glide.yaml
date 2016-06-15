@@ -21,30 +21,8 @@ import:
 - package: goji.io
   subpackages:
   - pat
-- package: golang.org/x/crypto
-  subpackages:
-  - bcrypt
-- package: golang.org/x/image
-  subpackages:
-  - bmp
-  - tiff
-- package: golang.org/x/net
-  subpackages:
-  - context
-- package: golang.org/x/oauth2
-  subpackages:
-  - facebook
-  - google
-- package: google.golang.org/appengine
-  subpackages:
-  - datastore
-  - log
-  - memcache
-  - taskqueue
-  - urlfetch
-- package: google.golang.org/cloud
-  subpackages:
-  - storage
 - package: gopkg.in/mgo.v2
   subpackages:
   - bson
+- package: github.com/rs/xhandler
+
