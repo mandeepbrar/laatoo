@@ -13,6 +13,14 @@
   "ignore": [
     "**/.*",
     "*",
+    "cache",
+    "core",
+    "data",
+    "libraries",
+    "sdk",
+    "security",
+    "static",
+    "storage",
     "!ui/dist/assets"
   ]
 }
