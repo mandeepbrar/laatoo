@@ -13,6 +13,15 @@ class LoginWeb extends React.Component {
     this.handleLogin = this.handleLogin.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.facebook = this.facebook.bind(this);
+    window.addEventListener("message", function(ev) {
+      props.handleOauthLogin(ev.data)
+    });
+    this.openFBauthWindow = function() {
+      let instance = window.open(props.facebookAuthUrl, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
+    }
+    this.openGoogleauthWindow = function() {
+      let instance = window.open(props.googleAuthUrl, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
+    }
   }
   handleChange(e) {
       var nextState = {};
@@ -33,16 +42,17 @@ class LoginWeb extends React.Component {
       if(this.props.facebook && this.props.facebook === 'true') {
           return(
             <div className="col-xs-6 col-sm-6 col-md-6">
-              <a href={"javascript:window.open('"+ this.props.facebookAuthUrl +"', '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')"} className="btn btn-lg btn-info btn-block">Facebook</a>
+              <a onClick={this.openFBauthWindow} className="btn btn-lg btn-info btn-block">Facebook</a>
             </div>
           )
       }
   }
   google() {
+      let comp = this;
       if(this.props.google && this.props.google === 'true') {
           return(
             <div className="col-xs-6 col-sm-6 col-md-6">
-              <a href={"javascript:window.open('"+ this.props.googleAuthUrl +"', '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')"} className="btn btn-lg btn-info btn-block">Google</a>
+              <a onClick={this.openGoogleauthWindow} className="btn btn-lg btn-info btn-block">Google</a>
             </div>
           )
       }
@@ -102,6 +112,7 @@ LoginWeb.displayName = 'LoginComponent';
 
 // Uncomment properties you need
 LoginWeb.propTypes = {
+  handleOauthLogin: React.PropTypes.func.isRequired,
   handleLogin: React.PropTypes.func.isRequired,
   facebook:  React.PropTypes.string,
   facebookAuthUrl: React.PropTypes.string,

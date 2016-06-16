@@ -23,6 +23,9 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       let loginPayload = {"Id": email, "Password": md5(password)};
       let loginMeta = {serviceName: ownProps.loginService};
       dispatch(createAction(ActionNames.LOGIN, loginPayload, loginMeta));
+    },
+    handleOauthLogin: (data) => {
+      dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: data.id, token: data.token, permissions: data.permissions}));
     }
   }
 }

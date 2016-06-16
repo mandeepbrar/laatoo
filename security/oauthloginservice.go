@@ -199,7 +199,7 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
 		log.Logger.Info(ctx, "Empty callback url", "permissions", permissions)
 		permissionsArr, _ := json.Marshal(permissions)
-		script := []byte(fmt.Sprintf("<html><body onload='var data = {token:\"%s\", id:\"%s\", permissions:%s};window.opener.login(data); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
+		script := []byte(fmt.Sprintf("<html><body onload='var data = {token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
 		log.Logger.Info(ctx, "Empty callback url", "script", script)
 		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
 		ctx.SetResponse(resp)

@@ -28,12 +28,6 @@ function createStore(reducers, initialState, middleware, sagas, enhancers) {
   // mount it on the Store
   const store = redux.createStore( redux.combineReducers(reducers), initialState, enhancers);
 
-  window.login = function(data) {
-    console.log(data);
-    store.dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: data.id, token: data.token, permissions: data.permissions}));
-  }
-
-
   // then run the saga
   runSagas(sagaMiddleware, sagas);
   return store;
