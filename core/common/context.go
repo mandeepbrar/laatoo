@@ -11,11 +11,12 @@ import (
 )
 
 type Context struct {
-	gaeReq      *http.Request
-	Id          string
-	Name        string
-	ParamsStore map[string]interface{}
-	Parent      *Context
+	gaeReq       *http.Request
+	appengineCtx glctx.Context
+	Id           string
+	Name         string
+	ParamsStore  map[string]interface{}
+	Parent       *Context
 }
 
 func NewContext(name string) *Context {
@@ -39,9 +40,11 @@ func (ctx *Context) SetName(name string) {
 }
 func (ctx *Context) SetGaeReq(req *http.Request) {
 	ctx.gaeReq = req
+	ctx.appengineCtx = GetAppengineContext(ctx)
 }
+
 func (ctx *Context) SubCtx(name string) core.Context {
-	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, gaeReq: ctx.gaeReq}
+	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
 func (ctx *Context) NewCtx(name string) core.Context {
@@ -49,7 +52,7 @@ func (ctx *Context) NewCtx(name string) core.Context {
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), gaeReq: ctx.gaeReq}
+	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
 func (ctx *Context) Get(key string) (interface{}, bool) {
@@ -113,10 +116,7 @@ func (ctx *Context) Set(key string, val interface{}) {
 	ctx.ParamsStore[key] = val
 }
 func (ctx *Context) GetAppengineContext() glctx.Context {
-	if ctx.gaeReq != nil {
-		return GetAppengineContext(ctx)
-	}
-	return nil
+	return ctx.appengineCtx
 }
 func (ctx *Context) GetCloudContext(scope string) glctx.Context {
 	if ctx.gaeReq != nil {

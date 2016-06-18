@@ -204,6 +204,7 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 			log.Logger.Debug(ctx, "Initializing service", "service name", svcname)
 			svcInitializeCtx := ctx.NewContextWithElements("Initialize"+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 			svc := svcStruct.service
+			log.Logger.Trace(ctx, "Initializing service", "conf", svcStruct.conf)
 			err := svc.Initialize(svcInitializeCtx, svcStruct.conf)
 			if err != nil {
 				return errors.WrapError(svcInitializeCtx, err)

@@ -120,12 +120,12 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	query := datastore.NewQuery(svc.collection)
 	query, err = svc.processCondition(ctx, appEngineContext, query, queryCond)
 	if err != nil {
-		return nil, totalrecs, recsreturned, err
+		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
 	if pageSize > 0 {
 		totalrecs, err = query.Limit(500).Count(appEngineContext)
 		if err != nil {
-			return nil, totalrecs, recsreturned, err
+			return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 		}
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)

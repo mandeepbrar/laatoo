@@ -1,5 +1,3 @@
-// +build appengine
-
 package storage
 
 import (
@@ -17,7 +15,7 @@ type GoogleStorageServiceFactory struct {
 }
 
 func init() {
-	objects.RegisterObject(CONF_GOOGLESTORAGE_FACTORY, createFileServiceFactory, nil)
+	objects.RegisterObject(CONF_GOOGLESTORAGE_FACTORY, createGoogleStorageServiceFactory, nil)
 }
 
 func createGoogleStorageServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
@@ -31,7 +29,7 @@ func (gs *GoogleStorageServiceFactory) Initialize(ctx core.ServerContext, conf c
 
 //Create the services configured for factory.
 func (gs *GoogleStorageServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
-	log.Logger.Trace(ctx, "Creating service for file system factory", "name", name, "method", method)
+	log.Logger.Trace(ctx, "Creating service for google storage factory", "name", name, "method", method)
 	return &GoogleStorageSvc{}, nil
 	/*
 		switch method {

@@ -72,6 +72,11 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 	return os.Open(fullpath)
 }
 
+func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) error {
+	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil))
+	return nil
+}
+
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
 	log.Logger.Error(ctx, "Full Path:***********", "path", svc.filesDir+fileName)
 	return svc.filesDir + fileName

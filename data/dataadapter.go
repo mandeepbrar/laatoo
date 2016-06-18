@@ -225,6 +225,7 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 }
 
 func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
+	log.Logger.Trace(ctx, "Selecting")
 	retdata, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)

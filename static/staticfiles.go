@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -65,19 +66,20 @@ func (svc *staticFiles) Initialize(ctx core.ServerContext, conf config.Config) e
 
 func (svc *staticFiles) Invoke(ctx core.RequestContext) error {
 	filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
+	filename = strings.TrimLeft(filename, "/")
 	if ok {
 		if !svc.transformFile {
-			ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.storage.GetFullPath(ctx, filename), nil))
+			return svc.storage.ServeFile(ctx, filename)
 		} else {
 			if svc.transformedFilesStorage.Exists(ctx, filename) {
-				ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.transformedFilesStorage.GetFullPath(ctx, filename), nil))
+				return svc.transformedFilesStorage.ServeFile(ctx, filename)
 			} else {
 				created := svc.createFile(ctx, filename)
 				if created {
-					ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.transformedFilesStorage.GetFullPath(ctx, filename), nil))
+					return svc.transformedFilesStorage.ServeFile(ctx, filename)
 				} else {
 					if svc.hasDefault {
-						ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.transformedFilesStorage.GetFullPath(ctx, svc.defaultImage), nil))
+						return svc.transformedFilesStorage.ServeFile(ctx, svc.defaultImage)
 					} else {
 						ctx.SetResponse(core.StatusNotFoundResponse)
 					}
@@ -177,6 +179,7 @@ func getFormat(format string) imaging.Format {
 }
 
 func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) bool {
+	log.Logger.Trace(ctx, "Opening file", "filename", filename)
 	inStr, err := svc.storage.Open(ctx, filename)
 	defer inStr.Close()
 	if err != nil {

@@ -1,15 +1,18 @@
-// +build appengine
-
 package storage
 
 import (
-	"github.com/twinj/uuid"
-	"google.golang.org/cloud/storage"
+	"fmt"
 	"io"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"os"
+	"laatoo/sdk/log"
+	//	"os"
+	//"golang.org/x/oauth2"
+	//"golang.org/x/oauth2/google"
+
+	"github.com/twinj/uuid"
+	"google.golang.org/cloud/storage"
 	//"net/http"
 	//"strings"
 )
@@ -37,10 +40,13 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	urls := make([]string, len(files))
 	i := 0
 	for _, inpStr := range files {
+		defer inpStr.Close()
 		fileName := uuid.NewV4().String()
+		log.Logger.Debug(ctx, "writing file", "name", fileName)
 		url, err := svc.SaveFile(ctx, inpStr, fileName)
 		if err != nil {
-			return err
+			log.Logger.Debug(ctx, "Error while invoking upload", "err", err)
+			return errors.WrapError(ctx, err)
 		}
 		urls[i] = url
 		i++
@@ -49,10 +55,13 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error) {
+	log.Logger.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+
 	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
 	client, err := storage.NewClient(cloudCtx)
 	if err != nil {
-		return nil, err
+		log.Logger.Debug(ctx, "Error while creating file", "err", err)
+		return nil, errors.WrapError(ctx, err)
 	}
 
 	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(cloudCtx)
@@ -61,9 +70,16 @@ func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string
 }
 
 func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bool {
-	fullpath := svc.GetFullPath(ctx, fileName)
-	_, err := os.Stat(fullpath)
-	if err == nil || os.IsExist(err) {
+	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
+	client, err := storage.NewClient(cloudCtx)
+	if err != nil {
+		log.Logger.Debug(ctx, "Error while creating file", "err", err)
+		return false
+	}
+	defer client.Close()
+
+	_, err = client.Bucket(svc.bucket).Object(fileName).Attrs(cloudCtx)
+	if err == nil {
 		return true
 	}
 	return false
@@ -72,27 +88,40 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
 	client, err := storage.NewClient(cloudCtx)
 	if err != nil {
-		return nil, err
+		log.Logger.Debug(ctx, "Error while opening", "err", err)
+		return nil, errors.WrapError(ctx, err)
 	}
 	return client.Bucket(svc.bucket).Object(fileName).NewReader(cloudCtx)
 }
 
+func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
+	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
+	return nil
+}
+
 func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
-	return svc.bucket + fileName
+	return fmt.Sprintf("https://storage.cloud.google.com/%s/%s", svc.bucket, fileName)
 }
 
 func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error) {
+	log.Logger.Debug(ctx, "Saving file", "name", fileName)
 	// Destination file
 	dst, err := svc.CreateFile(ctx, fileName)
 	if err != nil {
-		return "", err
+		log.Logger.Debug(ctx, "Error while opening", "err", err)
+		return "", errors.WrapError(ctx, err)
 	}
 	defer dst.Close()
 
-	if _, err = io.Copy(dst, inpStr); err != nil {
-		return "", err
+	numbytes, err := io.Copy(dst, inpStr)
+
+	if err != nil {
+		log.Logger.Debug(ctx, "Error while saving", "err", err)
+		return "", errors.WrapError(ctx, err)
 	}
+	dst.Close()
 	inpStr.Close()
+	log.Logger.Debug(ctx, "Copying complete", "Filename", fileName, "bucket", svc.bucket, "bytes", numbytes)
 	return fileName, nil
 }
 

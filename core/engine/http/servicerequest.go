@@ -150,7 +150,7 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 	}
 	err = svc.Invoke(reqctx)
 	if err != nil {
-		return err
+		return errors.WrapError(reqctx, err)
 	}
 	log.Logger.Trace(webctx, "Completed request for service. Handling Response")
 	return respHandler.HandleResponse(reqctx)
