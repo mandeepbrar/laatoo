@@ -11,8 +11,19 @@ class TCombWebForm extends React.Component {
   constructor(props) {
     super(props);
     this.submitForm = this.submitForm.bind(this);
+    this.setValue = this.setValue.bind(this);
+    console.log("mounting")
+    if(this.props.refCallback) {
+      this.props.refCallback(this)
+    }
+    this.state = {formValue: props.entityData}
   }
-
+  setValue(val) {
+    this.setState({formValue: val})
+  }
+  componentWillReceiveProps(nextprops) {
+    this.setState({formValue: nextprops.entityData})
+  }
   submitForm(evt) {
     evt.preventDefault();
     let data = this.refs.form.getValue()
@@ -35,13 +46,9 @@ class TCombWebForm extends React.Component {
   }
 
   render() {
-    let formdata = {};
-    if(this.props.entityData) {
-      formdata = this.props.entityData;
-    }
     return (
       <form onSubmit={this.submitForm}>
-        <t.form.Form ref="form" type={this.props.schema} value={formdata} options={this.props.schemaOptions}/>
+        <t.form.Form ref="form" type={this.props.schema} value={this.state.formValue} options={this.props.schemaOptions}/>
         <div className="form-group m20 pull-right">
           <button type="submit" className="btn btn-primary">Save</button>
         </div>
@@ -55,6 +62,7 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     name: ownProps.name,
     entityData: ownProps.entityData,
+    refCallback: ownProps.refCallback,
     schema: ownProps.schema,
     preSave: ownProps.preSave,
     usePut: ownProps.usePut,

@@ -50,9 +50,10 @@ class Entity {
       let mountForm = this.entityProperties.mountForm;
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
+      let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
       return () => (
-          <CreateEntity name={this.name} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
+          <CreateEntity name={this.name} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
         )
 
     }
@@ -63,9 +64,10 @@ class Entity {
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
       let usePut = this.entityProperties.usePut;
+      let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
       return (props) => (
-          <UpdateEntity name={this.name} id={props.params.id} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
+          <UpdateEntity name={this.name} id={props.params.id} refCallback={refCallback} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
         )
     }
     DisplayComponent() {

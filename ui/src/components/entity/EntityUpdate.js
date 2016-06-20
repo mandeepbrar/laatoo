@@ -40,7 +40,7 @@ class UpdateForm extends React.Component {
     return (
       <div>
         {this.title()}
-        <EntityForm name={this.props.name} usePut={this.props.usePut} entityData={this.props.data} id={this.props.id} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
+        <EntityForm name={this.props.name} refCallback={this.props.refCallback} usePut={this.props.usePut} entityData={this.props.data} id={this.props.id} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
         </EntityForm>
       </div>
     )
@@ -53,6 +53,7 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     schema: ownProps.schema,
     schemaOptions: ownProps.schemaOptions,
+    refCallback: ownProps.refCallback,
     reducer: ownProps.reducer,
     usePut: ownProps.usePut,
     mountForm: ownProps.mountForm,
