@@ -12,17 +12,23 @@ class TCombWebForm extends React.Component {
     super(props);
     this.submitForm = this.submitForm.bind(this);
     this.setValue = this.setValue.bind(this);
-    console.log("mounting")
+    this.getValue = this.getValue.bind(this);
+    this.state = {formValue: props.entityData}
     if(this.props.refCallback) {
       this.props.refCallback(this)
     }
-    this.state = {formValue: props.entityData}
   }
   setValue(val) {
-    this.setState({formValue: val})
+    this.setState(Object.assign(this.state,{formValue: val}))
+  }
+  getValue() {
+    return this.refs.form.getValue()
   }
   componentWillReceiveProps(nextprops) {
-    this.setState({formValue: nextprops.entityData})
+    this.setState(Object.assign(this.state, {formValue: nextprops.entityData}))
+    if(this.props.refCallback) {
+      this.props.refCallback(this)
+    }
   }
   submitForm(evt) {
     evt.preventDefault();
@@ -46,9 +52,10 @@ class TCombWebForm extends React.Component {
   }
 
   render() {
+    let state = this.state
     return (
       <form onSubmit={this.submitForm}>
-        <t.form.Form ref="form" type={this.props.schema} value={this.state.formValue} options={this.props.schemaOptions}/>
+        <t.form.Form ref="form" type={this.props.schema} value={state.formValue} options={this.props.schemaOptions}/>
         <div className="form-group m20 pull-right">
           <button type="submit" className="btn btn-primary">Save</button>
         </div>
