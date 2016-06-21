@@ -2,7 +2,7 @@ import t from 'tcomb-form';
 import React from 'react';
 import Dropzone from 'react-dropzone';
 import Tab from 'react-bootstrap/lib/Tab'
-import Image from 'react-bootstrap/lib/Image'
+import {Image} from '../main/Image'
 import Tabs from 'react-bootstrap/lib/Tabs'
 import {  Response,  DataSource,  RequestBuilder } from '../../sources/DataSource';
 
@@ -30,9 +30,6 @@ class ImageChooser extends React.Component {
       prom.then(
         function (res) {
           let img = res.data[0];
-          if(comp.props.prefix) {
-            img = comp.props.prefix + img
-          }
           console.log(img);
           comp.props.onChange(img)
         },
@@ -55,7 +52,7 @@ class ImageChooser extends React.Component {
       return (
         <div class="container" style={{height:"300px"}} className="m20">
           <p><strong>URL: </strong>{this.props.value}</p>
-          <Image src={this.props.value} thumbnail style={{width: 'auto', height: 220}} />
+          <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix}style={{width: 'auto', height: 220}} />
           <button className="btn" role="button" onClick={this.clear}>Clear</button>
         </div>
       )
