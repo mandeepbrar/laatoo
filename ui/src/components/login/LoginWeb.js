@@ -13,14 +13,26 @@ class LoginWeb extends React.Component {
     this.handleLogin = this.handleLogin.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.facebook = this.facebook.bind(this);
+    let loginSite = "";
+    let getLocation = function(href) {
+        var l = document.createElement("a");
+        l.href = href;
+        return l;
+    };
     window.addEventListener("message", function(ev) {
-      props.handleOauthLogin(ev.data)
+      if(ev.origin === loginSite && ev.data.message=="LoginSuccess") {
+        props.handleOauthLogin(ev.data)
+      }
     });
     this.openFBauthWindow = function() {
       let instance = window.open(props.facebookAuthUrl, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
+      var location = getLocation(props.facebookAuthUrl);
+      loginSite = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
     }
     this.openGoogleauthWindow = function() {
       let instance = window.open(props.googleAuthUrl, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
+      var location = getLocation(props.googleAuthUrl);
+      loginSite = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
     }
   }
   handleChange(e) {

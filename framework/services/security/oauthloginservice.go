@@ -125,31 +125,43 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 	log.Logger.Info(ctx, "callback received")
 	receivedState, ok := ctx.GetString("state")
 	if !ok {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return os.unauthorized(ctx, nil, "")
 	}
-	log.Logger.Info(ctx, "received state", "receivedState", receivedState)
+	log.Logger.Trace(ctx, "received state", "receivedState", receivedState)
 	decodedState, err := base64.StdEncoding.DecodeString(receivedState)
 	st := new(stateInfo)
 	err = json.Unmarshal(decodedState, st)
 	if err != nil {
-		errors.WrapError(ctx, err)
-		return nil
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), "")
 	}
 	code, ok := ctx.GetString("code")
 	if !ok {
 		log.Logger.Error(ctx, "No code found on oauth return")
-		return nil
+		return os.unauthorized(ctx, nil, st.url)
 	}
 	log.Logger.Info(ctx, "received code", "code", code)
 	return os.authenticate(ctx, code, st)
+}
+
+func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, url string) error {
+	ctx.SetResponse(core.StatusUnauthorizedResponse)
+	if url == "" {
+		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginFailure\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>"))
+		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
+		ctx.SetResponse(resp)
+
+	} else {
+		resp := core.NewServiceResponse(core.StatusRedirect, url, map[string]interface{}{os.authHeader: "", "Error": err})
+		ctx.SetResponse(resp)
+	}
+	return nil
 }
 
 func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, st *stateInfo) error {
 	oauthCtx := ctx.GetOAuthContext()
 	token, err := os.config.Exchange(oauthCtx, code)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code, "token", token)
 
@@ -157,27 +169,25 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 
 	response, err := client.Get(os.profileURL)
 	if err != nil {
-		return err
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 	defer response.Body.Close()
 
 	bits, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return err
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 
 	//create the user
 	usr, _ := os.userCreator(ctx, nil)
 
 	if err := json.Unmarshal(bits, usr); err != nil {
-		errors.WrapError(ctx, err)
-		return nil
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 
 	oauthUsr, ok := usr.(auth.OAuthUser)
 	if !ok {
-		log.Logger.Error(ctx, "Wrong user type")
-		return nil
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 
 	usrId := fmt.Sprintf("%s_%s", os.sitetype, oauthUsr.GetEmail())
@@ -187,19 +197,17 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	//get the tested user from database
 	testedUser, err := os.userDataService.GetById(ctx, usrId)
 	if err != nil || testedUser == nil {
-		log.Logger.Info(ctx, "Tested user not found", "Err", err)
-		return nil
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 	tokenstr, _, err := os.tokenGenerator(testedUser.(auth.User))
 	if err != nil {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 	if st.url == "" {
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
 		log.Logger.Info(ctx, "Empty callback url", "permissions", permissions)
 		permissionsArr, _ := json.Marshal(permissions)
-		script := []byte(fmt.Sprintf("<html><body onload='var data = {token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
+		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
 		log.Logger.Info(ctx, "Empty callback url", "script", script)
 		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
 		ctx.SetResponse(resp)
