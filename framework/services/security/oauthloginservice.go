@@ -100,22 +100,18 @@ func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
-	returl, ok := ctx.GetString("callbackurl")
-	if !ok {
-		returl = ""
-	}
-	stateVal, ok := ctx.GetString("state")
-	if !ok {
-		stateVal = ""
-	}
-	st := stateInfo{url: returl, state: stateVal}
+	returl, _ := ctx.GetString("callbackurl")
+	stateVal, _ := ctx.GetString("state")
+	realm, _ := ctx.GetString(CONF_SECURITY_REALM)
+
+	st := stateInfo{url: returl, state: stateVal, realm: realm}
 	state, err := json.Marshal(st)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	encodedState := base64.StdEncoding.EncodeToString(state)
 	url := os.config.AuthCodeURL(encodedState)
-	log.Logger.Info(ctx, "redirecting to url", "url", url)
+	log.Logger.Trace(ctx, "redirecting to url", "url", url)
 	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, url, nil))
 	return nil
 }
@@ -139,11 +135,12 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 		log.Logger.Error(ctx, "No code found on oauth return")
 		return os.unauthorized(ctx, nil, st.url)
 	}
-	log.Logger.Info(ctx, "received code", "code", code)
+	log.Logger.Trace(ctx, "received code", "code", code)
 	return os.authenticate(ctx, code, st)
 }
 
 func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, url string) error {
+	log.Logger.Trace(ctx, "unauthorized")
 	ctx.SetResponse(core.StatusUnauthorizedResponse)
 	if url == "" {
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginFailure\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>"))
@@ -192,23 +189,29 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 
 	usrId := fmt.Sprintf("%s_%s", os.sitetype, oauthUsr.GetEmail())
 
-	log.Logger.Debug(ctx, "OAuthProvider: Authorizing user", "usr", usr)
+	argsMap := map[string]interface{}{oauthUsr.GetUsernameField(): usrId, "Realm": st.realm}
 
-	//get the tested user from database
-	testedUser, err := os.userDataService.GetById(ctx, usrId)
-	if err != nil || testedUser == nil {
+	cond, err := os.userDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	if err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
-	tokenstr, _, err := os.tokenGenerator(testedUser.(auth.User))
+
+	usrs, _, recs, err := os.userDataService.Get(ctx, cond, -1, -1, "", "")
+	if err != nil || recs <= 0 {
+		return os.unauthorized(ctx, err, st.url)
+	}
+
+	//get the tested user from database
+	testedUser := usrs[0].(auth.User)
+
+	tokenstr, _, err := os.tokenGenerator(testedUser)
 	if err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
 	}
 	if st.url == "" {
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
-		log.Logger.Info(ctx, "Empty callback url", "permissions", permissions)
 		permissionsArr, _ := json.Marshal(permissions)
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
-		log.Logger.Info(ctx, "Empty callback url", "script", script)
 		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
 		ctx.SetResponse(resp)
 		return nil
@@ -273,6 +276,7 @@ func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
 type stateInfo struct {
 	state string
 	url   string
+	realm string
 }
 
 /*

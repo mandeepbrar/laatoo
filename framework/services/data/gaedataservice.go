@@ -165,7 +165,14 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if id == "" {
 		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
 	}
-	_, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, svc.collection, id, 0, nil), item)
+	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
+
+	err := datastore.Get(appEngineContext, key, item)
+	if err == nil {
+		return errors.ThrowError(ctx, DATA_ERROR_OPERATION, "Entity exists ", svc.object+id)
+	}
+
+	_, err = datastore.Put(appEngineContext, key, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

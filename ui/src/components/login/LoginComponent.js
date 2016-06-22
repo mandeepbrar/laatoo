@@ -13,14 +13,19 @@ const mapStateToProps = (state, ownProps) => {
     facebookAuthUrl: ownProps.facebookAuthUrl,
     google: ownProps.google,
     googleAuthUrl: ownProps.googleAuthUrl,
+    realm : ownProps.realm,
     signup: ownProps.signup
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
+  let realm = "";
+  if(ownProps.realm) {
+	   realm = ownProps.realm
+  }
   return {
     handleLogin: (email, password) => {
-      let loginPayload = {"Id": email, "Password": md5(password)};
+      let loginPayload = {"Username": email, "Password": md5(password), "realm" : realm };
       let loginMeta = {serviceName: ownProps.loginService};
       dispatch(createAction(ActionNames.LOGIN, loginPayload, loginMeta));
     },
@@ -39,6 +44,7 @@ const LoginComponent = connect(
 LoginComponent.propTypes = {
   loginService: React.PropTypes.string.isRequired,
   successpage: React.PropTypes.string,
+  realm: React.PropTypes.string,
   facebook: React.PropTypes.string,
   facebookAuthUrl: React.PropTypes.string,
   google: React.PropTypes.string,

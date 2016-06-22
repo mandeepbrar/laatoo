@@ -156,6 +156,7 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 		}
 		id := role.GetId()
+		roleName := role.GetName()
 		if id == "Anonymous" {
 			anonExists = true
 		}
@@ -163,10 +164,10 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 		if id == lsh.adminRole {
 			adminExists = true
 		}
-		lsh.rolesMap[id] = role
+		lsh.rolesMap[roleName] = role
 		permissions := role.GetPermissions()
 		for _, perm := range permissions {
-			key := fmt.Sprintf("%s#%s", id, perm)
+			key := fmt.Sprintf("%s#%s", roleName, perm)
 			lsh.rolePermissions[key] = true
 		}
 	}
@@ -179,6 +180,7 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		ent, _ := lsh.roleCreator(ctx, nil)
 		anonymousRole := ent.(auth.Role)
 		anonymousRole.SetId("Anonymous")
+		anonymousRole.SetName("Anonymous")
 		storable, ok := ent.(data.Storable)
 		if !ok {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
@@ -195,6 +197,7 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		adminRole := ent.(auth.Role)
 		adminRole.SetPermissions(lsh.allPermissions)
 		adminRole.SetId(lsh.adminRole)
+		adminRole.SetName(lsh.adminRole)
 		storable, ok := ent.(data.Storable)
 		if !ok {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)

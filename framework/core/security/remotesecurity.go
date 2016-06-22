@@ -136,10 +136,10 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 		rolesVal := reflect.ValueOf(roles).Elem()
 		for i := 0; i < rolesVal.Len(); i++ {
 			role := rolesVal.Index(i).Addr().Interface().(auth.Role)
-			id := role.GetId()
+			roleName := role.GetName()
 			permissions := role.GetPermissions()
 			for _, perm := range permissions {
-				key := fmt.Sprintf("%s#%s", id, perm)
+				key := fmt.Sprintf("%s#%s", roleName, perm)
 				rsh.rolePermissions[key] = true
 			}
 		}

@@ -1,0 +1,18 @@
+{
+	"address":"localhost:2000",
+	"cache":"memorycache",
+	"logging": {
+		"format":"happymax",
+		"level":"trace"
+	},
+	"engines":{
+		"root":"config/server/root.json"
+	},
+	"objectloader":"config/server/objects.json",
+	"environments": {
+		"env":"config/env/main_::mode.json"
+	},
+	"applications": {
+		"designer":"config/designer/main.json"
+	}
+}

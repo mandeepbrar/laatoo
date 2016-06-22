@@ -1,13 +1,14 @@
 package security
 
 import (
-	"golang.org/x/crypto/bcrypt"
 	"laatoo/sdk/auth"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -54,29 +55,34 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 
 //Expects Local user to be provided inside the request
 func (ls *LoginService) Invoke(ctx core.RequestContext) error {
+	realm, _ := ctx.GetString(CONF_SECURITY_REALM)
+
 	ent := ctx.GetRequest()
 	usr, ok := ent.(auth.LocalAuthUser)
 	if !ok {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
-	id := usr.GetId()
-	log.Logger.Trace(ctx, "getting user from service", "id", id)
-	//get the tested user from database
-	testedUser, err := ls.UserDataService.GetById(ctx, id)
+	username := usr.GetUserName()
+	log.Logger.Trace(ctx, "getting user from service", "username", username)
+
+	argsMap := map[string]interface{}{usr.GetUsernameField(): username, "Realm": realm}
+
+	cond, err := ls.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		log.Logger.Trace(ctx, "Tested user not found", "Err", err)
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
-	if testedUser == nil {
-		log.Logger.Info(ctx, "Tested user not found")
+
+	usrs, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
+	if err != nil || recs <= 0 {
+		log.Logger.Trace(ctx, "Tested user not found", "Err", err)
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
 
 	//compare the user requested with the user from database
-	existingUser := testedUser.(auth.LocalAuthUser)
+	existingUser := usrs[0].(auth.LocalAuthUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	existingUser.SetPassword("")
 	if err != nil {

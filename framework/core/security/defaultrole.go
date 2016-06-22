@@ -4,6 +4,8 @@ import (
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+
+	"github.com/twinj/uuid"
 )
 
 func init() {
@@ -24,7 +26,9 @@ func (rf *RoleFactory) Start(ctx core.ServerContext) error {
 
 //Creates object
 func (rf *RoleFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &Role{}, nil
+	role := &Role{}
+	role.Id = uuid.NewV4().String()
+	return role, nil
 }
 
 //Creates collection
@@ -34,22 +38,24 @@ func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args
 }
 
 type Role struct {
+	Id          string   `json:"Id" form:"Id" bson:"Id"`
 	Role        string   `json:"Role" form:"Role" bson:"Role"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
 	Deleted     bool     `json:"Deleted" bson:"Deleted"`
 	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
 	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
+	Realm       string   `json:"Realm" bson:"Realm"`
 }
 
 func (r *Role) GetId() string {
-	return r.Role
+	return r.Id
 }
 func (r *Role) SetId(id string) {
-	r.Role = id
+	r.Id = id
 }
 func (r *Role) GetIdField() string {
-	return "Role"
+	return "Id"
 }
 
 func (r *Role) GetObjectType() string {
@@ -72,7 +78,12 @@ func (ent *Role) PostSave(ctx core.RequestContext) error {
 func (ent *Role) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
-
+func (ent *Role) GetName() string {
+	return ent.Role
+}
+func (ent *Role) SetName(val string) {
+	ent.Role = val
+}
 func (ent *Role) IsNew() bool {
 	return ent.CreatedBy == ""
 }

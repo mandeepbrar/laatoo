@@ -8,6 +8,8 @@ import (
 	"laatoo/sdk/utils"
 	"strings"
 
+	"github.com/twinj/uuid"
+
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,7 +33,9 @@ func (rf *UserFactory) Start(ctx core.ServerContext) error {
 
 //Creates object
 func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &DefaultUser{}, nil
+	usr := &DefaultUser{}
+	usr.Id = uuid.NewV4().String()
+	return usr, nil
 }
 
 //Creates collection
@@ -42,6 +46,7 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 
 type DefaultUser struct {
 	Id          string   `json:"Id" form:"Id" bson:"Id"`
+	Username    string   `json:"Username" form:"Username" bson:"Username"`
 	Password    string   `json:"Password" form:"Password" bson:"Password"`
 	Roles       []string `json:"Roles" bson:"Roles"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
@@ -53,6 +58,7 @@ type DefaultUser struct {
 	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
 	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
+	Realm       string   `json:"Realm" bson:"Realm"`
 }
 
 func (usr *DefaultUser) GetId() string {
@@ -63,6 +69,9 @@ func (usr *DefaultUser) SetId(id string) {
 }
 func (usr *DefaultUser) GetIdField() string {
 	return "Id"
+}
+func (usr *DefaultUser) GetUsernameField() string {
+	return "Username"
 }
 func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
 	err := ent.encryptPassword()
@@ -122,6 +131,10 @@ func (usr *DefaultUser) GetEmail() string {
 func (usr *DefaultUser) GetName() string {
 	return usr.Name
 }
+func (usr *DefaultUser) GetUserName() string {
+	return usr.Username
+}
+
 func (usr *DefaultUser) GetPicture() string {
 	return usr.Picture
 }

@@ -1,0 +1,15 @@
+{
+	"objectloader":"config/designer/objects.json",
+	"factorymanager":"config/designer/factories.json",
+	"servicemanager":"config/designer/services.json",
+	"channelmanager":"config/designer/channels.json",
+	"environment":"env",
+	"security":{
+		"mode":"remote",
+		"publickey":"keys/mykey.pub",
+		"remoteauthserver":"https://virsausers.appspot.com/keylogin/designer",
+		"rolesservice":"https://virsausers.appspot.com/roles",
+		"identifier":"designer",
+		"pvtkey":"keys/designer.pem"
+	}
+}

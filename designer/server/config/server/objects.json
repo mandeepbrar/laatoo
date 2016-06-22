@@ -1,0 +1,14 @@
+{
+	"objects":[
+		"User",
+		"Role",
+		"dataadapter",
+		"cacheadapter",
+		"memory_cache",
+		"filesystem",
+		"googlestorage",
+		"__defaultfactory__",
+		"__defaultmethodfactory__",
+		"CheckPermission"
+	]
+}

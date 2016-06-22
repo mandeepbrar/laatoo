@@ -1,0 +1,22 @@
+{
+	"objectloader":{
+		"objects":[
+			"mongo_services",
+			"static_files",
+			"security_service"
+		]
+	},
+	"factorymanager": {
+		"factories" :{
+			"laatoodb": {			
+				"factory":"mongo_services",
+				"database":"Laatoo",
+				"connectionstring":"127.0.0.1"
+			},
+			"authentication": {
+				"factory":"security_service"	
+			}
+		}
+	},
+	"servicemanager":"config/env/services.json"
+}

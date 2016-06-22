@@ -1,17 +1,16 @@
 package security
 
-import (
 //jwt "github.com/dgrijalva/jwt-go"
 //"laatoo/sdk/auth"
 //"laatoo/sdk/core"
 //"laatoo/sdk/errors"
 //	"laatoo/sdk/log"
 //"time"
-)
 
 const (
-	CONF_PVTKEYPATH    = "pvtkey"
-	CONF_PUBLICKEYPATH = "pvtkey"
+	CONF_PVTKEYPATH     = "pvtkey"
+	CONF_PUBLICKEYPATH  = "pvtkey"
+	CONF_SECURITY_REALM = "realm"
 )
 
 /*
