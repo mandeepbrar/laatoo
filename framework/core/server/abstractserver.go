@@ -280,7 +280,10 @@ func (as *abstractserver) start(ctx *serverContext) error {
 }
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
-	secConf, ok := conf.GetSubConfig(config.CONF_SECURITY)
+	secConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_SECURITY)
+	if err != nil {
+		return err
+	}
 	if ok {
 		secCtx := ctx.SubContext("Initialize Security Handler")
 		shElem, sh := newSecurityHandler(secCtx, "Security Handler:"+as.name, as.proxy)

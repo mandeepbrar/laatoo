@@ -26,7 +26,7 @@ class LoginWeb extends React.Component {
     });
     let realm = ""
     if(props.realm) {
-      realm = "?realm=" + props.realm      
+      realm = "?Realm=" + props.realm
     }
     this.openFBauthWindow = function() {
       let instance = window.open(props.facebookAuthUrl+realm, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')

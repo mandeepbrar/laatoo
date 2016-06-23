@@ -25,7 +25,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
   return {
     handleLogin: (email, password) => {
-      let loginPayload = {"Username": email, "Password": md5(password), "realm" : realm };
+      let loginPayload = {"Username": email, "Password": md5(password), "Realm" : realm };
       let loginMeta = {serviceName: ownProps.loginService};
       dispatch(createAction(ActionNames.LOGIN, loginPayload, loginMeta));
     },

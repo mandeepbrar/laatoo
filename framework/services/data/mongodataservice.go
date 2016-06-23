@@ -29,6 +29,7 @@ type mongoDataService struct {
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
 	deleteRefOpers          []*refOperation
+	serviceType             string
 	/*getRefOpers    map[string][]*refKeyOperation
 	putRefOpers    map[string][]*refKeyOperation
 	updateRefOpers map[string][]*refKeyOperation*/
@@ -39,7 +40,7 @@ const (
 )
 
 func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (*mongoDataService, error) {
-	mongoSvc := &mongoDataService{name: name, factory: ms}
+	mongoSvc := &mongoDataService{name: name, factory: ms, serviceType: "Mongo"}
 	return mongoSvc, nil
 }
 

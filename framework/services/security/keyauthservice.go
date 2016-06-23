@@ -28,12 +28,13 @@ type client struct {
 type KeyAuthService struct {
 	clients        map[string]*client
 	userCreator    core.ObjectCreator
-	tokenGenerator func(auth.User) (string, auth.User, error)
+	tokenGenerator func(auth.User, string) (string, auth.User, error)
 	adminRole      string
 	jwtSecret      string
 	authHeader     string
 	userObject     string
 	name           string
+	localRealm     string
 }
 
 func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -46,6 +47,11 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ks.authHeader = authHeader
+	localRealm, ok := sechandler.GetString(config.REALM)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ks.localRealm = localRealm
 	userObject, ok := sechandler.GetString(config.USER)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -118,7 +124,7 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext) error {
 	usr := usrInt.(auth.RbacUser)
 	usr.SetId("system")
 	usr.SetRoles([]string{client.role})
-	token, user, err := ks.tokenGenerator(usr)
+	token, user, err := ks.tokenGenerator(usr, ks.localRealm)
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
@@ -127,7 +133,7 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext) error {
 	ctx.SetResponse(resp)
 	return nil
 }
-func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User) (string, auth.User, error)) {
+func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	ks.tokenGenerator = gen
 }
 func (ks *KeyAuthService) Start(ctx core.ServerContext) error {

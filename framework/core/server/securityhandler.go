@@ -24,6 +24,7 @@ type securityHandler struct {
 	roleObject    string
 	authHeader    string
 	publicKey     *rsa.PublicKey
+	realm         string
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
@@ -64,6 +65,10 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.userCreator = userCreator
 
+	realm, _ := conf.GetString(config.REALM)
+	sh.realm = realm
+	sh.Set(config.REALM, realm)
+
 	publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
 	if !ok {
 		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PUBLICKEYPATH)
@@ -100,14 +105,14 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 
 	switch mode {
 	case config.CONF_SECURITY_LOCAL:
-		plugin, err := security.NewLocalSecurityHandler(initCtx, conf, adminRole, sh.roleCreator)
+		plugin, err := security.NewLocalSecurityHandler(initCtx, conf, adminRole, sh.roleCreator, realm)
 		if err != nil {
 			return err
 		}
 		sh.handler = plugin
 		return nil
 	case config.CONF_SECURITY_REMOTE:
-		plugin, err := security.NewRemoteSecurityHandler(initCtx, conf, adminRole, authToken, roleobject)
+		plugin, err := security.NewRemoteSecurityHandler(initCtx, conf, adminRole, authToken, roleobject, realm)
 		if err != nil {
 			return err
 		}
@@ -172,6 +177,12 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User,
 			if !ok {
 				return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 			}
+			realm := token.Claims[config.REALM]
+			log.Logger.Info(ctx, "token realms", "realm", realm, "expected", sh.realm)
+			if realm != sh.realm {
+				return nil, false, nil
+			}
+
 			user.LoadJWTClaims(token)
 			admin := false
 			adminClaim := token.Claims["Admin"]

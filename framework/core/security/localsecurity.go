@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"time"
 
@@ -19,7 +20,15 @@ const (
 	CONF_SECURITY_ROLEDATASERVICE = "role_data_svc"
 	CONF_SECURITY_PERMISSIONS     = "permissions"
 	CONF_SECURITY_AUTHSERVICES    = "authservices"
+	CONF_SECURITY_SUPPORTEDREALMS = "realms"
 )
+
+type realmObj struct {
+	name     string
+	rolesMap map[string]auth.Role
+	//permissions assigned to a role
+	rolePermissions map[string]bool
+}
 
 type localSecurityHandler struct {
 	roleCreator     core.ObjectCreator
@@ -27,24 +36,32 @@ type localSecurityHandler struct {
 	pvtKey          *rsa.PrivateKey
 	roleDataService data.DataComponent
 	roleDataSvcName string
-	rolesMap        map[string]auth.Role
+	supportedRealms []string
+	realms          map[string]*realmObj //all realms
 	authServices    []string
 	allPermissions  []string
-	//permissions assigned to a role
-	rolePermissions map[string]bool
+	realmName       string //local realm name
+	localRealm      *realmObj
 }
 
-func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, roleCreator core.ObjectCreator) (SecurityPlugin, error) {
-	lsh := &localSecurityHandler{adminRole: adminrole, roleCreator: roleCreator}
-	lsh.rolesMap = make(map[string]auth.Role, 10)
-	//map containing roles and permissions
-	lsh.rolePermissions = make(map[string]bool, 50)
+func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, roleCreator core.ObjectCreator, realmName string) (SecurityPlugin, error) {
+	lsh := &localSecurityHandler{adminRole: adminrole, roleCreator: roleCreator, realmName: realmName}
 
 	permissions, ok := conf.GetStringArray(CONF_SECURITY_PERMISSIONS)
 	if ok {
 		lsh.allPermissions = permissions
 	} else {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURITY_PERMISSIONS)
+	}
+
+	supportedRealms, ok := conf.GetStringArray(CONF_SECURITY_SUPPORTEDREALMS)
+	if !ok {
+		supportedRealms = []string{realmName}
+	}
+	lsh.realms = make(map[string]*realmObj, len(supportedRealms))
+	for _, supportedRealm := range supportedRealms {
+		lsh.realms[supportedRealm] = &realmObj{name: supportedRealm, rolesMap: make(map[string]auth.Role, 15),
+			rolePermissions: make(map[string]bool, 100)}
 	}
 
 	pvtKeyPath, ok := conf.GetString(config.CONF_PVTKEYPATH)
@@ -97,20 +114,23 @@ func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 			authComp.SetTokenGenerator(ctx, lsh.tokenGenerator(ctx))
 		}
 	}
+	lsh.localRealm = lsh.realms[lsh.realmName]
+	log.Logger.Info(ctx, "Started local security handler with realms", "realms", lsh.supportedRealms)
 	return nil
 }
 
-func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(auth.User) (string, auth.User, error) {
-	return func(user auth.User) (string, auth.User, error) {
+func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(auth.User, string) (string, auth.User, error) {
+	return func(user auth.User, realm string) (string, auth.User, error) {
 		token := jwt.New(jwt.SigningMethodRS512)
 		rbac, ok := user.(auth.RbacUser)
 		if ok {
 			roles, _ := rbac.GetRoles()
-			permissions, admin := lsh.getRolePermissions(roles)
+			permissions, admin := lsh.getRolePermissions(roles, realm)
 			rbac.SetPermissions(permissions)
 			token.Claims["Admin"] = admin
 		}
 		user.SetJWTClaims(token)
+		token.Claims[config.REALM] = realm
 		token.Claims["UserId"] = user.GetId()
 		//token.Claims["IP"] = ctx.ClientIP()
 		token.Claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
@@ -122,10 +142,14 @@ func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(aut
 	}
 }
 
-func (lsh *localSecurityHandler) getRolePermissions(roles []string) ([]string, bool) {
+func (lsh *localSecurityHandler) getRolePermissions(roles []string, realmName string) ([]string, bool) {
+	realm, ok := lsh.realms[realmName]
+	if !ok {
+		return []string{}, false
+	}
 	permissions := utils.NewStringSet([]string{})
 	for _, rolename := range roles {
-		role, ok := lsh.rolesMap[rolename]
+		role, ok := realm.rolesMap[rolename]
 		if ok {
 			permissions.Append(role.GetPermissions())
 		}
@@ -134,7 +158,10 @@ func (lsh *localSecurityHandler) getRolePermissions(roles []string) ([]string, b
 }
 
 func (lsh *localSecurityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
-	return hasPermission(ctx, perm, lsh.rolePermissions)
+	if lsh.localRealm == nil {
+		return false
+	}
+	return hasPermission(ctx, perm, lsh.localRealm.rolePermissions)
 }
 
 func (lsh *localSecurityHandler) AllPermissions(core.RequestContext) []string {
@@ -142,33 +169,42 @@ func (lsh *localSecurityHandler) AllPermissions(core.RequestContext) []string {
 }
 
 func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
-	loadRolesReq := ctx.CreateSystemRequest("LoadRoles")
-	defer loadRolesReq.CompleteRequest()
-	roles, _, _, err := lsh.roleDataService.GetList(loadRolesReq, -1, -1, "", "")
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
 	adminExists := false
 	anonExists := false
-	for _, val := range roles {
-		role, ok := val.(auth.Role)
-		if !ok {
-			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
-		}
-		id := role.GetId()
-		roleName := role.GetName()
-		if id == "Anonymous" {
-			anonExists = true
+	for realmName, realm := range lsh.realms {
+		loadRolesReq := ctx.CreateSystemRequest("LoadRoles")
+		defer loadRolesReq.CompleteRequest()
+
+		cond, err := lsh.roleDataService.CreateCondition(loadRolesReq, data.FIELDVALUE, map[string]interface{}{"Realm": realmName})
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
 
-		if id == lsh.adminRole {
-			adminExists = true
+		roles, _, _, err := lsh.roleDataService.Get(loadRolesReq, cond, -1, -1, "", "")
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
-		lsh.rolesMap[roleName] = role
-		permissions := role.GetPermissions()
-		for _, perm := range permissions {
-			key := fmt.Sprintf("%s#%s", roleName, perm)
-			lsh.rolePermissions[key] = true
+		for _, val := range roles {
+			role, ok := val.(auth.Role)
+			if !ok {
+				errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+			}
+			id := role.GetId()
+			roleName := role.GetName()
+			realm.rolesMap[roleName] = role
+			permissions := role.GetPermissions()
+			for _, perm := range permissions {
+				key := fmt.Sprintf("%s#%s", roleName, perm)
+				realm.rolePermissions[key] = true
+			}
+			if realmName == lsh.realmName {
+				if id == "Anonymous" {
+					anonExists = true
+				}
+				if id == lsh.adminRole {
+					adminExists = true
+				}
+			}
 		}
 	}
 	return lsh.createInitRoles(ctx, anonExists, adminExists)

@@ -104,6 +104,10 @@ func (usr *DefaultUser) SetRoles(roles []string) error {
 	return nil
 }
 
+func (usr *DefaultUser) GetRealm() string {
+	return usr.Realm
+}
+
 func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }

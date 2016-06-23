@@ -20,7 +20,6 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 	} else {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "No such channel", channelName)
 	}
-	return nil
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {

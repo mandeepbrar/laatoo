@@ -7,9 +7,10 @@
 	"security":{
 		"mode":"remote",
 		"publickey":"keys/mykey.pub",
-		"remoteauthserver":"https://virsausers.appspot.com/keylogin/designer",
-		"rolesservice":"https://virsausers.appspot.com/roles",
+		"remoteauthserver":"http://localhost:8080/keylogin/designer",
+		"rolesservice":"http://localhost:8080/roles",
 		"identifier":"designer",
-		"pvtkey":"keys/designer.pem"
+		"pvtkey":"keys/designer.pem",
+		"Realm":"designer"
 	}
 }

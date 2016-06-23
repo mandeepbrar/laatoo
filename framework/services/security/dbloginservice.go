@@ -20,7 +20,7 @@ type LoginService struct {
 	name           string
 	authHeader     string
 	adminRole      string
-	tokenGenerator func(auth.User) (string, auth.User, error)
+	tokenGenerator func(auth.User, string) (string, auth.User, error)
 	//data service to use for users
 	UserDataService data.DataComponent
 }
@@ -55,7 +55,6 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 
 //Expects Local user to be provided inside the request
 func (ls *LoginService) Invoke(ctx core.RequestContext) error {
-	realm, _ := ctx.GetString(CONF_SECURITY_REALM)
 
 	ent := ctx.GetRequest()
 	usr, ok := ent.(auth.LocalAuthUser)
@@ -63,10 +62,13 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
+
+	realm := usr.GetRealm()
+
 	username := usr.GetUserName()
 	log.Logger.Trace(ctx, "getting user from service", "username", username)
 
-	argsMap := map[string]interface{}{usr.GetUsernameField(): username, "Realm": realm}
+	argsMap := map[string]interface{}{usr.GetUsernameField(): username, config.REALM: realm}
 
 	cond, err := ls.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
@@ -90,7 +92,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	} else {
 		existingUser.SetPassword("")
-		token, user, err := ls.tokenGenerator(existingUser)
+		token, user, err := ls.tokenGenerator(existingUser, realm)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
@@ -100,7 +102,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	}
 	return nil
 }
-func (ls *LoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User) (string, auth.User, error)) {
+func (ls *LoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	ls.tokenGenerator = gen
 }
 

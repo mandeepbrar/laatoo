@@ -29,13 +29,14 @@ type gaeDataService struct {
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
 	deleteRefOpers          []*refOperation
+	serviceType             string
 	/*getRefOpers    map[string][]*refKeyOperation
 	putRefOpers    map[string][]*refKeyOperation
 	updateRefOpers map[string][]*refKeyOperation*/
 }
 
 func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, error) {
-	gaeDataSvc := &gaeDataService{}
+	gaeDataSvc := &gaeDataService{name: name, serviceType: "Gae Datastore"}
 	return gaeDataSvc, nil
 }
 

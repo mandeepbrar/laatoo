@@ -36,10 +36,15 @@ type remoteSecurityHandler struct {
 	remoteAuthServer string
 	rolesService     string
 	rolePermissions  map[string]bool
+	realm            string
 }
 
-func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, authHeader string, roleObject string) (SecurityPlugin, error) {
-	rsh := &remoteSecurityHandler{adminRole: adminrole, authHeader: authHeader, roleObject: roleObject}
+func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, authHeader string, roleObject string, realm string) (SecurityPlugin, error) {
+	rsh := &remoteSecurityHandler{adminRole: adminrole, authHeader: authHeader, roleObject: roleObject, realm: realm}
+	if realm == "" {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", config.REALM)
+	}
+
 	rsh.rolesMap = make(map[string]auth.Role, 10)
 	//map containing roles and permissions
 	rsh.rolePermissions = make(map[string]bool, 50)
@@ -113,8 +118,8 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 		//get token from remote system
 		token := resp.Header.Get(rsh.authHeader)
 		data := make(map[string]interface{})
+		data[config.REALM] = rsh.realm
 		dat, _ := json.Marshal(data)
-
 		req, err := http.NewRequest("POST", rsh.rolesService, bytes.NewBuffer(dat))
 		req.Header.Add(rsh.authHeader, token)
 		req.Header.Add("Content-Type", "application/json")

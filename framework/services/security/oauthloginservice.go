@@ -34,7 +34,7 @@ const (
 type OAuthLoginService struct {
 	adminRole       string
 	authHeader      string
-	tokenGenerator  func(auth.User) (string, auth.User, error)
+	tokenGenerator  func(auth.User, string) (string, auth.User, error)
 	userDataService data.DataComponent
 	userCreator     core.ObjectCreator
 	config          *oauth2.Config
@@ -102,13 +102,14 @@ func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
 func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
 	returl, _ := ctx.GetString("callbackurl")
 	stateVal, _ := ctx.GetString("state")
-	realm, _ := ctx.GetString(CONF_SECURITY_REALM)
+	realm, _ := ctx.GetString(config.REALM)
 
-	st := stateInfo{url: returl, state: stateVal, realm: realm}
+	st := &stateInfo{Url: returl, State: stateVal, Realm: realm}
 	state, err := json.Marshal(st)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	log.Logger.Trace(ctx, "redirecting to url", "state", state)
 	encodedState := base64.StdEncoding.EncodeToString(state)
 	url := os.config.AuthCodeURL(encodedState)
 	log.Logger.Trace(ctx, "redirecting to url", "url", url)
@@ -123,17 +124,17 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 	if !ok {
 		return os.unauthorized(ctx, nil, "")
 	}
-	log.Logger.Trace(ctx, "received state", "receivedState", receivedState)
 	decodedState, err := base64.StdEncoding.DecodeString(receivedState)
 	st := new(stateInfo)
 	err = json.Unmarshal(decodedState, st)
 	if err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), "")
 	}
+	log.Logger.Trace(ctx, "received state", "receivedState", st)
 	code, ok := ctx.GetString("code")
 	if !ok {
 		log.Logger.Error(ctx, "No code found on oauth return")
-		return os.unauthorized(ctx, nil, st.url)
+		return os.unauthorized(ctx, nil, st.Url)
 	}
 	log.Logger.Trace(ctx, "received code", "code", code)
 	return os.authenticate(ctx, code, st)
@@ -158,57 +159,57 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	oauthCtx := ctx.GetOAuthContext()
 	token, err := os.config.Exchange(oauthCtx, code)
 	if err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
-	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code, "token", token)
+	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code)
 
 	client := os.config.Client(oauthCtx, token)
 
 	response, err := client.Get(os.profileURL)
 	if err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 	defer response.Body.Close()
 
 	bits, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 
 	//create the user
 	usr, _ := os.userCreator(ctx, nil)
 
 	if err := json.Unmarshal(bits, usr); err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 
 	oauthUsr, ok := usr.(auth.OAuthUser)
 	if !ok {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 
 	usrId := fmt.Sprintf("%s_%s", os.sitetype, oauthUsr.GetEmail())
 
-	argsMap := map[string]interface{}{oauthUsr.GetUsernameField(): usrId, "Realm": st.realm}
+	argsMap := map[string]interface{}{oauthUsr.GetUsernameField(): usrId, config.REALM: st.Realm}
 
 	cond, err := os.userDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 
 	usrs, _, recs, err := os.userDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
-		return os.unauthorized(ctx, err, st.url)
+		return os.unauthorized(ctx, err, st.Url)
 	}
 
 	//get the tested user from database
 	testedUser := usrs[0].(auth.User)
 
-	tokenstr, _, err := os.tokenGenerator(testedUser)
+	tokenstr, _, err := os.tokenGenerator(testedUser, st.Realm)
 	if err != nil {
-		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.url)
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
-	if st.url == "" {
+	if st.Url == "" {
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
 		permissionsArr, _ := json.Marshal(permissions)
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
@@ -216,7 +217,7 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		ctx.SetResponse(resp)
 		return nil
 	}
-	resp := core.NewServiceResponse(core.StatusRedirect, st.url, map[string]interface{}{os.authHeader: tokenstr})
+	resp := core.NewServiceResponse(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr})
 	ctx.SetResponse(resp)
 	return nil
 }
@@ -266,7 +267,7 @@ func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf conf
 	os.profileURL = profile
 	return nil
 }
-func (os *OAuthLoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User) (string, auth.User, error)) {
+func (os *OAuthLoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	os.tokenGenerator = gen
 }
 func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
@@ -274,9 +275,9 @@ func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
 }
 
 type stateInfo struct {
-	state string
-	url   string
-	realm string
+	State string
+	Url   string
+	Realm string
 }
 
 /*
