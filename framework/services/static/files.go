@@ -24,6 +24,7 @@ const (
 type File struct {
 	path         string
 	fullcontent  bool
+	Encoding     string
 	Content      *[]byte
 	lastModified time.Time
 	info         map[string]interface{}
@@ -67,6 +68,10 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 					return errors.WrapError(ctx, err)
 				}
 				file.Content = &content
+			}
+			encoding, ok := fileconfig.GetString(core.ContentEncoding)
+			if ok {
+				file.info[core.ContentEncoding] = encoding
 			}
 			log.Logger.Trace(ctx, "Reading file", "file", file)
 			fs.filesMap[filename] = file

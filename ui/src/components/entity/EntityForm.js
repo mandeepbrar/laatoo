@@ -54,10 +54,10 @@ class TCombWebForm extends React.Component {
   render() {
     let state = this.state
     return (
-      <form onSubmit={this.submitForm}>
+      <form onSubmit={this.submitForm} className="entityform">
         <t.form.Form ref="form" type={this.props.schema} value={state.formValue} options={this.props.schemaOptions}/>
-        <div className="form-group m20 pull-right">
-          <button type="submit" className="btn btn-primary">Save</button>
+        <div className="entityformsubmit">
+          <button type="submit">Save</button>
         </div>
       </form>
     )

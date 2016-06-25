@@ -50,6 +50,9 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 					switch key {
 					case core.ContentType:
 						engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
+					case core.ContentEncoding:
+						log.Logger.Trace(ctx, " sending encoding", "inf", val)
+						engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
 					case core.LastModified:
 						engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
 					}

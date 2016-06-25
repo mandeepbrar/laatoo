@@ -23,7 +23,7 @@ class WebTableView extends React.Component {
   }
   getView(view, header, groups) {
     return (
-      <table  className="table table-striped ">
+      <table  className="webtableview">
         <thead>
           {header}
         </thead>

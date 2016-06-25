@@ -1,9 +1,7 @@
 import t from 'tcomb-form';
 import React from 'react';
 import Dropzone from 'react-dropzone';
-import Tab from 'react-bootstrap/lib/Tab'
 import {Image} from '../main/Image'
-import Tabs from 'react-bootstrap/lib/Tabs'
 import {  Response,  DataSource,  RequestBuilder } from '../../sources/DataSource';
 
 
@@ -13,6 +11,9 @@ class ImageChooser extends React.Component {
     this.drop = this.drop.bind(this)
     this.uselink = this.uselink.bind(this)
     this.clear = this.clear.bind(this)
+    this.getComponent = this.getComponent.bind(this)
+    this.handleChoiceChange = this.handleChoiceChange.bind(this)
+    this.state = {imagechooser: "upload"}
   }
   drop(files) {
     if(files.length >0) {
@@ -46,32 +47,45 @@ class ImageChooser extends React.Component {
     evt.preventDefault();
     this.props.onChange(null)
   }
+  getComponent(choice) {
+    if (choice == "url") {
+      return(
+        <div style={{display:"block"}} className="url">
+          <input className="ma30" type="text" ref="imageediturl" placeholder="link"/>
+          <button className="ma10 rightalign" role="button" onClick={this.uselink}>Use Image</button>
+        </div>
+      )
+    } else {
+      return(
+        <div className="upload" style={{display:"block"}}>
+          <Dropzone onDrop={this.drop} multiple={false}>
+            <div>Try dropping some files here, or click to select files to upload.</div>
+          </Dropzone>
+        </div>
+      )
+    }
+  }
+  handleChoiceChange(e) {
+    this.setState({imagechooser: e.target.value});
+  }
   render () {
-    console.log("value ", this.props.value)
     if(this.props.value) {
       return (
-        <div class="container" style={{height:"300px"}} className="m20">
+        <div className="imageedit" style={{height:"300px"}}>
           <p><strong>URL: </strong>{this.props.value}</p>
-          <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix}style={{width: 'auto', height: 220}} />
+          <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix} style={{width: 'auto', height: 220}} />
           <button className="btn" role="button" onClick={this.clear}>Clear</button>
         </div>
       )
     } else {
+      let choice = this.state.imagechooser
+      let component = this.getComponent(choice)
       return (
-        <div style={{height:"300px"}}  className="m20">
-          <Tabs id="imagechooser">
-              <Tab eventKey={1} title="URL">
-                <input className="form-control ma30" type="text" ref="imageediturl" placeholder="link"/>
-                <button className="btn col-xs-offset-1 ma10 pull-right" role="button" onClick={this.uselink}>Use Image</button>
-              </Tab>
-              <Tab eventKey={2} title="Upload">
-                <div className="m20">
-                  <Dropzone onDrop={this.drop} multiple={false}>
-                    <div>Try dropping some files here, or click to select files to upload.</div>
-                  </Dropzone>
-                </div>
-              </Tab>
-          </Tabs>
+        <div style={{height:"300px"}} className="imageedit">
+          <input type="radio" name="imagechooser" value="upload" checked={this.state.imagechooser=="upload"} onChange={this.handleChoiceChange}/> Upload
+          &nbsp;&nbsp;
+          <input type="radio" name="imagechooser" value="url" checked={this.state.imagechooser=="url"} onChange={this.handleChoiceChange}/> URL
+          {component}
         </div>
       )
     }

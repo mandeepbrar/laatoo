@@ -3,7 +3,7 @@
 import React from 'react';
 
 const ActionLink = (props) =>(
-  <a className={props.className} href="#" onClick={props.actionFunc}>
+  <a className={props.className +" actionlink"} href="#" onClick={props.actionFunc}>
     {props.actionchildren}
   </a>
 )

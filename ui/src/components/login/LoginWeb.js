@@ -1,7 +1,6 @@
 'use strict';
 
 import React from 'react';
-require('./Login.scss');
 
 class LoginWeb extends React.Component {
   constructor(props) {
@@ -12,32 +11,28 @@ class LoginWeb extends React.Component {
     };
     this.handleLogin = this.handleLogin.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.facebook = this.facebook.bind(this);
-    let loginSite = "";
+
     let getLocation = function(href) {
         var l = document.createElement("a");
         l.href = href;
         return l;
     };
+    let loginSite = "";
+    let realm = ""
+    if(props.realm) {
+      realm = "?Realm=" + props.realm
+    }
+    this.oauthLogin = function(location) {
+      let instance = window.open(location+realm, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
+      var location = getLocation(location);
+      loginSite = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
+    }
+
     window.addEventListener("message", function(ev) {
       if(ev.origin === loginSite && ev.data.message=="LoginSuccess") {
         props.handleOauthLogin(ev.data)
       }
     });
-    let realm = ""
-    if(props.realm) {
-      realm = "?Realm=" + props.realm
-    }
-    this.openFBauthWindow = function() {
-      let instance = window.open(props.facebookAuthUrl+realm, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
-      var location = getLocation(props.facebookAuthUrl);
-      loginSite = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
-    }
-    this.openGoogleauthWindow = function() {
-      let instance = window.open(props.googleAuthUrl+realm, '_blank','height=500,width=400,toolbar=no,resizable=yes,menubar=no,location=0')
-      var location = getLocation(props.googleAuthUrl);
-      loginSite = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
-    }
   }
   handleChange(e) {
       var nextState = {};
@@ -47,80 +42,8 @@ class LoginWeb extends React.Component {
   handleLogin() {
       this.props.handleLogin(this.state.email, this.state.password);
   }
-  signup() {
-    if(this.props.signup && this.props.signup === 'true') {
-        return(
-            <div>, or <a href="#">Sign Up</a></div>
-        )
-    }
-  }
-  facebook() {
-      if(this.props.facebook && this.props.facebook === 'true') {
-          return(
-            <div className="col-xs-6 col-sm-6 col-md-6">
-              <a onClick={this.openFBauthWindow} className="btn btn-lg btn-info btn-block">Facebook</a>
-            </div>
-          )
-      }
-  }
-  google() {
-      let comp = this;
-      if(this.props.google && this.props.google === 'true') {
-          return(
-            <div className="col-xs-6 col-sm-6 col-md-6">
-              <a onClick={this.openGoogleauthWindow} className="btn btn-lg btn-info btn-block">Google</a>
-            </div>
-          )
-      }
-  }
-  social() {
-      if((this.props.google && this.props.google === 'true') ||
-         (this.props.facebook && this.props.facebook === 'true')
-        ){
-          return(
-              <div className="login-or">
-                <hr className="hr-or"/>
-                <span className="span-or">or</span>
-              </div>
-          )
-      }
-  }
   render() {
-    return (
-        <div className="container loginbox">
-          <div className="row">
-
-            <div className="main">
-
-              <h3>Please Log In {this.signup()}</h3>
-              <div className="row">
-                {this.facebook()}
-                {this.google()}
-              </div>
-                {this.social()}
-
-              <form role="form">
-                <div className="form-group">
-                  <label htmlFor="email">Username or email</label>
-                  <input type="text" className="form-control" name="email" value={this.state.email} placeholder="Email" onChange={this.handleChange} />
-                </div>
-                <div className="form-group">
-                  <a className="pull-right" href="#">Forgot password?</a>
-                  <label htmlFor="inputPassword">Password</label>
-                  <input type="password" className="form-control" name="password" value={this.state.password} placeholder="Password" onChange={this.handleChange} />
-                </div>
-                <div className="checkbox">
-                    <label>
-                        <input type="checkbox"/>
-                        Remember me
-                    </label>
-                </div>
-                <button type="button"  className="btn btn btn-primary  pull-right" onClick={this.handleLogin}>Login</button>
-              </form>
-            </div>
-          </div>
-        </div>
-    );
+    return this.props.renderLogin(this.state, this.handleChange, this.handleLogin, this.oauthLogin)
   }
 }
 
@@ -129,13 +52,7 @@ LoginWeb.displayName = 'LoginComponent';
 // Uncomment properties you need
 LoginWeb.propTypes = {
   handleOauthLogin: React.PropTypes.func.isRequired,
-  handleLogin: React.PropTypes.func.isRequired,
-  facebook:  React.PropTypes.string,
-  facebookAuthUrl: React.PropTypes.string,
-  google:  React.PropTypes.string,
-  googleAuthUrl: React.PropTypes.string,
-  signup:  React.PropTypes.string
+  handleLogin: React.PropTypes.func.isRequired
 };
-// LoginComponent.defaultProps = {};
 
 export default LoginWeb;

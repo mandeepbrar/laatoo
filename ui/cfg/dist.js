@@ -5,10 +5,10 @@ let webpack = require('webpack');
 
 let baseConfig = require('./base');
 let defaultSettings = require('./defaults');
+var nodeExternals = require('webpack-node-externals');
 
 // Add needed plugins here
 let BowerWebpackPlugin = require('bower-webpack-plugin');
-
 let config = Object.assign({}, baseConfig, {
   entry: {
     laatoo: path.join(__dirname, '../src/laatoo'),
@@ -19,11 +19,12 @@ let config = Object.assign({}, baseConfig, {
       // name of the global var: "Foo"
       library: "laatoo",
       path: path.join(__dirname, '/../dist/assets'),
-      libraryTarget: "commonjs2",
+      libraryTarget: "umd",
       filename: 'index.js',
       publicPath: `.${defaultSettings.publicPath}`
   },
-  externals: {
+  externals: [nodeExternals()],
+  /*{
       // require("jquery") is external and available
       //  on the global var jQuery
       "babel-polyfill": "babel-polyfill",
@@ -48,7 +49,7 @@ let config = Object.assign({}, baseConfig, {
       "segmentize":"segmentize",
       "react-pagify":"react-pagify",
       "normalize.css":"normalize.css"
-  },
+  },*/
   cache: false,
   devtool: 'sourcemap',
   plugins: [

@@ -27,9 +27,9 @@ class EntityView extends React.Component {
   }
   render() {
     return (
-      <div className="container">
-        <div className="row ma20">
-          <Action className="pull-right  m20" widget="button" key={"Create "+this.name} name={"Create "+this.name}>{"Create "+this.name}</Action>
+      <div className="entitywebview">
+        <div className="ma20 actionbar" style={{display:"block", clear:"both"}}>
+          <Action className="rightalign  m20" widget="button" key={"Create "+this.name} name={"Create "+this.name}>{"Create "+this.name}</Action>
         </div>
         <WebTableView className="ma20" ref="view" name={this.name}
           filterTitle="Search" filterGo="Go" filterForm={this.props.filterForm} defaultFilter={this.props.defaultFilter}

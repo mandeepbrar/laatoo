@@ -1,5 +1,4 @@
 import React from 'react';
-import BootstrapImage from 'react-bootstrap/lib/Image'
 
 class Image extends React.Component {
   constructor(props) {
@@ -15,9 +14,8 @@ class Image extends React.Component {
     if (source && source.length>0 && !this.props.src.startsWith("http")) {
       source = this.props.prefix + source
     }
-    console.log("source", source)
     return (
-      <BootstrapImage src={source} {...this.props.modifier} style={this.props.style}/>
+      <img src={source} {...this.props.modifier} style={this.props.style}/>
     )
   }
 }
