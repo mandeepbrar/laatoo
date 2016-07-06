@@ -10,9 +10,9 @@ function* fetchViewData(action) {
     yield put(createAction(ActionNames.VIEW_FETCHING, action.payload,{reducer: action.meta.reducer}));
     let req = RequestBuilder.DefaultRequest(action.payload.queryParams, action.payload.postArgs);
     const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
-    yield put(createAction(ActionNames.VIEW_FETCH_SUCCESS, resp.data, {info: resp.info, reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.VIEW_FETCH_SUCCESS, resp.data, {info: resp.info, incrementalLoad: action.meta.incrementalLoad, reducer: action.meta.reducer}));
   } catch (e) {
-    yield put(createAction(ActionNames.VIEW_FETCH_FAILED, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.VIEW_FETCH_FAILED, e, {reducer: action.meta.reducer, incrementalLoad: action.meta.incrementalLoad}));
   }
 }
 

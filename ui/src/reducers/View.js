@@ -41,13 +41,28 @@ function ViewReducer(reducerName) {
               totalPages = Math.ceil(totalrecords / state.pagesize)
             }
           }
+          let newData = null
+          let data = state.data
+          if(data && action.meta.incrementalLoad) {
+            if(action.payload) {
+              if(Array.isArray(action.payload)) {
+                newData = data.concat(action.payload)
+              } else {
+                newData = Object.assign(data, action.payload)
+              }
+            }
+          } else {
+            newData = action.payload
+          }
           return Object.assign({}, state, {
             status:"Loaded",
-            data: action.payload,
+            data: newData,
+            latestPageData: action.payload,
+            lastLoadTime: (new Date()).getTime(),
             totalPages: totalPages
           });
 
-        case ActionNames.VIEW_FETCH_FAILURE: {
+        case ActionNames.VIEW_FETCH_FAILED: {
           return Object.assign({}, initialState, {
             status:"LoadingFailed"
           });

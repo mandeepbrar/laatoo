@@ -17,6 +17,8 @@ class Display extends React.Component {
     let display = null
     if(this.props.display && this.props.status && this.props.status == "Loaded") {
       display = this.props.display(this.props.data)
+    } else {
+      display = this.props.loader
     }
     return (
       <div>
@@ -30,6 +32,7 @@ const mapStateToProps = (state, ownProps) => {
   let props = {
     name: ownProps.name,
     id: ownProps.id,
+    loader: ownProps.loader,
     reducer: ownProps.reducer,
     display: ownProps.display
   };

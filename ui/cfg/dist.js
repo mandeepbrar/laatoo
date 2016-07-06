@@ -23,10 +23,7 @@ let config = Object.assign({}, baseConfig, {
       filename: 'index.js',
       publicPath: `.${defaultSettings.publicPath}`
   },
-  externals: [nodeExternals()],
-  /*{
-      // require("jquery") is external and available
-      //  on the global var jQuery
+  externals: {
       "babel-polyfill": "babel-polyfill",
       "react": "react",
       "react-dom":"react-dom",
@@ -49,7 +46,8 @@ let config = Object.assign({}, baseConfig, {
       "segmentize":"segmentize",
       "react-pagify":"react-pagify",
       "normalize.css":"normalize.css"
-  },*/
+  },
+  optional: true,
   cache: false,
   devtool: 'sourcemap',
   plugins: [
@@ -78,9 +76,9 @@ config.module.loaders.push({
     [ path.join(__dirname, '/../src') ]
   )
 });
-
+/*
 config.module.loaders.push({
   test: /\.(js|jsx)$/,
   loader: 'strip-loader?strip[]=console.log'
-});
+});*/
 module.exports = config;

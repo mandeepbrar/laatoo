@@ -43,7 +43,6 @@ class ActionComp extends React.Component {
       return;
       default:
       if(this.action.url) {
-
         let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});

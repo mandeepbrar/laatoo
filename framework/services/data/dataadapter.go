@@ -197,6 +197,7 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 		}
 		ids[ind] = f.String()
 	}
+	log.Logger.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", ids)
 	result, err := es.DataStore.GetMulti(ctx, ids, "")
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
@@ -217,7 +218,7 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 	argsMap = *body
 	log.Logger.Trace(ctx, "select", "argsMap", argsMap, "pagesize", pagesize, "pagenum", pagenum)
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
-	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	condition, err := datastore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
 		return nil, -1, -1, errors.WrapError(ctx, err)
 	}

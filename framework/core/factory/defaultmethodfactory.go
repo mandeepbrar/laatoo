@@ -5,7 +5,6 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	//	"laatoo/sdk/log"
-	"laatoo/framework/core/common"
 	"laatoo/sdk/errors"
 )
 
@@ -31,7 +30,7 @@ func (mi *defaultMethodFactory) CreateService(ctx core.ServerContext, name strin
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	return common.NewService(ctx, name, svcFunc), nil
+	return core.NewService(ctx, name, svcFunc), nil
 }
 
 func (ds *defaultMethodFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

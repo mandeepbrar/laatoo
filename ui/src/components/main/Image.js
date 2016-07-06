@@ -15,7 +15,7 @@ class Image extends React.Component {
       source = this.props.prefix + source
     }
     return (
-      <img src={source} {...this.props.modifier} style={this.props.style}/>
+      <img src={source} {...this.props.modifier} className={this.props.className} style={this.props.style}/>
     )
   }
 }

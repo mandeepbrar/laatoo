@@ -44,6 +44,7 @@ func (svc *checkPermissionService) Invoke(ctx core.RequestContext) error {
 	} else {
 		perm, ok = ctx.GetString(SVC_PERMISSION_PARAM)
 		if !ok {
+			log.Logger.Trace(ctx, "Unauthorized response for ", "perm", perm)
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
 		}

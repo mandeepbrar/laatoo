@@ -12,6 +12,7 @@ class TCombWebForm extends React.Component {
     super(props);
     this.submitForm = this.submitForm.bind(this);
     this.setValue = this.setValue.bind(this);
+    this.submit = this.submit.bind(this);
     this.getValue = this.getValue.bind(this);
     this.state = {formValue: props.entityData}
     if(this.props.refCallback) {
@@ -50,15 +51,23 @@ class TCombWebForm extends React.Component {
       }
     }
   }
-
+  submit() {
+    if(this.props.hideSubmit) {
+      return null
+    } else {
+      return (
+        <div className="entityformsubmit">
+          <button type="submit">Save</button>
+        </div>
+      )
+    }
+  }
   render() {
     let state = this.state
     return (
       <form onSubmit={this.submitForm} className="entityform">
         <t.form.Form ref="form" type={this.props.schema} value={state.formValue} options={this.props.schemaOptions}/>
-        <div className="entityformsubmit">
-          <button type="submit">Save</button>
-        </div>
+        {this.submit()}
       </form>
     )
   }

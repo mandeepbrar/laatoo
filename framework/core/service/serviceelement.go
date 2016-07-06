@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 )
 
@@ -43,9 +44,11 @@ func (svc *service) Invoke(ctx core.RequestContext) error {
 	for _, function := range svc.funcs {
 		err := function(ctx)
 		if err != nil {
+			log.Logger.Trace(ctx, "got error ", "service name", svc.GetName())
 			return errors.WrapError(ctx, err)
 		}
 		if ctx.GetResponse() != nil {
+			log.Logger.Trace(ctx, "Got response ", "service name", svc.GetName())
 			break
 		}
 	}

@@ -21,7 +21,8 @@ function getDefaultModules() {
         test: /\.(js|jsx)$/,
         include: srcPath,
         loader: 'eslint-loader'
-      }
+      },
+      { test: /\.json$/, loader: 'json'},
     ],
     loaders: [
       {

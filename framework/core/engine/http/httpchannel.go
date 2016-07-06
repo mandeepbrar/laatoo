@@ -35,10 +35,11 @@ const (
 )
 
 type httpChannel struct {
-	name   string
-	Router net.Router
-	config config.Config
-	engine *httpEngine
+	name     string
+	Router   net.Router
+	config   config.Config
+	engine   *httpEngine
+	skipAuth bool
 }
 
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
@@ -56,11 +57,16 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		router = parentChannel.Router.Group(path)
 	}
 
-	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine}
+	skipAuth, ok := conf.GetBool(config.CONF_HTTPENGINE_SKIPAUTH)
+	if !ok && parentChannel != nil {
+		skipAuth = parentChannel.skipAuth
+	}
+
+	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
 
 	usecors, _ := conf.GetBool(config.CONF_HTTPENGINE_USECORS)
 
-	log.Logger.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors)
+	log.Logger.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors, " skipauth", skipAuth)
 	if usecors {
 		allowedOrigins, ok := conf.GetStringArray(config.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
@@ -151,13 +157,15 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, handler core.Ser
 		corectx.SetGaeReq(req)
 		log.Logger.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
 		defer corectx.CompleteRequest()
-		if shandler != nil {
+		if (!channel.skipAuth) && (shandler != nil) {
 			corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
 			err := shandler.AuthenticateRequest(corectx)
 			if err != nil {
 				pathCtx.NoContent(http.StatusUnauthorized)
 				return err
 			}
+		} else {
+			log.Logger.Trace(corectx, "Auth skipped", "Path", req.URL.RequestURI(), "Method", req.Method)
 		}
 		err := handler(corectx)
 		if err != nil {

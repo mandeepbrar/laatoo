@@ -4,8 +4,9 @@ import React from 'react';
 import {ActionNames} from '../../actions/ActionNames';
 import {Action} from '../action/Action';
 import {WebView} from './WebView'
+import {ScrollListener} from '../main/ScrollListener';
 
-class WebTableView extends React.Component {
+class WebListView extends React.Component {
   constructor(props) {
     super(props);
     this.getItemGroup = this.getItemGroup.bind(this);
@@ -14,6 +15,7 @@ class WebTableView extends React.Component {
     this.getHeader = this.getHeader.bind(this);
     this.methods = this.methods.bind(this);
     this.addMethod = this.addMethod.bind(this);
+    this.onScrollEnd = this.onScrollEnd.bind(this);
   }
   methods() {
     return this.refs.view.methods()
@@ -21,17 +23,37 @@ class WebTableView extends React.Component {
   addMethod(name, method) {
     this.refs.view.addMethod(name, method)
   }
+  onScrollEnd() {
+    let methods = this.methods();
+    methods.loadMore();
+  }
   getView(view, header, groups) {
-    return (
-      <table  className="webtableview">
-        <thead>
-          {header}
-        </thead>
-        <tbody>
-          {groups}
-        </tbody>
-      </table>
-    )
+    if(this.props.getView) {
+        return this.props.getView(view, header, groups)
+    }
+    if(this.props.incrementalLoad) {
+      return (
+        <ScrollListener key={this.props.key} className={this.props.className} style={this.props.style} onScrollEnd={this.onScrollEnd}>
+          <div className={this.props.headerClass}>
+            {header}
+          </div>
+          <div className={this.props.contentClass}>
+            {groups}
+          </div>
+        </ScrollListener>
+      )
+    } else {
+      return (
+        <div key={this.props.key} className={this.props.className} style={this.props.style}>
+          <div className={this.props.headerClass}>
+            {header}
+          </div>
+          <div className={this.props.contentClass}>
+            {groups}
+          </div>
+        </div>
+      )
+    }
   }
   getItemGroup(view, x) {
     return x
@@ -40,44 +62,20 @@ class WebTableView extends React.Component {
     if(this.props.getHeader) {
       return this.props.getHeader(view)
     }
-    return(
-      <tr>
-        <th>
-          Title
-        </th>
-        <th>
-        </th>
-        <th>
-        </th>
-      </tr>
-    )
+    return null
   }
   getItem(view, x, i) {
     if(this.props.getItem) {
       return this.props.getItem(view, x, i)
     }
-    let id = x[this.props.idField];
-    let title = x[this.props.titleField];
-    let encodedid = encodeURIComponent(id)
-    return (
-      <tr key={i + 1}>
-        <td style={{width:"40%"}}>
-          <Action name={"Edit "+this.props.name} params={{ id: encodedid }}>{title}</Action>
-        </td>
-        <td>
-          <Action name={"Edit "+this.props.name} params={{ id: encodedid }}>{id}</Action>
-        </td>
-        <td>
-          <Action name={"Delete "+this.props.name} method={view.methods.deleteItem} params={{ id: encodedid }}>delete</Action>
-        </td>
-      </tr>
-    )
+    return React.Children.map(this.props.children, (child) => React.cloneElement(child, { item: x, index: i }) );
   }
 
   render() {
     return (
       <WebView
         ref="view"
+        key={this.props.key}
         reducer = {this.props.reducer}
         paginate = {this.props.paginate}
         pageSize = {this.props.pageSize}
@@ -85,15 +83,17 @@ class WebTableView extends React.Component {
         urlParams = {this.props.urlParams}
         postArgs = {this.props.postArgs}
         defaultFilter = {this.props.defaultFilter}
-        loader = {this.props.loader}
         currentPage = {this.props.currentPage}
         filterTitle= {this.props.filterTitle}
+        loader = {this.props.loader}
         filterForm={this.props.filterForm}
+        style={this.props.style}
+        globalReducer={this.props.globalReducer}
         filterGo={ this.props.filterGo}
         getFilter={this.props.getFilter}
-        globalReducer={this.props.globalReducer}
         getView =  {this.getView}
         getItem = {this.getItem}
+        incrementalLoad={this.props.incrementalLoad}
         getItemGroup = {this.getItemGroup}
         getHeader = {this.getHeader}
         className={this.props.className}
@@ -104,5 +104,5 @@ class WebTableView extends React.Component {
 }
 
 export {
-  WebTableView
+  WebListView
 }

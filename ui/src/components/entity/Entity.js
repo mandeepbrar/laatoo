@@ -30,6 +30,7 @@ class Entity {
       let header = this.entityProperties.viewHeader;
       let paginate = this.entityProperties.paginate;
       let pageSize = this.entityProperties.pageSize;
+      let loader = this.entityProperties.loader;
       let row = this.entityProperties.viewRow;
       let currentPage = 1;
       let viewService = this.entityProperties.viewService;
@@ -38,7 +39,7 @@ class Entity {
       let filterForm = this.entityProperties.filterForm;
       let defaultFilter = this.entityProperties.defaultFilter;
       return () => (
-          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate}
+          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate} loader={loader}
             pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
             titleField={titleField} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
           </EntityView>
@@ -73,8 +74,9 @@ class Entity {
     DisplayComponent() {
       let reducer = this.name.toUpperCase()+"_Display";
       let display = this.entityProperties.display;
+      let loader = this.entityProperties.loader;
       return (props) => (
-          <DisplayEntity name={this.name} id={props.params.id} reducer={reducer} display={display}></DisplayEntity>
+          <DisplayEntity name={this.name} id={props.params.id} loader={loader} reducer={reducer} display={display}></DisplayEntity>
         )
     }
     ViewReducer() {

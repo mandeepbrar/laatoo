@@ -6,6 +6,7 @@ import { Response, DataSource, RequestBuilder, EntityData } from './sources/Data
 import {Reducers} from './reducers';
 import {Action} from './components/action/Action';
 import {Entity} from './components/entity/Entity';
+import {DisplayEntity} from './components/entity/EntityDisplay';
 import {EntityForm} from './components/entity/EntityForm';
 import {ActionNames} from './actions/ActionNames';
 import createSagaMiddleware from 'redux-saga';
@@ -17,8 +18,14 @@ import {TextEdit} from './components/form/textedit';
 import {ImageEdit} from './components/form/imageedit';
 import {WebTableView} from './components/view/WebTableView';
 import {ViewReducer} from './reducers/View';
+import {EntityReducer} from './reducers/Entity';
 import {ViewFilter} from './components/view/Filter';
 import {Image} from './components/main/Image';
+import {View} from './components/view/View';
+import {WebView} from './components/view/WebView';
+import {WebListView} from './components/view/WebListView';
+import {Html} from './components/main/Html';
+import {ScrollListener} from './components/main/ScrollListener';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -44,9 +51,11 @@ module.exports = {
     Reducers: Reducers,
     RequestBuilder: RequestBuilder,
     ViewReducer: ViewReducer,
+    EntityReducer: EntityReducer,
     Action: Action,
     ActionNames: ActionNames,
     Entity: Entity,
+    DisplayEntity: DisplayEntity,
     EntityData: EntityData,
     EntityForm:EntityForm,
     createStore: createStore,
@@ -54,6 +63,11 @@ module.exports = {
     WebTableView: WebTableView,
     VideoEdit: VideoEdit,
     TextEdit: TextEdit,
+    ScrollListener: ScrollListener,
+    WebView: WebView,
+    WebListView: WebListView,
+    Html : Html,
+    View: View,
     Image: Image,
     ImageEdit: ImageEdit,
     ViewFilter: ViewFilter,
