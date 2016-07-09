@@ -79,17 +79,11 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.publicKey = publicKey
 
-	usr, err := userCreator(initCtx, nil)
+	anonymousUser, err := userCreator(initCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
 	if err != nil {
 		return err
 	}
-	anonymousUser, ok := usr.(auth.RbacUser)
-	if !ok {
-		return errors.ThrowError(initCtx, errors.CORE_ERROR_TYPE_MISMATCH)
-	}
-	anonymousUser.SetId("Anonymous")
-	anonymousUser.SetRoles([]string{"Anonymous"})
-	sh.anonymousUser = anonymousUser
+	sh.anonymousUser = anonymousUser.(auth.User)
 
 	authToken, ok := conf.GetString(config.AUTHHEADER)
 	if !ok {

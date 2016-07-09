@@ -2,7 +2,7 @@ import  {ActionNames} from '../actions/ActionNames';
 
 function EntityReducer(reducerName) {
   var initialState = {
-    status: "Empty",
+    status: "NotLoaded",
     entityId: "",
     entityName:"",
     data:{}
@@ -28,6 +28,7 @@ function EntityReducer(reducerName) {
         case ActionNames.ENTITY_GET_SUCCESS:
           return Object.assign({}, state, {
             status:"Loaded",
+            lastUpdateTime: (new Date()).getTime(),
             data: action.payload
           });
 

@@ -23,6 +23,7 @@ const (
 	CONF_SVC_GETMULTIPLE_SELECTIDS = "GETMULTIPLE_SELECTIDS"
 	CONF_SVC_SAVE                  = "SAVE"
 	CONF_SVC_DELETE                = "DELETE"
+	CONF_SVC_DELETEALL             = "DELETEALL"
 	CONF_SVC_SELECT                = "SELECT"
 	CONF_SVC_UPDATE                = "UPDATE"
 	CONF_SVC_UPDATEMULTIPLE        = "UPDATEMULTIPLE"
@@ -96,6 +97,8 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.SAVE
 	case CONF_SVC_DELETE:
 		ds.svcfunc = ds.DELETE
+	case CONF_SVC_DELETEALL:
+		ds.svcfunc = ds.DELETEALL
 	case CONF_SVC_SELECT:
 		ds.svcfunc = ds.SELECT
 	case CONF_SVC_UPDATE:
@@ -269,6 +272,21 @@ func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
 	err := es.DataStore.Delete(ctx, id)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+	}
+	return err
+}
+
+func (es *dataAdapterService) DELETEALL(ctx core.RequestContext) error {
+	log.Logger.Trace(ctx, "Deleting")
+	body := ctx.GetRequest().(*map[string]interface{})
+	argsMap := *body
+	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	retval, err := es.DataStore.DeleteAll(ctx, condition)
+	if err == nil {
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, retval, nil))
 	}
 	return err
 }

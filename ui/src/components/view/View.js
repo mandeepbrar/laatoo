@@ -44,8 +44,8 @@ class ViewDisplay extends React.Component {
   }
   shouldComponentUpdate(nextProps, nextState) {
     if(this.lastRenderTime) {
-      if(nextProps.lastLoadTime) {
-        if(this.lastRenderTime >= nextProps.lastLoadTime) {
+      if(nextProps.lastUpdateTime) {
+        if(this.lastRenderTime >= nextProps.lastUpdateTime) {
           return false
         }
       } else {
@@ -142,8 +142,7 @@ class ViewDisplay extends React.Component {
     }
   }
   render() {
-    console.log("render" + this.props.reducer)
-    this.lastRenderTime = this.props.lastLoadTime
+    this.lastRenderTime = this.props.lastUpdateTime
     let groups=[]
     let groupsize = 1
     let group=[]
@@ -213,7 +212,7 @@ const mapStateToProps = (state, ownProps) => {
         props.items = view.data
         props.currentPage = view.currentPage
         props.totalPages = view.totalPages
-        props.lastLoadTime = view.lastLoadTime
+        props.lastUpdateTime = view.lastUpdateTime
         props.latestPageData = view.latestPageData
         return props
     }

@@ -79,7 +79,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	if existinguser != nil {
 		return errors.ThrowError(ctx, AUTH_ERROR_USER_EXISTS)
 	}
-	user.SetRoles([]string{rs.DefaultRole})
+	//	user.SetRoles([]string{rs.DefaultRole})
 	storable, ok := ent.(data.Storable)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)

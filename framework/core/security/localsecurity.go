@@ -129,7 +129,7 @@ func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(aut
 			rbac.SetPermissions(permissions)
 			token.Claims["Admin"] = admin
 		}
-		user.SetJWTClaims(token)
+		user.PopulateJWTToken(token)
 		token.Claims[config.REALM] = realm
 		token.Claims["UserId"] = user.GetId()
 		//token.Claims["IP"] = ctx.ClientIP()

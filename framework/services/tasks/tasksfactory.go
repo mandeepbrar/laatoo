@@ -17,7 +17,7 @@ type taskQueue struct {
 type task struct {
 	Queue string
 	Data  []byte
-	User  string
+	Token string
 }
 
 type tasksFactory struct {

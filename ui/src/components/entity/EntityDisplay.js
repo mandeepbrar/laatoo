@@ -11,10 +11,30 @@ class Display extends React.Component {
     super(props);
   }
   componentDidMount() {
-    this.props.loadEntity();
+    if(this.props.load) {
+      this.props.loadEntity();
+    }
+  }
+  componentWillReceiveProps(nextprops) {
+    if(nextprops.load) {
+      this.props.loadEntity();
+    }
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    if(this.lastRenderTime) {
+      if(nextProps.lastUpdateTime) {
+        if(this.lastRenderTime >= nextProps.lastUpdateTime) {
+          return false
+        }
+      } else {
+        return false
+      }
+    }
+    return true;
   }
   render() {
     let display = null
+    this.lastRenderTime = this.props.lastUpdateTime
     if(this.props.display && this.props.status && this.props.status == "Loaded") {
       display = this.props.display(this.props.data)
     } else {
@@ -34,13 +54,18 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     loader: ownProps.loader,
     reducer: ownProps.reducer,
-    display: ownProps.display
+    display: ownProps.display,
+    load: false
   };
   if(state.router && state.router.routeStore) {
     let entity = state.router.routeStore[ownProps.reducer];
     if(entity) {
       props.status = entity.status
       props.data = entity.data
+      props.lastUpdateTime = entity.lastUpdateTime
+      if(entity.status == "NotLoaded") {
+          props.load = true
+      }
     }
   }
   return props;

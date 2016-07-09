@@ -236,7 +236,9 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	defer connCopy.Close()
 	condition := bson.M{}
 	condition[ms.objectid] = id
-	item.SetId(id)
+	if item.GetId() != id {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST, "Error", "Id mismatch in put")
+	}
 	if ms.presave {
 		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
 		if err != nil {

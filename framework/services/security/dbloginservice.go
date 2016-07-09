@@ -86,12 +86,12 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	//compare the user requested with the user from database
 	existingUser := usrs[0].(auth.LocalAuthUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
-	existingUser.SetPassword("")
+	existingUser.ClearPassword()
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	} else {
-		existingUser.SetPassword("")
+		existingUser.ClearPassword()
 		token, user, err := ls.tokenGenerator(existingUser, realm)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)

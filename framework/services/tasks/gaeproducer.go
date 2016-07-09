@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/server"
 	//	"laatoo/sdk/log"
 )
 
@@ -14,7 +15,8 @@ const (
 )
 
 type gaeProducer struct {
-	path string
+	path       string
+	authHeader string
 }
 
 func (svc *gaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -22,7 +24,20 @@ func (svc *gaeProducer) Initialize(ctx core.ServerContext, conf config.Config) e
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", GAE_PATH)
 	}
+
 	svc.path = path
+	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sh != nil {
+		shandler := sh.(server.SecurityHandler)
+		ah, ok := shandler.GetString(config.AUTHHEADER)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+		}
+		svc.authHeader = ah
+	} else {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+	}
+
 	return nil
 }
 
@@ -32,7 +47,10 @@ func (svc *gaeProducer) PushTask(ctx core.RequestContext, queue string, taskData
 	if err != nil {
 		return err
 	}
-	t := task{Queue: queue, Data: data, User: ctx.GetUser().GetId()}
+
+	token, _ := ctx.GetString(svc.authHeader)
+
+	t := task{Queue: queue, Data: data, Token: token}
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err

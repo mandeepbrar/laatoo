@@ -7,12 +7,15 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 )
 
 type beanstalkConsumer struct {
-	queues map[string]*taskQueue
-	pool   *beanstalk.ConsumerPool
-	addr   string
+	queues     map[string]*taskQueue
+	pool       *beanstalk.ConsumerPool
+	addr       string
+	authHeader string
+	shandler   server.SecurityHandler
 }
 
 func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -20,6 +23,20 @@ func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	if !ok {
 		addr = ":11300"
 	}
+
+	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sh != nil {
+		shandler := sh.(server.SecurityHandler)
+		svc.shandler = shandler
+		ah, ok := shandler.GetString(config.AUTHHEADER)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+		}
+		svc.authHeader = ah
+	} else {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+	}
+
 	svc.addr = addr
 	queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
 	if ok {
@@ -73,12 +90,11 @@ func (svc *beanstalkConsumer) work(ctx core.ServerContext) {
 					log.Logger.Error(ctx, "Error in background process", "job", job.ID, "err", err)
 					job.Bury()
 				} else {
-					log.Logger.Debug(ctx, "Received job", "id", job.ID, "task", t, "body", job.Body)
 					req := ctx.CreateNewRequest("Task", nil)
 					req.SetRequest(t.Data)
-					req.Set("User", t.User)
+					req.Set(svc.authHeader, t.Token)
+					svc.shandler.AuthenticateRequest(req)
 					queueName := t.Queue
-					log.Logger.Debug(ctx, "Received job", "id", job.ID, "task", t, "body", job.Body, "queue", queueName)
 					q, ok := svc.queues[queueName]
 					if ok {
 						err := q.lstnr.Invoke(req)

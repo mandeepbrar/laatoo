@@ -1,14 +1,13 @@
 package security
 
 import (
+	"github.com/twinj/uuid"
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"strings"
-
-	"github.com/twinj/uuid"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -35,6 +34,21 @@ func (rf *UserFactory) Start(ctx core.ServerContext) error {
 func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
 	usr := &DefaultUser{}
 	usr.Id = uuid.NewV4().String()
+	if args != nil {
+		id, ok := args["Id"]
+		if ok {
+			usr.setId(id.(string))
+		}
+		roles, ok := args["Roles"]
+		if ok {
+			usr.setRoles(roles.([]string))
+		}
+		realm, ok := args["Realm"]
+		if ok {
+			usr.Realm = realm.(string)
+		}
+
+	}
 	return usr, nil
 }
 
@@ -64,7 +78,8 @@ type DefaultUser struct {
 func (usr *DefaultUser) GetId() string {
 	return usr.Id
 }
-func (usr *DefaultUser) SetId(id string) {
+
+func (usr *DefaultUser) setId(id string) {
 	usr.Id = id
 }
 func (usr *DefaultUser) GetIdField() string {
@@ -93,13 +108,19 @@ func (ent *DefaultUser) PostLoad(ctx core.RequestContext) error {
 func (usr *DefaultUser) GetPassword() string {
 	return usr.Password
 }
-func (usr *DefaultUser) SetPassword(password string) {
+
+func (usr *DefaultUser) ClearPassword() {
+	usr.Password = ""
+}
+
+func (usr *DefaultUser) setPassword(password string) {
 	usr.Password = password
 }
 func (usr *DefaultUser) GetRoles() ([]string, error) {
 	return usr.Roles, nil
 }
-func (usr *DefaultUser) SetRoles(roles []string) error {
+
+func (usr *DefaultUser) setRoles(roles []string) error {
 	usr.Roles = roles
 	return nil
 }
@@ -111,19 +132,20 @@ func (usr *DefaultUser) GetRealm() string {
 func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }
+
 func (usr *DefaultUser) SetPermissions(permissions []string) {
 	usr.Permissions = permissions
 }
-func (usr *DefaultUser) AddRole(role string) error {
+func (usr *DefaultUser) addRole(role string) error {
 	usr.Roles = append(usr.Roles, role)
 	return nil
 }
-func (usr *DefaultUser) RemoveRole(role string) error {
+func (usr *DefaultUser) removeRole(role string) error {
 	usr.Roles = utils.Remove(usr.Roles, role)
 	return nil
 }
 
-func (usr *DefaultUser) SetJWTClaims(token *jwt.Token) {
+func (usr *DefaultUser) PopulateJWTToken(token *jwt.Token) {
 	token.Claims["Roles"] = strings.Join(usr.Roles, ",")
 	token.Claims["Name"] = usr.Name
 	token.Claims["Picture"] = usr.Picture
@@ -147,7 +169,7 @@ func (usr *DefaultUser) GetGender() string {
 }
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
-	usr.SetId(token.Claims["UserId"].(string))
+	usr.setId(token.Claims["UserId"].(string))
 	usr.Name = token.Claims["Name"].(string)
 	usr.Picture = token.Claims["Picture"].(string)
 	rolesInt := token.Claims["Roles"]
@@ -161,7 +183,7 @@ func (usr *DefaultUser) encryptPassword() error {
 	if err != nil {
 		return err
 	}
-	usr.SetPassword(string(hash))
+	usr.setPassword(string(hash))
 	return nil
 }
 

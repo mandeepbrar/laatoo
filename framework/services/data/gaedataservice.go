@@ -234,7 +234,9 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	invalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
-	item.SetId(id)
+	if item.GetId() != id {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST, "Error", "Id mismatch in put")
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
 		if err != nil {

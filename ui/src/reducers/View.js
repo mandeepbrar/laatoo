@@ -57,14 +57,32 @@ function ViewReducer(reducerName) {
           return Object.assign({}, state, {
             status:"Loaded",
             data: newData,
-            latestPageData: action.payload,
-            lastLoadTime: (new Date()).getTime(),
+            lastUpdateTime: (new Date()).getTime(),
             totalPages: totalPages
           });
 
         case ActionNames.VIEW_FETCH_FAILED: {
           return Object.assign({}, initialState, {
             status:"LoadingFailed"
+          });
+        }
+
+        case ActionNames.VIEW_ITEM_REMOVE: {
+          let id = action.payload.Id
+          if (id==null) {
+            return state
+          }
+          let data = state.data
+          let newData = null
+          if(Array.isArray(data)) {
+            newData = data.splice(id, 1)
+          } else {
+            newData = Object.assign({}, data);
+            delete newData[id]
+          }
+          return Object.assign({}, state, {
+            data: newData,
+            lastUpdateTime: (new Date()).getTime(),
           });
         }
 

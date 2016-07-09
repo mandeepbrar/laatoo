@@ -2,10 +2,12 @@ package tasks
 
 import (
 	"encoding/json"
-	"github.com/prep/beanstalk"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/server"
+
+	"github.com/prep/beanstalk"
 	//	"laatoo/sdk/log"
 )
 
@@ -14,8 +16,9 @@ const (
 )
 
 type beanstalkProducer struct {
-	pool   *beanstalk.ProducerPool
-	params *beanstalk.PutParams
+	pool       *beanstalk.ProducerPool
+	params     *beanstalk.PutParams
+	authHeader string
 }
 
 func (svc *beanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -23,6 +26,19 @@ func (svc *beanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 	if !ok {
 		addr = ":11300"
 	}
+
+	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sh != nil {
+		shandler := sh.(server.SecurityHandler)
+		ah, ok := shandler.GetString(config.AUTHHEADER)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+		}
+		svc.authHeader = ah
+	} else {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+	}
+
 	svc.pool = beanstalk.NewProducerPool([]string{addr}, nil)
 	if svc.pool == nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", addr)
@@ -37,7 +53,9 @@ func (svc *beanstalkProducer) PushTask(ctx core.RequestContext, queue string, ta
 	if err != nil {
 		return err
 	}
-	t := task{Queue: queue, Data: data, User: ctx.GetUser().GetId()}
+	token, _ := ctx.GetString(svc.authHeader)
+
+	t := task{Queue: queue, Data: data, Token: token}
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err

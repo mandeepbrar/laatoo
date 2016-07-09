@@ -119,11 +119,11 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext) error {
 	}
 
 	//create the user
-	usrInt, _ := ks.userCreator(ctx, nil)
+	usrInt, _ := ks.userCreator(ctx, core.MethodArgs{"Id": "system", "Roles": []string{client.role}, "Realm": ks.localRealm})
 
 	usr := usrInt.(auth.RbacUser)
-	usr.SetId("system")
-	usr.SetRoles([]string{client.role})
+	/*usr.SetId("system")
+	usr.SetRoles([]string{client.role})*/
 	token, user, err := ks.tokenGenerator(usr, ks.localRealm)
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)

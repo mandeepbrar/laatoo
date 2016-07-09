@@ -7,10 +7,13 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 )
 
 type gaeConsumer struct {
-	queues map[string]*taskQueue
+	queues     map[string]*taskQueue
+	authHeader string
+	shandler   server.SecurityHandler
 }
 
 func (svc *gaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -29,6 +32,20 @@ func (svc *gaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) e
 	} else {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_TASK_QUEUES)
 	}
+
+	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
+	if sh != nil {
+		shandler := sh.(server.SecurityHandler)
+		svc.shandler = shandler
+		ah, ok := shandler.GetString(config.AUTHHEADER)
+		if !ok {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+		}
+		svc.authHeader = ah
+	} else {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
+	}
+
 	return nil
 }
 
@@ -53,10 +70,11 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 		log.Logger.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
 		return err
 	} else {
-		log.Logger.Debug(ctx, "Received job", "task", t)
+		log.Logger.Debug(ctx, "Received job************************", "task", t)
 		req := ctx.SubContext("Task")
 		req.SetRequest(t.Data)
-		req.Set("User", t.User)
+		req.Set(svc.authHeader, t.Token)
+		svc.shandler.AuthenticateRequest(req)
 		queueName := t.Queue
 		log.Logger.Debug(ctx, "Received job", "task", t, "queue", queueName)
 		q, ok := svc.queues[queueName]
