@@ -69,25 +69,41 @@ class ImageChooser extends React.Component {
     this.setState({imagechooser: e.target.value});
   }
   render () {
+    let style = null
+    if(this.props.style) {
+      style = this.props.style
+    } else {
+      style = {height:"300"}
+    }
+    let imageStyle = {height:"220"}
+    if(this.props.imageStyle) {
+      imageStyle = this.props.imageStyle
+    } else {
+      imageStyle = {height:"220"}
+    }
     if(this.props.value) {
       return (
-        <div className="imageedit" style={{height:"300px"}}>
-          <p><strong>URL: </strong>{this.props.value}</p>
-          <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix} style={{width: 'auto', height: 220}} />
-          <button className="btn" role="button" onClick={this.clear}>Clear</button>
+        <div className="imageedit" style={style}>
+          {!this.props.hideURL?<p><strong>URL: </strong>{this.props.value}</p>:null}
+          <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix} style={imageStyle} />
+          {this.props.clear? this.props.clear(this.clear):<button className="btn" role="button" onClick={this.clear}>Clear</button>}
         </div>
       )
     } else {
       let choice = this.state.imagechooser
       let component = this.getComponent(choice)
-      return (
-        <div style={{height:"300px"}} className="imageedit">
-          <input type="radio" name="imagechooser" value="upload" checked={this.state.imagechooser=="upload"} onChange={this.handleChoiceChange}/> Upload
-          &nbsp;&nbsp;
-          <input type="radio" name="imagechooser" value="url" checked={this.state.imagechooser=="url"} onChange={this.handleChoiceChange}/> URL
-          {component}
-        </div>
-      )
+      if(!this.props.hideChoice) {
+        return (
+          <div style={style} className="imageedit">
+            <input type="radio" name="imagechooser" value="upload" checked={this.state.imagechooser=="upload"} onChange={this.handleChoiceChange}/> Upload
+            &nbsp;&nbsp;
+            <input type="radio" name="imagechooser" value="url" checked={this.state.imagechooser=="url"} onChange={this.handleChoiceChange}/> URL
+            {component}
+          </div>
+        )
+      } else {
+        return component
+      }
     }
   }
 }
@@ -96,14 +112,16 @@ class ImageEdit extends t.form.Component { // extend the base class
   getTemplate() {
     return (locals) => {
       console.log("locals....", locals)
+      let config = {}
+      if(locals.config) {
+        config = locals.config
+      }
       let choose = (file) => {
         console.log(file);
       }
       return (
-        <div>
-          <label>{locals.label}</label>
-          <ImageChooser value={locals.value} onChange={locals.onChange} prefix={locals.config.prefix} uploadService={locals.config.service}/>
-        </div>
+          <ImageChooser value={locals.value} style={config.style} hideURL={config.hideURL} hideChoice={config.hideChoice} clear={config.clear}
+              onChange={locals.onChange} prefix={locals.config.prefix} imageStyle={config.imageStyle} uploadService={config.service}/>
       );
     };
   }

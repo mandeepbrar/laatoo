@@ -21,8 +21,12 @@ type securityHandler struct {
 	userCreator   core.ObjectCreator
 	roleCreator   core.ObjectCreator
 	anonymousUser auth.User
+	securityMode  string
+	userObject    string
 	roleObject    string
 	authHeader    string
+	adminRole     string
+	securityConf  config.Config
 	publicKey     *rsa.PublicKey
 	realm         string
 }
@@ -35,10 +39,12 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	initCtx := sh.createContext(ctx, "Initialize Security Handler")
+	sh.securityConf = conf
 	adminRole, ok := conf.GetString(config.ADMINROLE)
 	if !ok {
 		adminRole = config.DEFAULT_ADMIN
 	}
+	sh.adminRole = adminRole
 	sh.Set(config.ADMINROLE, adminRole)
 
 	roleobject, ok := conf.GetString(config.ROLE)
@@ -46,24 +52,14 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		roleobject = config.DEFAULT_ROLE
 	}
 	sh.Set(config.ROLE, roleobject)
-
-	roleCreator, err := initCtx.GetObjectCreator(roleobject)
-	if err != nil {
-		return errors.WrapError(initCtx, err)
-	}
-	sh.roleCreator = roleCreator
+	sh.roleObject = roleobject
 
 	userObject, ok := conf.GetString(config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
 	}
 	sh.Set(config.USER, userObject)
-
-	userCreator, err := initCtx.GetObjectCreator(userObject)
-	if err != nil {
-		return errors.WrapError(initCtx, err)
-	}
-	sh.userCreator = userCreator
+	sh.userObject = userObject
 
 	realm, _ := conf.GetString(config.REALM)
 	sh.realm = realm
@@ -79,12 +75,6 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.publicKey = publicKey
 
-	anonymousUser, err := userCreator(initCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
-	if err != nil {
-		return err
-	}
-	sh.anonymousUser = anonymousUser.(auth.User)
-
 	authToken, ok := conf.GetString(config.AUTHHEADER)
 	if !ok {
 		authToken = config.DEFAULT_AUTHHEADER
@@ -96,28 +86,47 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	if !ok {
 		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_SECURITY_MODE)
 	}
-
-	switch mode {
-	case config.CONF_SECURITY_LOCAL:
-		plugin, err := security.NewLocalSecurityHandler(initCtx, conf, adminRole, sh.roleCreator, realm)
-		if err != nil {
-			return err
-		}
-		sh.handler = plugin
-		return nil
-	case config.CONF_SECURITY_REMOTE:
-		plugin, err := security.NewRemoteSecurityHandler(initCtx, conf, adminRole, authToken, roleobject, realm)
-		if err != nil {
-			return err
-		}
-		sh.handler = plugin
-		return nil
-	default:
-		return errors.ThrowError(initCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_SECURITY_MODE)
-	}
+	sh.securityMode = mode
+	return nil
 }
 
 func (sh *securityHandler) Start(ctx core.ServerContext) error {
+	startCtx := sh.createContext(ctx, "Starting Security Handler")
+	userCreator, err := startCtx.GetObjectCreator(sh.userObject)
+	if err != nil {
+		return errors.WrapError(startCtx, err)
+	}
+	sh.userCreator = userCreator
+
+	roleCreator, err := startCtx.GetObjectCreator(sh.roleObject)
+	if err != nil {
+		return errors.WrapError(startCtx, err)
+	}
+	sh.roleCreator = roleCreator
+
+	anonymousUser, err := userCreator(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
+	if err != nil {
+		return err
+	}
+	sh.anonymousUser = anonymousUser.(auth.User)
+
+	switch sh.securityMode {
+	case config.CONF_SECURITY_LOCAL:
+		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.roleCreator, sh.realm)
+		if err != nil {
+			return err
+		}
+		sh.handler = plugin
+	case config.CONF_SECURITY_REMOTE:
+		plugin, err := security.NewRemoteSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.authHeader, sh.roleObject, sh.realm)
+		if err != nil {
+			return err
+		}
+		sh.handler = plugin
+	default:
+		return errors.ThrowError(startCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_SECURITY_MODE)
+	}
+
 	return sh.handler.Start(ctx)
 }
 

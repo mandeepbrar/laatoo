@@ -1,13 +1,14 @@
 package security
 
 import (
-	"github.com/twinj/uuid"
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"strings"
+
+	"github.com/twinj/uuid"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -35,9 +36,9 @@ func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (int
 	usr := &DefaultUser{}
 	usr.Id = uuid.NewV4().String()
 	if args != nil {
-		id, ok := args["Id"]
+		username, ok := args["Username"]
 		if ok {
-			usr.setId(id.(string))
+			usr.Username = username.(string)
 		}
 		roles, ok := args["Roles"]
 		if ok {
@@ -46,6 +47,22 @@ func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (int
 		realm, ok := args["Realm"]
 		if ok {
 			usr.Realm = realm.(string)
+		}
+		picture, ok := args["Picture"]
+		if ok {
+			usr.Picture = picture.(string)
+		}
+		password, ok := args["Password"]
+		if ok {
+			usr.Password = password.(string)
+		}
+		email, ok := args["Email"]
+		if ok {
+			usr.Email = email.(string)
+		}
+		name, ok := args["Name"]
+		if ok {
+			usr.Name = name.(string)
 		}
 
 	}
@@ -68,7 +85,6 @@ type DefaultUser struct {
 	Name        string   `json:"Name" bson:"Name"`
 	Deleted     bool     `json:"Deleted" bson:"Deleted"`
 	Picture     string   `json:"Picture" bson:"Picture"`
-	Gender      string   `json:"Gender" bson:"Gender"`
 	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
 	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
 	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
@@ -102,7 +118,7 @@ func (ent *DefaultUser) PostSave(ctx core.RequestContext) error {
 	return nil
 }
 func (ent *DefaultUser) PostLoad(ctx core.RequestContext) error {
-	//ent.Password = ""
+	ent.Password = ""
 	return nil
 }
 func (usr *DefaultUser) GetPassword() string {
@@ -163,9 +179,6 @@ func (usr *DefaultUser) GetUserName() string {
 
 func (usr *DefaultUser) GetPicture() string {
 	return usr.Picture
-}
-func (usr *DefaultUser) GetGender() string {
-	return usr.Gender
 }
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {

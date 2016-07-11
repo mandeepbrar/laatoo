@@ -33,13 +33,18 @@ class TCombWebForm extends React.Component {
   }
   submitForm(evt) {
     evt.preventDefault();
+    let validationRes = this.refs.form.validate()
     let data = this.refs.form.getValue()
     if (!data) {
+      console.log(validationRes);
       return;
     }
     data = Object.assign({}, data);
     if(this.props.preSave) {
       data = this.props.preSave(data);
+    }
+    if (!data) {
+      return;
     }
     if(!this.props.id || this.props.id==="") {
       this.props.save(data);
@@ -47,11 +52,15 @@ class TCombWebForm extends React.Component {
       if(this.props.usePut) {
         this.props.put(data);
       } else {
+        console.log("updaed ", this.props.id, data)
         this.props.update(data);
       }
     }
   }
   submit() {
+    if(this.props.actionButtons) {
+      return this.props.actionButtons(this)
+    }
     if(this.props.hideSubmit) {
       return null
     } else {
@@ -82,6 +91,7 @@ const mapStateToProps = (state, ownProps) => {
     schema: ownProps.schema,
     preSave: ownProps.preSave,
     usePut: ownProps.usePut,
+    actionButtons: ownProps.actionButtons,
     schemaOptions: ownProps.schemaOptions
   }
 }
@@ -92,10 +102,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       dispatch(createAction(ActionNames.ENTITY_SAVE, {data:data, entityName: ownProps.name}, {reducer: ownProps.reducer}));
     },
     put: (data) => {
-      dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer}));
+      dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate}));
     },
     update: (data) => {
-      dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer}));
+      dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate}));
     }
   }
 }

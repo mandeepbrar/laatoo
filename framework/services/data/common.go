@@ -19,6 +19,7 @@ const (
 	CONF_DATA_NOTIFYUPDATES = "notifyupdates"
 	CONF_DATA_NOTIFYNEW     = "notifynew"
 	CONF_PRESAVE_MSG        = "storable_presave"
+	CONF_PREUPDATE_MSG      = "storable_preupdate"
 )
 
 func notifyUpdate(ctx core.RequestContext, objectType string, id string) {

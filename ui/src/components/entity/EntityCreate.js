@@ -37,7 +37,7 @@ class CreateForm extends React.Component {
     return (
       <div>
         {this.title()}
-        <EntityForm name={this.props.name} refCallback={this.props.refCallback} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
+        <EntityForm name={this.props.name} actionButtons={this.props.actionButtons} refCallback={this.props.refCallback} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
         </EntityForm>
       </div>
     )
@@ -52,6 +52,7 @@ const mapStateToProps = (state, ownProps) => {
     refCallback: ownProps.refCallback,
     reducer: ownProps.reducer,
     mountForm: ownProps.mountForm,
+    actionButtons: ownProps.actionButtons,
     preSave: ownProps.preSave,
     postSave: ownProps.postSave
   };

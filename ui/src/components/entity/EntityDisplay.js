@@ -21,24 +21,28 @@ class Display extends React.Component {
     }
   }
   shouldComponentUpdate(nextProps, nextState) {
-    if(this.lastRenderTime) {
+    if(!nextProps.forceUpdate && this.lastRenderTime) {
       if(nextProps.lastUpdateTime) {
         if(this.lastRenderTime >= nextProps.lastUpdateTime) {
+          console.log("update false", nextProps.name)
           return false
         }
       } else {
+        console.log("update false", nextProps.name)
         return false
       }
     }
+    console.log("update true", nextProps.name)
     return true;
   }
   render() {
+    console.log("render",this.props.name)
     let display = null
     this.lastRenderTime = this.props.lastUpdateTime
-    if(this.props.display && this.props.status && this.props.status == "Loaded") {
-      display = this.props.display(this.props.data)
-    } else {
+    if(this.props.display && this.props.status && this.props.status == "Loading") {
       display = this.props.loader
+    } else {
+      display = this.props.display(this.props.data)
     }
     return (
       <div>
@@ -54,18 +58,26 @@ const mapStateToProps = (state, ownProps) => {
     id: ownProps.id,
     loader: ownProps.loader,
     reducer: ownProps.reducer,
+    forceUpdate: ownProps.forceUpdate,
     display: ownProps.display,
     load: false
   };
-  if(state.router && state.router.routeStore) {
-    let entity = state.router.routeStore[ownProps.reducer];
-    if(entity) {
-      props.status = entity.status
-      props.data = entity.data
+  let entity = null;
+  if(!ownProps.globalReducer) {
+    if(state.router && state.router.routeStore) {
+      entity = state.router.routeStore[ownProps.reducer];
+    }
+  } else {
+    entity = state[ownProps.reducer];
+  }
+  if(entity) {
+    props.status = entity.status
+    props.data = entity.data
+    if(entity.status == "Loaded") {
       props.lastUpdateTime = entity.lastUpdateTime
-      if(entity.status == "NotLoaded") {
-          props.load = true
-      }
+    }
+    if(entity.status == "NotLoaded") {
+        props.load = true
     }
   }
   return props;

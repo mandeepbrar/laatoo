@@ -41,6 +41,9 @@ function* putEntityData(action) {
     yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
     yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, {}, {reducer: action.meta.reducer}));
+    if(action.meta.reload) {
+      yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
+    }
   } catch (e) {
     yield put(createAction(ActionNames.ENTITY_PUT_FAILURE, e, {reducer: action.meta.reducer}));
   }
@@ -51,6 +54,9 @@ function* updateEntityData(action) {
     yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.UpdateEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
     yield put(createAction(ActionNames.ENTITY_UPDATE_SUCCESS, {}, {reducer: action.meta.reducer}));
+    if(action.meta.reload) {
+      yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
+    }
   } catch (e) {
     yield put(createAction(ActionNames.ENTITY_UPDATE_FAILURE, e, {reducer: action.meta.reducer}));
   }

@@ -273,6 +273,12 @@ func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals m
 	if ms.auditable {
 		data.Audit(ctx, newVals)
 	}
+	if ms.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.object, "data": newVals})
+		if err != nil {
+			return err
+		}
+	}
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition := bson.M{}
 	condition[ms.objectid] = id
@@ -294,6 +300,12 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 	results, err := ms.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
+	}
+	if ms.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": ms.object, "data": newVals})
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
 	}
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -331,6 +343,12 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	if ms.auditable {
 		data.Audit(ctx, newVals)
+	}
+	if ms.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": ms.object, "data": newVals})
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.objectid, ids)

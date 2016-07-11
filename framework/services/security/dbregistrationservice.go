@@ -21,8 +21,6 @@ type RegistrationService struct {
 	AuthMode string
 	//admin role
 	DefaultRole string
-	jwtSecret   string
-	authHeader  string
 	userObject  string
 	name        string
 	userCreator core.ObjectCreator
@@ -30,6 +28,7 @@ type RegistrationService struct {
 	userDataSvcName string
 	//data service to use for users
 	UserDataService data.DataComponent
+	realm           string
 }
 
 func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -37,16 +36,12 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 	if sechandler == nil {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	jwtSecret, ok := sechandler.GetString(config.JWTSECRET)
+	realm, ok := sechandler.GetString(config.REALM)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	rs.jwtSecret = jwtSecret
-	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
-	if !ok {
-		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
-	}
-	rs.authHeader = authHeader
+	rs.realm = realm
+
 	userObject, ok := sechandler.GetString(config.USER)
 	if !ok {
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -73,18 +68,51 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 //Expects Rbac user to be provided inside the request
 func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	ent := ctx.GetRequest()
-	user, ok := ent.(auth.RbacUser)
-	id := user.GetId()
-	existinguser, _ := rs.UserDataService.GetById(ctx, id)
-	if existinguser != nil {
-		return errors.ThrowError(ctx, AUTH_ERROR_USER_EXISTS)
-	}
-	//	user.SetRoles([]string{rs.DefaultRole})
-	storable, ok := ent.(data.Storable)
+	body, ok := ent.(*map[string]interface{})
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+		log.Logger.Trace(ctx, "Not map")
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
 	}
-	err := rs.UserDataService.Save(ctx, storable)
+	fieldMap := *body
+	fieldMap["Roles"] = []string{rs.DefaultRole}
+	log.Logger.Trace(ctx, "data", " map", fieldMap)
+
+	obj, nil := rs.userCreator(ctx, fieldMap)
+	user := obj.(auth.User)
+
+	username := user.GetUserName()
+	if username == "" {
+		log.Logger.Trace(ctx, "Username not found")
+		ctx.SetResponse(core.BadRequestResponse(AUTH_ERROR_MISSING_USER))
+		return nil
+	}
+
+	realm := user.GetRealm()
+	if realm != rs.realm {
+		log.Logger.Trace(ctx, "Realm not found")
+		ctx.SetResponse(core.BadRequestResponse(AUTH_ERROR_REALM_MISMATCH))
+		return nil
+	}
+
+	argsMap := map[string]interface{}{user.GetUsernameField(): username, config.REALM: realm}
+
+	cond, err := rs.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	if err != nil {
+		return err
+	}
+
+	_, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", "")
+	if err == nil && recs > 0 {
+		log.Logger.Trace(ctx, "Tested user found")
+		ctx.SetResponse(core.BadRequestResponse(AUTH_ERROR_USER_EXISTS))
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	err = rs.UserDataService.Save(ctx, obj.(data.Storable))
 	if err != nil {
 		return err
 	}

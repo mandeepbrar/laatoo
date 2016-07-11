@@ -20,7 +20,7 @@ function EntityReducer(reducerName) {
       switch (action.type) {
         case ActionNames.ENTITY_GETTING:
           return Object.assign({}, state, {
-            status: "Fetching Entity",
+            status: "Loading",
             entityName: action.payload.entityName,
             entityId: action.payload.entityId
           });
@@ -33,73 +33,68 @@ function EntityReducer(reducerName) {
           });
 
         case ActionNames.ENTITY_GET_FAILED: {
-          return Object.assign({}, initialState, {
-            status:"LoadingFailed"
+          return Object.assign({}, state, {
+            status:"LoadingFailed",
+            data: null
           });
         }
 
         case ActionNames.ENTITY_SAVING: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Saving",
-            entityName: action.payload.entityName,
-            data: action.payload.data
+            entityName: action.payload.entityName
           });
         }
 
         case ActionNames.ENTITY_SAVE_SUCCESS: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Saved"
           });
         }
 
         case ActionNames.ENTITY_SAVE_FAILURE: {
-          return Object.assign({}, initialState, {
-            status:"SavingFailed",
-            data: action.payload
+          return Object.assign({}, state, {
+            status:"SavingFailed"
           });
         }
 
         case ActionNames.ENTITY_UPDATING: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Updating",
             entityName: action.payload.entityName,
-            entityId: action.payload.entityId,
-            data: action.payload.data
+            entityId: action.payload.entityId
           });
         }
 
         case ActionNames.ENTITY_UPDATE_SUCCESS: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Updated"
           });
         }
 
         case ActionNames.ENTITY_UPDATE_FAILURE: {
-          return Object.assign({}, initialState, {
-            status:"UpdateFailed",
-            data: action.payload
+          return Object.assign({}, state, {
+            status:"UpdateFailed"
           });
         }
 
         case ActionNames.ENTITY_PUTTING: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Updating",
             entityName: action.payload.entityName,
-            entityId: action.payload.entityId,
-            data: action.payload.data
+            entityId: action.payload.entityId
           });
         }
 
         case ActionNames.ENTITY_PUT_SUCCESS: {
-          return Object.assign({}, initialState, {
+          return Object.assign({}, state, {
             status:"Updated"
           });
         }
 
         case ActionNames.ENTITY_PUT_FAILURE: {
-          return Object.assign({}, initialState, {
-            status:"UpdateFailed",
-            data: action.payload
+          return Object.assign({}, state, {
+            status:"UpdateFailed"
           });
         }
 

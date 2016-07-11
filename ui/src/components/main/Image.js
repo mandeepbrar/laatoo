@@ -5,13 +5,14 @@ class Image extends React.Component {
     super(props)
   }
   render() {
-    if(!this.props.src || this.props.length == 0) {
-      return (
-        <div></div>
-      )
-    }
     let source = this.props.src
-    if (source && source.length>0 && !this.props.src.startsWith("http")) {
+    if(!source || source.length==0) {
+      if(this.props.children) {
+        return this.props.children
+      }
+      return null
+    }
+    if (!this.props.src.startsWith("http")) {
       source = this.props.prefix + source
     }
     return (

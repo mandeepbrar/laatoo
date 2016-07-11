@@ -83,6 +83,8 @@ const (
 	AUTH_ERROR_JWT_CREATION               = "Auth_Error_JWT_Creation"
 	AUTH_ERROR_MISSING_USER_DATA_SERVICE  = "Auth_Error_Missing_User_Data_Service"
 	AUTH_ERROR_INCORRECT_SECURITY_HANDLER = "Auth_Error_Incorrect_Security_Handler"
+	AUTH_ERROR_MISSING_USER               = "Auth_Error_Missing_User"
+	AUTH_ERROR_REALM_MISMATCH             = "Auth_Error_Realm_Mismatch"
 	AUTH_ERROR_USER_EXISTS                = "Auth_Error_User_Exists"
 	AUTH_ERROR_ENC_ERROR                  = "Auth_Error_Enc_Error"
 )
@@ -91,6 +93,8 @@ func init() {
 	errors.RegisterCode(AUTH_ERROR_DOMAIN_NOT_ALLOWED, errors.ERROR, fmt.Errorf("Domain not allowed by system"))
 	errors.RegisterCode(AUTH_ERROR_JWT_CREATION, errors.ERROR, fmt.Errorf("Could not create JWT Token."))
 	errors.RegisterCode(AUTH_ERROR_MISSING_USER_DATA_SERVICE, errors.FATAL, fmt.Errorf("User data service not provided to authentication service."))
+	errors.RegisterCode(AUTH_ERROR_MISSING_USER, errors.FATAL, fmt.Errorf("Username not provided"))
+	errors.RegisterCode(AUTH_ERROR_REALM_MISMATCH, errors.FATAL, fmt.Errorf("Realm does not match"))
 	errors.RegisterCode(AUTH_ERROR_USER_EXISTS, errors.ERROR, fmt.Errorf("User already exists."))
 	errors.RegisterCode(AUTH_ERROR_INCORRECT_SECURITY_HANDLER, errors.ERROR, fmt.Errorf("Security handler has not been correctly configured."))
 	errors.RegisterCode(AUTH_ERROR_ENC_ERROR, errors.ERROR, fmt.Errorf("Internal Server error in encrypting password."))
