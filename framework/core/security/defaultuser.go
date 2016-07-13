@@ -2,16 +2,31 @@ package security
 
 import (
 	"laatoo/framework/core/objects"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"strings"
 
-	"github.com/twinj/uuid"
-
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	uc = &data.StorableConfig{
+		IdField:         "Id",
+		Type:            config.DEFAULT_USER,
+		SoftDeleteField: "Deleted",
+		PreSave:         true,
+		PostSave:        false,
+		PostLoad:        true,
+		Auditable:       true,
+		Collection:      "User",
+		Cacheable:       true,
+		NotifyNew:       false,
+		NotifyUpdates:   false,
+	}
 )
 
 func init() {
@@ -34,7 +49,7 @@ func (rf *UserFactory) Start(ctx core.ServerContext) error {
 //Creates object
 func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
 	usr := &DefaultUser{}
-	usr.Id = uuid.NewV4().String()
+	usr.Init()
 	if args != nil {
 		username, ok := args["Username"]
 		if ok {
@@ -76,31 +91,21 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }
 
 type DefaultUser struct {
-	Id          string   `json:"Id" form:"Id" bson:"Id"`
+	data.SoftDeleteAuditable
 	Username    string   `json:"Username" form:"Username" bson:"Username"`
 	Password    string   `json:"Password" form:"Password" bson:"Password"`
 	Roles       []string `json:"Roles" bson:"Roles"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
 	Email       string   `json:"Email" bson:"Email"`
 	Name        string   `json:"Name" bson:"Name"`
-	Deleted     bool     `json:"Deleted" bson:"Deleted"`
 	Picture     string   `json:"Picture" bson:"Picture"`
-	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
-	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
 	Realm       string   `json:"Realm" bson:"Realm"`
 }
 
-func (usr *DefaultUser) GetId() string {
-	return usr.Id
+func (r *DefaultUser) Config() *data.StorableConfig {
+	return uc
 }
 
-func (usr *DefaultUser) setId(id string) {
-	usr.Id = id
-}
-func (usr *DefaultUser) GetIdField() string {
-	return "Id"
-}
 func (usr *DefaultUser) GetUsernameField() string {
 	return "Username"
 }
@@ -111,12 +116,7 @@ func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
 	}
 	return nil
 }
-func (ent *DefaultUser) GetObjectType() string {
-	return config.DEFAULT_USER
-}
-func (ent *DefaultUser) PostSave(ctx core.RequestContext) error {
-	return nil
-}
+
 func (ent *DefaultUser) PostLoad(ctx core.RequestContext) error {
 	ent.Password = ""
 	return nil
@@ -129,6 +129,9 @@ func (usr *DefaultUser) ClearPassword() {
 	usr.Password = ""
 }
 
+func (ent *DefaultUser) IsDeleted() bool {
+	return ent.Deleted
+}
 func (usr *DefaultUser) setPassword(password string) {
 	usr.Password = password
 }
@@ -182,7 +185,7 @@ func (usr *DefaultUser) GetPicture() string {
 }
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
-	usr.setId(token.Claims["UserId"].(string))
+	usr.SetId(token.Claims["UserId"].(string))
 	usr.Name = token.Claims["Name"].(string)
 	usr.Picture = token.Claims["Picture"].(string)
 	rolesInt := token.Claims["Roles"]
@@ -198,20 +201,4 @@ func (usr *DefaultUser) encryptPassword() error {
 	}
 	usr.setPassword(string(hash))
 	return nil
-}
-
-func (ent *DefaultUser) IsNew() bool {
-	return ent.CreatedBy == ""
-}
-func (ent *DefaultUser) SetUpdatedOn(val string) {
-	ent.UpdatedOn = val
-}
-func (ent *DefaultUser) SetUpdatedBy(val string) {
-	ent.UpdatedBy = val
-}
-func (ent *DefaultUser) SetCreatedBy(val string) {
-	ent.CreatedBy = val
-}
-func (ent *DefaultUser) GetCreatedBy() string {
-	return ent.CreatedBy
 }

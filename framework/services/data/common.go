@@ -8,13 +8,11 @@ import (
 const (
 	CONF_DATA_SVCS          = "dataservices"
 	CONF_DATA_OBJECT        = "object"
-	CONF_DATA_OBJECT_ID     = "id"
 	CONF_DATA_POSTSAVE      = "postsave"
 	CONF_DATA_POSTLOAD      = "postload"
 	CONF_DATA_PRESAVE       = "presave"
 	CONF_DATA_CACHEABLE     = "cacheable"
 	CONF_DATA_AUDITABLE     = "auditable"
-	CONF_DATA_SOFTDELETE    = "softdelete"
 	CONF_DATA_COLLECTION    = "collection"
 	CONF_DATA_NOTIFYUPDATES = "notifyupdates"
 	CONF_DATA_NOTIFYNEW     = "notifynew"

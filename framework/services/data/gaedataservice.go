@@ -14,6 +14,7 @@ import (
 
 type gaeDataService struct {
 	conf                    config.Config
+	objectConfig            *data.StorableConfig
 	name                    string
 	auditable               bool
 	softdelete              bool
@@ -26,6 +27,7 @@ type gaeDataService struct {
 	collection              string
 	object                  string
 	objectid                string
+	softDeleteField         string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
 	deleteRefOpers          []*refOperation
@@ -41,17 +43,9 @@ func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, er
 }
 
 func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	collection, ok := conf.GetString(CONF_DATA_COLLECTION)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_COLLECTION)
-	}
 	object, ok := conf.GetString(CONF_DATA_OBJECT)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_OBJECT)
-	}
-	objectid, ok := conf.GetString(CONF_DATA_OBJECT_ID)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_OBJECT_ID)
 	}
 	objectCreator, err := ctx.GetObjectCreator(object)
 	if err != nil {
@@ -61,48 +55,80 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 	if err != nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object Collection creator for", object)
 	}
+
 	svc.conf = conf
 	svc.object = object
 	svc.objectCreator = objectCreator
-	svc.collection = collection
-	svc.objectid = objectid
 	svc.objectCollectionCreator = objectCollectionCreator
+
+	testObj, _ := objectCreator(ctx, nil)
+	stor := testObj.(data.Storable)
+	svc.objectConfig = stor.Config()
+
+	svc.objectid = svc.objectConfig.IdField
+	svc.softDeleteField = svc.objectConfig.SoftDeleteField
+
+	if svc.softDeleteField == "" {
+		svc.softdelete = false
+	} else {
+		svc.softdelete = true
+	}
+
+	collection, ok := conf.GetString(CONF_DATA_COLLECTION)
+	if ok {
+		svc.collection = collection
+	} else {
+		svc.collection = svc.objectConfig.Collection
+	}
+
+	if svc.collection == "" {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_COLLECTION)
+	}
 
 	cacheable, ok := conf.GetBool(CONF_DATA_CACHEABLE)
 	if ok {
 		svc.cacheable = cacheable
-	}
-	softdelete, ok := conf.GetBool(CONF_DATA_SOFTDELETE)
-	if ok {
-		svc.softdelete = softdelete
 	} else {
-		svc.softdelete = true
+		svc.cacheable = svc.objectConfig.Cacheable
 	}
 
 	auditable, ok := conf.GetBool(CONF_DATA_AUDITABLE)
 	if ok {
 		svc.auditable = auditable
+	} else {
+		svc.auditable = svc.objectConfig.Auditable
 	}
 	postsave, ok := conf.GetBool(CONF_DATA_POSTSAVE)
 	if ok {
 		svc.postsave = postsave
+	} else {
+		svc.postsave = svc.objectConfig.PostSave
 	}
 	presave, ok := conf.GetBool(CONF_DATA_PRESAVE)
 	if ok {
 		svc.presave = presave
+	} else {
+		svc.presave = svc.objectConfig.PreSave
 	}
 	postload, ok := conf.GetBool(CONF_DATA_POSTLOAD)
 	if ok {
 		svc.postload = postload
+	} else {
+		svc.postload = svc.objectConfig.PostLoad
 	}
 	notifyupdates, ok := conf.GetBool(CONF_DATA_NOTIFYUPDATES)
 	if ok {
 		svc.notifyupdates = notifyupdates
+	} else {
+		svc.notifyupdates = svc.objectConfig.NotifyUpdates
 	}
 	notifynew, ok := conf.GetBool(CONF_DATA_NOTIFYNEW)
 	if ok {
 		svc.notifynew = notifynew
+	} else {
+		svc.notifynew = svc.objectConfig.NotifyNew
 	}
+
 	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
 	if err != nil {
 		return err
@@ -234,9 +260,7 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	invalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
-	if item.GetId() != id {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST, "Error", "Id mismatch in put")
-	}
+	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
 		if err != nil {
@@ -268,6 +292,12 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 
 func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	appEngineContext := ctx.GetAppengineContext()
+	if svc.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.object, "data": newVals})
+		if err != nil {
+			return err
+		}
+	}
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
@@ -324,6 +354,12 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
 	appEngineContext := ctx.GetAppengineContext()
+	if svc.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+	}
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
@@ -392,6 +428,12 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	appEngineContext := ctx.GetAppengineContext()
+	if svc.presave {
+		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.object, "data": newVals})
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
@@ -462,7 +504,7 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 	appEngineContext := ctx.GetAppengineContext()
 
 	if svc.softdelete {
-		err := svc.Update(ctx, id, map[string]interface{}{"Deleted": true})
+		err := svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
 			err = deleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 		}
@@ -482,7 +524,7 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	appEngineContext := ctx.GetAppengineContext()
 
 	if svc.softdelete {
-		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{"Deleted": true})
+		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
 			err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
 		}
@@ -504,7 +546,7 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 //Delete object by condition
 func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	if svc.softdelete {
-		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{"Deleted": true})
+		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
 			err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
 		}

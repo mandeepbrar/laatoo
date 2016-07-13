@@ -40,6 +40,9 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 		return nil, errors.RethrowError(ctx, DATA_ERROR_OPERATION, err, "ID", id)
 	}
 	stor := object.(data.Storable)
+	if ms.presave && stor.IsDeleted() {
+		return nil, nil
+	}
 	if ms.postload {
 		stor.PostLoad(ctx)
 	}
@@ -56,6 +59,7 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
@@ -70,11 +74,20 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+	log.Logger.Trace(ctx, "Getting multiple objects ", "len Ids", lenids, "results", results, "collection", ms.collection, "condition", condition)
 	retVal := make(map[string]data.Storable, lenids)
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	resultStor, err := data.CastToStorableCollection(results)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	log.Logger.Trace(ctx, "Getting multiple objects ", "errr", err, "resultstor", resultStor)
 	for _, stor := range resultStor {
+		log.Logger.Trace(ctx, "Returning multiple objects ", "Id", stor.GetId(), "stor", stor)
+		if ms.presave && stor.IsDeleted() {
+			continue
+		}
 		id := stor.GetId()
 		retVal[id] = stor
 		if ms.postload {
@@ -120,13 +133,14 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection, "results", results)
 	resultStor, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
 	recsreturned = len(resultStor)
 	for _, stor := range resultStor {
+		log.Logger.Trace(ctx, "Returning multiple objects ", "stor", stor)
 		if ms.postload {
 			stor.PostLoad(ctx)
 		}
@@ -160,7 +174,7 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 			}
 			argsMap := args[0].(map[string]interface{})
 			if ms.softdelete {
-				argsMap["Deleted"] = false
+				argsMap[ms.softDeleteField] = false
 			}
 			return argsMap, nil
 		}

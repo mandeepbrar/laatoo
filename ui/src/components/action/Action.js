@@ -26,11 +26,16 @@ class ActionComp extends React.Component {
     if(this.props.params) {
       payload = this.props.params;
     }
-    this.props.dispatch(createAction(this.action.action, payload));
+    this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback}));
   }
   actionFunc(evt) {
-    console.log("clicked", this.props.params)
     evt.preventDefault();
+    if(this.props.confirm) {
+      if(!this.props.confirm(this.props)) {
+        return
+      }
+    }
+    console.log("exceuting action", this.action)
     switch(this.action.actiontype) {
       case "dispatchaction":
         this.dispatchAction();

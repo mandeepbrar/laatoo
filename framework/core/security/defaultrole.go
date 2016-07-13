@@ -2,10 +2,25 @@ package security
 
 import (
 	"laatoo/framework/core/objects"
+	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+)
 
-	"github.com/twinj/uuid"
+var (
+	rc = &data.StorableConfig{
+		IdField:         "Id",
+		Type:            config.DEFAULT_ROLE,
+		SoftDeleteField: "Deleted",
+		PreSave:         false,
+		PostSave:        false,
+		PostLoad:        false,
+		Auditable:       true,
+		Collection:      "Role",
+		Cacheable:       false,
+		NotifyNew:       false,
+		NotifyUpdates:   false,
+	}
 )
 
 func init() {
@@ -27,7 +42,7 @@ func (rf *RoleFactory) Start(ctx core.ServerContext) error {
 //Creates object
 func (rf *RoleFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
 	role := &Role{}
-	role.Id = uuid.NewV4().String()
+	role.Init()
 	return role, nil
 }
 
@@ -38,28 +53,14 @@ func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args
 }
 
 type Role struct {
-	Id          string   `json:"Id" form:"Id" bson:"Id"`
+	data.SoftDeleteAuditable
 	Role        string   `json:"Role" form:"Role" bson:"Role"`
 	Permissions []string `json:"Permissions" bson:"Permissions"`
-	Deleted     bool     `json:"Deleted" bson:"Deleted"`
-	CreatedBy   string   `json:"CreatedBy" bson:"CreatedBy"`
-	UpdatedBy   string   `json:"UpdatedBy" bson:"UpdatedBy"`
-	UpdatedOn   string   `json:"UpdatedOn" bson:"UpdatedOn"`
 	Realm       string   `json:"Realm" bson:"Realm"`
 }
 
-func (r *Role) GetId() string {
-	return r.Id
-}
-func (r *Role) SetId(id string) {
-	r.Id = id
-}
-func (r *Role) GetIdField() string {
-	return "Id"
-}
-
-func (r *Role) GetObjectType() string {
-	return config.DEFAULT_ROLE
+func (r *Role) Config() *data.StorableConfig {
+	return rc
 }
 
 func (r *Role) GetPermissions() []string {
@@ -69,33 +70,10 @@ func (r *Role) GetPermissions() []string {
 func (r *Role) SetPermissions(permissions []string) {
 	r.Permissions = permissions
 }
-func (ent *Role) PreSave(ctx core.RequestContext) error {
-	return nil
-}
-func (ent *Role) PostSave(ctx core.RequestContext) error {
-	return nil
-}
-func (ent *Role) PostLoad(ctx core.RequestContext) error {
-	return nil
-}
+
 func (ent *Role) GetName() string {
 	return ent.Role
 }
 func (ent *Role) SetName(val string) {
 	ent.Role = val
-}
-func (ent *Role) IsNew() bool {
-	return ent.CreatedBy == ""
-}
-func (ent *Role) SetUpdatedOn(val string) {
-	ent.UpdatedOn = val
-}
-func (ent *Role) SetUpdatedBy(val string) {
-	ent.UpdatedBy = val
-}
-func (ent *Role) SetCreatedBy(val string) {
-	ent.CreatedBy = val
-}
-func (ent *Role) GetCreatedBy() string {
-	return ent.CreatedBy
 }

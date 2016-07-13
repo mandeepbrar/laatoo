@@ -85,7 +85,9 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
 	//compare the user requested with the user from database
 	existingUser := usrs[0].(auth.LocalAuthUser)
+	log.Logger.Trace(ctx, "got user********", "existingUser", existingUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
+	log.Logger.Trace(ctx, "compared user********", "err", err)
 	existingUser.ClearPassword()
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)

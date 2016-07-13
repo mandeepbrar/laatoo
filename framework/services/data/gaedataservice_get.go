@@ -49,6 +49,9 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 		return nil, errors.RethrowError(ctx, DATA_ERROR_OPERATION, err, "ID", id)
 	}
 	stor := object.(data.Storable)
+	if svc.presave && stor.IsDeleted() {
+		return nil, nil
+	}
 	if svc.postload {
 		stor.PostLoad(ctx)
 	}
@@ -91,6 +94,9 @@ func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, order
 	// you must execute the Query using its GetAll or Run methods.
 	resultStor, err := data.CastToStorableCollection(results)
 	for _, stor := range resultStor {
+		if svc.presave && stor.IsDeleted() {
+			continue
+		}
 		id := stor.GetId()
 		retVal[id] = stor
 		if svc.postload {
@@ -208,7 +214,7 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
 		if ok {
 			if svc.softdelete {
-				queryCondMap["Deleted"] = false
+				queryCondMap[svc.softDeleteField] = false
 			}
 			for k, v := range queryCondMap {
 				query = query.Filter(fmt.Sprintf("%s =", k), v)

@@ -242,9 +242,10 @@ func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
 
 func (es *dataAdapterService) SAVE(ctx core.RequestContext) error {
 	ent := ctx.GetRequest()
-	err := es.DataStore.Save(ctx, ent.(data.Storable))
+	stor := ent.(data.Storable)
+	err := es.DataStore.Save(ctx, stor)
 	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, stor.GetId(), nil))
 	}
 	return err
 }

@@ -43,7 +43,7 @@ class ViewDisplay extends React.Component {
     }
   }
   shouldComponentUpdate(nextProps, nextState) {
-    if(this.lastRenderTime) {
+    if(!nextProps.forceUpdate && this.lastRenderTime) {
       if(nextProps.lastUpdateTime) {
         if(this.lastRenderTime >= nextProps.lastUpdateTime) {
           return false
@@ -152,12 +152,14 @@ class ViewDisplay extends React.Component {
       this.numItems = keys.length
       for (var i in keys) {
         let x = this.props.items[keys[i]]
-        let item = this.getItem(x, i)
-        group.push(item)
-        if((i % groupsize) == 0) {
-          let itemGrp = this.getItemGroup(group)
-          groups.push(itemGrp)
-          group = []
+        if (x) {
+          let item = this.getItem(x, i)
+          group.push(item)
+          if((i % groupsize) == 0) {
+            let itemGrp = this.getItemGroup(group)
+            groups.push(itemGrp)
+            group = []
+          }
         }
       }
     } else {
