@@ -74,7 +74,7 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Getting multiple objects ", "len Ids", lenids, "results", results, "collection", ms.collection, "condition", condition)
+	log.Logger.Trace(ctx, "Getting multiple objects ", "len Ids", lenids, "collection", ms.collection, "condition", condition)
 	retVal := make(map[string]data.Storable, lenids)
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
@@ -82,9 +82,7 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Getting multiple objects ", "errr", err, "resultstor", resultStor)
 	for _, stor := range resultStor {
-		log.Logger.Trace(ctx, "Returning multiple objects ", "Id", stor.GetId(), "stor", stor)
 		if ms.presave && stor.IsDeleted() {
 			continue
 		}
@@ -133,7 +131,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 		query = query.Sort(orderBy)
 	}
 	err = query.All(results)
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection, "results", results)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "collection", ms.collection)
 	resultStor, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)

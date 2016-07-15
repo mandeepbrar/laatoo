@@ -40,7 +40,9 @@ class UpdateForm extends React.Component {
     return (
       <div>
         {this.title()}
-        <EntityForm name={this.props.name} actionButtons={this.props.actionButtons} refCallback={this.props.refCallback} usePut={this.props.usePut} entityData={this.props.data} id={this.props.id} schema={this.state.schema} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
+        <EntityForm name={this.props.name} actionButtons={this.props.actionButtons} refCallback={this.props.refCallback} usePut={this.props.usePut}
+          entityData={this.props.data} id={this.props.id} schema={this.state.schema}
+          reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
         </EntityForm>
       </div>
     )

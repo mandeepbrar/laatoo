@@ -21,10 +21,12 @@ class TextEdit extends t.form.Component { // extend the base class
       if(!data) {
         data = '';
       }
+      let mceconfig = Object.assign({},TINYMCE_CONFIG, locals.config.mceconfig)
       return (
         <div>
-          <label>{locals.label}</label>
-          <TinyMCEInput  value={data}  tinymceConfig={TINYMCE_CONFIG} onChange={locals.onChange} />
+          {(locals.config && locals.config.hideLabel)? null :<label>{locals.label}</label>}
+          <TinyMCEInput  style={locals.config.style} className={locals.config.className} value={data} rows={locals.config.rows}
+            textAreaProps={locals.config.textAreaProps} tinymceConfig={mceconfig} onChange={locals.onChange} />
         </div>
       );
     };

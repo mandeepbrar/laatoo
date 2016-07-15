@@ -118,13 +118,13 @@
   max-height: 100% !important;
 }
 .p10 {
-	padding: 10px;
+	padding: 10px !important;
 }
 .p20 {
-	padding: 20px;
+	padding: 20px !important;
 }
 .p50 {
-	padding: 50px;
+	padding: 50px !important;
 }
 .nodecoration {
 	text-decoration: none;

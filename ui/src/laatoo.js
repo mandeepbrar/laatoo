@@ -8,6 +8,7 @@ import {Action} from './components/action/Action';
 import {Entity} from './components/entity/Entity';
 import {DisplayEntity} from './components/entity/EntityDisplay';
 import {EntityForm} from './components/entity/EntityForm';
+import {UpdateEntity} from './components/entity/EntityUpdate';
 import {ActionNames} from './actions/ActionNames';
 import createSagaMiddleware from 'redux-saga';
 import {createAction} from './utils';
@@ -58,6 +59,7 @@ module.exports = {
     DisplayEntity: DisplayEntity,
     EntityData: EntityData,
     EntityForm:EntityForm,
+    UpdateEntity:UpdateEntity,
     createStore: createStore,
     createAction: createAction,
     WebTableView: WebTableView,

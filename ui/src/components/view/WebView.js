@@ -88,7 +88,7 @@ class WebView extends React.Component {
             view.setPage(newPage);
         }}
       >
-        <Paginator.Button page={page - 1}>Previous</Paginator.Button>
+        <Paginator.Button page={page - 1}>{'<'}</Paginator.Button>
         <Paginator.Segment field="beginPages" />
         <Paginator.Ellipsis previousField="beginPages" nextField="previousPages" />
         <Paginator.Segment field="previousPages" />
@@ -96,7 +96,7 @@ class WebView extends React.Component {
         <Paginator.Segment field="nextPages" />
         <Paginator.Ellipsis previousField="nextPages" nextField="endPages" />
         <Paginator.Segment field="endPages" />
-        <Paginator.Button page={page + 1}>Next</Paginator.Button>
+        <Paginator.Button page={page + 1}>{'>'}</Paginator.Button>
       </Paginator.Context>
     )
   }
