@@ -68,17 +68,28 @@ function ViewReducer(reducerName) {
         }
 
         case ActionNames.VIEW_ITEM_REMOVE: {
-          let id = action.payload.Id
-          if (id==null) {
+          let index = action.payload.Index
+          if (index==null) {
             return state
           }
           let data = state.data
           let newData = null
+          //remove by index for arrays and keys for map
           if(Array.isArray(data)) {
-            newData = data.splice(id, 1)
+            let ind = -1
+            if((typeof index) == "string") {
+              ind = parseInt(index)
+            } else {
+              ind = index
+            }
+            newData = data.slice(0)
+            newData.splice(ind, 1)
           } else {
             newData = Object.assign({}, data);
-            delete newData[id]
+            delete newData[index]
+            if(newData == null) {
+              newData = {}
+            }
           }
           return Object.assign({}, state, {
             data: newData,

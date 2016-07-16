@@ -138,7 +138,6 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	}
 	recsreturned = len(resultStor)
 	for _, stor := range resultStor {
-		log.Logger.Trace(ctx, "Returning multiple objects ", "stor", stor)
 		if ms.postload {
 			stor.PostLoad(ctx)
 		}

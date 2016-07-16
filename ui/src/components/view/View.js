@@ -153,7 +153,7 @@ class ViewDisplay extends React.Component {
       for (var i in keys) {
         let x = this.props.items[keys[i]]
         if (x) {
-          let item = this.getItem(x, i)
+          let item = this.getItem(x, keys[i])
           group.push(item)
           if((i % groupsize) == 0) {
             let itemGrp = this.getItemGroup(group)
