@@ -53,10 +53,10 @@ func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args
 }
 
 type Role struct {
-	data.SoftDeleteAuditable
-	Role        string   `json:"Role" form:"Role" bson:"Role"`
-	Permissions []string `json:"Permissions" bson:"Permissions"`
-	Realm       string   `json:"Realm" bson:"Realm"`
+	data.SoftDeleteAuditable `bson:",inline"`
+	Role                     string   `json:"Role" form:"Role" bson:"Role"`
+	Permissions              []string `json:"Permissions" bson:"Permissions"`
+	Realm                    string   `json:"Realm" bson:"Realm"`
 }
 
 func (r *Role) Config() *data.StorableConfig {

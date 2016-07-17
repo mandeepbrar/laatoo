@@ -91,15 +91,15 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }
 
 type DefaultUser struct {
-	data.SoftDeleteAuditable
-	Username    string   `json:"Username" form:"Username" bson:"Username"`
-	Password    string   `json:"Password" form:"Password" bson:"Password"`
-	Roles       []string `json:"Roles" bson:"Roles"`
-	Permissions []string `json:"Permissions" bson:"Permissions"`
-	Email       string   `json:"Email" bson:"Email"`
-	Name        string   `json:"Name" bson:"Name"`
-	Picture     string   `json:"Picture" bson:"Picture"`
-	Realm       string   `json:"Realm" bson:"Realm"`
+	data.SoftDeleteAuditable `bson:",inline"`
+	Username                 string   `json:"Username" form:"Username" bson:"Username"`
+	Password                 string   `json:"Password" form:"Password" bson:"Password"`
+	Roles                    []string `json:"Roles" bson:"Roles"`
+	Permissions              []string `json:"Permissions" bson:"Permissions"`
+	Email                    string   `json:"Email" bson:"Email"`
+	Name                     string   `json:"Name" bson:"Name"`
+	Picture                  string   `json:"Picture" bson:"Picture"`
+	Realm                    string   `json:"Realm" bson:"Realm"`
 }
 
 func (r *DefaultUser) Config() *data.StorableConfig {

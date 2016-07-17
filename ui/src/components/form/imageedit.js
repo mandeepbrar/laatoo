@@ -22,7 +22,6 @@ class ImageChooser extends React.Component {
       var config = {
         progress: function(progressEvent) {
           var percentCompleted = progressEvent.loaded / progressEvent.total;
-          console.log("complete", percentCompleted);
         }
       };
       let comp = this;
@@ -31,7 +30,6 @@ class ImageChooser extends React.Component {
       prom.then(
         function (res) {
           let img = res.data[0];
-          console.log(img);
           comp.props.onChange(img)
         },
         function (res) {
@@ -111,7 +109,6 @@ class ImageChooser extends React.Component {
 class ImageEdit extends t.form.Component { // extend the base class
   getTemplate() {
     return (locals) => {
-      console.log("locals....", locals)
       let config = {}
       if(locals.config) {
         config = locals.config

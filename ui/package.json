@@ -79,7 +79,6 @@
     "react-pagify-preset-bootstrap": "^1.0.2",
     "react-player": "^0.7.2",
     "react-redux": "^4.4.5",
-    "react-tinymce-input": "^1.2.0",
     "redux": "^3.5.2",
     "redux-director": "*",
     "redux-saga": "*",
