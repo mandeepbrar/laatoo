@@ -1,0 +1,229 @@
+package mongo
+
+import (
+	"gopkg.in/mgo.v2/bson"
+	"laatoo/framework/services/data/common"
+	"laatoo/sdk/components/data"
+	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
+)
+
+func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
+	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
+
+	//try cache if the object is cacheable
+	if ms.cacheable {
+		ent, err := ms.objectCreator(ctx, nil)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		ok := common.GetFromCache(ctx, ms.object, id, ent)
+		if ok {
+			return ent.(data.Storable), nil
+		}
+	}
+
+	object, err := ms.objectCreator(ctx, nil)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	connCopy := ms.factory.connection.Copy()
+	defer connCopy.Close()
+	condition := bson.M{}
+	condition[ms.objectid] = id
+	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
+	if err != nil {
+		if err.Error() == "not found" {
+			return nil, nil
+		}
+		return nil, errors.RethrowError(ctx, common.DATA_ERROR_OPERATION, err, "ID", id)
+	}
+	stor := object.(data.Storable)
+	if stor.IsDeleted() {
+		return nil, nil
+	}
+	if ms.refops {
+		res, err := common.GetRefOps(ctx, ms.getRefOpers, []string{id}, []data.Storable{stor})
+		if err != nil {
+			return nil, err
+		}
+		r := res.([]data.Storable)
+		stor = r[0]
+	}
+	if ms.postload {
+		stor.PostLoad(ctx)
+	}
+	if ms.cacheable {
+		common.PutInCache(ctx, ms.object, stor.GetId(), stor)
+	}
+	return stor, nil
+}
+
+//Get multiple objects by id
+func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+	results, err := ms.getMulti(ctx, ids, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	if results == nil {
+		return []data.Storable{}, nil
+	}
+	res, _, err := ms.postArrayGet(ctx, results)
+	return res, err
+}
+
+func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+	results, err := ms.getMulti(ctx, ids, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	if results == nil {
+		return map[string]data.Storable{}, nil
+	}
+	resultStor, err := data.CastToStorableHash(results)
+
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	if ms.refops {
+		res, err := common.GetRefOps(ctx, ms.getRefOpers, ids, resultStor)
+		if err != nil {
+			return nil, err
+		}
+		resultStor = res.(map[string]data.Storable)
+	}
+
+	for _, stor := range resultStor {
+		ms.postLoad(ctx, stor)
+	}
+	return resultStor, nil
+}
+
+func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interface{}) ([]data.Storable, []string, error) {
+	resultStor, ids, err := data.CastToStorableCollection(results)
+	if err != nil {
+		return nil, nil, errors.WrapError(ctx, err)
+	}
+	if ms.refops {
+		res, err := common.GetRefOps(ctx, ms.getRefOpers, ids, resultStor)
+		if err != nil {
+			return nil, nil, err
+		}
+		resultStor = res.([]data.Storable)
+		log.Logger.Trace(ctx, "Assigned results", "resultstor", resultStor)
+	}
+	for _, stor := range resultStor {
+		ms.postLoad(ctx, stor)
+	}
+	return resultStor, ids, nil
+}
+
+func (ms *mongoDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
+	if ms.postload {
+		stor.PostLoad(ctx)
+	}
+	if ms.cacheable {
+		common.PutInCache(ctx, ms.object, stor.GetId(), stor)
+	}
+	return nil
+}
+
+//Get multiple objects by id
+func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orderBy string) (interface{}, error) {
+	lenids := len(ids)
+	if lenids == 0 {
+		return nil, nil
+	}
+	results, err := ms.objectCollectionCreator(ctx, lenids, nil)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
+	connCopy := ms.factory.connection.Copy()
+	defer connCopy.Close()
+	condition := bson.M{}
+	operatorCond := bson.M{}
+	operatorCond["$in"] = ids
+	condition[ms.objectid] = operatorCond
+	query := connCopy.DB(ms.database).C(ms.collection).Find(condition)
+	if len(orderBy) > 0 {
+		query = query.Sort(orderBy)
+	}
+	err = query.All(results)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	log.Logger.Trace(ctx, "Getting multiple objects by Ids", "len Ids", lenids, "collection", ms.collection)
+	return results, nil
+}
+
+func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	return ms.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
+}
+
+func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	totalrecs = -1
+	recsreturned = -1
+	//0 is just a placeholder... mongo provides results of its own
+	results, err := ms.objectCollectionCreator(ctx, 0, nil)
+	if err != nil {
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+	}
+	connCopy := ms.factory.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
+	if pageSize > 0 {
+		totalrecs, err = query.Count()
+		if err != nil {
+			return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+		}
+		recsToSkip := (pageNum - 1) * pageSize
+		query = query.Limit(pageSize).Skip(recsToSkip)
+	}
+	if len(orderBy) > 0 {
+		query = query.Sort(orderBy)
+	}
+	err = query.All(results)
+	if err != nil {
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+	}
+	resultStor, ids, err := ms.postArrayGet(ctx, results)
+	if err != nil {
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+	}
+	recsreturned = len(ids)
+	if recsreturned > totalrecs {
+		totalrecs = recsreturned
+	}
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "recsreturned", recsreturned)
+	return resultStor, ids, totalrecs, recsreturned, nil
+}
+
+//create condition for passing to data service
+func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
+	switch operation {
+	case data.MATCHANCESTOR:
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
+	case data.MATCHMULTIPLEVALUES:
+		{
+			if len(args) < 2 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			return bson.M{args[0].(string): bson.M{"$in": args[1]}}, nil
+		}
+	case data.FIELDVALUE:
+		{
+			if len(args) < 1 {
+				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
+			}
+			argsMap := args[0].(map[string]interface{})
+			if ms.softdelete {
+				argsMap[ms.softDeleteField] = false
+			}
+			return argsMap, nil
+		}
+	}
+	return nil, nil
+}

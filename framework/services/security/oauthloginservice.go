@@ -197,7 +197,7 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
 
-	usrs, _, recs, err := os.userDataService.Get(ctx, cond, -1, -1, "", "")
+	usrs, _, _, recs, err := os.userDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
 		return os.unauthorized(ctx, err, st.Url)
 	}

@@ -22,9 +22,11 @@ const (
 	CONF_SVC_GETMULTIPLE           = "GETMULTIPLE"
 	CONF_SVC_GETMULTIPLE_SELECTIDS = "GETMULTIPLE_SELECTIDS"
 	CONF_SVC_SAVE                  = "SAVE"
+	CONF_SVC_JOIN                  = "JOIN"
 	CONF_SVC_DELETE                = "DELETE"
 	CONF_SVC_DELETEALL             = "DELETEALL"
 	CONF_SVC_SELECT                = "SELECT"
+	CONF_SVC_UPSERT                = "UPSERT"
 	CONF_SVC_UPDATE                = "UPDATE"
 	CONF_SVC_UPDATEMULTIPLE        = "UPDATEMULTIPLE"
 	CONF_FIELD_ORDERBY             = "orderby"
@@ -95,12 +97,16 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.GETMULTI
 	case CONF_SVC_SAVE:
 		ds.svcfunc = ds.SAVE
+	case CONF_SVC_JOIN:
+		ds.svcfunc = ds.JOIN
 	case CONF_SVC_DELETE:
 		ds.svcfunc = ds.DELETE
 	case CONF_SVC_DELETEALL:
 		ds.svcfunc = ds.DELETEALL
 	case CONF_SVC_SELECT:
 		ds.svcfunc = ds.SELECT
+	case CONF_SVC_UPSERT:
+		ds.svcfunc = ds.UPSERT
 	case CONF_SVC_UPDATE:
 		ds.svcfunc = ds.UPDATE
 	case CONF_SVC_PUTMULTIPLE:
@@ -189,19 +195,48 @@ func (es *dataAdapterService) GETMULTI(ctx core.RequestContext) error {
 	return err
 }
 
-func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error {
-	retdata, totalrecs, recsreturned, err := es.selectMethod(ctx, es.lookupSvc)
-	ids := make([]string, len(retdata))
+func (es *dataAdapterService) JOIN(ctx core.RequestContext) error {
+	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
+	lookupids := make([]string, len(retdata))
 	for ind, item := range retdata {
 		entVal := reflect.ValueOf(item).Elem()
 		f := entVal.FieldByName(es.lookupField)
 		if !f.IsValid() {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG)
 		}
-		ids[ind] = f.String()
+		lookupids[ind] = f.String()
 	}
-	log.Logger.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", ids)
-	result, err := es.DataStore.GetMulti(ctx, ids, "")
+	log.Logger.Trace(ctx, "JOIN: Looking up ids", "ids", lookupids)
+	result, err := es.DataStore.GetMultiHash(ctx, lookupids, "")
+	if err == nil {
+		for i, id := range lookupids {
+			stor := retdata[i]
+			item, ok := result[id]
+			if ok {
+				stor.Join(item)
+			}
+		}
+		requestinfo := make(map[string]interface{}, 2)
+		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
+		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, requestinfo))
+	}
+	return err
+}
+
+func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error {
+	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.lookupSvc)
+	lookupids := make([]string, len(retdata))
+	for ind, item := range retdata {
+		entVal := reflect.ValueOf(item).Elem()
+		f := entVal.FieldByName(es.lookupField)
+		if !f.IsValid() {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG)
+		}
+		lookupids[ind] = f.String()
+	}
+	log.Logger.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", lookupids)
+	result, err := es.DataStore.GetMulti(ctx, lookupids, "")
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
@@ -211,7 +246,7 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 	return err
 }
 
-func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	pagesize, _ := ctx.GetInt(data.DATA_PAGESIZE)
 	pagenum, _ := ctx.GetInt(data.DATA_PAGENUM)
 
@@ -223,14 +258,14 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	condition, err := datastore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return nil, -1, -1, errors.WrapError(ctx, err)
+		return nil, nil, -1, -1, errors.WrapError(ctx, err)
 	}
 	return datastore.Get(ctx, condition, pagesize, pagenum, "", orderBy)
 }
 
 func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
 	log.Logger.Trace(ctx, "Selecting")
-	retdata, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
+	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
@@ -292,6 +327,16 @@ func (es *dataAdapterService) DELETEALL(ctx core.RequestContext) error {
 	return err
 }
 
+func (es *dataAdapterService) UPSERT(ctx core.RequestContext) error {
+	body := ctx.GetRequest().(*map[string]interface{})
+	vals := *body
+	_, err := es.DataStore.Upsert(ctx, vals["condition"].(map[string]interface{}), vals["value"].(map[string]interface{}))
+	if err == nil {
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+	}
+	return err
+}
+
 func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
@@ -308,7 +353,7 @@ func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 
 func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 	arr := ctx.GetRequest()
-	storables, err := data.CastToStorableCollection(arr)
+	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
 		return err
 	}

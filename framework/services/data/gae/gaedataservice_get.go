@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -30,7 +31,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		ok := getFromCache(ctx, svc.object, id, ent)
+		ok := common.GetFromCache(ctx, svc.object, id, ent)
 		if ok {
 			return ent.(data.Storable), nil
 		}
@@ -46,27 +47,103 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 		if err.Error() == "not found" {
 			return nil, nil
 		}
-		return nil, errors.RethrowError(ctx, DATA_ERROR_OPERATION, err, "ID", id)
+		return nil, errors.RethrowError(ctx, common.DATA_ERROR_OPERATION, err, "ID", id)
 	}
 	stor := object.(data.Storable)
-	if svc.presave && stor.IsDeleted() {
+	if stor.IsDeleted() {
 		return nil, nil
+	}
+	if svc.refops {
+		res, err := common.GetRefOps(ctx, svc.getRefOpers, []string{id}, []data.Storable{stor})
+		if err != nil {
+			return nil, err
+		}
+		r := res.([]data.Storable)
+		stor = r[0]
 	}
 	if svc.postload {
 		stor.PostLoad(ctx)
 	}
 	if svc.cacheable {
-		putInCache(ctx, svc.object, id, stor)
+		common.PutInCache(ctx, svc.object, id, stor)
 	}
 	return stor, nil
 }
 
 //Get multiple objects by id
-func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+	results, err := svc.getMulti(ctx, ids, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	if results == nil {
+		return []data.Storable{}, nil
+	}
+	res, _, err := svc.postArrayGet(ctx, results)
+	return res, err
+}
+
+func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+	results, err := svc.getMulti(ctx, ids, orderBy)
+	if err != nil {
+		return nil, err
+	}
+	if results == nil {
+		return map[string]data.Storable{}, nil
+	}
+	resultStor, err := data.CastToStorableHash(results)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	if svc.refops {
+		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
+		if err != nil {
+			return nil, err
+		}
+		resultStor = res.(map[string]data.Storable)
+	}
+
+	for _, stor := range resultStor {
+		svc.postLoad(ctx, stor)
+	}
+	return resultStor, nil
+}
+
+func (svc *gaeDataService) postArrayGet(ctx core.RequestContext, results interface{}) ([]data.Storable, []string, error) {
+	resultStor, ids, err := data.CastToStorableCollection(results)
+	if err != nil {
+		return nil, nil, errors.WrapError(ctx, err)
+	}
+
+	if svc.refops {
+		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
+		if err != nil {
+			return nil, nil, err
+		}
+		resultStor = res.([]data.Storable)
+	}
+
+	for _, stor := range resultStor {
+		svc.postLoad(ctx, stor)
+	}
+	return resultStor, ids, nil
+}
+
+func (svc *gaeDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
+	if svc.postload {
+		stor.PostLoad(ctx)
+	}
+	if svc.cacheable {
+		common.PutInCache(ctx, svc.object, stor.GetId(), stor)
+	}
+	return nil
+}
+
+func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, orderBy string) (interface{}, error) {
 	lenids := len(ids)
-	retVal := make(map[string]data.Storable, lenids)
 	if lenids == 0 {
-		return retVal, nil
+		return nil, nil
 	}
 	appEngineContext := ctx.GetAppengineContext()
 
@@ -82,7 +159,6 @@ func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, order
 	/*if len(orderBy) > 0 {
 		query = query.Order(orderBy)
 	}*/
-	log.Logger.Debug(ctx, "Geting object", "results", results, "ids", ids, "object", svc.object, "keys", keys, "type", reflect.ValueOf(results).Type())
 	err = datastore.GetMulti(appEngineContext, keys, reflect.ValueOf(results).Elem().Interface())
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
@@ -90,48 +166,26 @@ func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, order
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	// To retrieve the results,
-	// you must execute the Query using its GetAll or Run methods.
-	resultStor, err := data.CastToStorableCollection(results)
-	for _, stor := range resultStor {
-		if svc.presave && stor.IsDeleted() {
-			continue
-		}
-		id := stor.GetId()
-		retVal[id] = stor
-		if svc.postload {
-			stor.PostLoad(ctx)
-		}
-		if svc.cacheable {
-			putInCache(ctx, svc.object, stor.GetId(), stor)
-		}
-	}
-	for _, id := range ids {
-		_, ok := retVal[id]
-		if !ok {
-			retVal[id] = nil
-		}
-	}
-	return retVal, nil
+	return results, nil
 }
 
-func (svc *gaeDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+func (svc *gaeDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.Get(ctx, nil, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
-func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, totalrecs int, recsreturned int, err error) {
+func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	appEngineContext := ctx.GetAppengineContext()
 	totalrecs = -1
 	recsreturned = -1
 	query := datastore.NewQuery(svc.collection)
 	query, err = svc.processCondition(ctx, appEngineContext, query, queryCond)
 	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
 	if pageSize > 0 {
 		totalrecs, err = query.Limit(500).Count(appEngineContext)
 		if err != nil {
-			return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+			return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 		}
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)
@@ -141,30 +195,22 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	}
 	results, err := svc.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = query.GetAll(appEngineContext, results)
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.object, "collection", svc.collection)
-	resultStor, err := data.CastToStorableCollection(results)
 	if err != nil {
-		return nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
-	recsreturned = len(resultStor)
-	for _, stor := range resultStor {
-		if svc.postload {
-			stor.PostLoad(ctx)
-		}
-		if svc.cacheable {
-			putInCache(ctx, svc.object, stor.GetId(), stor)
-		}
-	}
+
+	resultStor, ids, err := svc.postArrayGet(ctx, results)
+	recsreturned = len(ids)
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
 	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.object, "recsreturned", recsreturned)
-	return resultStor, totalrecs, recsreturned, nil
+	return resultStor, ids, totalrecs, recsreturned, nil
 }
 
 //create condition for passing to data service

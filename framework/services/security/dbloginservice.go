@@ -76,7 +76,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	}
 
-	usrs, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
+	usrs, _, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
 		log.Logger.Trace(ctx, "Tested user not found", "Err", err)
 		ctx.SetResponse(core.StatusUnauthorizedResponse)

@@ -1,4 +1,4 @@
-package data
+package common
 
 import (
 	"laatoo/sdk/components"
@@ -13,30 +13,32 @@ const (
 	CONF_DATA_PRESAVE       = "presave"
 	CONF_DATA_CACHEABLE     = "cacheable"
 	CONF_DATA_AUDITABLE     = "auditable"
+	CONF_DATA_REFOPS        = "refops"
 	CONF_DATA_COLLECTION    = "collection"
 	CONF_DATA_NOTIFYUPDATES = "notifyupdates"
 	CONF_DATA_NOTIFYNEW     = "notifynew"
 	CONF_PRESAVE_MSG        = "storable_presave"
 	CONF_PREUPDATE_MSG      = "storable_preupdate"
+	CONF_NEWOBJ_MSG         = "storable_new"
 )
 
-func notifyUpdate(ctx core.RequestContext, objectType string, id string) {
-	invalidateCache(ctx, objectType, id)
+func NotifyUpdate(ctx core.RequestContext, objectType string, id string) {
+	InvalidateCache(ctx, objectType, id)
 }
 
-func notifyDelete(ctx core.RequestContext, objectType string, id string) {
+func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
 }
 
-func getFromCache(ctx core.RequestContext, objectType string, id string, object interface{}) bool {
+func GetFromCache(ctx core.RequestContext, objectType string, id string, object interface{}) bool {
 	cachekey := components.GetCacheKey(objectType, id)
 	return ctx.GetFromCache(cachekey, object)
 }
 
-func putInCache(ctx core.RequestContext, objectType string, id string, object interface{}) {
+func PutInCache(ctx core.RequestContext, objectType string, id string, object interface{}) {
 	ctx.PutInCache(components.GetCacheKey(objectType, id), object)
 }
 
-func invalidateCache(ctx core.RequestContext, objectType string, id string) {
+func InvalidateCache(ctx core.RequestContext, objectType string, id string) {
 	ctx.InvalidateCache(components.GetCacheKey(objectType, id))
 }

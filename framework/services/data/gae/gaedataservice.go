@@ -1,23 +1,26 @@
 package data
 
 import (
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"reflect"
-
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"laatoo/sdk/utils"
 )
 
 type gaeDataService struct {
+	*data.BaseComponent
+
 	conf                    config.Config
 	objectConfig            *data.StorableConfig
 	name                    string
 	auditable               bool
 	softdelete              bool
+	refops                  bool
 	cacheable               bool
 	presave                 bool
 	postsave                bool
@@ -30,7 +33,8 @@ type gaeDataService struct {
 	softDeleteField         string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
-	deleteRefOpers          []*refOperation
+	deleteRefOpers          []common.RefOperation
+	getRefOpers             []common.RefOperation
 	serviceType             string
 	/*getRefOpers    map[string][]*refKeyOperation
 	putRefOpers    map[string][]*refKeyOperation
@@ -43,9 +47,9 @@ func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, er
 }
 
 func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	object, ok := conf.GetString(CONF_DATA_OBJECT)
+	object, ok := conf.GetString(common.CONF_DATA_OBJECT)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_OBJECT)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_OBJECT)
 	}
 	objectCreator, err := ctx.GetObjectCreator(object)
 	if err != nil {
@@ -74,7 +78,7 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.softdelete = true
 	}
 
-	collection, ok := conf.GetString(CONF_DATA_COLLECTION)
+	collection, ok := conf.GetString(common.CONF_DATA_COLLECTION)
 	if ok {
 		svc.collection = collection
 	} else {
@@ -82,63 +86,77 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 	}
 
 	if svc.collection == "" {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", CONF_DATA_COLLECTION)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_COLLECTION)
 	}
 
-	cacheable, ok := conf.GetBool(CONF_DATA_CACHEABLE)
+	cacheable, ok := conf.GetBool(common.CONF_DATA_CACHEABLE)
 	if ok {
 		svc.cacheable = cacheable
 	} else {
 		svc.cacheable = svc.objectConfig.Cacheable
 	}
 
-	auditable, ok := conf.GetBool(CONF_DATA_AUDITABLE)
+	auditable, ok := conf.GetBool(common.CONF_DATA_AUDITABLE)
 	if ok {
 		svc.auditable = auditable
 	} else {
 		svc.auditable = svc.objectConfig.Auditable
 	}
-	postsave, ok := conf.GetBool(CONF_DATA_POSTSAVE)
+	postsave, ok := conf.GetBool(common.CONF_DATA_POSTSAVE)
 	if ok {
 		svc.postsave = postsave
 	} else {
 		svc.postsave = svc.objectConfig.PostSave
 	}
-	presave, ok := conf.GetBool(CONF_DATA_PRESAVE)
+	presave, ok := conf.GetBool(common.CONF_DATA_PRESAVE)
 	if ok {
 		svc.presave = presave
 	} else {
 		svc.presave = svc.objectConfig.PreSave
 	}
-	postload, ok := conf.GetBool(CONF_DATA_POSTLOAD)
+	postload, ok := conf.GetBool(common.CONF_DATA_POSTLOAD)
 	if ok {
 		svc.postload = postload
 	} else {
 		svc.postload = svc.objectConfig.PostLoad
 	}
-	notifyupdates, ok := conf.GetBool(CONF_DATA_NOTIFYUPDATES)
+	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
 	if ok {
 		svc.notifyupdates = notifyupdates
 	} else {
 		svc.notifyupdates = svc.objectConfig.NotifyUpdates
 	}
-	notifynew, ok := conf.GetBool(CONF_DATA_NOTIFYNEW)
+
+	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
+	if ok {
+		svc.refops = refops
+	} else {
+		svc.refops = svc.objectConfig.RefOps
+	}
+
+	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
 	if ok {
 		svc.notifynew = notifynew
 	} else {
 		svc.notifynew = svc.objectConfig.NotifyNew
 	}
 
-	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
+	deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
+	if err != nil {
+		return err
+	}
+	err = common.InitialRefOps(ctx, deleteOps)
+	if err != nil {
+		return err
+	}
+
+	err = common.InitialRefOps(ctx, getRefOps)
 	if err != nil {
 		return err
 	}
 	svc.deleteRefOpers = deleteOps
-	if svc.deleteRefOpers != nil {
-		for _, refop := range svc.deleteRefOpers {
-			refop.Initialize(ctx)
-		}
-	}
+	svc.getRefOpers = getRefOps
+
 	return nil
 }
 
@@ -176,7 +194,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Saving object", "Object", svc.object)
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
 		}
@@ -190,13 +208,13 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	id := item.GetId()
 	if id == "" {
-		return errors.ThrowError(ctx, DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
+		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 
 	err := datastore.Get(appEngineContext, key, item)
 	if err == nil {
-		return errors.ThrowError(ctx, DATA_ERROR_OPERATION, "Entity exists ", svc.object+id)
+		return errors.ThrowError(ctx, common.DATA_ERROR_OPERATION, "Entity exists ", svc.object+id)
 	}
 
 	_, err = datastore.Put(appEngineContext, key, item)
@@ -205,6 +223,10 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	if svc.postsave {
 		err = item.PostSave(ctx)
+		if err != nil {
+			errors.WrapError(ctx, err)
+		}
+		err = ctx.SendSynchronousMessage(common.CONF_NEWOBJ_MSG, item)
 		if err != nil {
 			errors.WrapError(ctx, err)
 		}
@@ -220,9 +242,9 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 		id := item.GetId()
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
-		invalidateCache(ctx, svc.object, id)
+		common.InvalidateCache(ctx, svc.object, id)
 		if svc.presave {
-			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
 			}
@@ -248,7 +270,7 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 				}
 			}
 			if svc.notifyupdates {
-				notifyUpdate(ctx, svc.object, item.GetId())
+				common.NotifyUpdate(ctx, svc.object, item.GetId())
 			}
 		}
 	}
@@ -258,11 +280,11 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	appEngineContext := ctx.GetAppengineContext()
-	invalidateCache(ctx, svc.object, id)
+	common.InvalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
 	item.SetId(id)
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
 		}
@@ -285,15 +307,24 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		}
 	}
 	if svc.notifyupdates {
-		notifyUpdate(ctx, svc.object, id)
+		common.NotifyUpdate(ctx, svc.object, id)
 	}
 	return nil
 }
 
+//upsert an object ...insert if not there... update if there
+func (svc *gaeDataService) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+	return svc.update(ctx, id, newVals, true)
+}
+
 func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+	return svc.update(ctx, id, newVals, false)
+}
+
+func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
 	appEngineContext := ctx.GetAppengineContext()
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.object, "data": newVals})
 		if err != nil {
 			return err
 		}
@@ -308,24 +339,16 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err = datastore.Get(appEngineContext, key, object)
+	stor := object.(data.Storable)
+	utils.SetObjectFields(stor, newVals)
 	if err != nil {
+		if upsert {
+			return svc.Save(ctx, stor)
+		}
 		return err
 	}
-	stor := object.(data.Storable)
-	entVal := reflect.ValueOf(object).Elem()
-	for k, v := range newVals {
-		f := entVal.FieldByName(k)
-		if f.IsValid() {
-			// A Value can be changed only if it is
-			// addressable and was not obtained by
-			// the use of unexported struct fields.
-			if f.CanSet() {
-				f.Set(reflect.ValueOf(v))
-			}
-		}
-	}
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, stor)
+		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, stor)
 		if err != nil {
 			return err
 		}
@@ -344,18 +367,25 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 			errors.WrapError(ctx, err)
 		}
 	}
-	invalidateCache(ctx, svc.object, id)
+	common.InvalidateCache(ctx, svc.object, id)
 	if svc.notifyupdates {
-		notifyUpdate(ctx, svc.object, id)
+		common.NotifyUpdate(ctx, svc.object, id)
 	}
 	return nil
 }
 
-//update objects by ids, fields to be updated should be provided as key value pairs
+func (svc *gaeDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	return svc.updateAll(ctx, queryCond, newVals, true)
+}
+
 func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	return svc.updateAll(ctx, queryCond, newVals, false)
+}
+
+func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
 	appEngineContext := ctx.GetAppengineContext()
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
@@ -375,26 +405,27 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	keys, err := query.GetAll(appEngineContext, results)
-	resultStor, err := data.CastToStorableCollection(results)
-	length := len(resultStor)
-	ids := make([]string, length)
-	for i, item := range resultStor {
-		entVal := reflect.ValueOf(item)
-		ids[i] = item.GetId()
-		invalidateCache(ctx, svc.object, ids[i])
-		for k, v := range newVals {
-			f := entVal.FieldByName(k)
-			if f.IsValid() {
-				// A Value can be changed only if it is
-				// addressable and was not obtained by
-				// the use of unexported struct fields.
-				if f.CanSet() {
-					f.Set(reflect.ValueOf(v))
-				}
+	if len(keys) == 0 {
+		if upsert {
+			object, err := svc.objectCreator(ctx, nil)
+			if err != nil {
+				return nil, err
 			}
+			stor := object.(data.Storable)
+			utils.SetObjectFields(stor, newVals)
+			err = svc.Save(ctx, stor)
+			if err != nil {
+				return nil, err
+			}
+			return []string{stor.GetId()}, nil
 		}
+		return []string{}, nil
+	}
+	resultStor, ids, err := data.CastToStorableCollection(results)
+	for _, item := range resultStor {
+		utils.SetObjectFields(item, newVals)
 		if svc.presave {
-			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return nil, err
 			}
@@ -417,9 +448,10 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 			}
 		}
 	}
-	if svc.notifyupdates {
-		for _, id := range ids {
-			notifyUpdate(ctx, svc.object, id)
+	for _, id := range ids {
+		common.InvalidateCache(ctx, svc.object, id)
+		if svc.notifyupdates {
+			common.NotifyUpdate(ctx, svc.object, id)
 		}
 	}
 	return ids, err
@@ -429,16 +461,13 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	appEngineContext := ctx.GetAppengineContext()
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 	if svc.auditable {
 		data.Audit(ctx, newVals)
-	}
-	for _, id := range ids {
-		invalidateCache(ctx, svc.object, id)
 	}
 	lenids := len(ids)
 	results, _ := svc.objectCollectionCreator(ctx, lenids, nil)
@@ -447,29 +476,18 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
 	}
-	err := datastore.GetMulti(appEngineContext, keys, reflect.ValueOf(results).Elem().Interface())
+	err := datastore.GetMulti(appEngineContext, keys, utils.ElementPtr(results))
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
 			log.Logger.Debug(ctx, "Geting object", "err", err)
 			return err
 		}
 	}
-	resultStor, err := data.CastToStorableCollection(results)
+	resultStor, ids, err := data.CastToStorableCollection(results)
 	for _, item := range resultStor {
-		entVal := reflect.ValueOf(item)
-		for k, v := range newVals {
-			f := entVal.FieldByName(k)
-			if f.IsValid() {
-				// A Value can be changed only if it is
-				// addressable and was not obtained by
-				// the use of unexported struct fields.
-				if f.CanSet() {
-					f.Set(reflect.ValueOf(v))
-				}
-			}
-		}
+		utils.SetObjectFields(item, newVals)
 		if svc.presave {
-			err := ctx.SendSynchronousMessage(CONF_PRESAVE_MSG, item)
+			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
 			}
@@ -491,9 +509,10 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			}
 		}
 	}
-	if svc.notifyupdates {
-		for _, id := range ids {
-			notifyUpdate(ctx, svc.object, id)
+	for _, id := range ids {
+		common.InvalidateCache(ctx, svc.object, id)
+		if svc.notifyupdates {
+			common.NotifyUpdate(ctx, svc.object, id)
 		}
 	}
 	return nil
@@ -506,16 +525,16 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 	if svc.softdelete {
 		err := svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
-			err = deleteRefOps(ctx, svc.deleteRefOpers, []string{id})
+			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 		}
 		return err
 	}
-	invalidateCache(ctx, svc.object, id)
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Delete(appEngineContext, key)
 	if err == nil {
-		err = deleteRefOps(ctx, svc.deleteRefOpers, []string{id})
+		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 	}
+	common.InvalidateCache(ctx, svc.object, id)
 	return err
 }
 
@@ -526,19 +545,21 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	if svc.softdelete {
 		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
-			err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
+			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		}
 		return err
 	}
 	keys := make([]*datastore.Key, len(ids))
 	for ind, id := range ids {
-		invalidateCache(ctx, svc.object, id)
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
 	}
 	err := datastore.DeleteMulti(appEngineContext, keys)
 	if err == nil {
-		err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
+		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
+	}
+	for _, id := range ids {
+		common.InvalidateCache(ctx, svc.object, id)
 	}
 	return err
 }
@@ -548,7 +569,7 @@ func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 	if svc.softdelete {
 		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
-			err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
+			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		}
 		return ids, err
 	}
@@ -569,17 +590,19 @@ func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 	ids := make([]string, len(keys))
 	for i, val := range keys {
 		ids[i] = val.StringID()
-		invalidateCache(ctx, svc.object, ids[i])
 	}
 	err = datastore.DeleteMulti(appEngineContext, keys)
 
 	if err == nil {
-		err = deleteRefOps(ctx, svc.deleteRefOpers, ids)
+		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		if err != nil {
 			return ids, err
 		}
 	} else {
 		return nil, err
+	}
+	for _, id := range ids {
+		common.InvalidateCache(ctx, svc.object, id)
 	}
 	return ids, err
 }

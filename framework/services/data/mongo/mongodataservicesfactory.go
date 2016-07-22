@@ -1,8 +1,9 @@
-package data
+package mongo
 
 import (
 	"gopkg.in/mgo.v2"
 	"laatoo/framework/core/objects"
+	"laatoo/framework/services/data/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -38,7 +39,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 	}
 	sess, err := mgo.Dial(connectionString)
 	if err != nil {
-		return errors.RethrowError(ctx, DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
+		return errors.RethrowError(ctx, common.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}
 
 	/*mongoSvc.objects = make(map[string]string, len(objs))
@@ -60,7 +61,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 //Create the services configured for factory.
 func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
 	switch method {
-	case CONF_DATA_SVCS:
+	case common.CONF_DATA_SVCS:
 		{
 
 			return newMongoDataService(ctx, name, ms)
