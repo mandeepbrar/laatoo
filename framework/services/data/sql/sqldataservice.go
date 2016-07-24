@@ -1,53 +1,50 @@
-package data
+package sql
 
 import (
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	//	"github.com/jinzhu/gorm"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/utils"
+	//	"laatoo/sdk/utils"
 )
 
-type gaeDataService struct {
+type sqlDataService struct {
 	*data.BaseComponent
-
 	conf                    config.Config
 	objectConfig            *data.StorableConfig
 	name                    string
+	database                string
 	auditable               bool
 	softdelete              bool
-	refops                  bool
 	cacheable               bool
+	refops                  bool
 	presave                 bool
 	postsave                bool
 	postload                bool
 	notifynew               bool
 	notifyupdates           bool
+	factory                 *sqlDataServicesFactory
 	collection              string
+	softDeleteField         string
 	object                  string
 	objectid                string
-	softDeleteField         string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
 	deleteRefOpers          []common.RefOperation
 	getRefOpers             []common.RefOperation
 	serviceType             string
-	/*getRefOpers    map[string][]*refKeyOperation
-	putRefOpers    map[string][]*refKeyOperation
-	updateRefOpers map[string][]*refKeyOperation*/
 }
 
-func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, error) {
-	gaeDataSvc := &gaeDataService{name: name, serviceType: "Gae Datastore"}
-	return gaeDataSvc, nil
+func newSqlDataService(ctx core.ServerContext, name string, svc *sqlDataServicesFactory) (*sqlDataService, error) {
+	sqlDataSvc := &sqlDataService{name: name, factory: svc, serviceType: "SQL"}
+	return sqlDataSvc, nil
 }
 
-func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	ctx = ctx.SubContext("Initialize gae datastore service")
+func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("Initialize SQL Data Service")
 	object, ok := conf.GetString(common.CONF_DATA_OBJECT)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_OBJECT)
@@ -121,12 +118,6 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 	} else {
 		svc.postload = svc.objectConfig.PostLoad
 	}
-	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
-	if ok {
-		svc.notifyupdates = notifyupdates
-	} else {
-		svc.notifyupdates = svc.objectConfig.NotifyUpdates
-	}
 
 	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
 	if ok {
@@ -135,6 +126,12 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.refops = svc.objectConfig.RefOps
 	}
 
+	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
+	if ok {
+		svc.notifyupdates = notifyupdates
+	} else {
+		svc.notifyupdates = svc.objectConfig.NotifyUpdates
+	}
 	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
 	if ok {
 		svc.notifynew = notifynew
@@ -142,58 +139,59 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.notifynew = svc.objectConfig.NotifyNew
 	}
 
-	deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
-	if err != nil {
-		return err
-	}
-	err = common.InitialRefOps(ctx, deleteOps)
-	if err != nil {
-		return err
-	}
+	if svc.refops {
+		deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
+		if err != nil {
+			return err
+		}
+		err = common.InitialRefOps(ctx, deleteOps)
+		if err != nil {
+			return err
+		}
 
-	err = common.InitialRefOps(ctx, getRefOps)
-	if err != nil {
-		return err
+		err = common.InitialRefOps(ctx, getRefOps)
+		if err != nil {
+			return err
+		}
+		svc.deleteRefOpers = deleteOps
+		svc.getRefOpers = getRefOps
 	}
-	svc.deleteRefOpers = deleteOps
-	svc.getRefOpers = getRefOps
 
 	return nil
 }
 
-func (svc *gaeDataService) Start(ctx core.ServerContext) error {
+func (svc *sqlDataService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *gaeDataService) Invoke(ctx core.RequestContext) error {
+func (svc *sqlDataService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *gaeDataService) GetName() string {
+func (svc *sqlDataService) GetName() string {
 	return svc.name
 }
 
-func (svc *gaeDataService) GetDataServiceType() string {
+func (svc *sqlDataService) GetDataServiceType() string {
 	return data.DATASERVICE_TYPE_NOSQL
 }
 
-func (svc *gaeDataService) GetObject() string {
+func (svc *sqlDataService) GetObject() string {
 	return svc.object
 }
 
-func (svc *gaeDataService) Supports(feature data.Feature) bool {
+func (svc *sqlDataService) Supports(feature data.Feature) bool {
 	switch feature {
 	case data.InQueries:
-		return false
-	case data.Ancestors:
 		return true
+	case data.Ancestors:
+		return false
 	}
 	return false
 }
 
-func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) error {
+func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
-	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Saving object", "Object", svc.object)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -212,14 +210,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if id == "" {
 		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
 	}
-	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-
-	err := datastore.Get(appEngineContext, key, item)
-	if err == nil {
-		return errors.ThrowError(ctx, common.DATA_ERROR_OPERATION, "Entity exists ", svc.object+id)
-	}
-
-	_, err = datastore.Put(appEngineContext, key, item)
+	err := svc.factory.connection.Create(item).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -228,23 +219,23 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 		if err != nil {
 			errors.WrapError(ctx, err)
 		}
-		err = ctx.SendSynchronousMessage(common.CONF_NEWOBJ_MSG, item)
+		err := ctx.SendSynchronousMessage(common.CONF_NEWOBJ_MSG, item)
 		if err != nil {
-			errors.WrapError(ctx, err)
+			return err
 		}
 	}
 	return nil
 }
 
-func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
+/*
+func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
-	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.object)
-	keys := make([]*datastore.Key, len(items))
-	for ind, item := range items {
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	bulk := connCopy.DB(svc.database).C(svc.collection).Bulk()
+	for _, item := range items {
 		id := item.GetId()
-		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-		keys[ind] = key
 		common.InvalidateCache(ctx, svc.object, id)
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -259,8 +250,9 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 		if svc.auditable {
 			data.Audit(ctx, item)
 		}
+		bulk.Upsert(bson.M{svc.objectid: id}, item)
 	}
-	_, err := datastore.PutMulti(appEngineContext, keys, items)
+	_, err := bulk.Run()
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -281,11 +273,14 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	return nil
 }
 
-func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
+func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	appEngineContext := ctx.GetAppengineContext()
 	common.InvalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	condition := bson.M{}
+	condition[svc.objectid] = id
 	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -293,6 +288,7 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 			return err
 		}
 		err = item.PreSave(ctx)
+		log.Logger.Trace(ctx, "Putting object", "err", err)
 		if err != nil {
 			return err
 		}
@@ -300,7 +296,7 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	if svc.auditable {
 		data.Audit(ctx, item)
 	}
-	_, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, svc.collection, id, 0, nil), item)
+	err := connCopy.DB(svc.database).C(svc.collection).Update(condition, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -317,61 +313,43 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 }
 
 //upsert an object ...insert if not there... update if there
-func (svc *gaeDataService) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+func (svc *sqlDataService) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpsertId")
 	return svc.update(ctx, id, newVals, true)
 }
 
-func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+func (svc *sqlDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("Update")
 	return svc.update(ctx, id, newVals, false)
 }
 
-func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
-	appEngineContext := ctx.GetAppengineContext()
+func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
+	if svc.auditable {
+		data.Audit(ctx, newVals)
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.object, "data": newVals})
 		if err != nil {
 			return err
 		}
 	}
-	if svc.auditable {
-		data.Audit(ctx, newVals)
+	if upsert {
+		newVals[svc.objectid] = id
 	}
+	condition := bson.M{}
+	condition[svc.objectid] = id
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	var err error
+	if upsert {
+		_, err = connCopy.DB(svc.database).C(svc.collection).UpsertId(condition, newVals)
 
-	object, err := svc.objectCreator(ctx, nil)
+	} else {
+		updateInterface := map[string]interface{}{"$set": newVals}
+		err = connCopy.DB(svc.database).C(svc.collection).Update(condition, updateInterface)
+	}
 	if err != nil {
 		return err
-	}
-	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-	err = datastore.Get(appEngineContext, key, object)
-	stor := object.(data.Storable)
-	utils.SetObjectFields(stor, newVals)
-	if err != nil {
-		if upsert {
-			return svc.Save(ctx, stor)
-		}
-		return err
-	}
-	if svc.presave {
-		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, stor)
-		if err != nil {
-			return err
-		}
-		err = stor.PreSave(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	_, err = datastore.Put(appEngineContext, key, object)
-	if err != nil {
-		return err
-	}
-	if svc.postsave {
-		err = stor.PostSave(ctx)
-		if err != nil {
-			errors.WrapError(ctx, err)
-		}
 	}
 	common.InvalidateCache(ctx, svc.object, id)
 	if svc.notifyupdates {
@@ -380,47 +358,44 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	return nil
 }
 
-func (svc *gaeDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (svc *sqlDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
 	ctx = ctx.SubContext("Upsert")
 	return svc.updateAll(ctx, queryCond, newVals, true)
 }
 
-func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (svc *sqlDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
 	ctx = ctx.SubContext("UpdateAll")
 	return svc.updateAll(ctx, queryCond, newVals, false)
 }
 
-func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
-	appEngineContext := ctx.GetAppengineContext()
+func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
+	results, err := svc.objectCollectionCreator(ctx, 0, nil)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	if svc.auditable {
-		data.Audit(ctx, newVals)
-	}
-	query := datastore.NewQuery(svc.collection)
-	query, err := svc.processCondition(ctx, appEngineContext, query, queryCond)
-	if err != nil {
-		return nil, err
-	}
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
+	err = query.All(results)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	// To retrieve the results,
-	// you must execute the Query using its GetAll or Run methods.
-	keys, err := query.GetAll(appEngineContext, results)
-	if len(keys) == 0 {
+	resultStor, ids, err := data.CastToStorableCollection(results)
+	length := len(resultStor)
+	if length == 0 {
 		if upsert {
 			object, err := svc.objectCreator(ctx, nil)
 			if err != nil {
 				return nil, err
 			}
+			utils.SetObjectFields(object, newVals)
 			stor := object.(data.Storable)
-			utils.SetObjectFields(stor, newVals)
 			err = svc.Save(ctx, stor)
 			if err != nil {
 				return nil, err
@@ -429,32 +404,12 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 		return []string{}, nil
 	}
-	resultStor, ids, err := data.CastToStorableCollection(results)
-	for _, item := range resultStor {
-		utils.SetObjectFields(item, newVals)
-		if svc.presave {
-			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
-			if err != nil {
-				return nil, err
-			}
-			err = item.PreSave(ctx)
-			if err != nil {
-				return nil, err
-			}
-		}
+	if svc.auditable {
+		data.Audit(ctx, newVals)
 	}
-	_, err = datastore.PutMulti(appEngineContext, keys, results)
+	_, err = connCopy.DB(svc.database).C(svc.collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
-	}
-
-	if svc.postsave {
-		for _, stor := range resultStor {
-			err = stor.PostSave(ctx)
-			if err != nil {
-				errors.WrapError(ctx, err)
-			}
-		}
 	}
 	for _, id := range ids {
 		common.InvalidateCache(ctx, svc.object, id)
@@ -466,57 +421,24 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 }
 
 //update objects by ids, fields to be updated should be provided as key value pairs
-func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
+func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpdateMulti")
-	appEngineContext := ctx.GetAppengineContext()
+	if svc.auditable {
+		data.Audit(ctx, newVals)
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	if svc.auditable {
-		data.Audit(ctx, newVals)
-	}
-	lenids := len(ids)
-	results, _ := svc.objectCollectionCreator(ctx, lenids, nil)
-	keys := make([]*datastore.Key, lenids)
-	for ind, id := range ids {
-		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-		keys[ind] = key
-	}
-	err := datastore.GetMulti(appEngineContext, keys, utils.ElementPtr(results))
+	updateInterface := map[string]interface{}{"$set": newVals}
+	condition, _ := svc.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, svc.objectid, ids)
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	_, err := connCopy.DB(svc.database).C(svc.collection).UpdateAll(condition, updateInterface)
 	if err != nil {
-		if _, ok := err.(appengine.MultiError); !ok {
-			log.Logger.Debug(ctx, "Geting object", "err", err)
-			return err
-		}
-	}
-	resultStor, ids, err := data.CastToStorableCollection(results)
-	for _, item := range resultStor {
-		utils.SetObjectFields(item, newVals)
-		if svc.presave {
-			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
-			if err != nil {
-				return err
-			}
-			err = item.PreSave(ctx)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	_, err = datastore.PutMulti(appEngineContext, keys, results)
-	if err != nil {
-		return err
-	}
-	if svc.postsave {
-		for _, stor := range resultStor {
-			err = stor.PostSave(ctx)
-			if err != nil {
-				errors.WrapError(ctx, err)
-			}
-		}
+		return errors.WrapError(ctx, err)
 	}
 	for _, id := range ids {
 		common.InvalidateCache(ctx, svc.object, id)
@@ -528,10 +450,8 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 }
 
 //item must support Deleted field for soft deletes
-func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
+func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
-	appEngineContext := ctx.GetAppengineContext()
-
 	if svc.softdelete {
 		err := svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
@@ -539,8 +459,11 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 		}
 		return err
 	}
-	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-	err := datastore.Delete(appEngineContext, key)
+	condition := bson.M{}
+	condition[svc.objectid] = id
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	err := connCopy.DB(svc.database).C(svc.collection).Remove(condition)
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 	}
@@ -549,10 +472,8 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 }
 
 //Delete object by ids
-func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
+func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	ctx = ctx.SubContext("DeleteMulti")
-	appEngineContext := ctx.GetAppengineContext()
-
 	if svc.softdelete {
 		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
 		if err == nil {
@@ -560,12 +481,13 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 		}
 		return err
 	}
-	keys := make([]*datastore.Key, len(ids))
-	for ind, id := range ids {
-		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-		keys[ind] = key
-	}
-	err := datastore.DeleteMulti(appEngineContext, keys)
+	conditionVal := bson.M{}
+	conditionVal["$in"] = ids
+	condition := bson.M{}
+	condition[svc.objectid] = conditionVal
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	_, err := connCopy.DB(svc.database).C(svc.collection).RemoveAll(condition)
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 	}
@@ -576,7 +498,7 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 }
 
 //Delete object by condition
-func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if svc.softdelete {
 		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
@@ -585,36 +507,30 @@ func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		}
 		return ids, err
 	}
-
-	appEngineContext := ctx.GetAppengineContext()
 	results, err := svc.objectCollectionCreator(ctx, 0, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	query := datastore.NewQuery(svc.collection)
-	query, err = svc.processCondition(ctx, appEngineContext, query, queryCond)
-	if err != nil {
-		return nil, err
+	connCopy := svc.factory.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
+	err = query.All(results)
+	resultStor, ids, err := data.CastToStorableCollection(results)
+	length := len(resultStor)
+	if length == 0 {
+		return nil, nil
 	}
-	// To retrieve the results,
-	// you must execute the Query using its GetAll or Run methods.
-	keys, err := query.KeysOnly().GetAll(appEngineContext, results)
-	ids := make([]string, len(keys))
-	for i, val := range keys {
-		ids[i] = val.StringID()
-	}
-	err = datastore.DeleteMulti(appEngineContext, keys)
-
+	_, err = connCopy.DB(svc.database).C(svc.collection).RemoveAll(queryCond)
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		if err != nil {
 			return ids, err
 		}
+		for _, id := range ids {
+			common.InvalidateCache(ctx, svc.object, id)
+		}
 	} else {
 		return nil, err
 	}
-	for _, id := range ids {
-		common.InvalidateCache(ctx, svc.object, id)
-	}
 	return ids, err
-}
+}*/

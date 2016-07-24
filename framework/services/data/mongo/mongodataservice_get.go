@@ -10,6 +10,7 @@ import (
 )
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
+	ctx = ctx.SubContext("GetById")
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
 
 	//try cache if the object is cacheable
@@ -62,6 +63,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 
 //Get multiple objects by id
 func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+	ctx = ctx.SubContext("GetMulti")
 	results, err := ms.getMulti(ctx, ids, orderBy)
 	if err != nil {
 		return nil, err
@@ -74,6 +76,7 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 }
 
 func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+	ctx = ctx.SubContext("GetMultiHash")
 	results, err := ms.getMulti(ctx, ids, orderBy)
 	if err != nil {
 		return nil, err
@@ -106,6 +109,7 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
+	log.Logger.Trace(ctx, "Processing results in postArrayGet ", "number", len(resultStor))
 	if ms.refops {
 		res, err := common.GetRefOps(ctx, ms.getRefOpers, ids, resultStor)
 		if err != nil {
@@ -117,6 +121,7 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 	for _, stor := range resultStor {
 		ms.postLoad(ctx, stor)
 	}
+	log.Logger.Trace(ctx, "Returning results in postArrayGet ", "resultStor", resultStor)
 	return resultStor, ids, nil
 }
 
@@ -159,11 +164,21 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	return results, nil
 }
 
+func (ms *mongoDataService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
+	ctx = ctx.SubContext("Count")
+	connCopy := ms.factory.connection.Copy()
+	defer connCopy.Close()
+	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
+	return query.Count()
+}
+
 func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	ctx = ctx.SubContext("GetList")
 	return ms.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
 func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	ctx = ctx.SubContext("Get")
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own

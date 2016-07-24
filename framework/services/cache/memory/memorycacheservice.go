@@ -1,4 +1,4 @@
-package cache
+package memory
 
 import (
 	"laatoo/framework/core/objects"

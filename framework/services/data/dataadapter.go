@@ -17,6 +17,7 @@ const (
 	CONF_DATA_ID                   = "id"
 	CONF_DATA_IDS                  = "ids"
 	CONF_SVC_GET                   = "GET"
+	CONF_SVC_COUNT                 = "COUNT"
 	CONF_SVC_PUT                   = "PUT"
 	CONF_SVC_PUTMULTIPLE           = "PUTMULTIPLE"
 	CONF_SVC_GETMULTIPLE           = "GETMULTIPLE"
@@ -95,6 +96,8 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.PUT
 	case CONF_SVC_GETMULTIPLE:
 		ds.svcfunc = ds.GETMULTI
+	case CONF_SVC_COUNT:
+		ds.svcfunc = ds.COUNT
 	case CONF_SVC_SAVE:
 		ds.svcfunc = ds.SAVE
 	case CONF_SVC_JOIN:
@@ -129,6 +132,7 @@ func (ds *dataAdapterService) GetName() string {
 }
 
 func (ds *dataAdapterService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("Data adapter initialize")
 	ds.conf = conf
 	if ds.method == CONF_SVC_GETMULTIPLE_SELECTIDS {
 		lookupSvcName, ok := conf.GetString(CONF_SVC_LOOKUPSVC)
@@ -146,6 +150,7 @@ func (ds *dataAdapterService) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (ds *dataAdapterService) Start(ctx core.ServerContext) error {
+	ctx = ctx.SubContext("Data adapter start")
 	ds.DataStore = ds.fac.DataStore
 	if ds.method == CONF_SVC_GETMULTIPLE_SELECTIDS {
 		lookupSvcInt, err := ctx.GetService(ds.lookupSvcName)
@@ -166,6 +171,7 @@ func (ds *dataAdapterService) Invoke(ctx core.RequestContext) error {
 }
 
 func (es *dataAdapterService) GETBYID(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("GETBYID")
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
@@ -177,11 +183,14 @@ func (es *dataAdapterService) GETBYID(ctx core.RequestContext) error {
 		} else {
 			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
 		}
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) GETMULTI(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("GETMULTI")
 	idsstr, ok := ctx.GetString(CONF_DATA_IDS)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_IDS)
@@ -190,12 +199,16 @@ func (es *dataAdapterService) GETMULTI(ctx core.RequestContext) error {
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	result, err := es.DataStore.GetMulti(ctx, ids, orderBy)
 	if err == nil {
+		log.Logger.Trace(ctx, "Returning results ", "result", result)
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) JOIN(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("JOIN")
 	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
 	lookupids := make([]string, len(retdata))
 	for ind, item := range retdata {
@@ -220,11 +233,14 @@ func (es *dataAdapterService) JOIN(ctx core.RequestContext) error {
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
 		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, requestinfo))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("GETMULTI_SELECTIDS")
 	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.lookupSvc)
 	lookupids := make([]string, len(retdata))
 	for ind, item := range retdata {
@@ -242,8 +258,11 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
 		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, requestinfo))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
+
 }
 
 func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
@@ -264,28 +283,51 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 }
 
 func (es *dataAdapterService) SELECT(ctx core.RequestContext) error {
-	log.Logger.Trace(ctx, "Selecting")
+	ctx = ctx.SubContext("SELECT")
 	retdata, _, totalrecs, recsreturned, err := es.selectMethod(ctx, es.DataStore)
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
 		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, retdata, requestinfo))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
+}
+
+func (es *dataAdapterService) COUNT(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("COUNT")
+	body := ctx.GetRequest().(*map[string]interface{})
+	argsMap := *body
+	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	count, err := es.DataStore.Count(ctx, condition)
+	if err == nil {
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, count, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
+	}
 }
 
 func (es *dataAdapterService) SAVE(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("SAVE")
 	ent := ctx.GetRequest()
 	stor := ent.(data.Storable)
 	err := es.DataStore.Save(ctx, stor)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, stor.GetId(), nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) PUT(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("PUT")
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
@@ -295,12 +337,14 @@ func (es *dataAdapterService) PUT(ctx core.RequestContext) error {
 	err := es.DataStore.Put(ctx, id, stor)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
-	log.Logger.Info(ctx, "Deleting")
+	ctx = ctx.SubContext("DELETE")
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
@@ -308,12 +352,14 @@ func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
 	err := es.DataStore.Delete(ctx, id)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) DELETEALL(ctx core.RequestContext) error {
-	log.Logger.Trace(ctx, "Deleting")
+	ctx = ctx.SubContext("DELETEALL")
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap := *body
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
@@ -323,21 +369,27 @@ func (es *dataAdapterService) DELETEALL(ctx core.RequestContext) error {
 	retval, err := es.DataStore.DeleteAll(ctx, condition)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, retval, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) UPSERT(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("UPSERT")
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
 	_, err := es.DataStore.Upsert(ctx, vals["condition"].(map[string]interface{}), vals["value"].(map[string]interface{}))
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("UPDATE")
 	id, ok := ctx.GetString(CONF_DATA_ID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
@@ -347,11 +399,14 @@ func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 	err := es.DataStore.Update(ctx, id, vals)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("PUTMULTIPLE")
 	arr := ctx.GetRequest()
 	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
@@ -360,11 +415,14 @@ func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 	err = es.DataStore.PutMulti(ctx, storables)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }
 
 func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("UPDATEMULTIPLE")
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
 	ids, ok := vals["ids"]
@@ -404,6 +462,8 @@ func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
 	err := es.DataStore.UpdateMulti(ctx, stringIds, updatesMap)
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
+		return nil
+	} else {
+		return errors.WrapError(ctx, err)
 	}
-	return err
 }

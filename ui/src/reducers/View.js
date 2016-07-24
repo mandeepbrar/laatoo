@@ -67,6 +67,34 @@ function ViewReducer(reducerName) {
           });
         }
 
+        case ActionNames.VIEW_ITEM_RELOAD: {
+          let index = action.meta.Index
+          if (index==null) {
+            return state
+          }
+          let data = state.data
+          let newData = null
+          //remove by index for arrays and keys for map
+          if(Array.isArray(data)) {
+            let ind = -1
+            if((typeof index) == "string") {
+              ind = parseInt(index)
+            } else {
+              ind = index
+            }
+            newData = data.slice(0)
+            console.log("newData ", newData, " index", ind, "  payload ", action.payload)
+            newData[ind] = action.payload;
+          } else {
+            newData = Object.assign({}, data);
+            newData[index] = action.payload;
+          }
+          return Object.assign({}, state, {
+            data: newData,
+            lastUpdateTime: (new Date()).getTime(),
+          });
+        }
+
         case ActionNames.VIEW_ITEM_REMOVE: {
           let index = action.payload.Index
           if (index==null) {

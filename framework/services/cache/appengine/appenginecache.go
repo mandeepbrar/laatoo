@@ -1,6 +1,6 @@
 // +build appengine
 
-package cache
+package appengine
 
 import (
 	"bytes"

@@ -51,6 +51,7 @@ func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServi
 }
 
 func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("Initialize Mongo Service")
 	object, ok := conf.GetString(common.CONF_DATA_OBJECT)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_OBJECT)
@@ -146,21 +147,23 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 		ms.notifynew = ms.objectConfig.NotifyNew
 	}
 
-	deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
-	if err != nil {
-		return err
-	}
-	err = common.InitialRefOps(ctx, deleteOps)
-	if err != nil {
-		return err
-	}
+	if ms.refops {
+		deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
+		if err != nil {
+			return err
+		}
+		err = common.InitialRefOps(ctx, deleteOps)
+		if err != nil {
+			return err
+		}
 
-	err = common.InitialRefOps(ctx, getRefOps)
-	if err != nil {
-		return err
+		err = common.InitialRefOps(ctx, getRefOps)
+		if err != nil {
+			return err
+		}
+		ms.deleteRefOpers = deleteOps
+		ms.getRefOpers = getRefOps
 	}
-	ms.deleteRefOpers = deleteOps
-	ms.getRefOpers = getRefOps
 
 	return nil
 }
@@ -196,6 +199,7 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 }
 
 func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
+	ctx = ctx.SubContext("Save")
 	log.Logger.Trace(ctx, "Saving object", "Object", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -234,6 +238,7 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 }
 
 func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
+	ctx = ctx.SubContext("PutMulti")
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -278,6 +283,7 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 }
 
 func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
+	ctx = ctx.SubContext("Put")
 	common.InvalidateCache(ctx, ms.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.object, "id", id)
 	connCopy := ms.factory.connection.Copy()
@@ -317,10 +323,12 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 
 //upsert an object ...insert if not there... update if there
 func (ms *mongoDataService) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+	ctx = ctx.SubContext("UpsertId")
 	return ms.update(ctx, id, newVals, true)
 }
 
 func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
+	ctx = ctx.SubContext("Update")
 	return ms.update(ctx, id, newVals, false)
 }
 
@@ -360,10 +368,12 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 }
 
 func (ms *mongoDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	ctx = ctx.SubContext("Upsert")
 	return ms.updateAll(ctx, queryCond, newVals, true)
 }
 
 func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+	ctx = ctx.SubContext("UpdateAll")
 	return ms.updateAll(ctx, queryCond, newVals, false)
 }
 
@@ -421,6 +431,7 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
+	ctx = ctx.SubContext("UpdateMulti")
 	if ms.auditable {
 		data.Audit(ctx, newVals)
 	}
@@ -449,6 +460,7 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 
 //item must support Deleted field for soft deletes
 func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
+	ctx = ctx.SubContext("Delete")
 	if ms.softdelete {
 		err := ms.Update(ctx, id, map[string]interface{}{ms.softDeleteField: true})
 		if err == nil {
@@ -470,6 +482,7 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 
 //Delete object by ids
 func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
+	ctx = ctx.SubContext("DeleteMulti")
 	if ms.softdelete {
 		err := ms.UpdateMulti(ctx, ids, map[string]interface{}{ms.softDeleteField: true})
 		if err == nil {
@@ -495,6 +508,7 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 
 //Delete object by condition
 func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+	ctx = ctx.SubContext("DeleteAll")
 	if ms.softdelete {
 		ids, err := ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.softDeleteField: true})
 		if err == nil {

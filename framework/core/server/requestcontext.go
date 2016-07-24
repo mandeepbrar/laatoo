@@ -6,7 +6,6 @@ import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
-	"time"
 )
 
 //request context is passed while executing a request
@@ -23,14 +22,13 @@ type requestContext struct {
 	admin bool
 	//response data for the request
 	responseData *core.ServiceResponse
+	parent       *requestContext
 	//request body
 	//this can be plain bytes, data objects or collections depending upon
 	//engine configuration and service expectation
 	request interface{}
 	//server context that generated this request
 	serverContext *serverContext
-	//time at which the request was created
-	createTime time.Time
 	//if the request is a subrequest, times are not reported and variables are not cleared
 	subRequest bool
 }
@@ -51,17 +49,19 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 //subcontext of the request
 //retains id and tracks flow along with variables
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
+	log.Logger.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
-		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: true}
+		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: true}
 }
 
 //new context from the request if a part of the request needs to be tracked separately
 //as a subflow.
 func (ctx *requestContext) NewContext(name string) core.RequestContext {
+	log.Logger.Info(ctx, "Entering new request context ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
-		engineContext: ctx.engineContext, cache: ctx.cache, createTime: time.Now(), subRequest: false}
+		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: false}
 }
 
 func (ctx *requestContext) PutInCache(key string, item interface{}) error {
@@ -117,6 +117,9 @@ func (ctx *requestContext) IsAdmin() bool {
 //sets or gets the response for a request
 func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 	ctx.responseData = responseData
+	if ctx.parent != nil {
+		ctx.parent.SetResponse(responseData)
+	}
 }
 
 //gets response
@@ -162,18 +165,8 @@ func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
 }
 
 //completes a request
-func (ctx *requestContext) PrintElapsedTime() {
-	elapsedTime := time.Now().Sub(ctx.createTime)
-	log.Logger.Debug(ctx, "Elapsed Time", "Time taken", elapsedTime)
-}
-
-//completes a request
 func (ctx *requestContext) CompleteRequest() {
-	if !ctx.subRequest {
-		completionTime := time.Now()
-		elapsedTime := completionTime.Sub(ctx.createTime)
-		log.Logger.Info(ctx, "Request Complete", "Time taken", elapsedTime)
-	}
+	log.Logger.Info(ctx, "Completed Request ", "Time taken", ctx.GetElapsedTime())
 	//ctx.parentContext = nil
 	ctx.engineContext = nil
 	//ctx.ParamsStore = nil

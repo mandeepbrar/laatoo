@@ -37,12 +37,17 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 					}
 					engineContext.SetHeader("Access-Control-Expose-Headers", strings.Join(keyNames, ","))
 				}
+				log.Logger.Debug(ctx, "Returning request with data")
+				log.Logger.Trace(ctx, "Returned data", "data", resp.Data)
 				return engineContext.JSON(http.StatusOK, resp.Data)
 			} else {
+				log.Logger.Debug(ctx, "Returning request without content")
 				return engineContext.NoContent(http.StatusOK)
 			}
 		case core.StatusServeFile:
-			return engineContext.File(resp.Data.(string))
+			fil := resp.Data.(string)
+			log.Logger.Debug(ctx, "Returning serve file", "file", fil)
+			return engineContext.File(fil)
 		case core.StatusServeBytes:
 			log.Logger.Trace(ctx, " service returning bytes")
 			if resp.Info != nil {
@@ -59,22 +64,30 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 				}
 			}
 			bytestoreturn := *resp.Data.(*[]byte)
+			log.Logger.Trace(ctx, "Returning bytes", "length", len(bytestoreturn))
+			log.Logger.Debug(ctx, "Returning bytes")
 			_, err := engineContext.Write(bytestoreturn)
 			if err != nil {
 				return err
 			}
 			return nil
 		case core.StatusNotModified:
+			log.Logger.Debug(ctx, "Returning not modified")
 			return engineContext.NoContent(http.StatusNotModified)
 		case core.StatusUnauthorized:
+			log.Logger.Debug(ctx, "Returning unauthorized")
 			return engineContext.NoContent(http.StatusUnauthorized)
 		case core.StatusNotFound:
+			log.Logger.Debug(ctx, "Returning not found")
 			return engineContext.NoContent(http.StatusNotFound)
 		case core.StatusBadRequest:
+			log.Logger.Debug(ctx, "Returning bad request")
 			return engineContext.NoContent(http.StatusBadRequest)
 		case core.StatusRedirect:
+			log.Logger.Debug(ctx, "Returning redirect")
 			return engineContext.Redirect(http.StatusTemporaryRedirect, resp.Data.(string))
 		}
 	}
+	log.Logger.Debug(ctx, "Returning request without content")
 	return engineContext.NoContent(http.StatusOK)
 }

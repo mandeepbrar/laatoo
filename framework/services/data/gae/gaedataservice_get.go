@@ -22,6 +22,7 @@ type gaeDatastoreCondition struct {
 }
 
 func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
+	ctx = ctx.SubContext("GetById")
 	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
 
@@ -72,6 +73,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 
 //Get multiple objects by id
 func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+	ctx = ctx.SubContext("GetMulti")
 	results, err := svc.getMulti(ctx, ids, orderBy)
 	if err != nil {
 		return nil, err
@@ -84,6 +86,7 @@ func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, order
 }
 
 func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+	ctx = ctx.SubContext("GetMultiHash")
 	results, err := svc.getMulti(ctx, ids, orderBy)
 	if err != nil {
 		return nil, err
@@ -169,11 +172,24 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	return results, nil
 }
 
+func (svc *gaeDataService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
+	ctx = ctx.SubContext("Count")
+	appEngineContext := ctx.GetAppengineContext()
+	query := datastore.NewQuery(svc.collection)
+	query, err = svc.processCondition(ctx, appEngineContext, query, queryCond)
+	if err != nil {
+		return -1, errors.WrapError(ctx, err)
+	}
+	return query.Count(appEngineContext)
+}
+
 func (svc *gaeDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	ctx = ctx.SubContext("GetList")
 	return svc.Get(ctx, nil, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
 func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+	ctx = ctx.SubContext("Get")
 	appEngineContext := ctx.GetAppengineContext()
 	totalrecs = -1
 	recsreturned = -1

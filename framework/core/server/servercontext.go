@@ -3,10 +3,9 @@ package server
 import (
 	"laatoo/framework/core/common"
 	"laatoo/sdk/core"
-	//"laatoo/sdk/log"
+	"laatoo/sdk/log"
 	//	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
-	"time"
 )
 
 //proxy object for the server
@@ -129,6 +128,7 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 //changes made to context parameters will be visible on the parent
 //id of the context is also retained.. this can be used to track flow
 func (ctx *serverContext) SubContext(name string) core.ServerContext {
+	log.Logger.Info(ctx, "Entering new server subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	return ctx.newservercontext(ctx.SubCtx(name))
 }
 
@@ -136,6 +136,7 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 //sets a context element
 //id of the context is not changed. flow is updated
 func (ctx *serverContext) SubContextWithElement(name string, primaryElement core.ServerElementType) core.ServerContext {
+	log.Logger.Info(ctx, "Entering new server subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	retctx := ctx.newservercontext(ctx.SubCtx(name))
 	elem := retctx.GetServerElement(primaryElement)
 	if elem != nil {
@@ -156,6 +157,7 @@ func (ctx *serverContext) newservercontext(context core.Context) *serverContext 
 }
 
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
+	log.Logger.Info(ctx, "Entering new servercontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	return ctx.newContext(name)
 }
 func (ctx *serverContext) newContext(name string) *serverContext {
@@ -293,6 +295,7 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 
 //creates a new request with engine context
 func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) core.RequestContext {
+	log.Logger.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.service == nil {
 		return nil
@@ -311,9 +314,10 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) c
 func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, parent core.ServerElement) *requestContext {
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
-	newctx := parent.NewCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx,
-		engineContext: engineCtx, createTime: time.Now(), subRequest: false}
+
+	newctx := common.NewContext(name)
+	return &requestContext{Context: newctx, serverContext: ctx,
+		engineContext: engineCtx, subRequest: false}
 }
 
 func (ctx *serverContext) CreateCollection(objectName string, length int, args core.MethodArgs) (interface{}, error) {

@@ -2,12 +2,12 @@ package common
 
 import (
 	"fmt"
+	"github.com/twinj/uuid"
+	glctx "golang.org/x/net/context"
 	"laatoo/sdk/core"
 	"net/http"
 	"strconv"
-
-	"github.com/twinj/uuid"
-	glctx "golang.org/x/net/context"
+	"time"
 )
 
 type Context struct {
@@ -15,12 +15,14 @@ type Context struct {
 	appengineCtx glctx.Context
 	Id           string
 	Name         string
+	Path         string
 	ParamsStore  map[string]interface{}
 	Parent       *Context
+	creationTime time.Time
 }
 
 func NewContext(name string) *Context {
-	return &Context{Name: name, Id: uuid.NewV4().String(), ParamsStore: make(map[string]interface{})}
+	return &Context{Name: name, Path: "", Id: uuid.NewV1().String(), ParamsStore: make(map[string]interface{}), creationTime: time.Now()}
 }
 
 func (ctx *Context) GetId() string {
@@ -29,6 +31,10 @@ func (ctx *Context) GetId() string {
 
 func (ctx *Context) GetParent() core.Context {
 	return ctx.Parent
+}
+
+func (ctx *Context) GetPath() string {
+	return ctx.Path
 }
 
 func (ctx *Context) GetName() string {
@@ -43,8 +49,18 @@ func (ctx *Context) SetGaeReq(req *http.Request) {
 	ctx.appengineCtx = GetAppengineContext(ctx)
 }
 
+func (ctx *Context) GetCreationTime() time.Time {
+	return ctx.creationTime
+}
+
+//completes a request
+func (ctx *Context) GetElapsedTime() time.Duration {
+	return time.Now().Sub(ctx.creationTime)
+}
+
 func (ctx *Context) SubCtx(name string) core.Context {
-	return &Context{Name: fmt.Sprintf("%s>%s", ctx.Name, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
+	return &Context{Name: name, Path: fmt.Sprintf("%s  -> @%s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id,
+		creationTime: ctx.creationTime, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
 func (ctx *Context) NewCtx(name string) core.Context {
@@ -52,7 +68,8 @@ func (ctx *Context) NewCtx(name string) core.Context {
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: fmt.Sprintf("%s:%s", ctx.Name, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV4().String(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
+	return &Context{Name: name, Path: fmt.Sprintf("%s --> %s", ctx.Path, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV1().String(),
+		creationTime: time.Now(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
 func (ctx *Context) Get(key string) (interface{}, bool) {

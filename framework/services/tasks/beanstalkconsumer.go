@@ -42,7 +42,7 @@ func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	if ok {
 		queueNames := queuesConf.AllConfigurations()
 		for _, queueName := range queueNames {
-			qCtx := ctx.SubContext("Creating Queue" + queueName)
+			qCtx := ctx.SubContext("Creating Queue " + queueName)
 			queueProcessorName, _ := queuesConf.GetString(queueName)
 			processor, err := qCtx.GetService(queueProcessorName)
 			if err != nil {
@@ -61,6 +61,7 @@ func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svc *beanstalkConsumer) createQueue(ctx core.ServerContext, queue string, lstnr core.Service) error {
+	log.Logger.Info(ctx, "Creating beanstalk queue for listening")
 	_, ok := svc.queues[queue]
 	if ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "queuename", queue)
@@ -84,13 +85,16 @@ func (svc *beanstalkConsumer) work(ctx core.ServerContext) {
 		select {
 		case job := <-svc.pool.C:
 			go func(ctx core.ServerContext, job *beanstalk.Job) {
+
 				t := &task{}
+				log.Logger.Info(ctx, "Recieved job", "Job Id", job.ID)
 				err := json.Unmarshal(job.Body, t)
 				if err != nil {
 					log.Logger.Error(ctx, "Error in background process", "job", job.ID, "err", err)
 					job.Bury()
 				} else {
-					req := ctx.CreateNewRequest("Task", nil)
+					req := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil)
+					log.Logger.Info(req, "Processing background task", "Job Id", job.ID)
 					req.SetRequest(t.Data)
 					req.Set(svc.authHeader, t.Token)
 					svc.shandler.AuthenticateRequest(req)
@@ -99,7 +103,7 @@ func (svc *beanstalkConsumer) work(ctx core.ServerContext) {
 					if ok {
 						err := q.lstnr.Invoke(req)
 						if err != nil {
-							log.Logger.Error(ctx, "Error in background process", "job", job.ID, "err", err)
+							log.Logger.Error(req, "Error in background process", "job", job.ID, "err", err)
 						} else {
 							job.Delete()
 						}

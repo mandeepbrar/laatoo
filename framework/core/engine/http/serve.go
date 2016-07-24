@@ -101,13 +101,13 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 	switch method {
 	case "GET":
-		channel.get(ctx, path, webReqHandler)
+		channel.get(ctx, path, svc.GetName(), webReqHandler)
 	case "POST":
-		channel.post(ctx, path, webReqHandler)
+		channel.post(ctx, path, svc.GetName(), webReqHandler)
 	case "PUT":
-		channel.put(ctx, path, webReqHandler)
+		channel.put(ctx, path, svc.GetName(), webReqHandler)
 	case "DELETE":
-		channel.delete(ctx, path, webReqHandler)
+		channel.delete(ctx, path, svc.GetName(), webReqHandler)
 		/*	case CONF_ROUTE_METHOD_INVOKE:
 					router.Post(ctx, path, router.processServiceRequest(ctx, respHandler, method, router.name, svc, serverElement, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 			case CONF_ROUTE_METHOD_GETSTREAM:

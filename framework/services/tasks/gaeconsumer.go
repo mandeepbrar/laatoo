@@ -70,18 +70,18 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 		log.Logger.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
 		return err
 	} else {
-		log.Logger.Debug(ctx, "Received job************************", "task", t)
-		req := ctx.SubContext("Task")
+		req := ctx.SubContext("Gae background task " + t.Queue)
+		log.Logger.Debug(req, "Received job ")
 		req.SetRequest(t.Data)
 		req.Set(svc.authHeader, t.Token)
 		svc.shandler.AuthenticateRequest(req)
 		queueName := t.Queue
-		log.Logger.Debug(ctx, "Received job", "task", t, "queue", queueName)
 		q, ok := svc.queues[queueName]
 		if ok {
+			log.Logger.Debug(req, "Invoking listener")
 			err := q.lstnr.Invoke(req)
 			if err != nil {
-				log.Logger.Error(ctx, "Error in background process", "err", err)
+				log.Logger.Error(req, "Error in background process", "err", err)
 				return err
 			}
 		}
