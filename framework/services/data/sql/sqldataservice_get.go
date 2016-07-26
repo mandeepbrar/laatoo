@@ -13,24 +13,20 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	ctx = ctx.SubContext("GetById")
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
 
-	//try cache if the object is cacheable
-	if svc.cacheable {
-		ent, err := svc.objectCreator(ctx, nil)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		}
-		ok := common.GetFromCache(ctx, svc.object, id, ent)
-		if ok {
-			return ent.(data.Storable), nil
-		}
-	}
-
 	object, err := svc.objectCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	err = svc.factory.connection.First(object, id).Error
+	//try cache if the object is cacheable
+	if svc.cacheable {
+		ok := common.GetFromCache(ctx, svc.object, id, object)
+		if ok {
+			return object.(data.Storable), nil
+		}
+	}
+
+	err = svc.db.First(object, id).Error
 
 	if err != nil {
 		return nil, errors.RethrowError(ctx, common.DATA_ERROR_OPERATION, err, "ID", id)
@@ -56,7 +52,6 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	return stor, nil
 }
 
-/*
 //Get multiple objects by id
 func (svc *sqlDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
 	ctx = ctx.SubContext("GetMulti")
@@ -142,17 +137,14 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 		return nil, errors.WrapError(ctx, err)
 	}
 	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	condition := bson.M{}
-	operatorCond := bson.M{}
-	operatorCond["$in"] = ids
-	condition[svc.objectid] = operatorCond
-	query := connCopy.DB(svc.database).C(svc.collection).Find(condition)
+
+	query := svc.db.Where(ids)
+
 	if len(orderBy) > 0 {
-		query = query.Sort(orderBy)
+		query = query.Order(orderBy)
 	}
-	err = query.All(results)
+
+	err = query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -162,15 +154,18 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 
 func (svc *sqlDataService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
 	ctx = ctx.SubContext("Count")
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
-	return query.Count()
+
+	err = svc.db.Where(queryCond).Count(&count).Error
+	if err != nil {
+		return -1, errors.WrapError(ctx, err)
+	}
+
+	return count, nil
 }
 
 func (svc *sqlDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("GetList")
-	return svc.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
+	return svc.Get(ctx, map[string]interface{}{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
 func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
@@ -182,21 +177,24 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if err != nil {
 		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
+
+	query := svc.db.Where(queryCond)
+
 	if pageSize > 0 {
-		totalrecs, err = query.Count()
+		err = query.Count(&totalrecs).Error
 		if err != nil {
 			return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 		}
 		recsToSkip := (pageNum - 1) * pageSize
-		query = query.Limit(pageSize).Skip(recsToSkip)
+		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
+
 	if len(orderBy) > 0 {
-		query = query.Sort(orderBy)
+		query = query.Order(orderBy)
 	}
-	err = query.All(results)
+
+	err = query.Find(results).Error
+
 	if err != nil {
 		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
@@ -222,7 +220,7 @@ func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation da
 			if len(args) < 2 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			return bson.M{args[0].(string): bson.M{"$in": args[1]}}, nil
+			return map[string]interface{}{args[0].(string): args[1]}, nil
 		}
 	case data.FIELDVALUE:
 		{
@@ -238,4 +236,3 @@ func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation da
 	}
 	return nil, nil
 }
-*/

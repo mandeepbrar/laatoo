@@ -50,19 +50,6 @@ func fillJoin(ctx core.RequestContext, dataService data.DataComponent, targetfie
 			}
 		}
 	}
-	/*if dataService.Supports(data.InQueries) {
-		condition, _ := dataService.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, targetfield, ids)
-		_, err := dataService.DeleteAll(ctx, condition)
-		return err
-	} else {
-		for _, id := range ids {
-			condition, _ := dataService.CreateCondition(ctx, data.FIELDVALUE, map[string]interface{}{targetfield: id})
-			_, err := dataService.DeleteAll(ctx, condition)
-			if err != nil {
-				return err
-			}
-		}
-	}*/
 	return inputData, nil
 }
 

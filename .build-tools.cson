@@ -1,0 +1,56 @@
+providers: [
+  {
+    key: "bt"
+    config:
+      commands: [
+        {
+          project: "/home/mandeep/laatoo/src/laatoo"
+          source: "/home/mandeep/laatoo/src/laatoo/.build-tools.cson"
+          name: "Build"
+          command: "go build"
+          wd: "/home/mandeep/laatoo/src/laatoo/framework/core/server"
+          env: {}
+          modifier: {}
+          environment:
+            name: "child_process"
+            config:
+              stdoe: "both"
+          stdout:
+            pipeline: []
+          stderr:
+            pipeline: []
+          output:
+            console:
+              close_success: true
+              queue_in_buffer: true
+              colors: false
+              stdin: false
+          version: 2
+        }
+        {
+          project: "/home/mandeep/laatoo/src/laatoo"
+          source: "/home/mandeep/laatoo/src/laatoo/.build-tools.cson"
+          name: "Current Directory"
+          command: "go build"
+          wd: "."
+          env: {}
+          modifier: {}
+          environment:
+            name: "child_process"
+            config:
+              stdoe: "both"
+          stdout:
+            pipeline: []
+          stderr:
+            pipeline: []
+          output:
+            console:
+              close_success: true
+              queue_in_buffer: true
+              colors: false
+              stdin: false
+          version: 2
+        }
+      ]
+  }
+]

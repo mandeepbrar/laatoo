@@ -1,19 +1,25 @@
 package sql
 
 import (
-	//	"github.com/jinzhu/gorm"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/utils"
+
+	"github.com/jinzhu/gorm"
+
 	//	"laatoo/sdk/utils"
 )
 
 type sqlDataService struct {
 	*data.BaseComponent
 	conf                    config.Config
+	connection              *gorm.DB
+	db                      *gorm.DB
+	refobject               data.Storable
 	objectConfig            *data.StorableConfig
 	name                    string
 	database                string
@@ -65,7 +71,14 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 
 	testObj, _ := objectCreator(ctx, nil)
 	stor := testObj.(data.Storable)
+	svc.refobject = stor
 	svc.objectConfig = stor.Config()
+	svc.connection = svc.factory.connection
+	svc.collection = svc.connection.NewScope(stor).GetModelStruct().TableName(svc.connection)
+	if svc.collection == "" {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_COLLECTION)
+	}
+	svc.db = svc.connection.Table(svc.collection)
 
 	svc.objectid = svc.objectConfig.IdField
 	svc.softDeleteField = svc.objectConfig.SoftDeleteField
@@ -74,17 +87,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.softdelete = false
 	} else {
 		svc.softdelete = true
-	}
-
-	collection, ok := conf.GetString(common.CONF_DATA_COLLECTION)
-	if ok {
-		svc.collection = collection
-	} else {
-		svc.collection = svc.objectConfig.Collection
-	}
-
-	if svc.collection == "" {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_COLLECTION)
 	}
 
 	cacheable, ok := conf.GetBool(common.CONF_DATA_CACHEABLE)
@@ -156,7 +158,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.deleteRefOpers = deleteOps
 		svc.getRefOpers = getRefOps
 	}
-
 	return nil
 }
 
@@ -166,6 +167,30 @@ func (svc *sqlDataService) Start(ctx core.ServerContext) error {
 
 func (svc *sqlDataService) Invoke(ctx core.RequestContext) error {
 	return nil
+}
+
+func (svc *sqlDataService) CreateCollection(ctx core.RequestContext) error {
+	object, err := svc.objectCreator(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return svc.factory.connection.CreateTable(object).Error
+}
+
+func (svc *sqlDataService) DropCollection(ctx core.RequestContext) error {
+	object, err := svc.objectCreator(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return svc.factory.connection.DropTable(object).Error
+}
+
+func (svc *sqlDataService) CollectionExists(ctx core.RequestContext) (bool, error) {
+	object, err := svc.objectCreator(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	return svc.factory.connection.HasTable(object), nil
 }
 
 func (svc *sqlDataService) GetName() string {
@@ -210,7 +235,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if id == "" {
 		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
 	}
-	err := svc.factory.connection.Create(item).Error
+	err := svc.db.Create(item).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -227,16 +252,10 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	return nil
 }
 
-/*
 func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.object)
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	bulk := connCopy.DB(svc.database).C(svc.collection).Bulk()
 	for _, item := range items {
-		id := item.GetId()
-		common.InvalidateCache(ctx, svc.object, id)
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
@@ -250,22 +269,25 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 		if svc.auditable {
 			data.Audit(ctx, item)
 		}
-		bulk.Upsert(bson.M{svc.objectid: id}, item)
 	}
-	_, err := bulk.Run()
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	for _, item := range items {
+		err := svc.db.Save(item).Error
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
-	if svc.postsave || svc.notifyupdates {
-		for _, item := range items {
+	for _, item := range items {
+		id := item.GetId()
+		common.InvalidateCache(ctx, svc.object, id)
+		if svc.postsave || svc.notifyupdates {
 			if svc.postsave {
-				err = item.PostSave(ctx)
+				err := item.PostSave(ctx)
 				if err != nil {
 					errors.WrapError(ctx, err)
 				}
 			}
 			if svc.notifyupdates {
-				common.NotifyUpdate(ctx, svc.object, item.GetId())
+				common.NotifyUpdate(ctx, svc.object, id)
 			}
 		}
 	}
@@ -277,10 +299,6 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	ctx = ctx.SubContext("Put")
 	common.InvalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	condition := bson.M{}
-	condition[svc.objectid] = id
 	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -296,7 +314,8 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	if svc.auditable {
 		data.Audit(ctx, item)
 	}
-	err := connCopy.DB(svc.database).C(svc.collection).Update(condition, item)
+
+	err := svc.db.Save(item).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -336,17 +355,11 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if upsert {
 		newVals[svc.objectid] = id
 	}
-	condition := bson.M{}
-	condition[svc.objectid] = id
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
 	var err error
 	if upsert {
-		_, err = connCopy.DB(svc.database).C(svc.collection).UpsertId(condition, newVals)
-
+		err = svc.db.Where([]string{id}).FirstOrCreate(newVals).Error
 	} else {
-		updateInterface := map[string]interface{}{"$set": newVals}
-		err = connCopy.DB(svc.database).C(svc.collection).Update(condition, updateInterface)
+		err = svc.db.Where([]string{id}).Updates(newVals).Error
 	}
 	if err != nil {
 		return err
@@ -379,10 +392,8 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
-	err = query.All(results)
+	query := svc.db.Where(queryCond)
+	err = query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -404,10 +415,11 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 		return []string{}, nil
 	}
+	model := resultStor[0]
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
-	_, err = connCopy.DB(svc.database).C(svc.collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
+	err = svc.factory.connection.Model(model).Where(queryCond).Updates(newVals).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -432,11 +444,7 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			return errors.WrapError(ctx, err)
 		}
 	}
-	updateInterface := map[string]interface{}{"$set": newVals}
-	condition, _ := svc.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, svc.objectid, ids)
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	_, err := connCopy.DB(svc.database).C(svc.collection).UpdateAll(condition, updateInterface)
+	err := svc.db.Where(ids).Updates(newVals).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -459,11 +467,13 @@ func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 		}
 		return err
 	}
-	condition := bson.M{}
-	condition[svc.objectid] = id
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	err := connCopy.DB(svc.database).C(svc.collection).Remove(condition)
+	/*	object, err := svc.objectCreator(ctx, nil)
+		if err != nil {
+			return err
+		}
+		stor := object.(data.Storable)
+		stor.SetId(id)*/
+	err := svc.db.Delete(id).Error
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 	}
@@ -481,13 +491,11 @@ func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 		}
 		return err
 	}
-	conditionVal := bson.M{}
-	conditionVal["$in"] = ids
-	condition := bson.M{}
-	condition[svc.objectid] = conditionVal
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	_, err := connCopy.DB(svc.database).C(svc.collection).RemoveAll(condition)
+	/*object, err := svc.objectCreator(ctx, nil)
+	if err != nil {
+		return err
+	}*/
+	err := svc.db.Delete(ids).Error
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 	}
@@ -511,16 +519,17 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	connCopy := svc.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(svc.database).C(svc.collection).Find(queryCond)
-	err = query.All(results)
+	query := svc.db.Where(queryCond)
+	err = query.Find(results).Error
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	length := len(resultStor)
 	if length == 0 {
 		return nil, nil
 	}
-	_, err = connCopy.DB(svc.database).C(svc.collection).RemoveAll(queryCond)
+	err = svc.db.Where(queryCond).Delete(svc.refobject).Error
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		if err != nil {
@@ -533,4 +542,4 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		return nil, err
 	}
 	return ids, err
-}*/
+}
