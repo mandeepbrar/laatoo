@@ -1,29 +1,18 @@
 package mongo
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
-
-	//try cache if the object is cacheable
-	if ms.cacheable {
-		ent, err := ms.objectCreator(ctx, nil)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		}
-		ok := common.GetFromCache(ctx, ms.object, id, ent)
-		if ok {
-			return ent.(data.Storable), nil
-		}
-	}
 
 	object, err := ms.objectCreator(ctx, nil)
 	if err != nil {
@@ -54,9 +43,6 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	}
 	if ms.postload {
 		stor.PostLoad(ctx)
-	}
-	if ms.cacheable {
-		common.PutInCache(ctx, ms.object, stor.GetId(), stor)
 	}
 	return stor, nil
 }
@@ -128,9 +114,6 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 func (ms *mongoDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
 	if ms.postload {
 		stor.PostLoad(ctx)
-	}
-	if ms.cacheable {
-		common.PutInCache(ctx, ms.object, stor.GetId(), stor)
 	}
 	return nil
 }
@@ -219,8 +202,6 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 //create condition for passing to data service
 func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	switch operation {
-	case data.MATCHANCESTOR:
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	case data.MATCHMULTIPLEVALUES:
 		{
 			if len(args) < 2 {
@@ -239,6 +220,8 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 			}
 			return argsMap, nil
 		}
+	default:
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	}
 	return nil, nil
 }

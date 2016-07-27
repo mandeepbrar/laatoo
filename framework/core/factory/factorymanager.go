@@ -62,7 +62,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
 			log.Logger.Trace(ctx, "Process Service Factory group", "groupname", groupname)
-			facgrpConfig, err, _ := config.ConfigFileAdapter(allgroups, groupname)
+			facgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -81,7 +81,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	factories := factoriesConfig.AllConfigurations()
 	for _, factoryName := range factories {
 		log.Logger.Trace(ctx, "Process Factory ", "Factory name", factoryName)
-		factoryConfig, err, _ := config.ConfigFileAdapter(factoriesConfig, factoryName)
+		factoryConfig, err, _ := common.ConfigFileAdapter(ctx, factoriesConfig, factoryName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

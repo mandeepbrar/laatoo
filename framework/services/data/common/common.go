@@ -1,9 +1,6 @@
 package common
 
-import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
-)
+import "laatoo/sdk/core"
 
 const (
 	CONF_DATA_SVCS          = "dataservices"
@@ -23,13 +20,14 @@ const (
 )
 
 func NotifyUpdate(ctx core.RequestContext, objectType string, id string) {
-	InvalidateCache(ctx, objectType, id)
+	//InvalidateCache(ctx, objectType, id)
 }
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 
 }
 
+/*
 func GetFromCache(ctx core.RequestContext, objectType string, id string, object interface{}) bool {
 	cachekey := components.GetCacheKey(objectType, id)
 	return ctx.GetFromCache(cachekey, object)
@@ -42,3 +40,4 @@ func PutInCache(ctx core.RequestContext, objectType string, id string, object in
 func InvalidateCache(ctx core.RequestContext, objectType string, id string) {
 	ctx.InvalidateCache(components.GetCacheKey(objectType, id))
 }
+*/

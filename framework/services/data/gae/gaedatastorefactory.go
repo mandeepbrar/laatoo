@@ -29,13 +29,17 @@ func (gf *gaeDataServicesFactory) Initialize(ctx core.ServerContext, conf config
 }
 
 //Create the services configured for factory.
-func (gf *gaeDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (gf *gaeDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-
-			return newGaeDataService(ctx, name)
-
+			svc, err := newGaeDataService(ctx, name)
+			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
+			if err == nil && cache {
+				return common.NewCachedDataService(ctx, svc), nil
+			} else {
+				return svc, err
+			}
 		}
 	}
 	return nil, nil

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -45,7 +46,7 @@ func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config
 	if ok {
 		topicNames := topicsConf.AllConfigurations()
 		for _, topicName := range topicNames {
-			topicConf, err, _ := config.ConfigFileAdapter(topicsConf, topicName)
+			topicConf, err, _ := common.ConfigFileAdapter(ctx, topicsConf, topicName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

@@ -64,9 +64,9 @@ func (ctx *requestContext) NewContext(name string) core.RequestContext {
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: false}
 }
 
-func (ctx *requestContext) PutInCache(key string, item interface{}) error {
+func (ctx *requestContext) PutInCache(bucket string, key string, item interface{}) error {
 	if ctx.cache != nil {
-		return ctx.cache.PutObject(ctx, key, item)
+		return ctx.cache.PutObject(ctx, bucket, key, item)
 	} else {
 		return nil
 	}
@@ -80,25 +80,23 @@ func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	return nil
 }
 
-func (ctx *requestContext) GetFromCache(key string, val interface{}) bool {
+func (ctx *requestContext) GetFromCache(bucket string, key string, val interface{}) bool {
 	if ctx.cache != nil {
-		return ctx.cache.GetObject(ctx, key, val)
+		return ctx.cache.GetObject(ctx, bucket, key, val)
 	} else {
 		return false
 	}
 }
 
-func (ctx *requestContext) GetMultiFromCache(keys []string, val map[string]interface{}) bool {
+func (ctx *requestContext) GetMultiFromCache(bucket string, keys []string, val map[string]interface{}) {
 	if ctx.cache != nil {
-		return ctx.cache.GetMulti(ctx, keys, val)
-	} else {
-		return false
+		ctx.cache.GetMulti(ctx, bucket, keys, val)
 	}
 }
 
-func (ctx *requestContext) InvalidateCache(key string) error {
+func (ctx *requestContext) InvalidateCache(bucket string, key string) error {
 	if ctx.cache != nil {
-		return ctx.cache.Delete(ctx, key)
+		return ctx.cache.Delete(ctx, bucket, key)
 	} else {
 		return nil
 	}

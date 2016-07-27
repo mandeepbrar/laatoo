@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -66,7 +67,7 @@ func createEnvironments(ctx core.ServerContext, conf config.Config) error {
 	if ok {
 		envNames := envs.AllConfigurations()
 		for _, envName := range envNames {
-			envConfig, err, _ := config.ConfigFileAdapter(envs, envName)
+			envConfig, err, _ := common.ConfigFileAdapter(ctx, envs, envName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -89,7 +90,7 @@ func createApplications(ctx core.ServerContext, conf config.Config) error {
 		appNames := apps.AllConfigurations()
 		//iterate applications
 		for _, appName := range appNames {
-			appConfig, err, _ := config.ConfigFileAdapter(apps, appName)
+			appConfig, err, _ := common.ConfigFileAdapter(ctx, apps, appName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

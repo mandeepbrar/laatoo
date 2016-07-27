@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/framework/core/factory"
 	"laatoo/framework/core/objects"
 	"laatoo/framework/core/service"
@@ -280,7 +281,7 @@ func (as *abstractserver) start(ctx *serverContext) error {
 }
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
-	secConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_SECURITY)
+	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
 	if err != nil {
 		return err
 	}

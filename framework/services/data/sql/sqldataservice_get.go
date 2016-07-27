@@ -18,14 +18,6 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	//try cache if the object is cacheable
-	if svc.cacheable {
-		ok := common.GetFromCache(ctx, svc.object, id, object)
-		if ok {
-			return object.(data.Storable), nil
-		}
-	}
-
 	err = svc.db.First(object, id).Error
 
 	if err != nil {
@@ -45,9 +37,6 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	}
 	if svc.postload {
 		stor.PostLoad(ctx)
-	}
-	if svc.cacheable {
-		common.PutInCache(ctx, svc.object, stor.GetId(), stor)
 	}
 	return stor, nil
 }
@@ -120,9 +109,6 @@ func (svc *sqlDataService) postLoad(ctx core.RequestContext, stor data.Storable)
 	if svc.postload {
 		stor.PostLoad(ctx)
 	}
-	if svc.cacheable {
-		common.PutInCache(ctx, svc.object, stor.GetId(), stor)
-	}
 	return nil
 }
 
@@ -161,6 +147,23 @@ func (svc *sqlDataService) Count(ctx core.RequestContext, queryCond interface{})
 	}
 
 	return count, nil
+}
+
+func (svc *sqlDataService) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
+	ctx = ctx.SubContext("CountGroups")
+
+	rows, err := svc.db.Select([]string{group, "count(*)"}).Where(queryCond).Group(group).Rows()
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	res = make(map[string]interface{})
+	for rows.Next() {
+		var postId string
+		var count int
+		rows.Scan(&postId, &count)
+		res[postId] = count
+	}
+	return
 }
 
 func (svc *sqlDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
@@ -213,14 +216,12 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 //create condition for passing to data service
 func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	switch operation {
-	case data.MATCHANCESTOR:
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	case data.MATCHMULTIPLEVALUES:
 		{
 			if len(args) < 2 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			return map[string]interface{}{args[0].(string): args[1]}, nil
+			return []interface{}{args[0].(string) + " in ?", args[1]}, nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
 		}
 	case data.FIELDVALUE:
 		{
@@ -233,6 +234,8 @@ func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation da
 			}
 			return argsMap, nil
 		}
+	default:
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	}
 	return nil, nil
 }

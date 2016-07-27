@@ -60,7 +60,7 @@ func (mf *aerospikeDataServicesFactory) Initialize(ctx core.ServerContext, conf 
 }
 
 //Create the services configured for factory.
-func (ms *aerospikeDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (ms *aerospikeDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{

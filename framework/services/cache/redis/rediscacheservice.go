@@ -1,10 +1,11 @@
 package redis
 
 import (
-	"github.com/garyburd/redigo/redis"
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+
+	"github.com/garyburd/redigo/redis"
 	//	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"time"
@@ -24,7 +25,7 @@ func init() {
 	objects.RegisterObject(CONF_REDISCACHE_NAME, createRedisCacheServiceFactory, nil)
 }
 
-func createRedisCacheServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+func createRedisCacheServiceFactory(ctx core.Context, args core.MethodArgs, conf config.Config) (interface{}, error) {
 	return &RedisCacheFactory{}, nil
 }
 
@@ -99,7 +100,7 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 	return nil
 }
 
-func (svc *RedisCacheService) Delete(ctx core.RequestContext, key string) error {
+func (svc *RedisCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("DEL", key)
@@ -109,7 +110,7 @@ func (svc *RedisCacheService) Delete(ctx core.RequestContext, key string) error 
 	return nil
 }
 
-func (svc *RedisCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
+func (svc *RedisCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	_, err := conn.Do("SET", key, val)
@@ -120,7 +121,7 @@ func (svc *RedisCacheService) PutObject(ctx core.RequestContext, key string, val
 	return nil
 }
 
-func (svc *RedisCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) bool {
+func (svc *RedisCacheService) GetObject(ctx core.RequestContext, bucket string, key string, val interface{}) bool {
 	conn := svc.pool.Get()
 	defer conn.Close()
 	k, err := conn.Do("GET", key)
@@ -131,7 +132,7 @@ func (svc *RedisCacheService) GetObject(ctx core.RequestContext, key string, val
 	return true
 }
 
-func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) bool {
+func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string, val map[string]interface{}) {
 	return false
 }
 

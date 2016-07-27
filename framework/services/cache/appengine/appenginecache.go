@@ -5,10 +5,11 @@ package appengine
 import (
 	"bytes"
 	"encoding/gob"
-	"google.golang.org/appengine/memcache"
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+
+	"google.golang.org/appengine/memcache"
 	//	"laatoo/sdk/errors"
 	//"laatoo/sdk/log"
 	//"time"
@@ -31,7 +32,7 @@ func createAppengineCacheServiceFactory(ctx core.Context, args core.MethodArgs) 
 }
 
 //Create the services configured for factory.
-func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	if name == CONF_APPENGINECACHE_SVC {
 		return &AppengineCacheService{}, nil
 	}
@@ -54,11 +55,11 @@ func (svc *AppengineCacheService) Initialize(ctx core.ServerContext, conf config
 	return nil
 }
 
-func (svc *AppengineCacheService) Delete(ctx core.RequestContext, key string) error {
+func (svc *AppengineCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
 	return memcache.Delete(ctx.GetAppengineContext(), key)
 }
 
-func (svc *AppengineCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
+func (svc *AppengineCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(val)
@@ -68,7 +69,7 @@ func (svc *AppengineCacheService) PutObject(ctx core.RequestContext, key string,
 	return memcache.Set(ctx.GetAppengineContext(), &memcache.Item{Key: key, Value: buf.Bytes()})
 }
 
-func (svc *AppengineCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) error {
+func (svc *AppengineCacheService) GetObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	item, err := memcache.Get(ctx.GetAppengineContext(), key)
 
 	if err != nil {
@@ -83,10 +84,10 @@ func (svc *AppengineCacheService) GetObject(ctx core.RequestContext, key string,
 	}
 }
 
-func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) error {
+func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string, val map[string]interface{}) {
 	_, err := memcache.GetMulti(ctx.GetAppengineContext(), keys)
 	if err != nil {
-		return err
+		return
 	} else {
 		/*arr := reflect.ValueOf(val).Elem()
 		length := arr.Len()
@@ -102,7 +103,7 @@ func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, keys []strin
 			}
 		}*/
 	}
-	return nil
+	return
 }
 
 func (svc *AppengineCacheService) Invoke(ctx core.RequestContext) error {

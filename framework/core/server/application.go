@@ -62,7 +62,7 @@ func (app *application) Start(ctx core.ServerContext) error {
 
 //create applets
 func (app *application) createApplets(ctx core.ServerContext, conf config.Config) error {
-	appletsConf, err, ok := config.ConfigFileAdapter(conf, config.CONF_APPLETS)
+	appletsConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_APPLETS)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 	}
 	appletNames := appletsConf.AllConfigurations()
 	for _, name := range appletNames {
-		appletConf, err, _ := config.ConfigFileAdapter(appletsConf, name)
+		appletConf, err, _ := common.ConfigFileAdapter(ctx, appletsConf, name)
 		if err != nil {
 			return err
 		}

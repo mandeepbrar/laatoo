@@ -18,6 +18,7 @@ type sqlDataServicesFactory struct {
 	connection       *gorm.DB
 	vendor           string
 	connectionstring string
+	cache            bool
 }
 
 const (
@@ -54,13 +55,17 @@ func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext, conf config
 }
 
 //Create the services configured for factory.
-func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-
-			return newSqlDataService(ctx, name, sf)
-
+			svc, err := newSqlDataService(ctx, name, sf)
+			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
+			if err == nil && cache {
+				return common.NewCachedDataService(ctx, svc), nil
+			} else {
+				return svc, err
+			}
 		}
 	}
 	return nil, nil

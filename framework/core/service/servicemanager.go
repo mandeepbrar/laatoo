@@ -83,7 +83,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
 			log.Logger.Debug(ctx, "Process Service group", "groupname", groupname)
-			svcgrpConfig, err, _ := config.ConfigFileAdapter(allgroups, groupname)
+			svcgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -104,7 +104,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 			if ok {
 				continue
 			}
-			serviceConfig, err, _ := config.ConfigFileAdapter(svcsConf, svcAlias)
+			serviceConfig, err, _ := common.ConfigFileAdapter(ctx, svcsConf, svcAlias)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -186,7 +186,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, serviceAlias
 	//pass a server context to service with element set to service
 	svcCreationCtx := ctx.NewContextWithElements("Create"+serviceAlias, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: facElem}, core.ServerElementService)
 	log.Logger.Trace(ctx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
-	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod)
+	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
 		return nil, errors.WrapError(svcCreationCtx, err)
 	}

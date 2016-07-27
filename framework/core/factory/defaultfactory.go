@@ -25,7 +25,7 @@ func createDefaultFactory(ctx core.Context, args core.MethodArgs) (interface{}, 
 }
 
 //Create the services configured for factory.
-func (mi *defaultFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (mi *defaultFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	obj, err := ctx.CreateObject(method, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)

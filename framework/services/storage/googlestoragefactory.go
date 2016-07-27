@@ -28,7 +28,7 @@ func (gs *GoogleStorageServiceFactory) Initialize(ctx core.ServerContext, conf c
 }
 
 //Create the services configured for factory.
-func (gs *GoogleStorageServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (gs *GoogleStorageServiceFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	log.Logger.Trace(ctx, "Creating service for google storage factory", "name", name, "method", method)
 	return &GoogleStorageSvc{}, nil
 	/*

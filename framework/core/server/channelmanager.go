@@ -1,6 +1,7 @@
 package server
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -34,7 +35,7 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 		channelNames := channelsConf.AllConfigurations()
 		for _, channelName := range channelNames {
 			createCtx := chanMgr.createContext(ctx, "Create Channel"+channelName)
-			channelConf, err, _ := config.ConfigFileAdapter(channelsConf, channelName)
+			channelConf, err, _ := common.ConfigFileAdapter(ctx, channelsConf, channelName)
 			if err != nil {
 				return errors.WrapError(createCtx, err)
 			}

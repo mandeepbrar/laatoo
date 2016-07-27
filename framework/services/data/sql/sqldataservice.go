@@ -25,7 +25,6 @@ type sqlDataService struct {
 	database                string
 	auditable               bool
 	softdelete              bool
-	cacheable               bool
 	refops                  bool
 	presave                 bool
 	postsave                bool
@@ -87,13 +86,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.softdelete = false
 	} else {
 		svc.softdelete = true
-	}
-
-	cacheable, ok := conf.GetBool(common.CONF_DATA_CACHEABLE)
-	if ok {
-		svc.cacheable = cacheable
-	} else {
-		svc.cacheable = svc.objectConfig.Cacheable
 	}
 
 	auditable, ok := conf.GetBool(common.CONF_DATA_AUDITABLE)
@@ -278,7 +270,6 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	}
 	for _, item := range items {
 		id := item.GetId()
-		common.InvalidateCache(ctx, svc.object, id)
 		if svc.postsave || svc.notifyupdates {
 			if svc.postsave {
 				err := item.PostSave(ctx)
@@ -297,7 +288,6 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	common.InvalidateCache(ctx, svc.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
 	item.SetId(id)
 	if svc.presave {
@@ -364,7 +354,6 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
-	common.InvalidateCache(ctx, svc.object, id)
 	if svc.notifyupdates {
 		common.NotifyUpdate(ctx, svc.object, id)
 	}
@@ -423,9 +412,8 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	for _, id := range ids {
-		common.InvalidateCache(ctx, svc.object, id)
-		if svc.notifyupdates {
+	if svc.notifyupdates {
+		for _, id := range ids {
 			common.NotifyUpdate(ctx, svc.object, id)
 		}
 	}
@@ -448,9 +436,8 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	for _, id := range ids {
-		common.InvalidateCache(ctx, svc.object, id)
-		if svc.notifyupdates {
+	if svc.notifyupdates {
+		for _, id := range ids {
 			common.NotifyUpdate(ctx, svc.object, id)
 		}
 	}
@@ -477,7 +464,6 @@ func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
 	}
-	common.InvalidateCache(ctx, svc.object, id)
 	return err
 }
 
@@ -498,9 +484,6 @@ func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	err := svc.db.Delete(ids).Error
 	if err == nil {
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-	}
-	for _, id := range ids {
-		common.InvalidateCache(ctx, svc.object, id)
 	}
 	return err
 }
@@ -534,9 +517,6 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
 		if err != nil {
 			return ids, err
-		}
-		for _, id := range ids {
-			common.InvalidateCache(ctx, svc.object, id)
 		}
 	} else {
 		return nil, err

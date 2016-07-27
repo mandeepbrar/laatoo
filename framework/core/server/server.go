@@ -65,7 +65,7 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	if ok {
 		engineNames := engines.AllConfigurations()
 		for _, engName := range engineNames {
-			engConf, err, _ := config.ConfigFileAdapter(engines, engName)
+			engConf, err, _ := common.ConfigFileAdapter(ctx, engines, engName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

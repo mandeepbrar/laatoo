@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/sdk/components/rules"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -20,7 +21,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	for _, ruleName := range ruleNames {
 		ruleCtx := ruleMgrCtx.SubContext("Creating rule" + ruleName)
 		log.Logger.Debug(ruleCtx, "Creating rule", "Name", ruleName)
-		ruleConf, err, _ := config.ConfigFileAdapter(conf, ruleName)
+		ruleConf, err, _ := common.ConfigFileAdapter(ctx, conf, ruleName)
 		if err != nil {
 			return errors.WrapError(ruleCtx, err)
 		}

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"laatoo/framework/core/common"
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -16,7 +17,7 @@ type cacheManager struct {
 func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	cacheNames := conf.AllConfigurations()
 	for _, cacheName := range cacheNames {
-		cacheConf, err, _ := config.ConfigFileAdapter(conf, cacheName)
+		cacheConf, err, _ := common.ConfigFileAdapter(ctx, conf, cacheName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

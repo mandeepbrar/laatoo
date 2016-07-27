@@ -26,7 +26,7 @@ type SecurityServiceFactory struct {
 }
 
 //Create the services configured for factory.
-func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case CONF_SECURITYSERVICE_DB:
 		{

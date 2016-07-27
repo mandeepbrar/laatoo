@@ -40,7 +40,7 @@ func createTaskServiceFactory(ctx core.Context, args core.MethodArgs) (interface
 }
 
 //Create the services configured for factory.
-func (tf *tasksFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (tf *tasksFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case CONF_TASKS_BEANSTALK_PRODUCER:
 		return &beanstalkProducer{}, nil

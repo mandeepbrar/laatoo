@@ -24,7 +24,7 @@ func createPubSubFactory(ctx core.Context, args core.MethodArgs) (interface{}, e
 }
 
 //Create the services configured for factory.
-func (mf *PubSubFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (mf *PubSubFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case CONF_REDISPUBSUB_SVC:
 		{

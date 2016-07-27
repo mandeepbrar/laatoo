@@ -6,7 +6,6 @@ import (
 	"laatoo/sdk/core"
 	//	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
-	"reflect"
 )
 
 type MemoryCacheFactory struct {
@@ -26,7 +25,7 @@ func createMemoryCacheFactory(ctx core.Context, args core.MethodArgs) (interface
 }
 
 //Create the services configured for factory.
-func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	if method == CONF_MEMORYCACHE_SVC {
 		return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), name: name}, nil
 	}
@@ -47,52 +46,39 @@ type MemoryCacheService struct {
 	name         string
 }
 
-func (svc *MemoryCacheService) Delete(ctx core.RequestContext, key string) error {
+func (svc *MemoryCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
 	return svc.memoryStorer.DeleteObject(key)
 }
 
-func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, key string, val interface{}) error {
+func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	svc.memoryStorer.PutObject(key, val)
 	return nil
 }
 
-func (svc *MemoryCacheService) PutDerivedObject(ctx core.RequestContext, key string, val interface{}) error {
+func (svc *MemoryCacheService) PutDerivedObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	svc.memoryStorer.PutObject(key, val)
 	return nil
 }
 
-func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, key string, val interface{}) bool {
+func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, bucket string, key string, val interface{}) bool {
 	obj, err := svc.memoryStorer.GetObject(key)
-	if err != nil {
+	if err != nil || obj == nil {
 		return false
 	}
-	if obj == nil || reflect.ValueOf(obj).IsNil() {
-		return false
-	}
-	reflect.ValueOf(val).Elem().Set(reflect.ValueOf(obj).Elem())
+	val = &obj
+	//	reflect.ValueOf(val).Elem().Set(reflect.ValueOf(obj).Elem())
 	return true
 }
 
-func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, keys []string, val map[string]interface{}) bool {
-	/*_, err := memcache.GetMulti(ctx.GetAppengineContext(), keys)
-	if err != nil {
-		return err
-	} else {
-		/*arr := reflect.ValueOf(val).Elem()
-		length := arr.Len()
-		for i := 0; i < length; i++ {
-			itemVal, ok := items[keys[i]]
-			if ok {
-				dec := gob.NewDecoder(bytes.NewReader(itemVal.Value))
-				stor := arr.Index(i).Addr().Interface()
-				err := dec.Decode(stor)
-				if err != nil {
-					return err
-				}
-			}
+func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string, val map[string]interface{}) {
+	for _, key := range keys {
+		obj, err := svc.memoryStorer.GetObject(key)
+		if err != nil || obj == nil {
+			val[key] = nil
 		}
-	}	*/
-	return false
+		val[key] = &obj
+	}
+	return
 }
 
 func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {

@@ -26,18 +26,6 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
 
-	//try cache if the object is cacheable
-	if svc.cacheable {
-		ent, err := svc.objectCreator(ctx, nil)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		}
-		ok := common.GetFromCache(ctx, svc.object, id, ent)
-		if ok {
-			return ent.(data.Storable), nil
-		}
-	}
-
 	object, err := svc.objectCreator(ctx, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -64,9 +52,6 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	}
 	if svc.postload {
 		stor.PostLoad(ctx)
-	}
-	if svc.cacheable {
-		common.PutInCache(ctx, svc.object, id, stor)
 	}
 	return stor, nil
 }
@@ -136,9 +121,6 @@ func (svc *gaeDataService) postArrayGet(ctx core.RequestContext, results interfa
 func (svc *gaeDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
 	if svc.postload {
 		stor.PostLoad(ctx)
-	}
-	if svc.cacheable {
-		common.PutInCache(ctx, svc.object, stor.GetId(), stor)
 	}
 	return nil
 }
@@ -253,6 +235,8 @@ func (svc *gaeDataService) CreateCondition(ctx core.RequestContext, operation da
 			}
 			return &gaeDatastoreCondition{operation: operation, arg1: args[0]}, nil
 		}
+	default:
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	}
 	return nil, nil
 }

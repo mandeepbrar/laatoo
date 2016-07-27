@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -9,6 +8,8 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type mongoDataService struct {
@@ -19,7 +20,6 @@ type mongoDataService struct {
 	database                string
 	auditable               bool
 	softdelete              bool
-	cacheable               bool
 	refops                  bool
 	presave                 bool
 	postsave                bool
@@ -93,13 +93,6 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 
 	if ms.collection == "" {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_COLLECTION)
-	}
-
-	cacheable, ok := conf.GetBool(common.CONF_DATA_CACHEABLE)
-	if ok {
-		ms.cacheable = cacheable
-	} else {
-		ms.cacheable = ms.objectConfig.Cacheable
 	}
 
 	auditable, ok := conf.GetBool(common.CONF_DATA_AUDITABLE)
@@ -244,8 +237,6 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	defer connCopy.Close()
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
 	for _, item := range items {
-		id := item.GetId()
-		common.InvalidateCache(ctx, ms.object, id)
 		if ms.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
@@ -259,7 +250,7 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 		if ms.auditable {
 			data.Audit(ctx, item)
 		}
-		bulk.Upsert(bson.M{ms.objectid: id}, item)
+		bulk.Upsert(bson.M{ms.objectid: item.GetId()}, item)
 	}
 	_, err := bulk.Run()
 	if err != nil {
@@ -284,7 +275,6 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 
 func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	common.InvalidateCache(ctx, ms.object, id)
 	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -360,7 +350,6 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	if err != nil {
 		return err
 	}
-	common.InvalidateCache(ctx, ms.object, id)
 	if ms.notifyupdates {
 		common.NotifyUpdate(ctx, ms.object, id)
 	}
@@ -421,7 +410,6 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 		return nil, errors.WrapError(ctx, err)
 	}
 	for _, id := range ids {
-		common.InvalidateCache(ctx, ms.object, id)
 		if ms.notifyupdates {
 			common.NotifyUpdate(ctx, ms.object, id)
 		}
@@ -450,7 +438,6 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 		return errors.WrapError(ctx, err)
 	}
 	for _, id := range ids {
-		common.InvalidateCache(ctx, ms.object, id)
 		if ms.notifyupdates {
 			common.NotifyUpdate(ctx, ms.object, id)
 		}
@@ -476,7 +463,6 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 	if err == nil {
 		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, []string{id})
 	}
-	common.InvalidateCache(ctx, ms.object, id)
 	return err
 }
 
@@ -499,9 +485,6 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 	_, err := connCopy.DB(ms.database).C(ms.collection).RemoveAll(condition)
 	if err == nil {
 		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
-	}
-	for _, id := range ids {
-		common.InvalidateCache(ctx, ms.object, id)
 	}
 	return err
 }
@@ -534,9 +517,6 @@ func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interfa
 		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
 		if err != nil {
 			return ids, err
-		}
-		for _, id := range ids {
-			common.InvalidateCache(ctx, ms.object, id)
 		}
 	} else {
 		return nil, err

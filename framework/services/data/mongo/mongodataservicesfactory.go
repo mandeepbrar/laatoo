@@ -1,13 +1,14 @@
 package mongo
 
 import (
-	"gopkg.in/mgo.v2"
 	"laatoo/framework/core/objects"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	//"laatoosdk/log"
+	//"log"
+
+	"gopkg.in/mgo.v2"
 )
 
 type mongoDataServicesFactory struct {
@@ -41,7 +42,6 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 	if err != nil {
 		return errors.RethrowError(ctx, common.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}
-
 	/*mongoSvc.objects = make(map[string]string, len(objs))
 	for obj, collection := range objs {
 
@@ -59,13 +59,17 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 }
 
 //Create the services configured for factory.
-func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-
-			return newMongoDataService(ctx, name, ms)
-
+			svc, err := newMongoDataService(ctx, name, ms)
+			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
+			if err == nil && cache {
+				return common.NewCachedDataService(ctx, svc), nil
+			} else {
+				return svc, err
+			}
 		}
 	}
 	return nil, nil
