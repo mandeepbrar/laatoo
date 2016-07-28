@@ -4,7 +4,6 @@ import (
 	"laatoo/framework/core/objects"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
-	"laatoo/sdk/core"
 )
 
 var (
@@ -24,32 +23,7 @@ var (
 )
 
 func init() {
-	objects.RegisterObjectFactory(config.DEFAULT_ROLE, &RoleFactory{})
-}
-
-//interface that needs to be implemented by any object provider in a system
-type RoleFactory struct {
-}
-
-//Initialize the object factory
-func (rf *RoleFactory) Initialize(ctx core.ServerContext, config config.Config) error {
-	return nil
-}
-func (rf *RoleFactory) Start(ctx core.ServerContext) error {
-	return nil
-}
-
-//Creates object
-func (rf *RoleFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	role := &Role{}
-	role.Init()
-	return role, nil
-}
-
-//Creates collection
-func (rf *RoleFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
-	rolecollection := make([]Role, length)
-	return &rolecollection, nil
+	objects.Register(config.DEFAULT_ROLE, Role{})
 }
 
 type Role struct {

@@ -71,7 +71,7 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 	ms.objectCreator = objectCreator
 	ms.objectCollectionCreator = objectCollectionCreator
 
-	testObj, _ := objectCreator(ctx, nil)
+	testObj := objectCreator()
 	stor := testObj.(data.Storable)
 	ms.objectConfig = stor.Config()
 
@@ -367,10 +367,8 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 }
 
 func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
-	results, err := ms.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := ms.objectCollectionCreator(0)
+
 	if ms.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": ms.object, "data": newVals})
 		if err != nil {
@@ -380,7 +378,7 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
-	err = query.All(results)
+	err := query.All(results)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -388,13 +386,10 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 	length := len(resultStor)
 	if length == 0 {
 		if upsert {
-			object, err := ms.objectCreator(ctx, nil)
-			if err != nil {
-				return nil, err
-			}
+			object := ms.objectCreator()
 			utils.SetObjectFields(object, newVals)
 			stor := object.(data.Storable)
-			err = ms.Save(ctx, stor)
+			err := ms.Save(ctx, stor)
 			if err != nil {
 				return nil, err
 			}
@@ -499,14 +494,11 @@ func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interfa
 		}
 		return ids, err
 	}
-	results, err := ms.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := ms.objectCollectionCreator(0)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
-	err = query.All(results)
+	err := query.All(results)
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	length := len(resultStor)
 	if length == 0 {

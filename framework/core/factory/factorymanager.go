@@ -117,7 +117,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		return nil
 	}
 
-	factoryInt, err := ctx.CreateObject(factoryName, nil)
+	factoryInt, err := ctx.CreateObject(factoryName)
 
 	if err != nil {
 		return errors.WrapError(ctx, err)

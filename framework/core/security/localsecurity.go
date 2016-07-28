@@ -213,7 +213,7 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExists bool, adminExists bool) error {
 
 	if !anonExists {
-		ent, _ := lsh.roleCreator(ctx, nil)
+		ent := lsh.roleCreator()
 		anonymousRole := ent.(auth.Role)
 		anonymousRole.SetId("Anonymous")
 		anonymousRole.SetName("Anonymous")
@@ -229,7 +229,7 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		}
 	}
 	if !adminExists {
-		ent, _ := lsh.roleCreator(ctx, nil)
+		ent := lsh.roleCreator()
 		adminRole := ent.(auth.Role)
 		adminRole.SetPermissions(lsh.allPermissions)
 		adminRole.SetId(lsh.adminRole)

@@ -37,7 +37,7 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 					}
 					engineContext.SetHeader("Access-Control-Expose-Headers", strings.Join(keyNames, ","))
 				}
-				log.Logger.Debug(ctx, "Returning request with data")
+				log.Logger.Debug(ctx, "Returning request with data", "time", ctx.GetElapsedTime())
 				log.Logger.Trace(ctx, "Returned data", "data", resp.Data)
 				return engineContext.JSON(http.StatusOK, resp.Data)
 			} else {

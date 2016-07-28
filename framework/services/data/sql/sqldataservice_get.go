@@ -13,12 +13,9 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	ctx = ctx.SubContext("GetById")
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
 
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	object := svc.objectCreator()
 
-	err = svc.db.First(object, id).Error
+	err := svc.db.First(object, id).Error
 
 	if err != nil {
 		return nil, errors.RethrowError(ctx, common.DATA_ERROR_OPERATION, err, "ID", id)
@@ -118,10 +115,8 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	if lenids == 0 {
 		return nil, nil
 	}
-	results, err := svc.objectCollectionCreator(ctx, lenids, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(lenids)
+
 	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 
 	query := svc.db.Where(ids)
@@ -130,7 +125,7 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 		query = query.Order(orderBy)
 	}
 
-	err = query.Find(results).Error
+	err := query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -176,15 +171,12 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
 
 	query := svc.db.Where(queryCond)
 
 	if pageSize > 0 {
-		err = query.Count(&totalrecs).Error
+		err := query.Count(&totalrecs).Error
 		if err != nil {
 			return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 		}

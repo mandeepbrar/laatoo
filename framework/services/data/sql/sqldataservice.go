@@ -68,7 +68,7 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 	svc.objectCreator = objectCreator
 	svc.objectCollectionCreator = objectCollectionCreator
 
-	testObj, _ := objectCreator(ctx, nil)
+	testObj := objectCreator()
 	stor := testObj.(data.Storable)
 	svc.refobject = stor
 	svc.objectConfig = stor.Config()
@@ -162,26 +162,17 @@ func (svc *sqlDataService) Invoke(ctx core.RequestContext) error {
 }
 
 func (svc *sqlDataService) CreateCollection(ctx core.RequestContext) error {
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return err
-	}
+	object := svc.objectCreator()
 	return svc.factory.connection.CreateTable(object).Error
 }
 
 func (svc *sqlDataService) DropCollection(ctx core.RequestContext) error {
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return err
-	}
+	object := svc.objectCreator()
 	return svc.factory.connection.DropTable(object).Error
 }
 
 func (svc *sqlDataService) CollectionExists(ctx core.RequestContext) (bool, error) {
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return false, err
-	}
+	object := svc.objectCreator()
 	return svc.factory.connection.HasTable(object), nil
 }
 
@@ -371,10 +362,7 @@ func (svc *sqlDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 }
 
 func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
 		if err != nil {
@@ -382,7 +370,7 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 	}
 	query := svc.db.Where(queryCond)
-	err = query.Find(results).Error
+	err := query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -390,13 +378,11 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	length := len(resultStor)
 	if length == 0 {
 		if upsert {
-			object, err := svc.objectCreator(ctx, nil)
-			if err != nil {
-				return nil, err
-			}
+			object := svc.objectCreator()
+
 			utils.SetObjectFields(object, newVals)
 			stor := object.(data.Storable)
-			err = svc.Save(ctx, stor)
+			err := svc.Save(ctx, stor)
 			if err != nil {
 				return nil, err
 			}
@@ -498,12 +484,9 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		}
 		return ids, err
 	}
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
 	query := svc.db.Where(queryCond)
-	err = query.Find(results).Error
+	err := query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

@@ -181,6 +181,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, serviceAlias
 	cacheToUse, ok := conf.GetString(config.CONF_CACHE_NAME)
 	if ok {
 		svcStruct.Set("__cache", cacheToUse)
+		log.Logger.Error(ctx, "Setting cache for service ", "cacheToUse", cacheToUse)
 	}
 
 	//pass a server context to service with element set to service

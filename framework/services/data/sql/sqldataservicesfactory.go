@@ -28,7 +28,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_SQL_SERVICES, createSQLDataServicesFactory, nil)
+	objects.Register(CONF_SQL_SERVICES, sqlDataServicesFactory{})
 }
 
 func createSQLDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {

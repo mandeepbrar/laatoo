@@ -14,15 +14,13 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	ctx = ctx.SubContext("GetById")
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
 
-	object, err := ms.objectCreator(ctx, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	object := ms.objectCreator()
+
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
 	condition[ms.objectid] = id
-	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
+	err := connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
 	if err != nil {
 		if err.Error() == "not found" {
 			return nil, nil
@@ -124,10 +122,8 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	if lenids == 0 {
 		return nil, nil
 	}
-	results, err := ms.objectCollectionCreator(ctx, lenids, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := ms.objectCollectionCreator(lenids)
+
 	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -139,7 +135,7 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	if len(orderBy) > 0 {
 		query = query.Sort(orderBy)
 	}
-	err = query.All(results)
+	err := query.All(results)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -165,10 +161,8 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own
-	results, err := ms.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
+	results := ms.objectCollectionCreator(0)
+
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)

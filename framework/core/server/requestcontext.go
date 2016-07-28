@@ -80,18 +80,19 @@ func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	return nil
 }
 
-func (ctx *requestContext) GetFromCache(bucket string, key string, val interface{}) bool {
+func (ctx *requestContext) GetFromCache(bucket string, key string, objectType string) (interface{}, bool) {
 	if ctx.cache != nil {
-		return ctx.cache.GetObject(ctx, bucket, key, val)
+		return ctx.cache.GetObject(ctx, bucket, key, objectType)
 	} else {
-		return false
+		return nil, false
 	}
 }
 
-func (ctx *requestContext) GetMultiFromCache(bucket string, keys []string, val map[string]interface{}) {
+func (ctx *requestContext) GetMultiFromCache(bucket string, keys []string, objectType string) map[string]interface{} {
 	if ctx.cache != nil {
-		ctx.cache.GetMulti(ctx, bucket, keys, val)
+		return ctx.cache.GetMulti(ctx, bucket, keys, objectType)
 	}
+	return map[string]interface{}{}
 }
 
 func (ctx *requestContext) InvalidateCache(bucket string, key string) error {

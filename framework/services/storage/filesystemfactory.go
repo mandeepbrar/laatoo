@@ -15,11 +15,7 @@ type FileServiceFactory struct {
 }
 
 func init() {
-	objects.RegisterObject(CONF_FILES_SERVICEFACTORY, createFileServiceFactory, nil)
-}
-
-func createFileServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &FileServiceFactory{}, nil
+	objects.Register(CONF_FILES_SERVICEFACTORY, FileServiceFactory{})
 }
 
 //The services start serving when this method is called

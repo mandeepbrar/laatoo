@@ -14,6 +14,10 @@ var (
 	invokableMethodsRegister = make(map[string]core.ServiceFunc, 30)
 )
 
+func Register(objectName string, obj interface{}) {
+	RegisterObjectFactory(objectName, NewObjectType(obj))
+}
+
 //register the object factory in the global register
 func RegisterObjectFactory(objectName string, factory core.ObjectFactory) {
 	_, ok := objectsFactoryRegister[objectName]

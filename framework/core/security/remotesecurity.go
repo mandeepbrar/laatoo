@@ -128,7 +128,13 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 			return errors.WrapError(ctx, err)
 		}
 		body, err := ioutil.ReadAll(res.Body)
-		roles, _ := ctx.CreateCollection(rsh.roleObject, 0, nil)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		roles, err := ctx.CreateCollection(rsh.roleObject, 0)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 		err = json.Unmarshal(body, roles)
 		if err != nil {
 			return errors.WrapError(ctx, err)

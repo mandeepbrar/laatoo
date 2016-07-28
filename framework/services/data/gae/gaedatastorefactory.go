@@ -17,11 +17,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_GAEDATA_SERVICES, createGAEDataServicesFactory, nil)
-}
-
-func createGAEDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &gaeDataServicesFactory{}, nil
+	objects.Register(CONF_GAEDATA_SERVICES, gaeDataServicesFactory{})
 }
 
 func (gf *gaeDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

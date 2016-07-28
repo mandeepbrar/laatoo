@@ -33,7 +33,12 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_OBJECT)
 		}
-		obj, err := ruleCtx.CreateObject(ruleobj, map[string]interface{}{"conf": ruleConf})
+		obj, err := ruleCtx.CreateObject(ruleobj)
+		if err != nil {
+			return errors.WrapError(ruleCtx, err)
+		}
+		init := obj.(core.Initializable)
+		err = init.Init(ruleCtx, map[string]interface{}{"conf": ruleConf})
 		if err != nil {
 			return errors.WrapError(ruleCtx, err)
 		}

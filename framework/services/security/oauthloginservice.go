@@ -177,7 +177,7 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	}
 
 	//create the user
-	usr, _ := os.userCreator(ctx, nil)
+	usr := os.userCreator()
 
 	if err := json.Unmarshal(bits, usr); err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)

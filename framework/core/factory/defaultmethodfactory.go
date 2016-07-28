@@ -19,8 +19,8 @@ func init() {
 	objects.RegisterObject(CONF_DEFAULTMETHODFACTORY_NAME, createDefaultMethodFactory, nil)
 }
 
-func createDefaultMethodFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &defaultMethodFactory{}, nil
+func createDefaultMethodFactory() interface{} {
+	return &defaultMethodFactory{}
 }
 
 //Create the services configured for factory.

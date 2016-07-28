@@ -78,7 +78,9 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	fieldMap["Roles"] = []string{rs.DefaultRole}
 	log.Logger.Trace(ctx, "data", " map", fieldMap)
 
-	obj, nil := rs.userCreator(ctx, fieldMap)
+	obj := rs.userCreator()
+	init := obj.(core.Initializable)
+	init.Init(ctx, fieldMap)
 	user := obj.(auth.User)
 
 	username := user.GetUserName()

@@ -66,7 +66,7 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 	svc.objectCreator = objectCreator
 	svc.objectCollectionCreator = objectCollectionCreator
 
-	testObj, _ := objectCreator(ctx, nil)
+	testObj := objectCreator()
 	stor := testObj.(data.Storable)
 	svc.objectConfig = stor.Config()
 
@@ -330,12 +330,10 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		data.Audit(ctx, newVals)
 	}
 
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return err
-	}
+	object := svc.objectCreator()
+
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-	err = datastore.Get(appEngineContext, key, object)
+	err := datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
 	utils.SetObjectFields(stor, newVals)
 	if err != nil {
@@ -396,22 +394,17 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, err
 	}
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
+
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	keys, err := query.GetAll(appEngineContext, results)
 	if len(keys) == 0 {
 		if upsert {
-			object, err := svc.objectCreator(ctx, nil)
-			if err != nil {
-				return nil, err
-			}
+			object := svc.objectCreator()
 			stor := object.(data.Storable)
 			utils.SetObjectFields(stor, newVals)
-			err = svc.Save(ctx, stor)
+			err := svc.Save(ctx, stor)
 			if err != nil {
 				return nil, err
 			}
@@ -468,7 +461,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 		data.Audit(ctx, newVals)
 	}
 	lenids := len(ids)
-	results, _ := svc.objectCollectionCreator(ctx, lenids, nil)
+	results := svc.objectCollectionCreator(lenids)
 	keys := make([]*datastore.Key, lenids)
 	for ind, id := range ids {
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
@@ -571,12 +564,10 @@ func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 	}
 
 	appEngineContext := ctx.GetAppengineContext()
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
+
 	query := datastore.NewQuery(svc.collection)
-	query, err = svc.processCondition(ctx, appEngineContext, query, queryCond)
+	query, err := svc.processCondition(ctx, appEngineContext, query, queryCond)
 	if err != nil {
 		return nil, err
 	}

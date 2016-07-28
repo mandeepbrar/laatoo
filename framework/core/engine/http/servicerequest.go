@@ -71,15 +71,9 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				}
 			default:
 				if isdataCollection {
-					reqData, err = dataObjectCollectionCreator(webctx, 5, nil)
-					if err != nil {
-						return errors.WrapError(webctx, err)
-					}
+					reqData = dataObjectCollectionCreator(5)
 				} else {
-					reqData, err = dataObjectCreator(webctx, nil)
-					if err != nil {
-						return errors.WrapError(webctx, err)
-					}
+					reqData = dataObjectCreator()
 				}
 				if method != "GET" {
 					err = engineContext.Bind(reqData)

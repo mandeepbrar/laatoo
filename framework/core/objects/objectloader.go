@@ -41,6 +41,9 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 func (objLoader *objectLoader) Start(ctx core.ServerContext) error {
 	return nil
 }
+func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}) {
+	objLoader.registerObjectFactory(ctx, objectName, NewObjectType(object))
+}
 func (objLoader *objectLoader) registerObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) {
 	objLoader.registerObjectFactory(ctx, objectName, NewObjectFactory(objectCreator, objectCollectionCreator))
 }
@@ -60,24 +63,24 @@ func (objLoader *objectLoader) registerInvokableMethod(ctx core.Context, methodN
 }
 
 //returns a collection of the object type
-func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, length int, args core.MethodArgs) (interface{}, error) {
+func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, length int) (interface{}, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 
 	}
-	return factory.CreateObjectCollection(ctx, length, args)
+	return factory.CreateObjectCollection(length), nil
 }
 
 //Provides an object with a given name
-func (objLoader *objectLoader) createObject(ctx core.Context, objectName string, args core.MethodArgs) (interface{}, error) {
+func (objLoader *objectLoader) createObject(ctx core.Context, objectName string) (interface{}, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
-	return factory.CreateObject(ctx, args)
+	return factory.CreateObject(), nil
 }
 
 func (objLoader *objectLoader) getObjectCreator(ctx core.Context, objectName string) (core.ObjectCreator, error) {

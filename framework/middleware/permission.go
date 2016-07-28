@@ -13,11 +13,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(SVC_CHECKPERMISSION, createCheckPermissionsService, nil)
-}
-
-func createCheckPermissionsService(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &checkPermissionService{}, nil
+	objects.Register(SVC_CHECKPERMISSION, checkPermissionService{})
 }
 
 type checkPermissionService struct {

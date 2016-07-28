@@ -82,7 +82,7 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 		}
 
 		log.Logger.Debug(appletCreateCtx, "Creating applet")
-		obj, err := appletCreateCtx.CreateObject(applprovider, nil)
+		obj, err := appletCreateCtx.CreateObject(applprovider)
 		if err != nil {
 			return errors.RethrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, err)
 		}

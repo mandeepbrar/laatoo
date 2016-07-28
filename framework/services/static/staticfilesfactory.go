@@ -19,11 +19,7 @@ type StaticServiceFactory struct {
 }
 
 func init() {
-	objects.RegisterObject(CONF_STATIC_SERVICEFACTORY, createStaticServicesFactory, nil)
-}
-
-func createStaticServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &StaticServiceFactory{}, nil
+	objects.Register(CONF_STATIC_SERVICEFACTORY, StaticServiceFactory{})
 }
 
 //The services start serving when this method is called

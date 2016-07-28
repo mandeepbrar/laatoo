@@ -20,13 +20,13 @@ func init() {
 	objects.RegisterObject(CONF_DEFAULTFACTORY_NAME, createDefaultFactory, nil)
 }
 
-func createDefaultFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &defaultFactory{}, nil
+func createDefaultFactory() interface{} {
+	return &defaultFactory{}
 }
 
 //Create the services configured for factory.
 func (mi *defaultFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	obj, err := ctx.CreateObject(method, nil)
+	obj, err := ctx.CreateObject(method)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

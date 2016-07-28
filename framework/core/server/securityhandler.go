@@ -104,7 +104,9 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	}
 	sh.roleCreator = roleCreator
 
-	anonymousUser, err := userCreator(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
+	anonymousUser := userCreator()
+	init := anonymousUser.(core.Initializable)
+	err = init.Init(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
 	if err != nil {
 		return err
 	}
@@ -172,10 +174,7 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User,
 			return sh.publicKey, nil
 		})
 		if err == nil && token.Valid {
-			userInt, err := sh.userCreator(ctx, nil)
-			if err != nil {
-				return nil, false, errors.WrapError(ctx, err)
-			}
+			userInt := sh.userCreator()
 			user, ok := userInt.(auth.RbacUser)
 			if !ok {
 				return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)

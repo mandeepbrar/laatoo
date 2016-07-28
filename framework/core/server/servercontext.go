@@ -320,12 +320,12 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 		engineContext: engineCtx, subRequest: false}
 }
 
-func (ctx *serverContext) CreateCollection(objectName string, length int, args core.MethodArgs) (interface{}, error) {
-	return ctx.objectLoader.CreateCollection(ctx, objectName, length, args)
+func (ctx *serverContext) CreateCollection(objectName string, length int) (interface{}, error) {
+	return ctx.objectLoader.CreateCollection(ctx, objectName, length)
 }
 
-func (ctx *serverContext) CreateObject(objectName string, args core.MethodArgs) (interface{}, error) {
-	return ctx.objectLoader.CreateObject(ctx, objectName, args)
+func (ctx *serverContext) CreateObject(objectName string) (interface{}, error) {
+	return ctx.objectLoader.CreateObject(ctx, objectName)
 }
 
 func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.ObjectCollectionCreator, error) {

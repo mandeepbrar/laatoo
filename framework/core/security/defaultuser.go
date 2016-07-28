@@ -30,9 +30,10 @@ var (
 )
 
 func init() {
-	objects.RegisterObjectFactory(config.DEFAULT_USER, &UserFactory{})
+	objects.Register(config.DEFAULT_USER, DefaultUser{})
 }
 
+/*
 //interface that needs to be implemented by any object provider in a system
 type UserFactory struct {
 }
@@ -46,10 +47,29 @@ func (rf *UserFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 
+
+
+//Creates collection
+func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
+	usercollection := make([]DefaultUser, length)
+	return &usercollection, nil
+}*/
+
+type DefaultUser struct {
+	data.SoftDeleteAuditable `bson:",inline"`
+	Username                 string   `json:"Username" form:"Username" bson:"Username"`
+	Password                 string   `json:"Password" form:"Password" bson:"Password"`
+	Roles                    []string `json:"Roles" bson:"Roles"`
+	Permissions              []string `json:"Permissions" bson:"Permissions"`
+	Email                    string   `json:"Email" bson:"Email"`
+	Name                     string   `json:"Name" bson:"Name"`
+	Picture                  string   `json:"Picture" bson:"Picture"`
+	Realm                    string   `json:"Realm" bson:"Realm"`
+}
+
 //Creates object
-func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	usr := &DefaultUser{}
-	usr.Init()
+func (usr *DefaultUser) Init(ctx core.Context, args core.MethodArgs) error {
+	usr.SoftDeleteAuditable.Init(ctx, args)
 	if args != nil {
 		username, ok := args["Username"]
 		if ok {
@@ -81,25 +101,7 @@ func (rf *UserFactory) CreateObject(ctx core.Context, args core.MethodArgs) (int
 		}
 
 	}
-	return usr, nil
-}
-
-//Creates collection
-func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args core.MethodArgs) (interface{}, error) {
-	usercollection := make([]DefaultUser, length)
-	return &usercollection, nil
-}
-
-type DefaultUser struct {
-	data.SoftDeleteAuditable `bson:",inline"`
-	Username                 string   `json:"Username" form:"Username" bson:"Username"`
-	Password                 string   `json:"Password" form:"Password" bson:"Password"`
-	Roles                    []string `json:"Roles" bson:"Roles"`
-	Permissions              []string `json:"Permissions" bson:"Permissions"`
-	Email                    string   `json:"Email" bson:"Email"`
-	Name                     string   `json:"Name" bson:"Name"`
-	Picture                  string   `json:"Picture" bson:"Picture"`
-	Realm                    string   `json:"Realm" bson:"Realm"`
+	return nil
 }
 
 func (r *DefaultUser) Config() *data.StorableConfig {

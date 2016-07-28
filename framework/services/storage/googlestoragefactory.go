@@ -15,11 +15,7 @@ type GoogleStorageServiceFactory struct {
 }
 
 func init() {
-	objects.RegisterObject(CONF_GOOGLESTORAGE_FACTORY, createGoogleStorageServiceFactory, nil)
-}
-
-func createGoogleStorageServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &GoogleStorageServiceFactory{}, nil
+	objects.Register(CONF_GOOGLESTORAGE_FACTORY, GoogleStorageServiceFactory{})
 }
 
 //The services start serving when this method is called

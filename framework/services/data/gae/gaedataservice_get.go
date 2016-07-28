@@ -26,12 +26,10 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
 
-	object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	object := svc.objectCreator()
+
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-	err = datastore.Get(appEngineContext, key, object)
+	err := datastore.Get(appEngineContext, key, object)
 	if err != nil {
 		if err.Error() == "not found" {
 			return nil, nil
@@ -132,10 +130,8 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	}
 	appEngineContext := ctx.GetAppengineContext()
 
-	results, err := svc.objectCollectionCreator(ctx, lenids, nil)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(lenids)
+
 	keys := make([]*datastore.Key, lenids)
 	for ind, id := range ids {
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
@@ -144,7 +140,7 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	/*if len(orderBy) > 0 {
 		query = query.Order(orderBy)
 	}*/
-	err = datastore.GetMulti(appEngineContext, keys, reflect.ValueOf(results).Elem().Interface())
+	err := datastore.GetMulti(appEngineContext, keys, reflect.ValueOf(results).Elem().Interface())
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
 			log.Logger.Debug(ctx, "Geting object", "err", err)
@@ -191,10 +187,8 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if len(orderBy) > 0 {
 		query = query.Order(orderBy)
 	}
-	results, err := svc.objectCollectionCreator(ctx, 0, nil)
-	if err != nil {
-		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
-	}
+	results := svc.objectCollectionCreator(0)
+
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	_, err = query.GetAll(appEngineContext, results)

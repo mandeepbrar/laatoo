@@ -47,8 +47,8 @@ type DataAdapterFactory struct {
 	dataServiceName string
 }
 
-func createDataAdapterFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &DataAdapterFactory{}, nil
+func createDataAdapterFactory() interface{} {
+	return &DataAdapterFactory{}
 }
 
 func (es *DataAdapterFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

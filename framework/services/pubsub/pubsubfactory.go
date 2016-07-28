@@ -16,11 +16,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_PUBSUB_NAME, createPubSubFactory, nil)
-}
-
-func createPubSubFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &PubSubFactory{}, nil
+	objects.Register(CONF_PUBSUB_NAME, PubSubFactory{})
 }
 
 //Create the services configured for factory.

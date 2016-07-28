@@ -32,7 +32,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_TASKS_FACTORY, createTaskServiceFactory, nil)
+	objects.Register(CONF_TASKS_FACTORY, tasksFactory{})
 }
 
 func createTaskServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {

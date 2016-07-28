@@ -24,16 +24,12 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_APPENGINECACHE_FACTORY, createAppengineCacheServiceFactory, nil)
-}
-
-func createAppengineCacheServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &AppengineCacheFactory{}, nil
+	objects.Register(CONF_APPENGINECACHE_FACTORY, AppengineCacheFactory{})
 }
 
 //Create the services configured for factory.
 func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	if name == CONF_APPENGINECACHE_SVC {
+	if method == CONF_APPENGINECACHE_SVC {
 		return &AppengineCacheService{}, nil
 	}
 	return nil, nil

@@ -22,11 +22,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_MONGO_SERVICES, createMongoDataServicesFactory, nil)
-}
-
-func createMongoDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &mongoDataServicesFactory{}, nil
+	objects.Register(CONF_MONGO_SERVICES, mongoDataServicesFactory{})
 }
 
 func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

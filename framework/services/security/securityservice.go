@@ -15,11 +15,7 @@ const (
 )
 
 func init() {
-	objects.RegisterObject(CONF_SECURITYSERVICE_SERVICEPROVIDER, createSecurityServiceFactory, nil)
-}
-
-func createSecurityServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &SecurityServiceFactory{}, nil
+	objects.Register(CONF_SECURITYSERVICE_SERVICEPROVIDER, SecurityServiceFactory{})
 }
 
 type SecurityServiceFactory struct {
