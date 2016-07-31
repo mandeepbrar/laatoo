@@ -55,13 +55,13 @@ func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name str
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-			svc, err := newSqlDataService(ctx, name, sf)
-			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
+			return newSqlDataService(ctx, name, sf)
+			/*cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
 			if err == nil && cache {
 				return common.NewCachedDataService(ctx, svc), nil
 			} else {
 				return svc, err
-			}
+			}*/
 		}
 	}
 	return nil, nil

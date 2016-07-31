@@ -59,13 +59,7 @@ func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name s
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-			svc, err := newMongoDataService(ctx, name, ms)
-			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
-			if err == nil && cache {
-				return common.NewCachedDataService(ctx, svc), nil
-			} else {
-				return svc, err
-			}
+			return newMongoDataService(ctx, name, ms)
 		}
 	}
 	return nil, nil

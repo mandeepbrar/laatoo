@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"reflect"
 )
 
 const (
@@ -19,20 +20,20 @@ type joinOperation struct {
 }
 
 type joinService struct {
-	*dataPlugin
+	*data.DataPlugin
 	ops []*joinOperation
 }
 
 func NewJoinCacheService(ctx core.ServerContext) *joinService {
-	return &joinService{dataPlugin: NewDataPlugin(ctx)}
+	return &joinService{DataPlugin: data.NewDataPlugin(ctx)}
 }
 
 func (svc *joinService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.dataPlugin.Initialize(ctx, conf)
+	err := svc.DataPlugin.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	arr := make([]*joinOperation, 1)
+	var arr []*joinOperation
 	ops, ok := conf.GetSubConfig(CONF_JOIN_OPERATION)
 	if ok {
 		joinops := ops.AllConfigurations()
@@ -43,10 +44,7 @@ func (svc *joinService) Initialize(ctx core.ServerContext, conf config.Config) e
 				return errors.MissingConf(ctx, CONF_TARG_SVC, "operation", joinop)
 			}
 
-			targetfield, ok := oper.GetString(CONF_TARG_FIELD)
-			if !ok {
-				return errors.MissingConf(ctx, CONF_TARG_FIELD)
-			}
+			targetfield, _ := oper.GetString(CONF_TARG_FIELD)
 			arr = append(arr, &joinOperation{targetSvcName: targetsvc, targetField: targetfield})
 		}
 	}
@@ -55,11 +53,16 @@ func (svc *joinService) Initialize(ctx core.ServerContext, conf config.Config) e
 }
 
 func (svc *joinService) Start(ctx core.ServerContext) error {
-	err := svc.dataPlugin.Start(ctx)
+	err := svc.DataPlugin.Start(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	if svc.ops == nil {
+		return nil
+	}
+	log.Logger.Error(ctx, "starting", "ops", svc.ops)
 	for _, op := range svc.ops {
+		log.Logger.Error(ctx, "starting", "op", op)
 		s, err := ctx.GetService(op.targetSvcName)
 		if err != nil {
 			return errors.BadConf(ctx, CONF_TARG_SVC)
@@ -145,6 +148,19 @@ func (svc *joinService) Get(ctx core.RequestContext, queryCond interface{}, page
 
 func (svc *joinService) fillJoin(ctx core.RequestContext, ids []string, inputData []data.Storable) ([]data.Storable, error) {
 	for _, op := range svc.ops {
+		if op.targetField != "" {
+			fieldVals := make([]string, len(inputData))
+			for ind, item := range inputData {
+				iVal := reflect.ValueOf(item)
+				field := iVal.FieldByName(op.targetField)
+				if field.IsValid() {
+					fieldVals[ind] = field.String()
+				} else {
+					return nil, errors.BadConf(ctx, CONF_TARG_FIELD)
+				}
+			}
+			ids = fieldVals
+		}
 		hash, err := op.targetSvc.GetMultiHash(ctx, ids)
 		if err != nil {
 			return nil, err

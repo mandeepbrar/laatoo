@@ -19,7 +19,6 @@ type mongoDataService struct {
 	database        string
 	auditable       bool
 	softdelete      bool
-	refops          bool
 	presave         bool
 	postsave        bool
 	postload        bool
@@ -29,12 +28,7 @@ type mongoDataService struct {
 	collection      string
 	softDeleteField string
 	objectid        string
-	deleteRefOpers  []common.RefOperation
-	getRefOpers     []common.RefOperation
 	serviceType     string
-	/*getRefOpers    map[string][]*refKeyOperation
-	putRefOpers    map[string][]*refKeyOperation
-	updateRefOpers map[string][]*refKeyOperation*/
 }
 
 const (
@@ -100,13 +94,6 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 		ms.postload = ms.ObjectConfig.PostLoad
 	}
 
-	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
-	if ok {
-		ms.refops = refops
-	} else {
-		ms.refops = ms.ObjectConfig.RefOps
-	}
-
 	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
 	if ok {
 		ms.notifyupdates = notifyupdates
@@ -118,24 +105,6 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 		ms.notifynew = notifynew
 	} else {
 		ms.notifynew = ms.ObjectConfig.NotifyNew
-	}
-
-	if ms.refops {
-		deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
-		if err != nil {
-			return err
-		}
-		err = common.InitialRefOps(ctx, deleteOps)
-		if err != nil {
-			return err
-		}
-
-		err = common.InitialRefOps(ctx, getRefOps)
-		if err != nil {
-			return err
-		}
-		ms.deleteRefOpers = deleteOps
-		ms.getRefOpers = getRefOps
 	}
 
 	return nil
@@ -424,20 +393,13 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
 	if ms.softdelete {
-		err := ms.Update(ctx, id, map[string]interface{}{ms.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, ms.deleteRefOpers, []string{id})
-		}
-		return err
+		return ms.Update(ctx, id, map[string]interface{}{ms.softDeleteField: true})
 	}
 	condition := bson.M{}
 	condition[ms.objectid] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	err := connCopy.DB(ms.database).C(ms.collection).Remove(condition)
-	if err == nil {
-		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, []string{id})
-	}
 	return err
 }
 
@@ -445,11 +407,7 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	ctx = ctx.SubContext("DeleteMulti")
 	if ms.softdelete {
-		err := ms.UpdateMulti(ctx, ids, map[string]interface{}{ms.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
-		}
-		return err
+		return ms.UpdateMulti(ctx, ids, map[string]interface{}{ms.softDeleteField: true})
 	}
 	conditionVal := bson.M{}
 	conditionVal["$in"] = ids
@@ -458,9 +416,6 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	_, err := connCopy.DB(ms.database).C(ms.collection).RemoveAll(condition)
-	if err == nil {
-		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
-	}
 	return err
 }
 
@@ -468,11 +423,7 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if ms.softdelete {
-		ids, err := ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
-		}
-		return ids, err
+		return ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.softDeleteField: true})
 	}
 	results := ms.ObjectCollectionCreator(0)
 	connCopy := ms.factory.connection.Copy()
@@ -485,13 +436,5 @@ func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interfa
 		return nil, nil
 	}
 	_, err = connCopy.DB(ms.database).C(ms.collection).RemoveAll(queryCond)
-	if err == nil {
-		err = common.DeleteRefOps(ctx, ms.deleteRefOpers, ids)
-		if err != nil {
-			return ids, err
-		}
-	} else {
-		return nil, err
-	}
 	return ids, err
 }

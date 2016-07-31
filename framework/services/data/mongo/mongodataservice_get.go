@@ -31,14 +31,6 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if ms.refops {
-		res, err := common.GetRefOps(ctx, ms.getRefOpers, []string{id}, []data.Storable{stor})
-		if err != nil {
-			return nil, err
-		}
-		r := res.([]data.Storable)
-		stor = r[0]
-	}
 	if ms.postload {
 		stor.PostLoad(ctx)
 	}
@@ -73,15 +65,6 @@ func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string) 
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-
-	if ms.refops {
-		res, err := common.GetRefOps(ctx, ms.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, err
-		}
-		resultStor = res.(map[string]data.Storable)
-	}
-
 	for _, stor := range resultStor {
 		ms.postLoad(ctx, stor)
 	}
@@ -92,15 +75,6 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
-	}
-	log.Logger.Trace(ctx, "Processing results in postArrayGet ", "number", len(resultStor))
-	if ms.refops {
-		res, err := common.GetRefOps(ctx, ms.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, nil, err
-		}
-		resultStor = res.([]data.Storable)
-		log.Logger.Trace(ctx, "Assigned results", "resultstor", resultStor)
 	}
 	for _, stor := range resultStor {
 		ms.postLoad(ctx, stor)

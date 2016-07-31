@@ -1,5 +1,6 @@
 package common
 
+/*
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -89,4 +90,4 @@ func (oper *refOperation) Initialize(ctx core.ServerContext) error {
 	}
 	oper.targetService = targetsvc
 	return nil
-}
+}*/

@@ -10,6 +10,7 @@ import (
 const (
 	DATAPLUGINS_FACTORY  = "dataplugins"
 	DATASVC_CACHE_PLUGIN = "cache"
+	DATASVC_JOIN_PLUGIN  = "join"
 )
 
 type dataPluginsFactory struct {
@@ -29,6 +30,10 @@ func (df *dataPluginsFactory) CreateService(ctx core.ServerContext, name string,
 	case DATASVC_CACHE_PLUGIN:
 		{
 			return NewDataCacheService(ctx), nil
+		}
+	case DATASVC_JOIN_PLUGIN:
+		{
+			return NewJoinCacheService(ctx), nil
 		}
 	}
 	return nil, nil

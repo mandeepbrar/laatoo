@@ -40,14 +40,6 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, []string{id}, []data.Storable{stor})
-		if err != nil {
-			return nil, err
-		}
-		r := res.([]data.Storable)
-		stor = r[0]
-	}
 	if svc.postload {
 		stor.PostLoad(ctx)
 	}
@@ -82,14 +74,6 @@ func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string) (
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, err
-		}
-		resultStor = res.(map[string]data.Storable)
-	}
-
 	for _, stor := range resultStor {
 		svc.postLoad(ctx, stor)
 	}
@@ -100,14 +84,6 @@ func (svc *gaeDataService) postArrayGet(ctx core.RequestContext, results interfa
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
-	}
-
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, nil, err
-		}
-		resultStor = res.([]data.Storable)
 	}
 
 	for _, stor := range resultStor {
@@ -250,6 +226,17 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 		return query.Ancestor(key), nil
 	case data.MATCHMULTIPLEVALUES:
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
+	/*case data.COMBINECONDTITIONS:
+	{
+		retval := query
+		for _, subcond := range dqCondition.args {
+			v, err := svc.processCondition(ctx, subcond, retval)
+			if err != nil {
+				return nil, err
+			}
+			retval = v
+		}
+	}*/
 	case data.FIELDVALUE:
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
 		if ok {

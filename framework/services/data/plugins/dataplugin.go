@@ -1,5 +1,6 @@
 package plugins
 
+/*
 import (
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
@@ -150,3 +151,4 @@ func (svc *dataPlugin) Get(ctx core.RequestContext, queryCond interface{}, pageS
 func (svc *dataPlugin) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	return svc.DataComponent.CreateCondition(ctx, operation, args...)
 }
+*/

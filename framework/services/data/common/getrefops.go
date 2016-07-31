@@ -1,5 +1,6 @@
 package common
 
+/*
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -68,3 +69,4 @@ func GetRefOps(ctx core.RequestContext, opers []RefOperation, ids []string, inpu
 	}
 	return inputData, nil
 }
+*/

@@ -29,14 +29,6 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, []string{id}, []data.Storable{stor})
-		if err != nil {
-			return nil, err
-		}
-		r := res.([]data.Storable)
-		stor = r[0]
-	}
 	if svc.postload {
 		stor.PostLoad(ctx)
 	}
@@ -72,14 +64,6 @@ func (svc *sqlDataService) GetMultiHash(ctx core.RequestContext, ids []string) (
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, err
-		}
-		resultStor = res.(map[string]data.Storable)
-	}
-
 	for _, stor := range resultStor {
 		svc.postLoad(ctx, stor)
 	}
@@ -92,14 +76,6 @@ func (svc *sqlDataService) postArrayGet(ctx core.RequestContext, results interfa
 		return nil, nil, errors.WrapError(ctx, err)
 	}
 	log.Logger.Trace(ctx, "Processing results in postArrayGet ", "number", len(resultStor))
-	if svc.refops {
-		res, err := common.GetRefOps(ctx, svc.getRefOpers, ids, resultStor)
-		if err != nil {
-			return nil, nil, err
-		}
-		resultStor = res.([]data.Storable)
-		log.Logger.Trace(ctx, "Assigned results", "resultstor", resultStor)
-	}
 	for _, stor := range resultStor {
 		svc.postLoad(ctx, stor)
 	}
@@ -186,7 +162,6 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	results := svc.ObjectCollectionCreator(0)
 
 	query, err := svc.processCondition(ctx, queryCond, svc.db)
-
 	if err != nil {
 		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
 	}
@@ -223,7 +198,6 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 
 func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition interface{}, input *gorm.DB) (*gorm.DB, error) {
 	cond := condition.(*sqlCondition)
-	log.Logger.Error(ctx, "processing condition", "cond", *cond)
 
 	switch cond.operation {
 	case data.MATCHMULTIPLEVALUES:
@@ -233,9 +207,20 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 			}
 			arr := utils.CastToInterfaceArray(cond.args[1])
 			placeholders := fmt.Sprintf("%s in( %s)", cond.args[0], strings.Trim(strings.Repeat("?,", len(arr)), ","))
-			log.Logger.Error(ctx, "string built", "placeholders", placeholders, " arr", arr)
 			return input.Where(placeholders, arr...), nil
 			//append([]interface{}{placeholders}, arr...), nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
+		}
+	case data.COMBINECONDTITIONS:
+		{
+			retval := input
+			for _, subcond := range cond.args {
+				v, err := svc.processCondition(ctx, subcond, retval)
+				if err != nil {
+					return nil, err
+				}
+				retval = v
+			}
+			return retval, nil
 		}
 	case data.FIELDVALUE:
 		{

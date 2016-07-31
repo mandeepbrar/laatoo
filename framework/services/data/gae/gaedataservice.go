@@ -21,7 +21,6 @@ type gaeDataService struct {
 	name                    string
 	auditable               bool
 	softdelete              bool
-	refops                  bool
 	presave                 bool
 	postsave                bool
 	postload                bool
@@ -33,12 +32,7 @@ type gaeDataService struct {
 	softDeleteField         string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
-	deleteRefOpers          []common.RefOperation
-	getRefOpers             []common.RefOperation
 	serviceType             string
-	/*getRefOpers    map[string][]*refKeyOperation
-	putRefOpers    map[string][]*refKeyOperation
-	updateRefOpers map[string][]*refKeyOperation*/
 }
 
 func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, error) {
@@ -105,35 +99,12 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.notifyupdates = svc.ObjectConfig.NotifyUpdates
 	}
 
-	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
-	if ok {
-		svc.refops = refops
-	} else {
-		svc.refops = svc.ObjectConfig.RefOps
-	}
-
 	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
 	if ok {
 		svc.notifynew = notifynew
 	} else {
 		svc.notifynew = svc.ObjectConfig.NotifyNew
 	}
-
-	deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
-	if err != nil {
-		return err
-	}
-	err = common.InitialRefOps(ctx, deleteOps)
-	if err != nil {
-		return err
-	}
-
-	err = common.InitialRefOps(ctx, getRefOps)
-	if err != nil {
-		return err
-	}
-	svc.deleteRefOpers = deleteOps
-	svc.getRefOpers = getRefOps
 
 	return nil
 }
@@ -498,18 +469,10 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 	appEngineContext := ctx.GetAppengineContext()
 
 	if svc.softdelete {
-		err := svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
-		}
-		return err
+		return svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
-	err := datastore.Delete(appEngineContext, key)
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
-	}
-	return err
+	return datastore.Delete(appEngineContext, key)
 }
 
 //Delete object by ids
@@ -518,33 +481,21 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	appEngineContext := ctx.GetAppengineContext()
 
 	if svc.softdelete {
-		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		}
-		return err
+		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
 	}
 	keys := make([]*datastore.Key, len(ids))
 	for ind, id := range ids {
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
 	}
-	err := datastore.DeleteMulti(appEngineContext, keys)
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-	}
-	return err
+	return datastore.DeleteMulti(appEngineContext, keys)
 }
 
 //Delete object by condition
 func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if svc.softdelete {
-		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		}
-		return ids, err
+		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
 	}
 
 	appEngineContext := ctx.GetAppengineContext()
@@ -563,14 +514,5 @@ func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		ids[i] = val.StringID()
 	}
 	err = datastore.DeleteMulti(appEngineContext, keys)
-
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		if err != nil {
-			return ids, err
-		}
-	} else {
-		return nil, err
-	}
 	return ids, err
 }

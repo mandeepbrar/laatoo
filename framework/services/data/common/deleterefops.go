@@ -1,5 +1,6 @@
 package common
 
+/*
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -56,3 +57,4 @@ func DeleteRefOps(ctx core.RequestContext, opers []RefOperation, ids []string) e
 	}
 	return nil
 }
+*/

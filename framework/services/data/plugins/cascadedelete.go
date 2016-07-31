@@ -18,16 +18,16 @@ type cascadeDeleteOperation struct {
 }
 
 type cascadeDelete struct {
-	*dataPlugin
+	*data.DataPlugin
 	ops []*cascadeDeleteOperation
 }
 
 func NewCascadeDeleteService(ctx core.ServerContext) *cascadeDelete {
-	return &cascadeDelete{dataPlugin: NewDataPlugin(ctx)}
+	return &cascadeDelete{DataPlugin: data.NewDataPlugin(ctx)}
 }
 
 func (svc *cascadeDelete) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.dataPlugin.Initialize(ctx, conf)
+	err := svc.DataPlugin.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -56,7 +56,7 @@ func (svc *cascadeDelete) Initialize(ctx core.ServerContext, conf config.Config)
 }
 
 func (svc *cascadeDelete) Start(ctx core.ServerContext) error {
-	err := svc.dataPlugin.Start(ctx)
+	err := svc.DataPlugin.Start(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

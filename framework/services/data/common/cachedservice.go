@@ -1,5 +1,6 @@
 package common
 
+/*
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -66,7 +67,7 @@ func (svc *cachedDataService) DropCollection(ctx core.RequestContext) error {
 
 func (svc *cachedDataService) CollectionExists(ctx core.RequestContext) (bool, error) {
 	return svc.rootComp.CollectionExists(ctx)
-}*/
+}
 
 func (svc *cachedDataService) GetDataServiceType() string {
 	return svc.rootComp.GetDataServiceType()
@@ -258,4 +259,4 @@ func (svc *cachedDataService) Get(ctx core.RequestContext, queryCond interface{}
 //create condition for passing to data service
 func (svc *cachedDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	return svc.rootComp.CreateCondition(ctx, operation, args...)
-}
+}*/

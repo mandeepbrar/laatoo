@@ -14,16 +14,16 @@ const (
 )
 
 type dataCacheService struct {
-	*dataPlugin
+	*data.DataPlugin
 	bucket string
 }
 
 func NewDataCacheService(ctx core.ServerContext) *dataCacheService {
-	return &dataCacheService{dataPlugin: NewDataPlugin(ctx)}
+	return &dataCacheService{DataPlugin: data.NewDataPlugin(ctx)}
 }
 
 func (svc *dataCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.dataPlugin.Initialize(ctx, conf)
+	err := svc.DataPlugin.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -186,7 +186,7 @@ func (svc *dataCacheService) GetMulti(ctx core.RequestContext, ids []string, ord
 	return res, err
 }
 
-func (svc *dataCacheService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (svc *dataCacheService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetMultiHash")
 	res, err := svc.DataComponent.GetMultiHash(ctx, ids)
 	if err == nil {

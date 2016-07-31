@@ -19,12 +19,10 @@ type sqlDataService struct {
 	conf            config.Config
 	connection      *gorm.DB
 	db              *gorm.DB
-	refobject       data.Storable
 	name            string
 	database        string
 	auditable       bool
 	softdelete      bool
-	refops          bool
 	presave         bool
 	postsave        bool
 	postload        bool
@@ -34,8 +32,6 @@ type sqlDataService struct {
 	collection      string
 	softDeleteField string
 	objectid        string
-	deleteRefOpers  []common.RefOperation
-	getRefOpers     []common.RefOperation
 	serviceType     string
 }
 
@@ -93,13 +89,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.postload = svc.ObjectConfig.PostLoad
 	}
 
-	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
-	if ok {
-		svc.refops = refops
-	} else {
-		svc.refops = svc.ObjectConfig.RefOps
-	}
-
 	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
 	if ok {
 		svc.notifyupdates = notifyupdates
@@ -111,24 +100,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.notifynew = notifynew
 	} else {
 		svc.notifynew = svc.ObjectConfig.NotifyNew
-	}
-
-	if svc.refops {
-		deleteOps, _, _, getRefOps, err := common.BuildRefOps(ctx, conf)
-		if err != nil {
-			return err
-		}
-		err = common.InitialRefOps(ctx, deleteOps)
-		if err != nil {
-			return err
-		}
-
-		err = common.InitialRefOps(ctx, getRefOps)
-		if err != nil {
-			return err
-		}
-		svc.deleteRefOpers = deleteOps
-		svc.getRefOpers = getRefOps
 	}
 	return nil
 }
@@ -417,55 +388,25 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
 	if svc.softdelete {
-		err := svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
-		}
-		return err
+		return svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
 	}
-	/*	object, err := svc.objectCreator(ctx, nil)
-		if err != nil {
-			return err
-		}
-		stor := object.(data.Storable)
-		stor.SetId(id)*/
-	err := svc.db.Delete(id).Error
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, []string{id})
-	}
-	return err
+	return svc.db.Delete(id).Error
 }
 
 //Delete object by ids
 func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	ctx = ctx.SubContext("DeleteMulti")
 	if svc.softdelete {
-		err := svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		}
-		return err
+		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
 	}
-	/*object, err := svc.objectCreator(ctx, nil)
-	if err != nil {
-		return err
-	}*/
-	err := svc.db.Delete(ids).Error
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-	}
-	return err
+	return svc.db.Delete(ids).Error
 }
 
 //Delete object by condition
 func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if svc.softdelete {
-		ids, err := svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
-		if err == nil {
-			err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		}
-		return ids, err
+		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
 	}
 	results := svc.ObjectCollectionCreator(0)
 	query, err := svc.processCondition(ctx, queryCond, svc.db)
@@ -481,14 +422,6 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 	if length == 0 {
 		return nil, nil
 	}
-	err = svc.db.Where(queryCond).Delete(svc.refobject).Error
-	if err == nil {
-		err = common.DeleteRefOps(ctx, svc.deleteRefOpers, ids)
-		if err != nil {
-			return ids, err
-		}
-	} else {
-		return nil, err
-	}
+	err = query.Delete(svc.ObjectCreator()).Error
 	return ids, err
 }

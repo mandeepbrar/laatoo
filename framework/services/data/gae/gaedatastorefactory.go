@@ -29,13 +29,7 @@ func (gf *gaeDataServicesFactory) CreateService(ctx core.ServerContext, name str
 	switch method {
 	case common.CONF_DATA_SVCS:
 		{
-			svc, err := newGaeDataService(ctx, name)
-			cache, _ := conf.GetBool(common.CONF_DATA_CACHEABLE)
-			if err == nil && cache {
-				return common.NewCachedDataService(ctx, svc), nil
-			} else {
-				return svc, err
-			}
+			return newGaeDataService(ctx, name)
 		}
 	}
 	return nil, nil
