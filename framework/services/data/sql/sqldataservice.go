@@ -16,71 +16,51 @@ import (
 
 type sqlDataService struct {
 	*data.BaseComponent
-	conf                    config.Config
-	connection              *gorm.DB
-	db                      *gorm.DB
-	refobject               data.Storable
-	objectConfig            *data.StorableConfig
-	name                    string
-	database                string
-	auditable               bool
-	softdelete              bool
-	refops                  bool
-	presave                 bool
-	postsave                bool
-	postload                bool
-	notifynew               bool
-	notifyupdates           bool
-	factory                 *sqlDataServicesFactory
-	collection              string
-	softDeleteField         string
-	object                  string
-	objectid                string
-	objectCollectionCreator core.ObjectCollectionCreator
-	objectCreator           core.ObjectCreator
-	deleteRefOpers          []common.RefOperation
-	getRefOpers             []common.RefOperation
-	serviceType             string
+	conf            config.Config
+	connection      *gorm.DB
+	db              *gorm.DB
+	refobject       data.Storable
+	name            string
+	database        string
+	auditable       bool
+	softdelete      bool
+	refops          bool
+	presave         bool
+	postsave        bool
+	postload        bool
+	notifynew       bool
+	notifyupdates   bool
+	factory         *sqlDataServicesFactory
+	collection      string
+	softDeleteField string
+	objectid        string
+	deleteRefOpers  []common.RefOperation
+	getRefOpers     []common.RefOperation
+	serviceType     string
 }
 
 func newSqlDataService(ctx core.ServerContext, name string, svc *sqlDataServicesFactory) (*sqlDataService, error) {
-	sqlDataSvc := &sqlDataService{name: name, factory: svc, serviceType: "SQL"}
+	sqlDataSvc := &sqlDataService{BaseComponent: &data.BaseComponent{}, name: name, factory: svc, serviceType: "SQL"}
 	return sqlDataSvc, nil
 }
 
 func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Initialize SQL Data Service")
-	object, ok := conf.GetString(common.CONF_DATA_OBJECT)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_OBJECT)
-	}
-	objectCreator, err := ctx.GetObjectCreator(object)
-	if err != nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object creator for", object)
-	}
-	objectCollectionCreator, err := ctx.GetObjectCollectionCreator(object)
-	if err != nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Could not get Object Collection creator for", object)
-	}
 
-	svc.conf = conf
-	svc.object = object
-	svc.objectCreator = objectCreator
-	svc.objectCollectionCreator = objectCollectionCreator
-
-	testObj := objectCreator()
-	stor := testObj.(data.Storable)
-	svc.refobject = stor
-	svc.objectConfig = stor.Config()
+	err := svc.BaseComponent.Initialize(ctx, conf)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	object := svc.ObjectCreator()
 	svc.connection = svc.factory.connection
-	svc.collection = svc.connection.NewScope(stor).GetModelStruct().TableName(svc.connection)
+	svc.collection = svc.connection.NewScope(object).GetModelStruct().TableName(svc.connection)
 	if svc.collection == "" {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", common.CONF_DATA_COLLECTION)
+		return errors.MissingConf(ctx, common.CONF_DATA_COLLECTION)
 	}
 	svc.db = svc.connection.Table(svc.collection)
 
-	svc.objectid = svc.objectConfig.IdField
-	svc.softDeleteField = svc.objectConfig.SoftDeleteField
+	svc.objectid = svc.ObjectConfig.IdField
+	svc.softDeleteField = svc.ObjectConfig.SoftDeleteField
 
 	if svc.softDeleteField == "" {
 		svc.softdelete = false
@@ -92,45 +72,45 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 	if ok {
 		svc.auditable = auditable
 	} else {
-		svc.auditable = svc.objectConfig.Auditable
+		svc.auditable = svc.ObjectConfig.Auditable
 	}
 	postsave, ok := conf.GetBool(common.CONF_DATA_POSTSAVE)
 	if ok {
 		svc.postsave = postsave
 	} else {
-		svc.postsave = svc.objectConfig.PostSave
+		svc.postsave = svc.ObjectConfig.PostSave
 	}
 	presave, ok := conf.GetBool(common.CONF_DATA_PRESAVE)
 	if ok {
 		svc.presave = presave
 	} else {
-		svc.presave = svc.objectConfig.PreSave
+		svc.presave = svc.ObjectConfig.PreSave
 	}
 	postload, ok := conf.GetBool(common.CONF_DATA_POSTLOAD)
 	if ok {
 		svc.postload = postload
 	} else {
-		svc.postload = svc.objectConfig.PostLoad
+		svc.postload = svc.ObjectConfig.PostLoad
 	}
 
 	refops, ok := conf.GetBool(common.CONF_DATA_REFOPS)
 	if ok {
 		svc.refops = refops
 	} else {
-		svc.refops = svc.objectConfig.RefOps
+		svc.refops = svc.ObjectConfig.RefOps
 	}
 
 	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
 	if ok {
 		svc.notifyupdates = notifyupdates
 	} else {
-		svc.notifyupdates = svc.objectConfig.NotifyUpdates
+		svc.notifyupdates = svc.ObjectConfig.NotifyUpdates
 	}
 	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
 	if ok {
 		svc.notifynew = notifynew
 	} else {
-		svc.notifynew = svc.objectConfig.NotifyNew
+		svc.notifynew = svc.ObjectConfig.NotifyNew
 	}
 
 	if svc.refops {
@@ -161,18 +141,18 @@ func (svc *sqlDataService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *sqlDataService) CreateCollection(ctx core.RequestContext) error {
-	object := svc.objectCreator()
+func (svc *sqlDataService) CreateDBCollection(ctx core.RequestContext) error {
+	object := svc.ObjectCreator()
 	return svc.factory.connection.CreateTable(object).Error
 }
 
-func (svc *sqlDataService) DropCollection(ctx core.RequestContext) error {
-	object := svc.objectCreator()
+func (svc *sqlDataService) DropDBCollection(ctx core.RequestContext) error {
+	object := svc.ObjectCreator()
 	return svc.factory.connection.DropTable(object).Error
 }
 
-func (svc *sqlDataService) CollectionExists(ctx core.RequestContext) (bool, error) {
-	object := svc.objectCreator()
+func (svc *sqlDataService) DBCollectionExists(ctx core.RequestContext) (bool, error) {
+	object := svc.ObjectCreator()
 	return svc.factory.connection.HasTable(object), nil
 }
 
@@ -185,7 +165,7 @@ func (svc *sqlDataService) GetDataServiceType() string {
 }
 
 func (svc *sqlDataService) GetObject() string {
-	return svc.object
+	return svc.Object
 }
 
 func (svc *sqlDataService) Supports(feature data.Feature) bool {
@@ -200,7 +180,7 @@ func (svc *sqlDataService) Supports(feature data.Feature) bool {
 
 func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
-	log.Logger.Trace(ctx, "Saving object", "Object", svc.object)
+	log.Logger.Trace(ctx, "Saving object", "Object", svc.Object)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
@@ -216,7 +196,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	id := item.GetId()
 	if id == "" {
-		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.object)
+		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.Object)
 	}
 	err := svc.db.Create(item).Error
 	if err != nil {
@@ -237,7 +217,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 
 func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
-	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.object)
+	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.Object)
 	for _, item := range items {
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -269,7 +249,7 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 				}
 			}
 			if svc.notifyupdates {
-				common.NotifyUpdate(ctx, svc.object, id)
+				common.NotifyUpdate(ctx, svc.Object, id)
 			}
 		}
 	}
@@ -279,7 +259,7 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.object, "id", id)
+	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -307,7 +287,7 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		}
 	}
 	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.object, id)
+		common.NotifyUpdate(ctx, svc.Object, id)
 	}
 	return nil
 }
@@ -328,7 +308,7 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 		data.Audit(ctx, newVals)
 	}
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return err
 		}
@@ -346,7 +326,7 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 		return err
 	}
 	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.object, id)
+		common.NotifyUpdate(ctx, svc.Object, id)
 	}
 	return nil
 }
@@ -362,15 +342,18 @@ func (svc *sqlDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 }
 
 func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
-	results := svc.objectCollectionCreator(0)
+	results := svc.ObjectCollectionCreator(0)
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	query := svc.db.Where(queryCond)
-	err := query.Find(results).Error
+	query, err := svc.processCondition(ctx, queryCond, svc.db)
+	if err != nil {
+		return nil, err
+	}
+	err = query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -378,7 +361,7 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	length := len(resultStor)
 	if length == 0 {
 		if upsert {
-			object := svc.objectCreator()
+			object := svc.ObjectCreator()
 
 			utils.SetObjectFields(object, newVals)
 			stor := object.(data.Storable)
@@ -390,17 +373,17 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 		return []string{}, nil
 	}
-	model := resultStor[0]
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
-	err = svc.factory.connection.Model(model).Where(queryCond).Updates(newVals).Error
+	log.Logger.Error(ctx, "Field details", "newVals", newVals)
+	err = query.Updates(newVals).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	if svc.notifyupdates {
 		for _, id := range ids {
-			common.NotifyUpdate(ctx, svc.object, id)
+			common.NotifyUpdate(ctx, svc.Object, id)
 		}
 	}
 	return ids, err
@@ -413,7 +396,7 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 		data.Audit(ctx, newVals)
 	}
 	if svc.presave {
-		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.object, "data": newVals})
+		err := ctx.SendSynchronousMessage(common.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -424,7 +407,7 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	}
 	if svc.notifyupdates {
 		for _, id := range ids {
-			common.NotifyUpdate(ctx, svc.object, id)
+			common.NotifyUpdate(ctx, svc.Object, id)
 		}
 	}
 	return nil
@@ -484,9 +467,12 @@ func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interfac
 		}
 		return ids, err
 	}
-	results := svc.objectCollectionCreator(0)
-	query := svc.db.Where(queryCond)
-	err := query.Find(results).Error
+	results := svc.ObjectCollectionCreator(0)
+	query, err := svc.processCondition(ctx, queryCond, svc.db)
+	if err != nil {
+		return nil, err
+	}
+	err = query.Find(results).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

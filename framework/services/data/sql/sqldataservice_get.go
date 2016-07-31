@@ -2,18 +2,23 @@ package sql
 
 import (
 	//	"github.com/jinzhu/gorm"
+	"fmt"
 	"laatoo/framework/services/data/common"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/utils"
+	"strings"
+
+	"github.com/jinzhu/gorm"
 )
 
 func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
+	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
-	object := svc.objectCreator()
+	object := svc.ObjectCreator()
 
 	err := svc.db.First(object, id).Error
 
@@ -52,9 +57,9 @@ func (svc *sqlDataService) GetMulti(ctx core.RequestContext, ids []string, order
 	return res, err
 }
 
-func (svc *sqlDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (svc *sqlDataService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("GetMultiHash")
-	results, err := svc.getMulti(ctx, ids, orderBy)
+	results, err := svc.getMulti(ctx, ids, "")
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +120,7 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	if lenids == 0 {
 		return nil, nil
 	}
-	results := svc.objectCollectionCreator(lenids)
+	results := svc.ObjectCollectionCreator(lenids)
 
 	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 
@@ -135,8 +140,11 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 
 func (svc *sqlDataService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
 	ctx = ctx.SubContext("Count")
-
-	err = svc.db.Where(queryCond).Count(&count).Error
+	query, err := svc.processCondition(ctx, queryCond, svc.db)
+	if err != nil {
+		return -1, err
+	}
+	err = query.Count(&count).Error
 	if err != nil {
 		return -1, errors.WrapError(ctx, err)
 	}
@@ -146,8 +154,12 @@ func (svc *sqlDataService) Count(ctx core.RequestContext, queryCond interface{})
 
 func (svc *sqlDataService) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
 	ctx = ctx.SubContext("CountGroups")
-
-	rows, err := svc.db.Select([]string{group, "count(*)"}).Where(queryCond).Group(group).Rows()
+	svc.db.LogMode(true)
+	query, err := svc.processCondition(ctx, queryCond, svc.db.Select(group+" , count(*) "))
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	rows, err := query.Group(group).Rows()
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -171,9 +183,13 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own
-	results := svc.objectCollectionCreator(0)
+	results := svc.ObjectCollectionCreator(0)
 
-	query := svc.db.Where(queryCond)
+	query, err := svc.processCondition(ctx, queryCond, svc.db)
+
+	if err != nil {
+		return nil, nil, totalrecs, recsreturned, errors.WrapError(ctx, err)
+	}
 
 	if pageSize > 0 {
 		err := query.Count(&totalrecs).Error
@@ -201,33 +217,48 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.object, "recsreturned", recsreturned)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 
-//create condition for passing to data service
-func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
-	switch operation {
+func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition interface{}, input *gorm.DB) (*gorm.DB, error) {
+	cond := condition.(*sqlCondition)
+	log.Logger.Error(ctx, "processing condition", "cond", *cond)
+
+	switch cond.operation {
 	case data.MATCHMULTIPLEVALUES:
 		{
-			if len(args) < 2 {
+			if len(cond.args) < 2 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			return []interface{}{args[0].(string) + " in ?", args[1]}, nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
+			arr := utils.CastToInterfaceArray(cond.args[1])
+			placeholders := fmt.Sprintf("%s in( %s)", cond.args[0], strings.Trim(strings.Repeat("?,", len(arr)), ","))
+			log.Logger.Error(ctx, "string built", "placeholders", placeholders, " arr", arr)
+			return input.Where(placeholders, arr...), nil
+			//append([]interface{}{placeholders}, arr...), nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
 		}
 	case data.FIELDVALUE:
 		{
-			if len(args) < 1 {
+			if len(cond.args) < 1 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			argsMap := args[0].(map[string]interface{})
+			argsMap := cond.args[0].(map[string]interface{})
 			if svc.softdelete {
 				argsMap[svc.softDeleteField] = false
 			}
-			return argsMap, nil
+			return input.Where(argsMap), nil
 		}
 	default:
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_NOT_IMPLEMENTED)
 	}
-	return nil, nil
+}
+
+//create condition for passing to data service
+func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
+	return &sqlCondition{operation, args}, nil
+}
+
+type sqlCondition struct {
+	operation data.ConditionType
+	args      []interface{}
 }

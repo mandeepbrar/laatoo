@@ -223,7 +223,7 @@ func (es *dataAdapterService) JOIN(ctx core.RequestContext) error {
 		lookupids[ind] = f.String()
 	}
 	log.Logger.Trace(ctx, "JOIN: Looking up ids", "ids", lookupids)
-	result, err := es.DataStore.GetMultiHash(ctx, lookupids, "")
+	result, err := es.DataStore.GetMultiHash(ctx, lookupids)
 	if err == nil {
 		for i, id := range lookupids {
 			stor := retdata[i]
@@ -403,7 +403,11 @@ func (es *dataAdapterService) UPSERT(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPSERT")
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
-	_, err := es.DataStore.Upsert(ctx, vals["condition"].(map[string]interface{}), vals["value"].(map[string]interface{}))
+	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, vals["condition"].(map[string]interface{}))
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	_, err = es.DataStore.Upsert(ctx, condition, vals["value"].(map[string]interface{}))
 	if err == nil {
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
 		return nil

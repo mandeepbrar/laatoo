@@ -29,6 +29,7 @@ func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string,
 }
 
 func (ds *MemoryCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+
 	return nil
 }
 
@@ -40,6 +41,7 @@ func (ds *MemoryCacheFactory) Start(ctx core.ServerContext) error {
 type MemoryCacheService struct {
 	memoryStorer *utils.MemoryStorer
 	name         string
+	cacheEncoder *common.CacheEncoder
 }
 
 func (svc *MemoryCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
@@ -47,7 +49,11 @@ func (svc *MemoryCacheService) Delete(ctx core.RequestContext, bucket string, ke
 }
 
 func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
-	b, err := common.Encode(val)
+	if svc.cacheEncoder == nil {
+		svc.memoryStorer.PutObject(key, val)
+		return nil
+	}
+	b, err := svc.cacheEncoder.Encode(val)
 	if err != nil {
 		return err
 	}
@@ -55,7 +61,35 @@ func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, bucket string,
 	return nil
 }
 
+func (svc *MemoryCacheService) PutObjects(ctx core.RequestContext, bucket string, vals map[string]interface{}) error {
+	if svc.cacheEncoder != nil {
+		for k, v := range vals {
+			b, err := svc.cacheEncoder.Encode(v)
+			if err != nil {
+				return err
+			}
+			svc.memoryStorer.PutObject(k, b)
+		}
+	} else {
+		for k, v := range vals {
+			svc.memoryStorer.PutObject(k, v)
+		}
+	}
+	return nil
+}
+
+func (svc *MemoryCacheService) Get(ctx core.RequestContext, bucket string, key string) (interface{}, bool) {
+	obj, err := svc.memoryStorer.GetObject(key)
+	if err != nil || obj == nil {
+		return nil, false
+	}
+	return obj, true
+}
+
 func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, bucket string, key string, objectType string) (interface{}, bool) {
+	if svc.cacheEncoder == nil {
+		return svc.Get(ctx, bucket, key)
+	}
 	obj, err := svc.memoryStorer.GetObject(key)
 	if err != nil || obj == nil {
 		return nil, false
@@ -65,15 +99,30 @@ func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, bucket string,
 	if err != nil {
 		return nil, false
 	}
-	err = common.Decode(obj.([]byte), val)
+	err = svc.cacheEncoder.Decode(obj.([]byte), val)
 	if err != nil {
 		return nil, false
 	}
-	//	reflect.ValueOf(val).Elem().Set(reflect.ValueOf(obj).Elem())
 	return val, true
 }
 
-func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{} {
+func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string) map[string]interface{} {
+	val := make(map[string]interface{})
+	for _, key := range keys {
+		cval, err := svc.memoryStorer.GetObject(key)
+		if err != nil || cval == nil {
+			val[key] = nil
+		} else {
+			val[key] = cval
+		}
+	}
+	return val
+}
+
+func (svc *MemoryCacheService) GetObjects(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{} {
+	if svc.cacheEncoder == nil {
+		return svc.GetMulti(ctx, bucket, keys)
+	}
 	val := make(map[string]interface{})
 	svrctx := ctx.ServerContext()
 	objectcreator, err := svrctx.GetObjectCreator(objectType)
@@ -81,12 +130,12 @@ func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, 
 		return val
 	}
 	for _, key := range keys {
-		b, err := svc.memoryStorer.GetObject(key)
-		if err != nil || b == nil {
+		cval, err := svc.memoryStorer.GetObject(key)
+		if err != nil || cval == nil {
 			val[key] = nil
 		} else {
 			obj := objectcreator()
-			err = common.Decode(b.([]byte), obj)
+			err = svc.cacheEncoder.Decode(cval.([]byte), obj)
 			if err != nil {
 				val[key] = nil
 				continue
@@ -98,6 +147,12 @@ func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, 
 }
 
 func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	encoding, ok := conf.GetString(config.CONF_CACHE_ENC)
+	if ok {
+		ms.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
+	} else {
+		ms.cacheEncoder = nil
+	}
 	return nil
 }
 

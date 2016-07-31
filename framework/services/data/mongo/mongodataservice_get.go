@@ -12,9 +12,9 @@ import (
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.object)
+	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.Object)
 
-	object := ms.objectCreator()
+	object := ms.ObjectCreator()
 
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -59,9 +59,9 @@ func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orde
 	return res, err
 }
 
-func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("GetMultiHash")
-	results, err := ms.getMulti(ctx, ids, orderBy)
+	results, err := ms.getMulti(ctx, ids, "")
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	if lenids == 0 {
 		return nil, nil
 	}
-	results := ms.objectCollectionCreator(lenids)
+	results := ms.ObjectCollectionCreator(lenids)
 
 	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 	connCopy := ms.factory.connection.Copy()
@@ -161,7 +161,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own
-	results := ms.objectCollectionCreator(0)
+	results := ms.ObjectCollectionCreator(0)
 
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -189,7 +189,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.object, "recsreturned", recsreturned)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 

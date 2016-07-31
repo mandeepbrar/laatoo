@@ -49,6 +49,7 @@ type RedisCacheService struct {
 	conn             redis.Conn
 	pool             *redis.Pool
 	name             string
+	cacheEncoder     *common.CacheEncoder
 }
 
 func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -65,6 +66,13 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 		redisSvc.database = connectiondb
 	} else {
 		redisSvc.database = "0"
+	}
+
+	encoding, ok := conf.GetString(config.CONF_CACHE_ENC)
+	if ok {
+		redisSvc.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
+	} else {
+		redisSvc.cacheEncoder = common.NewCacheEncoder(ctx, "binary")
 	}
 
 	redisSvc.pool = &redis.Pool{
@@ -92,8 +100,8 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 				return nil, err
 			}
 			return conn, nil
-		}}
-
+		},
+	}
 	return nil
 }
 
@@ -108,7 +116,7 @@ func (svc *RedisCacheService) Delete(ctx core.RequestContext, bucket string, key
 }
 
 func (svc *RedisCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
-	b, err := common.Encode(val)
+	b, err := svc.cacheEncoder.Encode(val)
 	if err != nil {
 		return err
 	}
@@ -119,8 +127,36 @@ func (svc *RedisCacheService) PutObject(ctx core.RequestContext, bucket string, 
 		return err
 	}
 	conn.Flush()
-	log.Logger.Error(ctx, "redis putting", "keys", key, "val", val)
 	return nil
+}
+
+func (svc *RedisCacheService) PutObjects(ctx core.RequestContext, bucket string, vals map[string]interface{}) error {
+	var args []interface{}
+	for k, v := range vals {
+		b, err := svc.cacheEncoder.Encode(v)
+		if err != nil {
+			return err
+		}
+		args = append(args, k, b)
+	}
+	conn := svc.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("MSET", args...)
+	if err != nil {
+		return err
+	}
+	conn.Flush()
+	return nil
+}
+
+func (svc *RedisCacheService) Get(ctx core.RequestContext, bucket string, key string) (interface{}, bool) {
+	conn := svc.pool.Get()
+	defer conn.Close()
+	cval, err := conn.Do("GET", key)
+	if err != nil {
+		return nil, false
+	}
+	return cval, true
 }
 
 func (svc *RedisCacheService) GetObject(ctx core.RequestContext, bucket string, key string, objectType string) (interface{}, bool) {
@@ -130,11 +166,45 @@ func (svc *RedisCacheService) GetObject(ctx core.RequestContext, bucket string, 
 	if err != nil {
 		return nil, false
 	}
-	return k, true
+	obj, err := ctx.ServerContext().CreateObject(objectType)
+	if err != nil {
+		return nil, false
+	}
+	err = svc.cacheEncoder.Decode(k.([]byte), obj)
+	if err != nil {
+		return nil, false
+	}
+	return obj, true
 }
 
-func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{} {
-	tim1 := time.Now()
+func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string) map[string]interface{} {
+	var args []interface{}
+	for _, k := range keys {
+		args = append(args, k)
+	}
+	retval := make(map[string]interface{})
+	conn := svc.pool.Get()
+	defer conn.Close()
+	cvals, err := redis.Values(conn.Do("MGET", args...))
+	if err != nil {
+		return retval
+	}
+	for index, val := range cvals {
+		key := keys[index]
+		if val == nil {
+			retval[key] = nil
+		} else {
+			if err != nil {
+				retval[key] = nil
+			} else {
+				retval[key] = val
+			}
+		}
+	}
+	return retval
+}
+
+func (svc *RedisCacheService) GetObjects(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{} {
 	var args []interface{}
 	for _, k := range keys {
 		args = append(args, k)
@@ -145,21 +215,19 @@ func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, k
 	if err != nil {
 		return retval
 	}
-	tim11 := time.Now()
 	conn := svc.pool.Get()
 	defer conn.Close()
 	k, err := redis.Values(conn.Do("MGET", args...))
 	if err != nil {
 		return retval
 	}
-	tim2 := time.Now()
 	for index, val := range k {
 		key := keys[index]
 		if val == nil {
 			retval[key] = nil
 		} else {
 			obj := objectcreator()
-			err := common.Decode(val.([]byte), obj)
+			err := svc.cacheEncoder.Decode(val.([]byte), obj)
 			if err != nil {
 				retval[key] = nil
 			} else {
@@ -167,9 +235,6 @@ func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, k
 			}
 		}
 	}
-	tim3 := time.Now()
-	log.Logger.Error(ctx, "time inside getmulti", "housekeeping", tim11.Sub(tim1), "redis", tim2.Sub(tim11), " decoding", tim3.Sub(tim2))
-	//	val = &k
 	return retval
 }
 

@@ -151,23 +151,31 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		shandler = sh.(server.SecurityHandler)
 		authtoken, _ = sh.GetString(config.AUTHHEADER)
 	}
+	processRequest := func(reqctx core.RequestContext) error {
+		if (!channel.skipAuth) && (shandler != nil) {
+			err := shandler.AuthenticateRequest(reqctx)
+			if err != nil {
+				reqctx.SetResponse(core.StatusUnauthorizedResponse)
+				return nil
+			}
+		} else {
+			log.Logger.Trace(reqctx, "Auth skipped")
+		}
+		return handler(reqctx)
+	}
 	return func(pathCtx net.WebContext) error {
+		result := make(chan error)
 		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
 		req := pathCtx.GetRequest()
 		corectx.SetGaeReq(req)
+		corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
 		log.Logger.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
 		defer corectx.CompleteRequest()
-		if (!channel.skipAuth) && (shandler != nil) {
-			corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
-			err := shandler.AuthenticateRequest(corectx)
-			if err != nil {
-				pathCtx.NoContent(http.StatusUnauthorized)
-				return err
-			}
-		} else {
-			log.Logger.Trace(corectx, "Auth skipped", "Path", req.URL.RequestURI(), "Method", req.Method)
-		}
-		err := handler(corectx)
+		go func(reqctx core.RequestContext) {
+			e := processRequest(reqctx)
+			result <- e
+		}(corectx)
+		err := <-result
 		if err != nil {
 			log.Logger.Info(corectx, "Got error in the request", "error", err)
 		}

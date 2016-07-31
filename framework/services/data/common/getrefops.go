@@ -27,7 +27,7 @@ func buildJoinOperation(ctx core.ServerContext, conf config.Config, opname strin
 
 func fillJoin(ctx core.RequestContext, dataService data.DataComponent, targetfield string, ids []string, inputData interface{}) (interface{}, error) {
 	ctx = ctx.SubContext("Join")
-	hash, err := dataService.GetMultiHash(ctx, ids, "")
+	hash, err := dataService.GetMultiHash(ctx, ids)
 	if err != nil {
 		return nil, err
 	}

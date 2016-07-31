@@ -72,6 +72,14 @@ func (ctx *requestContext) PutInCache(bucket string, key string, item interface{
 	}
 }
 
+func (ctx *requestContext) PutMultiInCache(bucket string, vals map[string]interface{}) error {
+	if ctx.cache != nil {
+		return ctx.cache.PutObjects(ctx, bucket, vals)
+	} else {
+		return nil
+	}
+}
+
 func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	if ctx.serverContext.taskManager != nil {
 		return ctx.serverContext.taskManager.PushTask(ctx, queue, task)
@@ -80,7 +88,22 @@ func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	return nil
 }
 
-func (ctx *requestContext) GetFromCache(bucket string, key string, objectType string) (interface{}, bool) {
+func (ctx *requestContext) GetFromCache(bucket string, key string) (interface{}, bool) {
+	if ctx.cache != nil {
+		return ctx.cache.Get(ctx, bucket, key)
+	} else {
+		return nil, false
+	}
+}
+
+func (ctx *requestContext) GetMultiFromCache(bucket string, keys []string) map[string]interface{} {
+	if ctx.cache != nil {
+		return ctx.cache.GetMulti(ctx, bucket, keys)
+	}
+	return map[string]interface{}{}
+}
+
+func (ctx *requestContext) GetObjectFromCache(bucket string, key string, objectType string) (interface{}, bool) {
 	if ctx.cache != nil {
 		return ctx.cache.GetObject(ctx, bucket, key, objectType)
 	} else {
@@ -88,9 +111,9 @@ func (ctx *requestContext) GetFromCache(bucket string, key string, objectType st
 	}
 }
 
-func (ctx *requestContext) GetMultiFromCache(bucket string, keys []string, objectType string) map[string]interface{} {
+func (ctx *requestContext) GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{} {
 	if ctx.cache != nil {
-		return ctx.cache.GetMulti(ctx, bucket, keys, objectType)
+		return ctx.cache.GetObjects(ctx, bucket, keys, objectType)
 	}
 	return map[string]interface{}{}
 }

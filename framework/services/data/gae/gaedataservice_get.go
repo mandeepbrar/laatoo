@@ -24,9 +24,9 @@ type gaeDatastoreCondition struct {
 func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
 	appEngineContext := ctx.GetAppengineContext()
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.object)
+	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
-	object := svc.objectCreator()
+	object := svc.ObjectCreator()
 
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
@@ -68,9 +68,9 @@ func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, order
 	return res, err
 }
 
-func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
+func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("GetMultiHash")
-	results, err := svc.getMulti(ctx, ids, orderBy)
+	results, err := svc.getMulti(ctx, ids, "")
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	}
 	appEngineContext := ctx.GetAppengineContext()
 
-	results := svc.objectCollectionCreator(lenids)
+	results := svc.ObjectCollectionCreator(lenids)
 
 	keys := make([]*datastore.Key, lenids)
 	for ind, id := range ids {
@@ -187,7 +187,7 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if len(orderBy) > 0 {
 		query = query.Order(orderBy)
 	}
-	results := svc.objectCollectionCreator(0)
+	results := svc.ObjectCollectionCreator(0)
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
@@ -201,7 +201,7 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.object, "recsreturned", recsreturned)
+	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 

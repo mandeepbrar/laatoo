@@ -1,42 +1,59 @@
 package common
 
-import "github.com/ugorji/go/codec"
+import (
+	"laatoo/sdk/core"
 
-var b []byte = make([]byte, 0, 64)
-var h codec.Handle = new(codec.BincHandle)
-var enc *codec.Encoder = codec.NewEncoderBytes(&b, h)
-var dec *codec.Decoder = codec.NewDecoderBytes(b, h)
+	"github.com/ugorji/go/codec"
+)
 
-func Encode(val interface{}) ([]byte, error) {
+type CacheEncoder struct {
+	enc *codec.Encoder
+	dec *codec.Decoder
+}
+
+func NewCacheEncoder(ctx core.ServerContext, encType string) *CacheEncoder {
+	var h codec.Handle
+	switch encType {
+	case "json":
+		{
+			h = new(codec.JsonHandle)
+		}
+	case "binary":
+		{
+			h = new(codec.BincHandle)
+		}
+	default:
+		{
+			h = new(codec.BincHandle)
+		}
+	}
+	var b []byte = make([]byte, 0, 64)
+	cEncoder := &CacheEncoder{}
+	cEncoder.enc = codec.NewEncoderBytes(&b, h)
+	cEncoder.dec = codec.NewDecoderBytes(b, h)
+	return cEncoder
+}
+
+func (enc *CacheEncoder) Encode(val interface{}) ([]byte, error) {
 	if val == nil {
 		return nil, nil
 	}
 	var b []byte = make([]byte, 0, 500)
-	enc.ResetBytes(&b)
-	err := enc.Encode(val)
+	enc.enc.ResetBytes(&b)
+	err := enc.enc.Encode(val)
 	if err != nil {
 		return nil, err
 	}
 	return b, nil
-	/*	var buf bytes.Buffer
-		enc := gob.NewEncoder(&buf)
-		err := enc.Encode(val)
-		if err != nil {
-			return nil, err
-		}
-		return buf.Bytes(), nil*/
 
 }
 
-func Decode(arr []byte, val interface{}) error {
+func (enc *CacheEncoder) Decode(arr []byte, val interface{}) error {
 	if arr == nil {
 		return nil
 	}
-	//	dec := gob.NewDecoder(bytes.NewReader(arr))
-	dec.ResetBytes(arr)
-	err := dec.Decode(val)
-
-	//err := dec.Decode(val)
+	enc.dec.ResetBytes(arr)
+	err := enc.dec.Decode(val)
 	if err != nil {
 		return err
 	}

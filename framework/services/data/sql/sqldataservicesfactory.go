@@ -31,10 +31,6 @@ func init() {
 	objects.Register(CONF_SQL_SERVICES, sqlDataServicesFactory{})
 }
 
-func createSQLDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &sqlDataServicesFactory{}, nil
-}
-
 func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	connectionString, ok := conf.GetString(CONF_SQL_CONNECTIONSTRING)
 	if !ok {

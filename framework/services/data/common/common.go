@@ -4,6 +4,7 @@ import "laatoo/sdk/core"
 
 const (
 	CONF_DATA_SVCS          = "dataservices"
+	CONF_BASE_SVC           = "baseservice"
 	CONF_DATA_OBJECT        = "object"
 	CONF_DATA_POSTSAVE      = "postsave"
 	CONF_DATA_POSTLOAD      = "postload"

@@ -6,8 +6,8 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/utils"
 	"reflect"
-	//	"laatoo/sdk/utils"
 )
 
 type cachedDataService struct {
@@ -55,8 +55,9 @@ func (svc *cachedDataService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *cachedDataService) CreateCollection(ctx core.RequestContext) error {
-	return svc.rootComp.CreateCollection(ctx)
+/*
+func (svc *cachedDataService) CreateDBCollection(ctx core.RequestContext) error {
+	return svc.rootComp.CreateDBCollection(ctx)
 }
 
 func (svc *cachedDataService) DropCollection(ctx core.RequestContext) error {
@@ -65,7 +66,7 @@ func (svc *cachedDataService) DropCollection(ctx core.RequestContext) error {
 
 func (svc *cachedDataService) CollectionExists(ctx core.RequestContext) (bool, error) {
 	return svc.rootComp.CollectionExists(ctx)
-}
+}*/
 
 func (svc *cachedDataService) GetDataServiceType() string {
 	return svc.rootComp.GetDataServiceType()
@@ -184,7 +185,7 @@ func (svc *cachedDataService) DeleteAll(ctx core.RequestContext, queryCond inter
 func (svc *cachedDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetById")
 
-	ent, ok := ctx.GetFromCache(svc.object, id, svc.object)
+	ent, ok := ctx.GetObjectFromCache(svc.object, id, svc.object)
 	if ok {
 		log.Logger.Trace(ctx, "Cache hit")
 		return ent.(data.Storable), nil
@@ -199,12 +200,8 @@ func (svc *cachedDataService) GetById(ctx core.RequestContext, id string) (data.
 //Get multiple objects by id
 func (svc *cachedDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetMulti")
-	log.Logger.Error(ctx, "Elapsed time before", "time", ctx.GetElapsedTime())
 	res := make([]data.Storable, len(ids))
-	//mapTyp := reflect.MapOf(reflect.TypeOf(""), svc.objType)
-	//cachedItems := make(map[string]interface{}) //reflect.MakeMap(mapTyp).Interface().(map[string]interface{}) //
-	cachedItems := ctx.GetMultiFromCache(svc.object, ids, svc.object)
-	log.Logger.Error(ctx, "Elapsed time after redis", "time", ctx.GetElapsedTime())
+	cachedItems := ctx.GetObjectsFromCache(svc.object, ids, svc.object)
 	idsNotCached := make([]string, 0, 10)
 	for index, id := range ids {
 		item, ok := cachedItems[id]
@@ -214,11 +211,10 @@ func (svc *cachedDataService) GetMulti(ctx core.RequestContext, ids []string, or
 			res[index] = item.(data.Storable)
 		}
 	}
-	log.Logger.Error(ctx, "Elapsed time after cache hit", "time", ctx.GetElapsedTime())
 	if len(idsNotCached) == 0 {
 		return res, nil
 	}
-	stormap, err := svc.rootComp.GetMultiHash(ctx, idsNotCached, orderBy)
+	stormap, err := svc.rootComp.GetMultiHash(ctx, idsNotCached)
 	if err == nil {
 		for index, id := range ids {
 			if res[index] == nil {
@@ -236,11 +232,9 @@ func (svc *cachedDataService) GetMulti(ctx core.RequestContext, ids []string, or
 
 func (svc *cachedDataService) GetMultiHash(ctx core.RequestContext, ids []string, orderBy string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetMultiHash")
-	res, err := svc.rootComp.GetMultiHash(ctx, ids, orderBy)
+	res, err := svc.rootComp.GetMultiHash(ctx, ids)
 	if err == nil {
-		for id, item := range res {
-			ctx.PutInCache(svc.object, id, item)
-		}
+		ctx.PutMultiInCache(svc.object, utils.CastToStringMap(res))
 	}
 	return res, err
 }
@@ -263,5 +257,5 @@ func (svc *cachedDataService) Get(ctx core.RequestContext, queryCond interface{}
 
 //create condition for passing to data service
 func (svc *cachedDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
-	return svc.rootComp.CreateCondition(ctx, operation, args)
+	return svc.rootComp.CreateCondition(ctx, operation, args...)
 }
