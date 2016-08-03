@@ -145,6 +145,10 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	log.Logger.Trace(ctx, "Saving object", "Object", ms.Object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
+	id := item.GetId()
+	if id == "" {
+		item.Init(ctx, nil)
+	}
 	if ms.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
@@ -157,10 +161,6 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	}
 	if ms.auditable {
 		data.Audit(ctx, item)
-	}
-	id := item.GetId()
-	if id == "" {
-		item.Init(ctx, nil)
 	}
 	err := connCopy.DB(ms.database).C(ms.collection).Insert(item)
 	if err != nil {

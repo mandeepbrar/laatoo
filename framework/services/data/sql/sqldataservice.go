@@ -152,6 +152,10 @@ func (svc *sqlDataService) Supports(feature data.Feature) bool {
 func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
 	log.Logger.Trace(ctx, "Saving object", "Object", svc.Object)
+	id := item.GetId()
+	if id == "" {
+		item.Init(ctx, nil)
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
@@ -164,10 +168,6 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	if svc.auditable {
 		data.Audit(ctx, item)
-	}
-	id := item.GetId()
-	if id == "" {
-		item.Init(ctx, nil)
 	}
 	err := svc.db.Create(item).Error
 	if err != nil {

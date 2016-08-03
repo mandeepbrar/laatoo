@@ -98,8 +98,11 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 	regrules, present := rm.registeredRules[msgType]
 	if present {
 		for _, rule := range regrules {
+			log.Logger.Error(ctx, "Executing rule")
 			if rule.Condition(ctx, tr) {
+				log.Logger.Error(ctx, "Executing rule", "message", msgType)
 				err := rule.Action(ctx, tr)
+				log.Logger.Error(ctx, "Executed rule", "message", msgType)
 				if err != nil {
 					return err
 				}

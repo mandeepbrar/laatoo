@@ -143,6 +143,10 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	ctx = ctx.SubContext("Save")
 	appEngineContext := ctx.GetAppengineContext()
 	log.Logger.Trace(ctx, "Saving object", "Object", svc.Object)
+	id := item.GetId()
+	if id == "" {
+		item.Init(ctx, nil)
+	}
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 		if err != nil {
@@ -155,10 +159,6 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	if svc.auditable {
 		data.Audit(ctx, item)
-	}
-	id := item.GetId()
-	if id == "" {
-		item.Init(ctx, nil)
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, item.GetId(), 0, nil)
 
