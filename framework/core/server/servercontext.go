@@ -315,8 +315,8 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
 
-	newctx := common.NewContext(name)
-	return &requestContext{Context: newctx, serverContext: ctx,
+	newctx := parent.NewCtx(name)
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx,
 		engineContext: engineCtx, subRequest: false}
 }
 

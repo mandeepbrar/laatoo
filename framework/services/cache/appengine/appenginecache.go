@@ -1,11 +1,10 @@
-// +build appengine
-
 package appengine
 
 import (
 	"bytes"
 	"encoding/gob"
 	"laatoo/framework/core/objects"
+	"laatoo/framework/services/cache/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 
@@ -101,7 +100,12 @@ func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, bucket strin
 	}
 	return
 }
-
+func (svc *AppengineCacheService) Increment(ctx core.RequestContext, bucket string, key string) error {
+	return memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), 1, 0)
+}
+func (svc *AppengineCacheService) Decrement(ctx core.RequestContext, bucket string, key string) error {
+	return memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), -1, 0)
+}
 func (svc *AppengineCacheService) Invoke(ctx core.RequestContext) error {
 	return nil
 }

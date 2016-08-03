@@ -78,7 +78,7 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 		queueName := t.Queue
 		q, ok := svc.queues[queueName]
 		if ok {
-			log.Logger.Debug(req, "Invoking listener")
+			log.Logger.Debug(req, "Invoking listener=========", "task", t)
 			err := q.lstnr.Invoke(req)
 			if err != nil {
 				log.Logger.Error(req, "Error in background process", "err", err)

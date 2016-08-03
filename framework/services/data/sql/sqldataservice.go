@@ -54,7 +54,7 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.MissingConf(ctx, common.CONF_DATA_COLLECTION)
 	}
 	svc.db = svc.connection.Table(svc.collection)
-
+	svc.db.LogMode(true)
 	svc.objectid = svc.ObjectConfig.IdField
 	svc.softDeleteField = svc.ObjectConfig.SoftDeleteField
 
@@ -167,7 +167,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	id := item.GetId()
 	if id == "" {
-		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.Object)
+		item.Init(ctx, nil)
 	}
 	err := svc.db.Create(item).Error
 	if err != nil {
@@ -186,9 +186,14 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	return nil
 }
 
+func (svc *sqlDataService) CreateMulti(ctx core.RequestContext, items []data.Storable) error {
+	return svc.putMulti(ctx, items, true)
+}
 func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
+	return svc.putMulti(ctx, items, false)
+}
+func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storable, createNew bool) error {
 	ctx = ctx.SubContext("PutMulti")
-	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.Object)
 	for _, item := range items {
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
@@ -205,7 +210,12 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 		}
 	}
 	for _, item := range items {
-		err := svc.db.Save(item).Error
+		var err error
+		if createNew {
+			err = svc.db.Create(item).Error
+		} else {
+			err = svc.db.Save(item).Error
+		}
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

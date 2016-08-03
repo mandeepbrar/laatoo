@@ -79,6 +79,20 @@ func (ctx *requestContext) PutMultiInCache(bucket string, vals map[string]interf
 		return nil
 	}
 }
+func (ctx *requestContext) IncrementInCache(bucket string, key string) error {
+	if ctx.cache != nil {
+		return ctx.cache.Increment(ctx, bucket, key)
+	} else {
+		return nil
+	}
+}
+func (ctx *requestContext) DecrementInCache(bucket string, key string) error {
+	if ctx.cache != nil {
+		return ctx.cache.Decrement(ctx, bucket, key)
+	} else {
+		return nil
+	}
+}
 
 func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	if ctx.serverContext.taskManager != nil {

@@ -130,14 +130,6 @@ func (svc *joinService) GetMultiHash(ctx core.RequestContext, ids []string) (map
 	return res, err
 }
 
-func (svc *joinService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
-	return svc.DataComponent.Count(ctx, queryCond)
-}
-
-func (svc *joinService) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
-	return svc.DataComponent.CountGroups(ctx, queryCond, group)
-}
-
 func (svc *joinService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.DataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }

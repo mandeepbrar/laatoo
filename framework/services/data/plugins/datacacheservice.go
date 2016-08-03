@@ -5,7 +5,6 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 )
 
@@ -143,7 +142,6 @@ func (svc *dataCacheService) GetById(ctx core.RequestContext, id string) (data.S
 
 	ent, ok := ctx.GetObjectFromCache(svc.bucket, id, svc.Object)
 	if ok {
-		log.Logger.Trace(ctx, "Cache hit")
 		return ent.(data.Storable), nil
 	}
 	stor, err := svc.DataComponent.GetById(ctx, id)
@@ -182,7 +180,6 @@ func (svc *dataCacheService) GetMulti(ctx core.RequestContext, ids []string, ord
 			}
 		}
 	}
-	log.Logger.Error(ctx, "Elapsed time after db", "time", ctx.GetElapsedTime())
 	return res, err
 }
 
@@ -199,8 +196,8 @@ func (svc *dataCacheService) Count(ctx core.RequestContext, queryCond interface{
 	return svc.DataComponent.Count(ctx, queryCond)
 }
 
-func (svc *dataCacheService) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
-	return svc.DataComponent.CountGroups(ctx, queryCond, group)
+func (svc *dataCacheService) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error) {
+	return svc.DataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
 func (svc *dataCacheService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {

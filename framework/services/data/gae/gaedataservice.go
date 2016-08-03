@@ -158,9 +158,9 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	}
 	id := item.GetId()
 	if id == "" {
-		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", svc.Object)
+		item.Init(ctx, nil)
 	}
-	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
+	key := datastore.NewKey(appEngineContext, svc.collection, item.GetId(), 0, nil)
 
 	err := datastore.Get(appEngineContext, key, item)
 	if err == nil {
@@ -182,6 +182,10 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 		}
 	}
 	return nil
+}
+
+func (svc *gaeDataService) CreateMulti(ctx core.RequestContext, items []data.Storable) error {
+	return svc.PutMulti(ctx, items)
 }
 
 func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {

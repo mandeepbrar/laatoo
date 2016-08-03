@@ -18,7 +18,6 @@ const (
 	CONF_DATA_IDS                  = "ids"
 	CONF_SVC_GET                   = "GET"
 	CONF_SVC_COUNT                 = "COUNT"
-	CONF_SVC_COUNTGROUPS           = "COUNTGROUPS"
 	CONF_SVC_PUT                   = "PUT"
 	CONF_SVC_PUTMULTIPLE           = "PUTMULTIPLE"
 	CONF_SVC_GETMULTIPLE           = "GETMULTIPLE"
@@ -99,8 +98,6 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.GETMULTI
 	case CONF_SVC_COUNT:
 		ds.svcfunc = ds.COUNT
-	case CONF_SVC_COUNTGROUPS:
-		ds.svcfunc = ds.COUNTGROUPS
 	case CONF_SVC_SAVE:
 		ds.svcfunc = ds.SAVE
 	case CONF_SVC_JOIN:
@@ -316,27 +313,6 @@ func (es *dataAdapterService) COUNT(ctx core.RequestContext) error {
 	}
 }
 
-func (es *dataAdapterService) COUNTGROUPS(ctx core.RequestContext) error {
-	ctx = ctx.SubContext("COUNTGROUPS")
-	grp, ok := ctx.GetString("group")
-	if !ok {
-		return errors.BadArg(ctx, "group")
-	}
-	body := ctx.GetRequest().(*map[string]interface{})
-	argsMap := *body
-	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	res, err := es.DataStore.CountGroups(ctx, condition, grp)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, res, nil))
-		return nil
-	} else {
-		return errors.WrapError(ctx, err)
-	}
-}
-
 func (es *dataAdapterService) SAVE(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SAVE")
 	ent := ctx.GetRequest()
@@ -436,6 +412,7 @@ func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUTMULTIPLE")
 	arr := ctx.GetRequest()
+	log.Logger.Trace(ctx, "Collection ", "arr", arr)
 	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
 		return err

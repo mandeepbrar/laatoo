@@ -160,7 +160,7 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	}
 	id := item.GetId()
 	if id == "" {
-		return errors.ThrowError(ctx, common.DATA_ERROR_ID_NOT_FOUND, "ObjectType", ms.Object)
+		item.Init(ctx, nil)
 	}
 	err := connCopy.DB(ms.database).C(ms.collection).Insert(item)
 	if err != nil {
@@ -177,6 +177,10 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 		}
 	}
 	return nil
+}
+
+func (ms *mongoDataService) CreateMulti(ctx core.RequestContext, items []data.Storable) error {
+	return ms.PutMulti(ctx, items)
 }
 
 func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {

@@ -108,7 +108,7 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 func (svc *RedisCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
 	conn := svc.pool.Get()
 	defer conn.Close()
-	_, err := conn.Do("DEL", key)
+	_, err := conn.Do("DEL", common.GetCacheKey(bucket, key))
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (svc *RedisCacheService) PutObject(ctx core.RequestContext, bucket string, 
 	}
 	conn := svc.pool.Get()
 	defer conn.Close()
-	_, err = conn.Do("SET", key, b)
+	_, err = conn.Do("SET", common.GetCacheKey(bucket, key), b)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (svc *RedisCacheService) PutObjects(ctx core.RequestContext, bucket string,
 		if err != nil {
 			return err
 		}
-		args = append(args, k, b)
+		args = append(args, common.GetCacheKey(bucket, k), b)
 	}
 	conn := svc.pool.Get()
 	defer conn.Close()
@@ -152,7 +152,7 @@ func (svc *RedisCacheService) PutObjects(ctx core.RequestContext, bucket string,
 func (svc *RedisCacheService) Get(ctx core.RequestContext, bucket string, key string) (interface{}, bool) {
 	conn := svc.pool.Get()
 	defer conn.Close()
-	cval, err := conn.Do("GET", key)
+	cval, err := conn.Do("GET", common.GetCacheKey(bucket, key))
 	if err != nil {
 		return nil, false
 	}
@@ -162,7 +162,7 @@ func (svc *RedisCacheService) Get(ctx core.RequestContext, bucket string, key st
 func (svc *RedisCacheService) GetObject(ctx core.RequestContext, bucket string, key string, objectType string) (interface{}, bool) {
 	conn := svc.pool.Get()
 	defer conn.Close()
-	k, err := conn.Do("GET", key)
+	k, err := conn.Do("GET", common.GetCacheKey(bucket, key))
 	if err != nil {
 		return nil, false
 	}
@@ -180,7 +180,7 @@ func (svc *RedisCacheService) GetObject(ctx core.RequestContext, bucket string, 
 func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string) map[string]interface{} {
 	var args []interface{}
 	for _, k := range keys {
-		args = append(args, k)
+		args = append(args, common.GetCacheKey(bucket, k))
 	}
 	retval := make(map[string]interface{})
 	conn := svc.pool.Get()
@@ -207,7 +207,7 @@ func (svc *RedisCacheService) GetMulti(ctx core.RequestContext, bucket string, k
 func (svc *RedisCacheService) GetObjects(ctx core.RequestContext, bucket string, keys []string, objectType string) map[string]interface{} {
 	var args []interface{}
 	for _, k := range keys {
-		args = append(args, k)
+		args = append(args, common.GetCacheKey(bucket, k))
 	}
 	retval := make(map[string]interface{})
 	svrctx := ctx.ServerContext()
@@ -236,6 +236,27 @@ func (svc *RedisCacheService) GetObjects(ctx core.RequestContext, bucket string,
 		}
 	}
 	return retval
+}
+
+func (svc *RedisCacheService) Increment(ctx core.RequestContext, bucket string, key string) error {
+	conn := svc.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("INCR", common.GetCacheKey(bucket, key))
+	if err != nil {
+		return err
+	}
+	conn.Flush()
+	return nil
+}
+func (svc *RedisCacheService) Decrement(ctx core.RequestContext, bucket string, key string) error {
+	conn := svc.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("DECR", common.GetCacheKey(bucket, key))
+	if err != nil {
+		return err
+	}
+	conn.Flush()
+	return nil
 }
 
 func (rs *RedisCacheService) Invoke(ctx core.RequestContext) error {

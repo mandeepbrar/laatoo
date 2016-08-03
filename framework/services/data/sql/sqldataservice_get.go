@@ -79,7 +79,6 @@ func (svc *sqlDataService) postArrayGet(ctx core.RequestContext, results interfa
 	for _, stor := range resultStor {
 		svc.postLoad(ctx, stor)
 	}
-	log.Logger.Trace(ctx, "Returning results in postArrayGet ", "resultStor", resultStor)
 	return resultStor, ids, nil
 }
 
@@ -98,8 +97,6 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	}
 	results := svc.ObjectCollectionCreator(lenids)
 
-	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
-
 	query := svc.db.Where(ids)
 
 	if len(orderBy) > 0 {
@@ -110,7 +107,7 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Getting multiple objects by Ids", "len Ids", lenids, "collection", svc.collection)
+	log.Logger.Trace(ctx, "Got multiple objects by Ids", "len Ids", lenids, "collection", svc.collection)
 	return results, nil
 }
 
@@ -128,10 +125,17 @@ func (svc *sqlDataService) Count(ctx core.RequestContext, queryCond interface{})
 	return count, nil
 }
 
-func (svc *sqlDataService) CountGroups(ctx core.RequestContext, queryCond interface{}, group string) (res map[string]interface{}, err error) {
+func (svc *sqlDataService) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error) {
 	ctx = ctx.SubContext("CountGroups")
-	svc.db.LogMode(true)
-	query, err := svc.processCondition(ctx, queryCond, svc.db.Select(group+" , count(*) "))
+	groupIdsCond, err := svc.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, group, groupids)
+	if err != nil {
+		return nil, err
+	}
+	countcond, err := svc.CreateCondition(ctx, data.COMBINECONDTITIONS, groupIdsCond, queryCond)
+	if err != nil {
+		return nil, err
+	}
+	query, err := svc.processCondition(ctx, countcond, svc.db.Select(group+" , count(*) "))
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -206,7 +210,11 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			arr := utils.CastToInterfaceArray(cond.args[1])
-			placeholders := fmt.Sprintf("%s in( %s)", cond.args[0], strings.Trim(strings.Repeat("?,", len(arr)), ","))
+			lenarr := len(arr)
+			if lenarr == 0 {
+				return input, nil
+			}
+			placeholders := fmt.Sprintf("%s in( %s)", cond.args[0], strings.Trim(strings.Repeat("?,", lenarr), ","))
 			return input.Where(placeholders, arr...), nil
 			//append([]interface{}{placeholders}, arr...), nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
 		}

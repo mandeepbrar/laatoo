@@ -45,19 +45,19 @@ type MemoryCacheService struct {
 }
 
 func (svc *MemoryCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
-	return svc.memoryStorer.DeleteObject(key)
+	return svc.memoryStorer.DeleteObject(common.GetCacheKey(bucket, key))
 }
 
 func (svc *MemoryCacheService) PutObject(ctx core.RequestContext, bucket string, key string, val interface{}) error {
 	if svc.cacheEncoder == nil {
-		svc.memoryStorer.PutObject(key, val)
+		svc.memoryStorer.PutObject(common.GetCacheKey(bucket, key), val)
 		return nil
 	}
 	b, err := svc.cacheEncoder.Encode(val)
 	if err != nil {
 		return err
 	}
-	svc.memoryStorer.PutObject(key, b)
+	svc.memoryStorer.PutObject(common.GetCacheKey(bucket, key), b)
 	return nil
 }
 
@@ -68,18 +68,18 @@ func (svc *MemoryCacheService) PutObjects(ctx core.RequestContext, bucket string
 			if err != nil {
 				return err
 			}
-			svc.memoryStorer.PutObject(k, b)
+			svc.memoryStorer.PutObject(common.GetCacheKey(bucket, k), b)
 		}
 	} else {
 		for k, v := range vals {
-			svc.memoryStorer.PutObject(k, v)
+			svc.memoryStorer.PutObject(common.GetCacheKey(bucket, k), v)
 		}
 	}
 	return nil
 }
 
 func (svc *MemoryCacheService) Get(ctx core.RequestContext, bucket string, key string) (interface{}, bool) {
-	obj, err := svc.memoryStorer.GetObject(key)
+	obj, err := svc.memoryStorer.GetObject(common.GetCacheKey(bucket, key))
 	if err != nil || obj == nil {
 		return nil, false
 	}
@@ -90,7 +90,7 @@ func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, bucket string,
 	if svc.cacheEncoder == nil {
 		return svc.Get(ctx, bucket, key)
 	}
-	obj, err := svc.memoryStorer.GetObject(key)
+	obj, err := svc.memoryStorer.GetObject(common.GetCacheKey(bucket, key))
 	if err != nil || obj == nil {
 		return nil, false
 	}
@@ -109,7 +109,7 @@ func (svc *MemoryCacheService) GetObject(ctx core.RequestContext, bucket string,
 func (svc *MemoryCacheService) GetMulti(ctx core.RequestContext, bucket string, keys []string) map[string]interface{} {
 	val := make(map[string]interface{})
 	for _, key := range keys {
-		cval, err := svc.memoryStorer.GetObject(key)
+		cval, err := svc.memoryStorer.GetObject(common.GetCacheKey(bucket, key))
 		if err != nil || cval == nil {
 			val[key] = nil
 		} else {
@@ -130,7 +130,7 @@ func (svc *MemoryCacheService) GetObjects(ctx core.RequestContext, bucket string
 		return val
 	}
 	for _, key := range keys {
-		cval, err := svc.memoryStorer.GetObject(key)
+		cval, err := svc.memoryStorer.GetObject(common.GetCacheKey(bucket, key))
 		if err != nil || cval == nil {
 			val[key] = nil
 		} else {
@@ -144,6 +144,13 @@ func (svc *MemoryCacheService) GetObjects(ctx core.RequestContext, bucket string
 		}
 	}
 	return val
+}
+
+func (svc *MemoryCacheService) Increment(ctx core.RequestContext, bucket string, key string) error {
+	return svc.memoryStorer.Increment(common.GetCacheKey(bucket, key), 1)
+}
+func (svc *MemoryCacheService) Decrement(ctx core.RequestContext, bucket string, key string) error {
+	return svc.memoryStorer.Decrement(common.GetCacheKey(bucket, key), 1)
 }
 
 func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
