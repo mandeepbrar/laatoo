@@ -115,20 +115,6 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Logger.Debug(chaninit, "Initialized channel manager")
 
-	facinit := ctx.SubContext("Initialize factory manager")
-	err = initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
-	if err != nil {
-		return err
-	}
-	log.Logger.Trace(facinit, "Initialized factory manager")
-
-	svcinit := ctx.SubContext("Initialize service manager")
-	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
-	if err != nil {
-		return err
-	}
-	log.Logger.Trace(svcinit, "Initialized service manager")
-
 	middleware, ok := conf.GetStringArray(config.CONF_MIDDLEWARE)
 	if ok {
 		parentMw, ok := as.proxy.GetStringArray(config.CONF_MIDDLEWARE)
@@ -174,18 +160,6 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	ctx.taskManager = as.taskManager
 
-	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, as.name, conf, as.proxy)
-	if err != nil {
-		return err
-	} else {
-		if rulesMgr != nil {
-			as.rulesManager = rulesMgr
-			as.rulesManagerHandle = rulesMgrHandle
-			log.Logger.Debug(ctx, "Created rules manager")
-		}
-	}
-	ctx.rulesManager = as.rulesManager
-
 	var parentCacheMgr server.CacheManager
 	if as.parent != nil {
 		parentCacheMgr = as.parent.cacheManager
@@ -205,6 +179,32 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	if ok {
 		as.proxy.Set("__cache", cacheToUse)
 	}
+
+	facinit := ctx.SubContext("Initialize factory manager")
+	err = initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(facinit, "Initialized factory manager")
+
+	svcinit := ctx.SubContext("Initialize service manager")
+	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
+	if err != nil {
+		return err
+	}
+	log.Logger.Trace(svcinit, "Initialized service manager")
+
+	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, as.name, conf, as.proxy)
+	if err != nil {
+		return err
+	} else {
+		if rulesMgr != nil {
+			as.rulesManager = rulesMgr
+			as.rulesManagerHandle = rulesMgrHandle
+			log.Logger.Debug(ctx, "Created rules manager")
+		}
+	}
+	ctx.rulesManager = as.rulesManager
 
 	return nil
 }

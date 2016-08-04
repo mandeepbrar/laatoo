@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"encoding/json"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -48,14 +49,7 @@ func (svc *beanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (svc *beanstalkProducer) PushTask(ctx core.RequestContext, queue string, taskData interface{}) error {
-	data, err := json.Marshal(taskData)
-	if err != nil {
-		return err
-	}
-	token, _ := ctx.GetString(svc.authHeader)
-
-	t := task{Queue: queue, Data: data, Token: token}
+func (svc *beanstalkProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err

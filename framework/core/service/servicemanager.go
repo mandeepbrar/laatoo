@@ -27,7 +27,7 @@ type serviceManager struct {
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	elem := ctx.GetServerElement(core.ServerElementFactoryManager)
 	svcMgr.factoryManager = elem.(server.FactoryManager)
-	svcmgrInitializeCtx := svcMgr.createContext(ctx, "Initialize service manager")
+	svcmgrInitializeCtx := svcMgr.createContext(ctx, "Initialize service manager ")
 	err := svcMgr.createServices(svcmgrInitializeCtx, conf, nil)
 	if err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
@@ -44,13 +44,18 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 	chanMgr := ctx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
 	for svcname, svcStruct := range svcMgr.servicesStore {
 		if svcStruct.owner == svcMgr {
-			log.Logger.Debug(svcmgrStartCtx, "Starting service", "service name", svcname)
+			log.Logger.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
 			svcStartCtx := svcmgrStartCtx.NewContextWithElements("Start "+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 			err := svcStruct.start(svcStartCtx)
 			if err != nil {
 				return errors.WrapError(svcStartCtx, err)
 			}
 			log.Logger.Info(svcmgrStartCtx, "Started service ", "name", svcname)
+		}
+	}
+
+	for svcname, svcStruct := range svcMgr.servicesStore {
+		if svcStruct.owner == svcMgr {
 			svcChannels, ok := svcStruct.conf.GetSubConfig(config.CONF_ENGINE_CHANNELS)
 			if ok {
 				channelnames := svcChannels.AllConfigurations()
@@ -62,7 +67,7 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 					}
 					svcServeCtx := ctx.NewContextWithElements("Serve: "+svcStruct.name, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 					for _, conf := range svcChannelConfigs {
-						err = chanMgr.Serve(svcServeCtx, channelName, svcStruct, conf)
+						err := chanMgr.Serve(svcServeCtx, channelName, svcStruct, conf)
 						if err != nil {
 							return errors.WrapError(svcServeCtx, err)
 						}

@@ -2,10 +2,10 @@ package tasks
 
 import (
 	"encoding/json"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 
 	"google.golang.org/appengine/taskqueue"
@@ -42,17 +42,8 @@ func (svc *gaeProducer) Initialize(ctx core.ServerContext, conf config.Config) e
 	return nil
 }
 
-func (svc *gaeProducer) PushTask(ctx core.RequestContext, queue string, taskData interface{}) error {
-	log.Logger.Error(ctx, "here to push task", "queue", queue)
+func (svc *gaeProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
 	appEngineContext := ctx.GetAppengineContext()
-	data, err := json.Marshal(taskData)
-	if err != nil {
-		return err
-	}
-
-	token, _ := ctx.GetString(svc.authHeader)
-	log.Logger.Error(ctx, "putting task in queue", "queue", queue)
-	t := task{Queue: queue, Data: data, Token: token}
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err

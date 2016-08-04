@@ -190,20 +190,22 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	defer connCopy.Close()
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
 	for _, item := range items {
-		if ms.presave {
-			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
-			if err != nil {
-				return err
+		if item != nil {
+			if ms.presave {
+				err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
+				if err != nil {
+					return err
+				}
+				err = item.PreSave(ctx)
+				if err != nil {
+					return err
+				}
 			}
-			err = item.PreSave(ctx)
-			if err != nil {
-				return err
+			if ms.auditable {
+				data.Audit(ctx, item)
 			}
+			bulk.Upsert(bson.M{ms.objectid: item.GetId()}, item)
 		}
-		if ms.auditable {
-			data.Audit(ctx, item)
-		}
-		bulk.Upsert(bson.M{ms.objectid: item.GetId()}, item)
 	}
 	_, err := bulk.Run()
 	if err != nil {

@@ -45,7 +45,7 @@ func (tf *tasksFactory) CreateService(ctx core.ServerContext, name string, metho
 	case CONF_TASKS_BEANSTALK_PRODUCER:
 		return &beanstalkProducer{}, nil
 	case CONF_TASKS_BEANSTALK_CONSUMER:
-		return &beanstalkConsumer{queues: make(map[string]*taskQueue, 10)}, nil
+		return &beanstalkConsumer{}, nil
 	case CONF_TASKS_GAE_PRODUCER:
 		return &gaeProducer{}, nil
 	case CONF_TASKS_GAE_CONSUMER:
