@@ -168,6 +168,7 @@ func (usr *DefaultUser) removeRole(role string) error {
 
 func (usr *DefaultUser) PopulateJWTToken(token *jwt.Token) {
 	token.Claims["Roles"] = strings.Join(usr.Roles, ",")
+	token.Claims["UserName"] = usr.Username
 	token.Claims["Name"] = usr.Name
 	token.Claims["Picture"] = usr.Picture
 }
@@ -188,6 +189,7 @@ func (usr *DefaultUser) GetPicture() string {
 
 func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
 	usr.SetId(token.Claims["UserId"].(string))
+	usr.Username = token.Claims["UserName"].(string)
 	usr.Name = token.Claims["Name"].(string)
 	usr.Picture = token.Claims["Picture"].(string)
 	rolesInt := token.Claims["Roles"]

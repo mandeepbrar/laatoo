@@ -41,13 +41,13 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 
 	////build value parameters
-	var staticValues map[string]string
+	var staticValues map[string]interface{}
 	staticValuesConf, ok := routeConf.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
 	if ok {
 		values := staticValuesConf.AllConfigurations()
-		staticValues = make(map[string]string, len(values))
+		staticValues = make(map[string]interface{}, len(values))
 		for _, paramname := range values {
-			staticValues[paramname], _ = staticValuesConf.GetString(paramname)
+			staticValues[paramname], _ = staticValuesConf.Get(paramname)
 		}
 	}
 

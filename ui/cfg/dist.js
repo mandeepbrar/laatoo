@@ -55,9 +55,7 @@ let config = Object.assign({}, baseConfig, {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-    new BowerWebpackPlugin({
-      searchResolveModulesDirectories: false
-    }),
+    new BowerWebpackPlugin(),
 //    new webpack.optimize.CommonsChunkPlugin("vendor", "react.bundle.js"),
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.OccurenceOrderPlugin(),

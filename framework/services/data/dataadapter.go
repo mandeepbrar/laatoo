@@ -252,7 +252,13 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 		lookupids[ind] = f.String()
 	}
 	log.Logger.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", lookupids)
-	result, err := es.DataStore.GetMulti(ctx, lookupids, "")
+	hashmap, _ := ctx.GetBool("hashmap")
+	var result interface{}
+	if hashmap {
+		result, err = es.DataStore.GetMultiHash(ctx, lookupids)
+	} else {
+		result, err = es.DataStore.GetMulti(ctx, lookupids, "")
+	}
 	if err == nil {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned

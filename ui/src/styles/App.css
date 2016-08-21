@@ -72,7 +72,7 @@
   float: right !important;
 }
 .ma {
-	margin: auto;
+	margin: auto !important;
 }
 .ma0 {
   margin: 0 !important;

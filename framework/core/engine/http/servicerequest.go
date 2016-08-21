@@ -19,7 +19,7 @@ const (
 
 func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
 	svc server.Service, otype objectType, dataObjectName string, isdataObject bool, isdataCollection bool, dataObjectCreator core.ObjectCreator,
-	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]string, headers map[string]string) (core.ServiceFunc, error) {
+	dataObjectCollectionCreator core.ObjectCollectionCreator, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string) (core.ServiceFunc, error) {
 	return func(webctx core.RequestContext) error {
 		var reqData interface{}
 		var err error
@@ -113,7 +113,7 @@ func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, re
 	}
 }*/
 func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData interface{}, engineContext net.WebContext, respHandler server.ServiceResponseHandler, routename string,
-	svc server.Service, routeParams map[string]string, staticValues map[string]string, headers map[string]string) error {
+	svc server.Service, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string) error {
 	var err error
 	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers)
 	reqctx := webctx.SubContext(svc.GetName())
