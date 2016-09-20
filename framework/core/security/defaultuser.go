@@ -71,6 +71,10 @@ type DefaultUser struct {
 func (usr *DefaultUser) Init(ctx core.Context, args core.MethodArgs) error {
 	usr.SoftDeleteAuditable.Init(ctx, args)
 	if args != nil {
+		id, ok := args["Id"]
+		if ok {
+			usr.SetId(id.(string))
+		}
 		username, ok := args["Username"]
 		if ok {
 			usr.Username = username.(string)

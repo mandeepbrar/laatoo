@@ -24,8 +24,11 @@ type joinService struct {
 	ops []*joinOperation
 }
 
-func NewJoinCacheService(ctx core.ServerContext) *joinService {
+func NewJoinService(ctx core.ServerContext) *joinService {
 	return &joinService{DataPlugin: data.NewDataPlugin(ctx)}
+}
+func NewJoinServiceWithBase(ctx core.ServerContext, base data.DataComponent) *joinService {
+	return &joinService{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
 }
 
 func (svc *joinService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -84,7 +87,7 @@ func (svc *joinService) Start(ctx core.ServerContext) error {
 func (svc *joinService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("Join_GetById")
 
-	stor, err := svc.DataComponent.GetById(ctx, id)
+	stor, err := svc.PluginDataComponent.GetById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +104,7 @@ func (svc *joinService) GetById(ctx core.RequestContext, id string) (data.Storab
 func (svc *joinService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
 	ctx = ctx.SubContext("Join_GetMulti")
 
-	res, err := svc.DataComponent.GetMulti(ctx, ids, orderBy)
+	res, err := svc.PluginDataComponent.GetMulti(ctx, ids, orderBy)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +120,7 @@ func (svc *joinService) GetMulti(ctx core.RequestContext, ids []string, orderBy 
 func (svc *joinService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("Join_GetMultiHash")
 
-	res, err := svc.DataComponent.GetMultiHash(ctx, ids)
+	res, err := svc.PluginDataComponent.GetMultiHash(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +134,11 @@ func (svc *joinService) GetMultiHash(ctx core.RequestContext, ids []string) (map
 }
 
 func (svc *joinService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.DataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
+	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }
 
 func (svc *joinService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.DataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
+	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
 }
 
 func (svc *joinService) fillJoin(ctx core.RequestContext, ids []string, inputData []data.Storable) ([]data.Storable, error) {

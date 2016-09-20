@@ -25,7 +25,9 @@ type cascadeDelete struct {
 func NewCascadeDeleteService(ctx core.ServerContext) *cascadeDelete {
 	return &cascadeDelete{DataPlugin: data.NewDataPlugin(ctx)}
 }
-
+func NewCascadeDeleteWithBase(ctx core.ServerContext, base data.DataComponent) *cascadeDelete {
+	return &cascadeDelete{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
+}
 func (svc *cascadeDelete) Initialize(ctx core.ServerContext, conf config.Config) error {
 	err := svc.DataPlugin.Initialize(ctx, conf)
 	if err != nil {
@@ -83,7 +85,7 @@ func (svc *cascadeDelete) cascadeDelete(ctx core.RequestContext, ids []string) e
 			return err
 		} else {
 			for _, id := range ids {
-				condition, _ := svc.DataComponent.CreateCondition(ctx, data.FIELDVALUE, map[string]interface{}{op.targetField: id})
+				condition, _ := svc.PluginDataComponent.CreateCondition(ctx, data.FIELDVALUE, map[string]interface{}{op.targetField: id})
 				_, err := op.targetSvc.DeleteAll(ctx, condition)
 				if err != nil {
 					return err
@@ -96,7 +98,7 @@ func (svc *cascadeDelete) cascadeDelete(ctx core.RequestContext, ids []string) e
 
 //item must support Deleted field for soft deletes
 func (svc *cascadeDelete) Delete(ctx core.RequestContext, id string) error {
-	err := svc.DataComponent.Delete(ctx, id)
+	err := svc.PluginDataComponent.Delete(ctx, id)
 	if err == nil {
 		err = svc.cascadeDelete(ctx, []string{id})
 	}
@@ -105,7 +107,7 @@ func (svc *cascadeDelete) Delete(ctx core.RequestContext, id string) error {
 
 //Delete object by ids
 func (svc *cascadeDelete) DeleteMulti(ctx core.RequestContext, ids []string) error {
-	err := svc.DataComponent.DeleteMulti(ctx, ids)
+	err := svc.PluginDataComponent.DeleteMulti(ctx, ids)
 	if err == nil {
 		err = svc.cascadeDelete(ctx, ids)
 	}
@@ -114,7 +116,7 @@ func (svc *cascadeDelete) DeleteMulti(ctx core.RequestContext, ids []string) err
 
 //Delete object by condition
 func (svc *cascadeDelete) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
-	ids, err := svc.DataComponent.DeleteAll(ctx, queryCond)
+	ids, err := svc.PluginDataComponent.DeleteAll(ctx, queryCond)
 	if err == nil {
 		err = svc.cascadeDelete(ctx, ids)
 	}

@@ -10,6 +10,7 @@ const (
 	CONF_SECURITYSERVICE_SERVICEPROVIDER     = "security_service"
 	CONF_SECURITYSERVICE_REGISTRATIONSERVICE = "REGISTRATION"
 	CONF_SECURITYSERVICE_DB                  = "DB_LOGIN"
+	CONF_SECURITYSERVICE_TOKENVALIDATION     = "TOKEN_VALIDATE"
 	CONF_SECURITYSERVICE_OAUTH               = "OAUTH"
 	CONF_SECURITYSERVICE_KEYAUTH             = "KEYAUTH"
 )
@@ -31,6 +32,10 @@ func (sf *SecurityServiceFactory) CreateService(ctx core.ServerContext, name str
 	case CONF_SECURITYSERVICE_OAUTH:
 		{
 			return &OAuthLoginService{}, nil
+		}
+	case CONF_SECURITYSERVICE_TOKENVALIDATION:
+		{
+			return &TokenValidationService{}, nil
 		}
 	case CONF_SECURITYSERVICE_KEYAUTH:
 		{

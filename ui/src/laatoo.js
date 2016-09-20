@@ -16,7 +16,7 @@ import {formatUrl} from './utils';
 import {Sagas, runSagas} from './sagas';
 import {VideoEdit} from './components/form/videoedit';
 import {TextEdit} from './components/form/textedit';
-import {ImageEdit} from './components/form/imageedit';
+import {ImageEdit, ImageChooser} from './components/form/imageedit';
 import {WebTableView} from './components/view/WebTableView';
 import {ViewReducer} from './reducers/View';
 import {EntityReducer} from './reducers/Entity';
@@ -27,6 +27,7 @@ import {WebView} from './components/view/WebView';
 import {WebListView} from './components/view/WebListView';
 import {Html} from './components/main/Html';
 import {ScrollListener} from './components/main/ScrollListener';
+import Panel from './panels/Panel';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -56,6 +57,7 @@ module.exports = {
     Action: Action,
     ActionNames: ActionNames,
     Entity: Entity,
+    Panel: Panel,
     DisplayEntity: DisplayEntity,
     EntityData: EntityData,
     EntityForm:EntityForm,
@@ -71,6 +73,7 @@ module.exports = {
     Html : Html,
     View: View,
     Image: Image,
+    ImageChooser: ImageChooser,
     ImageEdit: ImageEdit,
     ViewFilter: ViewFilter,
     formatUrl: formatUrl,

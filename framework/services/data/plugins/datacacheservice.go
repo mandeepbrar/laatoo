@@ -21,6 +21,10 @@ func NewDataCacheService(ctx core.ServerContext) *dataCacheService {
 	return &dataCacheService{DataPlugin: data.NewDataPlugin(ctx)}
 }
 
+func NewCacheServiceWithBase(ctx core.ServerContext, base data.DataComponent) *dataCacheService {
+	return &dataCacheService{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
+}
+
 func (svc *dataCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	err := svc.DataPlugin.Initialize(ctx, conf)
 	if err != nil {
@@ -40,7 +44,7 @@ func (svc *dataCacheService) Initialize(ctx core.ServerContext, conf config.Conf
 }*/
 
 func (svc *dataCacheService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
-	err := svc.DataComponent.PutMulti(ctx, items)
+	err := svc.PluginDataComponent.PutMulti(ctx, items)
 	if err != nil {
 		for _, item := range items {
 			id := item.GetId()
@@ -51,7 +55,7 @@ func (svc *dataCacheService) PutMulti(ctx core.RequestContext, items []data.Stor
 }
 
 func (svc *dataCacheService) Put(ctx core.RequestContext, id string, item data.Storable) error {
-	err := svc.DataComponent.Put(ctx, id, item)
+	err := svc.PluginDataComponent.Put(ctx, id, item)
 	if err != nil {
 		ctx.InvalidateCache(svc.bucket, id)
 	}
@@ -60,7 +64,7 @@ func (svc *dataCacheService) Put(ctx core.RequestContext, id string, item data.S
 
 //upsert an object ...insert if not there... update if there
 func (svc *dataCacheService) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
-	err := svc.DataComponent.UpsertId(ctx, id, newVals)
+	err := svc.PluginDataComponent.UpsertId(ctx, id, newVals)
 	if err != nil {
 		ctx.InvalidateCache(svc.bucket, id)
 	}
@@ -68,7 +72,7 @@ func (svc *dataCacheService) UpsertId(ctx core.RequestContext, id string, newVal
 }
 
 func (svc *dataCacheService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
-	err := svc.DataComponent.Update(ctx, id, newVals)
+	err := svc.PluginDataComponent.Update(ctx, id, newVals)
 	if err != nil {
 		ctx.InvalidateCache(svc.bucket, id)
 	}
@@ -76,7 +80,7 @@ func (svc *dataCacheService) Update(ctx core.RequestContext, id string, newVals 
 }
 
 func (svc *dataCacheService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
-	ids, err := svc.DataComponent.Upsert(ctx, queryCond, newVals)
+	ids, err := svc.PluginDataComponent.Upsert(ctx, queryCond, newVals)
 	if err != nil {
 		for _, id := range ids {
 			ctx.InvalidateCache(svc.bucket, id)
@@ -86,7 +90,7 @@ func (svc *dataCacheService) Upsert(ctx core.RequestContext, queryCond interface
 }
 
 func (svc *dataCacheService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
-	ids, err := svc.DataComponent.UpdateAll(ctx, queryCond, newVals)
+	ids, err := svc.PluginDataComponent.UpdateAll(ctx, queryCond, newVals)
 	if err != nil {
 		for _, id := range ids {
 			ctx.InvalidateCache(svc.bucket, id)
@@ -97,7 +101,7 @@ func (svc *dataCacheService) UpdateAll(ctx core.RequestContext, queryCond interf
 
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (svc *dataCacheService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
-	err := svc.DataComponent.UpdateMulti(ctx, ids, newVals)
+	err := svc.PluginDataComponent.UpdateMulti(ctx, ids, newVals)
 	if err != nil {
 		for _, id := range ids {
 			ctx.InvalidateCache(svc.bucket, id)
@@ -108,7 +112,7 @@ func (svc *dataCacheService) UpdateMulti(ctx core.RequestContext, ids []string, 
 
 //item must support Deleted field for soft deletes
 func (svc *dataCacheService) Delete(ctx core.RequestContext, id string) error {
-	err := svc.DataComponent.Delete(ctx, id)
+	err := svc.PluginDataComponent.Delete(ctx, id)
 	if err != nil {
 		ctx.InvalidateCache(svc.bucket, id)
 	}
@@ -117,7 +121,7 @@ func (svc *dataCacheService) Delete(ctx core.RequestContext, id string) error {
 
 //Delete object by ids
 func (svc *dataCacheService) DeleteMulti(ctx core.RequestContext, ids []string) error {
-	err := svc.DataComponent.DeleteMulti(ctx, ids)
+	err := svc.PluginDataComponent.DeleteMulti(ctx, ids)
 	if err != nil {
 		for _, id := range ids {
 			ctx.InvalidateCache(svc.bucket, id)
@@ -128,7 +132,7 @@ func (svc *dataCacheService) DeleteMulti(ctx core.RequestContext, ids []string) 
 
 //Delete object by condition
 func (svc *dataCacheService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
-	ids, err := svc.DataComponent.DeleteAll(ctx, queryCond)
+	ids, err := svc.PluginDataComponent.DeleteAll(ctx, queryCond)
 	if err != nil {
 		for _, id := range ids {
 			ctx.InvalidateCache(svc.bucket, id)
@@ -144,7 +148,7 @@ func (svc *dataCacheService) GetById(ctx core.RequestContext, id string) (data.S
 	if ok {
 		return ent.(data.Storable), nil
 	}
-	stor, err := svc.DataComponent.GetById(ctx, id)
+	stor, err := svc.PluginDataComponent.GetById(ctx, id)
 	if err == nil {
 		ctx.PutInCache(svc.bucket, id, stor)
 	}
@@ -168,7 +172,7 @@ func (svc *dataCacheService) GetMulti(ctx core.RequestContext, ids []string, ord
 	if len(idsNotCached) == 0 {
 		return res, nil
 	}
-	stormap, err := svc.DataComponent.GetMultiHash(ctx, idsNotCached)
+	stormap, err := svc.PluginDataComponent.GetMultiHash(ctx, idsNotCached)
 	if err == nil {
 		for index, id := range ids {
 			if res[index] == nil {
@@ -185,7 +189,7 @@ func (svc *dataCacheService) GetMulti(ctx core.RequestContext, ids []string, ord
 
 func (svc *dataCacheService) GetMultiHash(ctx core.RequestContext, ids []string) (map[string]data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetMultiHash")
-	res, err := svc.DataComponent.GetMultiHash(ctx, ids)
+	res, err := svc.PluginDataComponent.GetMultiHash(ctx, ids)
 	if err == nil {
 		ctx.PutMultiInCache(svc.bucket, utils.CastToStringMap(res))
 	}
@@ -193,17 +197,17 @@ func (svc *dataCacheService) GetMultiHash(ctx core.RequestContext, ids []string)
 }
 
 func (svc *dataCacheService) Count(ctx core.RequestContext, queryCond interface{}) (count int, err error) {
-	return svc.DataComponent.Count(ctx, queryCond)
+	return svc.PluginDataComponent.Count(ctx, queryCond)
 }
 
 func (svc *dataCacheService) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error) {
-	return svc.DataComponent.CountGroups(ctx, queryCond, groupids, group)
+	return svc.PluginDataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
 func (svc *dataCacheService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.DataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
+	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }
 
 func (svc *dataCacheService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
-	return svc.DataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
+	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
 }

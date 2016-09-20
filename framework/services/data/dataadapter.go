@@ -341,12 +341,10 @@ func (es *dataAdapterService) PUT(ctx core.RequestContext) error {
 	ent := ctx.GetRequest()
 	stor := ent.(data.Storable)
 	err := es.DataStore.Put(ctx, id, stor)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }
 
 func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
@@ -356,12 +354,10 @@ func (es *dataAdapterService) DELETE(ctx core.RequestContext) error {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
 	}
 	err := es.DataStore.Delete(ctx, id)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }
 
 func (es *dataAdapterService) DELETEALL(ctx core.RequestContext) error {
@@ -390,12 +386,10 @@ func (es *dataAdapterService) UPSERT(ctx core.RequestContext) error {
 		return errors.WrapError(ctx, err)
 	}
 	_, err = es.DataStore.Upsert(ctx, condition, vals["value"].(map[string]interface{}))
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }
 
 func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
@@ -407,12 +401,10 @@ func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
 	err := es.DataStore.Update(ctx, id, vals)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }
 
 func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
@@ -424,12 +416,10 @@ func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 		return err
 	}
 	err = es.DataStore.PutMulti(ctx, storables)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }
 
 func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
@@ -471,10 +461,8 @@ func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
 		return nil
 	}
 	err := es.DataStore.UpdateMulti(ctx, stringIds, updatesMap)
-	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
-		return nil
-	} else {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
 }

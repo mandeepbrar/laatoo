@@ -126,5 +126,6 @@ class ImageEdit extends t.form.Component { // extend the base class
 
 
 export {
-  ImageEdit as ImageEdit
+  ImageEdit as ImageEdit,
+  ImageChooser as ImageChooser
 };

@@ -43,8 +43,9 @@ const Account = (state, action) => {
 
       default:
         if (!state) {
-          if (localStorage.auth != null) {
+          if (localStorage.auth != null && localStorage.auth != "") {
             return {
+              status: "LoggedIn",
               authToken: localStorage.auth,
               userId: localStorage.user,
               permissions: localStorage.permissions

@@ -21,6 +21,9 @@ func DefaultResponseHandler(ctx core.ServerContext) *defaultResponseHandler {
 func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error {
 	log.Logger.Trace(ctx, "Returning request with default response handler")
 	resp := ctx.GetResponse()
+	if resp == nil {
+		resp = core.StatusSuccessResponse
+	}
 	engineContext := ctx.EngineRequestContext().(net.WebContext)
 	if resp != nil {
 		log.Logger.Trace(ctx, "Returning request with status", "Status", resp.Status)

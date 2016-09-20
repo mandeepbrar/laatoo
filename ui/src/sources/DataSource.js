@@ -92,10 +92,10 @@ class DefaultDataSource {
     if(res instanceof Error) {
       return this.buildSvcResponse(code, msg, res, {});
     }
-    return this.buildSvcResponse(code, msg, res.data, res.headers);
+    return this.buildSvcResponse(code, msg, res.data, res.headers, res.status);
   }
 
-  buildSvcResponse(code, msg, data, info) {
+  buildSvcResponse(code, msg, data, info, statuscode) {
     var response = {};
     switch (code) {
       default:
@@ -103,6 +103,7 @@ class DefaultDataSource {
         response.message = msg;
         response.data = data;
         response.info = info;
+        response.statuscode=  statuscode;
     }
     console.log(response);
     return response;

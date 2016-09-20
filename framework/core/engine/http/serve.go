@@ -11,6 +11,10 @@ import (
 )
 
 func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, routeConf config.Config) error {
+	disabled, _ := routeConf.GetBool(config.CONF_HTTPENGINE_DISABLEROUTE)
+	if disabled {
+		return nil
+	}
 	path, ok := routeConf.GetString(config.CONF_HTTPENGINE_PATH)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_HTTPENGINE_PATH)
