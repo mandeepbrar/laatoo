@@ -26,7 +26,7 @@ class ActionComp extends React.Component {
     if(this.props.params) {
       payload = this.props.params;
     }
-    this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback}));
+    this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback, failureCallback: this.props.failureCallback}));
   }
   actionFunc(evt) {
     evt.preventDefault();

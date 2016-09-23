@@ -116,6 +116,7 @@ func (usr *DefaultUser) GetUsernameField() string {
 	return "Username"
 }
 func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
+	ent.SoftDeleteAuditable.PreSave(ctx)
 	err := ent.encryptPassword()
 	if err != nil {
 		return errors.WrapError(ctx, err)

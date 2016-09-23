@@ -26,12 +26,12 @@ function EntityReducer(reducerName) {
           });
 
         case ActionNames.ENTITY_GET_SUCCESS:
-          return Object.assign({}, state, {
+          let st = Object.assign({}, state, {
             status:"Loaded",
             lastUpdateTime: (new Date()).getTime(),
-            data: action.payload
+            data: action.payload.data
           });
-
+          return st
         case ActionNames.ENTITY_GET_FAILED: {
           return Object.assign({}, state, {
             status:"LoadingFailed",
@@ -97,7 +97,6 @@ function EntityReducer(reducerName) {
             status:"UpdateFailed"
           });
         }
-
 
         default:
           if (!state) {

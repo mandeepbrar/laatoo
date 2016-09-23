@@ -10,9 +10,19 @@ function* getEntityData(action) {
     yield put(createAction(ActionNames.ENTITY_GETTING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.GetEntity, action.payload.entityName, action.payload.entityId);
     resp.data.isOwner = (resp.data.CreatedBy === localStorage.user);
-    yield put(createAction(ActionNames.ENTITY_GET_SUCCESS, resp.data, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_GET_SUCCESS, resp, action.meta));
+    if(action.meta.successCallback) {
+      action.meta.successCallback(action.payload)
+    }
   } catch (e) {
-    yield put(createAction(ActionNames.ENTITY_GET_FAILED, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_GET_FAILED, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e)
+    } else {
+      if(window.handleError) {
+        window.handleError(e)
+      }
+    }
   }
 }
 
@@ -20,12 +30,19 @@ function* deleteEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_DELETING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.DeleteEntity, action.payload.entityName, action.payload.entityId);
-    yield put(createAction(ActionNames.ENTITY_DELETE_SUCCESS, resp.data, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_DELETE_SUCCESS, resp, action.meta));
     if(action.meta.successCallback) {
-      action.meta.successCallback(resp)
+      action.meta.successCallback(action.payload)
     }
   } catch (e) {
-    yield put(createAction(ActionNames.ENTITY_DELETE_FAILURE, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_DELETE_FAILURE, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e)
+    } else {
+      if(window.handleError) {
+        window.handleError(e)
+      }
+    }
   }
 }
 
@@ -35,10 +52,17 @@ function* saveEntityData(action) {
     const resp = yield call(EntityData.SaveEntity, action.payload.entityName, action.payload.data);
     yield put(createAction(ActionNames.ENTITY_SAVE_SUCCESS, {}, {reducer: action.meta.reducer}));
     if(action.meta.successCallback) {
-      action.meta.successCallback(resp)
+      action.meta.successCallback(action.payload)
     }
   } catch (e) {
-    yield put(createAction(ActionNames.ENTITY_SAVE_FAILURE, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_SAVE_FAILURE, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e)
+    } else {
+      if(window.handleError) {
+        window.handleError(e)
+      }
+    }
   }
 }
 
@@ -46,15 +70,22 @@ function* putEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
-    yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, {}, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, {}, action.meta));
     if(action.meta.reload) {
       yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
     }
     if(action.meta.successCallback) {
-      action.meta.successCallback(resp)
+      action.meta.successCallback(action.payload)
     }
   } catch (e) {
-    yield put(createAction(ActionNames.ENTITY_PUT_FAILURE, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_PUT_FAILURE, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e)
+    } else {
+      if(window.handleError) {
+        window.handleError(e)
+      }
+    }
   }
 }
 
@@ -62,15 +93,22 @@ function* updateEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.UpdateEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
-    yield put(createAction(ActionNames.ENTITY_UPDATE_SUCCESS, {}, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_UPDATE_SUCCESS, {}, action.meta));
     if(action.meta.reload) {
       yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
     }
     if(action.meta.successCallback) {
-      action.meta.successCallback(resp)
+      action.meta.successCallback(action.payload)
     }
   } catch (e) {
-    yield put(createAction(ActionNames.ENTITY_UPDATE_FAILURE, e, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_UPDATE_FAILURE, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e)
+    } else {
+      if(window.handleError) {
+        window.handleError(e)
+      }
+    }
   }
 }
 

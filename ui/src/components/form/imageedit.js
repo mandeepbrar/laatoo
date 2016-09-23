@@ -31,8 +31,15 @@ class ImageChooser extends React.Component {
         function (res) {
           let img = res.data[0];
           comp.props.onChange(img)
+          if(comp.props.successCallback) {
+            comp.props.successCallback(res)
+          }
         },
         function (res) {
+          console.log("res", res, "failureCallback", comp.props.failureCallback, "props", comp.props)
+          if(comp.props.failureCallback) {
+            comp.props.failureCallback(res)
+          }
           console.log(res);
         });
     }
@@ -56,8 +63,13 @@ class ImageChooser extends React.Component {
     } else {
       return(
         <div className="upload" style={{display:"block"}}>
-          <Dropzone onDrop={this.drop} multiple={false}>
-            <div>Try dropping some files here, or click to select files to upload.</div>
+          <Dropzone onDrop={this.drop} className={this.props.dropzoneClass} multiple={false}>
+            {
+              this.props.text ?
+              this.props.text
+              :
+              <div>Try dropping some files here, or click to select files to upload.</div>
+            }
           </Dropzone>
         </div>
       )
@@ -116,8 +128,10 @@ class ImageEdit extends t.form.Component { // extend the base class
       let choose = (file) => {
         console.log(file);
       }
+      console.log("image config", config)
       return (
           <ImageChooser value={locals.value} style={config.style} hideURL={config.hideURL} hideChoice={config.hideChoice} clear={config.clear}
+              successCallback={config.successCallback} failureCallback={config.failureCallback} text={config.text} dropzoneClass={config.dropzoneClass}
               onChange={locals.onChange} prefix={locals.config.prefix} imageStyle={config.imageStyle} uploadService={config.service}/>
       );
     };

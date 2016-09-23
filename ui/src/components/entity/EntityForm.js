@@ -36,6 +36,9 @@ class TCombWebForm extends React.Component {
     let validationRes = this.refs.form.validate()
     let data = this.refs.form.getValue()
     if (!data) {
+      if(this.props.failureCallback) {
+        this.props.failureCallback(validationRes)
+      }
       console.log(validationRes);
       return;
     }
@@ -90,6 +93,7 @@ const mapStateToProps = (state, ownProps) => {
     refCallback: ownProps.refCallback,
     schema: ownProps.schema,
     preSave: ownProps.preSave,
+    failureCallback: ownProps.failureCallback,
     usePut: ownProps.usePut,
     actionButtons: ownProps.actionButtons,
     schemaOptions: ownProps.schemaOptions
@@ -99,13 +103,13 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     save: (data) => {
-      dispatch(createAction(ActionNames.ENTITY_SAVE, {data:data, entityName: ownProps.name}, {reducer: ownProps.reducer, successCallback: ownProps.postSave}));
+      dispatch(createAction(ActionNames.ENTITY_SAVE, {data:data, entityName: ownProps.name}, {reducer: ownProps.reducer, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
     },
     put: (data) => {
-      dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave}));
+      dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
     },
     update: (data) => {
-      dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave}));
+      dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
     }
   }
 }
