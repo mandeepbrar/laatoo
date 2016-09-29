@@ -48,7 +48,11 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.WrapError(ctx, err)
 	}
 	object := svc.ObjectCreator()
-	svc.connection = svc.factory.connection
+	sess, err := gorm.Open(svc.factory.vendor, svc.factory.connectionString)
+	if err != nil {
+		return errors.RethrowError(ctx, common.DATA_ERROR_CONNECTION, err, "Connection String", svc.factory.connectionString)
+	}
+	svc.connection = sess
 	svc.collection = svc.connection.NewScope(object).GetModelStruct().TableName(svc.connection)
 	if svc.collection == "" {
 		return errors.MissingConf(ctx, common.CONF_DATA_COLLECTION)
@@ -114,17 +118,17 @@ func (svc *sqlDataService) Invoke(ctx core.RequestContext) error {
 
 func (svc *sqlDataService) CreateDBCollection(ctx core.RequestContext) error {
 	object := svc.ObjectCreator()
-	return svc.factory.connection.CreateTable(object).Error
+	return svc.connection.CreateTable(object).Error
 }
 
 func (svc *sqlDataService) DropDBCollection(ctx core.RequestContext) error {
 	object := svc.ObjectCreator()
-	return svc.factory.connection.DropTable(object).Error
+	return svc.connection.DropTable(object).Error
 }
 
 func (svc *sqlDataService) DBCollectionExists(ctx core.RequestContext) (bool, error) {
 	object := svc.ObjectCreator()
-	return svc.factory.connection.HasTable(object), nil
+	return svc.connection.HasTable(object), nil
 }
 
 func (svc *sqlDataService) GetName() string {

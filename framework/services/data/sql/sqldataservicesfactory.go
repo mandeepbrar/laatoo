@@ -1,9 +1,9 @@
 package sql
 
 import (
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "google.golang.org/appengine/cloudsql"
 	// import _ "github.com/jinzhu/gorm/dialects/sqlite"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql
 	"laatoo/framework/core/objects"
@@ -15,9 +15,8 @@ import (
 )
 
 type sqlDataServicesFactory struct {
-	connection       *gorm.DB
 	vendor           string
-	connectionstring string
+	connectionString string
 	cache            bool
 }
 
@@ -40,12 +39,7 @@ func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext, conf config
 	if !ok {
 		return errors.MissingConf(ctx, CONF_SQL_VENDOR)
 	}
-	sess, err := gorm.Open(vendor, connectionString)
-	if err != nil {
-		return errors.RethrowError(ctx, common.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
-	}
-	sf.connection = sess
-	sf.connectionstring = connectionString
+	sf.connectionString = connectionString
 	sf.vendor = vendor
 	return nil
 }

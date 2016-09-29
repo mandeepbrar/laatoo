@@ -1,13 +1,14 @@
 package goji
 
 import (
+	"context"
 	"fmt"
-	"goji.io"
-	"goji.io/pat"
-	"golang.org/x/net/context"
 	"laatoo/framework/core/engine/http/net"
 	"net/http"
 	"strings"
+
+	"goji.io"
+	"goji.io/pat"
 )
 
 type GojiRouter struct {

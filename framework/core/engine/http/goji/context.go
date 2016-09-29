@@ -1,12 +1,13 @@
 package goji
 
 import (
+	"context"
 	"encoding/json"
-	"goji.io/pat"
-	"golang.org/x/net/context"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"goji.io/pat"
 )
 
 type GojiContext struct {

@@ -9,7 +9,6 @@ import (
 	"laatoo/sdk/utils"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -171,11 +170,11 @@ func (usr *DefaultUser) removeRole(role string) error {
 	return nil
 }
 
-func (usr *DefaultUser) PopulateJWTToken(token *jwt.Token) {
-	token.Claims["Roles"] = strings.Join(usr.Roles, ",")
-	token.Claims["UserName"] = usr.Username
-	token.Claims["Name"] = usr.Name
-	token.Claims["Picture"] = usr.Picture
+func (usr *DefaultUser) PopulateClaims(claims map[string]interface{}) {
+	claims["Roles"] = strings.Join(usr.Roles, ",")
+	claims["UserName"] = usr.Username
+	claims["Name"] = usr.Name
+	claims["Picture"] = usr.Picture
 }
 
 func (usr *DefaultUser) GetEmail() string {
@@ -192,12 +191,12 @@ func (usr *DefaultUser) GetPicture() string {
 	return usr.Picture
 }
 
-func (usr *DefaultUser) LoadJWTClaims(token *jwt.Token) {
-	usr.SetId(token.Claims["UserId"].(string))
-	usr.Username = token.Claims["UserName"].(string)
-	usr.Name = token.Claims["Name"].(string)
-	usr.Picture = token.Claims["Picture"].(string)
-	rolesInt := token.Claims["Roles"]
+func (usr *DefaultUser) LoadClaims(claims map[string]interface{}) {
+	usr.SetId(claims["UserId"].(string))
+	usr.Username = claims["UserName"].(string)
+	usr.Name = claims["Name"].(string)
+	usr.Picture = claims["Picture"].(string)
+	rolesInt := claims["Roles"]
 	if rolesInt != nil {
 		usr.Roles = strings.Split(rolesInt.(string), ",")
 	}

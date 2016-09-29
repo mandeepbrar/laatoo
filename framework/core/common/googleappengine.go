@@ -3,16 +3,13 @@
 package common
 
 import (
-	"log"
 	"net/http"
 	"sync"
 
 	glctx "golang.org/x/net/context"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
-	"google.golang.org/cloud"
 )
 
 var (
@@ -53,7 +50,7 @@ func GetAppengineContext(ctx *Context) glctx.Context {
 	return appengine.NewContext(ctx.gaeReq)
 }
 
-func GetCloudContext(ctx *Context, scope string) glctx.Context {
+/*func GetCloudContext(ctx *Context, scope string) glctx.Context {
 	appenginectx := GetAppengineContext(ctx)
 	if appenginectx == nil {
 		log.Print("no request in appengine context")
@@ -69,7 +66,7 @@ func GetCloudContext(ctx *Context, scope string) glctx.Context {
 		},
 	}
 	return cloud.WithContext(appenginectx, appengine.AppID(appenginectx), hc)
-}
+}*/
 
 func HttpClient(ctx *Context) *http.Client {
 	appenginectx := GetAppengineContext(ctx)

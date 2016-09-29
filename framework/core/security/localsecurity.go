@@ -121,19 +121,20 @@ func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 
 func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(auth.User, string) (string, auth.User, error) {
 	return func(user auth.User, realm string) (string, auth.User, error) {
-		token := jwt.New(jwt.SigningMethodRS512)
 		rbac, ok := user.(auth.RbacUser)
+		claims := make(jwt.MapClaims)
 		if ok {
 			roles, _ := rbac.GetRoles()
 			permissions, admin := lsh.getRolePermissions(roles, realm)
 			rbac.SetPermissions(permissions)
-			token.Claims["Admin"] = admin
+			claims["Admin"] = admin
 		}
-		user.PopulateJWTToken(token)
-		token.Claims[config.REALM] = realm
-		token.Claims["UserId"] = user.GetId()
+		user.PopulateClaims(claims)
+		claims[config.REALM] = realm
+		claims["UserId"] = user.GetId()
 		//token.Claims["IP"] = ctx.ClientIP()
-		token.Claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
+		claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
+		token := jwt.NewWithClaims(jwt.SigningMethodRS512, claims)
 		tokenString, err := token.SignedString(lsh.pvtKey)
 		if err != nil {
 			return "", nil, errors.WrapError(ctx, err)

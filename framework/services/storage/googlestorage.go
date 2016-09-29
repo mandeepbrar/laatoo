@@ -11,8 +11,8 @@ import (
 	//"golang.org/x/oauth2"
 	//"golang.org/x/oauth2/google"
 
+	"cloud.google.com/go/storage"
 	"github.com/twinj/uuid"
-	"google.golang.org/cloud/storage"
 	//"net/http"
 	//"strings"
 )
@@ -20,10 +20,12 @@ import (
 const (
 	CONF_GOOGLESTORAGE_SERVICENAME = "googlestorage"
 	CONF_GS_FILESBUCKET            = "bucket"
+	CONF_GS_PUBLICFILE             = "public"
 )
 
 type GoogleStorageSvc struct {
 	bucket string
+	public bool
 }
 
 func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -32,6 +34,8 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_GS_FILESBUCKET)
 	}
 	svc.bucket = bucket
+	public, _ := conf.GetBool(CONF_GS_PUBLICFILE)
+	svc.public = public
 	return nil
 }
 
@@ -57,41 +61,41 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error) {
 	log.Logger.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
 
-	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
-	client, err := storage.NewClient(cloudCtx)
+	appengineCtx := ctx.GetAppengineContext()
+	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
 		log.Logger.Debug(ctx, "Error while creating file", "err", err)
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(cloudCtx)
+	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
 	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
 	return dst, nil
 }
 
 func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bool {
-	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
-	client, err := storage.NewClient(cloudCtx)
+	appengineCtx := ctx.GetAppengineContext()
+	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
 		log.Logger.Debug(ctx, "Error while creating file", "err", err)
 		return false
 	}
 	defer client.Close()
 
-	_, err = client.Bucket(svc.bucket).Object(fileName).Attrs(cloudCtx)
+	_, err = client.Bucket(svc.bucket).Object(fileName).Attrs(appengineCtx)
 	if err == nil {
 		return true
 	}
 	return false
 }
 func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.ReadCloser, error) {
-	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
-	client, err := storage.NewClient(cloudCtx)
+	appengineCtx := ctx.GetAppengineContext()
+	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
 		log.Logger.Debug(ctx, "Error while opening", "err", err)
 		return nil, errors.WrapError(ctx, err)
 	}
-	return client.Bucket(svc.bucket).Object(fileName).NewReader(cloudCtx)
+	return client.Bucket(svc.bucket).Object(fileName).NewReader(appengineCtx)
 }
 
 func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
@@ -100,6 +104,9 @@ func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string)
 }
 
 func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
+	if svc.public {
+		return fmt.Sprintf("https://storage.googleapis.com/%s/%s", svc.bucket, fileName)
+	}
 	return fmt.Sprintf("https://storage.cloud.google.com/%s/%s", svc.bucket, fileName)
 }
 

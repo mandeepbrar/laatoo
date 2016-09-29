@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/twinj/uuid"
 	glctx "golang.org/x/net/context"
+
+	"github.com/twinj/uuid"
 )
 
 type Context struct {
@@ -135,12 +136,6 @@ func (ctx *Context) Set(key string, val interface{}) {
 }
 func (ctx *Context) GetAppengineContext() glctx.Context {
 	return ctx.appengineCtx
-}
-func (ctx *Context) GetCloudContext(scope string) glctx.Context {
-	if ctx.gaeReq != nil {
-		return GetCloudContext(ctx, scope)
-	}
-	return nil
 }
 func (ctx *Context) HttpClient() *http.Client {
 	return HttpClient(ctx)

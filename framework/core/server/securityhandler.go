@@ -179,15 +179,16 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User,
 			if !ok {
 				return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 			}
-			realm := token.Claims[config.REALM]
+			claims := token.Claims.(jwt.MapClaims)
+			realm := claims[config.REALM]
 			log.Logger.Info(ctx, "token realms", "realm", realm, "expected", sh.realm)
 			if realm != sh.realm {
 				return nil, false, nil
 			}
 
-			user.LoadJWTClaims(token)
+			user.LoadClaims(claims)
 			admin := false
-			adminClaim := token.Claims["Admin"]
+			adminClaim := claims["Admin"]
 			if adminClaim != nil {
 				adminVal, ok := adminClaim.(bool)
 				if ok {

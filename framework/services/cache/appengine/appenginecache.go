@@ -101,10 +101,12 @@ func (svc *AppengineCacheService) GetMulti(ctx core.RequestContext, bucket strin
 	return
 }
 func (svc *AppengineCacheService) Increment(ctx core.RequestContext, bucket string, key string) error {
-	return memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), 1, 0)
+	_, err := memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), 1, 0)
+	return err
 }
 func (svc *AppengineCacheService) Decrement(ctx core.RequestContext, bucket string, key string) error {
-	return memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), -1, 0)
+	_, err := memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), -1, 0)
+	return err
 }
 func (svc *AppengineCacheService) Invoke(ctx core.RequestContext) error {
 	return nil

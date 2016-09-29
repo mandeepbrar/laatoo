@@ -4,7 +4,7 @@ import (
 	"laatoo/framework/core/common"
 	"laatoo/framework/core/engine/http/echo"
 	"laatoo/framework/core/engine/http/gin"
-	"laatoo/framework/core/engine/http/goji"
+
 	"laatoo/framework/core/engine/http/net"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -13,6 +13,7 @@ import (
 	"laatoo/sdk/server"
 )
 
+//"laatoo/framework/core/engine/http/goji"
 type httpEngine struct {
 	framework   net.Webframework
 	name        string
@@ -38,10 +39,10 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	switch eng.fwname {
 	case "Echo":
 		eng.framework = &echo.EchoWebFramework{}
-	case "Gin":
+	default:
 		eng.framework = &gin.GinWebFramework{Name: eng.name}
-	case "Goji":
-		eng.framework = &goji.GojiWebFramework{}
+		/*	case "Goji":
+			eng.framework = &goji.GojiWebFramework{}*/
 	}
 	ssl, ok := conf.GetBool(config.CONF_ENG_SSL)
 	if ok && ssl {
