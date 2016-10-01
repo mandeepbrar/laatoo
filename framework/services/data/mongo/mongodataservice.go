@@ -7,7 +7,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/sdk/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -342,8 +341,8 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 	if length == 0 {
 		if upsert {
 			object := ms.ObjectCreator()
-			utils.SetObjectFields(object, newVals)
 			stor := object.(data.Storable)
+			stor.SetValues(object, newVals)
 			err := ms.Save(ctx, stor)
 			if err != nil {
 				return nil, err

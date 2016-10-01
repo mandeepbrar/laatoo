@@ -47,8 +47,8 @@ func (svc *gaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) e
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
-	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
 	*/
+	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
 	return nil
 }
 

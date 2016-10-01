@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+	"reflect"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -194,6 +195,9 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.Object)
 	keys := make([]*datastore.Key, len(items))
 	for ind, item := range items {
+		if item == nil {
+			return errors.BadRequest(ctx)
+		}
 		id := item.GetId()
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
@@ -290,11 +294,11 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	}
 
 	object := svc.ObjectCreator()
-
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
-	utils.SetObjectFields(stor, newVals)
+	log.Logger.Info(ctx, "Going to set values", "stor", stor)
+	stor.SetValues(object, newVals)
 	if err != nil {
 		if upsert {
 			return svc.Save(ctx, stor)
@@ -311,6 +315,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 			return err
 		}
 	}
+	log.Logger.Info(ctx, "Going to put object", "id", id)
 	_, err = datastore.Put(appEngineContext, key, object)
 	if err != nil {
 		return err
@@ -362,7 +367,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		if upsert {
 			object := svc.ObjectCreator()
 			stor := object.(data.Storable)
-			utils.SetObjectFields(stor, newVals)
+			stor.SetValues(object, newVals)
 			err := svc.Save(ctx, stor)
 			if err != nil {
 				return nil, err
@@ -372,8 +377,8 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		return []string{}, nil
 	}
 	resultStor, ids, err := data.CastToStorableCollection(results)
-	for _, item := range resultStor {
-		utils.SetObjectFields(item, newVals)
+	for ind, item := range resultStor {
+		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
@@ -434,8 +439,8 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 		}
 	}
 	resultStor, ids, err := data.CastToStorableCollection(results)
-	for _, item := range resultStor {
-		utils.SetObjectFields(item, newVals)
+	for ind, item := range resultStor {
+		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
 		if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
