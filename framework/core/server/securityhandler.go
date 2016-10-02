@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/rsa"
+	"fmt"
 	"laatoo/framework/core/common"
 	"laatoo/framework/core/security"
 	"laatoo/sdk/auth"
@@ -26,6 +27,7 @@ type securityHandler struct {
 	roleObject    string
 	authHeader    string
 	adminRole     string
+	anonRole      string
 	securityConf  config.Config
 	publicKey     *rsa.PublicKey
 	realm         string
@@ -40,12 +42,26 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	initCtx := sh.createContext(ctx, "Initialize Security Handler")
 	sh.securityConf = conf
+
+	realm, _ := conf.GetString(config.REALM)
+	sh.realm = realm
+	sh.Set(config.REALM, realm)
+
 	adminRole, ok := conf.GetString(config.ADMINROLE)
 	if !ok {
 		adminRole = config.DEFAULT_ADMIN
 	}
+	if realm != "" {
+		adminRole = fmt.Sprintf("%s_%s", adminRole, realm)
+	}
 	sh.adminRole = adminRole
 	sh.Set(config.ADMINROLE, adminRole)
+
+	anonRole := "Anonymous"
+	if realm != "" {
+		anonRole = fmt.Sprintf("%s_%s", anonRole, realm)
+	}
+	sh.anonRole = anonRole
 
 	roleobject, ok := conf.GetString(config.ROLE)
 	if !ok {
@@ -60,10 +76,6 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.Set(config.USER, userObject)
 	sh.userObject = userObject
-
-	realm, _ := conf.GetString(config.REALM)
-	sh.realm = realm
-	sh.Set(config.REALM, realm)
 
 	publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
 	if !ok {
@@ -106,7 +118,7 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 
 	anonymousUser := userCreator()
 	init := anonymousUser.(core.Initializable)
-	err = init.Init(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{"Anonymous"}})
+	err = init.Init(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{sh.anonRole}})
 	if err != nil {
 		return err
 	}
@@ -114,13 +126,13 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 
 	switch sh.securityMode {
 	case config.CONF_SECURITY_LOCAL:
-		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.roleCreator, sh.realm)
+		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.roleCreator, sh.realm)
 		if err != nil {
 			return err
 		}
 		sh.handler = plugin
 	case config.CONF_SECURITY_REMOTE:
-		plugin, err := security.NewRemoteSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.authHeader, sh.roleObject, sh.realm)
+		plugin, err := security.NewRemoteSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.authHeader, sh.roleObject, sh.realm)
 		if err != nil {
 			return err
 		}

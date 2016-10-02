@@ -51,3 +51,9 @@ func (ent *Role) GetName() string {
 func (ent *Role) SetName(val string) {
 	ent.Role = val
 }
+func (ent *Role) GetRealm() string {
+	return ent.Realm
+}
+func (ent *Role) SetRealm(val string) {
+	ent.Realm = val
+}

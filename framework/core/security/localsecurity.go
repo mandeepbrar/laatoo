@@ -20,7 +20,7 @@ const (
 	CONF_SECURITY_ROLEDATASERVICE = "role_data_svc"
 	CONF_SECURITY_PERMISSIONS     = "permissions"
 	CONF_SECURITY_AUTHSERVICES    = "authservices"
-	CONF_SECURITY_SUPPORTEDREALMS = "realms"
+	CONF_SECURITY_SUPPORTEDREALMS = "supportedrealms"
 )
 
 type realmObj struct {
@@ -33,6 +33,7 @@ type realmObj struct {
 type localSecurityHandler struct {
 	roleCreator     core.ObjectCreator
 	adminRole       string
+	anonRole        string
 	pvtKey          *rsa.PrivateKey
 	roleDataService data.DataComponent
 	roleDataSvcName string
@@ -44,8 +45,8 @@ type localSecurityHandler struct {
 	localRealm      *realmObj
 }
 
-func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, roleCreator core.ObjectCreator, realmName string) (SecurityPlugin, error) {
-	lsh := &localSecurityHandler{adminRole: adminrole, roleCreator: roleCreator, realmName: realmName}
+func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, anonRole string, roleCreator core.ObjectCreator, realmName string) (SecurityPlugin, error) {
+	lsh := &localSecurityHandler{adminRole: adminrole, anonRole: anonRole, roleCreator: roleCreator, realmName: realmName}
 
 	permissions, ok := conf.GetStringArray(CONF_SECURITY_PERMISSIONS)
 	if ok {
@@ -59,6 +60,7 @@ func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminro
 		supportedRealms = []string{realmName}
 	}
 	lsh.realms = make(map[string]*realmObj, len(supportedRealms))
+	log.Logger.Info(ctx, "Supported Realms", "realms", supportedRealms)
 	for _, supportedRealm := range supportedRealms {
 		lsh.realms[supportedRealm] = &realmObj{name: supportedRealm, rolesMap: make(map[string]auth.Role, 15),
 			rolePermissions: make(map[string]bool, 100)}
@@ -199,25 +201,28 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 				realm.rolePermissions[key] = true
 			}
 			if realmName == lsh.realmName {
-				if id == "Anonymous" {
+				if id == lsh.anonRole {
 					anonExists = true
 				}
 				if id == lsh.adminRole {
 					adminExists = true
 				}
 			}
+			log.Logger.Trace(ctx, "Loaded role", "rolename", val)
 		}
+		log.Logger.Info(ctx, "Loaded realm", "realm", realmName)
 	}
-	return lsh.createInitRoles(ctx, anonExists, adminExists)
+	return lsh.createInitRoles(ctx, anonExists, adminExists, lsh.realmName)
 }
 
-func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExists bool, adminExists bool) error {
+func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExists bool, adminExists bool, realm string) error {
 
 	if !anonExists {
 		ent := lsh.roleCreator()
 		anonymousRole := ent.(auth.Role)
-		anonymousRole.SetId("Anonymous")
-		anonymousRole.SetName("Anonymous")
+		anonymousRole.SetId(lsh.anonRole)
+		anonymousRole.SetRealm(realm)
+		anonymousRole.SetName(lsh.anonRole)
 		storable, ok := ent.(data.Storable)
 		if !ok {
 			errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
@@ -234,6 +239,7 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		adminRole := ent.(auth.Role)
 		adminRole.SetPermissions(lsh.allPermissions)
 		adminRole.SetId(lsh.adminRole)
+		adminRole.SetRealm(realm)
 		adminRole.SetName(lsh.adminRole)
 		storable, ok := ent.(data.Storable)
 		if !ok {

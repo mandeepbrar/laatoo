@@ -39,7 +39,7 @@ type remoteSecurityHandler struct {
 	realm            string
 }
 
-func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, authHeader string, roleObject string, realm string) (SecurityPlugin, error) {
+func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, anonrole string, authHeader string, roleObject string, realm string) (SecurityPlugin, error) {
 	rsh := &remoteSecurityHandler{adminRole: adminrole, authHeader: authHeader, roleObject: roleObject, realm: realm}
 	if realm == "" {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", config.REALM)
