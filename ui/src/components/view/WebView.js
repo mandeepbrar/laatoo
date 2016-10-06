@@ -73,6 +73,9 @@ class WebView extends React.Component {
   }
 
   getPagination(view, pages, page) {
+    if(pages == 1) {
+      return null
+    }
     return (
       <Paginator.Context
         {...pagifyBootstrapPreset}
@@ -127,7 +130,7 @@ class WebView extends React.Component {
         style={this.props.style}
         className={this.props.className}
         incrementalLoad={this.props.incrementalLoad}
-        getPagination={this.props.incrementalLoad ? null : this.getPagination} >
+        getPagination={this.props.incrementalLoad || this.props.hidePaginationControl ? null : this.getPagination} >
       </View>
     )
   }

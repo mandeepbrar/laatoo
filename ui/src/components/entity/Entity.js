@@ -53,8 +53,8 @@ class Entity {
       let preSave = this.entityProperties.preSave;
       let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
-      return () => (
-          <CreateEntity name={this.name} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
+      return (props) => (
+          <CreateEntity name={this.name} idToDuplicate={props.params.idToDuplicate} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
         )
 
     }

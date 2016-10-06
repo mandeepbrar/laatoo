@@ -79,6 +79,7 @@ class WebListView extends React.Component {
         reducer = {this.props.reducer}
         paginate = {this.props.paginate}
         pageSize = {this.props.pageSize}
+        hidePaginationControl = {this.props.hidePaginationControl}
         viewService = {this.props.viewService}
         urlParams = {this.props.urlParams}
         postArgs = {this.props.postArgs}

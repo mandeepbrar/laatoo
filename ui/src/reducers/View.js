@@ -15,6 +15,9 @@ function ViewReducer(reducerName) {
       if(!state) {
         return initialState;
       }
+      if(action.type == ActionNames.LOGOUT) {
+        return initialState
+      }
       return state;
     }
     if (action.type) {
