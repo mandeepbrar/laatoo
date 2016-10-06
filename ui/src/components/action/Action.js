@@ -32,20 +32,20 @@ class ActionComp extends React.Component {
     evt.preventDefault();
     if(this.props.confirm) {
       if(!this.props.confirm(this.props)) {
-        return
+        return false
       }
     }
     console.log("exceuting action", this.action)
     switch(this.action.actiontype) {
       case "dispatchaction":
         this.dispatchAction();
-      return;
+      return false;
       case "method":
         let params = this.props.params
         let method = this.props.method
         console.log("method and params", method, params)
         method(params);
-      return;
+      return flase;
       default:
       if(this.action.url) {
         let formattedUrl = formatUrl(this.action.url, this.props.params);
@@ -53,7 +53,7 @@ class ActionComp extends React.Component {
         //browserHistory.push({pathname: formattedUrl});
         Router.redirect(formattedUrl);
       }
-      return;
+      return false;
     }
   }
 
