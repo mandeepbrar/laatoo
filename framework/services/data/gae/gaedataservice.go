@@ -297,7 +297,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
-	log.Logger.Info(ctx, "Going to set values", "stor", stor)
+	log.Logger.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
 	stor.SetValues(object, newVals)
 	if err != nil {
 		if upsert {
@@ -305,6 +305,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		}
 		return err
 	}
+	log.Logger.Info(ctx, "Set values", "object", object)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, stor)
 		if err != nil {
@@ -315,7 +316,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 			return err
 		}
 	}
-	log.Logger.Info(ctx, "Going to put object", "id", id)
+	log.Logger.Info(ctx, "Going to put object", "id", id, "object", object)
 	_, err = datastore.Put(appEngineContext, key, object)
 	if err != nil {
 		return err
