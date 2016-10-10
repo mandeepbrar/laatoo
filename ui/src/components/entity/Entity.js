@@ -27,6 +27,7 @@ class Entity {
       let reducer = this.name.toUpperCase()+"_View";
       let idField = this.entityProperties.idField;
       let titleField = this.entityProperties.titleField;
+      let actions = this.entityProperties.actions
       let header = this.entityProperties.viewHeader;
       let paginate = this.entityProperties.paginate;
       let pageSize = this.entityProperties.pageSize;
@@ -38,16 +39,23 @@ class Entity {
       let viewArgs = this.entityProperties.viewArgs;
       let filterForm = this.entityProperties.filterForm;
       let defaultFilter = this.entityProperties.defaultFilter;
-      return () => (
-          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate} loader={loader}
-            pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
-            titleField={titleField} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
-          </EntityView>
-        )
+      return (props) => {
+          let params = null
+          if(props && props.params) {
+            params=  props.params
+          }
+          return (
+            <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate} loader={loader}
+              pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
+              actions={actions} titleField={titleField} params={params} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
+            </EntityView>
+          )
+        }
     }
     CreateComponent() {
       let reducer = this.name.toUpperCase()+"_Form";
       let schema = this.entityProperties.schema;
+      let data = this.entityProperties.data;
       let mountForm = this.entityProperties.mountForm;
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
@@ -55,11 +63,16 @@ class Entity {
       let schemaOptions = this.entityProperties.schemaOptions;
       return (props) =>  {
         let idToDuplicate = null
+        let params = null
         if(props && props.params && props.params.idToDuplicate) {
           idToDuplicate = props.params.idToDuplicate
         }
+        if(props && props.params) {
+          params = props.params
+        }
         return (
-            <CreateEntity name={this.name} idToDuplicate={idToDuplicate} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
+            <CreateEntity name={this.name} idToDuplicate={idToDuplicate} data={data} reducer={reducer} refCallback={refCallback} schema={schema}
+             params={params} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
           )
       }
     }
@@ -80,9 +93,15 @@ class Entity {
       let reducer = this.name.toUpperCase()+"_Display";
       let display = this.entityProperties.display;
       let loader = this.entityProperties.loader;
-      return (props) => (
-          <DisplayEntity name={this.name} id={props.params.id} loader={loader} reducer={reducer} display={display}></DisplayEntity>
+      return (props) =>  {
+        let params = null
+        if(props && props.params) {
+          params=  props.params
+        }
+        return (
+          <DisplayEntity name={this.name} id={props.params.id} loader={loader} params={params} reducer={reducer} display={display}></DisplayEntity>
         )
+      }
     }
     ViewReducer() {
       return getViewReducer(this.name);

@@ -56,6 +56,7 @@ const mapStateToProps = (state, ownProps) => {
   let props = {
     name: ownProps.name,
     id: ownProps.id,
+    params: ownProps.params,
     loader: ownProps.loader,
     reducer: ownProps.reducer,
     forceUpdate: ownProps.forceUpdate,

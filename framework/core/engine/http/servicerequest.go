@@ -139,7 +139,7 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 		if found {
 			reqctx.Set(param, engineContext.GetQueryParam(param))
 		} else {
-			return errors.BadRequest(webctx)
+			log.Logger.Info(webctx, "Parameter not allowed in request", "parameter", param)
 		}
 	}
 

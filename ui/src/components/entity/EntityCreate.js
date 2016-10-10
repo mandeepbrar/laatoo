@@ -39,11 +39,19 @@ class CreateForm extends React.Component {
     }
   }
   render() {
+    let schemaOptions = this.props.schemaOptions
+    if(this.props.params) {
+      if(schemaOptions.config) {
+        schemaOptions.config.routeParams = this.props.params
+      } else {
+        schemaOptions.config = {routeParams: this.props.params}
+      }
+    }
     return (
       <div>
         {this.title()}
         <EntityForm name={this.props.name} actionButtons={this.props.actionButtons} refCallback={this.props.refCallback} schema={this.state.schema}
-            entityData={this.props.data} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={this.props.schemaOptions}>
+            entityData={this.props.data} reducer={this.props.reducer} preSave={this.props.preSave} schemaOptions={schemaOptions}>
         </EntityForm>
       </div>
     )
@@ -51,12 +59,12 @@ class CreateForm extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  console.log("own props in create", ownProps)
   let props = {
     idToDuplicate: ownProps.idToDuplicate,
     name: ownProps.name,
     schema: ownProps.schema,
     schemaOptions: ownProps.schemaOptions,
+    params: ownProps.params,
     refCallback: ownProps.refCallback,
     reducer: ownProps.reducer,
     mountForm: ownProps.mountForm,
@@ -64,14 +72,18 @@ const mapStateToProps = (state, ownProps) => {
     preSave: ownProps.preSave,
     postSave: ownProps.postSave
   };
+  let data = ownProps.data
   if(state.router && state.router.routeStore) {
     let form = state.router.routeStore[ownProps.reducer];
     if(form) {
       props.status = form.status
-      props.data = form.data
-      props.data.Id = ""
+      if(form.data) {
+        data = Object.assign(data, form.data)
+      }
+      data.Id = ""
     }
   }
+  props.data = data
   return props;
 }
 

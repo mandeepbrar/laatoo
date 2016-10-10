@@ -12,6 +12,14 @@ class EntityView extends React.Component {
     super(props);
     this.name = this.props.name;
     this.deleteEntity = this.deleteEntity.bind(this);
+    if(props.actions) {
+      this.actions = props.actions
+    } else {
+      this.actions = [
+        <Action className="rightalign  m20" widget="button" key={"Create "+this.name} name={"Create "+this.name}>{"Create "+this.name}</Action>
+      ]
+    }
+
   }
   componentDidMount() {
       this.refs.view.addMethod("deleteItem", this.deleteEntity)
@@ -29,7 +37,7 @@ class EntityView extends React.Component {
     return (
       <div className="entitywebview">
         <div className="ma20 actionbar" style={{display:"block", clear:"both"}}>
-          <Action className="rightalign  m20" widget="button" key={"Create "+this.name} name={"Create "+this.name}>{"Create "+this.name}</Action>
+          {this.actions}
         </div>
         <WebTableView className="ma20" ref="view" name={this.name}
           filterTitle="Search" filterGo="Go" filterForm={this.props.filterForm} defaultFilter={this.props.defaultFilter}

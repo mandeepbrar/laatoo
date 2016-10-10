@@ -46,6 +46,7 @@ class TCombWebForm extends React.Component {
     if(this.props.preSave) {
       data = this.props.preSave(data);
     }
+    console.log("data to submit", data)
     if (!data) {
       return;
     }
