@@ -43,9 +43,8 @@ class ActionComp extends React.Component {
       case "method":
         let params = this.props.params
         let method = this.props.method
-        console.log("method and params", method, params)
         method(params);
-      return flase;
+      return false;
       default:
       if(this.action.url) {
         let formattedUrl = formatUrl(this.action.url, this.props.params);

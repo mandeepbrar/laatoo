@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"laatoo/sdk/core"
 	"net/http"
 
 	"goji.io/pat"
@@ -93,19 +94,23 @@ func (gojictx *GojiContext) GetRequest() *http.Request {
 	return gojictx.req
 }
 
-func (gojictx *GojiContext) GetFiles() (map[string]io.ReadCloser, error) {
+func (gojictx *GojiContext) GetFiles() (map[string]*core.MultipartFile, error) {
 	err := gojictx.req.ParseMultipartForm(2000000000)
 	if err != nil {
 		return nil, err
 	}
 	form := gojictx.req.MultipartForm
-	files := make(map[string]io.ReadCloser, len(form.File))
-	for fieldname, headers := range form.File {
+	files := make(map[string]*core.MultipartFile, len(form.File))
+	for _, headers := range form.File {
+		fil := &core.MultipartFile{}
 		mpfile, err := headers[0].Open()
 		if err != nil {
 			return nil, err
 		}
-		files[fieldname] = mpfile
+		fil.File = mpfile
+		fil.FileName = headers[0].Filename
+		fil.MimeType = headers[0].Header.Get("Content-Type")
+		files[fil.FileName] = fil
 	}
 	return files, nil
 }

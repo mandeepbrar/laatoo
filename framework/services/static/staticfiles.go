@@ -181,18 +181,18 @@ func getFormat(format string) imaging.Format {
 func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) bool {
 	log.Logger.Trace(ctx, "Opening file", "filename", filename)
 	inStr, err := svc.storage.Open(ctx, filename)
-	defer inStr.Close()
 	if err != nil {
 		log.Logger.Trace(ctx, "File does not exist", "sourcefile", filename, "err", err)
 		return false
 	}
+	defer inStr.Close()
 
-	writer, err := svc.transformedFilesStorage.CreateFile(ctx, filename)
-	defer writer.Close()
+	writer, err := svc.transformedFilesStorage.CreateFile(ctx, filename, "")
 	if err != nil {
 		log.Logger.Trace(ctx, "Error opening source file", "destfile", filename, "err", err)
 		return false
 	}
+	defer writer.Close()
 	/*destdir, _ := path.Split(destfile)
 	os.MkdirAll(destdir, 0755)
 	writer, err := os.Create(destfile)

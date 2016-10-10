@@ -53,10 +53,15 @@ class Entity {
       let preSave = this.entityProperties.preSave;
       let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
-      return (props) => (
-          <CreateEntity name={this.name} idToDuplicate={props.params.idToDuplicate} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
-        )
-
+      return (props) =>  {
+        let idToDuplicate = null
+        if(props && props.params && props.params.idToDuplicate) {
+          idToDuplicate = props.params.idToDuplicate
+        }
+        return (
+            <CreateEntity name={this.name} idToDuplicate={idToDuplicate} reducer={reducer} refCallback={refCallback} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
+          )
+      }
     }
     UpdateComponent() {
       let reducer = this.name.toUpperCase()+"_Form";

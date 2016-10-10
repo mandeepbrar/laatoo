@@ -63,8 +63,9 @@ func (svc *checkOwnerService) areOwned(ctx core.RequestContext, ids []string) (b
 	userId := ctx.GetUser().GetId()
 	for _, item := range stors {
 		i, ok := item.(data.Auditable)
-		if ok {
+		if ok && item.GetId() != "" {
 			if i.GetCreatedBy() != userId {
+				log.Logger.Info(ctx, "not owned", "item", item, "id", item.GetId(), "created by", i.GetCreatedBy(), "user id", userId)
 				ctx.SetResponse(core.StatusUnauthorizedResponse)
 				return false, nil
 			}
@@ -78,7 +79,15 @@ func (svc *checkOwnerService) areOwned(ctx core.RequestContext, ids []string) (b
 }*/
 
 func (svc *checkOwnerService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
-	return errors.NotImplemented(ctx, "PutMulti")
+	ids := make([]string, len(items))
+	for ind, item := range items {
+		ids[ind] = item.GetId()
+	}
+	owned, err := svc.areOwned(ctx, ids)
+	if owned {
+		return svc.PluginDataComponent.PutMulti(ctx, items)
+	}
+	return err
 }
 
 func (svc *checkOwnerService) Put(ctx core.RequestContext, id string, item data.Storable) error {

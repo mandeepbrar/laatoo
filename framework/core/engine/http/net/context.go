@@ -2,6 +2,7 @@ package net
 
 import (
 	"io"
+	"laatoo/sdk/core"
 	"net/http"
 )
 
@@ -20,5 +21,5 @@ type WebContext interface {
 	Redirect(status int, path string) error
 	GetRequestStream() (io.Reader, error)
 	GetRequest() *http.Request
-	GetFiles() (map[string]io.ReadCloser, error)
+	GetFiles() (map[string]*core.MultipartFile, error)
 }

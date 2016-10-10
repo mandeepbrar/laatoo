@@ -193,9 +193,18 @@ func (usr *DefaultUser) GetPicture() string {
 
 func (usr *DefaultUser) LoadClaims(claims map[string]interface{}) {
 	usr.SetId(claims["UserId"].(string))
-	usr.Username = claims["UserName"].(string)
-	usr.Name = claims["Name"].(string)
-	usr.Picture = claims["Picture"].(string)
+	usrName, ok := claims["UserName"]
+	if ok {
+		usr.Username = usrName.(string)
+	}
+	name, ok := claims["Name"]
+	if ok {
+		usr.Name = name.(string)
+	}
+	picture, ok := claims["Picture"]
+	if ok {
+		usr.Picture = picture.(string)
+	}
 	rolesInt := claims["Roles"]
 	if rolesInt != nil {
 		usr.Roles = strings.Split(rolesInt.(string), ",")

@@ -40,14 +40,14 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 }
 
 func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
-	files := *ctx.GetRequest().(*map[string]io.ReadCloser)
+	files := *ctx.GetRequest().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
-	for _, inpStr := range files {
-		defer inpStr.Close()
+	for _, fil := range files {
+		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
-		log.Logger.Debug(ctx, "writing file", "name", fileName)
-		url, err := svc.SaveFile(ctx, inpStr, fileName)
+		log.Logger.Debug(ctx, "writing file", "name", fileName, "MimeType", fil.MimeType)
+		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
 			log.Logger.Debug(ctx, "Error while invoking upload", "err", err)
 			return errors.WrapError(ctx, err)
@@ -58,7 +58,7 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
 	return nil
 }
-func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error) {
+func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
 	log.Logger.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
 
 	appengineCtx := ctx.GetAppengineContext()
@@ -69,6 +69,9 @@ func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string
 	}
 
 	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
+	if contentType != "" {
+		dst.ContentType = contentType
+	}
 	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
 	return dst, nil
 }
@@ -110,10 +113,10 @@ func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName strin
 	return fmt.Sprintf("https://storage.cloud.google.com/%s/%s", svc.bucket, fileName)
 }
 
-func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error) {
+func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
 	log.Logger.Debug(ctx, "Saving file", "name", fileName)
 	// Destination file
-	dst, err := svc.CreateFile(ctx, fileName)
+	dst, err := svc.CreateFile(ctx, fileName, contentType)
 	if err != nil {
 		log.Logger.Debug(ctx, "Error while opening", "err", err)
 		return "", errors.WrapError(ctx, err)

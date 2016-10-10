@@ -44,6 +44,20 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		}
 	}
 
+	allowedQueryParams := make(map[string]bool)
+
+	if channel.allowedQParams != nil {
+		for _, p := range channel.allowedQParams {
+			allowedQueryParams[p] = true
+		}
+	}
+	allowedParams, ok := routeConf.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+	if ok {
+		for _, p := range allowedParams {
+			allowedQueryParams[p] = true
+		}
+	}
+
 	////build value parameters
 	var staticValues map[string]interface{}
 	staticValuesConf, ok := routeConf.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
@@ -99,7 +113,8 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 	log.Logger.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
 
-	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, otype, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers)
+	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, otype, dataObjectName, isdataObject,
+		isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers, allowedQueryParams)
 	if err != nil {
 		return err
 	}

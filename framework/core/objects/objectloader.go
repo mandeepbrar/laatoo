@@ -15,6 +15,7 @@ type objectLoader struct {
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
 	objectNames, ok := conf.GetStringArray(config.CONF_OBJECTLDR_OBJECTS)
 	if ok {
+		objectNames = append(objectNames, "string")
 		for _, objectName := range objectNames {
 			fac, ok := objectsFactoryRegister[objectName]
 			if ok {

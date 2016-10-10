@@ -278,7 +278,8 @@ func (svc *gaeDataService) UpsertId(ctx core.RequestContext, id string, newVals 
 
 func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("Update")
-	return svc.update(ctx, id, newVals, false)
+	upsert, _ := ctx.GetBool("upsert")
+	return svc.update(ctx, id, newVals, upsert)
 }
 
 func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {

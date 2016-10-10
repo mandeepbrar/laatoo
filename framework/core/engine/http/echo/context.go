@@ -1,11 +1,13 @@
 package echo
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"io"
 	"io/ioutil"
+	"laatoo/sdk/core"
 	"net/http"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
 )
 
 type EchoContext struct {
@@ -67,18 +69,23 @@ func (echctx *EchoContext) GetRequest() *http.Request {
 func (echctx *EchoContext) GetBody() ([]byte, error) {
 	return ioutil.ReadAll(echctx.baseCtx.Request().Body())
 }
-func (echctx *EchoContext) GetFiles() (map[string]io.ReadCloser, error) {
+func (echctx *EchoContext) GetFiles() (map[string]*core.MultipartFile, error) {
 	form, err := echctx.baseCtx.Request().MultipartForm()
 	if err != nil {
 		return nil, err
 	}
-	files := make(map[string]io.ReadCloser, len(form.File))
-	for fieldname, headers := range form.File {
+
+	files := make(map[string]*core.MultipartFile, len(form.File))
+	for _, headers := range form.File {
+		fil := &core.MultipartFile{}
 		mpfile, err := headers[0].Open()
 		if err != nil {
 			return nil, err
 		}
-		files[fieldname] = mpfile
+		fil.File = mpfile
+		fil.FileName = headers[0].Filename
+		fil.MimeType = headers[0].Header.Get("Content-Type")
+		files[fil.FileName] = fil
 	}
 	return files, nil
 }

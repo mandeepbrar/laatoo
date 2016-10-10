@@ -14,6 +14,10 @@ var (
 	invokableMethodsRegister = make(map[string]core.ServiceFunc, 30)
 )
 
+func init() {
+	Register("string", "")
+}
+
 func Register(objectName string, obj interface{}) {
 	RegisterObjectFactory(objectName, NewObjectType(obj))
 }

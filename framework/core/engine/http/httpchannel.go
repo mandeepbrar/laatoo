@@ -35,11 +35,12 @@ const (
 )
 
 type httpChannel struct {
-	name     string
-	Router   net.Router
-	config   config.Config
-	engine   *httpEngine
-	skipAuth bool
+	name           string
+	Router         net.Router
+	config         config.Config
+	engine         *httpEngine
+	allowedQParams []string
+	skipAuth       bool
 }
 
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
@@ -63,6 +64,19 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 	}
 
 	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
+
+	allowedQParams, ok := conf.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+	if ok {
+		if parentChannel != nil && parentChannel.allowedQParams != nil {
+			channel.allowedQParams = append(parentChannel.allowedQParams, allowedQParams...)
+		} else {
+			channel.allowedQParams = allowedQParams
+		}
+	} else {
+		if parentChannel != nil {
+			channel.allowedQParams = parentChannel.allowedQParams
+		}
+	}
 
 	usecors, _ := conf.GetBool(config.CONF_HTTPENGINE_USECORS)
 

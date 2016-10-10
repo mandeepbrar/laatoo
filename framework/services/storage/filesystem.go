@@ -34,17 +34,17 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	log.Logger.Info(ctx, "writing file")
-	files := *ctx.GetRequest().(*map[string]io.ReadCloser)
+	files := *ctx.GetRequest().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
-	for _, inpStr := range files {
+	for _, fil := range files {
+		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
-		log.Logger.Info(ctx, "writing file", "name", fileName)
-		url, err := svc.SaveFile(ctx, inpStr, fileName)
+		log.Logger.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
+		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
 			return err
 		}
-		log.Logger.Info(ctx, "writing file", "url", url)
 		urls[i] = url
 		i++
 	}
@@ -52,7 +52,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
 	return nil
 }
-func (svc *FileSystemSvc) CreateFile(ctx core.RequestContext, fileName string) (io.WriteCloser, error) {
+func (svc *FileSystemSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
 	fullpath := svc.GetFullPath(ctx, fileName)
 	destdir, _ := path.Split(fullpath)
 	os.MkdirAll(destdir, 0755)
@@ -82,9 +82,9 @@ func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) 
 	return svc.filesDir + fileName
 }
 
-func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string) (string, error) {
+func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
 	// Destination file
-	dst, err := svc.CreateFile(ctx, fileName)
+	dst, err := svc.CreateFile(ctx, fileName, contentType)
 	if err != nil {
 		return "", err
 	}
