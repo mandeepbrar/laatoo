@@ -11,7 +11,7 @@ class Display extends React.Component {
     super(props);
   }
   componentDidMount() {
-    if(this.props.load) {
+    if(this.props.load && !this.props.externalLoad) {
       this.props.loadEntity();
     }
   }
@@ -60,6 +60,7 @@ const mapStateToProps = (state, ownProps) => {
     loader: ownProps.loader,
     reducer: ownProps.reducer,
     forceUpdate: ownProps.forceUpdate,
+    externalLoad: ownProps.externalLoad, 
     display: ownProps.display,
     load: false
   };

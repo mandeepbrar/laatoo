@@ -28,6 +28,7 @@ import {WebListView} from './components/view/WebListView';
 import {Html} from './components/main/Html';
 import {ScrollListener} from './components/main/ScrollListener';
 import Panel from './panels/Panel';
+import {GroupLoad} from './components/main/GroupLoad';
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -56,6 +57,7 @@ module.exports = {
     EntityReducer: EntityReducer,
     Action: Action,
     ActionNames: ActionNames,
+    GroupLoad: GroupLoad,
     Entity: Entity,
     Panel: Panel,
     DisplayEntity: DisplayEntity,

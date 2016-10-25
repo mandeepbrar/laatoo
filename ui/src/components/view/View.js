@@ -33,7 +33,7 @@ class ViewDisplay extends React.Component {
     this.filter = this.props.defaultFilter
   }
   componentDidMount() {
-    if(this.props.load) {
+    if(this.props.load && !this.props.externalLoad) {
       this.props.loadView(this.props.currentPage, this.filter);
     }
   }
@@ -182,6 +182,7 @@ const mapStateToProps = (state, ownProps) => {
     paginate: ownProps.paginate,
     pageSize: ownProps.pageSize,
     defaultFilter: ownProps.defaultFilter,
+    externalLoad: ownProps.externalLoad,
     urlParams: ownProps.urlParams,
     postArgs: ownProps.postArgs,
     loader : ownProps.loader,
