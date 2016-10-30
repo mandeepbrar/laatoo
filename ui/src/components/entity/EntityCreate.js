@@ -78,7 +78,7 @@ const mapStateToProps = (state, ownProps) => {
     if(form) {
       props.status = form.status
       if(form.data) {
-        data = Object.assign(data, form.data)
+        data = Object.assign({}, data, form.data)
       }
       data.Id = ""
     }
