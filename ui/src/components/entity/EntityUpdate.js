@@ -37,6 +37,7 @@ class UpdateForm extends React.Component {
     }
   }
   render() {
+    console.log("render entity update")
     return (
       <div>
         {this.title()}
@@ -63,6 +64,7 @@ const mapStateToProps = (state, ownProps) => {
     preSave: ownProps.preSave,
     postSave: ownProps.postSave
   };
+  console.log("map state to props", props, ownProps)
   if(state.router && state.router.routeStore) {
     let form = state.router.routeStore[ownProps.reducer];
     if(form) {

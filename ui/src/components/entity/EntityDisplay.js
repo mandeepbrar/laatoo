@@ -60,7 +60,7 @@ const mapStateToProps = (state, ownProps) => {
     loader: ownProps.loader,
     reducer: ownProps.reducer,
     forceUpdate: ownProps.forceUpdate,
-    externalLoad: ownProps.externalLoad, 
+    externalLoad: ownProps.externalLoad,
     display: ownProps.display,
     load: false
   };
@@ -89,7 +89,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     loadEntity: () => {
       let payload = {entityName: ownProps.name, entityId: ownProps.id};
-      let meta = {reducer: ownProps.reducer};
+      let meta = {reducer: ownProps.reducer, svcUrl: ownProps.svcUrl};
       dispatch(createAction(ActionNames.ENTITY_GET, payload, meta));
     }
   }

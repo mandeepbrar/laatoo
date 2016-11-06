@@ -86,7 +86,8 @@ class Entity {
       let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
       return (props) => (
-          <UpdateEntity name={this.name} id={props.params.id} refCallback={refCallback} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
+          <UpdateEntity name={this.name} id={props.params.id} refCallback={refCallback} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm}
+            postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
         )
     }
     DisplayComponent() {

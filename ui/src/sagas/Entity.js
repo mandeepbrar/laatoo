@@ -8,7 +8,7 @@ import 'babel-polyfill';
 function* getEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_GETTING, action.payload, {reducer: action.meta.reducer}));
-    const resp = yield call(EntityData.GetEntity, action.payload.entityName, action.payload.entityId);
+    const resp = yield call(EntityData.GetEntity, action.payload.entityName, action.payload.entityId, action.payload.svcUrl);
     resp.data.isOwner = (resp.data.CreatedBy === localStorage.user);
     yield put(createAction(ActionNames.ENTITY_GET_SUCCESS, resp, action.meta));
     if(action.meta.successCallback) {
@@ -29,7 +29,7 @@ function* getEntityData(action) {
 function* deleteEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_DELETING, action.payload, {reducer: action.meta.reducer}));
-    const resp = yield call(EntityData.DeleteEntity, action.payload.entityName, action.payload.entityId);
+    const resp = yield call(EntityData.DeleteEntity, action.payload.entityName, action.payload.entityId, action.payload.svcUrl);
     yield put(createAction(ActionNames.ENTITY_DELETE_SUCCESS, resp, action.meta));
     if(action.meta.successCallback) {
       action.meta.successCallback({resp: resp, payload: action.payload})
@@ -49,7 +49,7 @@ function* deleteEntityData(action) {
 function* saveEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_SAVING, action.payload, {reducer: action.meta.reducer}));
-    const resp = yield call(EntityData.SaveEntity, action.payload.entityName, action.payload.data);
+    const resp = yield call(EntityData.SaveEntity, action.payload.entityName, action.payload.data, action.payload.svcUrl);
     yield put(createAction(ActionNames.ENTITY_SAVE_SUCCESS, resp, {reducer: action.meta.reducer}));
     if(action.meta.successCallback) {
       action.meta.successCallback({resp: resp, payload: action.payload})
@@ -69,7 +69,7 @@ function* saveEntityData(action) {
 function* putEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {reducer: action.meta.reducer}));
-    const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
+    const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data, action.payload.svcUrl);
     yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, resp, action.meta));
     if(action.meta.reload) {
       yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
@@ -92,7 +92,7 @@ function* putEntityData(action) {
 function* updateEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {reducer: action.meta.reducer}));
-    const resp = yield call(EntityData.UpdateEntity, action.payload.entityName, action.payload.entityId, action.payload.data);
+    const resp = yield call(EntityData.UpdateEntity, action.payload.entityName, action.payload.entityId, action.payload.data, action.payload.svcUrl);
     yield put(createAction(ActionNames.ENTITY_UPDATE_SUCCESS, resp, action.meta));
     if(action.meta.reload) {
       yield put(createAction(ActionNames.ENTITY_GET, action.payload, action.meta));
