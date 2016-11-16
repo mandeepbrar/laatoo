@@ -44,7 +44,7 @@ class WebListView extends React.Component {
       )
     } else {
       return (
-        <div key={this.props.key} className={this.props.className} style={this.props.style}>
+        <div key={this.props.key} >
           <div className={this.props.headerClass}>
             {header}
           </div>
