@@ -98,5 +98,6 @@ class TextEdit extends t.form.Component { // extend the base class
 
 
 export {
-  TextEdit as TextEdit
+  TextEdit as TextEdit,
+  RichEdit as RichEdit
 };

@@ -15,7 +15,7 @@ import {createAction} from './utils';
 import {formatUrl} from './utils';
 import {Sagas, runSagas} from './sagas';
 import {VideoEdit} from './components/form/videoedit';
-import {TextEdit} from './components/form/textedit';
+import {TextEdit, RichEdit} from './components/form/textedit';
 import {ImageEdit, ImageChooser} from './components/form/imageedit';
 import {WebTableView} from './components/view/WebTableView';
 import {ViewReducer} from './reducers/View';
@@ -69,6 +69,7 @@ module.exports = {
     WebTableView: WebTableView,
     VideoEdit: VideoEdit,
     TextEdit: TextEdit,
+    RichEdit:RichEdit,
     ScrollListener: ScrollListener,
     WebView: WebView,
     WebListView: WebListView,

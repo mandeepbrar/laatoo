@@ -30,7 +30,7 @@ class ImageChooser extends React.Component {
       prom.then(
         function (res) {
           let img = res.data[0];
-          comp.props.onChange(img)
+          comp.props.onChange(img, files[0].name)
           if(comp.props.successCallback) {
             comp.props.successCallback(res)
           }

@@ -45,6 +45,14 @@ class ActionComp extends React.Component {
         let method = this.props.method
         method(params);
       return false;
+      case "newwindow":
+      if(this.action.url) {
+        let formattedUrl = formatUrl(this.action.url, this.props.params);
+        console.log(formattedUrl);
+        //browserHistory.push({pathname: formattedUrl});
+        window.open(formattedUrl);
+        return false
+      }
       default:
       if(this.action.url) {
         let formattedUrl = formatUrl(this.action.url, this.props.params);
