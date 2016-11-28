@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/utils"
 	"reflect"
 	"strings"
 )
@@ -30,11 +31,13 @@ const (
 	CONF_SVC_UPSERT                = "UPSERT"
 	CONF_SVC_UPDATE                = "UPDATE"
 	CONF_SVC_UPDATEMULTIPLE        = "UPDATEMULTIPLE"
+	CONF_SVC_UPDATE_WITH_STORABLE  = "UPDATE_WITH_STORABLE"
 	CONF_FIELD_ORDERBY             = "orderby"
 	CONF_DATA_TOTALRECS            = "totalrecords"
 	CONF_DATA_RECSRETURNED         = "records"
 	CONF_SVC_LOOKUPSVC             = "lookupsvc"
 	CONF_SVC_LOOKUP_FIELD          = "lookupfield"
+	CONF_SVC_UPDATE_FIELDS         = "updatefields"
 )
 
 func init() {
@@ -83,6 +86,7 @@ type dataAdapterService struct {
 	lookupSvcName string
 	lookupSvc     data.DataComponent
 	lookupField   string
+	updateFields  []string
 	DataStore     data.DataComponent
 }
 
@@ -116,6 +120,8 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 		ds.svcfunc = ds.PUTMULTIPLE
 	case CONF_SVC_UPDATEMULTIPLE:
 		ds.svcfunc = ds.UPDATEMULTIPLE
+	case CONF_SVC_UPDATE_WITH_STORABLE:
+		ds.svcfunc = ds.UPDATE_WITH_STORABLE
 	case CONF_SVC_GETMULTIPLE_SELECTIDS:
 		ds.svcfunc = ds.GETMULTI_SELECTIDS
 	default:
@@ -145,6 +151,12 @@ func (ds *dataAdapterService) Initialize(ctx core.ServerContext, conf config.Con
 		}
 		ds.lookupSvcName = lookupSvcName
 		ds.lookupField = lookupField
+	}
+	if ds.method == CONF_SVC_UPDATE_WITH_STORABLE {
+		fields, ok := conf.GetStringArray(CONF_SVC_UPDATE_FIELDS)
+		if ok {
+			ds.updateFields = fields
+		}
 	}
 	return nil
 }
@@ -392,6 +404,18 @@ func (es *dataAdapterService) UPSERT(ctx core.RequestContext) error {
 	return nil
 }
 
+func (es *dataAdapterService) UPDATE_WITH_STORABLE(ctx core.RequestContext) error {
+	ctx = ctx.SubContext("UPDATE_WITH_STORABLE")
+	id, ok := ctx.GetString(CONF_DATA_ID)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "argument", CONF_DATA_ID)
+	}
+	stor := ctx.GetRequest()
+	vals := utils.GetObjectFields(stor, es.updateFields)
+	log.Logger.Debug(ctx, "Coverted storable to fields", "field map", vals, "fields", es.updateFields, "stor", stor)
+	return es.update(ctx, id, vals)
+}
+
 func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATE")
 	id, ok := ctx.GetString(CONF_DATA_ID)
@@ -400,6 +424,10 @@ func (es *dataAdapterService) UPDATE(ctx core.RequestContext) error {
 	}
 	body := ctx.GetRequest().(*map[string]interface{})
 	vals := *body
+	return es.update(ctx, id, vals)
+}
+
+func (es *dataAdapterService) update(ctx core.RequestContext, id string, vals map[string]interface{}) error {
 	err := es.DataStore.Update(ctx, id, vals)
 	if err != nil {
 		return errors.WrapError(ctx, err)
