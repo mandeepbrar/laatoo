@@ -134,6 +134,9 @@
 .mw100{
   max-width: 100% !important;
 }
+.wi100 input {
+  width: 100% !important;
+}
 .h100{
   height: 100% !important;
 }
@@ -288,4 +291,56 @@
 }
 .inlineblock {
 	display: inline-block;
+}
+
+.w960 {
+  width: 960px !important;
+}
+
+.mw960 {
+  max-width: 1200px !important;
+}
+
+.mw100 img {
+  max-width: 100% !important;
+}
+
+.cover {
+  object-fit: cover !important;
+}
+
+.normalText {
+  font-size: 1em;
+}
+
+.bigText {
+  font-size: 1.2em;
+}
+
+.smallText {
+  font-size: 0.8em;
+}
+
+.fd {
+  display: flex !important;
+}
+
+.fdcol {
+  flex-direction: column !important;
+}
+
+.fdmiddle {
+  justify-content: center !important;
+}
+
+.fdgrow {
+  flex: 2 0 auto;
+}
+
+.stretch {
+  align-items: stretch !important;
+}
+
+.h100 {
+  height: 100% !important;
 }

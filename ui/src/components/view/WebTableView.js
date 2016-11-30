@@ -23,7 +23,7 @@ class WebTableView extends React.Component {
   }
   getView(view, header, groups) {
     return (
-      <table  className="webtableview">
+      <table  className="webtableview" style={{width: '100%'}}>
         <thead>
           {header}
         </thead>
