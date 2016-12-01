@@ -1,10 +1,10 @@
 package echo
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"laatoo/framework/core/engine/http/net"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 type EchoRouter struct {
@@ -17,21 +17,21 @@ func (router *EchoRouter) Group(path string) net.Router {
 }
 
 func (router *EchoRouter) Get(path string, handler net.HandlerFunc) {
-	router.routerGrp.Get(path, router.httpAdapater(handler))
+	router.routerGrp.GET(path, router.httpAdapater(handler))
 }
 func (router *EchoRouter) Options(path string, handler net.HandlerFunc) {
-	router.routerGrp.Options(path, router.httpAdapater(handler))
+	router.routerGrp.OPTIONS(path, router.httpAdapater(handler))
 }
 func (router *EchoRouter) Put(path string, handler net.HandlerFunc) {
-	router.routerGrp.Put(path, router.httpAdapater(handler))
+	router.routerGrp.PUT(path, router.httpAdapater(handler))
 }
 
 func (router *EchoRouter) Post(path string, handler net.HandlerFunc) {
-	router.routerGrp.Post(path, router.httpAdapater(handler))
+	router.routerGrp.POST(path, router.httpAdapater(handler))
 }
 
 func (router *EchoRouter) Delete(path string, handler net.HandlerFunc) {
-	router.routerGrp.Delete(path, router.httpAdapater(handler))
+	router.routerGrp.DELETE(path, router.httpAdapater(handler))
 }
 
 func (router *EchoRouter) httpAdapater(handler net.HandlerFunc) echo.HandlerFunc {
@@ -56,7 +56,7 @@ func (router *EchoRouter) Use(handler net.HandlerFunc) {
 }
 
 func (router *EchoRouter) UseMW(handler func(http.Handler) http.Handler) {
-	router.routerGrp.Use(standard.WrapMiddleware(handler))
+	router.routerGrp.Use(echo.WrapMiddleware(handler))
 }
 func (router *EchoRouter) UseMiddleware(handler http.HandlerFunc) {
 	panic("not implemented")

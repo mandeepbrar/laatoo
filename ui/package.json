@@ -73,6 +73,7 @@
     "md5": "*",
     "normalize.css": "^4.0.0",
     "react": "^15.0.0",
+    "react-bootstrap": "^0.30.7",
     "react-dom": "^15.0.0",
     "react-dropzone": "^3.5.0",
     "react-pagify": "^2.0.4",

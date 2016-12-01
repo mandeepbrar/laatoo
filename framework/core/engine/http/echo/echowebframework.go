@@ -1,12 +1,12 @@
 package echo
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
-	mw "github.com/labstack/echo/middleware"
 	"laatoo/framework/core/engine/http/net"
 	"laatoo/sdk/log"
 	"net/http"
+
+	"github.com/labstack/echo"
+	mw "github.com/labstack/echo/middleware"
 )
 
 type EchoWebFramework struct {
@@ -31,17 +31,15 @@ func (wf *EchoWebFramework) GetParentRouter(path string) net.Router {
 }
 
 func (wf *EchoWebFramework) GetRootHandler() http.Handler {
-	s := standard.New("")
-	s.SetHandler(wf.rootRouter)
-	return s
+	return wf.rootRouter
 }
 
 func (wf *EchoWebFramework) StartServer(address string) error {
-	wf.rootRouter.Run(standard.New(address))
+	wf.rootRouter.Start(address)
 	return nil
 }
 
 func (wf *EchoWebFramework) StartSSLServer(address string, certpath string, keypath string) error {
-	wf.rootRouter.Run(standard.WithTLS(address, certpath, keypath))
+	wf.rootRouter.StartTLS(address, certpath, keypath)
 	return nil
 }

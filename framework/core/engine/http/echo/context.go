@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 )
 
 type EchoContext struct {
@@ -36,19 +35,19 @@ func (echctx *EchoContext) Redirect(status int, path string) error {
 	return echctx.baseCtx.Redirect(status, path)
 }
 func (echctx *EchoContext) GetHeader(header string) string {
-	return echctx.baseCtx.Request().Header().Get(header)
+	return echctx.baseCtx.Request().Header.Get(header)
 }
 func (echctx *EchoContext) GetRouteParamNames() []string {
 	return echctx.baseCtx.ParamNames()
 }
 func (echctx *EchoContext) GetRouteParam(paramname string) string {
 	if paramname == "__0" {
-		return echctx.baseCtx.P(0)
+		return echctx.baseCtx.ParamValues()[0]
 	}
 	return echctx.baseCtx.Param(paramname)
 }
 func (echctx *EchoContext) GetRouteParamByIndex(index int) string {
-	return echctx.baseCtx.P(index)
+	return echctx.baseCtx.ParamValues()[index]
 }
 func (echctx *EchoContext) GetQueryParams() map[string][]string {
 	return echctx.baseCtx.QueryParams()
@@ -60,17 +59,17 @@ func (echctx *EchoContext) Bind(data interface{}) error {
 	return echctx.baseCtx.Bind(data)
 }
 func (echctx *EchoContext) GetRequestStream() (io.Reader, error) {
-	return echctx.baseCtx.Request().Body(), nil
+	return echctx.baseCtx.Request().Body, nil
 }
 func (echctx *EchoContext) GetRequest() *http.Request {
-	return echctx.baseCtx.Request().(*standard.Request).Request
+	return echctx.baseCtx.Request()
 }
 
 func (echctx *EchoContext) GetBody() ([]byte, error) {
-	return ioutil.ReadAll(echctx.baseCtx.Request().Body())
+	return ioutil.ReadAll(echctx.baseCtx.Request().Body)
 }
 func (echctx *EchoContext) GetFiles() (map[string]*core.MultipartFile, error) {
-	form, err := echctx.baseCtx.Request().MultipartForm()
+	form, err := echctx.baseCtx.MultipartForm()
 	if err != nil {
 		return nil, err
 	}
