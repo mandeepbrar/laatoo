@@ -337,6 +337,7 @@ func (es *dataAdapterService) SAVE(ctx core.RequestContext) error {
 	stor := ent.(data.Storable)
 	err := es.DataStore.Save(ctx, stor)
 	if err == nil {
+		ctx.Set("Id", stor.GetId())
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, stor.GetId(), nil))
 		return nil
 	} else {

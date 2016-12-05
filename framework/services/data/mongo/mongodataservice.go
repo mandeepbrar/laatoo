@@ -249,7 +249,7 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	if ms.auditable {
 		data.Audit(ctx, item)
 	}
-	err := connCopy.DB(ms.database).C(ms.collection).Update(condition, item)
+	_, err := connCopy.DB(ms.database).C(ms.collection).Upsert(condition, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
