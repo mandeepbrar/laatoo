@@ -8,6 +8,7 @@ class ScrollListener extends React.Component {
         let windowNumber = Math.floor(window.scrollY / window.innerHeight)
         this.state = {windowNumber}
     }
+    this.state = {scrolledOut: false, scrolledIn: false}
   }
   handleScroll(evt) {
     if(this.props.windowScroll) {
@@ -17,11 +18,24 @@ class ScrollListener extends React.Component {
         this.setState({windowNumber})
       }
     }
-    if(this.props.onScrollEnd) {
+    if(this.props.onScrollEnd || this.props.onScrollIn) {
       var node = this.refs.scrollListener;
-      let bottomReached = node.getBoundingClientRect().bottom <= window.innerHeight
-      if(bottomReached && this.props.onScrollEnd) {
-        this.props.onScrollEnd()
+      let endPos = window.innerHeight
+      if(this.props.scrollEndPos) {
+        endPos = this.props.scrollEndPos
+      }
+      let boundingrect = node.getBoundingClientRect()
+      if(boundingrect.bottom <= endPos && !this.state.scrolledOut) {
+        if(!this.state.scrolledOut && this.props.onScrollEnd) {
+          this.props.onScrollEnd()
+        }
+        this.setState({scrolledOut: true, scrolledIn: false})
+      }
+      if(this.state.scrolledOut && boundingrect.bottom > endPos) {
+        if(!this.state.scrolledIn && this.props.onScrollIn) {
+          this.props.onScrollIn()
+        }
+        this.setState({scrolledOut: false, scrolledIn: true})
       }
     }
   }

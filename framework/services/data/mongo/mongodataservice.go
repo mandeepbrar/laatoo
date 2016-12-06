@@ -295,7 +295,7 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	defer connCopy.Close()
 	var err error
 	if upsert {
-		_, err = connCopy.DB(ms.database).C(ms.collection).UpsertId(condition, newVals)
+		_, err = connCopy.DB(ms.database).C(ms.collection).Upsert(condition, newVals)
 
 	} else {
 		updateInterface := map[string]interface{}{"$set": newVals}
