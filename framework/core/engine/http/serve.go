@@ -51,34 +51,46 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 			allowedQueryParams[p] = true
 		}
 	}
-	allowedParams, ok := routeConf.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
-	if ok {
-		for _, p := range allowedParams {
-			allowedQueryParams[p] = true
+
+	allowedQParamsFunc := func(confElem config.Config) {
+		allowedParams, ok := confElem.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+		if ok {
+			for _, p := range allowedParams {
+				allowedQueryParams[p] = true
+			}
 		}
 	}
+	allowedQParamsFunc(routeConf)
+	allowedQParamsFunc(svc.Config())
 
 	////build value parameters
-	var staticValues map[string]interface{}
-	staticValuesConf, ok := routeConf.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
-	if ok {
-		values := staticValuesConf.AllConfigurations()
-		staticValues = make(map[string]interface{}, len(values))
-		for _, paramname := range values {
-			staticValues[paramname], _ = staticValuesConf.Get(paramname)
+	staticValues := make(map[string]interface{})
+	staticValuesFunc := func(confElem config.Config) {
+		staticValuesConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
+		if ok {
+			values := staticValuesConf.AllConfigurations()
+			for _, paramname := range values {
+				staticValues[paramname], _ = staticValuesConf.Get(paramname)
+			}
 		}
 	}
+	staticValuesFunc(routeConf)
+	staticValuesFunc(svc.Config())
 
 	//build header param mappings
 	headers := make(map[string]string, 0)
-	headersConf, ok := routeConf.GetSubConfig(config.CONF_HTTPENGINE_HEADERSTOINCLUDE)
-	if ok {
-		headersToInclude := headersConf.AllConfigurations()
-		for _, paramName := range headersToInclude {
-			header, _ := headersConf.GetString(paramName)
-			headers[paramName] = header
+	headersFunc := func(confElem config.Config) {
+		headersConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_HEADERSTOINCLUDE)
+		if ok {
+			headersToInclude := headersConf.AllConfigurations()
+			for _, paramName := range headersToInclude {
+				header, _ := headersConf.GetString(paramName)
+				headers[paramName] = header
+			}
 		}
 	}
+	headersFunc(routeConf)
+	headersFunc(svc.Config())
 
 	//get any data creators for body objects that need to be bound
 	var dataObjectCreator core.ObjectCreator

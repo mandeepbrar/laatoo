@@ -34,13 +34,13 @@ class DefaultDataSource {
       if (protocol === 'http') {
         var method = this.getMethod(service);
         var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data, config);
+        return this.HttpCall(url, method, req.params, req.data, req.headers, config);
       }
     } else {
       throw new Error('Invalid Request' );
     }
   }
-  HttpCall(url, method, params, data, config=null) {
+  HttpCall(url, method, params, data, headers, config=null) {
     let service = this;
     var promise = new Promise(
       function (resolve, reject) {
@@ -62,7 +62,9 @@ class DefaultDataSource {
         if(method == 'DELETE') {
           data = null;
         }
-        let headers = {};
+        if(!headers) {
+          headers = {}
+        }
         headers[document.Application.Security.AuthToken] = localStorage.auth;
         let req = {
           method: method,

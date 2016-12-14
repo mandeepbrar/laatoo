@@ -27,13 +27,13 @@ class ScrollListener extends React.Component {
       let boundingrect = node.getBoundingClientRect()
       if(boundingrect.bottom <= endPos && !this.state.scrolledOut) {
         if(!this.state.scrolledOut && this.props.onScrollEnd) {
-          this.props.onScrollEnd()
+          this.props.onScrollEnd(boundingrect.bottom)
         }
         this.setState({scrolledOut: true, scrolledIn: false})
       }
       if(this.state.scrolledOut && boundingrect.bottom > endPos) {
         if(!this.state.scrolledIn && this.props.onScrollIn) {
-          this.props.onScrollIn()
+          this.props.onScrollIn(boundingrect.bottom)
         }
         this.setState({scrolledOut: false, scrolledIn: true})
       }

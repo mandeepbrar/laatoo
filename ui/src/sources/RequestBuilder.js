@@ -6,7 +6,7 @@ export class RequestBuilderService {
     this.DefaultRequest = this.DefaultRequest.bind(this);
     this.URLParamsRequest = this.URLParamsRequest.bind(this);
   }
-  ParameterSeparatorRequest(params, data, urlparams) {
+  ParameterSeparatorRequest(params, data, urlparams, headers) {
     var parameterSeparator = {};
     if(data == null) {
       data = {};
@@ -14,10 +14,12 @@ export class RequestBuilderService {
     parameterSeparator.params = params;
     parameterSeparator.data = data;
     parameterSeparator.urlparams = urlparams;
+    parameterSeparator.headers = headers
     parameterSeparator.GetRequest = function(protocol) {
       if(protocol == 'http') {
         var http = {};
         http.data = parameterSeparator.data;
+        http.headers = parameterSeparator.headers;
         if(parameterSeparator.params == null) {
           http.params = null;
           http.urlparams = null;
@@ -61,47 +63,52 @@ export class RequestBuilderService {
         var socket = {};
         socket.data = parameterSeparator.data;
         socket.params = params;
+        socket.params = Object.assign({}, params, headers);
         return socket;
       }
     };
     return parameterSeparator;
   }
 
-  DefaultRequest(params, data) {
+  DefaultRequest(params, data, headers) {
     var defaultRequest = {};
     if(data == null) {
       data = {};
     }
     defaultRequest.params = params;
     defaultRequest.data = data;
+    defaultRequest.headers = headers
     defaultRequest.GetRequest = function(protocol) {
       var request = {};
       request.data = defaultRequest.data;
       request.params = defaultRequest.params;
       request.urlparams = null;
+      request.headers = defaultRequest.headers
       return request;
     };
     return defaultRequest
   }
 
-  URLParamsRequest(urlparams, data) {
+  URLParamsRequest(urlparams, data, headers) {
     var urlparamsRequest = {};
     if(data == null) {
       data = {};
     }
     urlparamsRequest.data = data;
     urlparamsRequest.urlparams = urlparams;
+    urlparamsRequest.headers = headers
     urlparamsRequest.GetRequest = function(protocol) {
       if(protocol == 'http') {
         var http = {};
         http.data = urlparamsRequest.data;
         http.params = null;
         http.urlparams = urlparamsRequest.urlparams;
+        http.headers = urlparamsRequest.headers
         return http;
       } else {
         var socket = {};
         socket.data = urlparamsRequest.data;
-        socket.params = urlparamsRequest.urlparams;
+        socket.params = Object.assign({}, urlparamsRequest.urlparams, urlparamsRequest.headers);
         return socket;
       }
     };

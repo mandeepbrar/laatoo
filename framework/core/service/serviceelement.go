@@ -40,6 +40,10 @@ func (svc *service) Service() core.Service {
 	return svc.service
 }
 
+func (svc *service) Config() config.Config {
+	return svc.conf
+}
+
 func (svc *service) Invoke(ctx core.RequestContext) error {
 	for _, function := range svc.funcs {
 		err := function(ctx)

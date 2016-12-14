@@ -8,7 +8,7 @@ import 'babel-polyfill';
 function* fetchViewData(action) {
   try {
     yield put(createAction(ActionNames.VIEW_FETCHING, action.payload,{reducer: action.meta.reducer}));
-    let req = RequestBuilder.DefaultRequest(action.payload.queryParams, action.payload.postArgs);
+    let req = RequestBuilder.DefaultRequest(action.payload.queryParams, action.payload.postArgs, action.payload.headers);
     const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
     yield put(createAction(ActionNames.VIEW_FETCH_SUCCESS, resp.data, {info: resp.info, incrementalLoad: action.meta.incrementalLoad, reducer: action.meta.reducer}));
   } catch (e) {

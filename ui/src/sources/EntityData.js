@@ -10,7 +10,7 @@ export class EntityDataService {
         this.PutEntity = this.PutEntity.bind(this);
         this.UpdateEntity = this.UpdateEntity.bind(this);
     }
-    GetEntity(entityName, id, svcUrl) {
+    GetEntity(entityName, id, headers, svcUrl) {
 			var service = {};
 			service.method = "GET";
       if(svcUrl) {
@@ -18,11 +18,11 @@ export class EntityDataService {
       } else {
         service.url = document.Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
       }
-			var req = this.RequestBuilder.DefaultRequest(null, null);
+			var req = this.RequestBuilder.DefaultRequest(null, null, headers);
 			return this.DataSource.ExecuteServiceObject(service, req);
 		}
 
-		SaveEntity(entityName, data, svcUrl) {
+		SaveEntity(entityName, data, headers, svcUrl) {
 			var service = {};
 			service.method = "POST";
       if(svcUrl) {
@@ -30,11 +30,11 @@ export class EntityDataService {
       } else {
         service.url = document.Application.EntityPrefix+entityName.toLowerCase();
       }
-			var req = this.RequestBuilder.DefaultRequest(null, data);
+			var req = this.RequestBuilder.DefaultRequest(null, data, headers);
 			return this.DataSource.ExecuteServiceObject(service, req);
 		};
 
-		DeleteEntity(entityName, id, svcUrl) {
+		DeleteEntity(entityName, id, headers, svcUrl) {
 			var service = {};
 			service.method = "DELETE";
       if(svcUrl) {
@@ -42,11 +42,11 @@ export class EntityDataService {
       } else {
         service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
       }
-			var req = this.RequestBuilder.DefaultRequest(null, null);
+			var req = this.RequestBuilder.DefaultRequest(null, null, headers);
 			return this.DataSource.ExecuteServiceObject(service, req);
 		};
 
-		PutEntity(entityName, id, data, svcUrl) {
+		PutEntity(entityName, id, data, headers, svcUrl) {
 			var service = {};
 			service.method = "PUT";
       if(svcUrl) {
@@ -54,11 +54,11 @@ export class EntityDataService {
       } else {
         service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
       }
-			var req = this.RequestBuilder.DefaultRequest(null, data);
+			var req = this.RequestBuilder.DefaultRequest(null, data, headers);
 			return this.DataSource.ExecuteServiceObject(service, req);
 		};
 
-		UpdateEntity(entityName, id, fieldmap, svcUrl) {
+		UpdateEntity(entityName, id, fieldmap, headers, svcUrl) {
 			var service = {};
 			service.method = "PUT";
       if(svcUrl) {
@@ -66,7 +66,7 @@ export class EntityDataService {
       } else {
         service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
       }
-			var req = this.RequestBuilder.DefaultRequest(null, fieldmap);
+			var req = this.RequestBuilder.DefaultRequest(null, fieldmap, headers);
 			return this.DataSource.ExecuteServiceObject(service, req);
 		};
 

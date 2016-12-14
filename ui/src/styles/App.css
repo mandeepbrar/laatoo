@@ -305,6 +305,16 @@
   max-width: 100% !important;
 }
 
+
+.transparent {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.gray {
+  filter: grayscale(1) !important;
+}
+
+
 .cover {
   object-fit: cover !important;
 }
@@ -315,6 +325,10 @@
 
 .bigText {
   font-size: 1.2em;
+}
+
+.titleText {
+  font-size: 1.5em;
 }
 
 .smallText {
