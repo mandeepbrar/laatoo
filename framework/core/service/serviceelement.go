@@ -11,28 +11,42 @@ import (
 
 type service struct {
 	*common.Context
-	name    string
-	service core.Service
-	factory server.Factory
-	conf    config.Config
-	owner   *serviceManager
-	funcs   []core.ServiceFunc
+	name       string
+	service    core.Service
+	factory    server.Factory
+	conf       config.Config
+	owner      *serviceManager
+	funcs      []core.ServiceFunc
+	paramsConf config.Config
 }
 
 func (svc *service) start(ctx core.ServerContext) error {
+	var mergedConf config.Config
+	svcParamsConf, ok := svc.conf.GetSubConfig(config.CONF_SVCPARAMS)
+	if ok {
+		mergedConf = config.Merge(mergedConf, svcParamsConf)
+	}
 	funcs := make([]core.ServiceFunc, 0)
 	middlewareNames, ok := svc.GetStringArray(config.CONF_MIDDLEWARE)
 	if ok {
 		for _, mwName := range middlewareNames {
-			mwSvc, err := ctx.GetService(mwName)
+			//			mwSvc, err := ctx.GetService(mwName)
+			mwSvcStruct, err := svc.owner.proxy.GetService(ctx, mwName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
+			mwSvc := mwSvcStruct.(*service)
 			funcs = append(funcs, mwSvc.Invoke)
+			mwsvcParamsConf, ok := mwSvc.conf.GetSubConfig(config.CONF_SVCPARAMS)
+			if ok {
+				mergedConf = config.Merge(mergedConf, mwsvcParamsConf)
+			}
 		}
 	}
 	funcs = append(funcs, svc.service.Invoke)
 	svc.funcs = funcs
+	svc.paramsConf = mergedConf
+	log.Logger.Trace(ctx, "params config ", "service name", svc.GetName(), "params conf", svc.paramsConf)
 	return svc.service.Start(ctx)
 }
 
@@ -40,8 +54,8 @@ func (svc *service) Service() core.Service {
 	return svc.service
 }
 
-func (svc *service) Config() config.Config {
-	return svc.conf
+func (svc *service) ParamsConfig() config.Config {
+	return svc.paramsConf
 }
 
 func (svc *service) Invoke(ctx core.RequestContext) error {

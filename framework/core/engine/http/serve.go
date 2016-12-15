@@ -31,6 +31,8 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		respHandler = DefaultResponseHandler(ctx)
 	}
 
+	svcParams := svc.ParamsConfig()
+
 	var err error
 
 	////build value parameters
@@ -53,6 +55,9 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	}
 
 	allowedQParamsFunc := func(confElem config.Config) {
+		if confElem == nil {
+			return
+		}
 		allowedParams, ok := confElem.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 		if ok {
 			for _, p := range allowedParams {
@@ -61,11 +66,14 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		}
 	}
 	allowedQParamsFunc(routeConf)
-	allowedQParamsFunc(svc.Config())
+	allowedQParamsFunc(svcParams)
 
 	////build value parameters
 	staticValues := make(map[string]interface{})
 	staticValuesFunc := func(confElem config.Config) {
+		if confElem == nil {
+			return
+		}
 		staticValuesConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
 		if ok {
 			values := staticValuesConf.AllConfigurations()
@@ -75,11 +83,14 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		}
 	}
 	staticValuesFunc(routeConf)
-	staticValuesFunc(svc.Config())
+	staticValuesFunc(svcParams)
 
 	//build header param mappings
 	headers := make(map[string]string, 0)
 	headersFunc := func(confElem config.Config) {
+		if confElem == nil {
+			return
+		}
 		headersConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_HEADERSTOINCLUDE)
 		if ok {
 			headersToInclude := headersConf.AllConfigurations()
@@ -90,7 +101,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		}
 	}
 	headersFunc(routeConf)
-	headersFunc(svc.Config())
+	headersFunc(svcParams)
 
 	//get any data creators for body objects that need to be bound
 	var dataObjectCreator core.ObjectCreator

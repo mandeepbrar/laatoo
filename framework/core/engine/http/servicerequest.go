@@ -126,10 +126,12 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 			reqctx.Set(param, paramVal)
 		}
 	}
+	log.Logger.Trace(webctx, "Headers provided", "headers", headers)
 	if headers != nil {
 		for param, header := range headers {
 			headerVal := engineContext.GetHeader(header)
 			reqctx.Set(param, headerVal)
+			log.Logger.Trace(webctx, "Setting header param ", "headers", param, "value ", headerVal)
 		}
 	}
 

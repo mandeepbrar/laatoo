@@ -15,9 +15,14 @@ class Image extends React.Component {
     if (!this.props.src.startsWith("http")) {
       source = this.props.prefix + source
     }
-    return (
-      <img src={source} {...this.props.modifier} className={this.props.className} style={this.props.style}/>
-    )
+    let i = <img src={source} {...this.props.modifier} className={this.props.className} style={this.props.style}/>
+    if(this.props.link) {
+      return (
+        <a target={this.props.target} href={this.props.link}>{i}</a>
+      )
+    } else {
+      return i
+    }
   }
 }
 

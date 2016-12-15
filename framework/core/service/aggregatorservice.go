@@ -58,7 +58,7 @@ func (ds *serviceAggregator) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Aggregator Service")
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap := *body
-	retval := make(map[string]*core.ServiceResponse, len(argsMap))
+	retval := make(map[string]*core.ServiceResponse, len(ds.serviceMap))
 	log.Logger.Trace(ctx, "Aggregator", "argsMap", argsMap)
 	for k, v := range argsMap {
 		reqctx := ctx.SubContext(k)

@@ -125,7 +125,7 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 	case CONF_SVC_GETMULTIPLE_SELECTIDS:
 		ds.svcfunc = ds.GETMULTI_SELECTIDS
 	default:
-		return nil, nil
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Wrong Service method", method)
 	}
 	//cache, _ := conf.GetBool(CONF_DATA_CACHEABLE)
 	//ds.cache = cache
