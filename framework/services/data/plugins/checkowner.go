@@ -44,12 +44,14 @@ func (svc *checkOwnerService) isOwned(ctx core.RequestContext, id string) (bool,
 	if err != nil {
 		return false, err
 	}
-	i, ok := stor.(data.Auditable)
-	if ok {
-		log.Logger.Trace(ctx, "checking owned", "created by", i.GetCreatedBy(), "user", ctx.GetUser().GetId())
-		if i.GetCreatedBy() != ctx.GetUser().GetId() {
-			ctx.SetResponse(core.StatusUnauthorizedResponse)
-			return false, nil
+	if stor != nil {
+		i, ok := stor.(data.Auditable)
+		if ok {
+			log.Logger.Trace(ctx, "checking owned", "created by", i.GetCreatedBy(), "user", ctx.GetUser().GetId())
+			if i.GetCreatedBy() != ctx.GetUser().GetId() {
+				ctx.SetResponse(core.StatusUnauthorizedResponse)
+				return false, nil
+			}
 		}
 	}
 	return true, nil

@@ -32,7 +32,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
 	if err != nil {
-		if err.Error() == "not found" {
+		if err.Error() == datastore.ErrNoSuchEntity {
 			return nil, nil
 		}
 		return nil, errors.RethrowError(ctx, common.DATA_ERROR_OPERATION, err, "ID", id)
