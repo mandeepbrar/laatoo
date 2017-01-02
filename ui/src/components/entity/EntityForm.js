@@ -14,7 +14,9 @@ class TCombWebForm extends React.Component {
     this.setValue = this.setValue.bind(this);
     this.submit = this.submit.bind(this);
     this.getValue = this.getValue.bind(this);
-    this.state = {formValue: props.entityData}
+    this.onChange = this.onChange.bind(this);
+    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(props.entityData): props.schemaOptions
+    this.state = {formValue: props.entityData, so : so, key: "entityform" + (new Date())}
     if(this.props.refCallback) {
       this.props.refCallback(this)
     }
@@ -26,7 +28,8 @@ class TCombWebForm extends React.Component {
     return this.refs.form.getValue()
   }
   componentWillReceiveProps(nextprops) {
-    this.setState(Object.assign(this.state, {formValue: nextprops.entityData}))
+    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(nextprops.entityData): props.schemaOptions
+    this.setState( {formValue: nextprops.entityData, so: so, key: "entityform" + (new Date())})
     if(this.props.refCallback) {
       this.props.refCallback(this)
     }
@@ -61,6 +64,21 @@ class TCombWebForm extends React.Component {
       }
     }
   }
+  onChange (val) {
+    if(this.props.onChange) {
+      this.props.onChange(val)
+    }
+    let fv = Object.assign({}, this.state.formValue, val)
+    let st = Object.assign({}, this.state, {formValue:fv})
+    if(this.props.lookupSchemaOptions) {
+      let so = this.props.lookupSchemaOptions(this, fv, val, this.state.so)
+      if(so) {
+        st.so = so
+        st.key = "entityform" + (new Date())
+      }
+    }
+    this.setState(st)
+  }
   submit() {
     if(this.props.actionButtons) {
       return this.props.actionButtons(this)
@@ -79,7 +97,7 @@ class TCombWebForm extends React.Component {
     let state = this.state
     return (
       <form onSubmit={this.submitForm} className="entityform">
-        <t.form.Form ref="form" type={this.props.schema} value={state.formValue} options={this.props.schemaOptions}/>
+        <t.form.Form ref="form" key={state.key} type={this.props.schema} value={state.formValue} options={state.so} onChange={this.onChange}/>
         {this.submit()}
       </form>
     )
