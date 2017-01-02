@@ -59,19 +59,18 @@ class TCombWebForm extends React.Component {
       if(this.props.usePut) {
         this.props.put(data);
       } else {
-        console.log("updaed ", this.props.id, data)
         this.props.update(data);
       }
     }
   }
-  onChange (val) {
+  onChange (val, path) {
     if(this.props.onChange) {
-      this.props.onChange(val)
+      this.props.onChange(val, path)
     }
     let fv = Object.assign({}, this.state.formValue, val)
     let st = Object.assign({}, this.state, {formValue:fv})
     if(this.props.lookupSchemaOptions) {
-      let so = this.props.lookupSchemaOptions(this, fv, val, this.state.so)
+      let so = this.props.lookupSchemaOptions(this, fv, val, path, this.state.so)
       if(so) {
         st.so = so
         st.key = "entityform" + (new Date())
