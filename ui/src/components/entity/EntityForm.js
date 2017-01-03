@@ -15,10 +15,10 @@ class TCombWebForm extends React.Component {
     this.submit = this.submit.bind(this);
     this.getValue = this.getValue.bind(this);
     this.onChange = this.onChange.bind(this);
-    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(props.entityData): props.schemaOptions
+    let so = props.lookupSchemaOptions? props.lookupSchemaOptions(props.entityData) : props.schemaOptions
     this.state = {formValue: props.entityData, so : so, key: "entityform" + (new Date())}
-    if(this.props.refCallback) {
-      this.props.refCallback(this)
+    if(props.refCallback) {
+      props.refCallback(this)
     }
   }
   setValue(val) {
@@ -28,7 +28,7 @@ class TCombWebForm extends React.Component {
     return this.refs.form.getValue()
   }
   componentWillReceiveProps(nextprops) {
-    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(nextprops.entityData): props.schemaOptions
+    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(nextprops.entityData): this.props.schemaOptions
     this.setState( {formValue: nextprops.entityData, so: so, key: "entityform" + (new Date())})
     if(this.props.refCallback) {
       this.props.refCallback(this)
