@@ -46,4 +46,4 @@ LoginComponent.propTypes = {
 };
 // LoginComponent.defaultProps = {};
 
-export default LoginComponent;
+export {LoginComponent} ;

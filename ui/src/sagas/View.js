@@ -3,7 +3,6 @@ import { call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions/ActionNames';
 import {  Response,  DataSource,  RequestBuilder } from '../sources/DataSource';
 import { createAction } from '../utils';
-import 'babel-polyfill';
 
 function* fetchViewData(action) {
   try {

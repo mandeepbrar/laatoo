@@ -3,6 +3,7 @@
 import { RequestBuilderService } from './RequestBuilder';
 import { EntityDataService } from './EntityData';
 import axios from 'axios';
+import {Application, Storage} from '../Globals'
 
 const Response = {
   Success: "Success",
@@ -11,6 +12,7 @@ const Response = {
   BadRequest: "BadRequest",
   Failure: "Failure"
 };
+console.log("application services", Application)
 
 class DefaultDataSource {
   constructor() {
@@ -20,7 +22,8 @@ class DefaultDataSource {
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this);
   }
   ExecuteService(serviceName, serviceRequest, config=null) {
-    var service = document.Services[serviceName];
+    console.log("application services", Application)
+    var service = Application.Services[serviceName];
     if (service != null && serviceRequest != null) {
       return this.ExecuteServiceObject(service, serviceRequest, config);
     } else {
@@ -65,7 +68,7 @@ class DefaultDataSource {
         if(!headers) {
           headers = {}
         }
-        headers[document.Application.Security.AuthToken] = localStorage.auth;
+        headers[Application.Security.AuthToken] = Storage.auth;
         let req = {
           method: method,
           url: url,
@@ -121,7 +124,7 @@ class DefaultDataSource {
     if (url.startsWith('http')) {
       return url;
     } else {
-      return document.Application.Backend + url;
+      return Application.Backend + url;
     }
   }
 

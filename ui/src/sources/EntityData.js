@@ -1,4 +1,5 @@
 'use strict';
+import {Application, Storage} from '../Globals'
 
 export class EntityDataService {
     constructor(DataSource, RequestBuilder) {
@@ -17,7 +18,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "GET";
-        service.url = document.Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
+        service.url = Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, null, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -30,7 +31,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "POST";
-        service.url = document.Application.EntityPrefix+entityName.toLowerCase();
+        service.url = Application.EntityPrefix+entityName.toLowerCase();
         return this.DataSource.ExecuteServiceObject(service, req);
       }
 		};
@@ -42,7 +43,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "DELETE";
-        service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, null, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -55,7 +56,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "PUT";
-        service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, data, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -68,7 +69,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "PUT";
-        service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, fieldmap, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }

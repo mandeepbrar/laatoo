@@ -1,4 +1,5 @@
 import  {ActionNames} from '../actions/ActionNames';
+import {Application, Storage} from '../Globals'
 
 var initialSecState = {
   status:"NotLogged",
@@ -19,9 +20,9 @@ const Account = (state, action) => {
         if (state.authToken === action.payload.token) {
           return state
         }
-        localStorage.auth = action.payload.token;
-        localStorage.permissions = action.payload.permissions;
-        localStorage.user = action.payload.userId;
+        Storage.auth = action.payload.token;
+        Storage.permissions = action.payload.permissions;
+        Storage.user = action.payload.userId;
         return Object.assign({}, state, {
           status: "LoggedIn",
           authToken: action.payload.token,
@@ -30,25 +31,25 @@ const Account = (state, action) => {
         })
 
       case ActionNames.LOGIN_FAILURE:
-        localStorage.auth = "";
-        localStorage.permissions = [];
-        localStorage.user = "";
+        Storage.auth = "";
+        Storage.permissions = [];
+        Storage.user = "";
         return initialSecState;
 
       case ActionNames.LOGOUT:
-        localStorage.auth = "";
-        localStorage.permissions = [];
-        localStorage.user = "";
+        Storage.auth = "";
+        Storage.permissions = [];
+        Storage.user = "";
         return initialSecState;
 
       default:
         if (!state) {
-          if (localStorage.auth != null && localStorage.auth != "") {
+          if (Storage.auth != null && Storage.auth != "") {
             return {
               status: "LoggedIn",
-              authToken: localStorage.auth,
-              userId: localStorage.user,
-              permissions: localStorage.permissions
+              authToken: Storage.auth,
+              userId: Storage.user,
+              permissions: Storage.permissions
             };
           }
           return initialSecState;

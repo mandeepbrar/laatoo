@@ -3,7 +3,7 @@ import { call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions/ActionNames';
 import {  Response,  EntityData, DataSource, RequestBuilder } from '../sources/DataSource';
 import { createAction } from '../utils';
-import 'babel-polyfill';
+import {Application, Storage} from '../Globals'
 
 function* loadGroup(action) {
   try {
@@ -40,7 +40,7 @@ function* loadGroup(action) {
       let itemResp = {data: servResponse.Data, statuscode: servResponse.Status, info: servResponse.Info}
       if(service.type == "entity") {
         if(servResponse.Status == 200) {
-          itemResp.data.isOwner = (itemResp.data.CreatedBy === localStorage.user);
+          itemResp.data.isOwner = (itemResp.data.CreatedBy === Storage.user);
           actions.push(createAction(ActionNames.ENTITY_GET_SUCCESS, itemResp, {reducer: service.meta.reducer}));
         } else {
           actions.push(createAction(ActionNames.ENTITY_GET_FAILED, itemResp,  {reducer: service.meta.reducer}));

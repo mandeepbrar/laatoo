@@ -3,13 +3,13 @@ import { call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions/ActionNames';
 import {  Response,  EntityData } from '../sources/DataSource';
 import { createAction } from '../utils';
-import 'babel-polyfill';
+import {Application, Storage} from '../Globals'
 
 function* getEntityData(action) {
   try {
     yield put(createAction(ActionNames.ENTITY_GETTING, action.payload, {reducer: action.meta.reducer}));
     const resp = yield call(EntityData.GetEntity, action.payload.entityName, action.payload.entityId, action.payload.headers, action.payload.svc);
-    resp.data.isOwner = (resp.data.CreatedBy === localStorage.user);
+    resp.data.isOwner = (resp.data.CreatedBy === Storage.user);
     yield put(createAction(ActionNames.ENTITY_GET_SUCCESS, resp, action.meta));
     if(action.meta.successCallback) {
       action.meta.successCallback({resp: resp, payload: action.payload})

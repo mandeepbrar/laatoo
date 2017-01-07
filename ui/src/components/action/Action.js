@@ -4,8 +4,9 @@ import React from 'react';
 import ActionButton from './ActionButton';
 import { connect } from 'react-redux';
 import ActionLink from './ActionLink';
-import {Router} from 'redux-director';
-import { createAction, formatUrl, hasPermission } from '../../utils';
+//import {Router} from 'redux-director';
+import { createAction, formatUrl, hasPermission, redirect } from '../../utils';
+import {Application, Storage} from '../../Globals'
 
 class ActionComp extends React.Component {
   constructor(props) {
@@ -14,7 +15,7 @@ class ActionComp extends React.Component {
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
     this.hasPermission = false
-    let action = document.Actions[props.name];
+    let action = Application.Actions[props.name];
     if(action) {
       this.action = action;
       this.hasPermission =  hasPermission(action.permission);
@@ -58,7 +59,7 @@ class ActionComp extends React.Component {
         let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
-        Router.redirect(formattedUrl);
+        redirect(formattedUrl);
       }
       return false;
     }

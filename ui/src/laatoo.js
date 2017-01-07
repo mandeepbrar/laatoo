@@ -1,34 +1,17 @@
-require('styles/App.css')
-
 const redux = require('redux');
-import LoginComponent from './components/login/LoginComponent';
+import {Application, Storage} from './Globals'
 import { Response, DataSource, RequestBuilder, EntityData } from './sources/DataSource';
 import {Reducers} from './reducers';
 import {Action} from './components/action/Action';
-import {Entity} from './components/entity/Entity';
-import {DisplayEntity} from './components/entity/EntityDisplay';
-import {EntityForm} from './components/entity/EntityForm';
-import {UpdateEntity} from './components/entity/EntityUpdate';
 import {ActionNames} from './actions/ActionNames';
-import createSagaMiddleware from 'redux-saga';
-import {createAction} from './utils';
-import {formatUrl} from './utils';
-import {Sagas, runSagas} from './sagas';
-import {VideoEdit} from './components/form/videoedit';
-import {TextEdit, RichEdit} from './components/form/textedit';
-import {ImageEdit, ImageChooser} from './components/form/imageedit';
-import {WebTableView} from './components/view/WebTableView';
+import {createAction, formatUrl} from './utils';
 import {ViewReducer} from './reducers/View';
 import {EntityReducer} from './reducers/Entity';
-import {ViewFilter} from './components/view/Filter';
-import {Image} from './components/main/Image';
-import {View} from './components/view/View';
-import {WebView} from './components/view/WebView';
-import {WebListView} from './components/view/WebListView';
-import {Html} from './components/main/Html';
-import {ScrollListener} from './components/main/ScrollListener';
-import Panel from './panels/Panel';
-import {GroupLoad} from './components/main/GroupLoad';
+import createSagaMiddleware from 'redux-saga';
+import {Sagas, runSagas} from './sagas';
+/*
+
+*/
 
 function createStore(reducers, initialState, middleware, sagas, enhancers) {
   const sagaMiddleware = createSagaMiddleware();
@@ -45,40 +28,68 @@ function createStore(reducers, initialState, middleware, sagas, enhancers) {
 }
 
 
+let moduleExports = {
+  Storage: Storage,
+  Application: Application,
+  RequestBuilder: RequestBuilder,
+  DataSource:DataSource,
+  Response: Response,
+  EntityData: EntityData,
+  Reducers: Reducers,
+  ViewReducer: ViewReducer,
+  EntityReducer: EntityReducer,
+  Action: Action,
+  ActionNames: ActionNames,
+  formatUrl: formatUrl,
+  createStore: createStore,
+  createAction: createAction,
+  Sagas: Sagas
+}
+
+if(!Application.native) {
+  let videoedit = require('./components/form/videoedit');
+  let textedit = require('./components/form/textedit');
+  let imageedit = require('./components/form/imageedit');
+  let webtableview = require('./components/view/WebTableView');
+  let entity = require('./components/entity/Entity');
+  let entitydisplay = require('./components/entity/EntityDisplay');
+  let entityform = require('./components/entity/EntityForm');
+  let entityupdate = require('./components/entity/EntityUpdate');
+  let logincomponent = require('./components/login/LoginComponent');
+  require('./styles/App.css');
+  require('babel-polyfill');
+  let viewfilter = require('./components/view/Filter');
+  let image = require('./components/main/Image');
+  let view = require('./components/view/View');
+  let webview = require('./components/view/WebView');
+  let weblistview = require('./components/view/WebListView');
+  let html = require('./components/main/Html');
+  let scrolllistener = require('./components/main/ScrollListener');
+  let groupload = require( './components/main/GroupLoad');
+
+  moduleExports = Object.assign(moduleExports, {
+    LoginComponent: logincomponent.LoginComponent,
+    GroupLoad: groupload.GroupLoad,
+    Entity: entity.Entity,
+    DisplayEntity: entitydisplay.DisplayEntity,
+    EntityForm: entityform.EntityForm,
+    UpdateEntity: entityupdate.UpdateEntity,
+    WebTableView: webtableview.WebTableView,
+    VideoEdit: videoedit.VideoEdit,
+    TextEdit: textedit.TextEdit,
+    RichEdit: textedit.RichEdit,
+    ScrollListener: scrolllistener.ScrollListener,
+    WebView: webview.WebView,
+    WebListView: weblistview.WebListView,
+    Html : html.Html,
+    View: view.View,
+    Image: image.Image,
+    ImageChooser: imageedit.ImageChooser,
+    ImageEdit: imageedit.ImageEdit,
+    ViewFilter: viewfilter.ViewFilter
+  })
+}
+
 //export {LoginComponent as LoginComponent};//
 //export {DataSource as DataSource};
-module.exports = {
-    LoginComponent: LoginComponent,
-    DataSource:DataSource,
-    Response: Response,
-    Reducers: Reducers,
-    RequestBuilder: RequestBuilder,
-    ViewReducer: ViewReducer,
-    EntityReducer: EntityReducer,
-    Action: Action,
-    ActionNames: ActionNames,
-    GroupLoad: GroupLoad,
-    Entity: Entity,
-    Panel: Panel,
-    DisplayEntity: DisplayEntity,
-    EntityData: EntityData,
-    EntityForm:EntityForm,
-    UpdateEntity:UpdateEntity,
-    createStore: createStore,
-    createAction: createAction,
-    WebTableView: WebTableView,
-    VideoEdit: VideoEdit,
-    TextEdit: TextEdit,
-    RichEdit:RichEdit,
-    ScrollListener: ScrollListener,
-    WebView: WebView,
-    WebListView: WebListView,
-    Html : Html,
-    View: View,
-    Image: Image,
-    ImageChooser: ImageChooser,
-    ImageEdit: ImageEdit,
-    ViewFilter: ViewFilter,
-    formatUrl: formatUrl,
-    Sagas: Sagas
-};
+module.exports = moduleExports;
