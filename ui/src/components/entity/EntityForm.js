@@ -28,8 +28,11 @@ class TCombWebForm extends React.Component {
     return this.refs.form.getValue()
   }
   componentWillReceiveProps(nextprops) {
-    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(nextprops.entityData): this.props.schemaOptions
-    this.setState( {formValue: nextprops.entityData, so: so, key: "entityform" + (new Date())})
+    let ed = nextprops.entityData? nextprops.entityData: this.state.formValue
+    let so = this.props.lookupSchemaOptions? this.props.lookupSchemaOptions(this, ed, {}, "", this.state.so): this.props.schemaOptions
+    if(so) {
+      this.setState( {formValue: nextprops.entityData, so: so, key: "entityform" + (new Date())})
+    }
     if(this.props.refCallback) {
       this.props.refCallback(this)
     }
@@ -67,6 +70,7 @@ class TCombWebForm extends React.Component {
     if(this.props.onChange) {
       this.props.onChange(val, path)
     }
+    console.log("value of the entity form ", val, this.state)
     let fv = Object.assign({}, this.state.formValue, val)
     let st = Object.assign({}, this.state, {formValue:fv})
     if(this.props.lookupSchemaOptions) {
