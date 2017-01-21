@@ -14,6 +14,7 @@ const (
 	stringmap objectType = iota
 	bytes
 	files
+	stringtype
 	custom
 )
 
@@ -62,6 +63,14 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 					webctx.SetResponse(core.StatusBadRequestResponse)
 					return respHandler.HandleResponse(webctx)
 				}
+			case stringtype:
+				reqDataBytes, err := engineContext.GetBody()
+				if err != nil {
+					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					webctx.SetResponse(core.StatusBadRequestResponse)
+					return respHandler.HandleResponse(webctx)
+				}
+				reqData = string(reqDataBytes)
 			case files:
 				fileObjs, err := engineContext.GetFiles()
 				reqData = &fileObjs

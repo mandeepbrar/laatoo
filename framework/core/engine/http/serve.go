@@ -115,6 +115,8 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		otype = stringmap
 	case config.CONF_ENGINE_BYTES_DATA_OBJECT:
 		otype = bytes
+	case config.CONF_ENGINE_STRING_DATA_OBJECT:
+		otype = stringtype
 	case config.CONF_ENGINE_FILES_DATA_OBJECT:
 		otype = files
 	default:
