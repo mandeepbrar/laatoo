@@ -24,9 +24,8 @@ type gaeDataService struct {
 	softdelete              bool
 	presave                 bool
 	postsave                bool
+	postupdate              bool
 	postload                bool
-	notifynew               bool
-	notifyupdates           bool
 	collection              string
 	object                  string
 	objectid                string
@@ -87,24 +86,17 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 	} else {
 		svc.presave = svc.ObjectConfig.PreSave
 	}
+	postupdate, ok := conf.GetBool(common.CONF_DATA_POSTUPDATE)
+	if ok {
+		svc.postupdate = postupdate
+	} else {
+		svc.postupdate = svc.ObjectConfig.PostUpdate
+	}
 	postload, ok := conf.GetBool(common.CONF_DATA_POSTLOAD)
 	if ok {
 		svc.postload = postload
 	} else {
 		svc.postload = svc.ObjectConfig.PostLoad
-	}
-	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
-	if ok {
-		svc.notifyupdates = notifyupdates
-	} else {
-		svc.notifyupdates = svc.ObjectConfig.NotifyUpdates
-	}
-
-	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
-	if ok {
-		svc.notifynew = notifynew
-	} else {
-		svc.notifynew = svc.ObjectConfig.NotifyNew
 	}
 
 	return nil
@@ -219,16 +211,13 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave || svc.notifyupdates {
+	if svc.postsave {
 		for _, item := range items {
 			if svc.postsave {
 				err = item.PostSave(ctx)
 				if err != nil {
 					errors.WrapError(ctx, err)
 				}
-			}
-			if svc.notifyupdates {
-				common.NotifyUpdate(ctx, svc.Object, item.GetId())
 			}
 		}
 	}
@@ -263,9 +252,6 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		if err != nil {
 			errors.WrapError(ctx, err)
 		}
-	}
-	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.Object, id)
 	}
 	return nil
 }
@@ -322,14 +308,11 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
-	if svc.postsave {
-		err = stor.PostSave(ctx)
+	if svc.postupdate {
+		err = ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
-			errors.WrapError(ctx, err)
+			return errors.WrapError(ctx, err)
 		}
-	}
-	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.Object, id)
 	}
 	return nil
 }
@@ -381,7 +364,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	for ind, item := range resultStor {
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
-		if svc.presave {
+		/*if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return nil, err
@@ -390,24 +373,27 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 			if err != nil {
 				return nil, err
 			}
-		}
+		}*/
 	}
 	_, err = datastore.PutMulti(appEngineContext, keys, results)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	if svc.postsave {
+	/*if svc.postsave {
 		for _, stor := range resultStor {
 			err = stor.PostSave(ctx)
 			if err != nil {
 				errors.WrapError(ctx, err)
 			}
 		}
-	}
-	for _, id := range ids {
-		if svc.notifyupdates {
-			common.NotifyUpdate(ctx, svc.Object, id)
+	}*/
+	if svc.postupdate {
+		for _, id := range ids {
+			err := ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+			if err != nil {
+				return nil, errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return ids, err
@@ -443,7 +429,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	for ind, item := range resultStor {
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
-		if svc.presave {
+		/*if svc.presave {
 			err := ctx.SendSynchronousMessage(common.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
@@ -452,23 +438,26 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			if err != nil {
 				return err
 			}
-		}
+		}*/
 	}
 	_, err = datastore.PutMulti(appEngineContext, keys, results)
 	if err != nil {
 		return err
 	}
-	if svc.postsave {
+	/*if svc.postsave {
 		for _, stor := range resultStor {
 			err = stor.PostSave(ctx)
 			if err != nil {
 				errors.WrapError(ctx, err)
 			}
 		}
-	}
-	if svc.notifyupdates {
+	}*/
+	if svc.postupdate {
 		for _, id := range ids {
-			common.NotifyUpdate(ctx, svc.Object, id)
+			err := ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return nil

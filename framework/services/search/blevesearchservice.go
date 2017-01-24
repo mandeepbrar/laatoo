@@ -77,6 +77,19 @@ func (bs *BleveSearchService) Index(ctx core.RequestContext, s searchsdk.Searcha
 	return nil
 }
 
+func (bs *BleveSearchService) UpdateIndex(ctx core.RequestContext, id string, stype string, u map[string]interface{}) error {
+	/*ctx = ctx.SubContext("BleveSearch_Index")
+	log.Logger.Trace(ctx, "Writing doc ", "s", s)
+
+	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
+	err := bs.index.Index(id, s)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "map", bs.index.StatsMap())*/
+	return nil
+}
+
 //Index a searchable document
 func (bs *BleveSearchService) Search(ctx core.RequestContext, query string) ([]searchsdk.Searchable, error) {
 	ctx = ctx.SubContext("BleveSearch_Search")

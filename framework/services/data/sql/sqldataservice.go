@@ -25,8 +25,7 @@ type sqlDataService struct {
 	presave         bool
 	postsave        bool
 	postload        bool
-	notifynew       bool
-	notifyupdates   bool
+	postupdate      bool
 	factory         *sqlDataServicesFactory
 	collection      string
 	softDeleteField string
@@ -92,18 +91,13 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 		svc.postload = svc.ObjectConfig.PostLoad
 	}
 
-	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
+	postupdate, ok := conf.GetBool(common.CONF_DATA_POSTUPDATE)
 	if ok {
-		svc.notifyupdates = notifyupdates
+		svc.postupdate = postupdate
 	} else {
-		svc.notifyupdates = svc.ObjectConfig.NotifyUpdates
+		svc.postupdate = svc.ObjectConfig.PostUpdate
 	}
-	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
-	if ok {
-		svc.notifynew = notifynew
-	} else {
-		svc.notifynew = svc.ObjectConfig.NotifyNew
-	}
+
 	return nil
 }
 
@@ -223,17 +217,11 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 			return errors.WrapError(ctx, err)
 		}
 	}
-	for _, item := range items {
-		id := item.GetId()
-		if svc.postsave || svc.notifyupdates {
-			if svc.postsave {
-				err := item.PostSave(ctx)
-				if err != nil {
-					errors.WrapError(ctx, err)
-				}
-			}
-			if svc.notifyupdates {
-				common.NotifyUpdate(ctx, svc.Object, id)
+	if svc.postsave {
+		for _, item := range items {
+			err := item.PostSave(ctx)
+			if err != nil {
+				errors.WrapError(ctx, err)
 			}
 		}
 	}
@@ -269,9 +257,6 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 		if err != nil {
 			errors.WrapError(ctx, err)
 		}
-	}
-	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.Object, id)
 	}
 	return nil
 }
@@ -309,8 +294,11 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
-	if svc.notifyupdates {
-		common.NotifyUpdate(ctx, svc.Object, id)
+	if svc.postupdate {
+		err = ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 	return nil
 }
@@ -364,9 +352,12 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	if svc.notifyupdates {
+	if svc.postupdate {
 		for _, id := range ids {
-			common.NotifyUpdate(ctx, svc.Object, id)
+			err := ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+			if err != nil {
+				return nil, errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return ids, err
@@ -388,9 +379,12 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.notifyupdates {
+	if svc.postupdate {
 		for _, id := range ids {
-			common.NotifyUpdate(ctx, svc.Object, id)
+			err := ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return nil

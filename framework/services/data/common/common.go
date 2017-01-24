@@ -3,26 +3,22 @@ package common
 import "laatoo/sdk/core"
 
 const (
-	CONF_DATA_SVCS          = "dataservices"
-	CONF_BASE_SVC           = "baseservice"
-	CONF_DATA_OBJECT        = "object"
-	CONF_DATA_POSTSAVE      = "postsave"
-	CONF_DATA_POSTLOAD      = "postload"
-	CONF_DATA_PRESAVE       = "presave"
-	CONF_DATA_CACHEABLE     = "cacheable"
-	CONF_DATA_AUDITABLE     = "auditable"
-	CONF_DATA_REFOPS        = "refops"
-	CONF_DATA_COLLECTION    = "collection"
-	CONF_DATA_NOTIFYUPDATES = "notifyupdates"
-	CONF_DATA_NOTIFYNEW     = "notifynew"
-	CONF_PRESAVE_MSG        = "storable_presave"
-	CONF_PREUPDATE_MSG      = "storable_preupdate"
-	CONF_NEWOBJ_MSG         = "storable_new"
+	CONF_DATA_SVCS       = "dataservices"
+	CONF_BASE_SVC        = "baseservice"
+	CONF_DATA_OBJECT     = "object"
+	CONF_DATA_POSTSAVE   = "postsave"
+	CONF_DATA_POSTLOAD   = "postload"
+	CONF_DATA_POSTUPDATE = "postupdate"
+	CONF_DATA_PRESAVE    = "presave"
+	CONF_DATA_CACHEABLE  = "cacheable"
+	CONF_DATA_AUDITABLE  = "auditable"
+	CONF_DATA_REFOPS     = "refops"
+	CONF_DATA_COLLECTION = "collection"
+	CONF_PRESAVE_MSG     = "storable_presave"
+	CONF_PREUPDATE_MSG   = "storable_preupdate"
+	CONF_POSTUPDATE_MSG  = "storable_postupdate"
+	CONF_NEWOBJ_MSG      = "storable_new"
 )
-
-func NotifyUpdate(ctx core.RequestContext, objectType string, id string) {
-	//InvalidateCache(ctx, objectType, id)
-}
 
 func NotifyDelete(ctx core.RequestContext, objectType string, id string) {
 

@@ -21,8 +21,7 @@ type mongoDataService struct {
 	presave         bool
 	postsave        bool
 	postload        bool
-	notifynew       bool
-	notifyupdates   bool
+	postupdate      bool
 	factory         *mongoDataServicesFactory
 	collection      string
 	softDeleteField string
@@ -80,6 +79,12 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 	} else {
 		ms.postsave = ms.ObjectConfig.PostSave
 	}
+	postupdate, ok := conf.GetBool(common.CONF_DATA_POSTUPDATE)
+	if ok {
+		ms.postupdate = postupdate
+	} else {
+		ms.postupdate = ms.ObjectConfig.PostUpdate
+	}
 	presave, ok := conf.GetBool(common.CONF_DATA_PRESAVE)
 	if ok {
 		ms.presave = presave
@@ -91,19 +96,6 @@ func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Confi
 		ms.postload = postload
 	} else {
 		ms.postload = ms.ObjectConfig.PostLoad
-	}
-
-	notifyupdates, ok := conf.GetBool(common.CONF_DATA_NOTIFYUPDATES)
-	if ok {
-		ms.notifyupdates = notifyupdates
-	} else {
-		ms.notifyupdates = ms.ObjectConfig.NotifyUpdates
-	}
-	notifynew, ok := conf.GetBool(common.CONF_DATA_NOTIFYNEW)
-	if ok {
-		ms.notifynew = notifynew
-	} else {
-		ms.notifynew = ms.ObjectConfig.NotifyNew
 	}
 
 	return nil
@@ -210,16 +202,13 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if ms.postsave || ms.notifyupdates {
+	if ms.postsave {
 		for _, item := range items {
 			if ms.postsave {
 				err = item.PostSave(ctx)
 				if err != nil {
 					errors.WrapError(ctx, err)
 				}
-			}
-			if ms.notifyupdates {
-				common.NotifyUpdate(ctx, ms.Object, item.GetId())
 			}
 		}
 	}
@@ -258,9 +247,6 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 		if err != nil {
 			errors.WrapError(ctx, err)
 		}
-	}
-	if ms.notifyupdates {
-		common.NotifyUpdate(ctx, ms.Object, id)
 	}
 	return nil
 }
@@ -304,8 +290,11 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	if err != nil {
 		return err
 	}
-	if ms.notifyupdates {
-		common.NotifyUpdate(ctx, ms.Object, id)
+	if ms.postupdate {
+		err = ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 	return nil
 }
@@ -358,9 +347,12 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	for _, id := range ids {
-		if ms.notifyupdates {
-			common.NotifyUpdate(ctx, ms.Object, id)
+	if ms.postupdate {
+		for _, id := range ids {
+			err = ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
+			if err != nil {
+				return nil, errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return ids, err
@@ -386,9 +378,12 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	for _, id := range ids {
-		if ms.notifyupdates {
-			common.NotifyUpdate(ctx, ms.Object, id)
+	if ms.postupdate {
+		for _, id := range ids {
+			err = ctx.SendSynchronousMessage(common.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
 	}
 	return nil

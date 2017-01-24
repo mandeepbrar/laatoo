@@ -62,6 +62,19 @@ func (gs *GoogleSearchService) Index(ctx core.RequestContext, s search.Searchabl
 	return nil
 }
 
+func (gs *GoogleSearchService) UpdateIndex(ctx core.RequestContext, id string, stype string, u map[string]interface{}) error {
+	/*ctx = ctx.SubContext("BleveSearch_Index")
+	log.Logger.Trace(ctx, "Writing doc ", "s", s)
+
+	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
+	err := bs.index.Index(id, s)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "map", bs.index.StatsMap())*/
+	return nil
+}
+
 //Index a searchable document
 func (gs *GoogleSearchService) Search(ctx core.RequestContext, query string) ([]search.Searchable, error) {
 	ctx = ctx.SubContext("GoogleSearch_Search")

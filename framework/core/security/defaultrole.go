@@ -17,8 +17,6 @@ var (
 		Auditable:       true,
 		Collection:      "Role",
 		Cacheable:       false,
-		NotifyNew:       false,
-		NotifyUpdates:   false,
 	}
 )
 

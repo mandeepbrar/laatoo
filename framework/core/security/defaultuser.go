@@ -23,8 +23,6 @@ var (
 		Auditable:       true,
 		Collection:      "User",
 		Cacheable:       true,
-		NotifyNew:       false,
-		NotifyUpdates:   false,
 	}
 )
 
