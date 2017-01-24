@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/bleve"
+	bsearch "github.com/blevesearch/bleve/search"
 )
 
 const (
@@ -66,31 +67,38 @@ func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 
 func (bs *BleveSearchService) Index(ctx core.RequestContext, s searchsdk.Searchable) error {
 	ctx = ctx.SubContext("BleveSearch_Index")
-	log.Logger.Trace(ctx, "Writing doc ", "s", s)
+	log.Logger.Trace(ctx, "Writing doc ")
 
 	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
 	err := bs.index.Index(id, s)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "map", bs.index.StatsMap())
+	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "id", id)
 	return nil
 }
 
 func (bs *BleveSearchService) UpdateIndex(ctx core.RequestContext, id string, stype string, u map[string]interface{}) error {
-	/*ctx = ctx.SubContext("BleveSearch_Index")
-	log.Logger.Trace(ctx, "Writing doc ", "s", s)
-
-	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
-	err := bs.index.Index(id, s)
+	ctx = ctx.SubContext("BleveSearch_UpdateIndex")
+	id = fmt.Sprintf("%s_%s", stype, id)
+	bquery := bleve.NewDocIDQuery([]string{id})
+	search := bleve.NewSearchRequest(bquery)
+	searchResults, err := bs.index.Search(search)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "map", bs.index.StatsMap())*/
+	if len(searchResults.Hits) > 0 {
+		bd := bs.createDocument(ctx, searchResults.Hits[0])
+		err := bs.index.Index(id, bd)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		log.Logger.Trace(ctx, "Updated to index ", "index", bs.index.Name())
+	}
 	return nil
 }
 
-//Index a searchable document
+//search a searchable document
 func (bs *BleveSearchService) Search(ctx core.RequestContext, query string) ([]searchsdk.Searchable, error) {
 	ctx = ctx.SubContext("BleveSearch_Search")
 
@@ -105,21 +113,25 @@ func (bs *BleveSearchService) Search(ctx core.RequestContext, query string) ([]s
 	res := make([]searchsdk.Searchable, bs.numOfResults)
 	i := 0
 	for _, val := range searchResults.Hits {
-		doc, _ := bs.index.Document(val.ID)
-		bd := &searchsdk.BaseSearchDocument{}
-		bdval := reflect.ValueOf(bd).Elem()
-		for _, field := range doc.Fields {
-			fname := field.Name()
-			valField := bdval.FieldByName(fname)
-			if valField.Kind() == reflect.String {
-				fval := string(field.Value())
-				valField.SetString(fval)
-			}
-		}
-		res[i] = bd
+		res[i] = bs.createDocument(ctx, val)
 		i++
 	}
 	return res[0:i], nil
+}
+
+func (bs *BleveSearchService) createDocument(ctx core.RequestContext, val *bsearch.DocumentMatch) searchsdk.Searchable {
+	doc, _ := bs.index.Document(val.ID)
+	bd := &searchsdk.BaseSearchDocument{}
+	bdval := reflect.ValueOf(bd).Elem()
+	for _, field := range doc.Fields {
+		fname := field.Name()
+		valField := bdval.FieldByName(fname)
+		if valField.Kind() == reflect.String {
+			fval := string(field.Value())
+			valField.SetString(fval)
+		}
+	}
+	return bd
 }
 
 //Delete a searchable document

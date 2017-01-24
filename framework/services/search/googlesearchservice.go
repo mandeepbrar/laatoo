@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/utils"
 	"strconv"
 
 	googlesearch "google.golang.org/appengine/search"
@@ -63,15 +64,23 @@ func (gs *GoogleSearchService) Index(ctx core.RequestContext, s search.Searchabl
 }
 
 func (gs *GoogleSearchService) UpdateIndex(ctx core.RequestContext, id string, stype string, u map[string]interface{}) error {
-	/*ctx = ctx.SubContext("BleveSearch_Index")
-	log.Logger.Trace(ctx, "Writing doc ", "s", s)
-
-	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
-	err := bs.index.Index(id, s)
+	ctx = ctx.SubContext("GoogleSearch_UpdateIndex")
+	appengineCtx := ctx.GetAppengineContext()
+	index, err := googlesearch.Open(gs.indexName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "map", bs.index.StatsMap())*/
+	id = fmt.Sprintf("%s_%s", stype, id)
+	var bs search.BaseSearchDocument
+	err = index.Get(appengineCtx, id, &bs)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	utils.SetObjectFields(bs, u)
+	_, err = index.Put(appengineCtx, id, bs)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	return nil
 }
 
