@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"strconv"
 
@@ -71,12 +72,13 @@ func (gs *GoogleSearchService) UpdateIndex(ctx core.RequestContext, id string, s
 		return errors.WrapError(ctx, err)
 	}
 	id = fmt.Sprintf("%s_%s", stype, id)
-	var bs search.BaseSearchDocument
-	err = index.Get(appengineCtx, id, &bs)
+	bs := new(search.BaseSearchDocument)
+	err = index.Get(appengineCtx, id, bs)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	utils.SetObjectFields(bs, u)
+	log.Logger.Info(ctx, "Creating index ***********", "bs", bs, "u", u)
 	_, err = index.Put(appengineCtx, id, bs)
 	if err != nil {
 		return errors.WrapError(ctx, err)
