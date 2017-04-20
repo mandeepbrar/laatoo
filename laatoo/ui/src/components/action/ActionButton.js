@@ -3,7 +3,7 @@
 import React from 'react';
 
 const ActionButton = (props) =>(
-  <a className={props.className + " btn btn-default"} onClick={props.actionFunc} role="button">
+  <a className={props.className + " actionbutton"} onClick={props.actionFunc} role="button">
     {props.actionchildren}
   </a>
 )
@@ -15,7 +15,7 @@ ActionButton.propTypes = {
     React.PropTypes.array,
     React.PropTypes.string
   ])
-    
+
 };
 // View.defaultProps = {};
 

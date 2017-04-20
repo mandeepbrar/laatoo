@@ -27,9 +27,11 @@ class Entity {
       let reducer = this.name.toUpperCase()+"_View";
       let idField = this.entityProperties.idField;
       let titleField = this.entityProperties.titleField;
+      let actions = this.entityProperties.actions
       let header = this.entityProperties.viewHeader;
       let paginate = this.entityProperties.paginate;
       let pageSize = this.entityProperties.pageSize;
+      let loader = this.entityProperties.loader;
       let row = this.entityProperties.viewRow;
       let currentPage = 1;
       let viewService = this.entityProperties.viewService;
@@ -37,24 +39,42 @@ class Entity {
       let viewArgs = this.entityProperties.viewArgs;
       let filterForm = this.entityProperties.filterForm;
       let defaultFilter = this.entityProperties.defaultFilter;
-      return () => (
-          <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate}
-            pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
-            titleField={titleField} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
-          </EntityView>
-        )
+      return (props) => {
+          let params = null
+          if(props && props.params) {
+            params=  props.params
+          }
+          return (
+            <EntityView key={reducer} name={this.name} filterForm={filterForm} idField={idField} paginate={paginate} loader={loader}
+              pageSize={pageSize} getHeader={header} getItem={row} reducer={reducer} postArgs={viewArgs} defaultFilter={defaultFilter}
+              actions={actions} titleField={titleField} params={params} viewService={viewService} urlParams={urlParams} currentPage={currentPage}>
+            </EntityView>
+          )
+        }
     }
     CreateComponent() {
       let reducer = this.name.toUpperCase()+"_Form";
       let schema = this.entityProperties.schema;
+      let data = this.entityProperties.data;
       let mountForm = this.entityProperties.mountForm;
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
+      let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
-      return () => (
-          <CreateEntity name={this.name} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
-        )
-
+      return (props) =>  {
+        let idToDuplicate = null
+        let params = null
+        if(props && props.params && props.params.idToDuplicate) {
+          idToDuplicate = props.params.idToDuplicate
+        }
+        if(props && props.params) {
+          params = props.params
+        }
+        return (
+            <CreateEntity name={this.name} idToDuplicate={idToDuplicate} data={data} reducer={reducer} refCallback={refCallback} schema={schema}
+             params={params} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></CreateEntity>
+          )
+      }
     }
     UpdateComponent() {
       let reducer = this.name.toUpperCase()+"_Form";
@@ -62,17 +82,27 @@ class Entity {
       let mountForm = this.entityProperties.mountForm;
       let postSave = this.entityProperties.postSave;
       let preSave = this.entityProperties.preSave;
+      let usePut = this.entityProperties.usePut;
+      let refCallback = this.entityProperties.refCallback;
       let schemaOptions = this.entityProperties.schemaOptions;
       return (props) => (
-          <UpdateEntity name={this.name} id={props.params.id} reducer={reducer} schema={schema} mountForm={mountForm} postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
+          <UpdateEntity name={this.name} id={props.params.id} refCallback={refCallback} usePut={usePut} reducer={reducer} schema={schema} mountForm={mountForm}
+            postSave={postSave} preSave={preSave} schemaOptions={schemaOptions}></UpdateEntity>
         )
     }
     DisplayComponent() {
       let reducer = this.name.toUpperCase()+"_Display";
       let display = this.entityProperties.display;
-      return (props) => (
-          <DisplayEntity name={this.name} id={props.params.id} reducer={reducer} display={display}></DisplayEntity>
+      let loader = this.entityProperties.loader;
+      return (props) =>  {
+        let params = null
+        if(props && props.params) {
+          params=  props.params
+        }
+        return (
+          <DisplayEntity name={this.name} id={props.params.id} loader={loader} params={params} reducer={reducer} display={display}></DisplayEntity>
         )
+      }
     }
     ViewReducer() {
       return getViewReducer(this.name);

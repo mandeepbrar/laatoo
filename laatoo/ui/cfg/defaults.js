@@ -21,7 +21,8 @@ function getDefaultModules() {
         test: /\.(js|jsx)$/,
         include: srcPath,
         loader: 'eslint-loader'
-      }
+      },
+      { test: /\.json$/, loader: 'json'},
     ],
     loaders: [
       {
@@ -46,7 +47,7 @@ function getDefaultModules() {
       },
       {
          test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-         loader: 'url-loader?limit=100000' 
+         loader: 'url-loader?limit=100000'
       },
       {
         test: /\.(png|jpg|gif|woff|woff2)$/,

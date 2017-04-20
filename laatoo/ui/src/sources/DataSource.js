@@ -3,6 +3,7 @@
 import { RequestBuilderService } from './RequestBuilder';
 import { EntityDataService } from './EntityData';
 import axios from 'axios';
+import {Application, Storage} from '../Globals'
 
 const Response = {
   Success: "Success",
@@ -11,6 +12,7 @@ const Response = {
   BadRequest: "BadRequest",
   Failure: "Failure"
 };
+console.log("application services", Application)
 
 class DefaultDataSource {
   constructor() {
@@ -20,7 +22,8 @@ class DefaultDataSource {
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this);
   }
   ExecuteService(serviceName, serviceRequest, config=null) {
-    var service = document.Services[serviceName];
+    console.log("application services", Application)
+    var service = Application.Services[serviceName];
     if (service != null && serviceRequest != null) {
       return this.ExecuteServiceObject(service, serviceRequest, config);
     } else {
@@ -34,13 +37,13 @@ class DefaultDataSource {
       if (protocol === 'http') {
         var method = this.getMethod(service);
         var url = this.getURL(service, req);
-        return this.HttpCall(url, method, req.params, req.data, config);
+        return this.HttpCall(url, method, req.params, req.data, req.headers, config);
       }
     } else {
       throw new Error('Invalid Request' );
     }
   }
-  HttpCall(url, method, params, data, config=null) {
+  HttpCall(url, method, params, data, headers, config=null) {
     let service = this;
     var promise = new Promise(
       function (resolve, reject) {
@@ -62,8 +65,10 @@ class DefaultDataSource {
         if(method == 'DELETE') {
           data = null;
         }
-        let headers = {};
-        headers[document.Application.Security.AuthToken] = localStorage.auth;
+        if(!headers) {
+          headers = {}
+        }
+        headers[Application.Security.AuthToken] = Storage.auth;
         let req = {
           method: method,
           url: url,
@@ -92,10 +97,10 @@ class DefaultDataSource {
     if(res instanceof Error) {
       return this.buildSvcResponse(code, msg, res, {});
     }
-    return this.buildSvcResponse(code, msg, res.data, res.headers);
+    return this.buildSvcResponse(code, msg, res.data, res.headers, res.status);
   }
 
-  buildSvcResponse(code, msg, data, info) {
+  buildSvcResponse(code, msg, data, info, statuscode) {
     var response = {};
     switch (code) {
       default:
@@ -103,6 +108,7 @@ class DefaultDataSource {
         response.message = msg;
         response.data = data;
         response.info = info;
+        response.statuscode=  statuscode;
     }
     console.log(response);
     return response;
@@ -118,7 +124,7 @@ class DefaultDataSource {
     if (url.startsWith('http')) {
       return url;
     } else {
-      return document.Application.Backend + url;
+      return Application.Backend + url;
     }
   }
 

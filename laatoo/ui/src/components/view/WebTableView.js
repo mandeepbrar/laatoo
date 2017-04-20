@@ -23,7 +23,7 @@ class WebTableView extends React.Component {
   }
   getView(view, header, groups) {
     return (
-      <table  className="table table-striped ">
+      <table  className="webtableview" style={{width: '100%'}}>
         <thead>
           {header}
         </thead>
@@ -85,11 +85,13 @@ class WebTableView extends React.Component {
         urlParams = {this.props.urlParams}
         postArgs = {this.props.postArgs}
         defaultFilter = {this.props.defaultFilter}
+        loader = {this.props.loader}
         currentPage = {this.props.currentPage}
         filterTitle= {this.props.filterTitle}
         filterForm={this.props.filterForm}
         filterGo={ this.props.filterGo}
         getFilter={this.props.getFilter}
+        globalReducer={this.props.globalReducer}
         getView =  {this.getView}
         getItem = {this.getItem}
         getItemGroup = {this.getItemGroup}

@@ -4,8 +4,9 @@ import React from 'react';
 import ActionButton from './ActionButton';
 import { connect } from 'react-redux';
 import ActionLink from './ActionLink';
-import {Router} from 'redux-director';
-import { createAction, formatUrl, hasPermission } from '../../utils';
+//import {Router} from 'redux-director';
+import { createAction, formatUrl, hasPermission, redirect } from '../../utils';
+import {Application, Storage} from '../../Globals'
 
 class ActionComp extends React.Component {
   constructor(props) {
@@ -14,7 +15,7 @@ class ActionComp extends React.Component {
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
     this.hasPermission = false
-    let action = document.Actions[props.name];
+    let action = Application.Actions[props.name];
     if(action) {
       this.action = action;
       this.hasPermission =  hasPermission(action.permission);
@@ -26,30 +27,41 @@ class ActionComp extends React.Component {
     if(this.props.params) {
       payload = this.props.params;
     }
-    this.props.dispatch(createAction(this.action.action, payload));
+    this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback, failureCallback: this.props.failureCallback}));
   }
   actionFunc(evt) {
-    console.log("clicked", this.props.params)
     evt.preventDefault();
+    if(this.props.confirm) {
+      if(!this.props.confirm(this.props)) {
+        return false
+      }
+    }
+    console.log("exceuting action", this.action)
     switch(this.action.actiontype) {
       case "dispatchaction":
         this.dispatchAction();
-      return;
+      return false;
       case "method":
         let params = this.props.params
         let method = this.props.method
-        console.log("method and params", method, params)
         method(params);
-      return;
-      default:
+      return false;
+      case "newwindow":
       if(this.action.url) {
-
         let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
-        Router.redirect(formattedUrl);
+        window.open(formattedUrl);
+        return false
       }
-      return;
+      default:
+      if(this.action.url) {
+        let formattedUrl = formatUrl(this.action.url, this.props.params);
+        console.log(formattedUrl);
+        //browserHistory.push({pathname: formattedUrl});
+        redirect(formattedUrl);
+      }
+      return false;
     }
   }
 

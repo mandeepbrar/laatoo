@@ -23,15 +23,17 @@ class ViewDisplay extends React.Component {
     this.getFilter = this.getFilter.bind(this);
     this.reload = this.reload.bind(this);
     this.setFilter = this.setFilter.bind(this);
-    this.methods = {reload: this.reload, setFilter:this.setFilter, itemCount: this.itemCount, viewrefs: this.viewrefs, itemStatus: this.itemStatus, selectedItems: this.selectedItems, setPage: this.setPage}
+    this.loadMore = this.loadMore.bind(this);
+    this.methods = {reload: this.reload, loadMore: this.loadMore, setFilter:this.setFilter, itemCount: this.itemCount, viewrefs: this.viewrefs, itemStatus: this.itemStatus, selectedItems: this.selectedItems, setPage: this.setPage}
     this.addMethod = this.addMethod.bind(this);
+    this.state = {lastLoadTime: -1}
     this.numItems = 0
   }
   componentWillMount() {
     this.filter = this.props.defaultFilter
   }
   componentDidMount() {
-    if(this.props.load) {
+    if(this.props.load && !this.props.externalLoad) {
       this.props.loadView(this.props.currentPage, this.filter);
     }
   }
@@ -39,6 +41,18 @@ class ViewDisplay extends React.Component {
     if(nextprops.load) {
       nextprops.loadView(nextprops.currentPage, this.filter);
     }
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    if(!nextProps.forceUpdate && this.lastRenderTime) {
+      if(nextProps.lastUpdateTime) {
+        if(this.lastRenderTime >= nextProps.lastUpdateTime) {
+          return false
+        }
+      } else {
+        return false
+      }
+    }
+    return true;
   }
   addMethod(name, method) {
     this.methods[name] = method
@@ -117,21 +131,43 @@ class ViewDisplay extends React.Component {
     }
     return null
   }
+  loadMore() {
+    if(this.props.currentPage>=this.props.totalPages) {
+      return false
+    } else {
+      if(this.props.currentPage) {
+        this.props.loadIncrementally(this.props.currentPage + 1, this.filter)
+        return true
+      }
+    }
+  }
   render() {
+    this.lastRenderTime = this.props.lastUpdateTime
     let groups=[]
     let groupsize = 1
     let group=[]
-    this.numItems = this.props.items.length
-    for (var i in this.props.items) {
-      let x = this.props.items[i]
-      let item = this.getItem(x, i)
-      group.push(item)
-      if((i % groupsize) == 0) {
-        let itemGrp = this.getItemGroup(group)
-        groups.push(itemGrp)
-        group = []
+
+    if(this.props.items) {
+      let keys = Object.keys(this.props.items);
+      this.numItems = keys.length
+      for (var i in keys) {
+        let x = this.props.items[keys[i]]
+        if (x) {
+          let item = this.getItem(x, keys[i])
+          group.push(item)
+          if((i % groupsize) == 0) {
+            let itemGrp = this.getItemGroup(group)
+            groups.push(itemGrp)
+            group = []
+          }
+        }
+      }
+    } else {
+      if(this.props.loader) {
+        groups.push(this.props.loader)
       }
     }
+    this.items=this.props.items
     let header = this.getHeader()
     let filterCtrl = this.getFilter(this.props.filterTitle, this.props.filterForm, this.props.filterGo, this.filter)
     let pagination = this.getPagination()
@@ -146,13 +182,16 @@ const mapStateToProps = (state, ownProps) => {
     paginate: ownProps.paginate,
     pageSize: ownProps.pageSize,
     defaultFilter: ownProps.defaultFilter,
+    externalLoad: ownProps.externalLoad,
     urlParams: ownProps.urlParams,
     postArgs: ownProps.postArgs,
+    loader : ownProps.loader,
     filterTitle: ownProps.filterTitle,
     filterForm: ownProps.filterForm,
     filterGo: ownProps.filterGo,
     getView: ownProps.getView,
     getItem: ownProps.getItem,
+    incrementalLoad: ownProps.incrementalLoad,
     getItemGroup: ownProps.getItemGroup,
     getHeader: ownProps.getHeader,
     getFilter: ownProps.getFilter,
@@ -161,41 +200,55 @@ const mapStateToProps = (state, ownProps) => {
     className: ownProps.className,
     totalPages: 1,
     load: false,
-    items: []
+    items: null
   };
-  if(state.router && state.router.routeStore) {
-    let entityView = state.router.routeStore[ownProps.reducer];
-    if(entityView) {
-      if(entityView.status == "Loaded") {
-          props.items = entityView.data
-          props.currentPage = entityView.currentPage
-          props.totalPages = entityView.totalPages
-          return props
-      }
-      if(entityView.status == "NotLoaded") {
-          props.load = true
-          return props
-      }
+  let view = null;
+  if(!ownProps.globalReducer) {
+    if(state.router && state.router.routeStore) {
+      view = state.router.routeStore[ownProps.reducer];
+    }
+  } else {
+    view = state[ownProps.reducer];
+  }
+  if(view) {
+    if(view.status == "Loaded") {
+        props.items = view.data
+        props.currentPage = view.currentPage
+        props.totalPages = view.totalPages
+        props.lastUpdateTime = view.lastUpdateTime
+        props.latestPageData = view.latestPageData
+        return props
+    }
+    if(view.status == "NotLoaded") {
+        props.load = true
+        return props
     }
   }
   return props;
 }
 
+function loadData(dispatch, ownProps, pagenum, filter, incrementalLoad) {
+  if(!pagenum) {
+    pagenum = 1
+  }
+  let queryParams={}
+  if (ownProps.paginate) {
+        queryParams.pagesize = ownProps.pageSize;
+        queryParams.pagenum = pagenum;
+    }
+  let postArgs = Object.assign({}, ownProps.postArgs, filter);
+  let payload = {queryParams, postArgs};
+  let meta = {serviceName: ownProps.viewService, reducer: ownProps.reducer, incrementalLoad: incrementalLoad};
+  dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));
+}
+
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     loadView: (pagenum, filter) => {
-      if(!pagenum) {
-        pagenum = 1
-      }
-      let queryParams={}
-      if (ownProps.paginate) {
-            queryParams.pagesize = ownProps.pageSize;
-            queryParams.pagenum = pagenum;
-        }
-      let postArgs = Object.assign({}, ownProps.postArgs, filter);
-      let payload = {queryParams, postArgs};
-      let meta = {serviceName: ownProps.viewService, reducer: ownProps.reducer};
-      dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));
+      loadData(dispatch, ownProps, pagenum, filter, false)
+    },
+    loadIncrementally: (pagenum, filter) => {
+      loadData(dispatch, ownProps, pagenum, filter, true)
     }
   }
 }

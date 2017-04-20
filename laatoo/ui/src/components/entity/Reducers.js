@@ -1,4 +1,3 @@
-import  {EntityFormReducer} from '../../reducers/EntityForm';
 import  {EntityReducer} from '../../reducers/Entity';
 import  {ViewReducer} from '../../reducers/View';
 import { combineReducers } from 'redux';
@@ -6,7 +5,7 @@ import { combineReducers } from 'redux';
 export function getCreateReducer(name) {
   let reducerName = name.toUpperCase()+"_Form";
   let reducers = {};
-  reducers[reducerName] = EntityFormReducer(reducerName);
+  reducers[reducerName] = EntityReducer(reducerName);
   let createReducer = combineReducers(reducers);
   return createReducer;
 }
@@ -14,7 +13,7 @@ export function getCreateReducer(name) {
 export function getUpdateReducer(name) {
   let reducerName = name.toUpperCase()+"_Form";
   let reducers = {};
-  reducers[reducerName] = EntityFormReducer(reducerName);
+  reducers[reducerName] = EntityReducer(reducerName);
   let updateReducer = combineReducers(reducers);
   return updateReducer;
 }

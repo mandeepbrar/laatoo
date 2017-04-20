@@ -5,10 +5,10 @@ let webpack = require('webpack');
 
 let baseConfig = require('./base');
 let defaultSettings = require('./defaults');
+var nodeExternals = require('webpack-node-externals');
 
 // Add needed plugins here
 let BowerWebpackPlugin = require('bower-webpack-plugin');
-
 let config = Object.assign({}, baseConfig, {
   entry: {
     laatoo: path.join(__dirname, '../src/laatoo'),
@@ -19,13 +19,11 @@ let config = Object.assign({}, baseConfig, {
       // name of the global var: "Foo"
       library: "laatoo",
       path: path.join(__dirname, '/../dist/assets'),
-      libraryTarget: "commonjs2",
+      libraryTarget: "umd",
       filename: 'index.js',
       publicPath: `.${defaultSettings.publicPath}`
   },
   externals: {
-      // require("jquery") is external and available
-      //  on the global var jQuery
       "babel-polyfill": "babel-polyfill",
       "react": "react",
       "react-dom":"react-dom",
@@ -49,6 +47,7 @@ let config = Object.assign({}, baseConfig, {
       "react-pagify":"react-pagify",
       "normalize.css":"normalize.css"
   },
+  optional: true,
   cache: false,
   devtool: 'sourcemap',
   plugins: [
@@ -56,9 +55,7 @@ let config = Object.assign({}, baseConfig, {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-    new BowerWebpackPlugin({
-      searchResolveModulesDirectories: false
-    }),
+    new BowerWebpackPlugin(),
 //    new webpack.optimize.CommonsChunkPlugin("vendor", "react.bundle.js"),
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.OccurenceOrderPlugin(),

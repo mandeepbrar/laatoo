@@ -1,9 +1,7 @@
 import t from 'tcomb-form';
 import React from 'react';
 import Dropzone from 'react-dropzone';
-import Tab from 'react-bootstrap/lib/Tab'
-import Image from 'react-bootstrap/lib/Image'
-import Tabs from 'react-bootstrap/lib/Tabs'
+import {Image} from '../main/Image'
 import {  Response,  DataSource,  RequestBuilder } from '../../sources/DataSource';
 
 
@@ -13,15 +11,32 @@ class ImageChooser extends React.Component {
     this.drop = this.drop.bind(this)
     this.uselink = this.uselink.bind(this)
     this.clear = this.clear.bind(this)
+    this.getComponent = this.getComponent.bind(this)
+    this.getChoiceComponent = this.getChoiceComponent.bind(this)
+    this.getDropZoneComponent = this.getDropZoneComponent.bind(this)
+    this.getValueComponent = this.getValueComponent.bind(this)
+    this.handleChoiceChange = this.handleChoiceChange.bind(this)
+    this.state = {imagechooser: "upload"}
+    if(this.props.imageStyle) {
+      this.imageStyle = this.props.imageStyle
+    } else {
+      this.imageStyle = {height:"220"}
+    }
   }
   drop(files) {
+    console.log("files dropped", files)
     if(files.length >0) {
       let data = new FormData()
-      data.append(files[0].name, files[0]);
+      if(this.props.multiple) {
+        files.forEach((file) => {
+          data.append(file.name, file);
+        })
+      } else {
+        data.append(files[0].name, files[0]);
+      }
       var config = {
         progress: function(progressEvent) {
           var percentCompleted = progressEvent.loaded / progressEvent.total;
-          console.log("complete", percentCompleted);
         }
       };
       let comp = this;
@@ -29,14 +44,24 @@ class ImageChooser extends React.Component {
       let prom = DataSource.ExecuteService(this.props.uploadService, req, config)
       prom.then(
         function (res) {
-          let img = res.data[0];
-          if(comp.props.prefix) {
-            img = comp.props.prefix + img
+          if(comp.props.multiple) {
+            //let val = comp.props.value? comp.props.value.split(","):[]
+            let newVal = res.data.join(",")
+            let val = comp.props.value? [comp.props.value, newVal].join(","): newVal
+            comp.props.onChange(val)
+            console.log("response of uploading images", val)
+          } else {
+            comp.props.onChange(res.data[0], files[0].name)
           }
-          console.log(img);
-          comp.props.onChange(img)
+          if(comp.props.successCallback) {
+            comp.props.successCallback(res)
+          }
         },
         function (res) {
+          console.log("res", res, "failureCallback", comp.props.failureCallback, "props", comp.props)
+          if(comp.props.failureCallback) {
+            comp.props.failureCallback(res)
+          }
           console.log(res);
         });
     }
@@ -49,34 +74,97 @@ class ImageChooser extends React.Component {
     evt.preventDefault();
     this.props.onChange(null)
   }
-  render () {
-    console.log("value ", this.props.value)
-    if(this.props.value) {
-      return (
-        <div class="container" style={{height:"300px"}} className="m20">
-          <p><strong>URL: </strong>{this.props.value}</p>
-          <Image src={this.props.value} thumbnail style={{width: 'auto', height: 220}} />
-          <button className="btn" role="button" onClick={this.clear}>Clear</button>
+  getChoiceComponent() {
+    return (
+      <div className="w100">
+        <input type="radio" name="imagechooser" value="upload" checked={this.state.imagechooser=="upload"} onChange={this.handleChoiceChange}/> Upload
+        &nbsp;&nbsp;
+        <input type="radio" name="imagechooser" value="url" checked={this.state.imagechooser=="url"} onChange={this.handleChoiceChange}/> URL
+      </div>
+    )
+  }
+  getValueComponent() {
+    let items=[]
+    if(this.props.multiple) {
+      console.log("value of image ", this.props.value)
+      let val = this.props.value? this.props.value.split(","): []
+      val.forEach((item)=> {
+        items.push(
+          <Image src={item} modifier={{thumbnail:true}} prefix={this.props.prefix} style={this.imageStyle} />
+        )
+      })
+    } else {
+      items.push(
+        <Image src={this.props.value} modifier={{thumbnail:true}} prefix={this.props.prefix} style={this.imageStyle} />
+      )
+    }
+    return(
+      <div className="w100">
+        {items}
+        {this.props.clear? this.props.clear(this.clear):<button className="btn" role="button" onClick={this.clear}>Clear</button>}
+      </div>
+    )
+  }
+  getDropZoneComponent() {
+    let multiple = this.props.multiple? this.props.multiple: false
+    return(
+      <div className="upload" style={{display:"block"}}>
+        <Dropzone onDrop={this.drop} className={this.props.dropzoneClass} multiple={multiple}>
+          {
+            this.props.text ?
+            this.props.text
+            :
+            <div>Try dropping some files here, or click to select files to upload.</div>
+          }
+        </Dropzone>
+      </div>
+    )
+  }
+  getComponent(choice) {
+    if (choice == "url") {
+      return(
+        <div style={{display:"block"}} className="url">
+          <input className="ma30" type="text" ref="imageediturl" placeholder="link"/>
+          <button className="ma10 rightalign" role="button" onClick={this.uselink}>Use Image</button>
         </div>
       )
     } else {
+      return this.getDropZoneComponent()
+    }
+  }
+  handleChoiceChange(e) {
+    this.setState({imagechooser: e.target.value});
+  }
+  render () {
+    let style = null
+    if(this.props.style) {
+      style = this.props.style
+    } else {
+      style = {minHeight:"300"}
+    }
+    let showChoice = !this.props.multiple && !this.props.hideChoice
+
+    if(this.props.value) {
       return (
-        <div style={{height:"300px"}}  className="m20">
-          <Tabs id="imagechooser">
-              <Tab eventKey={1} title="URL">
-                <input className="form-control ma30" type="text" ref="imageediturl" placeholder="link"/>
-                <button className="btn col-xs-offset-1 ma10 pull-right" role="button" onClick={this.uselink}>Use Image</button>
-              </Tab>
-              <Tab eventKey={2} title="Upload">
-                <div className="m20">
-                  <Dropzone onDrop={this.drop} multiple={false}>
-                    <div>Try dropping some files here, or click to select files to upload.</div>
-                  </Dropzone>
-                </div>
-              </Tab>
-          </Tabs>
+        <div className="imageedit" style={style}>
+          {!this.props.hideURL?<p><strong>URL: </strong>{this.props.value}</p>:null}
+          {this.props.multiple? this.getDropZoneComponent(): null}
+          {this.getValueComponent()}
         </div>
       )
+    } else {
+      let component = this.getComponent(this.state.imagechooser)
+      if(showChoice) {
+        let choiceComponent = this.getChoiceComponent()
+        return (
+          <div style={style} className="imageedit">
+            {choiceComponent}
+            {component}
+          </div>
+        )
+      } else {
+        return component
+      }
     }
   }
 }
@@ -84,15 +172,18 @@ class ImageChooser extends React.Component {
 class ImageEdit extends t.form.Component { // extend the base class
   getTemplate() {
     return (locals) => {
-      console.log("locals....", locals)
+      let config = {}
+      if(locals.config) {
+        config = locals.config
+      }
       let choose = (file) => {
         console.log(file);
       }
+      console.log("image config", config)
       return (
-        <div>
-          <label>{locals.label}</label>
-          <ImageChooser value={locals.value} onChange={locals.onChange} prefix={locals.config.prefix} uploadService={locals.config.service}/>
-        </div>
+          <ImageChooser value={locals.value} style={config.style} hideURL={config.hideURL} hideChoice={config.hideChoice} clear={config.clear}
+              successCallback={config.successCallback} failureCallback={config.failureCallback} text={config.text} dropzoneClass={config.dropzoneClass}
+              multiple={config.multiple} onChange={locals.onChange} prefix={locals.config.prefix} imageStyle={config.imageStyle} uploadService={config.service}/>
       );
     };
   }
@@ -100,5 +191,6 @@ class ImageEdit extends t.form.Component { // extend the base class
 
 
 export {
-  ImageEdit as ImageEdit
+  ImageEdit as ImageEdit,
+  ImageChooser as ImageChooser
 };

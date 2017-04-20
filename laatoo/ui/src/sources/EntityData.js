@@ -1,4 +1,5 @@
 'use strict';
+import {Application, Storage} from '../Globals'
 
 export class EntityDataService {
     constructor(DataSource, RequestBuilder) {
@@ -10,44 +11,68 @@ export class EntityDataService {
         this.PutEntity = this.PutEntity.bind(this);
         this.UpdateEntity = this.UpdateEntity.bind(this);
     }
-    GetEntity(entityName, id) {
-			var service = {};
-			service.method = "GET";
-			service.url = document.Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
-			var req = this.RequestBuilder.DefaultRequest(null, null);
-			return this.DataSource.ExecuteServiceObject(service, req);
+    GetEntity(entityName, id, headers, svc) {
+      if(svc) {
+        var req = this.RequestBuilder.URLParamsRequest({":id": id}, null, headers);
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "GET";
+        service.url = Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
+        var req = this.RequestBuilder.DefaultRequest(null, null, headers);
+  			return this.DataSource.ExecuteServiceObject(service, req);
+      }
 		}
 
-		SaveEntity(entityName, data) {
-			var service = {};
-			service.method = "POST";
-			service.url = document.Application.EntityPrefix+entityName.toLowerCase();
-			var req = this.RequestBuilder.DefaultRequest(null, data);
-			return this.DataSource.ExecuteServiceObject(service, req);
+		SaveEntity(entityName, data, headers, svc) {
+      var req = this.RequestBuilder.DefaultRequest(null, data, headers);
+      if(svc) {
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "POST";
+        service.url = Application.EntityPrefix+entityName.toLowerCase();
+        return this.DataSource.ExecuteServiceObject(service, req);
+      }
 		};
 
-		DeleteEntity(entityName, id) {
-			var service = {};
-			service.method = "DELETE";
-			service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
-			var req = this.RequestBuilder.DefaultRequest(null, null);
-			return this.DataSource.ExecuteServiceObject(service, req);
+		DeleteEntity(entityName, id, headers, svc) {
+      if(svc) {
+        var req = this.RequestBuilder.URLParamsRequest({":id": id}, null, headers);
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "DELETE";
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        var req = this.RequestBuilder.DefaultRequest(null, null, headers);
+  			return this.DataSource.ExecuteServiceObject(service, req);
+      }
 		};
 
-		PutEntity(entityName, id, data) {
-			var service = {};
-			service.method = "PUT";
-			service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
-			var req = this.RequestBuilder.DefaultRequest(null, data);
-			return this.DataSource.ExecuteServiceObject(service, req);
+		PutEntity(entityName, id, data, headers, svc) {
+      if(svc) {
+        var req = this.RequestBuilder.URLParamsRequest({":id": id}, null, headers);
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "PUT";
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        var req = this.RequestBuilder.DefaultRequest(null, data, headers);
+  			return this.DataSource.ExecuteServiceObject(service, req);
+      }
 		};
 
-		UpdateEntity(entityName, id, fieldmap) {
-			var service = {};
-			service.method = "PUT";
-			service.url = document.Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
-			var req = this.RequestBuilder.DefaultRequest(null, fieldmap);
-			return this.DataSource.ExecuteServiceObject(service, req);
+		UpdateEntity(entityName, id, fieldmap, headers, svc) {
+      if(svc) {
+        var req = this.RequestBuilder.URLParamsRequest({":id": id}, null, headers);
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "PUT";
+        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        var req = this.RequestBuilder.DefaultRequest(null, fieldmap, headers);
+  			return this.DataSource.ExecuteServiceObject(service, req);
+      }
 		};
 
 }

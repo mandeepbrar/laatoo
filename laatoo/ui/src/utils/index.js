@@ -1,3 +1,17 @@
+import {Application} from '../Globals';
+let redirect = (url) => {
+  console.log("not implemented")
+}
+if(Application.native) {
+}
+else {
+  let reduxDir = require('redux-director');
+  redirect = reduxDir.Router.redirect;
+}
+
+export {
+    redirect as redirect
+}
 
 export class LaatooError extends Error {
   constructor(type, rootError, args) {

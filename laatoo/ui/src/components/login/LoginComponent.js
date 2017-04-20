@@ -9,20 +9,25 @@ import {createAction} from '../../utils';
 
 const mapStateToProps = (state, ownProps) => {
   return {
-    facebook: ownProps.facebook,
-    facebookAuthUrl: ownProps.facebookAuthUrl,
-    google: ownProps.google,
-    googleAuthUrl: ownProps.googleAuthUrl,
+    realm : ownProps.realm,
+    renderLogin: ownProps.renderLogin,
     signup: ownProps.signup
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
+  let realm = "";
+  if(ownProps.realm) {
+	   realm = ownProps.realm
+  }
   return {
     handleLogin: (email, password) => {
-      let loginPayload = {"Id": email, "Password": md5(password)};
+      let loginPayload = {"Username": email, "Password": md5(password), "Realm" : realm };
       let loginMeta = {serviceName: ownProps.loginService};
       dispatch(createAction(ActionNames.LOGIN, loginPayload, loginMeta));
+    },
+    handleOauthLogin: (data) => {
+      dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: data.id, token: data.token, permissions: data.permissions}));
     }
   }
 }
@@ -36,12 +41,9 @@ const LoginComponent = connect(
 LoginComponent.propTypes = {
   loginService: React.PropTypes.string.isRequired,
   successpage: React.PropTypes.string,
-  facebook: React.PropTypes.string,
-  facebookAuthUrl: React.PropTypes.string,
-  google: React.PropTypes.string,
-  googleAuthUrl: React.PropTypes.string,
+  realm: React.PropTypes.string,
   signup: React.PropTypes.string
 };
 // LoginComponent.defaultProps = {};
 
-export default LoginComponent;
+export {LoginComponent} ;

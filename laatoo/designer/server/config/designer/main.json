@@ -1,0 +1,16 @@
+{
+	"objectloader":"config/designer/objects.json",
+	"factorymanager":"config/designer/factories.json",
+	"servicemanager":"config/designer/services.json",
+	"channelmanager":"config/designer/channels.json",
+	"environment":"env",
+	"security":{
+		"mode":"remote",
+		"publickey":"keys/mykey.pub",
+		"remoteauthserver":"http://localhost:8080/keylogin/designer",
+		"rolesservice":"http://localhost:8080/roles",
+		"identifier":"designer",
+		"pvtkey":"keys/designer.pem",
+		"Realm":"designer"
+	}
+}

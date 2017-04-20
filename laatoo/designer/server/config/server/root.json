@@ -1,0 +1,11 @@
+{
+	"enginetype":"http",
+	"address":":11000",
+	"framework":"::framework",
+	"ssl":false,
+	"sslcert":"keys/sslcert.pem",
+	"sslkey":"keys/sslkey.pem",
+	"usecors":true,
+	"corshosts":["http://localhost:8000"],
+	"path":"/"
+}

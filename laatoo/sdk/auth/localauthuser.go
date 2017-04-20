@@ -1,15 +1,13 @@
 package auth
 
-import (
-	jwt "github.com/dgrijalva/jwt-go"
-)
-
 type LocalAuthUser interface {
 	GetId() string
 	SetId(string)
-	GetIdField() string
+	LoadClaims(map[string]interface{})
+	PopulateClaims(map[string]interface{})
 	GetPassword() string
-	SetPassword(string)
-	SetJWTClaims(*jwt.Token)
-	LoadJWTClaims(*jwt.Token)
+	ClearPassword()
+	GetUsernameField() string
+	GetUserName() string
+	GetRealm() string
 }

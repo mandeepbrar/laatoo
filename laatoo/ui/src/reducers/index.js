@@ -10,12 +10,9 @@ import { combineReducers } from 'redux';
 import {Account} from './Security';
 import {ViewReducer} from './View';
 import {EntityReducer} from './Entity';
-import {EntityFormReducer} from './EntityForm';
-
 
 export const Reducers = {
   SecurityReducers: Account,
   EntityReducer: EntityReducer,
-  ViewReducer: ViewReducer,
-  EntityFormReducer:EntityFormReducer
+  ViewReducer: ViewReducer
 };

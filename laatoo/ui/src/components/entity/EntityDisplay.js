@@ -11,11 +11,37 @@ class Display extends React.Component {
     super(props);
   }
   componentDidMount() {
-    this.props.loadEntity();
+    if(this.props.load && !this.props.externalLoad) {
+      this.props.loadEntity();
+    }
+  }
+  componentWillReceiveProps(nextprops) {
+    if(nextprops.load) {
+      this.props.loadEntity();
+    }
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    if(!nextProps.forceUpdate && this.lastRenderTime) {
+      if(nextProps.lastUpdateTime) {
+        if(this.lastRenderTime >= nextProps.lastUpdateTime) {
+          console.log("update false", nextProps.name)
+          return false
+        }
+      } else {
+        console.log("update false", nextProps.name)
+        return false
+      }
+    }
+    console.log("update true", nextProps.name)
+    return true;
   }
   render() {
+    console.log("render",this.props.name)
     let display = null
-    if(this.props.display && this.props.status && this.props.status == "Loaded") {
+    this.lastRenderTime = this.props.lastUpdateTime
+    if(this.props.display && this.props.status && this.props.status == "Loading") {
+      display = this.props.loader
+    } else {
       display = this.props.display(this.props.data)
     }
     return (
@@ -30,14 +56,30 @@ const mapStateToProps = (state, ownProps) => {
   let props = {
     name: ownProps.name,
     id: ownProps.id,
+    params: ownProps.params,
+    loader: ownProps.loader,
     reducer: ownProps.reducer,
-    display: ownProps.display
+    forceUpdate: ownProps.forceUpdate,
+    externalLoad: ownProps.externalLoad,
+    display: ownProps.display,
+    load: false
   };
-  if(state.router && state.router.routeStore) {
-    let entity = state.router.routeStore[ownProps.reducer];
-    if(entity) {
-      props.status = entity.status
-      props.data = entity.data
+  let entity = null;
+  if(!ownProps.globalReducer) {
+    if(state.router && state.router.routeStore) {
+      entity = state.router.routeStore[ownProps.reducer];
+    }
+  } else {
+    entity = state[ownProps.reducer];
+  }
+  if(entity) {
+    props.status = entity.status
+    props.data = entity.data
+    if(entity.status == "Loaded") {
+      props.lastUpdateTime = entity.lastUpdateTime
+    }
+    if(entity.status == "NotLoaded") {
+        props.load = true
     }
   }
   return props;
@@ -46,7 +88,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     loadEntity: () => {
-      let payload = {entityName: ownProps.name, entityId: ownProps.id};
+      let payload = {entityName: ownProps.name, entityId: ownProps.id, headers: ownProps.headers, svc: ownProps.svc};
       let meta = {reducer: ownProps.reducer};
       dispatch(createAction(ActionNames.ENTITY_GET, payload, meta));
     }

@@ -52,7 +52,7 @@ class WebView extends React.Component {
         viewComp = this.props.getView(view, header, groups)
     }
     return (
-      <div className={this.props.className}>
+      <div key={this.props.key} className={this.props.className} style={this.props.style}>
         {filter}
         {viewComp}
         {pagination}
@@ -73,6 +73,9 @@ class WebView extends React.Component {
   }
 
   getPagination(view, pages, page) {
+    if(pages == 1) {
+      return null
+    }
     return (
       <Paginator.Context
         {...pagifyBootstrapPreset}
@@ -88,7 +91,7 @@ class WebView extends React.Component {
             view.setPage(newPage);
         }}
       >
-        <Paginator.Button page={page - 1}>Previous</Paginator.Button>
+        <Paginator.Button page={page - 1}>{'<'}</Paginator.Button>
         <Paginator.Segment field="beginPages" />
         <Paginator.Ellipsis previousField="beginPages" nextField="previousPages" />
         <Paginator.Segment field="previousPages" />
@@ -96,14 +99,16 @@ class WebView extends React.Component {
         <Paginator.Segment field="nextPages" />
         <Paginator.Ellipsis previousField="nextPages" nextField="endPages" />
         <Paginator.Segment field="endPages" />
-        <Paginator.Button page={page + 1}>Next</Paginator.Button>
+        <Paginator.Button page={page + 1}>{'>'}</Paginator.Button>
       </Paginator.Context>
     )
   }
   render() {
+
     return (
       <View
         ref="view"
+        key={this.props.key}
         reducer={this.props.reducer}
         paginate={this.props.paginate}
         pageSize={this.props.pageSize}
@@ -115,13 +120,17 @@ class WebView extends React.Component {
         filterTitle= {this.props.filterTitle}
         filterForm={this.props.filterForm}
         filterGo={ this.props.filterGo}
+        loader = {this.props.loader}
         getView={this.getView}
         getItem={this.props.getItem}
+        globalReducer={this.props.globalReducer}
         getFilter={this.getFilter}
         getItemGroup={this.props.getItemGroup}
         getHeader={this.props.getHeader}
+        style={this.props.style}
         className={this.props.className}
-        getPagination={this.getPagination} >
+        incrementalLoad={this.props.incrementalLoad}
+        getPagination={this.props.incrementalLoad || this.props.hidePaginationControl ? null : this.getPagination} >
       </View>
     )
   }

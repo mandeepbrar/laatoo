@@ -15,6 +15,9 @@ function ViewReducer(reducerName) {
       if(!state) {
         return initialState;
       }
+      if(action.type == ActionNames.LOGOUT) {
+        return initialState
+      }
       return state;
     }
     if (action.type) {
@@ -41,15 +44,87 @@ function ViewReducer(reducerName) {
               totalPages = Math.ceil(totalrecords / state.pagesize)
             }
           }
+          let newData = null
+          let data = state.data
+          if(data && action.meta.incrementalLoad) {
+            if(action.payload) {
+              if(Array.isArray(action.payload)) {
+                newData = data.concat(action.payload)
+              } else {
+                newData = Object.assign(data, action.payload)
+              }
+            }
+          } else {
+            newData = action.payload
+          }
           return Object.assign({}, state, {
             status:"Loaded",
-            data: action.payload,
+            data: newData,
+            lastUpdateTime: (new Date()).getTime(),
             totalPages: totalPages
           });
 
-        case ActionNames.VIEW_FETCH_FAILURE: {
+        case ActionNames.VIEW_FETCH_FAILED: {
           return Object.assign({}, initialState, {
             status:"LoadingFailed"
+          });
+        }
+
+        case ActionNames.VIEW_ITEM_RELOAD: {
+          let index = action.meta.Index
+          if (index==null) {
+            return state
+          }
+          let data = state.data
+          let newData = null
+          //remove by index for arrays and keys for map
+          if(Array.isArray(data)) {
+            let ind = -1
+            if((typeof index) == "string") {
+              ind = parseInt(index)
+            } else {
+              ind = index
+            }
+            newData = data.slice(0)
+            console.log("newData ", newData, " index", ind, "  payload ", action.payload)
+            newData[ind] = action.payload;
+          } else {
+            newData = Object.assign({}, data);
+            newData[index] = action.payload;
+          }
+          return Object.assign({}, state, {
+            data: newData,
+            lastUpdateTime: (new Date()).getTime(),
+          });
+        }
+
+        case ActionNames.VIEW_ITEM_REMOVE: {
+          let index = action.payload.Index
+          if (index==null) {
+            return state
+          }
+          let data = state.data
+          let newData = null
+          //remove by index for arrays and keys for map
+          if(Array.isArray(data)) {
+            let ind = -1
+            if((typeof index) == "string") {
+              ind = parseInt(index)
+            } else {
+              ind = index
+            }
+            newData = data.slice(0)
+            newData.splice(ind, 1)
+          } else {
+            newData = Object.assign({}, data);
+            delete newData[index]
+            if(newData == null) {
+              newData = {}
+            }
+          }
+          return Object.assign({}, state, {
+            data: newData,
+            lastUpdateTime: (new Date()).getTime(),
           });
         }
 
