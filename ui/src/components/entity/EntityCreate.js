@@ -39,7 +39,7 @@ class CreateForm extends React.Component {
     }
   }
   render() {
-    let schemaOptions = this.props.schemaOptions
+    let schemaOptions = this.props.schemaOptions? this.props.schemaOptions: {}
     if(this.props.params) {
       if(schemaOptions.config) {
         schemaOptions.config.routeParams = this.props.params
