@@ -35,6 +35,7 @@ class LoginWeb extends React.Component {
     });
   }
   handleChange(e) {
+      console.log("handle change of login ", e)
       var nextState = {};
       nextState[e.target.name] = e.target.value;
       this.setState(nextState);
