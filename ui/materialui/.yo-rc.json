@@ -1,0 +1,7 @@
+{
+  "generator-react-webpack": {
+    "appName": "laatoo",
+    "style": "scss",
+    "postcss": false
+  }
+}
