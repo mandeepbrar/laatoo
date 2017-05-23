@@ -714,7 +714,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var errorCallback = function errorCallback(response) {
 	          reject(service.buildHttpSvcResponse(Response.Failure, "", response));
 	        };
-	        if (method == 'DELETE') {
+	        if (method == 'DELETE' || method == 'GET') {
 	          data = null;
 	        }
 	        if (!headers) {

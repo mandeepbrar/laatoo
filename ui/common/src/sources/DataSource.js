@@ -62,7 +62,7 @@ class DefaultDataSource {
         let errorCallback = function(response) {
           reject(service.buildHttpSvcResponse(Response.Failure, "", response));
         };
-        if(method == 'DELETE') {
+        if(method == 'DELETE' || method == 'GET') {
           data = null;
         }
         if(!headers) {

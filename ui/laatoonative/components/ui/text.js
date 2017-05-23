@@ -30,6 +30,9 @@ class Text extends React.Component {
   }
   keyPress(event) {
     console.log("key press", event)
+    if(this.props.onKeyPress) {
+      this.props.onKeyPress(event)
+    }
 /*    console.log("key press event ", event, this.props)
     let target = event.target
     if(this.props.onEnterKey && event.which == 13) {
@@ -49,7 +52,7 @@ class Text extends React.Component {
     return (
       <Input name={this.props.name} className={this.props.className}  onKeyPress={this.keyPress} value={this.state.value}
         defaultValue={this.props.defaultValue} rows={this.props.rows}  rowsMax={this.props.rows} multiLine={this.props.multiline}
-        onKeyDown={this.props.onKeyDown} placeholder={this.props.placeholder} type={this.props.type}
+        placeholder={this.props.placeholder} type={this.props.type}
         style={config.style} textareaStyle={{height: 'initial'}} inputStyle={config.inputStyle} onChangeText={this.change}/>
     )
   }

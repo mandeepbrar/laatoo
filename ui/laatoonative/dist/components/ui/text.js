@@ -30,6 +30,9 @@ this.props.onChange(evt);
 }},{key:'keyPress',value:function keyPress(
 event){
 console.log("key press",event);
+if(this.props.onKeyPress){
+this.props.onKeyPress(event);
+}
 
 
 
@@ -49,7 +52,7 @@ console.log("this is rendering my textfield");
 return(
 _react2.default.createElement(_nativeBase.Input,{name:this.props.name,className:this.props.className,onKeyPress:this.keyPress,value:this.state.value,
 defaultValue:this.props.defaultValue,rows:this.props.rows,rowsMax:this.props.rows,multiLine:this.props.multiline,
-onKeyDown:this.props.onKeyDown,placeholder:this.props.placeholder,type:this.props.type,
+placeholder:this.props.placeholder,type:this.props.type,
 style:config.style,textareaStyle:{height:'initial'},inputStyle:config.inputStyle,onChangeText:this.change}));
 
 }}]);return Text;}(_react2.default.Component);exports.
