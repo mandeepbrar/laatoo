@@ -19,6 +19,7 @@ import {
   formatUrl,
   createStore,
   createAction,
+  Colors,
   GroupLoad,
   GurmukhiKeymap,
   Sagas
@@ -35,6 +36,7 @@ module.exports = {
   //RNLaatoonative as RNLaatoonative,
   Image: Image,
   TextField : TextField,
+  Colors: Colors,
   ListView : ListView,
   Storage : Storage,
   Application : Application,

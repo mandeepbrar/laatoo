@@ -16,6 +16,7 @@ function* login(action) {
     let permissions = resp.data.Permissions;
     let loginaction = createAction(ActionNames.LOGIN_SUCCESS, {userId, token, permissions});
     yield put(loginaction);
+    console.log("dispatched login action &&&&")
   } catch (e) {
     yield put(createAction(ActionNames.LOGIN_FAILURE, e));
   }

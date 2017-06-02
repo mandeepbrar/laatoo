@@ -1,5 +1,5 @@
 import React from 'react';
-import {Input} from 'native-base';
+import {Item, Input, Label} from 'native-base';
 import {Window} from 'laatoocommon';
 
 class Text extends React.Component {
@@ -9,7 +9,6 @@ class Text extends React.Component {
     this.value = props.value? props.value: "";
     this.state = {value: this.value};
     this.setValue = this.setValue.bind(this)
-    this.keyPress = this.keyPress.bind(this)
     this.change = this.change.bind(this);
   }
   componentWillReceiveProps(nextprops) {
@@ -28,18 +27,13 @@ class Text extends React.Component {
       this.props.onChange(evt)
     }
   }
-  keyPress(event) {
-    console.log("key press", event)
-    if(this.props.onKeyPress) {
-      this.props.onKeyPress(event)
-    }
 /*    console.log("key press event ", event, this.props)
     let target = event.target
     if(this.props.onEnterKey && event.which == 13) {
       this.props.onEnterKey()
       return
-    }*/
-  }
+    }
+  }*/
   change(val) {
     this.setValue(val)
   }
@@ -48,12 +42,17 @@ class Text extends React.Component {
     if(this.props.config) {
       config = this.props.config
     }
-    console.log("this is rendering my textfield")
     return (
-      <Input name={this.props.name} className={this.props.className}  onKeyPress={this.keyPress} value={this.state.value}
-        defaultValue={this.props.defaultValue} rows={this.props.rows}  rowsMax={this.props.rows} multiLine={this.props.multiline}
-        placeholder={this.props.placeholder} type={this.props.type}
-        style={config.style} textareaStyle={{height: 'initial'}} inputStyle={config.inputStyle} onChangeText={this.change}/>
+      <Item fixedLabel={this.props.fixedLabel} stackedLabel={this.props.stackedLabel} floatingLabel={this.props.floatingLabel} inlineLabel={this.props.inlineLabel}>
+        <Label>{this.props.label}</Label>
+        {this.props.lefticon}
+        <Input name={this.props.name} className={this.props.className}  onKeyPress={this.keyPress} value={this.state.value}
+          defaultValue={this.props.defaultValue} rows={this.props.rows}  rowsMax={this.props.rows} multiLine={this.props.multiline}
+          placeholder={this.props.placeholder} secureTextEntry={this.props.secureTextEntry} rounded={this.props.rouded}
+          textColor={this.props.textColor} inputColorPlaceholder={this.props.inputColorPlaceholder} inputHeightBase={this.props.inputHeightBase}
+          style={config.style} inputStyle={config.inputStyle} onChangeText={this.change}/>
+        {this.props.icon}
+      </Item>
     )
   }
 }

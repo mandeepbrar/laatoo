@@ -14,6 +14,7 @@ import {ViewData} from './components/ViewData';
 import {LoginComponent} from './components/LoginComponent';
 import 'babel-polyfill'
 import GurmukhiKeymap from './utils/gurmukhikeymap'
+import Color from './colors'
 
 /*
 
@@ -33,7 +34,7 @@ function createStore(reducers, initialState, middleware, sagas, enhancers) {
   return store;
 }
 
-
+console.log("color from laatoo ", Color)
 let moduleExports = {
   Storage: Storage,
   Application: Application,
@@ -45,6 +46,7 @@ let moduleExports = {
   EntityData: EntityData,
   Reducers: Reducers,
   ViewReducer: ViewReducer,
+  Colors: Color,
   View: View,
   ViewData: ViewData,
   EntityReducer: EntityReducer,

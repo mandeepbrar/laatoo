@@ -16,6 +16,8 @@ class ListView extends React.Component {
     this.getFilter=this.getFilter.bind(this);
     this.onScrollEnd=this.onScrollEnd.bind(this);
     this.addMethod=this.addMethod.bind(this);
+    this.style = Object.assign({}, {flex:1}, this.props.style)
+    this.contentStyle = Object.assign({}, {flex:1}, this.props.contentStyle)
     this.numItems=0;
   }
 
@@ -32,17 +34,17 @@ class ListView extends React.Component {
   }
 
   getView(header,groups,pagination,filter){
-    console.log("getting the view ");
+    console.log("getting the view ", this.style, this.contentStyle);
     if(this.props.getView){
       return this.props.getView(this,header,groups,pagination,filter);
     }
     return(
-      <View style={this.props.style}>
+      <View style={this.style}>
         <View style={this.props.headerStyle}>
           {header}
         </View>
         {filter?filter:null}
-        <View style={this.props.contentStyle}>
+        <View style={this.contentStyle}>
           {groups}
         </View>
         {pagination?pagination:null}

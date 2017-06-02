@@ -9,7 +9,6 @@ props));
 _this.value=props.value?props.value:"";
 _this.state={value:_this.value};
 _this.setValue=_this.setValue.bind(_this);
-_this.keyPress=_this.keyPress.bind(_this);
 _this.change=_this.change.bind(_this);return _this;
 }_createClass(Text,[{key:'componentWillReceiveProps',value:function componentWillReceiveProps(
 nextprops){
@@ -27,19 +26,14 @@ if(this.props.onChange){
 var evt={target:{name:this.props.name,value:value}};
 this.props.onChange(evt);
 }
-}},{key:'keyPress',value:function keyPress(
-event){
-console.log("key press",event);
-if(this.props.onKeyPress){
-this.props.onKeyPress(event);
-}
-
-
-
-
-
-
 }},{key:'change',value:function change(
+
+
+
+
+
+
+
 val){
 this.setValue(val);
 }},{key:'render',value:function render()
@@ -48,12 +42,17 @@ var config={};
 if(this.props.config){
 config=this.props.config;
 }
-console.log("this is rendering my textfield");
 return(
+_react2.default.createElement(_nativeBase.Item,{fixedLabel:this.props.fixedLabel,stackedLabel:this.props.stackedLabel,floatingLabel:this.props.floatingLabel,inlineLabel:this.props.inlineLabel},
+_react2.default.createElement(_nativeBase.Label,null,this.props.label),
+this.props.lefticon,
 _react2.default.createElement(_nativeBase.Input,{name:this.props.name,className:this.props.className,onKeyPress:this.keyPress,value:this.state.value,
 defaultValue:this.props.defaultValue,rows:this.props.rows,rowsMax:this.props.rows,multiLine:this.props.multiline,
-placeholder:this.props.placeholder,type:this.props.type,
-style:config.style,textareaStyle:{height:'initial'},inputStyle:config.inputStyle,onChangeText:this.change}));
+placeholder:this.props.placeholder,secureTextEntry:this.props.secureTextEntry,rounded:this.props.rouded,
+textColor:this.props.textColor,inputColorPlaceholder:this.props.inputColorPlaceholder,inputHeightBase:this.props.inputHeightBase,
+style:config.style,inputStyle:config.inputStyle,onChangeText:this.change}),
+this.props.icon));
+
 
 }}]);return Text;}(_react2.default.Component);exports.
 

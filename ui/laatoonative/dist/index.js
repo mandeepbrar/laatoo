@@ -24,6 +24,7 @@ var _laatoocommon=require('laatoocommon');
 
 
 
+
 var _reactNative=require('react-native');
 
 _laatoocommon.Application.ScreenDimensions=_reactNative.Dimensions.get('window');
@@ -35,6 +36,7 @@ module.exports={
 
 Image:_image.Image,
 TextField:_text.TextField,
+Colors:_laatoocommon.Colors,
 ListView:_listview.ListView,
 Storage:_laatoocommon.Storage,
 Application:_laatoocommon.Application,

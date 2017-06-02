@@ -1,4 +1,4 @@
-'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.ListView=undefined;var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||false;descriptor.configurable=true;if("value"in descriptor)descriptor.writable=true;Object.defineProperty(target,descriptor.key,descriptor);}}return function(Constructor,protoProps,staticProps){if(protoProps)defineProperties(Constructor.prototype,protoProps);if(staticProps)defineProperties(Constructor,staticProps);return Constructor;};}();
+'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.ListView=undefined;var _extends=Object.assign||function(target){for(var i=1;i<arguments.length;i++){var source=arguments[i];for(var key in source){if(Object.prototype.hasOwnProperty.call(source,key)){target[key]=source[key];}}}return target;};var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||false;descriptor.configurable=true;if("value"in descriptor)descriptor.writable=true;Object.defineProperty(target,descriptor.key,descriptor);}}return function(Constructor,protoProps,staticProps){if(protoProps)defineProperties(Constructor.prototype,protoProps);if(staticProps)defineProperties(Constructor,staticProps);return Constructor;};}();
 
 var _react=require('react');var _react2=_interopRequireDefault(_react);
 var _reactNative=require('react-native');
@@ -16,6 +16,8 @@ _this.getPagination=_this.getPagination.bind(_this);
 _this.getFilter=_this.getFilter.bind(_this);
 _this.onScrollEnd=_this.onScrollEnd.bind(_this);
 _this.addMethod=_this.addMethod.bind(_this);
+_this.style=_extends({},{flex:1},_this.props.style);
+_this.contentStyle=_extends({},{flex:1},_this.props.contentStyle);
 _this.numItems=0;return _this;
 }_createClass(ListView,[{key:'addMethod',value:function addMethod(
 
@@ -32,17 +34,17 @@ methods.loadMore();
 }},{key:'getView',value:function getView(
 
 header,groups,pagination,filter){
-console.log("getting the view ");
+console.log("getting the view ",this.style,this.contentStyle);
 if(this.props.getView){
 return this.props.getView(this,header,groups,pagination,filter);
 }
 return(
-_react2.default.createElement(_reactNative.View,{style:this.props.style},
+_react2.default.createElement(_reactNative.View,{style:this.style},
 _react2.default.createElement(_reactNative.View,{style:this.props.headerStyle},
 header),
 
 filter?filter:null,
-_react2.default.createElement(_reactNative.View,{style:this.props.contentStyle},
+_react2.default.createElement(_reactNative.View,{style:this.contentStyle},
 groups),
 
 pagination?pagination:null));

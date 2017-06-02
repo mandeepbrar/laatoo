@@ -20,6 +20,7 @@ export class LaatooError extends Error {
 
 export function createAction(type, payload, meta) {
   let error =  payload instanceof Error;
+  console.log("created action", type, payload, meta, error)
   return {
     type,
     payload,
