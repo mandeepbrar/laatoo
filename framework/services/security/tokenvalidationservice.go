@@ -10,6 +10,7 @@ import (
 
 type TokenValidationService struct {
 	sechandler server.SecurityHandler
+	authHeader string
 }
 
 func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -18,19 +19,29 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config
 		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ls.sechandler = sechandler.(server.SecurityHandler)
+	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	if !ok {
+		return errors.ThrowError(ctx, AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ls.authHeader = authHeader
+
 	log.Logger.Debug(ctx, "Token validation service initialized")
 	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (ls *TokenValidationService) Invoke(ctx core.RequestContext) error {
-	err := ls.sechandler.AuthenticateRequest(ctx)
+	token, err := ls.sechandler.AuthenticateRequest(ctx, true)
 	usr := ctx.GetUser()
-	log.Logger.Error(ctx, "checked token", "err", err)
+	log.Logger.Error(ctx, "checked token", "err", err, "usr", usr)
 	if err == nil && usr != nil {
 		log.Logger.Error(ctx, "checked token", "usr", usr.GetId())
 		if usr.GetId() != "Anonymous" {
-			ctx.SetResponse(core.StatusSuccessResponse)
+			resp := core.NewServiceResponse(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token})
+			ctx.SetResponse(resp)
 			return nil
 		}
 	}

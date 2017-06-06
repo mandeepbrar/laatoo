@@ -15,7 +15,7 @@ import {LoginComponent} from './components/LoginComponent';
 import 'babel-polyfill'
 import GurmukhiKeymap from './utils/gurmukhikeymap'
 import Color from './colors'
-
+import {LoginValidator} from './components/LoginValidator';
 /*
 
 */
@@ -40,6 +40,7 @@ let moduleExports = {
   Application: Application,
   Window: Window,
   GurmukhiKeymap: GurmukhiKeymap,
+  LoginValidator: LoginValidator,
   RequestBuilder: RequestBuilder,
   DataSource:DataSource,
   Response: Response,

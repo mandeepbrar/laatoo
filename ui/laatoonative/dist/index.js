@@ -25,6 +25,7 @@ var _laatoocommon=require('laatoocommon');
 
 
 
+
 var _reactNative=require('react-native');
 
 _laatoocommon.Application.ScreenDimensions=_reactNative.Dimensions.get('window');
@@ -39,6 +40,7 @@ TextField:_text.TextField,
 Colors:_laatoocommon.Colors,
 ListView:_listview.ListView,
 Storage:_laatoocommon.Storage,
+LoginValidator:_laatoocommon.LoginValidator,
 Application:_laatoocommon.Application,
 GurmukhiKeymap:_laatoocommon.GurmukhiKeymap,
 Window:_laatoocommon.Window,

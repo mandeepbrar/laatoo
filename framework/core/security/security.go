@@ -33,5 +33,6 @@ import (
 type SecurityPlugin interface {
 	Start(core.ServerContext) error
 	HasPermission(core.RequestContext, string) bool
+	GetRolePermissions(roles []string, realmName string) ([]string, bool)
 	AllPermissions(core.RequestContext) []string
 }

@@ -167,7 +167,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	}
 	processRequest := func(reqctx core.RequestContext) error {
 		if (!channel.skipAuth) && (shandler != nil) {
-			err := shandler.AuthenticateRequest(reqctx)
+			_, err := shandler.AuthenticateRequest(reqctx, false)
 			if err != nil {
 				reqctx.SetResponse(core.StatusUnauthorizedResponse)
 				return nil

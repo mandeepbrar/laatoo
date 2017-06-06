@@ -127,7 +127,7 @@ func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(aut
 		claims := make(jwt.MapClaims)
 		if ok {
 			roles, _ := rbac.GetRoles()
-			permissions, admin := lsh.getRolePermissions(roles, realm)
+			permissions, admin := lsh.GetRolePermissions(roles, realm)
 			rbac.SetPermissions(permissions)
 			claims["Admin"] = admin
 		}
@@ -145,7 +145,7 @@ func (lsh *localSecurityHandler) tokenGenerator(ctx core.ServerContext) func(aut
 	}
 }
 
-func (lsh *localSecurityHandler) getRolePermissions(roles []string, realmName string) ([]string, bool) {
+func (lsh *localSecurityHandler) GetRolePermissions(roles []string, realmName string) ([]string, bool) {
 	realm, ok := lsh.realms[realmName]
 	if !ok {
 		return []string{}, false

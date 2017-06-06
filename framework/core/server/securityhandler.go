@@ -144,10 +144,10 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	return sh.handler.Start(ctx)
 }
 
-func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
-	usr, isadmin, err := sh.getUserFromToken(ctx)
+func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
+	usr, isadmin, token, err := sh.getUserFromToken(ctx, loadFresh)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return token, errors.WrapError(ctx, err)
 	}
 	if usr == nil {
 		usr = sh.anonymousUser
@@ -157,7 +157,7 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext) error {
 	reqCtx := ctx.(*requestContext)
 	reqCtx.user = usr
 	reqCtx.admin = isadmin
-	return nil
+	return token, nil
 }
 
 func (sh *securityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
@@ -174,8 +174,9 @@ func (sh *securityHandler) createContext(ctx core.ServerContext, name string) co
 		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
 }
 
-func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User, bool, error) {
+func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh bool) (auth.User, bool, string, error) {
 	tokenVal, ok := ctx.GetString(sh.authHeader)
+	log.Logger.Trace(ctx, "Token received", "token", tokenVal)
 	if ok {
 		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
@@ -186,29 +187,41 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext) (auth.User,
 			return sh.publicKey, nil
 		})
 		if err == nil && token.Valid {
+			log.Logger.Trace(ctx, "Token validated")
 			userInt := sh.userCreator()
 			user, ok := userInt.(auth.RbacUser)
 			if !ok {
-				return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
+				return nil, false, tokenVal, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)
 			}
 			claims := token.Claims.(jwt.MapClaims)
 			realm := claims[config.REALM]
 			log.Logger.Info(ctx, "token realms", "realm", realm, "expected", sh.realm)
 			if realm != sh.realm {
-				return nil, false, nil
+				return nil, false, tokenVal, nil
 			}
 
 			user.LoadClaims(claims)
 			admin := false
-			adminClaim := claims["Admin"]
-			if adminClaim != nil {
-				adminVal, ok := adminClaim.(bool)
-				if ok {
-					admin = adminVal
+			if loadFresh {
+				roles, err := user.GetRoles()
+				if err != nil {
+					return nil, false, tokenVal, err
+				}
+				var perms []string
+				perms, admin = sh.handler.GetRolePermissions(roles, sh.realm)
+				user.SetPermissions(perms)
+			} else {
+				adminClaim := claims["Admin"]
+				if adminClaim != nil {
+					adminVal, ok := adminClaim.(bool)
+					if ok {
+						admin = adminVal
+					}
 				}
 			}
-			return user, admin, nil
+			return user, admin, tokenVal, nil
 		}
 	}
-	return nil, false, nil
+	log.Logger.Trace(ctx, "Token invalid")
+	return nil, false, tokenVal, nil
 }

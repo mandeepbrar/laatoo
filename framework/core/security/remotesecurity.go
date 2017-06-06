@@ -101,6 +101,17 @@ func (rsh *remoteSecurityHandler) HasPermission(ctx core.RequestContext, perm st
 	return hasPermission(ctx, perm, rsh.rolePermissions)
 }
 
+func (rsh *remoteSecurityHandler) GetRolePermissions(roles []string, realmName string) ([]string, bool) {
+	permissions := utils.NewStringSet([]string{})
+	for _, rolename := range roles {
+		role, ok := rsh.rolesMap[rolename]
+		if ok {
+			permissions.Append(role.GetPermissions())
+		}
+	}
+	return permissions.Values(), false
+}
+
 func (rsh *remoteSecurityHandler) AllPermissions(core.RequestContext) []string {
 	return []string{}
 }
@@ -149,6 +160,7 @@ func (rsh *remoteSecurityHandler) loadRoles(ctx core.ServerContext) error {
 			role := rolesVal.Index(i).Addr().Interface().(auth.Role)
 			roleName := role.GetName()
 			permissions := role.GetPermissions()
+			rsh.rolesMap[roleName] = role
 			for _, perm := range permissions {
 				key := fmt.Sprintf("%s#%s", roleName, perm)
 				rsh.rolePermissions[key] = true

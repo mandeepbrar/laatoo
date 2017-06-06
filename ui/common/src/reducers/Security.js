@@ -44,14 +44,6 @@ const Account = (state, action) => {
 
       default:
         if (!state) {
-          if (Storage.auth != null && Storage.auth != "") {
-            return {
-              status: "LoggedIn",
-              authToken: Storage.auth,
-              userId: Storage.user,
-              permissions: Storage.permissions
-            };
-          }
           return initialSecState;
         }
         return state;

@@ -6,6 +6,7 @@ import {ListView} from './components/ui/listview';
 import {
   Storage,
   Application,
+  LoginValidator,
   Window,
   RequestBuilder,
   DataSource,
@@ -39,6 +40,7 @@ module.exports = {
   Colors: Colors,
   ListView : ListView,
   Storage : Storage,
+  LoginValidator: LoginValidator,
   Application : Application,
   GurmukhiKeymap : GurmukhiKeymap,
   Window : Window,

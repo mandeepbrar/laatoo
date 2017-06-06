@@ -163,7 +163,7 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 	if ok {
 		ctx.SetRequest(t.Data)
 		ctx.Set(tskMgr.authHeader, t.Token)
-		tskMgr.shandler.AuthenticateRequest(ctx)
+		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Logger.Trace(ctx, "Processing background task")
 		return processor.Invoke(ctx)
 	}
