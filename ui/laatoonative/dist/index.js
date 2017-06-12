@@ -3,6 +3,7 @@
 var _text=require('./components/ui/text');
 var _image=require('./components/ui/image');
 var _listview=require('./components/ui/listview');
+var _action=require('./components/action/action');
 var _laatoocommon=require('laatoocommon');
 
 
@@ -54,6 +55,7 @@ EntityReducer:_laatoocommon.EntityReducer,
 LoginComponent:_laatoocommon.LoginComponent,
 ActionNames:_laatoocommon.ActionNames,
 formatUrl:_laatoocommon.formatUrl,
+Action:_action.Action,
 createStore:_laatoocommon.createStore,
 createAction:_laatoocommon.createAction,
 GroupLoad:_laatoocommon.GroupLoad,

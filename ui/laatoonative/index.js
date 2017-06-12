@@ -3,6 +3,7 @@
 import {TextField} from './components/ui/text';
 import {Image} from './components/ui/image';
 import {ListView} from './components/ui/listview';
+import {Action} from './components/action/action';
 import {
   Storage,
   Application,
@@ -54,6 +55,7 @@ module.exports = {
   LoginComponent : LoginComponent,
   ActionNames : ActionNames,
   formatUrl : formatUrl,
+  Action : Action,
   createStore : createStore,
   createAction : createAction,
   GroupLoad : GroupLoad,
