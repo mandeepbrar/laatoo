@@ -65,10 +65,9 @@ x,i){
 if(this.props.getItem){
 return this.props.getItem(this,x,i);
 }
-return _react2.default.Children.map(this.props.children,
-function(child){
+var child=_react2.default.Children.only(this.props.children);
+console.log("child",child);
 return _react2.default.cloneElement(child,{item:x,index:i});
-});
 }},{key:'getHeader',value:function getHeader()
 {
 if(this.props.getHeader){
@@ -85,15 +84,13 @@ return this.props.getPagination(this,pages,page);
 return null;
 }},{key:'renderView',value:function renderView(
 viewdata,items,currentPage,totalPages){
-console.log("rendering the view ",items);
 this.viewdata=viewdata;
 var body=[];
 if(items){
 if(this.props.incrementalLoad){
-body.push(_react2.default.createElement(_reactNative.FlatList,{data:items,onEndReached:this.onScrollEnd,renderItem:this.renderItem}));
+body.push(_react2.default.createElement(_reactNative.FlatList,{data:items,onEndReached:this.onScrollEnd,renderItem:this.renderItem,horizontal:this.props.horizontal,numColumns:this.props.numColumns,columnWrapperStyle:this.props.columnWrapperStyle,onPress:this.props.onPress}));
 }else{
-console.log("rendering the flat list",items);
-body.push(_react2.default.createElement(_reactNative.FlatList,{data:items,renderItem:this.renderItem}));
+body.push(_react2.default.createElement(_reactNative.FlatList,{data:items,horizontal:this.props.horizontal,numColumns:this.props.numColumns,renderItem:this.renderItem}));
 }
 }else{
 if(this.props.loader){

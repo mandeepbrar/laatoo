@@ -7,6 +7,7 @@ import {Action} from './components/action/action';
 import {
   Storage,
   Application,
+  DisplayEntity,
   LoginValidator,
   Window,
   RequestBuilder,
@@ -40,6 +41,7 @@ module.exports = {
   TextField : TextField,
   Colors: Colors,
   ListView : ListView,
+  DisplayEntity: DisplayEntity,
   Storage : Storage,
   LoginValidator: LoginValidator,
   Application : Application,

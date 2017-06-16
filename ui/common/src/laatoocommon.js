@@ -4,6 +4,7 @@ import { Response, DataSource, RequestBuilder, EntityData } from './sources/Data
 import {Reducers} from './reducers';
 import {ActionNames} from './actions/ActionNames';
 import {createAction, formatUrl, LaatooError, hasPermission} from './utils';
+import {DisplayEntity} from './entity/EntityDisplay';
 import {ViewReducer} from './reducers/View';
 import {EntityReducer} from './reducers/Entity';
 import createSagaMiddleware from 'redux-saga';
@@ -42,6 +43,7 @@ let moduleExports = {
   GurmukhiKeymap: GurmukhiKeymap,
   LoginValidator: LoginValidator,
   RequestBuilder: RequestBuilder,
+  DisplayEntity: DisplayEntity,
   DataSource:DataSource,
   Response: Response,
   EntityData: EntityData,

@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react'
-import {View, FlatList} from 'react-native'
+import {Text, View, FlatList} from 'react-native'
 import {ViewData} from 'laatoocommon'
 
 class ListView extends React.Component {
@@ -65,10 +65,9 @@ class ListView extends React.Component {
     if(this.props.getItem){
       return this.props.getItem(this,x,i);
     }
-    return React.Children.map(this.props.children,
-      function(child) {
-        return React.cloneElement(child, {item:x,index:i} );
-      });
+    let child = React.Children.only(this.props.children);
+    console.log("child", child)
+    return React.cloneElement(child, {item:x,index:i} );
   }
   getHeader() {
     if(this.props.getHeader){
@@ -85,15 +84,13 @@ class ListView extends React.Component {
     return null;
   }
   renderView(viewdata,items,currentPage,totalPages) {
-    console.log("rendering the view ",items);
     this.viewdata=viewdata;
     var body=[];
     if(items){
       if(this.props.incrementalLoad){
-        body.push(<FlatList data={items} onEndReached={this.onScrollEnd} renderItem={this.renderItem}/>);
+        body.push(<FlatList data={items} onEndReached={this.onScrollEnd} renderItem={this.renderItem} horizontal={this.props.horizontal} numColumns={this.props.numColumns} columnWrapperStyle={this.props.columnWrapperStyle} onPress={this.props.onPress}/>);
       } else{
-        console.log("rendering the flat list",items);
-        body.push(<FlatList data={items} renderItem={this.renderItem}/>);
+        body.push(<FlatList data={items} horizontal={this.props.horizontal} numColumns={this.props.numColumns}  renderItem={this.renderItem}/>);
       }
     } else{
       if(this.props.loader){

@@ -5,6 +5,7 @@ import ActionButton from './actionbutton';
 import { connect } from 'react-redux';
 import ActionLink from './actionlink';
 import {Application, Storage, createAction, hasPermission } from 'laatoocommon';
+import { NavigationActions } from 'react-navigation'
 
 class ActionComp extends React.Component {
   constructor(props) {
@@ -13,9 +14,7 @@ class ActionComp extends React.Component {
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
     this.hasPermission = false
-    let {navigate} = this.props.navigation;
-    console.log("navigate", navigate, this.props.navigation)
-    this.navigate = navigate;
+    console.log("Action", props)
     let action = Application.Actions[props.name];
     if(action) {
       this.action = action;
@@ -59,7 +58,8 @@ class ActionComp extends React.Component {
 //        let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(this.action.target);
         //browserHistory.push({pathname: formattedUrl});
-        this.navigate(this.action.target, this.props.params);
+        this.props.dispatch(NavigationActions.navigate({ routeName: this.action.target, params: this.props.params }));
+        //this.navigate(this.action.target, this.props.params);
       //  Router.redirect(formattedUrl);
       }
       return false;

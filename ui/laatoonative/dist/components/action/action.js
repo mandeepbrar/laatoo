@@ -4,7 +4,8 @@ var _react=require('react');var _react2=_interopRequireDefault(_react);
 var _actionbutton=require('./actionbutton');var _actionbutton2=_interopRequireDefault(_actionbutton);
 var _reactRedux=require('react-redux');
 var _actionlink=require('./actionlink');var _actionlink2=_interopRequireDefault(_actionlink);
-var _laatoocommon=require('laatoocommon');function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{default:obj};}function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor)){throw new TypeError("Cannot call a class as a function");}}function _possibleConstructorReturn(self,call){if(!self){throw new ReferenceError("this hasn't been initialised - super() hasn't been called");}return call&&(typeof call==="object"||typeof call==="function")?call:self;}function _inherits(subClass,superClass){if(typeof superClass!=="function"&&superClass!==null){throw new TypeError("Super expression must either be null or a function, not "+typeof superClass);}subClass.prototype=Object.create(superClass&&superClass.prototype,{constructor:{value:subClass,enumerable:false,writable:true,configurable:true}});if(superClass)Object.setPrototypeOf?Object.setPrototypeOf(subClass,superClass):subClass.__proto__=superClass;}var
+var _laatoocommon=require('laatoocommon');
+var _reactNavigation=require('react-navigation');function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{default:obj};}function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor)){throw new TypeError("Cannot call a class as a function");}}function _possibleConstructorReturn(self,call){if(!self){throw new ReferenceError("this hasn't been initialised - super() hasn't been called");}return call&&(typeof call==="object"||typeof call==="function")?call:self;}function _inherits(subClass,superClass){if(typeof superClass!=="function"&&superClass!==null){throw new TypeError("Super expression must either be null or a function, not "+typeof superClass);}subClass.prototype=Object.create(superClass&&superClass.prototype,{constructor:{value:subClass,enumerable:false,writable:true,configurable:true}});if(superClass)Object.setPrototypeOf?Object.setPrototypeOf(subClass,superClass):subClass.__proto__=superClass;}var
 
 ActionComp=function(_React$Component){_inherits(ActionComp,_React$Component);
 function ActionComp(props){_classCallCheck(this,ActionComp);var _this=_possibleConstructorReturn(this,(ActionComp.__proto__||Object.getPrototypeOf(ActionComp)).call(this,
@@ -12,10 +13,8 @@ props));
 _this.renderView=_this.renderView.bind(_this);
 _this.dispatchAction=_this.dispatchAction.bind(_this);
 _this.actionFunc=_this.actionFunc.bind(_this);
-_this.hasPermission=false;var
-navigate=_this.props.navigation.navigate;
-console.log("navigate",navigate,_this.props.navigation);
-_this.navigate=navigate;
+_this.hasPermission=false;
+console.log("Action",props);
 var action=_laatoocommon.Application.Actions[props.name];
 if(action){
 _this.action=action;
@@ -59,7 +58,8 @@ if(this.action.target){
 
 console.log(this.action.target);
 
-this.navigate(this.action.target,this.props.params);
+this.props.dispatch(_reactNavigation.NavigationActions.navigate({routeName:this.action.target,params:this.props.params}));
+
 
 }
 return false;}

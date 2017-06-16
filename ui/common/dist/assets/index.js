@@ -7,7 +7,7 @@
 		exports["laatoocommon"] = factory(require("react"), require("react-redux"), require("redux-saga"), require("redux"), require("babel-polyfill"), require("md5"));
 	else
 		root["laatoocommon"] = factory(root["react"], root["react-redux"], root["redux-saga"], root["redux"], root["babel-polyfill"], root["md5"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_7__, __WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_12__, __WEBPACK_EXTERNAL_MODULE_65__, __WEBPACK_EXTERNAL_MODULE_66__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_7__, __WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_12__, __WEBPACK_EXTERNAL_MODULE_66__, __WEBPACK_EXTERNAL_MODULE_67__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -60,11 +60,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _DataSource = __webpack_require__(5);
 	
-	var _reducers = __webpack_require__(48);
+	var _reducers = __webpack_require__(49);
 	
 	var _ActionNames = __webpack_require__(1);
 	
 	var _utils = __webpack_require__(3);
+	
+	var _EntityDisplay = __webpack_require__(47);
 	
 	var _View = __webpack_require__(20);
 	
@@ -74,7 +76,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _reduxSaga2 = _interopRequireDefault(_reduxSaga);
 	
-	var _sagas = __webpack_require__(53);
+	var _sagas = __webpack_require__(54);
 	
 	var _GroupLoad = __webpack_require__(42);
 	
@@ -84,9 +86,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _LoginComponent = __webpack_require__(43);
 	
-	__webpack_require__(65);
+	__webpack_require__(66);
 	
-	var _gurmukhikeymap = __webpack_require__(56);
+	var _gurmukhikeymap = __webpack_require__(57);
 	
 	var _gurmukhikeymap2 = _interopRequireDefault(_gurmukhikeymap);
 	
@@ -128,6 +130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  GurmukhiKeymap: _gurmukhikeymap2.default,
 	  LoginValidator: _LoginValidator.LoginValidator,
 	  RequestBuilder: _DataSource.RequestBuilder,
+	  DisplayEntity: _EntityDisplay.DisplayEntity,
 	  DataSource: _DataSource.DataSource,
 	  Response: _DataSource.Response,
 	  EntityData: _DataSource.EntityData,
@@ -524,7 +527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  trim: trim
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59).Buffer))
 
 /***/ }),
 /* 3 */
@@ -638,9 +641,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _RequestBuilder = __webpack_require__(55);
+	var _RequestBuilder = __webpack_require__(56);
 	
-	var _EntityData = __webpack_require__(54);
+	var _EntityData = __webpack_require__(55);
 	
 	var _axios = __webpack_require__(23);
 	
@@ -1374,7 +1377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	module.exports = defaults;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(61)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(62)))
 
 /***/ }),
 /* 12 */
@@ -2334,7 +2337,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _utils = __webpack_require__(10);
 	
-	var _sagaHelpers = __webpack_require__(63);
+	var _sagaHelpers = __webpack_require__(64);
 	
 	var IO = (0, _utils.sym)('IO');
 	var TAKE = 'TAKE';
@@ -4041,7 +4044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _LoginWeb2 = _interopRequireDefault(_LoginWeb);
 	
-	var _md = __webpack_require__(66);
+	var _md = __webpack_require__(67);
 	
 	var _md2 = _interopRequireDefault(_md);
 	
@@ -4500,6 +4503,144 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.DisplayEntity = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(6);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _DataSource = __webpack_require__(5);
+	
+	var _ActionNames = __webpack_require__(1);
+	
+	var _utils = __webpack_require__(3);
+	
+	var _reactRedux = __webpack_require__(7);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Display = function (_React$Component) {
+	  _inherits(Display, _React$Component);
+	
+	  function Display(props) {
+	    _classCallCheck(this, Display);
+	
+	    return _possibleConstructorReturn(this, (Display.__proto__ || Object.getPrototypeOf(Display)).call(this, props));
+	  }
+	
+	  _createClass(Display, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      if (this.props.load && !this.props.externalLoad) {
+	        this.props.loadEntity();
+	      }
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextprops) {
+	      if (nextprops.load) {
+	        this.props.loadEntity();
+	      }
+	    }
+	  }, {
+	    key: 'shouldComponentUpdate',
+	    value: function shouldComponentUpdate(nextProps, nextState) {
+	      if (!nextProps.forceUpdate && this.lastRenderTime) {
+	        if (nextProps.lastUpdateTime) {
+	          if (this.lastRenderTime >= nextProps.lastUpdateTime) {
+	            console.log("update false", nextProps.name);
+	            return false;
+	          }
+	        } else {
+	          console.log("update false", nextProps.name);
+	          return false;
+	        }
+	      }
+	      console.log("update true", nextProps.name);
+	      return true;
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      console.log("render", this.props.name);
+	      var display = null;
+	      this.lastRenderTime = this.props.lastUpdateTime;
+	      if (this.props.display && this.props.status && this.props.status == "Loading") {
+	        display = this.props.loader;
+	      } else {
+	        display = this.props.display(this.props.data);
+	      }
+	      return display;
+	    }
+	  }]);
+	
+	  return Display;
+	}(_react2.default.Component);
+	
+	var mapStateToProps = function mapStateToProps(state, ownProps) {
+	  var props = {
+	    name: ownProps.name,
+	    id: ownProps.id,
+	    params: ownProps.params,
+	    loader: ownProps.loader,
+	    reducer: ownProps.reducer,
+	    forceUpdate: ownProps.forceUpdate,
+	    externalLoad: ownProps.externalLoad,
+	    display: ownProps.display,
+	    load: false
+	  };
+	  var entity = null;
+	  if (!ownProps.globalReducer) {
+	    if (state.router && state.router.routeStore) {
+	      entity = state.router.routeStore[ownProps.reducer];
+	    }
+	  } else {
+	    entity = state[ownProps.reducer];
+	  }
+	  if (entity) {
+	    props.status = entity.status;
+	    props.data = entity.data;
+	    if (entity.status == "Loaded") {
+	      props.lastUpdateTime = entity.lastUpdateTime;
+	    }
+	    if (entity.status == "NotLoaded") {
+	      props.load = true;
+	    }
+	  }
+	  return props;
+	};
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch, ownProps) {
+	  return {
+	    loadEntity: function loadEntity() {
+	      var payload = { entityName: ownProps.name, entityId: ownProps.id, headers: ownProps.headers, svc: ownProps.svc };
+	      var meta = { reducer: ownProps.reducer };
+	      dispatch((0, _utils.createAction)(_ActionNames.ActionNames.ENTITY_GET, payload, meta));
+	    }
+	  };
+	};
+	
+	var DisplayEntity = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(Display);
+	
+	exports.DisplayEntity = DisplayEntity;
+
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	exports.Account = undefined;
 	
 	var _ActionNames = __webpack_require__(1);
@@ -4559,7 +4700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Account = Account;
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4571,7 +4712,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _redux = __webpack_require__(12);
 	
-	var _Security = __webpack_require__(47);
+	var _Security = __webpack_require__(48);
 	
 	var _View = __webpack_require__(20);
 	
@@ -4592,7 +4733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4900,7 +5041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.entitySaga = entitySaga;
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5084,7 +5225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.groupLoadSaga = groupLoadSaga;
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5170,7 +5311,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.loginSaga = loginSaga;
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5257,7 +5398,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.viewSaga = viewSaga;
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5268,13 +5409,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Sagas = undefined;
 	exports.runSagas = runSagas;
 	
-	var _View = __webpack_require__(52);
+	var _View = __webpack_require__(53);
 	
-	var _Security = __webpack_require__(51);
+	var _Security = __webpack_require__(52);
 	
-	var _Entity = __webpack_require__(49);
+	var _Entity = __webpack_require__(50);
 	
-	var _GroupLoad = __webpack_require__(50);
+	var _GroupLoad = __webpack_require__(51);
 	
 	var Sagas = exports.Sagas = {
 	  ViewSaga: _View.viewSaga,
@@ -5290,7 +5431,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5394,7 +5535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -5534,7 +5675,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -5548,7 +5689,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = punjabiKeymap;
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports) {
 
 	'use strict'
@@ -5668,7 +5809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*!
@@ -5681,9 +5822,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	'use strict'
 	
-	var base64 = __webpack_require__(57)
-	var ieee754 = __webpack_require__(59)
-	var isArray = __webpack_require__(60)
+	var base64 = __webpack_require__(58)
+	var ieee754 = __webpack_require__(60)
+	var isArray = __webpack_require__(61)
 	
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -7464,7 +7605,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -7554,7 +7695,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports) {
 
 	var toString = {}.toString;
@@ -7565,7 +7706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports) {
 
 	// shim for using process in browser
@@ -7755,7 +7896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7774,7 +7915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _buffers = __webpack_require__(21);
 	
-	var _scheduler = __webpack_require__(64);
+	var _scheduler = __webpack_require__(65);
 	
 	var CHANNEL_END_TYPE = '@@redux-saga/CHANNEL_END';
 	var END = exports.END = { type: CHANNEL_END_TYPE };
@@ -7968,7 +8109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -7979,7 +8120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.takeLatestHelper = takeLatestHelper;
 	exports.throttleHelper = throttleHelper;
 	
-	var _channel = __webpack_require__(62);
+	var _channel = __webpack_require__(63);
 	
 	var _utils = __webpack_require__(10);
 	
@@ -8143,7 +8284,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var throttle = exports.throttle = (0, _utils.deprecate)(throttleHelper, deprecationWarning('throttle'));
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -8217,16 +8358,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ }),
-/* 65 */
-/***/ (function(module, exports) {
-
-	module.exports = __WEBPACK_EXTERNAL_MODULE_65__;
-
-/***/ }),
 /* 66 */
 /***/ (function(module, exports) {
 
 	module.exports = __WEBPACK_EXTERNAL_MODULE_66__;
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_67__;
 
 /***/ })
 /******/ ])

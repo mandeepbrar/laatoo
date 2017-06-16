@@ -1,7 +1,9 @@
 'use strict';
-/*
+
 import React from 'react';
-import {  Response,  DataSource,  RequestBuilder, createAction, ActionNames } from 'laatoocommon';
+import { Response, DataSource, RequestBuilder, EntityData } from '../sources/DataSource';
+import {ActionNames} from '../actions/ActionNames';
+import {createAction} from '../utils';
 import { connect } from 'react-redux';
 
 class Display extends React.Component {
@@ -42,11 +44,7 @@ class Display extends React.Component {
     } else {
       display = this.props.display(this.props.data)
     }
-    return (
-      <div>
-        {display}
-      </div>
-    )
+    return display
   }
 }
 
@@ -99,4 +97,3 @@ const DisplayEntity = connect(
 )(Display);
 
 export {DisplayEntity as DisplayEntity}
-*/

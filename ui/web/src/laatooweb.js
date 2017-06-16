@@ -3,7 +3,6 @@ import {Entity} from './components/entity/Entity';
 import {VideoEdit} from './components/form/videoedit';
 import {TextEdit, RichEdit} from './components/form/textedit';
 import {ImageEdit, ImageChooser} from './components/form/imageedit';
-import {DisplayEntity} from './components/entity/EntityDisplay';
 import {EntityForm} from './components/entity/EntityForm';
 import {UpdateEntity} from './components/entity/EntityUpdate';
 import {ViewFilter} from './components/view/Filter';
@@ -30,6 +29,7 @@ import {
   EntityReducer,
   LoginComponent,
   LoginValidator,
+  DisplayEntity
   ActionNames,
   formatUrl,
   Colors,

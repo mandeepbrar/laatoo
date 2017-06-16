@@ -1,8 +1,7 @@
-import {Response,  EntityData, getCreateReducer, getViewReducer, getUpdateReducer, getDisplayReducer, ActionNames} from 'laatoocommon';
+import {Response,  DisplayEntity, EntityData, getCreateReducer, getViewReducer, getUpdateReducer, getDisplayReducer, ActionNames} from 'laatoocommon';
 import {EntityView} from './EntityWebView';
 import {CreateEntity} from './EntityCreate';
 import {UpdateEntity} from './EntityUpdate';
-import {DisplayEntity} from './EntityDisplay';
 import React from 'react';
 import {Action} from '../action/Action';
 
