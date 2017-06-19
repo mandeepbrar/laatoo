@@ -14,19 +14,19 @@ const (
 	DATASVC_PLUGINS_HOOKER = "hook"
 )
 
-type dataPluginsFactory struct {
+type DataPluginsFactory struct {
 }
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: DATAPLUGINS_FACTORY, Object: dataPluginsFactory{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: DATAPLUGINS_FACTORY, Object: DataPluginsFactory{}}}
 }
 
-func (df *dataPluginsFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (df *DataPluginsFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
 //Create the services configured for factory.
-func (df *dataPluginsFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
+func (df *DataPluginsFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	switch method {
 	case DATASVC_PLUGINS_HOOKER:
 		{
@@ -49,6 +49,6 @@ func (df *dataPluginsFactory) CreateService(ctx core.ServerContext, name string,
 }
 
 //The services start serving when this method is called
-func (df *dataPluginsFactory) Start(ctx core.ServerContext) error {
+func (df *DataPluginsFactory) Start(ctx core.ServerContext) error {
 	return nil
 }

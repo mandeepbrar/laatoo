@@ -83,26 +83,34 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 				if !ok {
 					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
 				}
-				components := manifest()
-				for _, comp := range components {
-					if comp.Name != "" {
-						if comp.ServiceFunc != nil {
-							RegisterInvokableMethod(comp.Name, comp.ServiceFunc)
-						} else if comp.ObjectFactory != nil {
-							RegisterObjectFactory(comp.Name, comp.ObjectFactory)
-						} else if comp.ObjectCreator != nil {
-							RegisterObject(comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
-						} else if comp.Object != nil {
-							Register(comp.Name, comp.Object)
-						} else {
-							log.Logger.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
-						}
-					} else {
-						log.Logger.Info(ctx, "No component registered for empty name", "Path", path)
-					}
+				if manifest == nil {
+					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
 				}
-				log.Logger.Info(ctx, "Loaded plugin", "Path", path)
-				log.Logger.Trace(ctx, "Objects in the plugin", "Components", components)
+				components := manifest()
+				if components != nil {
+					for _, comp := range components {
+						if comp.Name != "" {
+							if comp.ServiceFunc != nil {
+								RegisterInvokableMethod(comp.Name, comp.ServiceFunc)
+							} else if comp.ObjectFactory != nil {
+								RegisterObjectFactory(comp.Name, comp.ObjectFactory)
+							} else if comp.ObjectCreator != nil {
+								RegisterObject(comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
+							} else if comp.Object != nil {
+								Register(comp.Name, comp.Object)
+							} else {
+								log.Logger.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
+							}
+						} else {
+							log.Logger.Info(ctx, "No component registered for empty name", "Path", path)
+						}
+					}
+					log.Logger.Info(ctx, "Loaded plugin", "Path", path)
+					log.Logger.Trace(ctx, "Objects in the plugin", "Components", components)
+				} else {
+					log.Logger.Info(ctx, "No objects in the plugin", "Path", path)
+					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "No objects found")
+				}
 			}
 			return nil
 		})

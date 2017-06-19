@@ -4,7 +4,6 @@ import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/server/objects"
 	//"laatoo/sdk/errors"
 	//"laatoosdk/log"
 )
@@ -16,8 +15,8 @@ const (
 	CONF_GAEDATA_SERVICES = "gaedatastore"
 )
 
-func init() {
-	objects.Register(CONF_GAEDATA_SERVICES, gaeDataServicesFactory{})
+func Manifest() []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_GAEDATA_SERVICES, Object: gaeDataServicesFactory{}}}
 }
 
 func (gf *gaeDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
