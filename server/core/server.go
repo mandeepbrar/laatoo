@@ -49,7 +49,7 @@ func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.
 
 //initialize the server with the read config
 func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) error {
-
+	svrCtx := ctx.(*serverContext)
 	initctx := ctx.SubContext("Initializing Server").(*serverContext)
 	svr.conf = conf
 
@@ -66,6 +66,10 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 		return errors.WrapError(initctx, err)
 	}
 	log.Logger.Trace(initctx, "Initialized server")
+
+	cmap := svr.contextMap(svrCtx)
+	cmap[core.ServerElementServer] = svr.proxy
+	svrCtx.setElements(cmap, core.ServerElementServer)
 
 	return nil
 }

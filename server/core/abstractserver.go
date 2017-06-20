@@ -6,11 +6,13 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/engine/http"
 	"laatoo/server/factory"
 	"laatoo/server/objects"
 	"laatoo/server/service"
+	"path"
 )
 
 type abstractserver struct {
@@ -57,42 +59,59 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 	if parent == nil {
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
-		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, name, proxy, name)
+		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, name, proxy)
 		as.objectLoaderHandle = objectLoaderHandle
 		as.objectLoader = objectLoader.(server.ObjectLoader)
+		svrCtx.objectLoader = as.objectLoader
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
 		factoryManagerHandle, factoryManager := factory.NewFactoryManager(fmCreateCtx, name, proxy)
 		as.factoryManagerHandle = factoryManagerHandle
 		as.factoryManager = factoryManager.(server.FactoryManager)
+		svrCtx.factoryManager = as.factoryManager
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
 		serviceManagerHandle, serviceManager := service.NewServiceManager(smCreateCtx, name, proxy)
 		as.serviceManagerHandle = serviceManagerHandle
 		as.serviceManager = serviceManager.(server.ServiceManager)
+		svrCtx.serviceManager = as.serviceManager
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
 		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, name, proxy)
 		as.channelMgr = channelMgr
 		as.channelMgrHandle = channelMgrHandle
+		svrCtx.channelManager = as.channelMgr
+
 	} else {
+
 		loader := parent.objectLoader
 		factoryManager := parent.factoryManager
 		serviceManager := parent.serviceManager
 		channelMgr := parent.channelMgr
-		childLoaderHandle, childLoader := objects.ChildLoader(svrCtx, name, loader, proxy)
+
+		objCreateCtx := svrCtx.SubContext("Create Object Loader")
+		childLoaderHandle, childLoader := objects.ChildLoader(objCreateCtx, name, loader, proxy)
 		as.objectLoaderHandle = childLoaderHandle
 		as.objectLoader = childLoader.(server.ObjectLoader)
-		childFactoryManagerHandle, childFactoryManager := factory.ChildFactoryManager(svrCtx, name, factoryManager, proxy)
+		svrCtx.objectLoader = as.objectLoader
+
+		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
+		childFactoryManagerHandle, childFactoryManager := factory.ChildFactoryManager(fmCreateCtx, name, factoryManager, proxy)
 		as.factoryManagerHandle = childFactoryManagerHandle
 		as.factoryManager = childFactoryManager.(server.FactoryManager)
-		childServiceManagerHandle, childServiceManager := service.ChildServiceManager(svrCtx, name, serviceManager, proxy)
+		svrCtx.factoryManager = as.factoryManager
+
+		smCreateCtx := svrCtx.SubContext("Create Service Manager")
+		childServiceManagerHandle, childServiceManager := service.ChildServiceManager(smCreateCtx, name, serviceManager, proxy)
 		as.serviceManagerHandle = childServiceManagerHandle
 		as.serviceManager = childServiceManager.(server.ServiceManager)
-		childChanMgrHandle, childChannelMgr := childChannelManager(svrCtx, name, channelMgr, proxy)
+		svrCtx.serviceManager = as.serviceManager
+
+		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
+		childChanMgrHandle, childChannelMgr := childChannelManager(cmCreateCtx, name, channelMgr, proxy)
 		as.channelMgrHandle = childChanMgrHandle
 		as.channelMgr = childChannelMgr.(server.ChannelManager)
-
+		svrCtx.channelManager = as.channelMgr
 	}
 	return as
 }
@@ -339,15 +358,23 @@ func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Conf
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
 	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
-	if err != nil {
-		return err
+	if !ok {
+		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
+		confFile := path.Join(baseDir, config.CONF_SECURITY, config.CONF_CONFIG_FILE)
+		ok, _, _ := utils.FileExists(confFile)
+		if ok {
+			if secConf, err := common.NewConfigFromFile(confFile); err != nil {
+				return err
+			}
+		}
 	}
 	if ok {
-		secCtx := ctx.SubContext("Initialize Security Handler")
+		secCtx := ctx.SubContext("Create Security Handler")
 		shElem, sh := newSecurityHandler(secCtx, "Security Handler:"+as.name, as.proxy)
-		err := shElem.Initialize(secCtx, secConf)
+		secInitCtx := ctx.NewContextWithElements("Initialize Security Handler", core.ElementMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
+		err := shElem.Initialize(secInitCtx, secConf)
 		if err != nil {
-			return errors.WrapError(secCtx, err)
+			return errors.WrapError(secInitCtx, err)
 		}
 		as.securityHandlerHandle = shElem
 		as.securityHandler = sh.(server.SecurityHandler)
