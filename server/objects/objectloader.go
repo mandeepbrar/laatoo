@@ -24,6 +24,7 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 	objectsBaseFolder, ok := conf.GetString(config.CONF_OBJECTS_BASE_DIR)
 	if ok {
 		ctx.Set(config.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
+		log.Logger.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
 	}
 
 	err := objLoader.loadPlugins(ctx, conf)
@@ -130,6 +131,8 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 		if err := objLoader.loadPluginsFolder(ctx, folder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
+	} else {
+		log.Logger.Trace(ctx, "Folder does not exist", "Folder", folder)
 	}
 	return nil
 }
@@ -152,7 +155,7 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 		svrElementType := ctx.GetElementType()
 		switch svrElementType {
 		case core.ServerElementServer:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APP_SERVER, objLoader.name)); err != nil {
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APP_SERVER)); err != nil {
 				return err
 			}
 			break

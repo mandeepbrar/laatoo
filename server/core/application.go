@@ -109,7 +109,7 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 
 //creates a context specific to environment
 func (app *application) createContext(ctx core.ServerContext, name string) *serverContext {
-	cmap := app.contextMap(ctx, name)
+	cmap := app.contextMap(ctx)
 	cmap[core.ServerElementApplication] = app.proxy
 	return ctx.(*serverContext).newContextWithElements(name, cmap, core.ServerElementApplication)
 }

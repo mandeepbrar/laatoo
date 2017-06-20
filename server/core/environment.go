@@ -73,7 +73,7 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 
 //creates a context specific to environment
 func (env *environment) createContext(ctx core.ServerContext, name string) *serverContext {
-	cmap := env.contextMap(ctx, name)
+	cmap := env.contextMap(ctx)
 	cmap[core.ServerElementEnvironment] = env.proxy
 	return ctx.(*serverContext).newContextWithElements(name, cmap, core.ServerElementEnvironment)
 }

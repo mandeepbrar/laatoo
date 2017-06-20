@@ -1,12 +1,12 @@
 package rules
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/components/rules"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/common"
 )
 
 type rulesManager struct {
@@ -15,72 +15,89 @@ type rulesManager struct {
 }
 
 func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	ruleMgrCtx := rm.createContext(ctx, "Initialize Rules Manager")
-	log.Logger.Debug(ruleMgrCtx, "Initializing rules manager")
-	ruleNames := conf.AllConfigurations()
-	for _, ruleName := range ruleNames {
-		ruleCtx := ruleMgrCtx.SubContext("Creating rule" + ruleName)
-		log.Logger.Debug(ruleCtx, "Creating rule", "Name", ruleName)
-		ruleConf, err, _ := common.ConfigFileAdapter(ctx, conf, ruleName)
-		if err != nil {
-			return errors.WrapError(ruleCtx, err)
-		}
-		triggerType, ok := ruleConf.GetString(config.CONF_RULE_TRIGGER)
-		if !ok {
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_TRIGGER)
-		}
-		ruleobj, ok := ruleConf.GetString(config.CONF_RULE_OBJECT)
-		if !ok {
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_OBJECT)
-		}
-		obj, err := ruleCtx.CreateObject(ruleobj)
-		if err != nil {
-			return errors.WrapError(ruleCtx, err)
-		}
-		init := obj.(core.Initializable)
-		err = init.Init(ruleCtx, map[string]interface{}{"conf": ruleConf})
-		if err != nil {
-			return errors.WrapError(ruleCtx, err)
-		}
-		rule, ok := obj.(rules.Rule)
-		if !ok {
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_OBJECT)
-		}
-		switch triggerType {
-		case config.CONF_RULE_TRIGGER_ASYNC:
-			msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
-			if !ok {
-				return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
-			}
-			ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
-				return func(msgctx core.RequestContext) error {
-					go func() {
-						tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: msgctx.GetRequest()}
-						if rule.Condition(msgctx, tr) {
-							err := rule.Action(msgctx, tr)
-							if err != nil {
-								log.Logger.Error(msgctx, err.Error())
-							}
-						}
 
-					}()
-					return nil
-				}
+	rulesConf, _, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_RULES)
+
+	if ok {
+		ruleMgrCtx := rm.createContext(ctx, "Rules Manager")
+		log.Logger.Debug(ruleMgrCtx, "Initializing rules manager")
+		ruleNames := rulesConf.AllConfigurations()
+		for _, ruleName := range ruleNames {
+			ruleCtx := ruleMgrCtx.SubContext("Creating rule" + ruleName)
+			log.Logger.Debug(ruleCtx, "Creating rule", "Name", ruleName)
+			ruleConf, err, _ := common.ConfigFileAdapter(ctx, rulesConf, ruleName)
+			if err != nil {
+				return errors.WrapError(ruleCtx, err)
 			}
-			ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
-		case config.CONF_RULE_TRIGGER_SYNC:
-			msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
-			if !ok {
-				return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
+			if err := rm.processRuleConf(ruleCtx, ruleConf, ruleName); err != nil {
+				return err
 			}
-			rm.subscribeSynchronousMessage(ruleCtx, msgType, rule)
-		default:
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_TRIGGER)
 		}
 	}
+
+	if err := common.ProcessDirectoryFiles(ctx, config.CONF_RULES, rm.processRuleConf); err != nil {
+		return err
+	}
+
 	return nil
 }
 func (rm *rulesManager) Start(ctx core.ServerContext) error {
+	return nil
+}
+
+func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {
+	triggerType, ok := ruleConf.GetString(config.CONF_RULE_TRIGGER)
+	if !ok {
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_TRIGGER)
+	}
+	ruleobj, ok := ruleConf.GetString(config.CONF_RULE_OBJECT)
+	if !ok {
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_OBJECT)
+	}
+	obj, err := ruleCtx.CreateObject(ruleobj)
+	if err != nil {
+		return errors.WrapError(ruleCtx, err)
+	}
+	init := obj.(core.Initializable)
+	err = init.Init(ruleCtx, map[string]interface{}{"conf": ruleConf})
+	if err != nil {
+		return errors.WrapError(ruleCtx, err)
+	}
+	rule, ok := obj.(rules.Rule)
+	if !ok {
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_OBJECT)
+	}
+	switch triggerType {
+	case config.CONF_RULE_TRIGGER_ASYNC:
+		msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
+		if !ok {
+			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
+		}
+		ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
+			return func(msgctx core.RequestContext) error {
+				go func() {
+					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: msgctx.GetRequest()}
+					if rule.Condition(msgctx, tr) {
+						err := rule.Action(msgctx, tr)
+						if err != nil {
+							log.Logger.Error(msgctx, err.Error())
+						}
+					}
+
+				}()
+				return nil
+			}
+		}
+		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
+	case config.CONF_RULE_TRIGGER_SYNC:
+		msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
+		if !ok {
+			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
+		}
+		rm.subscribeSynchronousMessage(ruleCtx, msgType, rule)
+	default:
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_TRIGGER)
+	}
 	return nil
 }
 

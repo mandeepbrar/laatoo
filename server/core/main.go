@@ -11,6 +11,7 @@ import (
 )
 
 func main(rootctx *serverContext, configDir string) error {
+	log.Logger.Info(rootctx, "Setting base directory for server", "Dir Name", configDir)
 	rootctx.Set(config.CONF_BASE_DIR, configDir)
 
 	configFile := path.Join(configDir, config.CONF_CONFIG_FILE)

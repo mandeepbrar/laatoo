@@ -3,7 +3,7 @@
 	"address":"localhost:2000",
 	"logging": {
 		"application":"punjabimehfil",
-		"format":"happymax",
+		"format":"happymaxcolor",
 		"level":"trace"
 	},
 	"factorymanager":"config/server/factories.json",

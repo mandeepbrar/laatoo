@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 )
 
 type taskManager struct {
@@ -23,8 +24,6 @@ type taskManager struct {
 }
 
 func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
-
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
 		shandler := sh.(server.SecurityHandler)
@@ -39,49 +38,50 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
+	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
 	log.Logger.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
-	err := tskMgr.createProducerQueues(tskmgrInitializeCtx, conf)
-	if err != nil {
-		return errors.WrapError(tskmgrInitializeCtx, err)
+	taskMgrConf, _, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, config.CONF_TASKS)
+	if ok {
+		taskNames := taskMgrConf.AllConfigurations()
+		for _, taskName := range taskNames {
+			taskConf, _ := taskMgrConf.GetSubConfig(taskName)
+			tskCtx := tskmgrInitializeCtx.SubContext(taskName)
+			if err := tskMgr.processTaskConf(tskCtx, taskConf, taskName); err != nil {
+				return errors.WrapError(tskCtx, err)
+			}
+		}
 	}
 
-	err = tskMgr.createConsumerQueues(tskmgrInitializeCtx, conf)
-	if err != nil {
-		return errors.WrapError(tskmgrInitializeCtx, err)
+	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, config.CONF_TASKS, tskMgr.processTaskConf); err != nil {
+		return err
 	}
+
 	return nil
 }
 
-func (tskMgr *taskManager) createProducerQueues(ctx core.ServerContext, conf config.Config) error {
-	queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_PRODUCERS)
-	if ok {
-		queueNames := queuesConf.AllConfigurations()
-		for _, queueName := range queueNames {
-			queueSvcName, _ := queuesConf.GetString(queueName)
-			tskMgr.taskProducers[queueName] = queueSvcName
-		}
+func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
+	queueName, ok := conf.GetString(config.CONF_TASKS_QUEUE)
+	if !ok {
+		return errors.MissingConf(ctx, config.CONF_TASKS_QUEUE, "Task Name", taskName)
 	}
-	return nil
-}
 
-func (tskMgr *taskManager) createConsumerQueues(ctx core.ServerContext, conf config.Config) error {
-	queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_CONSUMERS)
-	if ok {
-		queueNames := queuesConf.AllConfigurations()
-		for _, queueName := range queueNames {
-			queueConf, _ := queuesConf.GetSubConfig(queueName)
-			receiver, ok := queueConf.GetString(config.CONF_TASK_RECEIVER)
-			if !ok {
-				return errors.MissingConf(ctx, config.CONF_TASK_RECEIVER, "queue", queueName)
-			}
-			tskMgr.taskReceiverNames[queueName] = receiver
-			processor, ok := queueConf.GetString(config.CONF_TASK_PROCESSOR)
-			if !ok {
-				return errors.MissingConf(ctx, config.CONF_TASK_PROCESSOR, "queue", queueName)
-			}
-			tskMgr.taskProcessorNames[queueName] = processor
-		}
+	receiver, ok := conf.GetString(config.CONF_TASK_RECEIVER)
+	if !ok {
+		return errors.MissingConf(ctx, config.CONF_TASK_RECEIVER, "Task Name", taskName)
 	}
+	tskMgr.taskReceiverNames[queueName] = receiver
+
+	processor, ok := conf.GetString(config.CONF_TASK_PROCESSOR)
+	if !ok {
+		return errors.MissingConf(ctx, config.CONF_TASK_PROCESSOR, "Task Name", taskName)
+	}
+	tskMgr.taskProcessorNames[queueName] = processor
+
+	producer, ok := conf.GetString(config.CONF_TASK_PRODUCER)
+	if !ok {
+		return errors.MissingConf(ctx, config.CONF_TASK_PRODUCER, "Task Name", taskName)
+	}
+	tskMgr.taskProducers[queueName] = producer
 	return nil
 }
 

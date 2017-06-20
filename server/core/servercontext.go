@@ -150,7 +150,7 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 
 //creates a new server context that is duplicate of the parent.
 func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
-	log.Logger.Info(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime())
+	log.Logger.Debug(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", context.GetName())
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,

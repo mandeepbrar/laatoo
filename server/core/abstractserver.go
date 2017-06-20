@@ -56,6 +56,9 @@ type abstractserver struct {
 
 func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, filterConf config.Config) *abstractserver {
 	as := &abstractserver{name: name, parent: parent, proxy: proxy}
+	as.engineHandles = make(map[string]server.ServerElementHandle, 5)
+	as.engines = make(map[string]server.Engine, 5)
+
 	if parent == nil {
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
@@ -135,11 +138,11 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	log.Logger.Trace(objinit, "Initialized object loader")
 
 	enginit := ctx.SubContext("Initialize engines")
-	err = as.initializeEngines(ctx, conf)
+	err = as.initializeEngines(enginit, conf)
 	if err != nil {
-		return errors.WrapError(objinit, err)
+		return errors.WrapError(enginit, err)
 	}
-	log.Logger.Trace(objinit, "Initialized engines")
+	log.Logger.Trace(enginit, "Initialized engines")
 
 	chaninit := ctx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
 	err = initializeChannelManager(chaninit, conf, as.channelMgrHandle)
@@ -320,36 +323,37 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	return nil
 }
 
-func (as *abstractserver) processEngineConf(ctx *serverContext, conf config.Config, name string) error {
-	_, found := svr.engines[name]
+func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.Config, name string) error {
+	_, found := as.engines[name]
 	if !found {
-		engCreateCtx := ctx.SubContext("Create Engine: " + engName)
-		log.Logger.Trace(engCreateCtx, "Creating Engine", "Engine", engName)
-		engHandle, eng, err := as.createEngine(engCreateCtx, engName, engConf)
+		engCreateCtx := ctx.SubContext("Create Engine: " + name)
+		log.Logger.Trace(engCreateCtx, "Creating Engine", "Engine", name)
+		engHandle, eng, err := as.createEngine(engCreateCtx, name, conf)
 		if err != nil {
 			return errors.WrapError(engCreateCtx, err)
 		}
 
-		engInitCtx := ctx.SubContext("Initialize Engine: " + engName)
-		log.Logger.Trace(engInitCtx, "Initializing engine", "Engine", engName)
-		err = engHandle.Initialize(engInitCtx, engConf)
+		engInitCtx := ctx.SubContext("Initialize Engine: " + name)
+		log.Logger.Trace(engInitCtx, "Initializing engine", "Engine", name)
+		err = engHandle.Initialize(engInitCtx, conf)
 		if err != nil {
 			return errors.WrapError(engInitCtx, err)
 		}
 
 		//get a root channel and assign it to server channel manager
-		as.channelMgr.channelStore[engName] = eng.GetRootChannel(engInitCtx)
+		as.channelMgrHandle.(*channelManager).channelStore[name] = eng.GetRootChannel(engInitCtx)
 
-		log.Logger.Info(engInitCtx, "Registered root channel", "Name", engName)
+		log.Logger.Info(engInitCtx, "Registered root channel", "Name", name)
 
-		as.engines[engName] = eng
-		as.engineHandles[engName] = engHandle
-	}	else {
-		log.Logger.Info(engInitCtx, "Engine already exists", "Name", name)
+		as.engines[name] = eng
+		as.engineHandles[name] = engHandle
+	} else {
+		log.Logger.Info(ctx, "Engine already exists", "Name", name)
 	}
+	return nil
 }
 
-func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.Config) error {
 	log.Logger.Trace(ctx, "Initializing engines")
 	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
 	if ok {
@@ -359,49 +363,30 @@ func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Conf
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			if err := as.processEngineConf(ctx, engConf, engName); err!=nil {
+			if err := as.processEngineConf(ctx, engConf, engName); err != nil {
 				return err
 			}
-			log.Logger.Trace(initctx, "Registered engine", "Name", engName)
+			log.Logger.Trace(ctx, "Registered engine", "Name", engName)
 		}
 	}
 
-	baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
-	enginesDir := path.Join(baseDir, config.CONF_ENGINES)
-	ok, _, _ := utils.FileExists(enginesDir)
-	if ok {
-		files, err := ioutil.ReadDir(enginesDir)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Engines directory", enginesDir)
-		}
-		for _, info := range files {
-			if !info.IsDir() {
-				engName :=  info.Name()
-				confFile := path.Join(enginesDir, name)
-				if engConf, err := common.NewConfigFromFile(confFile); err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				name, ok := engConf.GetString(ctx, config.CONF_OBJECT_NAME)
-				if(ok) {
-					engName = name
-				}
-				if err := as.processEngineConf(ctx, engConf, engName); err!=nil {
-					return err
-				}
-			}
+	if err := common.ProcessDirectoryFiles(ctx, config.CONF_ENGINES, as.processEngineConf); err != nil {
+		return err
 	}
 
-	log.Logger.Debug(initctx, "Initialized Engines")
+	log.Logger.Debug(ctx, "Initialized Engines")
+	return nil
 }
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
-	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
+	secConf, _, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
 	if !ok {
 		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
 		confFile := path.Join(baseDir, config.CONF_SECURITY, config.CONF_CONFIG_FILE)
-		ok, _, _ := utils.FileExists(confFile)
+		ok, _, _ = utils.FileExists(confFile)
 		if ok {
-			if secConf, err := common.NewConfigFromFile(confFile); err != nil {
+			var err error
+			if secConf, err = config.NewConfigFromFile(confFile); err != nil {
 				return err
 			}
 		}
@@ -409,7 +394,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 	if ok {
 		secCtx := ctx.SubContext("Create Security Handler")
 		shElem, sh := newSecurityHandler(secCtx, "Security Handler:"+as.name, as.proxy)
-		secInitCtx := ctx.NewContextWithElements("Initialize Security Handler", core.ElementMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
+		secInitCtx := ctx.NewContextWithElements("Initialize Security Handler", core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
 		err := shElem.Initialize(secInitCtx, secConf)
 		if err != nil {
 			return errors.WrapError(secInitCtx, err)
@@ -433,21 +418,21 @@ func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 	return nil
 }
 
-func (as *abstractserver) startEngines(ctx *serverContext) error {
-	engStartCtx := startCtx.SubContext("Start Engines")
-	for engName, engineHandle := range svr.engineHandles {
-		errorsChan := make(chan error)
+func (as *abstractserver) startEngines(ctx core.ServerContext) error {
+	engStartCtx := ctx.SubContext("Start Engines")
+	errorsChan := make(chan error)
+	for engName, engineHandle := range as.engineHandles {
 		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
 			log.Logger.Info(ctx, "Starting engine*****", "name", name)
 			errorsChan <- engHandle.Start(ctx)
-			err := <-errorsChan
-			if err != nil {
-				panic(err.Error())
-			}
 		}(engStartCtx, engineHandle, engName)
 	}
-	log.Logger.Trace(startCtx, "Started engines")
-
+	err := <-errorsChan
+	if err != nil {
+		panic(err.Error())
+	}
+	log.Logger.Trace(engStartCtx, "Started engines")
+	return nil
 }
 
 func (as *abstractserver) createEngine(ctx core.ServerContext, name string, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {

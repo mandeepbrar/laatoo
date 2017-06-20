@@ -72,16 +72,9 @@ func initializeMessagingManager(ctx core.ServerContext, conf config.Config, mess
 }
 
 func createRulesManager(ctx core.ServerContext, name string, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.RulesManager, error) {
-	rulesConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_RULESMGR)
-	if err != nil {
-		return nil, nil, err
-	}
-	if !ok {
-		return nil, nil, nil
-	}
 	rulesCreateCtx := ctx.SubContext("Create Rules Manager")
 	rulesMgrHandle, rulesMgr := rules.NewRulesManager(rulesCreateCtx, name, parent)
-	err = rulesMgrHandle.Initialize(ctx, rulesConf)
+	err := rulesMgrHandle.Initialize(ctx, conf)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
@@ -89,16 +82,9 @@ func createRulesManager(ctx core.ServerContext, name string, conf config.Config,
 }
 
 func createTaskManager(ctx core.ServerContext, name string, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.TaskManager, error) {
-	taskMgrConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_TASKMGR)
-	if err != nil {
-		return nil, nil, err
-	}
-	if !ok {
-		return nil, nil, nil
-	}
 	taskCreateCtx := ctx.SubContext("Create Task Manager")
 	taskMgrHandle, taskMgr := tasks.NewTaskManager(taskCreateCtx, name, parent)
-	err = taskMgrHandle.Initialize(ctx, taskMgrConf)
+	err := taskMgrHandle.Initialize(ctx, conf)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}

@@ -25,12 +25,9 @@ type serverObject struct {
 func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.ServerContext) {
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
-	svr.engineHandles = make(map[string]server.ServerElementHandle, 5)
-	svr.engines = make(map[string]server.Engine, 5)
 	svr.environments = make(map[string]server.Environment, 5)
 	//create a proxy for the server
 	svrElem := &serverProxy{server: svr}
-	svr.proxy = svrElem
 
 	svrContext := rootctx.newContext("Server")
 	svrElem.Context = svrContext.Context
@@ -87,7 +84,7 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 }
 
 func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir string, name string, envConf config.Config) error {
-	envCreate := svr.createContext(ctx, "Creating Environment: "+name)
+	envCreate := ctx.SubContext("Creating Environment: " + name).(*serverContext)
 	envCreate.Set(config.CONF_BASE_DIR, baseDir)
 
 	log.Logger.Trace(envCreate, "Creating Environment")
