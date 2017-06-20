@@ -1,8 +1,0 @@
-Package: laatoo
-Version: 0.1-1
-Section: base
-Priority: optional
-Architecture: amd64
-Depends:
-Maintainer: mandeep@virsainfomedia.com
-Description: Laatoo Server
