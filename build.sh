@@ -1,1 +1,8 @@
-go install --buildmode=archive laatoo/sdk laatoo/sdk/server laatoo/sdk/utils laatoo/sdk/registry laatoo/sdk/log laatoo/sdk/includes/cache laatoo/sdk/includes/data laatoo/sdk/includes/middleware laatoo/sdk/includes/pubsub laatoo/sdk/includes/security laatoo/sdk/includes/static laatoo/sdk/includes/storage laatoo/sdk/includes/tasks laatoo/sdk/auth laatoo/sdk/components/data laatoo/sdk/components/rules laatoo/sdk/components laatoo/sdk/includes/cache/memory laatoo/sdk/includes/cache/redis laatoo/sdk/includes/cache/appengine  laatoo/sdk/includes/data/sql laatoo/sdk/includes/data/mongo laatoo/sdk/includes/data/gae
+version="laatoo-0.1-1"
+rm -fr tmp
+mkdir -p tmp/$version
+cp -R debian/* tmp/$version/
+go build -o tmp/$version/usr/bin/laatoo laatoo/server
+cd tmp
+dpkg-deb --build $version
+mv *.deb ..

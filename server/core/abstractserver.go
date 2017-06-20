@@ -320,6 +320,35 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	return nil
 }
 
+func (as *abstractserver) processEngineConf(ctx *serverContext, conf config.Config, name string) error {
+	_, found := svr.engines[name]
+	if !found {
+		engCreateCtx := ctx.SubContext("Create Engine: " + engName)
+		log.Logger.Trace(engCreateCtx, "Creating Engine", "Engine", engName)
+		engHandle, eng, err := as.createEngine(engCreateCtx, engName, engConf)
+		if err != nil {
+			return errors.WrapError(engCreateCtx, err)
+		}
+
+		engInitCtx := ctx.SubContext("Initialize Engine: " + engName)
+		log.Logger.Trace(engInitCtx, "Initializing engine", "Engine", engName)
+		err = engHandle.Initialize(engInitCtx, engConf)
+		if err != nil {
+			return errors.WrapError(engInitCtx, err)
+		}
+
+		//get a root channel and assign it to server channel manager
+		as.channelMgr.channelStore[engName] = eng.GetRootChannel(engInitCtx)
+
+		log.Logger.Info(engInitCtx, "Registered root channel", "Name", engName)
+
+		as.engines[engName] = eng
+		as.engineHandles[engName] = engHandle
+	}	else {
+		log.Logger.Info(engInitCtx, "Engine already exists", "Name", name)
+	}
+}
+
 func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Config) error {
 	log.Logger.Trace(ctx, "Initializing engines")
 	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
@@ -330,29 +359,38 @@ func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Conf
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			engCreateCtx := initctx.SubContext("Create Engine: " + engName)
-			log.Logger.Trace(engCreateCtx, "Creating")
-			engHandle, eng, err := svr.createEngine(engCreateCtx, engName, engConf)
-			if err != nil {
-				return errors.WrapError(engCreateCtx, err)
+			if err := as.processEngineConf(ctx, engConf, engName); err!=nil {
+				return err
 			}
-
-			engInitCtx := initctx.SubContext("Initialize Engine: " + engName)
-			log.Logger.Trace(engInitCtx, "Initializing engine")
-			err = engHandle.Initialize(engInitCtx, engConf)
-			if err != nil {
-				return errors.WrapError(engInitCtx, err)
-			}
-
-			//get a root channel and assign it to server channel manager
-			svr.channelMgr.(*channelManagerProxy).manager.channelStore[engName] = eng.GetRootChannel(engInitCtx)
-			log.Logger.Info(engInitCtx, "Registered root channel", "Name", engName)
-
-			svr.engines[engName] = eng
-			svr.engineHandles[engName] = engHandle
 			log.Logger.Trace(initctx, "Registered engine", "Name", engName)
 		}
 	}
+
+	baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
+	enginesDir := path.Join(baseDir, config.CONF_ENGINES)
+	ok, _, _ := utils.FileExists(enginesDir)
+	if ok {
+		files, err := ioutil.ReadDir(enginesDir)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Engines directory", enginesDir)
+		}
+		for _, info := range files {
+			if !info.IsDir() {
+				engName :=  info.Name()
+				confFile := path.Join(enginesDir, name)
+				if engConf, err := common.NewConfigFromFile(confFile); err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				name, ok := engConf.GetString(ctx, config.CONF_OBJECT_NAME)
+				if(ok) {
+					engName = name
+				}
+				if err := as.processEngineConf(ctx, engConf, engName); err!=nil {
+					return err
+				}
+			}
+	}
+
 	log.Logger.Debug(initctx, "Initialized Engines")
 }
 
