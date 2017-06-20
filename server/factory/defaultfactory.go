@@ -5,19 +5,15 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/server/objects"
 	//	"laatoo/sdk/log"
-	//	"laatoo/core/common"
 	"laatoo/sdk/errors"
+	"laatoo/server/common"
 )
 
 type defaultFactory struct {
 }
 
-const (
-	CONF_DEFAULTFACTORY_NAME = "__defaultfactory__"
-)
-
 func init() {
-	objects.RegisterObject(CONF_DEFAULTFACTORY_NAME, createDefaultFactory, nil)
+	objects.RegisterObject(common.CONF_DEFAULTFACTORY_NAME, createDefaultFactory, nil)
 }
 
 func createDefaultFactory() interface{} {

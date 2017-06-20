@@ -1,12 +1,12 @@
 package factory
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 )
 
 const (
@@ -29,11 +29,11 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, CONF_DEFAULTFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: CONF_DEFAULTFACTORY_NAME})
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, common.CONF_DEFAULTFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME})
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, CONF_DEFAULTMETHODFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: CONF_DEFAULTMETHODFACTORY_NAME})
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, common.CONF_DEFAULTMETHODFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME})
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

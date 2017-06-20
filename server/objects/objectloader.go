@@ -5,7 +5,9 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/sdk/utils"
 	"os"
+	"path"
 	"path/filepath"
 	"plugin"
 )
@@ -13,9 +15,16 @@ import (
 type objectLoader struct {
 	objectsFactoryRegister   map[string]core.ObjectFactory
 	invokableMethodsRegister map[string]core.ServiceFunc
+	name                     string
+	parentElem               core.ServerElement
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
+
+	objectsBaseFolder, ok := conf.GetString(config.CONF_OBJECTS_BASE_DIR)
+	if ok {
+		ctx.Set(config.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
+	}
 
 	err := objLoader.loadPlugins(ctx, conf)
 	if err != nil {
@@ -61,60 +70,103 @@ func (objLoader *objectLoader) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
-	pluginsFolder, ok := conf.GetString(config.CONF_OBJECTLDR_OBJECTS)
-	log.Logger.Trace(ctx, "Loading plugins", "plugins folder", pluginsFolder)
-	if ok {
-		err := filepath.Walk(pluginsFolder, func(path string, info os.FileInfo, err error) error {
+func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder string) error {
+	log.Logger.Trace(ctx, "Loading plugins", "plugins folder", folder)
+	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
+		}
+		if !info.IsDir() {
+			log.Logger.Trace(ctx, "Loading plugin", "path", path)
+			p, err := plugin.Open(path)
 			if err != nil {
 				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
 			}
-			if !info.IsDir() {
-				log.Logger.Trace(ctx, "Loading plugin", "path", path)
-				p, err := plugin.Open(path)
-				if err != nil {
-					return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
-				}
-				sym, err := p.Lookup("Manifest")
-				if err != nil {
-					return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
-				}
-				manifest, ok := sym.(func() []core.PluginComponent)
-				if !ok {
-					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
-				}
-				if manifest == nil {
-					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
-				}
-				components := manifest()
-				if components != nil {
-					for _, comp := range components {
-						if comp.Name != "" {
-							if comp.ServiceFunc != nil {
-								RegisterInvokableMethod(comp.Name, comp.ServiceFunc)
-							} else if comp.ObjectFactory != nil {
-								RegisterObjectFactory(comp.Name, comp.ObjectFactory)
-							} else if comp.ObjectCreator != nil {
-								RegisterObject(comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
-							} else if comp.Object != nil {
-								Register(comp.Name, comp.Object)
-							} else {
-								log.Logger.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
-							}
-						} else {
-							log.Logger.Info(ctx, "No component registered for empty name", "Path", path)
-						}
-					}
-					log.Logger.Info(ctx, "Loaded plugin", "Path", path)
-					log.Logger.Trace(ctx, "Objects in the plugin", "Components", components)
-				} else {
-					log.Logger.Info(ctx, "No objects in the plugin", "Path", path)
-					return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "No objects found")
-				}
+			sym, err := p.Lookup("Manifest")
+			if err != nil {
+				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
 			}
-			return nil
-		})
+			manifest, ok := sym.(func() []core.PluginComponent)
+			if !ok {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
+			}
+			if manifest == nil {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
+			}
+			components := manifest()
+			if components != nil {
+				for _, comp := range components {
+					if comp.Name != "" {
+						if comp.ServiceFunc != nil {
+							RegisterInvokableMethod(comp.Name, comp.ServiceFunc)
+						} else if comp.ObjectFactory != nil {
+							RegisterObjectFactory(comp.Name, comp.ObjectFactory)
+						} else if comp.ObjectCreator != nil {
+							RegisterObject(comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
+						} else if comp.Object != nil {
+							Register(comp.Name, comp.Object)
+						} else {
+							log.Logger.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
+						}
+					} else {
+						log.Logger.Info(ctx, "No component registered for empty name", "Path", path)
+					}
+				}
+				log.Logger.Info(ctx, "Loaded plugin", "Path", path)
+				log.Logger.Trace(ctx, "Objects in the plugin", "Components", components)
+			} else {
+				log.Logger.Info(ctx, "No objects in the plugin", "Path", path)
+				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "No objects found")
+			}
+		}
+		return nil
+	})
+	return err
+}
+
+func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext, folder string) error {
+	exists, _, _ := utils.FileExists(folder)
+	if exists {
+		if err := objLoader.loadPluginsFolder(ctx, folder); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	return nil
+}
+
+func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
+	pluginsFolder, ok := conf.GetString(config.CONF_OBJECTLDR_OBJECTS)
+	if ok {
+		if err := objLoader.loadPluginsFolder(ctx, pluginsFolder); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
+	baseFolder := path.Join(baseDir, config.CONF_OBJECTLDR_OBJECTS)
+	if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
 		return err
+	}
+
+	objectsbaseDir, found := ctx.GetString(config.CONF_OBJECTS_BASE_DIR)
+	if found {
+		svrElementType := ctx.GetElementType()
+		switch svrElementType {
+		case core.ServerElementServer:
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APP_SERVER, objLoader.name)); err != nil {
+				return err
+			}
+			break
+		case core.ServerElementEnvironment:
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_ENVIRONMENTS, objLoader.name)); err != nil {
+				return err
+			}
+			break
+		case core.ServerElementApplication:
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APPLICATIONS, objLoader.name)); err != nil {
+				return err
+			}
+			break
+		}
 	}
 	return nil
 }

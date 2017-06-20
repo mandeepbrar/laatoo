@@ -127,7 +127,10 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 //changes made to context parameters will be visible on the parent
 //id of the context is also retained.. this can be used to track flow
 func (ctx *serverContext) SubContext(name string) core.ServerContext {
-	log.Logger.Info(ctx, "Entering new server subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
+	return ctx.subContext(name)
+}
+
+func (ctx *serverContext) subContext(name string) *serverContext {
 	return ctx.newservercontext(ctx.SubCtx(name))
 }
 
@@ -135,7 +138,6 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 //sets a context element
 //id of the context is not changed. flow is updated
 func (ctx *serverContext) SubContextWithElement(name string, primaryElement core.ServerElementType) core.ServerContext {
-	log.Logger.Info(ctx, "Entering new server subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	retctx := ctx.newservercontext(ctx.SubCtx(name))
 	elem := retctx.GetServerElement(primaryElement)
 	if elem != nil {
@@ -148,6 +150,7 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 
 //creates a new server context that is duplicate of the parent.
 func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
+	log.Logger.Info(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime())
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
@@ -156,7 +159,6 @@ func (ctx *serverContext) newservercontext(context core.Context) *serverContext 
 }
 
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
-	log.Logger.Info(ctx, "Entering new servercontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	return ctx.newContext(name)
 }
 func (ctx *serverContext) newContext(name string) *serverContext {
@@ -169,127 +171,130 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 func (ctx *serverContext) NewContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) core.ServerContext {
 	return ctx.newContextWithElements(name, elements, primaryElement)
 }
-func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
-	newctx := ctx.newservercontext(ctx.NewCtx(name))
+
+func (ctx *serverContext) setElements(elements core.ContextMap, primaryElement core.ServerElementType) {
 	for elementToSet, element := range elements {
 		switch elementToSet {
 		case core.ServerElementServer:
 			if element == nil {
-				newctx.server = nil
+				ctx.server = nil
 			} else {
-				newctx.server = element.(server.Server)
+				ctx.server = element.(server.Server)
 			}
 		case core.ServerElementEngine:
 			if element == nil {
-				newctx.engine = nil
+				ctx.engine = nil
 			} else {
-				newctx.engine = element.(server.Engine)
+				ctx.engine = element.(server.Engine)
 			}
 		case core.ServerElementEnvironment:
 			if element == nil {
-				newctx.environment = nil
+				ctx.environment = nil
 			} else {
-				newctx.environment = element.(server.Environment)
+				ctx.environment = element.(server.Environment)
 			}
 		case core.ServerElementLoader:
 			if element == nil {
-				newctx.objectLoader = nil
+				ctx.objectLoader = nil
 			} else {
-				newctx.objectLoader = element.(server.ObjectLoader)
+				ctx.objectLoader = element.(server.ObjectLoader)
 			}
 		case core.ServerElementServiceFactory:
 			if element == nil {
-				newctx.factory = nil
+				ctx.factory = nil
 			} else {
-				newctx.factory = element.(server.Factory)
+				ctx.factory = element.(server.Factory)
 			}
 		case core.ServerElementApplication:
 			if element == nil {
-				newctx.application = nil
+				ctx.application = nil
 			} else {
-				newctx.application = element.(server.Application)
+				ctx.application = element.(server.Application)
 			}
 		case core.ServerElementService:
 			if element == nil {
-				newctx.service = nil
+				ctx.service = nil
 			} else {
-				newctx.service = element.(server.Service)
+				ctx.service = element.(server.Service)
 			}
 		case core.ServerElementChannelManager:
 			if element == nil {
-				newctx.channelManager = nil
+				ctx.channelManager = nil
 			} else {
-				newctx.channelManager = element.(server.ChannelManager)
+				ctx.channelManager = element.(server.ChannelManager)
 			}
 		case core.ServerElementChannel:
 			if element == nil {
-				newctx.channel = nil
+				ctx.channel = nil
 			} else {
-				newctx.channel = element.(server.Channel)
+				ctx.channel = element.(server.Channel)
 			}
 		case core.ServerElementServiceManager:
 			if element == nil {
-				newctx.serviceManager = nil
+				ctx.serviceManager = nil
 			} else {
-				newctx.serviceManager = element.(server.ServiceManager)
+				ctx.serviceManager = element.(server.ServiceManager)
 			}
 		case core.ServerElementFactoryManager:
 			if element == nil {
-				newctx.factoryManager = nil
+				ctx.factoryManager = nil
 			} else {
-				newctx.factoryManager = element.(server.FactoryManager)
+				ctx.factoryManager = element.(server.FactoryManager)
 			}
 		case core.ServerElementServiceResponseHandler:
 			if element == nil {
-				newctx.serviceResponseHandler = nil
+				ctx.serviceResponseHandler = nil
 			} else {
-				newctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
+				ctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
 			}
 		case core.ServerElementSecurityHandler:
 			if element == nil {
-				newctx.securityHandler = nil
+				ctx.securityHandler = nil
 			} else {
-				newctx.securityHandler = element.(server.SecurityHandler)
+				ctx.securityHandler = element.(server.SecurityHandler)
 			}
 		case core.ServerElementMessagingManager:
 			if element == nil {
-				newctx.msgManager = nil
+				ctx.msgManager = nil
 			} else {
-				newctx.msgManager = element.(server.MessagingManager)
+				ctx.msgManager = element.(server.MessagingManager)
 			}
 		case core.ServerElementRulesManager:
 			if element == nil {
-				newctx.rulesManager = nil
+				ctx.rulesManager = nil
 			} else {
-				newctx.rulesManager = element.(server.RulesManager)
+				ctx.rulesManager = element.(server.RulesManager)
 			}
 		case core.ServerElementCacheManager:
 			if element == nil {
-				newctx.cacheManager = nil
+				ctx.cacheManager = nil
 			} else {
-				newctx.cacheManager = element.(server.CacheManager)
+				ctx.cacheManager = element.(server.CacheManager)
 			}
 		case core.ServerElementTaskManager:
 			if element == nil {
-				newctx.taskManager = nil
+				ctx.taskManager = nil
 			} else {
-				newctx.taskManager = element.(server.TaskManager)
+				ctx.taskManager = element.(server.TaskManager)
 			}
 		case core.ServerElementOpen1:
-			newctx.open1 = element
+			ctx.open1 = element
 		case core.ServerElementOpen2:
-			newctx.open2 = element
+			ctx.open2 = element
 		case core.ServerElementOpen3:
-			newctx.open3 = element
+			ctx.open3 = element
 		}
 	}
-	elem := newctx.GetServerElement(primaryElement)
+	elem := ctx.GetServerElement(primaryElement)
 	if elem != nil {
-		newctx.element = elem
-		newctx.elementType = primaryElement
-		return newctx
+		ctx.element = elem
+		ctx.elementType = primaryElement
 	}
-	return nil
+}
+func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
+	newctx := ctx.newservercontext(ctx.NewCtx(name))
+	newctx.setElements(elements, primaryElement)
+	return newctx
 }
 
 //creates a new request with engine context

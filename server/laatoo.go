@@ -8,13 +8,13 @@ import (
 
 func main() {
 	//arg 1 if config is provided as argument
-	configName := os.Getenv("LAATOO_CONFIG")
-	if len(configName) == 0 {
-		configName = "/etc/laatoo/server.json"
+	configDir := os.Getenv("LAATOO_CONFIGDIR")
+	if len(configDir) == 0 {
+		configDir = "/etc/laatoo"
 	}
 	log.Println("Main Server Init")
 	//create a server with config name
-	err := core.Main(configName)
+	err := core.Main(configDir)
 	if err != nil {
 		log.Println(err)
 		panic(err)

@@ -1,12 +1,12 @@
 package service
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 )
 
 const (
@@ -118,7 +118,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 			svcFactory, ok := serviceConfig.GetString(CONF_FACTORY)
 			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Service", svcAlias, "Conf", CONF_FACTORY)
+				svcFactory = common.CONF_DEFAULTFACTORY_NAME
 			}
 
 			svcMethod, ok := serviceConfig.GetString(CONF_SERVICEMETHOD)

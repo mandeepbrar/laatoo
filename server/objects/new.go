@@ -1,14 +1,14 @@
 package objects
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/core"
+	"laatoo/server/common"
 	//"laatoo/sdk/log"
 	"laatoo/sdk/server"
 )
 
 func NewObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), invokableMethodsRegister: make(map[string]core.ServiceFunc, 30)}
+	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem, invokableMethodsRegister: make(map[string]core.ServiceFunc, 30)}
 	ldrElemCtx := parentElem.NewCtx("Object Loader:" + name)
 	ldrElem := &objectLoaderProxy{Context: ldrElemCtx.(*common.Context), loader: ldr}
 	return ldr, ldrElem
@@ -43,7 +43,7 @@ func ChildLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 			methodsregistry[k] = v
 		}
 	}
-	ldr := &objectLoader{objectsFactoryRegister: registry, invokableMethodsRegister: methodsregistry}
+	ldr := &objectLoader{objectsFactoryRegister: registry, invokableMethodsRegister: methodsregistry, name: name, parentElem: parent}
 	ldrElemCtx := parent.NewCtx("Object Loader:" + name)
 	ldrElem := &objectLoaderProxy{Context: ldrElemCtx.(*common.Context), loader: ldr}
 	return ldr, ldrElem

@@ -3,6 +3,7 @@ package factory
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/server/common"
 	"laatoo/server/objects"
 	//	"laatoo/sdk/log"
 	"laatoo/sdk/errors"
@@ -11,12 +12,10 @@ import (
 type defaultMethodFactory struct {
 }
 
-const (
-	CONF_DEFAULTMETHODFACTORY_NAME = "__defaultmethodfactory__"
-)
+const ()
 
 func init() {
-	objects.RegisterObject(CONF_DEFAULTMETHODFACTORY_NAME, createDefaultMethodFactory, nil)
+	objects.RegisterObject(common.CONF_DEFAULTMETHODFACTORY_NAME, createDefaultMethodFactory, nil)
 }
 
 func createDefaultMethodFactory() interface{} {

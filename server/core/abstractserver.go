@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/engine/http"
 	"laatoo/server/factory"
 	"laatoo/server/objects"
 	"laatoo/server/service"
@@ -42,6 +43,10 @@ type abstractserver struct {
 	cacheManager       server.CacheManager
 	cacheManagerHandle server.ServerElementHandle
 
+	//engines configured on the abstract server
+	engineHandles map[string]server.ServerElementHandle
+	engines       map[string]server.Engine
+
 	parent *abstractserver
 
 	proxy core.ServerElement
@@ -50,23 +55,24 @@ type abstractserver struct {
 func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, filterConf config.Config) *abstractserver {
 	as := &abstractserver{name: name, parent: parent, proxy: proxy}
 	if parent == nil {
+
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
-		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, "Root", proxy)
+		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, name, proxy, name)
 		as.objectLoaderHandle = objectLoaderHandle
 		as.objectLoader = objectLoader.(server.ObjectLoader)
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
-		factoryManagerHandle, factoryManager := factory.NewFactoryManager(fmCreateCtx, "Root", proxy)
+		factoryManagerHandle, factoryManager := factory.NewFactoryManager(fmCreateCtx, name, proxy)
 		as.factoryManagerHandle = factoryManagerHandle
 		as.factoryManager = factoryManager.(server.FactoryManager)
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
-		serviceManagerHandle, serviceManager := service.NewServiceManager(smCreateCtx, "Root", proxy)
+		serviceManagerHandle, serviceManager := service.NewServiceManager(smCreateCtx, name, proxy)
 		as.serviceManagerHandle = serviceManagerHandle
 		as.serviceManager = serviceManager.(server.ServiceManager)
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
-		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, "Root", proxy)
+		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, name, proxy)
 		as.channelMgr = channelMgr
 		as.channelMgrHandle = channelMgrHandle
 	} else {
@@ -94,25 +100,32 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 //initialize application with object loader, factory manager, service manager
 func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
 
-	err := as.initializeSecurityHandler(ctx, conf)
+	secinit := ctx.subContext("Initialize security handleer")
+	err := as.initializeSecurityHandler(secinit, conf)
 	if err != nil {
-		return err
+		return errors.WrapError(secinit, err)
 	}
-	log.Logger.Trace(ctx, "Initialized security handler")
+	log.Logger.Trace(secinit, "Initialized security handler")
 	ctx.securityHandler = as.securityHandler
 
-	objinit := ctx.SubContext("Initialize object loader")
-
-	err = as.objectLoaderHandle.Initialize(ctx, conf)
+	objinit := ctx.subContext("Initialize object loader")
+	err = as.objectLoaderHandle.Initialize(objinit, conf)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(objinit, err)
 	}
 	log.Logger.Trace(objinit, "Initialized object loader")
+
+	enginit := ctx.SubContext("Initialize engines")
+	err = as.initializeEngines(ctx, conf)
+	if err != nil {
+		return errors.WrapError(objinit, err)
+	}
+	log.Logger.Trace(objinit, "Initialized engines")
 
 	chaninit := ctx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
 	err = initializeChannelManager(chaninit, conf, as.channelMgrHandle)
 	if err != nil {
-		return err
+		return errors.WrapError(chaninit, err)
 	}
 	log.Logger.Debug(chaninit, "Initialized channel manager")
 
@@ -224,6 +237,13 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Logger.Trace(objldrCtx, "Started Object Loader")
 
+	engstart := ctx.SubContext("Start Engines")
+	err = as.startEngines(engstart)
+	if err != nil {
+		return errors.WrapError(engstart, err)
+	}
+	log.Logger.Trace(engstart, "Started Engines")
+
 	chanstart := ctx.SubContextWithElement("Start Channel manager", core.ServerElementChannelManager)
 	err = as.channelMgrHandle.Start(chanstart)
 	if err != nil {
@@ -281,6 +301,42 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	return nil
 }
 
+func (as *abstractserver) initializeEngines(ctx *serverContext, conf config.Config) error {
+	log.Logger.Trace(ctx, "Initializing engines")
+	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
+	if ok {
+		engineNames := engines.AllConfigurations()
+		for _, engName := range engineNames {
+			engConf, err, _ := common.ConfigFileAdapter(ctx, engines, engName)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			engCreateCtx := initctx.SubContext("Create Engine: " + engName)
+			log.Logger.Trace(engCreateCtx, "Creating")
+			engHandle, eng, err := svr.createEngine(engCreateCtx, engName, engConf)
+			if err != nil {
+				return errors.WrapError(engCreateCtx, err)
+			}
+
+			engInitCtx := initctx.SubContext("Initialize Engine: " + engName)
+			log.Logger.Trace(engInitCtx, "Initializing engine")
+			err = engHandle.Initialize(engInitCtx, engConf)
+			if err != nil {
+				return errors.WrapError(engInitCtx, err)
+			}
+
+			//get a root channel and assign it to server channel manager
+			svr.channelMgr.(*channelManagerProxy).manager.channelStore[engName] = eng.GetRootChannel(engInitCtx)
+			log.Logger.Info(engInitCtx, "Registered root channel", "Name", engName)
+
+			svr.engines[engName] = eng
+			svr.engineHandles[engName] = engHandle
+			log.Logger.Trace(initctx, "Registered engine", "Name", engName)
+		}
+	}
+	log.Logger.Debug(initctx, "Initialized Engines")
+}
+
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
 	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
 	if err != nil {
@@ -312,8 +368,42 @@ func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 	return nil
 }
 
+func (as *abstractserver) startEngines(ctx *serverContext) error {
+	engStartCtx := startCtx.SubContext("Start Engines")
+	for engName, engineHandle := range svr.engineHandles {
+		errorsChan := make(chan error)
+		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
+			log.Logger.Info(ctx, "Starting engine*****", "name", name)
+			errorsChan <- engHandle.Start(ctx)
+			err := <-errorsChan
+			if err != nil {
+				panic(err.Error())
+			}
+		}(engStartCtx, engineHandle, engName)
+	}
+	log.Logger.Trace(startCtx, "Started engines")
+
+}
+
+func (as *abstractserver) createEngine(ctx core.ServerContext, name string, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {
+	enginetype, ok := engConf.GetString(config.CONF_ENGINE_TYPE)
+	if !ok {
+		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENGINE_TYPE)
+	}
+	var engineHandle server.ServerElementHandle
+	var engine server.Engine
+	switch enginetype {
+	case config.CONF_ENGINETYPE_HTTP:
+		engineHandle, engine = http.NewEngine(ctx, name)
+	case core.CONF_ENGINE_TCP:
+	default:
+		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", config.CONF_ENGINE_TYPE)
+	}
+	return engineHandle, engine, nil
+}
+
 //creates a context specific to environment
-func (as *abstractserver) contextMap(ctx core.ServerContext, name string) core.ContextMap {
+func (as *abstractserver) contextMap(ctx core.ServerContext) core.ContextMap {
 	return core.ContextMap{
 		core.ServerElementLoader:           as.objectLoader,
 		core.ServerElementSecurityHandler:  as.securityHandler,

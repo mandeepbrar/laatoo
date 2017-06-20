@@ -46,8 +46,10 @@ func (env *environment) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (env *environment) createApplications(ctx core.ServerContext, name string, applicationConf config.Config) error {
+func (env *environment) createApplications(ctx core.ServerContext, baseDir string, name string, applicationConf config.Config) error {
 	appCreateCtx := env.createContext(ctx, "CreateApplication: "+name)
+	appCreateCtx.Set(config.CONF_BASE_DIR, baseDir)
+
 	log.Logger.Trace(appCreateCtx, "Creating Application")
 	filterConf, _ := applicationConf.GetSubConfig(config.CONF_FILTERS)
 	//create an application
