@@ -1,4 +1,4 @@
-package config
+package constants
 
 const (
 	CONF_ENGINES                      = "engines"

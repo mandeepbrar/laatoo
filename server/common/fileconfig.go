@@ -1,9 +1,10 @@
-package config
+package common
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"laatoo/sdk/config"
 	"os"
 	"strings"
 )
@@ -37,7 +38,7 @@ type FileConfig struct {
 
 //creates a new config object from file provided to it
 //only works for json configs
-func NewConfigFromFile(file string) (Config, error) {
+func NewConfigFromFile(file string) (config.Config, error) {
 	rootElement := make(GenericConfig, 50)
 	fileData, err := ioutil.ReadFile(file)
 	if err == nil {
@@ -80,11 +81,11 @@ func (conf *FileConfig) Get(configurationName string) (interface{}, bool) {
 	return conf.root.Get(configurationName)
 }
 
-func (conf *FileConfig) GetConfigArray(configurationName string) ([]Config, bool) {
+func (conf *FileConfig) GetConfigArray(configurationName string) ([]config.Config, bool) {
 	return conf.root.GetConfigArray(configurationName)
 }
 
-func (conf *FileConfig) GetSubConfig(configurationName string) (Config, bool) {
+func (conf *FileConfig) GetSubConfig(configurationName string) (config.Config, bool) {
 	return conf.root.GetSubConfig(configurationName)
 }
 

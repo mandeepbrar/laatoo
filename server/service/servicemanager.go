@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 const (
@@ -33,7 +34,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(svcmgrInitializeCtx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, config.CONF_SERVICES, svcMgr.createService); err != nil {
+	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, constants.CONF_SERVICES, svcMgr.createService); err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
 	}
 
@@ -61,7 +62,7 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 
 	for svcname, svcStruct := range svcMgr.servicesStore {
 		if svcStruct.owner == svcMgr {
-			svcChannels, ok := svcStruct.conf.GetSubConfig(config.CONF_ENGINE_CHANNELS)
+			svcChannels, ok := svcStruct.conf.GetSubConfig(constants.CONF_ENGINE_CHANNELS)
 			if ok {
 				channelnames := svcChannels.AllConfigurations()
 				for _, channelName := range channelnames {
@@ -166,7 +167,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	//proxy for the service
 	svcStruct := &service{Context: svcElemCtx.(*common.Context), name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem}
 
-	parentMw, ok := facElem.GetStringArray(config.CONF_MIDDLEWARE)
+	parentMw, ok := facElem.GetStringArray(constants.CONF_MIDDLEWARE)
 	/*if ok {
 		if grpMw != nil {
 			parentMw = append(parentMw, grpMw...)
@@ -174,17 +175,17 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	} else {
 		parentMw = grpMw
 	}*/
-	middleware, ok := conf.GetStringArray(config.CONF_MIDDLEWARE)
+	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
 	if ok {
 		if parentMw != nil {
 			middleware = append(parentMw, middleware...)
 		}
 	}
 	if middleware != nil {
-		svcElemCtx.Set(config.CONF_MIDDLEWARE, middleware)
+		svcElemCtx.Set(constants.CONF_MIDDLEWARE, middleware)
 	}
 
-	cacheToUse, ok := conf.GetString(config.CONF_CACHE_NAME)
+	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
 		svcStruct.Set("__cache", cacheToUse)
 		log.Logger.Error(ctx, "Setting cache for service ", "cacheToUse", cacheToUse)

@@ -1,6 +1,7 @@
-package config
+package common
 
 import (
+	"laatoo/sdk/config"
 	"laatoo/sdk/utils"
 )
 
@@ -57,14 +58,14 @@ func (conf GenericConfig) GetStringArray(configurationName string) ([]string, bo
 	return nil, false
 }
 
-func (conf GenericConfig) GetConfigArray(configurationName string) ([]Config, bool) {
+func (conf GenericConfig) GetConfigArray(configurationName string) ([]config.Config, bool) {
 	val, found := conf[configurationName]
 	if found {
 		confArr, cok := val.([]interface{})
 		if !cok {
 			return nil, false
 		}
-		retVal := make([]Config, len(confArr))
+		retVal := make([]config.Config, len(confArr))
 		for index, val := range confArr {
 			var gc GenericConfig
 			gc, ok := val.(map[string]interface{})
@@ -82,7 +83,7 @@ func (conf GenericConfig) AllConfigurations() []string {
 	return utils.MapKeys(conf)
 }
 
-func (conf GenericConfig) GetSubConfig(configurationName string) (Config, bool) {
+func (conf GenericConfig) GetSubConfig(configurationName string) (config.Config, bool) {
 	val, found := conf[configurationName]
 	if found {
 		var gc GenericConfig

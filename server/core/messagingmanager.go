@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type messagingManager struct {
@@ -42,7 +43,7 @@ func (msgMgr *messagingManager) Start(ctx core.ServerContext) error {
 }
 
 func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config.Config) error {
-	topicsConf, ok := conf.GetSubConfig(config.CONF_MESSAGE_TOPICS)
+	topicsConf, ok := conf.GetSubConfig(constants.CONF_MESSAGE_TOPICS)
 	if ok {
 		topicNames := topicsConf.AllConfigurations()
 		for _, topicName := range topicNames {

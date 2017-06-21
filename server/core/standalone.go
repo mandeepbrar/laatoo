@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/constants"
 	"net"
 	"time"
 )
@@ -24,7 +25,7 @@ func Main(configFile string) error {
 
 func startListening(ctx core.ServerContext, conf config.Config) error {
 	//find the address to bind from the server
-	address, ok := conf.GetString(config.CONF_SERVER_ADDRESS)
+	address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
 	if !ok {
 		panic("Host name not provided for standalone server")
 	}

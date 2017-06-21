@@ -7,21 +7,22 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/constants"
 	//"strconv"
 )
 
 func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, routeConf config.Config) error {
-	disabled, _ := routeConf.GetBool(config.CONF_HTTPENGINE_DISABLEROUTE)
+	disabled, _ := routeConf.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
 	if disabled {
 		return nil
 	}
-	path, ok := routeConf.GetString(config.CONF_HTTPENGINE_PATH)
+	path, ok := routeConf.GetString(constants.CONF_HTTPENGINE_PATH)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_HTTPENGINE_PATH)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_HTTPENGINE_PATH)
 	}
-	method, ok := routeConf.GetString(config.CONF_HTTPENGINE_METHOD)
+	method, ok := routeConf.GetString(constants.CONF_HTTPENGINE_METHOD)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_HTTPENGINE_METHOD)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_HTTPENGINE_METHOD)
 	}
 	var respHandler server.ServiceResponseHandler
 	handler := ctx.GetServerElement(core.ServerElementServiceResponseHandler)
@@ -37,7 +38,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 
 	////build value parameters
 	var routeParams map[string]string
-	routeParamValuesConf, ok := routeConf.GetSubConfig(config.CONF_HTTPENGINE_ROUTEPARAMVALUES)
+	routeParamValuesConf, ok := routeConf.GetSubConfig(constants.CONF_HTTPENGINE_ROUTEPARAMVALUES)
 	if ok {
 		values := routeParamValuesConf.AllConfigurations()
 		routeParams = make(map[string]string, len(values))
@@ -58,7 +59,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		if confElem == nil {
 			return
 		}
-		allowedParams, ok := confElem.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+		allowedParams, ok := confElem.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 		if ok {
 			for _, p := range allowedParams {
 				allowedQueryParams[p] = true
@@ -74,7 +75,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		if confElem == nil {
 			return
 		}
-		staticValuesConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_STATICVALUES)
+		staticValuesConf, ok := confElem.GetSubConfig(constants.CONF_HTTPENGINE_STATICVALUES)
 		if ok {
 			values := staticValuesConf.AllConfigurations()
 			for _, paramname := range values {
@@ -91,7 +92,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		if confElem == nil {
 			return
 		}
-		headersConf, ok := confElem.GetSubConfig(config.CONF_HTTPENGINE_HEADERSTOINCLUDE)
+		headersConf, ok := confElem.GetSubConfig(constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
 		if ok {
 			headersToInclude := headersConf.AllConfigurations()
 			for _, paramName := range headersToInclude {
@@ -106,18 +107,18 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 	//get any data creators for body objects that need to be bound
 	var dataObjectCreator core.ObjectCreator
 	var dataObjectCollectionCreator core.ObjectCollectionCreator
-	dataObjectName, isdataObject := routeConf.GetString(config.CONF_ENGINE_DATA_OBJECT)
-	_, isdataCollection := routeConf.GetString(config.CONF_ENGINE_DATA_COLLECTION)
+	dataObjectName, isdataObject := routeConf.GetString(constants.CONF_ENGINE_DATA_OBJECT)
+	_, isdataCollection := routeConf.GetString(constants.CONF_ENGINE_DATA_COLLECTION)
 
 	var otype objectType
 	switch dataObjectName {
-	case config.CONF_ENGINE_STRINGMAP_DATA_OBJECT:
+	case constants.CONF_ENGINE_STRINGMAP_DATA_OBJECT:
 		otype = stringmap
-	case config.CONF_ENGINE_BYTES_DATA_OBJECT:
+	case constants.CONF_ENGINE_BYTES_DATA_OBJECT:
 		otype = bytes
-	case config.CONF_ENGINE_STRING_DATA_OBJECT:
+	case constants.CONF_ENGINE_STRING_DATA_OBJECT:
 		otype = stringtype
-	case config.CONF_ENGINE_FILES_DATA_OBJECT:
+	case constants.CONF_ENGINE_FILES_DATA_OBJECT:
 		otype = files
 	default:
 		otype = custom

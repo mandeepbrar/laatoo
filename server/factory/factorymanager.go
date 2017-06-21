@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 const (
@@ -29,16 +30,16 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, config.CONF_FACTORIES, facMgr.createServiceFactory); err != nil {
+	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, constants.CONF_FACTORIES, facMgr.createServiceFactory); err != nil {
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
@@ -137,16 +138,16 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		facElem := facMgr.parent.NewCtx(factoryAlias).(*common.Context)
 		fac := &serviceFactory{Context: facElem, name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig}
 
-		middleware, ok := factoryConfig.GetStringArray(config.CONF_MIDDLEWARE)
+		middleware, ok := factoryConfig.GetStringArray(constants.CONF_MIDDLEWARE)
 		if ok {
-			parentMw, ok := facMgr.parent.GetStringArray(config.CONF_MIDDLEWARE)
+			parentMw, ok := facMgr.parent.GetStringArray(constants.CONF_MIDDLEWARE)
 			if ok {
 				middleware = append(parentMw, middleware...)
 			}
-			facElem.Set(config.CONF_MIDDLEWARE, middleware)
+			facElem.Set(constants.CONF_MIDDLEWARE, middleware)
 		}
 
-		cacheToUse, ok := factoryConfig.GetString(config.CONF_CACHE_NAME)
+		cacheToUse, ok := factoryConfig.GetString(constants.CONF_CACHE_NAME)
 		if ok {
 			fac.Set("__cache", cacheToUse)
 		}

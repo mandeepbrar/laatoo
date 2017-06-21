@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type rulesManager struct {
@@ -16,7 +17,7 @@ type rulesManager struct {
 
 func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	rulesConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_RULES)
+	rulesConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_RULES)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -38,7 +39,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, config.CONF_RULES, rm.processRuleConf); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_RULES, rm.processRuleConf); err != nil {
 		return err
 	}
 
@@ -49,13 +50,13 @@ func (rm *rulesManager) Start(ctx core.ServerContext) error {
 }
 
 func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {
-	triggerType, ok := ruleConf.GetString(config.CONF_RULE_TRIGGER)
+	triggerType, ok := ruleConf.GetString(constants.CONF_RULE_TRIGGER)
 	if !ok {
-		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_TRIGGER)
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_TRIGGER)
 	}
-	ruleobj, ok := ruleConf.GetString(config.CONF_RULE_OBJECT)
+	ruleobj, ok := ruleConf.GetString(constants.CONF_RULE_OBJECT)
 	if !ok {
-		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_OBJECT)
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_OBJECT)
 	}
 	obj, err := ruleCtx.CreateObject(ruleobj)
 	if err != nil {
@@ -68,13 +69,13 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 	}
 	rule, ok := obj.(rules.Rule)
 	if !ok {
-		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_OBJECT)
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_RULE_OBJECT)
 	}
 	switch triggerType {
-	case config.CONF_RULE_TRIGGER_ASYNC:
-		msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
+	case constants.CONF_RULE_TRIGGER_ASYNC:
+		msgType, ok := ruleConf.GetString(constants.CONF_RULE_MSGTYPE)
 		if !ok {
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
+			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
 		ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
 			return func(msgctx core.RequestContext) error {
@@ -92,14 +93,14 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 			}
 		}
 		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
-	case config.CONF_RULE_TRIGGER_SYNC:
-		msgType, ok := ruleConf.GetString(config.CONF_RULE_MSGTYPE)
+	case constants.CONF_RULE_TRIGGER_SYNC:
+		msgType, ok := ruleConf.GetString(constants.CONF_RULE_MSGTYPE)
 		if !ok {
-			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_RULE_MSGTYPE)
+			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
 		rm.subscribeSynchronousMessage(ruleCtx, msgType, rule)
 	default:
-		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_RULE_TRIGGER)
+		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_RULE_TRIGGER)
 	}
 	return nil
 }

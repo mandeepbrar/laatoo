@@ -1,11 +1,12 @@
 package cache
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type cacheManager struct {
@@ -21,9 +22,9 @@ func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		cacheSvcName, ok := cacheConf.GetString(config.CONF_CACHE_SVC)
+		cacheSvcName, ok := cacheConf.GetString(constants.CONF_CACHE_SVC)
 		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_CACHE_SVC)
+			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_CACHE_SVC)
 		}
 		cm.registeredCacheNames[cacheName] = cacheSvcName
 	}
@@ -37,7 +38,7 @@ func (cm *cacheManager) Start(ctx core.ServerContext) error {
 		}
 		cacheSvc, ok := svc.(components.CacheComponent)
 		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_CACHE_SVC, "Cache Name", cacheName)
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_CACHE_SVC, "Cache Name", cacheName)
 		}
 		cm.registeredCaches[cacheName] = cacheSvc
 	}

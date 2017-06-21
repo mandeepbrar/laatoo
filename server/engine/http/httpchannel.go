@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/constants"
 	"laatoo/server/engine/http/net"
 	"net/http"
 
@@ -46,7 +47,7 @@ type httpChannel struct {
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
 	var routername string
 	var router net.Router
-	path, ok := conf.GetString(config.CONF_HTTPENGINE_PATH)
+	path, ok := conf.GetString(constants.CONF_HTTPENGINE_PATH)
 	if !ok {
 		path = engine.path
 	}
@@ -58,14 +59,14 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		router = parentChannel.Router.Group(path)
 	}
 
-	skipAuth, ok := conf.GetBool(config.CONF_HTTPENGINE_SKIPAUTH)
+	skipAuth, ok := conf.GetBool(constants.CONF_HTTPENGINE_SKIPAUTH)
 	if !ok && parentChannel != nil {
 		skipAuth = parentChannel.skipAuth
 	}
 
 	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
 
-	allowedQParams, ok := conf.GetStringArray(config.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+	allowedQParams, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
 		if parentChannel != nil && parentChannel.allowedQParams != nil {
 			channel.allowedQParams = append(parentChannel.allowedQParams, allowedQParams...)
@@ -78,13 +79,13 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		}
 	}
 
-	usecors, _ := conf.GetBool(config.CONF_HTTPENGINE_USECORS)
+	usecors, _ := conf.GetBool(constants.CONF_HTTPENGINE_USECORS)
 
 	log.Logger.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors, " skipauth", skipAuth)
 	if usecors {
-		allowedOrigins, ok := conf.GetStringArray(config.CONF_HTTPENGINE_CORSHOSTS)
+		allowedOrigins, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
-			corsOptionsPath, _ := conf.GetString(config.CONF_HTTPENGINE_CORSOPTIONSPATH)
+			corsOptionsPath, _ := conf.GetString(constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
 			corsMw := cors.New(cors.Options{
 				AllowedOrigins:     allowedOrigins,
 				AllowedHeaders:     []string{"*"},

@@ -6,17 +6,19 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/common"
+	"laatoo/server/constants"
 	"os"
 	"path"
 )
 
 func main(rootctx *serverContext, configDir string) error {
 	log.Logger.Info(rootctx, "Setting base directory for server", "Dir Name", configDir)
-	rootctx.Set(config.CONF_BASE_DIR, configDir)
+	rootctx.Set(constants.CONF_BASE_DIR, configDir)
 
-	configFile := path.Join(configDir, config.CONF_CONFIG_FILE)
+	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)
 	//read the config file
-	conf, err := config.NewConfigFromFile(configFile)
+	conf, err := common.NewConfigFromFile(configFile)
 	if err != nil {
 		return err
 	}
@@ -66,7 +68,7 @@ func main(rootctx *serverContext, configDir string) error {
 
 // create environments in the config on a running server
 func createEnvironments(ctx core.ServerContext, confDir string) (map[string]string, error) {
-	envDir := path.Join(confDir, config.CONF_ENVIRONMENTS)
+	envDir := path.Join(confDir, constants.CONF_ENVIRONMENTS)
 	envs := make(map[string]string)
 	if _, err := os.Stat(envDir); err == nil {
 		svrCtx := ctx.(*serverContext)
@@ -82,14 +84,14 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 				envName := info.Name()
 				baseEnvDir := path.Join(envDir, envName)
 				var envConfig config.Config
-				configFile := path.Join(baseEnvDir, config.CONF_CONFIG_FILE)
+				configFile := path.Join(baseEnvDir, constants.CONF_CONFIG_FILE)
 				if _, err := os.Stat(configFile); err == nil {
 					//read the config file
-					envConfig, err = config.NewConfigFromFile(configFile)
+					envConfig, err = common.NewConfigFromFile(configFile)
 					if err != nil {
 						return envs, errors.WrapError(ctx, err, "Environment config file", configFile)
 					}
-					name, ok := envConfig.GetString(config.CONF_OBJECT_NAME)
+					name, ok := envConfig.GetString(constants.CONF_OBJECT_NAME)
 					if ok {
 						envName = name
 					}
@@ -137,11 +139,11 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 		//get the environment from the server
 		envElem, ok := svrProx.server.environments[envName]
 		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", config.CONF_APP_ENVIRONMENT)
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_APP_ENVIRONMENT)
 		}
 		//ask the environment to create application using the config
 		envProxy := envElem.(*environmentProxy)
-		appDir := path.Join(baseDir, config.CONF_APPLICATIONS)
+		appDir := path.Join(baseDir, constants.CONF_APPLICATIONS)
 		if _, err := os.Stat(appDir); err == nil {
 			files, err := ioutil.ReadDir(appDir)
 			if err != nil {
@@ -152,14 +154,14 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 					appName := info.Name()
 					baseAppDir := path.Join(appDir, appName)
 					var appConfig config.Config
-					configFile := path.Join(baseAppDir, config.CONF_CONFIG_FILE)
+					configFile := path.Join(baseAppDir, constants.CONF_CONFIG_FILE)
 					if _, err := os.Stat(configFile); err == nil {
 						//read the config file
-						appConfig, err = config.NewConfigFromFile(configFile)
+						appConfig, err = common.NewConfigFromFile(configFile)
 						if err != nil {
 							return errors.WrapError(ctx, err, "Application config file", configFile)
 						}
-						name, ok := appConfig.GetString(config.CONF_OBJECT_NAME)
+						name, ok := appConfig.GetString(constants.CONF_OBJECT_NAME)
 						if ok {
 							appName = name
 						}

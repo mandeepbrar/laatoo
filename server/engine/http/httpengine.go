@@ -2,6 +2,7 @@ package http
 
 import (
 	"laatoo/server/common"
+	"laatoo/server/constants"
 	"laatoo/server/engine/http/echo"
 	"laatoo/server/engine/http/gin"
 
@@ -32,7 +33,7 @@ type httpEngine struct {
 func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
 	initCtx := eng.createContext(ctx, "InitializeEngine: "+eng.name)
 	eng.fwname = "Echo"
-	fw, ok := conf.GetString(config.CONF_HTTP_FRAMEWORK)
+	fw, ok := conf.GetString(constants.CONF_HTTP_FRAMEWORK)
 	if ok {
 		eng.fwname = fw
 	}
@@ -44,31 +45,31 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		/*	case "Goji":
 			eng.framework = &goji.GojiWebFramework{}*/
 	}
-	ssl, ok := conf.GetBool(config.CONF_ENG_SSL)
+	ssl, ok := conf.GetBool(constants.CONF_ENG_SSL)
 	if ok && ssl {
-		cert, ok := conf.GetString(config.CONF_ENG_SSLCERT)
+		cert, ok := conf.GetString(constants.CONF_ENG_SSLCERT)
 		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENG_SSLCERT)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENG_SSLCERT)
 		}
-		key, ok := conf.GetString(config.CONF_ENG_SSLKEY)
+		key, ok := conf.GetString(constants.CONF_ENG_SSLKEY)
 		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENG_SSLKEY)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENG_SSLKEY)
 		}
 		eng.ssl = ssl
 		eng.sslcert = cert
 		eng.sslkey = key
 	}
 	if initCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-		address, ok := conf.GetString(config.CONF_SERVER_ADDRESS)
+		address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
 		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", config.CONF_SERVER_ADDRESS)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", constants.CONF_SERVER_ADDRESS)
 		} else {
 			eng.address = address
 		}
 	} else {
-		rootPath, ok := conf.GetString(config.CONF_HTTPENGINE_PATH)
+		rootPath, ok := conf.GetString(constants.CONF_HTTPENGINE_PATH)
 		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_HTTPENGINE_PATH)
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_HTTPENGINE_PATH)
 		}
 		eng.path = rootPath
 	}

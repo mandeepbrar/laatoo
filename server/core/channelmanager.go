@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type channelManager struct {
@@ -23,7 +24,7 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, config.CONF_CHANNELS, chanMgr.createChannel); err != nil {
+	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, constants.CONF_CHANNELS, chanMgr.createChannel); err != nil {
 		return errors.WrapError(chanmgrInitializeCtx, err)
 	}
 
@@ -35,7 +36,7 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 }
 
 func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf config.Config) error {
-	channelsConf, ok := conf.GetSubConfig(config.CONF_ENGINE_CHANNELS)
+	channelsConf, ok := conf.GetSubConfig(constants.CONF_ENGINE_CHANNELS)
 	if ok {
 		channelNames := channelsConf.AllConfigurations()
 		for _, channelName := range channelNames {
@@ -53,20 +54,20 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
 	createCtx := chanMgr.createContext(ctx, "Create Channel"+channelName)
-	parentChannelName, ok := channelConf.GetString(config.CONF_ENGINE_PARENTCHANNEL)
+	parentChannelName, ok := channelConf.GetString(constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
-		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
+		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
 	parentChannel, ok := chanMgr.channelStore[parentChannelName]
 	if !ok {
-		return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_ENGINE_PARENTCHANNEL)
+		return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
 	channel, err := parentChannel.Child(createCtx, channelName, channelConf)
 	if err != nil {
 		return errors.WrapError(createCtx, err)
 	}
 	chanMgr.channelStore[channelName] = channel
-	_, childChannels := channelConf.Get(config.CONF_ENGINE_CHANNELS)
+	_, childChannels := channelConf.Get(constants.CONF_ENGINE_CHANNELS)
 	if childChannels {
 		err := chanMgr.createChannels(createCtx, channelConf)
 		if err != nil {

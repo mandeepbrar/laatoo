@@ -1,11 +1,9 @@
 package security
 
-import (
 //	"laatoosdk/config"
 //"laatoosdk/core"
 //"laatoosdk/log"
 //"net/http"
-)
 
 /*
 func (env *Environment) authorize(ctx core.Context, conf config.Config) (bool, error) {

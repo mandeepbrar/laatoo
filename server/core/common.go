@@ -9,18 +9,19 @@ import (
 	"laatoo/sdk/utils"
 	"laatoo/server/cache"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 	"laatoo/server/rules"
 	"laatoo/server/tasks"
 	"path"
 )
 
 func initializeChannelManager(ctx core.ServerContext, conf config.Config, channelManagerHandle server.ServerElementHandle) error {
-	chmgrconf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CHANNELS)
+	chmgrconf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_CHANNELS)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		chmgrconf = make(config.GenericConfig, 0)
+		chmgrconf = make(common.GenericConfig, 0)
 	}
 	err = channelManagerHandle.Initialize(ctx, chmgrconf)
 	if err != nil {
@@ -30,12 +31,12 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 }
 
 func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle server.ServerElementHandle) error {
-	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_FACTORIES)
+	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_FACTORIES)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		facConf = make(config.GenericConfig, 0)
+		facConf = make(common.GenericConfig, 0)
 	}
 	err = factoryManagerHandle.Initialize(ctx, facConf)
 	if err != nil {
@@ -45,12 +46,12 @@ func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factor
 }
 
 func initializeServiceManager(ctx core.ServerContext, conf config.Config, serviceManagerHandle server.ServerElementHandle) error {
-	svcConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SERVICES)
+	svcConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SERVICES)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		svcConf = make(config.GenericConfig, 0)
+		svcConf = make(common.GenericConfig, 0)
 	}
 	err = serviceManagerHandle.Initialize(ctx, svcConf)
 	if err != nil {
@@ -60,27 +61,27 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 }
 
 func createMessagingManager(ctx core.ServerContext, name string, conf config.Config, proxy core.ServerElement, parent *abstractserver) (server.ServerElementHandle, server.MessagingManager, error) {
-	msgConf, err, found := common.ConfigFileAdapter(ctx, conf, config.CONF_MESSAGING)
+	msgConf, err, found := common.ConfigFileAdapter(ctx, conf, constants.CONF_MESSAGING)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
 	var messagingManager server.MessagingManager
 	var messagingManagerHandle server.ServerElementHandle
 	if !found {
-		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
-		confFile := path.Join(baseDir, config.CONF_MESSAGING, config.CONF_CONFIG_FILE)
+		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		confFile := path.Join(baseDir, constants.CONF_MESSAGING, constants.CONF_CONFIG_FILE)
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = config.NewConfigFromFile(confFile); err != nil {
+			if msgConf, err = common.NewConfigFromFile(confFile); err != nil {
 				return nil, nil, errors.WrapError(ctx, err)
 			}
 		} else {
-			msgConf = make(config.GenericConfig, 0)
+			msgConf = make(common.GenericConfig, 0)
 		}
 	}
 	if found {
-		msgSvcName, ok := msgConf.GetString(config.CONF_MESSAGING_SVC)
+		msgSvcName, ok := msgConf.GetString(constants.CONF_MESSAGING_SVC)
 		if ok {
 			msgCtx := ctx.SubContext("Create Messaging Manager")
 			msgHandle, msgElem := newMessagingManager(msgCtx, name, proxy, msgSvcName)
@@ -90,7 +91,7 @@ func createMessagingManager(ctx core.ServerContext, name string, conf config.Con
 		}
 	}
 
-	if (messagingManager == nil) && (parent != nil) || (parent.messagingManager != nil) {
+	if (messagingManager == nil) && (parent != nil) && (parent.messagingManager != nil) {
 		childMsgMgrHandle, childMsgMgr := childMessagingManager(ctx, name, parent.messagingManager, proxy)
 		messagingManagerHandle = childMsgMgrHandle
 		messagingManager = childMsgMgr.(server.MessagingManager)
@@ -128,7 +129,7 @@ func createTaskManager(ctx core.ServerContext, name string, conf config.Config, 
 }
 
 func createCacheManager(ctx core.ServerContext, name string, conf config.Config, parentCacheMgr core.ServerElement, parent core.ServerElement) (server.ServerElementHandle, server.CacheManager, error) {
-	cacheManagerConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CACHE)
+	cacheManagerConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_CACHE)
 	if err != nil {
 		return nil, nil, err
 	}

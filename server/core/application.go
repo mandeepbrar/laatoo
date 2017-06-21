@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type application struct {
@@ -62,7 +63,7 @@ func (app *application) Start(ctx core.ServerContext) error {
 
 //create applets
 func (app *application) createApplets(ctx core.ServerContext, conf config.Config) error {
-	appletsConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_APPLETS)
+	appletsConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_APPLETS)
 	if err != nil {
 		return err
 	}
@@ -76,9 +77,9 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 			return err
 		}
 		appletCreateCtx := app.createContext(ctx, "Creating applet: ")
-		applprovider, ok := appletConf.GetString(config.CONF_APPL_OBJECT)
+		applprovider, ok := appletConf.GetString(constants.CONF_APPL_OBJECT)
 		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Applet Name", name, "Missing Config", config.CONF_APPL_OBJECT)
+			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Applet Name", name, "Missing Config", constants.CONF_APPL_OBJECT)
 		}
 
 		log.Logger.Debug(appletCreateCtx, "Creating applet")

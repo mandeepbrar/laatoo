@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type environment struct {
@@ -48,10 +49,10 @@ func (env *environment) Start(ctx core.ServerContext) error {
 
 func (env *environment) createApplications(ctx core.ServerContext, baseDir string, name string, applicationConf config.Config) error {
 	appCreateCtx := env.createContext(ctx, "CreateApplication: "+name)
-	appCreateCtx.Set(config.CONF_BASE_DIR, baseDir)
+	appCreateCtx.Set(constants.CONF_BASE_DIR, baseDir)
 
 	log.Logger.Trace(appCreateCtx, "Creating Application")
-	filterConf, _ := applicationConf.GetSubConfig(config.CONF_FILTERS)
+	filterConf, _ := applicationConf.GetSubConfig(constants.CONF_FILTERS)
 	//create an application
 	applHandle, applElem := newApplication(appCreateCtx, name, env, filterConf)
 	log.Logger.Debug(appCreateCtx, "Created")

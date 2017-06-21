@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type taskManager struct {
@@ -40,7 +41,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 
 	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
 	log.Logger.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
-	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, config.CONF_TASKS)
+	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
 	if err != nil {
 		return errors.WrapError(tskmgrInitializeCtx, err)
 	}
@@ -55,7 +56,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, config.CONF_TASKS, tskMgr.processTaskConf); err != nil {
+	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, constants.CONF_TASKS, tskMgr.processTaskConf); err != nil {
 		return err
 	}
 
@@ -63,26 +64,26 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 }
 
 func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
-	queueName, ok := conf.GetString(config.CONF_TASKS_QUEUE)
+	queueName, ok := conf.GetString(constants.CONF_TASKS_QUEUE)
 	if !ok {
-		return errors.MissingConf(ctx, config.CONF_TASKS_QUEUE, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
 	}
 
-	receiver, ok := conf.GetString(config.CONF_TASK_RECEIVER)
+	receiver, ok := conf.GetString(constants.CONF_TASK_RECEIVER)
 	if !ok {
-		return errors.MissingConf(ctx, config.CONF_TASK_RECEIVER, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASK_RECEIVER, "Task Name", taskName)
 	}
 	tskMgr.taskReceiverNames[queueName] = receiver
 
-	processor, ok := conf.GetString(config.CONF_TASK_PROCESSOR)
+	processor, ok := conf.GetString(constants.CONF_TASK_PROCESSOR)
 	if !ok {
-		return errors.MissingConf(ctx, config.CONF_TASK_PROCESSOR, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASK_PROCESSOR, "Task Name", taskName)
 	}
 	tskMgr.taskProcessorNames[queueName] = processor
 
-	producer, ok := conf.GetString(config.CONF_TASK_PRODUCER)
+	producer, ok := conf.GetString(constants.CONF_TASK_PRODUCER)
 	if !ok {
-		return errors.MissingConf(ctx, config.CONF_TASK_PRODUCER, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASK_PRODUCER, "Task Name", taskName)
 	}
 	tskMgr.taskProducers[queueName] = producer
 	return nil
@@ -112,7 +113,7 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 		}
 		ts, ok := receiverSvc.(components.TaskServer)
 		if !ok {
-			return errors.BadConf(tskmgrStartCtx, config.CONF_TASK_RECEIVER, "queue", queueName)
+			return errors.BadConf(tskmgrStartCtx, constants.CONF_TASK_RECEIVER, "queue", queueName)
 		}
 
 		err = ts.SubsribeQueue(tskmgrStartCtx, queueName)

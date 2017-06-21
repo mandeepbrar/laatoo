@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 	"laatoo/server/engine/http"
 	"laatoo/server/factory"
 	"laatoo/server/objects"
@@ -151,13 +152,13 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Logger.Debug(chaninit, "Initialized channel manager")
 
-	middleware, ok := conf.GetStringArray(config.CONF_MIDDLEWARE)
+	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
 	if ok {
-		parentMw, ok := as.proxy.GetStringArray(config.CONF_MIDDLEWARE)
+		parentMw, ok := as.proxy.GetStringArray(constants.CONF_MIDDLEWARE)
 		if ok {
 			middleware = append(parentMw, middleware...)
 		}
-		as.proxy.Set(config.CONF_MIDDLEWARE, middleware)
+		as.proxy.Set(constants.CONF_MIDDLEWARE, middleware)
 	}
 
 	msgCreate := ctx.SubContext("Create messaging manager")
@@ -197,7 +198,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		as.cacheManagerHandle = cacheMgrHandle
 	}
 	ctx.cacheManager = as.cacheManager
-	cacheToUse, ok := conf.GetString(config.CONF_CACHE_NAME)
+	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
 		as.proxy.Set("__cache", cacheToUse)
 	}
@@ -341,7 +342,7 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 
 func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.Config) error {
 	log.Logger.Trace(ctx, "Initializing engines")
-	engines, ok := conf.GetSubConfig(config.CONF_ENGINES)
+	engines, ok := conf.GetSubConfig(constants.CONF_ENGINES)
 	if ok {
 		engineNames := engines.AllConfigurations()
 		for _, engName := range engineNames {
@@ -358,7 +359,7 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, config.CONF_ENGINES, as.processEngineConf); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_ENGINES, as.processEngineConf); err != nil {
 		return err
 	}
 
@@ -367,18 +368,18 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 }
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
-	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
+	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SECURITY)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
 	if !ok {
-		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
-		confFile := path.Join(baseDir, config.CONF_SECURITY, config.CONF_CONFIG_FILE)
+		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		confFile := path.Join(baseDir, constants.CONF_SECURITY, constants.CONF_CONFIG_FILE)
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = config.NewConfigFromFile(confFile); err != nil {
+			if secConf, err = common.NewConfigFromFile(confFile); err != nil {
 				return err
 			}
 		}
@@ -428,18 +429,18 @@ func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 }
 
 func (as *abstractserver) createEngine(ctx core.ServerContext, name string, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {
-	enginetype, ok := engConf.GetString(config.CONF_ENGINE_TYPE)
+	enginetype, ok := engConf.GetString(constants.CONF_ENGINE_TYPE)
 	if !ok {
-		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", config.CONF_ENGINE_TYPE)
+		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
 	}
 	var engineHandle server.ServerElementHandle
 	var engine server.Engine
 	switch enginetype {
-	case config.CONF_ENGINETYPE_HTTP:
+	case constants.CONF_ENGINETYPE_HTTP:
 		engineHandle, engine = http.NewEngine(ctx, name)
 	case core.CONF_ENGINE_TCP:
 	default:
-		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", config.CONF_ENGINE_TYPE)
+		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
 	}
 	return engineHandle, engine, nil
 }

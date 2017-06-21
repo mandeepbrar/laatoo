@@ -1,12 +1,13 @@
 package service
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
+	"laatoo/server/constants"
 )
 
 type service struct {
@@ -22,12 +23,12 @@ type service struct {
 
 func (svc *service) start(ctx core.ServerContext) error {
 	var mergedConf config.Config
-	svcParamsConf, ok := svc.conf.GetSubConfig(config.CONF_SVCPARAMS)
+	svcParamsConf, ok := svc.conf.GetSubConfig(constants.CONF_SVCPARAMS)
 	if ok {
-		mergedConf = config.Merge(mergedConf, svcParamsConf)
+		mergedConf = common.Merge(mergedConf, svcParamsConf)
 	}
 	funcs := make([]core.ServiceFunc, 0)
-	middlewareNames, ok := svc.GetStringArray(config.CONF_MIDDLEWARE)
+	middlewareNames, ok := svc.GetStringArray(constants.CONF_MIDDLEWARE)
 	if ok {
 		for _, mwName := range middlewareNames {
 			//			mwSvc, err := ctx.GetService(mwName)
@@ -37,9 +38,9 @@ func (svc *service) start(ctx core.ServerContext) error {
 			}
 			mwSvc := mwSvcStruct.(*service)
 			funcs = append(funcs, mwSvc.Invoke)
-			mwsvcParamsConf, ok := mwSvc.conf.GetSubConfig(config.CONF_SVCPARAMS)
+			mwsvcParamsConf, ok := mwSvc.conf.GetSubConfig(constants.CONF_SVCPARAMS)
 			if ok {
-				mergedConf = config.Merge(mergedConf, mwsvcParamsConf)
+				mergedConf = common.Merge(mergedConf, mwsvcParamsConf)
 			}
 		}
 	}

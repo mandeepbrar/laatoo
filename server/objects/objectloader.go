@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+	"laatoo/server/constants"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,9 +22,9 @@ type objectLoader struct {
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	objectsBaseFolder, ok := conf.GetString(config.CONF_OBJECTS_BASE_DIR)
+	objectsBaseFolder, ok := conf.GetString(constants.CONF_OBJECTS_BASE_DIR)
 	if ok {
-		ctx.Set(config.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
+		ctx.Set(constants.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
 		log.Logger.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
 	}
 
@@ -138,34 +139,34 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 }
 
 func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
-	pluginsFolder, ok := conf.GetString(config.CONF_OBJECTLDR_OBJECTS)
+	pluginsFolder, ok := conf.GetString(constants.CONF_OBJECTLDR_OBJECTS)
 	if ok {
 		if err := objLoader.loadPluginsFolder(ctx, pluginsFolder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
-	baseFolder := path.Join(baseDir, config.CONF_OBJECTLDR_OBJECTS)
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseFolder := path.Join(baseDir, constants.CONF_OBJECTLDR_OBJECTS)
 	if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
 		return err
 	}
 
-	objectsbaseDir, found := ctx.GetString(config.CONF_OBJECTS_BASE_DIR)
+	objectsbaseDir, found := ctx.GetString(constants.CONF_OBJECTS_BASE_DIR)
 	if found {
 		svrElementType := ctx.GetElementType()
 		switch svrElementType {
 		case core.ServerElementServer:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APP_SERVER)); err != nil {
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_APP_SERVER)); err != nil {
 				return err
 			}
 			break
 		case core.ServerElementEnvironment:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_ENVIRONMENTS, objLoader.name)); err != nil {
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_ENVIRONMENTS, objLoader.name)); err != nil {
 				return err
 			}
 			break
 		case core.ServerElementApplication:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, config.CONF_APPLICATIONS, objLoader.name)); err != nil {
+			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_APPLICATIONS, objLoader.name)); err != nil {
 				return err
 			}
 			break

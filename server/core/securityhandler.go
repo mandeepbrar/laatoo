@@ -11,6 +11,7 @@ import (
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
+	"laatoo/server/constants"
 	"laatoo/server/security"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -94,9 +95,9 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	sh.authHeader = authToken
 	sh.Set(config.AUTHHEADER, authToken)
 
-	mode, ok := conf.GetString(config.CONF_SECURITY_MODE)
+	mode, ok := conf.GetString(constants.CONF_SECURITY_MODE)
 	if !ok {
-		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_SECURITY_MODE)
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_SECURITY_MODE)
 	}
 	sh.securityMode = mode
 	return nil
@@ -125,20 +126,20 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	sh.anonymousUser = anonymousUser.(auth.User)
 
 	switch sh.securityMode {
-	case config.CONF_SECURITY_LOCAL:
+	case constants.CONF_SECURITY_LOCAL:
 		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.roleCreator, sh.realm)
 		if err != nil {
 			return err
 		}
 		sh.handler = plugin
-	case config.CONF_SECURITY_REMOTE:
+	case constants.CONF_SECURITY_REMOTE:
 		plugin, err := security.NewRemoteSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.authHeader, sh.roleObject, sh.realm)
 		if err != nil {
 			return err
 		}
 		sh.handler = plugin
 	default:
-		return errors.ThrowError(startCtx, errors.CORE_ERROR_BAD_CONF, "conf", config.CONF_SECURITY_MODE)
+		return errors.ThrowError(startCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_SECURITY_MODE)
 	}
 
 	return sh.handler.Start(ctx)
