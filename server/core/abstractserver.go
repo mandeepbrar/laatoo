@@ -160,29 +160,15 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		as.proxy.Set(config.CONF_MIDDLEWARE, middleware)
 	}
 
-	if (as.parent == nil) || (as.parent.messagingManager == nil) {
-		msgSvcName, ok := conf.GetString(config.CONF_MESSAGING_SVC)
-		if ok {
-			msgCtx := ctx.SubContext("Create Messaging Manager")
-			msgHandle, msgElem := newMessagingManager(msgCtx, "Root", as.proxy, msgSvcName)
-			as.messagingManager = msgElem
-			as.messagingManagerHandle = msgHandle
-			log.Logger.Trace(msgCtx, "Created messaging manager")
-		}
-	} else {
-		childMsgMgrHandle, childMsgMgr := childMessagingManager(ctx, as.name, as.parent.messagingManager, as.proxy)
-		as.messagingManagerHandle = childMsgMgrHandle
-		as.messagingManager = childMsgMgr.(server.MessagingManager)
+	msgCreate := ctx.SubContext("Create messaging manager")
+	msgHandle, msgElem, err := createMessagingManager(msgCreate, as.name, conf, as.proxy, as.parent)
+	if err != nil {
+		return errors.WrapError(msgCreate, err)
 	}
+	as.messagingManager = msgElem
+	as.messagingManagerHandle = msgHandle
 	ctx.msgManager = as.messagingManager
-	if as.messagingManagerHandle != nil {
-		msginit := ctx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
-		err := initializeMessagingManager(msginit, conf, as.messagingManagerHandle)
-		if err != nil {
-			return err
-		}
-		log.Logger.Debug(msginit, "Initialized messaging manager")
-	}
+	log.Logger.Debug(msgCreate, "Initialized messaging manager")
 
 	taskMgrHandle, taskMgr, err := createTaskManager(ctx, as.name, conf, as.proxy)
 	if err != nil {
@@ -359,12 +345,14 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 	if ok {
 		engineNames := engines.AllConfigurations()
 		for _, engName := range engineNames {
-			engConf, err, _ := common.ConfigFileAdapter(ctx, engines, engName)
+			engConf, err, ok := common.ConfigFileAdapter(ctx, engines, engName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			if err := as.processEngineConf(ctx, engConf, engName); err != nil {
-				return err
+			if ok {
+				if err := as.processEngineConf(ctx, engConf, engName); err != nil {
+					return err
+				}
 			}
 			log.Logger.Trace(ctx, "Registered engine", "Name", engName)
 		}
@@ -379,7 +367,11 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 }
 
 func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
-	secConf, _, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
+	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SECURITY)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	if !ok {
 		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
 		confFile := path.Join(baseDir, config.CONF_SECURITY, config.CONF_CONFIG_FILE)

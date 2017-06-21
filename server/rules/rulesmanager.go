@@ -16,7 +16,10 @@ type rulesManager struct {
 
 func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	rulesConf, _, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_RULES)
+	rulesConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_RULES)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	if ok {
 		ruleMgrCtx := rm.createContext(ctx, "Rules Manager")

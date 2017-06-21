@@ -29,14 +29,19 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, common.CONF_DEFAULTFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME})
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, common.CONF_DEFAULTMETHODFACTORY_NAME, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME})
+	err = facMgr.createServiceFactory(facmgrInitializeCtx, &config.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(facmgrInitializeCtx, err)
 	}
+
+	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, config.CONF_FACTORIES, facMgr.createServiceFactory); err != nil {
+		return errors.WrapError(facmgrInitializeCtx, err)
+	}
+
 	return facMgr.initializeFactories(facmgrInitializeCtx)
 }
 
@@ -86,7 +91,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 			return errors.WrapError(ctx, err)
 		}
 		facCtx := ctx.SubContext("Create Factory:" + factoryName)
-		err = facMgr.createServiceFactory(facCtx, factoryName, factoryConfig)
+		err = facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -94,7 +99,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	return nil
 }
 
-func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryAlias string, factoryConfig config.Config) error {
+func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
 	factoryName, ok := factoryConfig.GetString(CONF_SERVICEFACTORY)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", CONF_SERVICEFACTORY)

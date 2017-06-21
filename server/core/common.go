@@ -4,15 +4,18 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/sdk/utils"
 	"laatoo/server/cache"
 	"laatoo/server/common"
 	"laatoo/server/rules"
 	"laatoo/server/tasks"
+	"path"
 )
 
 func initializeChannelManager(ctx core.ServerContext, conf config.Config, channelManagerHandle server.ServerElementHandle) error {
-	chmgrconf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CHANNEL_MGR)
+	chmgrconf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CHANNELS)
 	if err != nil {
 		return err
 	}
@@ -27,7 +30,7 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 }
 
 func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle server.ServerElementHandle) error {
-	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_FACMGR)
+	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_FACTORIES)
 	if err != nil {
 		return err
 	}
@@ -42,7 +45,7 @@ func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factor
 }
 
 func initializeServiceManager(ctx core.ServerContext, conf config.Config, serviceManagerHandle server.ServerElementHandle) error {
-	svcConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SVCMGR)
+	svcConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_SERVICES)
 	if err != nil {
 		return err
 	}
@@ -56,19 +59,52 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 	return nil
 }
 
-func initializeMessagingManager(ctx core.ServerContext, conf config.Config, messagingManagerHandle server.ServerElementHandle) error {
-	msgConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_MSGMGR)
+func createMessagingManager(ctx core.ServerContext, name string, conf config.Config, proxy core.ServerElement, parent *abstractserver) (server.ServerElementHandle, server.MessagingManager, error) {
+	msgConf, err, found := common.ConfigFileAdapter(ctx, conf, config.CONF_MESSAGING)
 	if err != nil {
-		return err
+		return nil, nil, errors.WrapError(ctx, err)
 	}
-	if !ok {
-		msgConf = make(config.GenericConfig, 0)
+	var messagingManager server.MessagingManager
+	var messagingManagerHandle server.ServerElementHandle
+	if !found {
+		baseDir, _ := ctx.GetString(config.CONF_BASE_DIR)
+		confFile := path.Join(baseDir, config.CONF_MESSAGING, config.CONF_CONFIG_FILE)
+		found, _, _ = utils.FileExists(confFile)
+		if found {
+			var err error
+			if msgConf, err = config.NewConfigFromFile(confFile); err != nil {
+				return nil, nil, errors.WrapError(ctx, err)
+			}
+		} else {
+			msgConf = make(config.GenericConfig, 0)
+		}
 	}
-	err = messagingManagerHandle.Initialize(ctx, msgConf)
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	if found {
+		msgSvcName, ok := msgConf.GetString(config.CONF_MESSAGING_SVC)
+		if ok {
+			msgCtx := ctx.SubContext("Create Messaging Manager")
+			msgHandle, msgElem := newMessagingManager(msgCtx, name, proxy, msgSvcName)
+			messagingManager = msgElem
+			messagingManagerHandle = msgHandle
+			log.Logger.Trace(msgCtx, "Created messaging manager")
+		}
 	}
-	return nil
+
+	if (messagingManager == nil) && (parent != nil) || (parent.messagingManager != nil) {
+		childMsgMgrHandle, childMsgMgr := childMessagingManager(ctx, name, parent.messagingManager, proxy)
+		messagingManagerHandle = childMsgMgrHandle
+		messagingManager = childMsgMgr.(server.MessagingManager)
+	}
+
+	if messagingManagerHandle != nil {
+		msginit := ctx.SubContextWithElement("Initialize messaging manager", core.ServerElementMessagingManager)
+		err := messagingManagerHandle.Initialize(msginit, msgConf)
+		if err != nil {
+			return nil, nil, errors.WrapError(ctx, err)
+		}
+		log.Logger.Debug(msginit, "Initialized messaging manager")
+	}
+	return messagingManagerHandle, messagingManager, nil
 }
 
 func createRulesManager(ctx core.ServerContext, name string, conf config.Config, parent core.ServerElement) (server.ServerElementHandle, server.RulesManager, error) {
@@ -92,7 +128,7 @@ func createTaskManager(ctx core.ServerContext, name string, conf config.Config, 
 }
 
 func createCacheManager(ctx core.ServerContext, name string, conf config.Config, parentCacheMgr core.ServerElement, parent core.ServerElement) (server.ServerElementHandle, server.CacheManager, error) {
-	cacheManagerConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CACHE_MGR)
+	cacheManagerConf, err, ok := common.ConfigFileAdapter(ctx, conf, config.CONF_CACHE)
 	if err != nil {
 		return nil, nil, err
 	}

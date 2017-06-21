@@ -40,7 +40,10 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 
 	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
 	log.Logger.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
-	taskMgrConf, _, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, config.CONF_TASKS)
+	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, config.CONF_TASKS)
+	if err != nil {
+		return errors.WrapError(tskmgrInitializeCtx, err)
+	}
 	if ok {
 		taskNames := taskMgrConf.AllConfigurations()
 		for _, taskName := range taskNames {

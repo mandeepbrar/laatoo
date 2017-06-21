@@ -19,8 +19,10 @@ func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName st
 	confFileName, ok := conf.GetString(configName)
 	if ok {
 		log.Logger.Debug(ctx, "Reading config from file "+confFileName)
+		return config.FileAdapter(conf, configName)
+	} else {
+		return nil, nil, false
 	}
-	return config.FileAdapter(conf, configName)
 }
 
 func ProcessDirectoryFiles(ctx core.ServerContext, subdir string, processor func(core.ServerContext, config.Config, string) error) error {

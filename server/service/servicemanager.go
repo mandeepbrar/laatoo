@@ -28,10 +28,15 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 	elem := ctx.GetServerElement(core.ServerElementFactoryManager)
 	svcMgr.factoryManager = elem.(server.FactoryManager)
 	svcmgrInitializeCtx := svcMgr.createContext(ctx, "Initialize service manager ")
-	err := svcMgr.createServices(svcmgrInitializeCtx, conf, nil)
+	err := svcMgr.createServices(svcmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
 	}
+
+	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, config.CONF_SERVICES, svcMgr.createService); err != nil {
+		return errors.WrapError(svcmgrInitializeCtx, err)
+	}
+
 	err = svcMgr.initializeServices(svcmgrInitializeCtx)
 	if err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
@@ -81,7 +86,7 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 }
 
 //create services within an application
-func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config.Config, grpMw []string) error {
+func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config.Config) error {
 	//get a map of all the services
 	allgroups, ok := conf.GetSubConfig(CONF_SERVICEGROUPS)
 	if ok {
@@ -93,8 +98,8 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 				return errors.WrapError(ctx, err)
 			}
 			grpCtx := ctx.SubContext("ServiceGroup:" + groupname)
-			middleware, _ := conf.GetStringArray(config.CONF_MIDDLEWARE)
-			err = svcMgr.createServices(grpCtx, svcgrpConfig, middleware)
+			//middleware, _ := conf.GetStringArray(config.CONF_MIDDLEWARE)
+			err = svcMgr.createServices(grpCtx, svcgrpConfig)
 			if err != nil {
 				return err
 			}
@@ -116,17 +121,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 			svcCtx := ctx.SubContext("Create Service:" + svcAlias)
 
-			svcFactory, ok := serviceConfig.GetString(CONF_FACTORY)
-			if !ok {
-				svcFactory = common.CONF_DEFAULTFACTORY_NAME
-			}
-
-			svcMethod, ok := serviceConfig.GetString(CONF_SERVICEMETHOD)
-			if !ok {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Service", svcAlias, "Conf", CONF_SERVICEMETHOD)
-			}
-
-			svc, err := svcMgr.createService(svcCtx, svcAlias, svcFactory, svcMethod, serviceConfig, grpMw)
+			err = svcMgr.createService(svcCtx, serviceConfig, svcAlias)
 			if err != nil {
 				return errors.WrapError(svcCtx, err)
 			}
@@ -137,11 +132,6 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 			} else {
 			services[svcAlias] = svc
 			}*/
-			_, ok = svcMgr.servicesStore[svcAlias]
-			if ok {
-				return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
-			}
-			svcMgr.servicesStore[svcAlias] = svc
 			log.Logger.Debug(ctx, "Registered service", "service name", svcAlias)
 		}
 	}
@@ -149,11 +139,22 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 }
 
 //create service
-func (svcMgr *serviceManager) createService(ctx core.ServerContext, serviceAlias string, factoryname string, serviceMethod string, conf config.Config, grpMw []string) (*service, error) {
+func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+
+	factoryname, ok := conf.GetString(CONF_FACTORY)
+	if !ok {
+		factoryname = common.CONF_DEFAULTFACTORY_NAME
+	}
+
+	serviceMethod, ok := conf.GetString(CONF_SERVICEMETHOD)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Service", serviceAlias, "Conf", CONF_SERVICEMETHOD)
+	}
+
 	//get the factory from factory manager
 	facElem, err := svcMgr.factoryManager.GetFactory(ctx, factoryname)
 	if err != nil {
-		return nil, errors.WrapError(ctx, err)
+		return errors.WrapError(ctx, err)
 	}
 
 	//get the factory from proxy
@@ -166,13 +167,13 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, serviceAlias
 	svcStruct := &service{Context: svcElemCtx.(*common.Context), name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem}
 
 	parentMw, ok := facElem.GetStringArray(config.CONF_MIDDLEWARE)
-	if ok {
+	/*if ok {
 		if grpMw != nil {
 			parentMw = append(parentMw, grpMw...)
 		}
 	} else {
 		parentMw = grpMw
-	}
+	}*/
 	middleware, ok := conf.GetStringArray(config.CONF_MIDDLEWARE)
 	if ok {
 		if parentMw != nil {
@@ -194,13 +195,20 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, serviceAlias
 	log.Logger.Trace(ctx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
 	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
-		return nil, errors.WrapError(svcCreationCtx, err)
+		return errors.WrapError(svcCreationCtx, err)
 	}
 	if svc == nil {
-		return nil, errors.ThrowError(svcCreationCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
+		return errors.ThrowError(svcCreationCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
 	}
 	svcStruct.service = svc
-	return svcStruct, nil
+
+	_, ok = svcMgr.servicesStore[serviceAlias]
+	if ok {
+		return errors.ThrowError(svcCreationCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
+	}
+	svcMgr.servicesStore[serviceAlias] = svcStruct
+
+	return nil
 }
 
 //initialize services within an application
