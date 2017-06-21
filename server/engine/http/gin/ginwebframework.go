@@ -1,7 +1,6 @@
 package gin
 
 import (
-	"laatoo/sdk/log"
 	"laatoo/server/engine/http/net"
 	"net/http"
 
@@ -19,7 +18,7 @@ func (wf *GinWebFramework) Initialize() error {
 	router := gin.New()
 	// Middleware
 	//loggerconfig := mw.LoggerConfig{Output: log.Logger, Format: "{\"time\":\"${time_rfc3339}\", \"remote_ip\":\"${remote_ip}\", \"method\":\"${method}\", \"uri\":\"${uri}\", \"status\":\"${status}\", \"took\":\"${response_time}\", \"sent\":\"${response_size} bytes\"}\n"}
-	router.Use(gin.LoggerWithWriter(log.Logger))
+	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	wf.rootRouter = router
 	return nil

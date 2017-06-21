@@ -80,7 +80,7 @@ func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf confi
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Error(ctx, "TestOnBorrow", "Error", err)
+				log.Error(ctx, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},

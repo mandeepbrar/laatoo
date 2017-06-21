@@ -60,7 +60,7 @@ func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminro
 		supportedRealms = []string{realmName}
 	}
 	lsh.realms = make(map[string]*realmObj, len(supportedRealms))
-	log.Logger.Info(ctx, "Supported Realms", "realms", supportedRealms)
+	log.Info(ctx, "Supported Realms", "realms", supportedRealms)
 	for _, supportedRealm := range supportedRealms {
 		lsh.realms[supportedRealm] = &realmObj{name: supportedRealm, rolesMap: make(map[string]auth.Role, 15),
 			rolePermissions: make(map[string]bool, 100)}
@@ -117,7 +117,7 @@ func (lsh *localSecurityHandler) Start(ctx core.ServerContext) error {
 		}
 	}
 	lsh.localRealm = lsh.realms[lsh.realmName]
-	log.Logger.Info(ctx, "Started local security handler with realms", "realms", lsh.supportedRealms)
+	log.Info(ctx, "Started local security handler with realms", "realms", lsh.supportedRealms)
 	return nil
 }
 
@@ -208,9 +208,9 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 					adminExists = true
 				}
 			}
-			log.Logger.Trace(ctx, "Loaded role", "rolename", val)
+			log.Trace(ctx, "Loaded role", "rolename", val)
 		}
-		log.Logger.Info(ctx, "Loaded realm", "realm", realmName)
+		log.Info(ctx, "Loaded realm", "realm", realmName)
 	}
 	return lsh.createInitRoles(ctx, anonExists, adminExists, lsh.realmName)
 }

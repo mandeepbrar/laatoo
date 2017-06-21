@@ -59,7 +59,7 @@ func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 	ind, err := bleve.Open(bs.indexName)
 	if err != nil {
 		ind, err = bleve.New(bs.indexName, bleve.NewIndexMapping())
-		log.Logger.Info(ctx, "Creating index ***********", "index", bs.indexName, "Err", err)
+		log.Info(ctx, "Creating index ***********", "index", bs.indexName, "Err", err)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -70,14 +70,14 @@ func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 
 func (bs *BleveSearchService) Index(ctx core.RequestContext, s searchsdk.Searchable) error {
 	ctx = ctx.SubContext("BleveSearch_Index")
-	log.Logger.Trace(ctx, "Writing doc ")
+	log.Trace(ctx, "Writing doc ")
 
 	id := fmt.Sprintf("%s_%s", s.GetType(), s.GetId())
 	err := bs.index.Index(id, s)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Written to index ", "index", bs.index.Name(), "id", id)
+	log.Trace(ctx, "Written to index ", "index", bs.index.Name(), "id", id)
 	return nil
 }
 
@@ -96,7 +96,7 @@ func (bs *BleveSearchService) UpdateIndex(ctx core.RequestContext, id string, st
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		log.Logger.Trace(ctx, "Updated to index ", "index", bs.index.Name())
+		log.Trace(ctx, "Updated to index ", "index", bs.index.Name())
 	}
 	return nil
 }
@@ -112,7 +112,7 @@ func (bs *BleveSearchService) Search(ctx core.RequestContext, query string) ([]s
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "search results ")
+	log.Trace(ctx, "search results ")
 	res := make([]searchsdk.Searchable, bs.numOfResults)
 	i := 0
 	for _, val := range searchResults.Hits {

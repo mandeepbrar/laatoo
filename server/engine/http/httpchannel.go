@@ -81,7 +81,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 
 	usecors, _ := conf.GetBool(constants.CONF_HTTPENGINE_USECORS)
 
-	log.Logger.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors, " skipauth", skipAuth)
+	log.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors, " skipauth", skipAuth)
 	if usecors {
 		allowedOrigins, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
@@ -116,7 +116,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 				return nil
 			})
 			//retRouter.UseMiddleware(ctx, corsMw.HandlerFunc)
-			log.Logger.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
+			log.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
 		}
 	}
 
@@ -174,7 +174,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 				return nil
 			}
 		} else {
-			log.Logger.Trace(reqctx, "Auth skipped")
+			log.Trace(reqctx, "Auth skipped")
 		}
 		return handler(reqctx)
 	}
@@ -184,7 +184,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		req := pathCtx.GetRequest()
 		corectx.SetGaeReq(req)
 		corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
-		log.Logger.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
+		log.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
 		defer corectx.CompleteRequest()
 		go func(reqctx core.RequestContext) {
 			e := processRequest(reqctx)
@@ -192,34 +192,34 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		}(corectx)
 		err := <-result
 		if err != nil {
-			log.Logger.Info(corectx, "Got error in the request", "error", err)
+			log.Info(corectx, "Got error in the request", "error", err)
 		}
 		return err
 	}
 }
 
 func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
-	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
+	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
 	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler))
 }
 
 func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
-	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
+	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
 	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler))
 }
 
 func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
-	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
+	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
 	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler))
 }
 
 func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
-	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
+	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
 	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler))
 }
 
 func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
-	log.Logger.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
+	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
 	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler))
 }
 

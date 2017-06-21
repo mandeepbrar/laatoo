@@ -16,6 +16,7 @@ const (
 	CONF_SVCPARAMS          = "serviceparams"
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
+	CONF_LOGGING            = "logging"
 	CONF_FILTERS            = "filters"
 	CONF_APPLICATIONS       = "applications"
 	CONF_APPLICATION_ENGINE = "engine"

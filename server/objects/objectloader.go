@@ -25,7 +25,7 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 	objectsBaseFolder, ok := conf.GetString(constants.CONF_OBJECTS_BASE_DIR)
 	if ok {
 		ctx.Set(constants.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
-		log.Logger.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
+		log.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
 	}
 
 	err := objLoader.loadPlugins(ctx, conf)
@@ -73,13 +73,13 @@ func (objLoader *objectLoader) Start(ctx core.ServerContext) error {
 }
 
 func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder string) error {
-	log.Logger.Trace(ctx, "Loading plugins", "plugins folder", folder)
+	log.Trace(ctx, "Loading plugins", "plugins folder", folder)
 	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
 		}
 		if !info.IsDir() {
-			log.Logger.Trace(ctx, "Loading plugin", "path", path)
+			log.Trace(ctx, "Loading plugin", "path", path)
 			p, err := plugin.Open(path)
 			if err != nil {
 				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
@@ -108,16 +108,16 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 						} else if comp.Object != nil {
 							Register(comp.Name, comp.Object)
 						} else {
-							log.Logger.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
+							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
 						}
 					} else {
-						log.Logger.Info(ctx, "No component registered for empty name", "Path", path)
+						log.Info(ctx, "No component registered for empty name", "Path", path)
 					}
 				}
-				log.Logger.Info(ctx, "Loaded plugin", "Path", path)
-				log.Logger.Trace(ctx, "Objects in the plugin", "Components", components)
+				log.Info(ctx, "Loaded plugin", "Path", path)
+				log.Trace(ctx, "Objects in the plugin", "Components", components)
 			} else {
-				log.Logger.Info(ctx, "No objects in the plugin", "Path", path)
+				log.Info(ctx, "No objects in the plugin", "Path", path)
 				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "No objects found")
 			}
 		}
@@ -133,7 +133,7 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 			return errors.WrapError(ctx, err)
 		}
 	} else {
-		log.Logger.Trace(ctx, "Folder does not exist", "Folder", folder)
+		log.Trace(ctx, "Folder does not exist", "Folder", folder)
 	}
 	return nil
 }
@@ -184,14 +184,14 @@ func (objLoader *objectLoader) registerObject(ctx core.Context, objectName strin
 func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectName string, factory core.ObjectFactory) {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
-		log.Logger.Info(ctx, "Registering object factory ", "Object Name", objectName)
+		log.Info(ctx, "Registering object factory ", "Object Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
 	}
 }
 func (objLoader *objectLoader) registerInvokableMethod(ctx core.Context, methodName string, method core.ServiceFunc) {
 	_, ok := objLoader.invokableMethodsRegister[methodName]
 	if !ok {
-		log.Logger.Debug(ctx, "Registering method ", "Method Name", methodName)
+		log.Debug(ctx, "Registering method ", "Method Name", methodName)
 		objLoader.invokableMethodsRegister[methodName] = method
 	}
 }

@@ -37,7 +37,7 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config
 	}
 	ls.authHeader = authHeader
 
-	log.Logger.Debug(ctx, "Token validation service initialized")
+	log.Debug(ctx, "Token validation service initialized")
 	return nil
 }
 
@@ -45,16 +45,16 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config
 func (ls *TokenValidationService) Invoke(ctx core.RequestContext) error {
 	token, err := ls.sechandler.AuthenticateRequest(ctx, true)
 	usr := ctx.GetUser()
-	log.Logger.Error(ctx, "checked token", "err", err, "usr", usr)
+	log.Error(ctx, "checked token", "err", err, "usr", usr)
 	if err == nil && usr != nil {
-		log.Logger.Error(ctx, "checked token", "usr", usr.GetId())
+		log.Error(ctx, "checked token", "usr", usr.GetId())
 		if usr.GetId() != "Anonymous" {
 			resp := core.NewServiceResponse(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token})
 			ctx.SetResponse(resp)
 			return nil
 		}
 	}
-	log.Logger.Error(ctx, "checked token - sending unauthorized response")
+	log.Error(ctx, "checked token - sending unauthorized response")
 	ctx.SetResponse(core.StatusUnauthorizedResponse)
 	return nil
 }

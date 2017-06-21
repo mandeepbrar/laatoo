@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
+	"laatoo/sdk/server"
 	"laatoo/server/common"
 )
 
@@ -31,6 +32,8 @@ type requestContext struct {
 	serverContext *serverContext
 	//if the request is a subrequest, times are not reported and variables are not cleared
 	subRequest bool
+
+	logger server.Logger
 }
 
 // context of the engine that received a request
@@ -49,7 +52,7 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 //subcontext of the request
 //retains id and tracks flow along with variables
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
-	log.Logger.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
+	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: true}
@@ -58,7 +61,7 @@ func (ctx *requestContext) SubContext(name string) core.RequestContext {
 //new context from the request if a part of the request needs to be tracked separately
 //as a subflow.
 func (ctx *requestContext) NewContext(name string) core.RequestContext {
-	log.Logger.Info(ctx, "Entering new request context ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
+	log.Info(ctx, "Entering new request context ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: false}
@@ -98,7 +101,7 @@ func (ctx *requestContext) PushTask(queue string, task interface{}) error {
 	if ctx.serverContext.taskManager != nil {
 		return ctx.serverContext.taskManager.PushTask(ctx, queue, task)
 	}
-	log.Logger.Error(ctx, "No task manager", "queue", queue)
+	log.Error(ctx, "No task manager", "queue", queue)
 	return nil
 }
 
@@ -192,17 +195,17 @@ func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
 		go func(ctx *requestContext, topic string, message interface{}) {
 			err := ctx.serverContext.msgManager.Publish(ctx, topic, message)
 			if err != nil {
-				log.Logger.Error(ctx, err.Error())
+				log.Error(ctx, err.Error())
 			}
 		}(ctx, topic, message)
 	}
-	log.Logger.Error(ctx, "Publishing message to non existent manager")
+	log.Error(ctx, "Publishing message to non existent manager")
 	return
 }
 
 //completes a request
 func (ctx *requestContext) CompleteRequest() {
-	log.Logger.Info(ctx, "Completed Request ", "Time taken", ctx.GetElapsedTime())
+	log.Info(ctx, "Completed Request ", "Time taken", ctx.GetElapsedTime())
 	//ctx.parentContext = nil
 	ctx.engineContext = nil
 	//ctx.ParamsStore = nil
@@ -211,4 +214,28 @@ func (ctx *requestContext) CompleteRequest() {
 	ctx.responseData = nil
 	ctx.request = nil
 	ctx.serverContext = nil
+}
+
+func (ctx *requestContext) LogTrace(msg string, args ...interface{}) {
+	ctx.logger.Trace(ctx, msg, args...)
+}
+
+func (ctx *requestContext) LogDebug(msg string, args ...interface{}) {
+	ctx.logger.Debug(ctx, msg, args...)
+}
+
+func (ctx *requestContext) LogInfo(msg string, args ...interface{}) {
+	ctx.logger.Info(ctx, msg, args...)
+}
+
+func (ctx *requestContext) LogWarn(msg string, args ...interface{}) {
+	ctx.logger.Warn(ctx, msg, args...)
+}
+
+func (ctx *requestContext) LogError(msg string, args ...interface{}) {
+	ctx.logger.Error(ctx, msg, args...)
+}
+
+func (ctx *requestContext) LogFatal(msg string, args ...interface{}) {
+	ctx.logger.Fatal(ctx, msg, args...)
 }

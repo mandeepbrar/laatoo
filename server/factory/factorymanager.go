@@ -50,7 +50,7 @@ func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 	facmgrStartCtx := facMgr.createContext(ctx, "Start factory manager")
 	for facname, facStruct := range facMgr.serviceFactoryStore {
 		if facStruct.owner == facMgr {
-			log.Logger.Debug(ctx, "Starting factory", "factory name", facname)
+			log.Debug(ctx, "Starting factory", "factory name", facname)
 			facStartCtx := facmgrStartCtx.NewContextWithElements("Start"+facname, core.ContextMap{core.ServerElementServiceFactory: facStruct}, core.ServerElementServiceFactory)
 			err := facStruct.factory.Start(facStartCtx)
 			if err != nil {
@@ -67,7 +67,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	if ok {
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
-			log.Logger.Trace(ctx, "Process Service Factory group", "groupname", groupname)
+			log.Trace(ctx, "Process Service Factory group", "groupname", groupname)
 			facgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
 			if err != nil {
 				return errors.WrapError(ctx, err)
@@ -86,7 +86,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	}
 	factories := factoriesConfig.AllConfigurations()
 	for _, factoryName := range factories {
-		log.Logger.Trace(ctx, "Process Factory ", "Factory name", factoryName)
+		log.Trace(ctx, "Process Factory ", "Factory name", factoryName)
 		factoryConfig, err, _ := common.ConfigFileAdapter(ctx, factoriesConfig, factoryName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -162,7 +162,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error {
 	for facname, facStruct := range facMgr.serviceFactoryStore {
 		if facStruct.owner == facMgr {
-			log.Logger.Debug(ctx, "Initializing factory", "factory name", facname)
+			log.Debug(ctx, "Initializing factory", "factory name", facname)
 			facInitializeCtx := ctx.NewContextWithElements("Initialize "+facname, core.ContextMap{core.ServerElementServiceFactory: facStruct}, core.ServerElementServiceFactory)
 			err := facStruct.factory.Initialize(facInitializeCtx, facStruct.conf)
 			if err != nil {

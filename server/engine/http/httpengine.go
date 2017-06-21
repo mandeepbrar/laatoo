@@ -73,7 +73,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		}
 		eng.path = rootPath
 	}
-	log.Logger.Trace(initCtx, "Initializing framework")
+	log.Trace(initCtx, "Initializing framework")
 	eng.framework.Initialize()
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
@@ -87,14 +87,14 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	}*/
 	/*loaderCtx := ctx.GetElement(core.ServerElementLoader)
 	return facMgr.createServiceFactories(ctx, conf, loaderCtx.(server.ObjectLoader))*/
-	log.Logger.Debug(initCtx, "Initialized engine")
+	log.Debug(initCtx, "Initialized engine")
 	return nil
 }
 
 func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	startCtx := eng.createContext(ctx, "Start Engine: "+eng.name)
 	if startCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-		log.Logger.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
+		log.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
 		if eng.ssl {
 			//start listening
 			err := eng.framework.StartSSLServer(eng.address, eng.sslcert, eng.sslkey)
@@ -114,7 +114,7 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	if startCtx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
 		common.GaeHandle(eng.path, eng.framework.GetRootHandler())
 	}
-	log.Logger.Info(startCtx, "Started engine*********************************")
+	log.Info(startCtx, "Started engine*********************************")
 	return nil
 }
 

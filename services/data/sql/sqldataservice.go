@@ -145,7 +145,7 @@ func (svc *sqlDataService) Supports(feature data.Feature) bool {
 
 func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
-	log.Logger.Trace(ctx, "Saving object", "Object", svc.Object)
+	log.Trace(ctx, "Saving object", "Object", svc.Object)
 	id := item.GetId()
 	if id == "" {
 		item.Init(ctx, nil)
@@ -222,13 +222,13 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Saved multiple objects")
+	log.Trace(ctx, "Saved multiple objects")
 	return nil
 }
 
 func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
+	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
@@ -236,7 +236,7 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 			return err
 		}
 		err = item.PreSave(ctx)
-		log.Logger.Trace(ctx, "Putting object", "err", err)
+		log.Trace(ctx, "Putting object", "err", err)
 		if err != nil {
 			return err
 		}
@@ -344,7 +344,7 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if svc.auditable {
 		data.Audit(ctx, newVals)
 	}
-	log.Logger.Error(ctx, "Field details", "newVals", newVals)
+	log.Error(ctx, "Field details", "newVals", newVals)
 	err = query.Updates(newVals).Error
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)

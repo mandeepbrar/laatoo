@@ -47,7 +47,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 		return nil, err
 	}
 	mongoSvc.deleteRefOpers = deleteOps
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
+	log.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
 	mf.connection = sess
 	mf.database = database
 	return nil

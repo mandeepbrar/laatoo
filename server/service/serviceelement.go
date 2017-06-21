@@ -47,7 +47,7 @@ func (svc *service) start(ctx core.ServerContext) error {
 	funcs = append(funcs, svc.service.Invoke)
 	svc.funcs = funcs
 	svc.paramsConf = mergedConf
-	log.Logger.Trace(ctx, "params config ", "service name", svc.GetName(), "params conf", svc.paramsConf)
+	log.Trace(ctx, "params config ", "service name", svc.GetName(), "params conf", svc.paramsConf)
 	return svc.service.Start(ctx)
 }
 
@@ -63,11 +63,11 @@ func (svc *service) Invoke(ctx core.RequestContext) error {
 	for _, function := range svc.funcs {
 		err := function(ctx)
 		if err != nil {
-			log.Logger.Trace(ctx, "got error ", "service name", svc.GetName())
+			log.Trace(ctx, "got error ", "service name", svc.GetName())
 			return errors.WrapError(ctx, err)
 		}
 		if ctx.GetResponse() != nil {
-			log.Logger.Trace(ctx, "Got response ", "service name", svc.GetName())
+			log.Trace(ctx, "Got response ", "service name", svc.GetName())
 			break
 		}
 	}

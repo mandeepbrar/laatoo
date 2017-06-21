@@ -40,7 +40,7 @@ func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.
 	cmap[core.ServerElementServer] = svr.proxy
 	svrContext.setElements(cmap, core.ServerElementServer)
 
-	log.Logger.Info(rootctx, "Created server")
+	log.Info(svrContext, "Created server")
 
 	return svr, svrElem, svrContext
 }
@@ -57,13 +57,13 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 		msgHandle, msgElem := newMessagingManager(svrMsgCtx, "Server", svr.proxy, msgSvcName)
 		svr.messagingManager = msgElem
 		svr.messagingManagerHandle = msgHandle
-		log.Logger.Trace(initctx, "Created server messaging manager")
+		log.Trace(initctx, "Created server messaging manager")
 	}*/
 
 	if err := svr.initialize(initctx, conf); err != nil {
 		return errors.WrapError(initctx, err)
 	}
-	log.Logger.Trace(initctx, "Initialized server")
+	log.Trace(initctx, "Initialized server")
 
 	cmap := svr.contextMap(svrCtx)
 	cmap[core.ServerElementServer] = svr.proxy
@@ -75,12 +75,12 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 func (svr *serverObject) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Starting Server").(*serverContext)
 
-	log.Logger.Trace(startCtx, "Starting server")
+	log.Trace(startCtx, "Starting server")
 	if err := svr.start(startCtx); err != nil {
 		return errors.WrapError(startCtx, err)
 	}
 
-	log.Logger.Info(ctx, "Started server")
+	log.Info(ctx, "Started server")
 	return nil
 }
 
@@ -88,24 +88,24 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	envCreate := ctx.SubContext("Creating Environment: " + name).(*serverContext)
 	envCreate.Set(constants.CONF_BASE_DIR, baseDir)
 
-	log.Logger.Trace(envCreate, "Creating Environment")
+	log.Trace(envCreate, "Creating Environment")
 	filterConf, _ := envConf.GetSubConfig(constants.CONF_FILTERS)
 
 	envHandle, envElem := newEnvironment(envCreate, name, svr, filterConf)
-	log.Logger.Debug(envCreate, "Created environment")
+	log.Debug(envCreate, "Created environment")
 
 	err := envHandle.Initialize(envCreate, envConf)
 	if err != nil {
 		return errors.WrapError(envCreate, err)
 	}
-	log.Logger.Debug(envCreate, "Initialized environment")
+	log.Debug(envCreate, "Initialized environment")
 
 	err = envHandle.Start(envCreate)
 	if err != nil {
 		return errors.WrapError(envCreate, err)
 	}
 
-	log.Logger.Debug(envCreate, "Registered environment")
+	log.Debug(envCreate, "Registered environment")
 	svr.environments[name] = envElem
 	return nil
 }

@@ -54,7 +54,7 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 	if !ok {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
-	log.Logger.Debug(ctx, "User storer set for registration")
+	log.Debug(ctx, "User storer set for registration")
 	//get and set the data service for accessing users
 	ls.UserDataService = userDataService
 	return nil
@@ -73,7 +73,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	realm := usr.GetRealm()
 
 	username := usr.GetUserName()
-	log.Logger.Trace(ctx, "getting user from service", "username", username)
+	log.Trace(ctx, "getting user from service", "username", username)
 
 	argsMap := map[string]interface{}{usr.GetUsernameField(): username, config.REALM: realm}
 
@@ -85,16 +85,16 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
 	usrs, _, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
-		log.Logger.Trace(ctx, "Tested user not found", "Err", err)
+		log.Trace(ctx, "Tested user not found", "Err", err)
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 		return nil
 	}
 
 	//compare the user requested with the user from database
 	existingUser := usrs[0].(auth.LocalAuthUser)
-	log.Logger.Trace(ctx, "got user********", "existingUser", existingUser)
+	log.Trace(ctx, "got user********", "existingUser", existingUser)
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
-	log.Logger.Trace(ctx, "compared user********", "err", err)
+	log.Trace(ctx, "compared user********", "err", err)
 	existingUser.ClearPassword()
 	if err != nil {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)

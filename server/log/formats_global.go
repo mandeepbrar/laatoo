@@ -10,13 +10,13 @@ import (
 )
 
 func init() {
-	logFormats["json"] = printJSON
-	logFormats["jsonmax"] = printJSONMax
-	logFormats["happy"] = printHappy
-	logFormats["happymax"] = printHappyMax
+	logFormats[CONF_FMT_JSON] = printJSON
+	logFormats[CONF_FMT_JSONMAX] = printJSONMax
+	logFormats[CONF_FMT_HAPPY] = printHappy
+	logFormats[CONF_FMT_HAPPYMAX] = printHappyMax
 }
 
-func printJSON(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printJSON(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -37,7 +37,7 @@ func printJSON(ctx core.Context, app string, strlevel string, wh SimpleWriteHand
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printJSONMax(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printJSONMax(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -59,7 +59,7 @@ func printJSONMax(ctx core.Context, app string, strlevel string, wh SimpleWriteH
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappy(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printHappy(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -81,7 +81,7 @@ func printHappy(ctx core.Context, app string, strlevel string, wh SimpleWriteHan
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappyMax(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printHappyMax(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}

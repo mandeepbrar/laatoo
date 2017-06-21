@@ -103,14 +103,14 @@ func (es *entityCacheService) Invoke(ctx core.RequestContext) error {
 	//	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(rs.bucket, body)
-	log.Logger.Trace(ctx, "Looking up key", "key", cacheKey)
+	log.Trace(ctx, "Looking up key", "key", cacheKey)
 	prs := ctx.GetFromCache(cacheKey, &retResponse)
 	if prs {
-		log.Logger.Trace(ctx, "Cache Hit ")
+		log.Trace(ctx, "Cache Hit ")
 		ctx.SetResponse(&retResponse)
 		return nil
 	}
-	log.Logger.Trace(ctx, "Cache Miss ")
+	log.Trace(ctx, "Cache Miss ")
 	return nil
 }
 */

@@ -17,19 +17,19 @@ type LogrusLogger struct {
 }
 
 func (log *LogrusLogger) Trace(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Debug([]interface{}{reqContext.GetName(), msg, args})
+	log.Debug([]interface{}{reqContext.GetName(), msg, args})
 }
 func (log *LogrusLogger) Debug(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Debug([]interface{}{reqContext.GetName(), msg, args})
+	log.Debug([]interface{}{reqContext.GetName(), msg, args})
 }
 func (log *LogrusLogger) Info(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Info([]interface{}{reqContext.GetName(), msg, args})
+	log.Info([]interface{}{reqContext.GetName(), msg, args})
 }
 func (log *LogrusLogger) Warn(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Warn([]interface{}{reqContext.GetName(), msg, args})
+	log.Warn([]interface{}{reqContext.GetName(), msg, args})
 }
 func (log *LogrusLogger) Error(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Error([]interface{}{reqContext.GetName(), msg, args})
+	log.Error([]interface{}{reqContext.GetName(), msg, args})
 }
 func (log *LogrusLogger) Fatal(reqContext core.Context, msg string, args ...interface{}) {
 	log.logger.Fatal([]interface{}{reqContext.GetName(), msg, args})

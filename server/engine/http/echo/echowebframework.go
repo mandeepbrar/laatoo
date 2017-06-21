@@ -1,7 +1,6 @@
 package echo
 
 import (
-	"laatoo/sdk/log"
 	"laatoo/server/engine/http/net"
 	"net/http"
 
@@ -18,7 +17,7 @@ func (wf *EchoWebFramework) Initialize() error {
 	//initialize router
 	router := echo.New()
 	// Middleware
-	loggerconfig := mw.LoggerConfig{Output: log.Logger, Format: "{\"time\":\"${time_rfc3339}\", \"remote_ip\":\"${remote_ip}\", \"method\":\"${method}\", \"uri\":\"${uri}\", \"status\":\"${status}\", \"took\":\"${response_time}\", \"sent\":\"${response_size} bytes\"}\n"}
+	loggerconfig := mw.LoggerConfig{Format: "{\"time\":\"${time_rfc3339}\", \"remote_ip\":\"${remote_ip}\", \"method\":\"${method}\", \"uri\":\"${uri}\", \"status\":\"${status}\", \"took\":\"${response_time}\", \"sent\":\"${response_size} bytes\"}\n"}
 	router.Use(mw.LoggerWithConfig(loggerconfig))
 	router.Use(mw.Recover())
 	router.Use(mw.Gzip())

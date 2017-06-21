@@ -41,7 +41,7 @@ func startListening(ctx core.ServerContext, conf config.Config) error {
 		return err
 	}
 	defer l.Close()
-	log.Logger.Info(ctx, "Listening...")
+	log.Info(ctx, "Listening...")
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()

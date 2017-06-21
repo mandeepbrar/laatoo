@@ -49,10 +49,10 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	for _, fil := range files {
 		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
-		log.Logger.Debug(ctx, "writing file", "name", fileName, "MimeType", fil.MimeType)
+		log.Debug(ctx, "writing file", "name", fileName, "MimeType", fil.MimeType)
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
-			log.Logger.Debug(ctx, "Error while invoking upload", "err", err)
+			log.Debug(ctx, "Error while invoking upload", "err", err)
 			return errors.WrapError(ctx, err)
 		}
 		urls[i] = url
@@ -62,12 +62,12 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
-	log.Logger.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+	log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
 
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
-		log.Logger.Debug(ctx, "Error while creating file", "err", err)
+		log.Debug(ctx, "Error while creating file", "err", err)
 		return nil, errors.WrapError(ctx, err)
 	}
 
@@ -83,7 +83,7 @@ func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bo
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
-		log.Logger.Debug(ctx, "Error while creating file", "err", err)
+		log.Debug(ctx, "Error while creating file", "err", err)
 		return false
 	}
 	defer client.Close()
@@ -98,7 +98,7 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
-		log.Logger.Debug(ctx, "Error while opening", "err", err)
+		log.Debug(ctx, "Error while opening", "err", err)
 		return nil, errors.WrapError(ctx, err)
 	}
 	return client.Bucket(svc.bucket).Object(fileName).NewReader(appengineCtx)
@@ -117,11 +117,11 @@ func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName strin
 }
 
 func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
-	log.Logger.Debug(ctx, "Saving file", "name", fileName)
+	log.Debug(ctx, "Saving file", "name", fileName)
 	// Destination file
 	dst, err := svc.CreateFile(ctx, fileName, contentType)
 	if err != nil {
-		log.Logger.Debug(ctx, "Error while opening", "err", err)
+		log.Debug(ctx, "Error while opening", "err", err)
 		return "", errors.WrapError(ctx, err)
 	}
 	defer dst.Close()
@@ -129,12 +129,12 @@ func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadClo
 	numbytes, err := io.Copy(dst, inpStr)
 
 	if err != nil {
-		log.Logger.Debug(ctx, "Error while saving", "err", err)
+		log.Debug(ctx, "Error while saving", "err", err)
 		return "", errors.WrapError(ctx, err)
 	}
 	dst.Close()
 	inpStr.Close()
-	log.Logger.Debug(ctx, "Copying complete", "Filename", fileName, "bucket", svc.bucket, "bytes", numbytes)
+	log.Debug(ctx, "Copying complete", "Filename", fileName, "bucket", svc.bucket, "bytes", numbytes)
 	return fileName, nil
 }
 
@@ -171,7 +171,7 @@ type GoogleStorageService struct {
 
 func (svc *GoogleStorageService) copyFile(ctx core.Context, srcpath string, writer io.Writer) error {
 	filepath := svc.parsePath(srcpath)
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Copying file", filepath)
+	log.Debug(ctx, LOGGING_CONTEXT, "Copying file", filepath)
 	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
 	client, err := storage.NewClient(cloudCtx)
 	if err != nil {
@@ -189,7 +189,7 @@ func (svc *GoogleStorageService) processFile(ctx core.Context) error {
 	req := ctx.Request()
 	err := req.ParseMultipartForm(16 << 20) // Max memory 16 MiB
 	if err != nil {
-		log.Logger.Debug(ctx, LOGGING_CONTEXT, "Error while parsing multipart form", "Error", err)
+		log.Debug(ctx, LOGGING_CONTEXT, "Error while parsing multipart form", "Error", err)
 		return err
 	}
 	cloudCtx := ctx.GetCloudContext(storage.ScopeFullControl)
@@ -200,7 +200,7 @@ func (svc *GoogleStorageService) processFile(ctx core.Context) error {
 
 	// Read files
 	files := req.MultipartForm.File["file"]
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Parsed multipart form", "Number of files", len(files))
+	log.Debug(ctx, LOGGING_CONTEXT, "Parsed multipart form", "Number of files", len(files))
 
 	url := make([]string, len(files))
 	for index, f := range files {
@@ -217,7 +217,7 @@ func (svc *GoogleStorageService) processFile(ctx core.Context) error {
 
 		dst.ContentType = f.Header.Get("Content-Type")
 		dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Copying file", "Name", fileName)
+		log.Trace(ctx, LOGGING_CONTEXT, "Copying file", "Name", fileName)
 
 		if _, err = io.Copy(dst, src); err != nil {
 			return err
@@ -227,57 +227,57 @@ func (svc *GoogleStorageService) processFile(ctx core.Context) error {
 			return err
 		}
 		returl := fmt.Sprintf("http://%s%s", svc.prefix, fileName)
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "updated object:", "Object", returl)
+		log.Trace(ctx, LOGGING_CONTEXT, "updated object:", "Object", returl)
 		url[index] = returl
 	}
 	return ctx.JSON(http.StatusOK, url)
 }
 
 func (svc *GoogleStorageService) transformFile(ctx core.Context, srcpath string, destfolder string, transform utils.FileTransform) (string, error) {
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "Transforming file", "srcpath", srcpath, "destfolder", destfolder)
+	log.Trace(ctx, LOGGING_CONTEXT, "Transforming file", "srcpath", srcpath, "destfolder", destfolder)
 	appEngineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appEngineCtx)
 	if err != nil {
 		return "", err
 	}
 	filepath := svc.parsePath(srcpath)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "filepath", "filepath", filepath)
+	log.Trace(ctx, LOGGING_CONTEXT, "filepath", "filepath", filepath)
 	destfile := fmt.Sprintf("%s/%s", destfolder, filepath)
 	desturl := fmt.Sprintf("http://%s%s/%s", svc.prefix, destfolder, filepath)
 
 	objattrs, err := client.Bucket(svc.bucket).Object(destfile).Attrs(appEngineCtx)
 	if objattrs != nil || err == nil {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "returning dest url ", "desturl", desturl)
+		log.Trace(ctx, LOGGING_CONTEXT, "returning dest url ", "desturl", desturl)
 		return desturl, nil
 	}
 
 	objattrs, err = client.Bucket(svc.bucket).Object(filepath).Attrs(appEngineCtx)
 	if err != nil {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "could not stat object... ", "err", err, "filepath", filepath)
+		log.Trace(ctx, LOGGING_CONTEXT, "could not stat object... ", "err", err, "filepath", filepath)
 		return "", err
 	}
 
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "file does not exist... ", "destfile", destfile, "filepath", filepath)
+	log.Trace(ctx, LOGGING_CONTEXT, "file does not exist... ", "destfile", destfile, "filepath", filepath)
 
 	reader, err := client.Bucket(svc.bucket).Object(filepath).NewReader(appEngineCtx)
 	defer reader.Close()
 	if err != nil {
-		log.Logger.Info(ctx, LOGGING_CONTEXT, "error opening source file", "filepath", filepath, "err", err)
+		log.Info(ctx, LOGGING_CONTEXT, "error opening source file", "filepath", filepath, "err", err)
 		return "", err
 	}
 
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "filepath", filepath)
+	log.Trace(ctx, LOGGING_CONTEXT, "opened src file", "destfile", destfile, "filepath", filepath)
 
 	writer := client.Bucket(svc.bucket).Object(destfile).NewWriter(appEngineCtx)
 	defer writer.Close()
 	writer.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
 	writer.ContentType = objattrs.ContentType
 
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "transform", "destfile", destfile, "filepath", filepath)
+	log.Trace(ctx, LOGGING_CONTEXT, "transform", "destfile", destfile, "filepath", filepath)
 
 	err = transform(reader, writer)
 	if err != nil {
-		log.Logger.Info(ctx, LOGGING_CONTEXT, "Error in transformation", "destfile", destfile, "err", err)
+		log.Info(ctx, LOGGING_CONTEXT, "Error in transformation", "destfile", destfile, "err", err)
 		return "", err
 	}
 	return desturl, nil

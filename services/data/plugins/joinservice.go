@@ -63,9 +63,9 @@ func (svc *joinService) Start(ctx core.ServerContext) error {
 	if svc.ops == nil {
 		return nil
 	}
-	log.Logger.Error(ctx, "starting", "ops", svc.ops)
+	log.Error(ctx, "starting", "ops", svc.ops)
 	for _, op := range svc.ops {
-		log.Logger.Error(ctx, "starting", "op", op)
+		log.Error(ctx, "starting", "op", op)
 		s, err := ctx.GetService(op.targetSvcName)
 		if err != nil {
 			return errors.BadConf(ctx, CONF_TARG_SVC)
@@ -164,7 +164,7 @@ func (svc *joinService) fillJoin(ctx core.RequestContext, ids []string, inputDat
 			id := stor.GetId()
 			joinedItem, ok := hash[id]
 			if ok {
-				log.Logger.Info(ctx, "Joining item", "item", joinedItem)
+				log.Info(ctx, "Joining item", "item", joinedItem)
 				stor.Join(joinedItem)
 			}
 		}

@@ -11,7 +11,7 @@ import (
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", ms.Object)
+	log.Trace(ctx, "Getting object by id ", "id", id, "object", ms.Object)
 
 	object := ms.ObjectCreator()
 
@@ -78,7 +78,7 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 	for _, stor := range resultStor {
 		ms.postLoad(ctx, stor)
 	}
-	log.Logger.Trace(ctx, "Returning results in postArrayGet ", "resultStor", resultStor)
+	log.Trace(ctx, "Returning results in postArrayGet ", "resultStor", resultStor)
 	return resultStor, ids, nil
 }
 
@@ -97,7 +97,7 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	}
 	results := ms.ObjectCollectionCreator(lenids)
 
-	log.Logger.Trace(ctx, "Getting multiple objects ", "Ids", ids)
+	log.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
@@ -112,7 +112,7 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Getting multiple objects by Ids", "len Ids", lenids, "collection", ms.collection)
+	log.Trace(ctx, "Getting multiple objects by Ids", "len Ids", lenids, "collection", ms.collection)
 	return results, nil
 }
 
@@ -162,7 +162,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.Object, "recsreturned", recsreturned)
+	log.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 

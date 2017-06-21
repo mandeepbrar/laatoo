@@ -19,19 +19,19 @@ type LogxiLogger struct {
 }
 
 func (log *LogxiLogger) Trace(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Trace(reqContext, reqContext.GetName(), msg, args...)
+	log.Trace(reqContext, reqContext.GetName(), msg, args...)
 }
 func (log *LogxiLogger) Debug(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Debug(reqContext, reqContext.GetName(), msg, args...)
+	log.Debug(reqContext, reqContext.GetName(), msg, args...)
 }
 func (log *LogxiLogger) Info(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Info(reqContext, reqContext.GetName(), msg, args...)
+	log.Info(reqContext, reqContext.GetName(), msg, args...)
 }
 func (log *LogxiLogger) Warn(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Warn(reqContext, reqContext.GetName(), msg, args...)
+	log.Warn(reqContext, reqContext.GetName(), msg, args...)
 }
 func (log *LogxiLogger) Error(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Error(reqContext, reqContext.GetName(), msg, args...)
+	log.Error(reqContext, reqContext.GetName(), msg, args...)
 }
 func (log *LogxiLogger) Fatal(reqContext core.Context, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, reqContext.GetName(), msg, args...)

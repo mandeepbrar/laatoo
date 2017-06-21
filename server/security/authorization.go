@@ -18,7 +18,7 @@ func (env *Environment) authorize(ctx core.Context, conf config.Config) (bool, e
 				switch k {
 				case "functional":
 					if !router.environment.HasPermission(ctx, v.(string)) {
-						log.Logger.Trace(ctx, "Denying permission to user", "permission", v)
+						log.Trace(ctx, "Denying permission to user", "permission", v)
 						err := ctx.NoContent(http.StatusForbidden)
 						if err != nil {
 							return false, nil

@@ -5,18 +5,25 @@ package log
 import (
 	"io"
 	"laatoo/sdk/core"
+	slog "laatoo/sdk/log"
 	"log/syslog"
 )
 
-func NewSysLogger(appname string) LoggerInterface {
-	logWriter, err := syslog.Dial("", "", syslog.LOG_ERR, appname)
-	if err != nil {
-		return NewLogger()
+var syslogWriteHandler WriteHandler
+
+func NewSysLogger(appname string) slog.Logger {
+	if syslogWriteHandler == nil {
+		logWriter, err := syslog.Dial("", "", syslog.LOG_ERR, appname)
+		if err != nil {
+			syslogWriteHandler = stdSimpleLogsHandler()
+		} else {
+			syslogWriteHandler = sysLogsHandler(logWriter)
+		}
 	}
-	return &LogWrapper{logger: NewSimpleLogger(sysLogsHandler(logWriter)), level: TRACE}
+	return NewSimpleLogger(appname, syslogWriteHandler)
 }
 
-func sysLogsHandler(writer io.Writer) SimpleWriteHandler {
+func sysLogsHandler(writer io.Writer) WriteHandler {
 	wh := &SyslogWriteHandler{writer}
 	return wh
 }

@@ -13,7 +13,7 @@ import (
 )
 
 func main(rootctx *serverContext, configDir string) error {
-	log.Logger.Info(rootctx, "Setting base directory for server", "Dir Name", configDir)
+	log.Info(rootctx, "Setting base directory for server", "Dir Name", configDir)
 	rootctx.Set(constants.CONF_BASE_DIR, configDir)
 
 	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)
@@ -21,12 +21,6 @@ func main(rootctx *serverContext, configDir string) error {
 	conf, err := common.NewConfigFromFile(configFile)
 	if err != nil {
 		return err
-	}
-
-	//config logger
-	debug := log.ConfigLogger(conf)
-	if !debug {
-		errors.ShowStack = false
 	}
 
 	//create the server
@@ -124,7 +118,7 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 				}
 			}*/
 	} else {
-		log.Logger.Info(ctx, "No environments were found", "Conf Directory", confDir)
+		log.Info(ctx, "No environments were found", "Conf Directory", confDir)
 	}
 
 	return envs, nil
@@ -174,7 +168,7 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 				}
 			}
 		} else {
-			log.Logger.Info(ctx, "No applications were found", "Conf Directory", baseDir)
+			log.Info(ctx, "No applications were found", "Conf Directory", baseDir)
 		}
 	}
 	return nil

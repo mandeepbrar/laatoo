@@ -26,7 +26,7 @@ func (fs *FileServiceFactory) Initialize(ctx core.ServerContext, conf config.Con
 
 //Create the services configured for factory.
 func (fs *FileServiceFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	log.Logger.Trace(ctx, "Creating service for file system factory", "name", name, "method", method)
+	log.Trace(ctx, "Creating service for file system factory", "name", name, "method", method)
 	return &FileSystemSvc{}, nil
 	/*
 		switch method {

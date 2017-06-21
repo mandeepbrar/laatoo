@@ -134,7 +134,7 @@ func (svc *gaeDataService) Supports(feature data.Feature) bool {
 func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
 	appEngineContext := ctx.GetAppengineContext()
-	log.Logger.Trace(ctx, "Saving object", "Object", svc.Object)
+	log.Trace(ctx, "Saving object", "Object", svc.Object)
 	id := item.GetId()
 	if id == "" {
 		item.Init(ctx, nil)
@@ -183,7 +183,7 @@ func (svc *gaeDataService) CreateMulti(ctx core.RequestContext, items []data.Sto
 func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
 	appEngineContext := ctx.GetAppengineContext()
-	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", svc.Object)
+	log.Trace(ctx, "Saving multiple objects", "ObjectType", svc.Object)
 	keys := make([]*datastore.Key, len(items))
 	for ind, item := range items {
 		if item == nil {
@@ -220,14 +220,14 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Saved multiple objects")
+	log.Trace(ctx, "Saved multiple objects")
 	return nil
 }
 
 func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
 	appEngineContext := ctx.GetAppengineContext()
-	log.Logger.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
+	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
@@ -283,7 +283,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
 	stor := object.(data.Storable)
-	log.Logger.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
+	log.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
 	stor.SetValues(object, newVals)
 	if err != nil {
 		if upsert {
@@ -291,7 +291,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		}
 		return err
 	}
-	log.Logger.Info(ctx, "Set values", "object", object)
+	log.Info(ctx, "Set values", "object", object)
 	if svc.presave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, stor)
 		if err != nil {
@@ -302,7 +302,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 			return err
 		}
 	}
-	log.Logger.Info(ctx, "Going to put object", "id", id, "object", object)
+	log.Info(ctx, "Going to put object", "id", id, "object", object)
 	_, err = datastore.Put(appEngineContext, key, object)
 	if err != nil {
 		return err
@@ -421,7 +421,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	err := datastore.GetMulti(appEngineContext, keys, utils.ElementPtr(results))
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
-			log.Logger.Debug(ctx, "Geting object", "err", err)
+			log.Debug(ctx, "Geting object", "err", err)
 			return err
 		}
 	}

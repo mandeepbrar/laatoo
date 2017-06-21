@@ -95,16 +95,16 @@ func (svc *beanstalkConsumer) Start(ctx core.ServerContext) error {
 				go func(ctx core.ServerContext, job *beanstalk.Job) {
 
 					t := &components.Task{}
-					log.Logger.Info(ctx, "Recieved job", "Job Id", job.ID)
+					log.Info(ctx, "Recieved job", "Job Id", job.ID)
 					err := json.Unmarshal(job.Body, t)
 					if err != nil {
-						log.Logger.Error(ctx, "Error in background process", "job", job.ID, "err", err)
+						log.Error(ctx, "Error in background process", "job", job.ID, "err", err)
 						job.Bury()
 					} else {
 						req := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil)
 						err := svc.taskManager.ProcessTask(req, t)
 						if err != nil {
-							log.Logger.Error(req, "Error in background process", "job", job.ID, "err", err)
+							log.Error(req, "Error in background process", "job", job.ID, "err", err)
 							job.Bury()
 						} else {
 							job.Delete()

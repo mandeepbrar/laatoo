@@ -24,11 +24,11 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 
 	if ok {
 		ruleMgrCtx := rm.createContext(ctx, "Rules Manager")
-		log.Logger.Debug(ruleMgrCtx, "Initializing rules manager")
+		log.Debug(ruleMgrCtx, "Initializing rules manager")
 		ruleNames := rulesConf.AllConfigurations()
 		for _, ruleName := range ruleNames {
 			ruleCtx := ruleMgrCtx.SubContext("Creating rule" + ruleName)
-			log.Logger.Debug(ruleCtx, "Creating rule", "Name", ruleName)
+			log.Debug(ruleCtx, "Creating rule", "Name", ruleName)
 			ruleConf, err, _ := common.ConfigFileAdapter(ctx, rulesConf, ruleName)
 			if err != nil {
 				return errors.WrapError(ruleCtx, err)
@@ -84,7 +84,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 					if rule.Condition(msgctx, tr) {
 						err := rule.Action(msgctx, tr)
 						if err != nil {
-							log.Logger.Error(msgctx, err.Error())
+							log.Error(msgctx, err.Error())
 						}
 					}
 
@@ -119,11 +119,11 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 	regrules, present := rm.registeredRules[msgType]
 	if present {
 		for _, rule := range regrules {
-			log.Logger.Error(ctx, "Executing rule")
+			log.Error(ctx, "Executing rule")
 			if rule.Condition(ctx, tr) {
-				log.Logger.Error(ctx, "Executing rule", "message", msgType)
+				log.Error(ctx, "Executing rule", "message", msgType)
 				err := rule.Action(ctx, tr)
-				log.Logger.Error(ctx, "Executed rule", "message", msgType)
+				log.Error(ctx, "Executed rule", "message", msgType)
 				if err != nil {
 					return err
 				}

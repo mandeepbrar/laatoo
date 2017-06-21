@@ -25,7 +25,7 @@ func newApplication(svrCtx *serverContext, name string, env *environment, filter
 	proxy := &applicationProxy{Context: appCtx.(*common.Context), app: app}
 	app.abstractserver = newAbstractServer(svrCtx, name, env.abstractserver, proxy, filterConf)
 	app.proxy = proxy
-	log.Logger.Debug(svrCtx, "Created application", "Name", name)
+	log.Debug(svrCtx, "Created application", "Name", name)
 	return app, proxy
 }
 
@@ -39,7 +39,7 @@ func (app *application) Initialize(ctx core.ServerContext, conf config.Config) e
 	if err := app.createApplets(appInitCtx, conf); err != nil {
 		return errors.WrapError(appInitCtx, err)
 	}
-	log.Logger.Debug(appInitCtx, "Initialized application "+app.name)
+	log.Debug(appInitCtx, "Initialized application "+app.name)
 	return nil
 }
 
@@ -51,13 +51,13 @@ func (app *application) Start(ctx core.ServerContext) error {
 	}
 
 	for name, applet := range app.applets {
-		log.Logger.Trace(applicationStartCtx, "Starting applet:"+name)
+		log.Trace(applicationStartCtx, "Starting applet:"+name)
 		err := applet.Start(applicationStartCtx)
 		if err != nil {
 			return errors.WrapError(applicationStartCtx, err)
 		}
 	}
-	log.Logger.Debug(applicationStartCtx, "Started application"+app.name)
+	log.Debug(applicationStartCtx, "Started application"+app.name)
 	return nil
 }
 
@@ -82,7 +82,7 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Applet Name", name, "Missing Config", constants.CONF_APPL_OBJECT)
 		}
 
-		log.Logger.Debug(appletCreateCtx, "Creating applet")
+		log.Debug(appletCreateCtx, "Creating applet")
 		obj, err := appletCreateCtx.CreateObject(applprovider)
 		if err != nil {
 			return errors.RethrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, err)
@@ -94,14 +94,14 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 		}
 
 		appletCtx := appletCreateCtx.NewContext(name)
-		log.Logger.Trace(ctx, "Initializing applet")
+		log.Trace(ctx, "Initializing applet")
 		err = applet.Initialize(appletCtx, appletConf)
 		if err != nil {
 			return errors.WrapError(appletCtx, err)
 		}
 
 		app.applets[name] = applet
-		log.Logger.Debug(appletCtx, "Created applet")
+		log.Debug(appletCtx, "Created applet")
 
 	}
 

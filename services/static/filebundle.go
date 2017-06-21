@@ -52,10 +52,10 @@ func (bs *BundledFileService) Initialize(ctx core.ServerContext, conf config.Con
 				return err
 			}
 			bs.bundlesMap[bundlename] = bundle
-			log.Logger.Debug(ctx, "Created Bundle", "Name", bundlename)
+			log.Debug(ctx, "Created Bundle", "Name", bundlename)
 		}
 	}
-	log.Logger.Info(ctx, "Bundle service initialized")
+	log.Info(ctx, "Bundle service initialized")
 	return nil
 }
 
@@ -63,7 +63,7 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 	bundlename, ok := ctx.GetString(CONF_STATIC_BUNDLEPARAM)
 	if ok {
 		bundle, ok := bs.bundlesMap[bundlename]
-		log.Logger.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
+		log.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
 		if ok {
 			lastModTimeStr, ok := ctx.GetString(core.LastModified)
 			if ok {
@@ -75,7 +75,7 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 					}
 				}
 			}
-			log.Logger.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
+			log.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
 			if !bundle.fullcontent {
 				newbundle, err := buildFullContentBundle(ctx, bundle)
 				if err != nil {
@@ -111,7 +111,7 @@ func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, e
 	filenames := bundlefiles.AllConfigurations()
 	bundleFiles := make(map[string]*BundledFile, len(filenames))
 	for _, filename := range filenames {
-		log.Logger.Trace(ctx, "Reading file for bundle", "Name", filename)
+		log.Trace(ctx, "Reading file for bundle", "Name", filename)
 		fileconfig, _ := bundlefiles.GetSubConfig(filename)
 		path, ok := fileconfig.GetString(CONF_STATIC_FILE_PATH)
 		if !ok {
@@ -148,7 +148,7 @@ func buildBundledFile(ctx core.Context, path string, info config.Config, readCon
 		}
 		if minifyfiles {
 			extension := filepath.Ext(path)
-			log.Logger.Trace(ctx, "Minifying file", "extension", extension, "path", path)
+			log.Trace(ctx, "Minifying file", "extension", extension, "path", path)
 			if extension == ".html" {
 				m := minify.New()
 				m.AddFunc("text/html", html.Minify)

@@ -21,7 +21,7 @@ type messagingManager struct {
 
 func (msgMgr *messagingManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	msgmgrInitializeCtx := msgMgr.createContext(ctx, "Initialize message manager")
-	log.Logger.Trace(msgmgrInitializeCtx, "Create Message Topics")
+	log.Trace(msgmgrInitializeCtx, "Create Message Topics")
 	err := msgMgr.createTopics(msgmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -70,11 +70,11 @@ func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []str
 	for _, topic := range topics {
 		listeners, prs := mgr.topicStore[topic]
 		if !prs {
-			log.Logger.Error(ctx, "Topic not allowed for Subscription", "Topic", topic)
+			log.Error(ctx, "Topic not allowed for Subscription", "Topic", topic)
 			return nil
 		}
 		mgr.topicStore[topic] = append(listeners, handler)
-		log.Logger.Trace(ctx, "Subscribed topic", "topic", topic)
+		log.Trace(ctx, "Subscribed topic", "topic", topic)
 	}
 	return nil
 }
@@ -83,11 +83,11 @@ func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []str
 func (mgr *messagingManager) publishMessage(ctx core.RequestContext, topic string, message interface{}) error {
 	_, ok := mgr.topicStore[topic]
 	if !ok {
-		log.Logger.Error(ctx, "Topic not allowed for Publishing", "Topic", topic)
+		log.Error(ctx, "Topic not allowed for Publishing", "Topic", topic)
 		return nil
 	}
 	if mgr.commSvc != nil {
-		log.Logger.Trace(ctx, "posting message")
+		log.Trace(ctx, "posting message")
 		return mgr.commSvc.Publish(ctx, topic, message)
 	}
 	return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Name", "Messaging Manager")
@@ -101,7 +101,7 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 			topics[i] = k
 			i++
 		}
-		log.Logger.Trace(ctx, "Subscribing topics", "topics", topics)
+		log.Trace(ctx, "Subscribing topics", "topics", topics)
 		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext) error {
 			topic, ok := reqctx.GetString("messagetype")
 			if ok {

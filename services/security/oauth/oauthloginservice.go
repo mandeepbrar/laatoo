@@ -115,17 +115,17 @@ func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "redirecting to url", "state", state)
+	log.Trace(ctx, "redirecting to url", "state", state)
 	encodedState := base64.StdEncoding.EncodeToString(state)
 	url := os.config.AuthCodeURL(encodedState)
-	log.Logger.Trace(ctx, "redirecting to url", "url", url)
+	log.Trace(ctx, "redirecting to url", "url", url)
 	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, url, nil))
 	return nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
-	log.Logger.Info(ctx, "callback received")
+	log.Info(ctx, "callback received")
 	receivedState, ok := ctx.GetString("state")
 	if !ok {
 		return os.unauthorized(ctx, nil, "")
@@ -136,18 +136,18 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 	if err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), "")
 	}
-	log.Logger.Trace(ctx, "received state", "receivedState", st)
+	log.Trace(ctx, "received state", "receivedState", st)
 	code, ok := ctx.GetString("code")
 	if !ok {
-		log.Logger.Error(ctx, "No code found on oauth return")
+		log.Error(ctx, "No code found on oauth return")
 		return os.unauthorized(ctx, nil, st.Url)
 	}
-	log.Logger.Trace(ctx, "received code", "code", code)
+	log.Trace(ctx, "received code", "code", code)
 	return os.authenticate(ctx, code, st)
 }
 
 func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, url string) error {
-	log.Logger.Trace(ctx, "unauthorized")
+	log.Trace(ctx, "unauthorized")
 	ctx.SetResponse(core.StatusUnauthorizedResponse)
 	if url == "" {
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginFailure\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>"))
@@ -167,7 +167,7 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	if err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
 	}
-	log.Logger.Trace(ctx, "OAuthType: Received token", "code", code)
+	log.Trace(ctx, "OAuthType: Received token", "code", code)
 
 	client := os.config.Client(oauthCtx, token)
 
@@ -315,12 +315,12 @@ func interceptorRequest() error {
 		state = req.State
 		code = req.Code
 	}
-	log.Logger.Trace(ctx, "OAuthType: Received code", "state", state, "method", method)
+	log.Trace(ctx, "OAuthType: Received code", "state", state, "method", method)
 	if state != sentStateInt.(string) {
-		log.Logger.Debug(ctx, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
+		log.Debug(ctx, "OAuthType: State mismatch", "state", state, "sentStateInt", sentStateInt)
 		return errors.ThrowError(ctx, AUTH_ERROR_USER_NOT_FOUND)
 	}
-	log.Logger.Trace(ctx, "OAuthType: Received code", "code", code, "method", method)
+	log.Trace(ctx, "OAuthType: Received code", "code", code, "method", method)
 
 }
 
@@ -329,7 +329,7 @@ func interceptorRequest() error {
 func (oauth *OAuthType) InitializeType(ctx core.Context, authStart core.HandlerFunc, authCallback core.HandlerFunc) error {
 	oauth.authCallback = authCallback
 	for _, site := range oauth.sites {
-		log.Logger.Debug(ctx, LOGGING_CONTEXT, "OAuthType: Setting up site", "site", site)
+		log.Debug(ctx, LOGGING_CONTEXT, "OAuthType: Setting up site", "site", site)
 		oauth.securityService.Router.Get(ctx, site.systemAuthURL+"/callback", nil, func(ctx core.Context) error {
 			ctx.Set("Site", site)
 			ctx.Set("State", state)

@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	deflog "log"
 )
 
 //proxy object for the server
@@ -33,6 +34,8 @@ type serverContext struct {
 	serviceResponseHandler server.ServiceResponseHandler
 	//pubsub
 	msgManager server.MessagingManager
+	//logger
+	logger server.Logger
 	//factory for which operation is being done
 	factory server.Factory
 	//service for which an operation/request is being executed
@@ -113,6 +116,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.cacheManager
 	case core.ServerElementTaskManager:
 		return ctx.taskManager
+	case core.ServerElementLogger:
+		return ctx.logger
 	case core.ServerElementOpen1:
 		return ctx.open1
 	case core.ServerElementOpen2:
@@ -150,11 +155,11 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 
 //creates a new server context that is duplicate of the parent.
 func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
-	log.Logger.Debug(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", context.GetName())
+	log.Debug(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", context.GetName())
 	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
 		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
 		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager,
+		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager, logger: ctx.logger,
 		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3, element: ctx.element, elementType: ctx.elementType}
 }
 
@@ -277,6 +282,12 @@ func (ctx *serverContext) setElements(elements core.ContextMap, primaryElement c
 			} else {
 				ctx.taskManager = element.(server.TaskManager)
 			}
+		case core.ServerElementLogger:
+			if element == nil {
+				ctx.logger = nil
+			} else {
+				ctx.logger = element.(server.Logger)
+			}
 		case core.ServerElementOpen1:
 			ctx.open1 = element
 		case core.ServerElementOpen2:
@@ -299,7 +310,7 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 
 //creates a new request with engine context
 func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) core.RequestContext {
-	log.Logger.Info(ctx, "Creating new request ", "Name", name)
+	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.service == nil {
 		return nil
@@ -320,7 +331,7 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 	//so that the variables set by the service are available while executing a request
 
 	newctx := parent.NewCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.logger,
 		engineContext: engineCtx, subRequest: false}
 }
 
@@ -356,4 +367,51 @@ func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.ServiceFunc
 		return ctx.msgManager.Subscribe(ctx, topics, lstnr)
 	}
 	return nil
+}
+func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Trace(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
+}
+
+func (ctx *serverContext) LogDebug(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Debug(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
+}
+
+func (ctx *serverContext) LogInfo(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Info(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
+}
+
+func (ctx *serverContext) LogWarn(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Warn(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
+}
+
+func (ctx *serverContext) LogError(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Error(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
+}
+
+func (ctx *serverContext) LogFatal(msg string, args ...interface{}) {
+	if ctx.logger != nil {
+		ctx.logger.Fatal(ctx, msg, args...)
+	} else {
+		deflog.Println(msg)
+	}
 }

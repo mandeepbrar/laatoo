@@ -25,7 +25,7 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	}
 	usr := ctx.GetUser()
 	if usr == nil {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity not accessible by anonymous user", "entity", id)
+		log.Trace(ctx, LOGGING_CONTEXT, "Entity not accessible by anonymous user", "entity", id)
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
 	}
 	field := conf["ownerfield"]
@@ -52,11 +52,11 @@ func EnforceEntityOwnership(ctx core.Context, conf map[string]interface{}) error
 	f := entVal.FieldByName(field.(string))
 	ownerVal := f.Interface().(string)
 	if ownerVal != usr.GetId() {
-		log.Logger.Trace(ctx, LOGGING_CONTEXT, "Entity accessible only by owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
+		log.Trace(ctx, LOGGING_CONTEXT, "Entity accessible only by owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 		return errors.ThrowError(ctx, ENTITY_ERROR_NOT_ALLOWED)
 	}
 	ctx.Set(AUTHORIZED_ENTITY, ent)
-	log.Logger.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
+	log.Trace(ctx, LOGGING_CONTEXT, "accessible owner", "entity", id, "user", usr.GetId(), "ownerVal", ownerVal)
 	return nil
 }
 */

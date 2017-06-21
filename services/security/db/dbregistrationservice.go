@@ -71,13 +71,13 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	ent := ctx.GetRequest()
 	body, ok := ent.(*map[string]interface{})
 	if !ok {
-		log.Logger.Trace(ctx, "Not map")
+		log.Trace(ctx, "Not map")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}
 	fieldMap := *body
 	fieldMap["Roles"] = []string{rs.DefaultRole}
-	log.Logger.Trace(ctx, "data", " map", fieldMap)
+	log.Trace(ctx, "data", " map", fieldMap)
 
 	obj := rs.userCreator()
 	init := obj.(core.Initializable)
@@ -86,14 +86,14 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 
 	username := user.GetUserName()
 	if username == "" {
-		log.Logger.Trace(ctx, "Username not found")
+		log.Trace(ctx, "Username not found")
 		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_MISSING_USER))
 		return nil
 	}
 
 	realm := user.GetRealm()
 	if realm != rs.realm {
-		log.Logger.Trace(ctx, "Realm not found")
+		log.Trace(ctx, "Realm not found")
 		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
 		return nil
 	}
@@ -107,7 +107,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 
 	_, _, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err == nil && recs > 0 {
-		log.Logger.Trace(ctx, "Tested user found")
+		log.Trace(ctx, "Tested user found")
 		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS))
 		return nil
 	}
@@ -119,7 +119,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(ctx, "Saved user")
+	log.Trace(ctx, "Saved user")
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (rs *RegistrationService) Start(ctx core.ServerContext) error {
 	if !ok {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
-	log.Logger.Debug(ctx, "User storer set for registration")
+	log.Debug(ctx, "User storer set for registration")
 	//get and set the data service for accessing users
 	rs.UserDataService = userDataService
 	return nil

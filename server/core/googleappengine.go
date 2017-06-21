@@ -49,7 +49,7 @@ func startListening(ctx core.ServerContext, conf config.Config) error {
 		return err
 	}
 	defer l.Close()
-	log.Logger.Info(ctx, "Listening...")
+	log.Info(ctx, "Listening...")
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
@@ -92,11 +92,11 @@ func NewServer(configName string) (*Server, error) {
 		return nil, errors.WrapError(err)
 	}
 	http.Handle("/", router)
-	log.Logger.Error(ctx, "core.appengine.warmup", "setting up router for warmup")
+	log.Error(ctx, "core.appengine.warmup", "setting up router for warmup")
 	var req *Context
 	var once sync.Once
 	warmupFunc := func() {
-		log.Logger.Error(req, "core.appengine.warmup", "starting server")
+		log.Error(req, "core.appengine.warmup", "starting server")
 		server.Start(req)
 	}
 	router.Use(func(ctx *echo.Context) error {

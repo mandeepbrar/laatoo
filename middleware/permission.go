@@ -35,13 +35,13 @@ func (svc *checkPermissionService) Invoke(ctx core.RequestContext) error {
 	} else {
 		perm, ok = ctx.GetString(SVC_PERMISSION_PARAM)
 		if !ok {
-			log.Logger.Trace(ctx, "Unauthorized response for ", "perm", perm)
+			log.Trace(ctx, "Unauthorized response for ", "perm", perm)
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
 		}
 	}
 	hasperm := ctx.HasPermission(perm)
-	log.Logger.Trace(ctx, "Checked permission", "perm", perm, "result", hasperm)
+	log.Trace(ctx, "Checked permission", "perm", perm, "result", hasperm)
 	if !hasperm {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
 	}

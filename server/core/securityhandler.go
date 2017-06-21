@@ -154,7 +154,7 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFres
 		usr = sh.anonymousUser
 		isadmin = false
 	}
-	log.Logger.Info(ctx, "Authenticated request", "User", usr.GetId())
+	log.Info(ctx, "Authenticated request", "User", usr.GetId())
 	reqCtx := ctx.(*requestContext)
 	reqCtx.user = usr
 	reqCtx.admin = isadmin
@@ -177,18 +177,18 @@ func (sh *securityHandler) createContext(ctx core.ServerContext, name string) co
 
 func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh bool) (auth.User, bool, string, error) {
 	tokenVal, ok := ctx.GetString(sh.authHeader)
-	log.Logger.Trace(ctx, "Token received", "token", tokenVal)
+	log.Trace(ctx, "Token received", "token", tokenVal)
 	if ok {
 		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
 			if method, ok := token.Method.(*jwt.SigningMethodRSA); !ok || method != jwt.SigningMethodRS512 {
-				log.Logger.Trace(ctx, "Invalid Token", "method", method)
+				log.Trace(ctx, "Invalid Token", "method", method)
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
 			}
 			return sh.publicKey, nil
 		})
 		if err == nil && token.Valid {
-			log.Logger.Trace(ctx, "Token validated")
+			log.Trace(ctx, "Token validated")
 			userInt := sh.userCreator()
 			user, ok := userInt.(auth.RbacUser)
 			if !ok {
@@ -196,7 +196,7 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh b
 			}
 			claims := token.Claims.(jwt.MapClaims)
 			realm := claims[config.REALM]
-			log.Logger.Info(ctx, "token realms", "realm", realm, "expected", sh.realm)
+			log.Info(ctx, "token realms", "realm", realm, "expected", sh.realm)
 			if realm != sh.realm {
 				return nil, false, tokenVal, nil
 			}
@@ -223,6 +223,6 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh b
 			return user, admin, tokenVal, nil
 		}
 	}
-	log.Logger.Trace(ctx, "Token invalid")
+	log.Trace(ctx, "Token invalid")
 	return nil, false, tokenVal, nil
 }

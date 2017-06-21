@@ -25,7 +25,7 @@ func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, filte
 	proxy := &environmentProxy{Context: envCtx.(*common.Context), env: env}
 	env.abstractserver = newAbstractServer(svrCtx, name, svr.abstractserver, proxy, filterConf)
 	env.proxy = proxy
-	log.Logger.Debug(svrCtx, "Created environment", "Name", name)
+	log.Debug(svrCtx, "Created environment", "Name", name)
 	return env, proxy
 }
 
@@ -34,7 +34,7 @@ func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) e
 	if err := env.initialize(envInitCtx, conf); err != nil {
 		return errors.WrapError(envInitCtx, err)
 	}
-	log.Logger.Trace(envInitCtx, "Initialized environment "+env.name)
+	log.Trace(envInitCtx, "Initialized environment "+env.name)
 	return nil
 }
 
@@ -43,7 +43,7 @@ func (env *environment) Start(ctx core.ServerContext) error {
 	if err := env.start(envStartCtx); err != nil {
 		return errors.WrapError(envStartCtx, err)
 	}
-	log.Logger.Debug(envStartCtx, "Started environment "+env.name)
+	log.Debug(envStartCtx, "Started environment "+env.name)
 	return nil
 }
 
@@ -51,11 +51,11 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 	appCreateCtx := env.createContext(ctx, "CreateApplication: "+name)
 	appCreateCtx.Set(constants.CONF_BASE_DIR, baseDir)
 
-	log.Logger.Trace(appCreateCtx, "Creating Application")
+	log.Trace(appCreateCtx, "Creating Application")
 	filterConf, _ := applicationConf.GetSubConfig(constants.CONF_FILTERS)
 	//create an application
 	applHandle, applElem := newApplication(appCreateCtx, name, env, filterConf)
-	log.Logger.Debug(appCreateCtx, "Created")
+	log.Debug(appCreateCtx, "Created")
 
 	appInitCtx := env.createContext(ctx, "InitializeApplication: "+name)
 	err := applHandle.Initialize(appInitCtx, applicationConf)

@@ -37,14 +37,14 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 }
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
-	log.Logger.Info(ctx, "writing file")
+	log.Info(ctx, "writing file")
 	files := *ctx.GetRequest().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
 		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
-		log.Logger.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
+		log.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
 			return err
@@ -52,7 +52,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 		urls[i] = url
 		i++
 	}
-	log.Logger.Info(ctx, "writing file", "urls", urls)
+	log.Info(ctx, "writing file", "urls", urls)
 	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
 	return nil
 }
@@ -82,7 +82,7 @@ func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) er
 }
 
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
-	log.Logger.Error(ctx, "Full Path:***********", "path", svc.filesDir+fileName)
+	log.Error(ctx, "Full Path:***********", "path", svc.filesDir+fileName)
 	return svc.filesDir + fileName
 }
 

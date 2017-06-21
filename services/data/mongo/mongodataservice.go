@@ -132,7 +132,7 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 
 func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
-	log.Logger.Trace(ctx, "Saving object", "Object", ms.Object)
+	log.Trace(ctx, "Saving object", "Object", ms.Object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	id := item.GetId()
@@ -175,7 +175,7 @@ func (ms *mongoDataService) CreateMulti(ctx core.RequestContext, items []data.St
 
 func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
-	log.Logger.Trace(ctx, "Saving multiple objects", "ObjectType", ms.Object)
+	log.Trace(ctx, "Saving multiple objects", "ObjectType", ms.Object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
@@ -211,13 +211,13 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Saved multiple objects")
+	log.Trace(ctx, "Saved multiple objects")
 	return nil
 }
 
 func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	log.Logger.Trace(ctx, "Putting object", "ObjectType", ms.Object, "id", id)
+	log.Trace(ctx, "Putting object", "ObjectType", ms.Object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
@@ -229,7 +229,7 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 			return err
 		}
 		err = item.PreSave(ctx)
-		log.Logger.Trace(ctx, "Putting object", "err", err)
+		log.Trace(ctx, "Putting object", "err", err)
 		if err != nil {
 			return err
 		}

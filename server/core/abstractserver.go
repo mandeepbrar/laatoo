@@ -11,6 +11,7 @@ import (
 	"laatoo/server/constants"
 	"laatoo/server/engine/http"
 	"laatoo/server/factory"
+	slog "laatoo/server/log"
 	"laatoo/server/objects"
 	"laatoo/server/service"
 	"path"
@@ -50,6 +51,9 @@ type abstractserver struct {
 	engineHandles map[string]server.ServerElementHandle
 	engines       map[string]server.Engine
 
+	logger       server.Logger
+	loggerHandle server.ServerElementHandle
+
 	parent *abstractserver
 
 	proxy core.ServerElement
@@ -61,6 +65,10 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 	as.engines = make(map[string]server.Engine, 5)
 
 	if parent == nil {
+		loggerHandle, logger := slog.NewLogger(svrCtx, name, proxy)
+		as.logger = logger
+		as.loggerHandle = loggerHandle
+		svrCtx.logger = logger
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
 		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, name, proxy)
@@ -87,11 +95,15 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 		svrCtx.channelManager = as.channelMgr
 
 	} else {
-
+		logger := parent.logger
 		loader := parent.objectLoader
 		factoryManager := parent.factoryManager
 		serviceManager := parent.serviceManager
 		channelMgr := parent.channelMgr
+
+		loggerHandle, logger := slog.ChildLogger(svrCtx, name, logger, proxy)
+		as.logger = logger
+		as.loggerHandle = loggerHandle
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
 		childLoaderHandle, childLoader := objects.ChildLoader(objCreateCtx, name, loader, proxy)
@@ -122,13 +134,16 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 
 //initialize application with object loader, factory manager, service manager
 func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
+	if err := as.loggerHandle.Initialize(ctx, conf); err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	secinit := ctx.subContext("Initialize security handleer")
 	err := as.initializeSecurityHandler(secinit, conf)
 	if err != nil {
 		return errors.WrapError(secinit, err)
 	}
-	log.Logger.Trace(secinit, "Initialized security handler")
+	log.Trace(secinit, "Initialized security handler")
 	ctx.securityHandler = as.securityHandler
 
 	objinit := ctx.subContext("Initialize object loader")
@@ -136,21 +151,21 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	if err != nil {
 		return errors.WrapError(objinit, err)
 	}
-	log.Logger.Trace(objinit, "Initialized object loader")
+	log.Trace(objinit, "Initialized object loader")
 
 	enginit := ctx.SubContext("Initialize engines")
 	err = as.initializeEngines(enginit, conf)
 	if err != nil {
 		return errors.WrapError(enginit, err)
 	}
-	log.Logger.Trace(enginit, "Initialized engines")
+	log.Trace(enginit, "Initialized engines")
 
 	chaninit := ctx.SubContextWithElement("Initialize channel manager", core.ServerElementChannelManager)
 	err = initializeChannelManager(chaninit, conf, as.channelMgrHandle)
 	if err != nil {
 		return errors.WrapError(chaninit, err)
 	}
-	log.Logger.Debug(chaninit, "Initialized channel manager")
+	log.Debug(chaninit, "Initialized channel manager")
 
 	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
 	if ok {
@@ -169,7 +184,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	as.messagingManager = msgElem
 	as.messagingManagerHandle = msgHandle
 	ctx.msgManager = as.messagingManager
-	log.Logger.Debug(msgCreate, "Initialized messaging manager")
+	log.Debug(msgCreate, "Initialized messaging manager")
 
 	taskMgrHandle, taskMgr, err := createTaskManager(ctx, as.name, conf, as.proxy)
 	if err != nil {
@@ -178,7 +193,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		if taskMgr != nil {
 			as.taskManager = taskMgr
 			as.taskManagerHandle = taskMgrHandle
-			log.Logger.Debug(ctx, "Created task manager")
+			log.Debug(ctx, "Created task manager")
 		}
 	}
 	ctx.taskManager = as.taskManager
@@ -208,14 +223,14 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(facinit, "Initialized factory manager")
+	log.Trace(facinit, "Initialized factory manager")
 
 	svcinit := ctx.SubContext("Initialize service manager")
 	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
 	if err != nil {
 		return err
 	}
-	log.Logger.Trace(svcinit, "Initialized service manager")
+	log.Trace(svcinit, "Initialized service manager")
 
 	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, as.name, conf, as.proxy)
 	if err != nil {
@@ -224,7 +239,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		if rulesMgr != nil {
 			as.rulesManager = rulesMgr
 			as.rulesManagerHandle = rulesMgrHandle
-			log.Logger.Debug(ctx, "Created rules manager")
+			log.Debug(ctx, "Created rules manager")
 		}
 	}
 	ctx.rulesManager = as.rulesManager
@@ -234,6 +249,10 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 
 //start application with object loader, factory manager, service manager
 func (as *abstractserver) start(ctx *serverContext) error {
+	if err := as.loggerHandle.Start(ctx); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	err := as.startSecurityHandler(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -244,14 +263,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	if err != nil {
 		return errors.WrapError(objldrCtx, err)
 	}
-	log.Logger.Trace(objldrCtx, "Started Object Loader")
+	log.Trace(objldrCtx, "Started Object Loader")
 
 	engstart := ctx.SubContext("Start Engines")
 	err = as.startEngines(engstart)
 	if err != nil {
 		return errors.WrapError(engstart, err)
 	}
-	log.Logger.Trace(engstart, "Started Engines")
+	log.Trace(engstart, "Started Engines")
 
 	chanstart := ctx.SubContextWithElement("Start Channel manager", core.ServerElementChannelManager)
 	err = as.channelMgrHandle.Start(chanstart)
@@ -264,14 +283,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	if err != nil {
 		return errors.WrapError(fmCtx, err)
 	}
-	log.Logger.Trace(fmCtx, "Started factory manager")
+	log.Trace(fmCtx, "Started factory manager")
 
 	smCtx := ctx.SubContextWithElement("Start Service Manager", core.ServerElementServiceManager)
 	err = as.serviceManagerHandle.Start(smCtx)
 	if err != nil {
 		return errors.WrapError(smCtx, err)
 	}
-	log.Logger.Trace(smCtx, "Started service manager")
+	log.Trace(smCtx, "Started service manager")
 
 	if (as.cacheManagerHandle != nil) && ((as.parent == nil) || (as.cacheManager != as.parent.cacheManager)) {
 		cmCtx := ctx.SubContextWithElement("Start Cache Manager", core.ServerElementCacheManager)
@@ -291,7 +310,7 @@ func (as *abstractserver) start(ctx *serverContext) error {
 
 	if as.rulesManagerHandle != nil {
 		rulesHCtx := ctx.SubContextWithElement("Start Rules Manager", core.ServerElementRulesManager)
-		log.Logger.Trace(rulesHCtx, "Starting Rules Manager")
+		log.Trace(rulesHCtx, "Starting Rules Manager")
 		err := as.rulesManagerHandle.Start(rulesHCtx)
 		if err != nil {
 			return errors.WrapError(rulesHCtx, err)
@@ -300,7 +319,7 @@ func (as *abstractserver) start(ctx *serverContext) error {
 
 	if as.taskManagerHandle != nil {
 		taskHCtx := ctx.SubContextWithElement("Start Task Manager", core.ServerElementTaskManager)
-		log.Logger.Trace(taskHCtx, "Starting Task Manager")
+		log.Trace(taskHCtx, "Starting Task Manager")
 		err := as.taskManagerHandle.Start(taskHCtx)
 		if err != nil {
 			return errors.WrapError(taskHCtx, err)
@@ -314,14 +333,14 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 	_, found := as.engines[name]
 	if !found {
 		engCreateCtx := ctx.SubContext("Create Engine: " + name)
-		log.Logger.Trace(engCreateCtx, "Creating Engine", "Engine", name)
+		log.Trace(engCreateCtx, "Creating Engine", "Engine", name)
 		engHandle, eng, err := as.createEngine(engCreateCtx, name, conf)
 		if err != nil {
 			return errors.WrapError(engCreateCtx, err)
 		}
 
 		engInitCtx := ctx.SubContext("Initialize Engine: " + name)
-		log.Logger.Trace(engInitCtx, "Initializing engine", "Engine", name)
+		log.Trace(engInitCtx, "Initializing engine", "Engine", name)
 		err = engHandle.Initialize(engInitCtx, conf)
 		if err != nil {
 			return errors.WrapError(engInitCtx, err)
@@ -330,18 +349,18 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 		//get a root channel and assign it to server channel manager
 		as.channelMgrHandle.(*channelManager).channelStore[name] = eng.GetRootChannel(engInitCtx)
 
-		log.Logger.Info(engInitCtx, "Registered root channel", "Name", name)
+		log.Info(engInitCtx, "Registered root channel", "Name", name)
 
 		as.engines[name] = eng
 		as.engineHandles[name] = engHandle
 	} else {
-		log.Logger.Info(ctx, "Engine already exists", "Name", name)
+		log.Info(ctx, "Engine already exists", "Name", name)
 	}
 	return nil
 }
 
 func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.Config) error {
-	log.Logger.Trace(ctx, "Initializing engines")
+	log.Trace(ctx, "Initializing engines")
 	engines, ok := conf.GetSubConfig(constants.CONF_ENGINES)
 	if ok {
 		engineNames := engines.AllConfigurations()
@@ -355,7 +374,7 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 					return err
 				}
 			}
-			log.Logger.Trace(ctx, "Registered engine", "Name", engName)
+			log.Trace(ctx, "Registered engine", "Name", engName)
 		}
 	}
 
@@ -363,7 +382,7 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 		return err
 	}
 
-	log.Logger.Debug(ctx, "Initialized Engines")
+	log.Debug(ctx, "Initialized Engines")
 	return nil
 }
 
@@ -405,7 +424,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 	if (as.securityHandlerHandle != nil) && ((as.parent == nil) || (as.securityHandler != as.parent.securityHandler)) {
 		secCtx := ctx.SubContextWithElement("Start Security Handler", core.ServerElementSecurityHandler)
-		log.Logger.Trace(secCtx, "Starting Security Handler")
+		log.Trace(secCtx, "Starting Security Handler")
 		return as.securityHandlerHandle.Start(secCtx)
 	}
 	return nil
@@ -416,7 +435,7 @@ func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 	errorsChan := make(chan error)
 	for engName, engineHandle := range as.engineHandles {
 		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
-			log.Logger.Info(ctx, "Starting engine*****", "name", name)
+			log.Info(ctx, "Starting engine*****", "name", name)
 			errorsChan <- engHandle.Start(ctx)
 		}(engStartCtx, engineHandle, engName)
 	}
@@ -424,7 +443,7 @@ func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 	if err != nil {
 		panic(err.Error())
 	}
-	log.Logger.Trace(engStartCtx, "Started engines")
+	log.Trace(engStartCtx, "Started engines")
 	return nil
 }
 
@@ -454,6 +473,7 @@ func (as *abstractserver) contextMap(ctx core.ServerContext) core.ContextMap {
 		core.ServerElementChannelManager:   as.channelMgr,
 		core.ServerElementCacheManager:     as.cacheManager,
 		core.ServerElementTaskManager:      as.taskManager,
+		core.ServerElementLogger:           as.logger,
 		core.ServerElementRulesManager:     as.rulesManager,
 		core.ServerElementFactoryManager:   as.factoryManager,
 		core.ServerElementServiceManager:   as.serviceManager}

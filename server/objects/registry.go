@@ -26,7 +26,7 @@ func Register(objectName string, obj interface{}) {
 func RegisterObjectFactory(objectName string, factory core.ObjectFactory) {
 	_, ok := objectsFactoryRegister[objectName]
 	if !ok {
-		log.Logger.Info(__regContext__, "Registering object factory ", "Object Name", objectName)
+		log.Info(__regContext__, "Registering object factory ", "Object Name", objectName)
 		objectsFactoryRegister[objectName] = factory
 	}
 }
@@ -40,7 +40,7 @@ func RegisterObject(objectName string, objectCreator core.ObjectCreator, objectC
 func RegisterInvokableMethod(methodName string, method core.ServiceFunc) {
 	_, ok := invokableMethodsRegister[methodName]
 	if !ok {
-		log.Logger.Debug(__regContext__, "Registering method ", "Method Name", methodName)
+		log.Debug(__regContext__, "Registering method ", "Method Name", methodName)
 		invokableMethodsRegister[methodName] = method
 	}
 }

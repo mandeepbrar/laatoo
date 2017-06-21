@@ -47,7 +47,7 @@ func (svc *checkOwnerService) isOwned(ctx core.RequestContext, id string) (bool,
 	if stor != nil {
 		i, ok := stor.(data.Auditable)
 		if ok {
-			log.Logger.Trace(ctx, "checking owned", "created by", i.GetCreatedBy(), "user", ctx.GetUser().GetId())
+			log.Trace(ctx, "checking owned", "created by", i.GetCreatedBy(), "user", ctx.GetUser().GetId())
 			if i.GetCreatedBy() != ctx.GetUser().GetId() {
 				ctx.SetResponse(core.StatusUnauthorizedResponse)
 				return false, nil
@@ -67,7 +67,7 @@ func (svc *checkOwnerService) areOwned(ctx core.RequestContext, ids []string) (b
 		i, ok := item.(data.Auditable)
 		if ok && item.GetId() != "" {
 			if i.GetCreatedBy() != userId {
-				log.Logger.Info(ctx, "not owned", "item", item, "id", item.GetId(), "created by", i.GetCreatedBy(), "user id", userId)
+				log.Info(ctx, "not owned", "item", item, "id", item.GetId(), "created by", i.GetCreatedBy(), "user id", userId)
 				ctx.SetResponse(core.StatusUnauthorizedResponse)
 				return false, nil
 			}
@@ -137,7 +137,7 @@ func (svc *checkOwnerService) UpdateMulti(ctx core.RequestContext, ids []string,
 //item must support Deleted field for soft deletes
 func (svc *checkOwnerService) Delete(ctx core.RequestContext, id string) error {
 	owned, err := svc.isOwned(ctx, id)
-	log.Logger.Trace(ctx, "checking owned", "owned", owned)
+	log.Trace(ctx, "checking owned", "owned", owned)
 	if owned {
 		return svc.PluginDataComponent.Delete(ctx, id)
 	}

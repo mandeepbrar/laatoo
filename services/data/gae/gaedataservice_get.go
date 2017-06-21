@@ -24,7 +24,7 @@ type gaeDatastoreCondition struct {
 func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
 	appEngineContext := ctx.GetAppengineContext()
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
+	log.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
 	object := svc.ObjectCreator()
 
@@ -119,7 +119,7 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	err := datastore.GetMulti(appEngineContext, keys, reflect.ValueOf(results).Elem().Interface())
 	if err != nil {
 		if _, ok := err.(appengine.MultiError); !ok {
-			log.Logger.Debug(ctx, "Geting object", "err", err)
+			log.Debug(ctx, "Geting object", "err", err)
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
@@ -177,7 +177,7 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
+	log.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 

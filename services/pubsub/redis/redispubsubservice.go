@@ -37,7 +37,7 @@ func (svc *RedisPubSubService) Publish(ctx core.RequestContext, topic string, me
 		return err
 	}
 	_, err = conn.Do("PUBLISH", topic, bytes)
-	log.Logger.Trace(ctx, "Published message on topic", "topic", topic)
+	log.Trace(ctx, "Published message on topic", "topic", topic)
 	if err != nil {
 		return err
 	}
@@ -58,14 +58,14 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 		for {
 			switch v := psc.Receive().(type) {
 			case redis.Message:
-				log.Logger.Trace(ctx, "Message received on Queue")
+				log.Trace(ctx, "Message received on Queue")
 				req := ctx.CreateSystemRequest("Message Received")
 				req.Set("messagetype", v.Channel)
 				req.SetRequest(v.Data)
 				lstnr(req)
 			case redis.Subscription:
 			case error:
-				log.Logger.Info(ctx, "Pubsub error ", "Error", v)
+				log.Info(ctx, "Pubsub error ", "Error", v)
 			}
 		}
 	}()
@@ -93,7 +93,7 @@ func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext, conf conf
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
 			if err != nil {
-				log.Logger.Error(ctx, "TestOnBorrow", "Error", err)
+				log.Error(ctx, "TestOnBorrow", "Error", err)
 			}
 			return err
 		},

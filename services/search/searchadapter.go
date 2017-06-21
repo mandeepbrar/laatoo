@@ -79,7 +79,7 @@ func newSearchAdapterService(ctx core.ServerContext, name string, method string,
 	}
 	//cache, _ := conf.GetBool(CONF_DATA_CACHEABLE)
 	//ds.cache = cache
-	log.Logger.Trace(ctx, "Created Search Adapter service", "Svc Name", name, "Method", method)
+	log.Trace(ctx, "Created Search Adapter service", "Svc Name", name, "Method", method)
 	return ds, nil
 }
 

@@ -41,7 +41,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				respHandler = router
 			}
 		}*/
-		log.Logger.Trace(webctx, "Received request ", "route", routename, "dataObjectName", dataObjectName)
+		log.Trace(webctx, "Received request ", "route", routename, "dataObjectName", dataObjectName)
 		if isdataObject {
 			switch otype {
 			case stringmap:
@@ -50,23 +50,23 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				if method != "GET" {
 					err = engineContext.Bind(reqData)
 					if err != nil {
-						log.Logger.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
+						log.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
 						webctx.SetResponse(core.StatusBadRequestResponse)
 						return respHandler.HandleResponse(webctx)
 					}
-					log.Logger.Trace(webctx, "Request data bound ", "data", reqData)
+					log.Trace(webctx, "Request data bound ", "data", reqData)
 				}
 			case bytes:
 				reqData, err = engineContext.GetBody()
 				if err != nil {
-					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					log.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 					webctx.SetResponse(core.StatusBadRequestResponse)
 					return respHandler.HandleResponse(webctx)
 				}
 			case stringtype:
 				reqDataBytes, err := engineContext.GetBody()
 				if err != nil {
-					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					log.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 					webctx.SetResponse(core.StatusBadRequestResponse)
 					return respHandler.HandleResponse(webctx)
 				}
@@ -75,7 +75,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				fileObjs, err := engineContext.GetFiles()
 				reqData = &fileObjs
 				if err != nil {
-					log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+					log.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 					webctx.SetResponse(core.StatusBadRequestResponse)
 					return respHandler.HandleResponse(webctx)
 				}
@@ -88,17 +88,17 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 				if method != "GET" {
 					err = engineContext.Bind(reqData)
 					if err != nil {
-						log.Logger.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
+						log.Trace(webctx, "Could not unmarshal Json ", "data", reqData, "err", err)
 						webctx.SetResponse(core.StatusBadRequestResponse)
 						return respHandler.HandleResponse(webctx)
 					}
-					log.Logger.Trace(webctx, "Request data bound ", "data", reqData)
+					log.Trace(webctx, "Request data bound ", "data", reqData)
 				}
 			}
 		} else {
 			reqData, err = engineContext.GetRequestStream()
 			if err != nil {
-				log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+				log.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 				webctx.SetResponse(core.StatusBadRequestResponse)
 				return respHandler.HandleResponse(webctx)
 			}
@@ -111,11 +111,11 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, respHa
 func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
 	svc core.Service, serverElement core.ServerElement, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
 	return func(webctx core.RequestContext) error {
-		log.Logger.Trace(webctx, "Received request ", "route", routename, "service", serverElement.GetName())
+		log.Trace(webctx, "Received request ", "route", routename, "service", serverElement.GetName())
 		engineContext := webctx.EngineContext().(net.WebContext)
 		reqData, err := engineContext.GetBody()
 		if err != nil {
-			log.Logger.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
+			log.Trace(webctx, "Could not read stream", "data", reqData, "err", err)
 			webctx.SetResponse(core.StatusBadRequestResponse)
 			return respHandler.HandleResponse(webctx)
 		}
@@ -125,7 +125,7 @@ func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, re
 func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData interface{}, engineContext net.WebContext, respHandler server.ServiceResponseHandler, routename string,
 	svc server.Service, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool) error {
 	var err error
-	log.Logger.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
+	log.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
 	reqctx := webctx.SubContext(svc.GetName())
 	defer reqctx.CompleteRequest()
 	reqctx.SetRequest(reqData)
@@ -135,12 +135,12 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 			reqctx.Set(param, paramVal)
 		}
 	}
-	log.Logger.Trace(webctx, "Headers provided", "headers", headers)
+	log.Trace(webctx, "Headers provided", "headers", headers)
 	if headers != nil {
 		for param, header := range headers {
 			headerVal := engineContext.GetHeader(header)
 			reqctx.Set(param, headerVal)
-			log.Logger.Trace(webctx, "Setting header param ", "headers", param, "value ", headerVal)
+			log.Trace(webctx, "Setting header param ", "headers", param, "value ", headerVal)
 		}
 	}
 
@@ -150,7 +150,7 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 		if found {
 			reqctx.Set(param, engineContext.GetQueryParam(param))
 		} else {
-			log.Logger.Info(webctx, "Parameter not allowed in request", "parameter", param)
+			log.Info(webctx, "Parameter not allowed in request", "parameter", param)
 		}
 	}
 
@@ -163,7 +163,7 @@ func (channel *httpChannel) processRequest(webctx core.RequestContext, reqData i
 	if err != nil {
 		return errors.WrapError(reqctx, err)
 	}
-	log.Logger.Trace(webctx, "Completed request for service. Handling Response")
+	log.Trace(webctx, "Completed request for service. Handling Response")
 	return respHandler.HandleResponse(reqctx)
 
 }

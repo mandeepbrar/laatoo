@@ -2,6 +2,7 @@ package log
 
 import (
 	"laatoo/sdk/core"
+	slog "laatoo/sdk/log"
 )
 
 const (
@@ -13,25 +14,25 @@ const (
 	STR_FATAL = "Fatal"
 )
 
-type logPrinter func(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{})
+type logPrinter func(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{})
 
-var (
-	logFormats = make(map[string]logPrinter, 5)
-)
-
-type SimpleWriteHandler interface {
+type WriteHandler interface {
 	Print(ctx core.Context, app string, msg string, level int, strlevel string)
 	PrintBytes(ctx core.Context, app string, msg []byte, level int, strlevel string) (int, error)
 }
 
-func NewSimpleLogger(wh SimpleWriteHandler) LoggerInterface {
-	logger := &SimpleLogger{format: "json", level: INFO, wh: wh, app: "Laatoo"}
+var (
+	logFormats = make(map[string]logPrinter, 6)
+)
+
+func NewSimpleLogger(appname string, wh WriteHandler) slog.Logger {
+	logger := &SimpleLogger{format: "json", level: slog.INFO, wh: wh, app: "Laatoo"}
 	logger.printer = printJSON
 	return logger
 }
 
 type SimpleLogger struct {
-	wh  SimpleWriteHandler
+	wh  WriteHandler
 	app string
 	//buffer bytes.Buffer
 	format  string
@@ -40,32 +41,32 @@ type SimpleLogger struct {
 }
 
 func (log *SimpleLogger) Trace(ctx core.Context, msg string, args ...interface{}) {
-	if log.level > DEBUG {
-		log.printer(ctx, log.app, STR_TRACE, log.wh, TRACE, msg, args...)
+	if log.level > slog.DEBUG {
+		log.printer(ctx, log.app, STR_TRACE, log.wh, slog.TRACE, msg, args...)
 	}
 }
 func (log *SimpleLogger) Debug(ctx core.Context, msg string, args ...interface{}) {
-	if log.level > INFO {
-		log.printer(ctx, log.app, STR_DEBUG, log.wh, DEBUG, msg, args...)
+	if log.level > slog.INFO {
+		log.printer(ctx, log.app, STR_DEBUG, log.wh, slog.DEBUG, msg, args...)
 	}
 }
 func (log *SimpleLogger) Info(ctx core.Context, msg string, args ...interface{}) {
-	if log.level > WARN {
-		log.printer(ctx, log.app, STR_INFO, log.wh, INFO, msg, args...)
+	if log.level > slog.WARN {
+		log.printer(ctx, log.app, STR_INFO, log.wh, slog.INFO, msg, args...)
 	}
 }
 func (log *SimpleLogger) Warn(ctx core.Context, msg string, args ...interface{}) {
-	if log.level > ERROR {
-		log.printer(ctx, log.app, STR_WARN, log.wh, WARN, msg, args...)
+	if log.level > slog.ERROR {
+		log.printer(ctx, log.app, STR_WARN, log.wh, slog.WARN, msg, args...)
 	}
 }
 func (log *SimpleLogger) Error(ctx core.Context, msg string, args ...interface{}) {
-	if log.level > FATAL {
-		log.printer(ctx, log.app, STR_ERROR, log.wh, ERROR, msg, args...)
+	if log.level > slog.FATAL {
+		log.printer(ctx, log.app, STR_ERROR, log.wh, slog.ERROR, msg, args...)
 	}
 }
 func (log *SimpleLogger) Fatal(ctx core.Context, msg string, args ...interface{}) {
-	log.printer(ctx, log.app, STR_FATAL, log.wh, FATAL, msg, args...)
+	log.printer(ctx, log.app, STR_FATAL, log.wh, slog.FATAL, msg, args...)
 }
 
 func (log *SimpleLogger) SetFormat(format string) {
@@ -76,31 +77,22 @@ func (log *SimpleLogger) SetFormat(format string) {
 	}
 }
 
-func (log *SimpleLogger) SetType(loggertype string) {
-}
-
-func (log *SimpleLogger) SetApplication(app string) {
-	log.app = app
-}
-func (log *SimpleLogger) GetApplication() string {
-	return log.app
-}
 func (log *SimpleLogger) SetLevel(level int) {
 	log.level = level
 }
 func (log *SimpleLogger) IsTrace() bool {
-	return log.level == TRACE
+	return log.level == slog.TRACE
 }
 func (log *SimpleLogger) IsDebug() bool {
-	return log.level == DEBUG
+	return log.level == slog.DEBUG
 }
 func (log *SimpleLogger) IsInfo() bool {
-	return log.level == INFO
+	return log.level == slog.INFO
 }
 func (log *SimpleLogger) IsWarn() bool {
-	return log.level == WARN
+	return log.level == slog.WARN
 }
 
 func (log *SimpleLogger) Write(p []byte) (int, error) {
-	return log.wh.PrintBytes(nil, log.app, p, INFO, STR_INFO)
+	return log.wh.PrintBytes(nil, log.app, p, slog.INFO, STR_INFO)
 }

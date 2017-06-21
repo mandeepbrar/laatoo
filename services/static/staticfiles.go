@@ -124,11 +124,11 @@ func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, con
 		{
 			return func(reader io.Reader, writer io.Writer) error {
 				img, format, err := imaging.Decode(reader)
-				log.Logger.Info(ctx, "crop", "format", format)
+				log.Info(ctx, "crop", "format", format)
 				if err != nil {
 					return err
 				}
-				log.Logger.Trace(ctx, "cropping image", "format", format)
+				log.Trace(ctx, "cropping image", "format", format)
 				dstImage := imaging.CropCenter(img, width, height)
 				return imaging.Encode(writer, dstImage, getFormat(format))
 			}
@@ -140,7 +140,7 @@ func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, con
 				if err != nil {
 					return err
 				}
-				log.Logger.Trace(ctx, "filling image", "format", format)
+				log.Trace(ctx, "filling image", "format", format)
 				dstImage := imaging.Fill(img, width, height, imaging.Center, imaging.Lanczos)
 				return imaging.Encode(writer, dstImage, getFormat(format))
 			}
@@ -152,7 +152,7 @@ func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, con
 				if err != nil {
 					return err
 				}
-				log.Logger.Trace(ctx, "fitting image", "format", format)
+				log.Trace(ctx, "fitting image", "format", format)
 				dstImage := imaging.Fit(img, width, height, imaging.Lanczos)
 				return imaging.Encode(writer, dstImage, getFormat(format))
 			}
@@ -179,17 +179,17 @@ func getFormat(format string) imaging.Format {
 }
 
 func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) bool {
-	log.Logger.Trace(ctx, "Opening file", "filename", filename)
+	log.Trace(ctx, "Opening file", "filename", filename)
 	inStr, err := svc.storage.Open(ctx, filename)
 	if err != nil {
-		log.Logger.Trace(ctx, "File does not exist", "sourcefile", filename, "err", err)
+		log.Trace(ctx, "File does not exist", "sourcefile", filename, "err", err)
 		return false
 	}
 	defer inStr.Close()
 
 	writer, err := svc.transformedFilesStorage.CreateFile(ctx, filename, "")
 	if err != nil {
-		log.Logger.Trace(ctx, "Error opening source file", "destfile", filename, "err", err)
+		log.Trace(ctx, "Error opening source file", "destfile", filename, "err", err)
 		return false
 	}
 	defer writer.Close()
@@ -198,13 +198,13 @@ func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) boo
 	writer, err := os.Create(destfile)
 	defer writer.Close()
 	if err != nil {
-		log.Logger.Info(ctx, "error creating file", "destfile", destfile, "err", err)
+		log.Info(ctx, "error creating file", "destfile", destfile, "err", err)
 		return "", err
 	}*/
 
 	err = svc.transformer(inStr, writer)
 	if err != nil {
-		log.Logger.Trace(ctx, "Error in transformation", "destfile", filename, "err", err)
+		log.Trace(ctx, "Error in transformation", "destfile", filename, "err", err)
 		return false
 	}
 	return true

@@ -87,7 +87,7 @@ func createMessagingManager(ctx core.ServerContext, name string, conf config.Con
 			msgHandle, msgElem := newMessagingManager(msgCtx, name, proxy, msgSvcName)
 			messagingManager = msgElem
 			messagingManagerHandle = msgHandle
-			log.Logger.Trace(msgCtx, "Created messaging manager")
+			log.Trace(msgCtx, "Created messaging manager")
 		}
 	}
 
@@ -103,7 +103,7 @@ func createMessagingManager(ctx core.ServerContext, name string, conf config.Con
 		if err != nil {
 			return nil, nil, errors.WrapError(ctx, err)
 		}
-		log.Logger.Debug(msginit, "Initialized messaging manager")
+		log.Debug(msginit, "Initialized messaging manager")
 	}
 	return messagingManagerHandle, messagingManager, nil
 }

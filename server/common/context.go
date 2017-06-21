@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"laatoo/sdk/core"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -142,4 +143,22 @@ func (ctx *Context) HttpClient() *http.Client {
 }
 func (ctx *Context) GetOAuthContext() glctx.Context {
 	return GetOAuthContext(ctx)
+}
+func (ctx *Context) LogTrace(msg string, args ...interface{}) {
+	log.Println(msg)
+}
+func (ctx *Context) LogDebug(msg string, args ...interface{}) {
+	log.Println(msg)
+}
+func (ctx *Context) LogInfo(msg string, args ...interface{}) {
+	log.Println(msg)
+}
+func (ctx *Context) LogWarn(msg string, args ...interface{}) {
+	log.Println(msg)
+}
+func (ctx *Context) LogError(msg string, args ...interface{}) {
+	log.Println(msg)
+}
+func (ctx *Context) LogFatal(msg string, args ...interface{}) {
+	log.Println(msg)
 }

@@ -103,14 +103,14 @@ func (rs *resultsCacheService) Invoke(ctx core.RequestContext) error {
 	//	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(rs.bucket, body)
-	log.Logger.Trace(ctx, "Looking up key", "key", cacheKey)
+	log.Trace(ctx, "Looking up key", "key", cacheKey)
 	prs := ctx.GetFromCache(cacheKey, &retResponse)
 	if prs {
-		log.Logger.Trace(ctx, "Cache Hit ")
+		log.Trace(ctx, "Cache Hit ")
 		ctx.SetResponse(&retResponse)
 		return nil
 	}
-	log.Logger.Trace(ctx, "Cache Miss ")
+	log.Trace(ctx, "Cache Miss ")
 	return nil
 }
 
@@ -125,10 +125,10 @@ func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
 	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(cachedVal, body)
-	log.Logger.Trace(ctx, "Looking up key", "key", cacheKey)
+	log.Trace(ctx, "Looking up key", "key", cacheKey)
 	prs := ctx.GetFromCache(cacheKey, &retResponse)
 	if prs {
-		log.Logger.Trace(ctx, "Cache Hit ")
+		log.Trace(ctx, "Cache Hit ")
 		ctx.SetResponse(&retResponse)
 		return nil
 	}
@@ -157,7 +157,7 @@ func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
 	resp := ctx.GetResponse()
 	err = ctx.PutInCache(cacheKey, resp)
 	if err != nil {
-		log.Logger.Error(ctx, err.Error())
+		log.Error(ctx, err.Error())
 	}
 	return nil
 }

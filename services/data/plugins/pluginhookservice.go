@@ -23,14 +23,14 @@ func NewPluginHookService(ctx core.ServerContext, name string, conf config.Confi
 	if !ok {
 		return nil, errors.MissingArg(ctx, DATASVC_PLUGINS)
 	}
-	log.Logger.Trace(ctx, "Creating plugins ", "name", name, "pluginNames", pluginNames)
+	log.Trace(ctx, "Creating plugins ", "name", name, "pluginNames", pluginNames)
 	var plugins []data.DataComponent
 	var basePlugin data.DataComponent
 	baseService := data.NewDataPlugin(ctx)
 	basePlugin = baseService
 	plugins = append(plugins, basePlugin)
 	for _, str := range pluginNames {
-		log.Logger.Trace(ctx, "Creating data plugin hook", "name", name, "Plugin name", str)
+		log.Trace(ctx, "Creating data plugin hook", "name", name, "Plugin name", str)
 		var svc interface{}
 		switch str {
 		case DATASVC_CACHE_PLUGIN:

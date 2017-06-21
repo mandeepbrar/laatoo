@@ -10,19 +10,19 @@ type LogWrapper struct {
 }
 
 func (log *LogWrapper) Trace(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Trace(reqContext, msg, args...)
+	log.Trace(reqContext, msg, args...)
 }
 func (log *LogWrapper) Debug(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Debug(reqContext, msg, args...)
+	log.Debug(reqContext, msg, args...)
 }
 func (log *LogWrapper) Info(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Info(reqContext, msg, args...)
+	log.Info(reqContext, msg, args...)
 }
 func (log *LogWrapper) Warn(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Warn(reqContext, msg, args...)
+	log.Warn(reqContext, msg, args...)
 }
 func (log *LogWrapper) Error(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Error(reqContext, msg, args...)
+	log.Error(reqContext, msg, args...)
 }
 func (log *LogWrapper) Fatal(reqContext core.Context, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, msg, args...)

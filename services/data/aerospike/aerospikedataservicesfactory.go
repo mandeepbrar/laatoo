@@ -53,7 +53,7 @@ func (mf *aerospikeDataServicesFactory) Initialize(ctx core.ServerContext, conf 
 		return nil, err
 	}
 	aerospikeSvc.deleteRefOpers = deleteOps
-	log.Logger.Debug(ctx, LOGGING_CONTEXT, "Aerospike service configured for objects ", "Objects", aerospikeSvc.objects)*/
+	log.Debug(ctx, LOGGING_CONTEXT, "Aerospike service configured for objects ", "Objects", aerospikeSvc.objects)*/
 	mf.connection = sess
 	mf.database = database
 	return nil

@@ -13,7 +13,7 @@ func hasPermission(ctx core.RequestContext, perm string, rolePermissions map[str
 	}
 	/*bypass, ok := ctx.Get(CONF_SERVICE_AUTHBYPASS)
 	if ok && bypass.(bool) {
-		log.Logger.Trace(ctx, "Bypassed permission", "perm", perm, "bypass", bypass)
+		log.Trace(ctx, "Bypassed permission", "perm", perm, "bypass", bypass)
 		return true
 	}*/
 	if ctx.IsAdmin() {
@@ -21,7 +21,7 @@ func hasPermission(ctx core.RequestContext, perm string, rolePermissions map[str
 	}
 	usr := ctx.GetUser().(auth.RbacUser)
 	roles, _ := usr.GetRoles()
-	log.Logger.Trace(ctx, "Checking roles for permission", "perm", perm, "roles", roles)
+	log.Trace(ctx, "Checking roles for permission", "perm", perm, "roles", roles)
 	for _, role := range roles {
 		key := fmt.Sprintf("%s#%s", role, perm)
 		val, ok := rolePermissions[key]

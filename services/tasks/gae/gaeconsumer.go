@@ -92,14 +92,14 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 	t := &components.Task{}
 	err := json.Unmarshal(bytes, t)
 	if err != nil {
-		log.Logger.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
+		log.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
 		return err
 	} else {
 		return svc.taskManager.ProcessTask(ctx, t)
 
 		/*
 			req := ctx.SubContext("Gae background task " + t.Queue)
-			log.Logger.Debug(req, "Received job ")
+			log.Debug(req, "Received job ")
 			req.SetRequest(t.Data)
 			req.Set(svc.authHeader, t.Token)
 			svc.shandler.AuthenticateRequest(req)
@@ -108,14 +108,14 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 			if ok {
 				err := q.lstnr.Invoke(req)
 				if err != nil {
-					log.Logger.Error(req, "Error in background process", "err", err)
+					log.Error(req, "Error in background process", "err", err)
 					return err
 				}
 			}*/
 	}
 	//ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, nil, nil))
 	/*} else {
-		log.Logger.Error(ctx, "Non gae requests to background processor")
+		log.Error(ctx, "Non gae requests to background processor")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 	}*/
 	return nil

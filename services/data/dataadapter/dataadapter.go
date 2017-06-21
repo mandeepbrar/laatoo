@@ -124,7 +124,7 @@ func newDataAdapterService(ctx core.ServerContext, name string, method string, f
 	}
 	//cache, _ := conf.GetBool(CONF_DATA_CACHEABLE)
 	//ds.cache = cache
-	log.Logger.Trace(ctx, "Created Data Adapter service", "Svc Name", name, "Method", method)
+	log.Trace(ctx, "Created Data Adapter service", "Svc Name", name, "Method", method)
 	return ds, nil
 }
 
@@ -206,7 +206,7 @@ func (es *dataAdapterService) GETMULTI(ctx core.RequestContext) error {
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	result, err := es.DataStore.GetMulti(ctx, ids, orderBy)
 	if err == nil {
-		log.Logger.Trace(ctx, "Returning results ", "result", result)
+		log.Trace(ctx, "Returning results ", "result", result)
 		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
 		return nil
 	} else {
@@ -226,7 +226,7 @@ func (es *dataAdapterService) JOIN(ctx core.RequestContext) error {
 		}
 		lookupids[ind] = f.String()
 	}
-	log.Logger.Trace(ctx, "JOIN: Looking up ids", "ids", lookupids)
+	log.Trace(ctx, "JOIN: Looking up ids", "ids", lookupids)
 	result, err := es.DataStore.GetMultiHash(ctx, lookupids)
 	if err == nil {
 		for i, id := range lookupids {
@@ -258,7 +258,7 @@ func (es *dataAdapterService) GETMULTI_SELECTIDS(ctx core.RequestContext) error 
 		}
 		lookupids[ind] = f.String()
 	}
-	log.Logger.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", lookupids)
+	log.Trace(ctx, "GETMULTI_SELECTIDS: Looking up ids", "ids", lookupids)
 	hashmap, _ := ctx.GetBool("hashmap")
 	var result interface{}
 	if hashmap {
@@ -286,7 +286,7 @@ func (es *dataAdapterService) selectMethod(ctx core.RequestContext, datastore da
 
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap = *body
-	log.Logger.Trace(ctx, "select", "argsMap", argsMap, "pagesize", pagesize, "pagenum", pagenum)
+	log.Trace(ctx, "select", "argsMap", argsMap, "pagesize", pagesize, "pagenum", pagenum)
 	orderBy, _ := ctx.GetString(CONF_FIELD_ORDERBY)
 	condition, err := datastore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
@@ -408,7 +408,7 @@ func (es *dataAdapterService) UPDATE_WITH_STORABLE(ctx core.RequestContext) erro
 	}
 	stor := ctx.GetRequest()
 	vals := utils.GetObjectFields(stor, es.updateFields)
-	log.Logger.Debug(ctx, "Coverted storable to fields", "field map", vals, "fields", es.updateFields, "stor", stor)
+	log.Debug(ctx, "Coverted storable to fields", "field map", vals, "fields", es.updateFields, "stor", stor)
 	return es.update(ctx, id, vals)
 }
 
@@ -434,7 +434,7 @@ func (es *dataAdapterService) update(ctx core.RequestContext, id string, vals ma
 func (es *dataAdapterService) PUTMULTIPLE(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUTMULTIPLE")
 	arr := ctx.GetRequest()
-	log.Logger.Trace(ctx, "Collection ", "arr", arr)
+	log.Trace(ctx, "Collection ", "arr", arr)
 	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
 		return err
@@ -452,14 +452,14 @@ func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
 	vals := *body
 	ids, ok := vals["ids"]
 	if !ok {
-		log.Logger.Error(ctx, "Missing argument", "Name", "ids")
+		log.Error(ctx, "Missing argument", "Name", "ids")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}
-	log.Logger.Info(ctx, "Value of ids", "IDs", ids, "Type", reflect.TypeOf(ids))
+	log.Info(ctx, "Value of ids", "IDs", ids, "Type", reflect.TypeOf(ids))
 	idsArr, ok := ids.([]interface{})
 	if !ok {
-		log.Logger.Error(ctx, "Bad argument", "Name", "ids")
+		log.Error(ctx, "Bad argument", "Name", "ids")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}
@@ -467,20 +467,20 @@ func (es *dataAdapterService) UPDATEMULTIPLE(ctx core.RequestContext) error {
 	for i, val := range idsArr {
 		stringIds[i], ok = val.(string)
 		if !ok {
-			log.Logger.Error(ctx, "Bad argument")
+			log.Error(ctx, "Bad argument")
 			ctx.SetResponse(core.StatusBadRequestResponse)
 			return nil
 		}
 	}
 	data, ok := vals["data"]
 	if !ok {
-		log.Logger.Error(ctx, "Missing argument", "Name", "data")
+		log.Error(ctx, "Missing argument", "Name", "data")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}
 	updatesMap, ok := data.(map[string]interface{})
 	if !ok {
-		log.Logger.Error(ctx, "Bad argument", "Name", "data")
+		log.Error(ctx, "Bad argument", "Name", "data")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}

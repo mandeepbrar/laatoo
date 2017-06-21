@@ -29,7 +29,7 @@ func (env *Environment) loadRolePermissions(ctx *Context) error {
 		if err != nil {
 			return errors.WrapError(err)
 		}
-		log.Logger.Trace(ctx, "core.env.remoteroles", "Got Response for api key", "Response", resp.StatusCode)
+		log.Trace(ctx, "core.env.remoteroles", "Got Response for api key", "Response", resp.StatusCode)
 		if resp.StatusCode != 200 {
 			//if the remote system did not allow auth
 			return errors.ThrowError(ctx, AUTH_APISEC_NOTALLOWED)
@@ -37,7 +37,7 @@ func (env *Environment) loadRolePermissions(ctx *Context) error {
 
 			//get token from remote system
 			token := resp.Header.Get(env.AuthHeader)
-			log.Logger.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
+			log.Trace(ctx, "core.env.remoteroles", "Auth token for api key", "Token", token)
 
 			//get the url for remote system
 			rolesurl := env.Config.GetString(CONF_ROLES_API)
@@ -56,14 +56,14 @@ func (env *Environment) loadRolePermissions(ctx *Context) error {
 				return errors.WrapError(err)
 			}
 			body, err := ioutil.ReadAll(res.Body)
-			log.Logger.Trace(ctx, "core.app.remoteroles", "result for roles query", "body", body)
+			log.Trace(ctx, "core.app.remoteroles", "result for roles query", "body", body)
 			err = json.Unmarshal(body, &roles)
 
-			log.Logger.Trace(ctx, "core.app.remoteroles", "result for roles query", "err", err)
+			log.Trace(ctx, "core.app.remoteroles", "result for roles query", "err", err)
 			if err != nil {
 				return errors.WrapError(err)
 			}
-			log.Logger.Trace(ctx, "core.app.remoteroles", "result for roles query", "Status code", resp.StatusCode)
+			log.Trace(ctx, "core.app.remoteroles", "result for roles query", "Status code", resp.StatusCode)
 			//get the response
 			if resp.StatusCode != 200 {
 				return errors.ThrowError(ctx, CORE_ROLESAPI_NOT_FOUND)

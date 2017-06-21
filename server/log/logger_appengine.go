@@ -3,16 +3,18 @@
 package log
 
 import (
-	glog "google.golang.org/appengine/log"
 	"laatoo/sdk/core"
+	slog "laatoo/sdk/log"
 	stdlog "log"
+
+	glog "google.golang.org/appengine/log"
 )
 
-func NewLogger() LoggerInterface {
-	return &LogWrapper{logger: NewSimpleLogger(gaeSimpleLogsHandler()), level: TRACE}
+func NewGaeLogger(appname string) slog.LoggerInterface {
+	return NewSimpleLogger(appname, gaeSimpleLogsHandler())
 }
 
-func gaeSimpleLogsHandler() SimpleWriteHandler {
+func gaeSimpleLogsHandler() WriteHandler {
 	wh := &gaeSimpleWriteHandler{}
 	return wh
 }
@@ -25,13 +27,13 @@ func (jh *gaeSimpleWriteHandler) Print(ctx core.Context, app string, msg string,
 		appengineContext := ctx.GetAppengineContext()
 		if appengineContext != nil {
 			switch level {
-			case TRACE:
+			case slog.TRACE:
 				glog.Debugf(appengineContext, msg)
-			case DEBUG:
+			case slog.DEBUG:
 				glog.Debugf(appengineContext, msg)
-			case INFO:
+			case slog.INFO:
 				glog.Infof(appengineContext, msg)
-			case WARN:
+			case slog.WARN:
 				glog.Warningf(appengineContext, msg)
 			default:
 				glog.Errorf(appengineContext, msg)
@@ -65,19 +67,19 @@ type StandaloneLogger struct {
 }
 
 func (log *StandaloneLogger) Trace(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Trace(reqContext, msg, args...)
+	log.Trace(reqContext, msg, args...)
 }
 func (log *StandaloneLogger) Debug(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Debug(reqContext, msg, args...)
+	log.Debug(reqContext, msg, args...)
 }
 func (log *StandaloneLogger) Info(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Info(reqContext, msg, args...)
+	log.Info(reqContext, msg, args...)
 }
 func (log *StandaloneLogger) Warn(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Warn(reqContext, msg, args...)
+	log.Warn(reqContext, msg, args...)
 }
 func (log *StandaloneLogger) Error(reqContext core.Context, msg string, args ...interface{}) {
-	log.logger.Error(reqContext, msg, args...)
+	log.Error(reqContext, msg, args...)
 }
 func (log *StandaloneLogger) Fatal(reqContext core.Context, msg string, args ...interface{}) {
 	log.logger.Fatal(reqContext, msg, args...)

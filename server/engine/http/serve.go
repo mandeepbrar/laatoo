@@ -137,7 +137,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 			}
 		}
 	}
-	log.Logger.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
+	log.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
 
 	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, otype, dataObjectName, isdataObject,
 		isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers, allowedQueryParams)

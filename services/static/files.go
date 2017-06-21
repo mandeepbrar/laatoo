@@ -73,7 +73,7 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 			if ok {
 				file.info[core.ContentEncoding] = encoding
 			}
-			log.Logger.Trace(ctx, "Reading file", "file", file)
+			log.Trace(ctx, "Reading file", "file", file)
 			fs.filesMap[filename] = file
 		}
 	}
@@ -82,12 +82,12 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 
 func (fs *FileService) Invoke(ctx core.RequestContext) error {
 	filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
-	log.Logger.Trace(ctx, "Providing file", "filename", filename)
+	log.Trace(ctx, "Providing file", "filename", filename)
 	if ok {
 		file, ok := fs.filesMap[filename]
 		if ok {
 			lastModTimeStr, ok := ctx.GetString(core.LastModified)
-			log.Logger.Trace(ctx, "got header", "lastModTimeStr", lastModTimeStr)
+			log.Trace(ctx, "got header", "lastModTimeStr", lastModTimeStr)
 			if ok {
 				lastModTime, err := time.Parse(http.TimeFormat, lastModTimeStr)
 				if err == nil {

@@ -40,7 +40,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 	}
 
 	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
-	log.Logger.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
+	log.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
 	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
 	if err != nil {
 		return errors.WrapError(tskmgrInitializeCtx, err)
@@ -91,9 +91,9 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	tskmgrStartCtx := tskMgr.createContext(ctx, "Start task manager")
-	log.Logger.Trace(tskmgrStartCtx, "Start Task Manager queues")
+	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
 	for queueName, svcName := range tskMgr.taskProducers {
-		log.Logger.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
+		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
 		tqSvc, err := tskmgrStartCtx.GetService(svcName)
 		if err != nil {
 			return errors.WrapError(tskmgrStartCtx, err)
@@ -106,7 +106,7 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	}
 
 	for queueName, receiverName := range tskMgr.taskReceiverNames {
-		log.Logger.Trace(tskmgrStartCtx, "Starting task consumer ", "queue", queueName)
+		log.Trace(tskmgrStartCtx, "Starting task consumer ", "queue", queueName)
 		receiverSvc, err := tskmgrStartCtx.GetService(receiverName)
 		if err != nil {
 			return errors.WrapError(tskmgrStartCtx, err)
@@ -136,7 +136,7 @@ func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskD
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Missing Queue", queue)
 	}
-	log.Logger.Trace(ctx, "Pushing task to queue", "queue", queue)
+	log.Trace(ctx, "Pushing task to queue", "queue", queue)
 	token, _ := ctx.GetString(tskMgr.authHeader)
 	data, err := json.Marshal(taskData)
 	if err != nil {
@@ -149,7 +149,7 @@ func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskD
 func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Task) error {
 	/*
 		req := ctx.SubContext("Gae background task " + t.Queue)
-		log.Logger.Debug(req, "Received job ")
+		log.Debug(req, "Received job ")
 		req.SetRequest(t.Data)
 		req.Set(svc.authHeader, t.Token)
 		svc.shandler.AuthenticateRequest(req)
@@ -158,7 +158,7 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		if ok {
 			err := q.lstnr.Invoke(req)
 			if err != nil {
-				log.Logger.Error(req, "Error in background process", "err", err)
+				log.Error(req, "Error in background process", "err", err)
 				return err
 			}
 		}*/
@@ -168,7 +168,7 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		ctx.SetRequest(t.Data)
 		ctx.Set(tskMgr.authHeader, t.Token)
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
-		log.Logger.Trace(ctx, "Processing background task")
+		log.Trace(ctx, "Processing background task")
 		return processor.Invoke(ctx)
 	}
 	return nil

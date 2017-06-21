@@ -74,7 +74,7 @@ func (ds *transformerService) Invoke(ctx core.RequestContext) error {
 	if ds.splitParams {
 		body := ctx.GetRequest().(*map[string]interface{})
 		argsMap = *body
-		log.Logger.Trace(ctx, "Transformer Service. Split Params", "argsMap", argsMap)
+		log.Trace(ctx, "Transformer Service. Split Params", "argsMap", argsMap)
 	}
 	retval := make(map[string]*core.ServiceResponse, len(ds.serviceMap))
 	for svcName, svc := range ds.serviceMap {
@@ -82,7 +82,7 @@ func (ds *transformerService) Invoke(ctx core.RequestContext) error {
 		if ds.splitParams {
 			v := argsMap[svcName]
 			sArg := v.(map[string]interface{})
-			log.Logger.Trace(reqctx, "Service ", "Name", svcName, "Args", sArg)
+			log.Trace(reqctx, "Service ", "Name", svcName, "Args", sArg)
 			reqbody, ok := sArg["Body"]
 			if ok {
 				reqmap, ok := reqbody.(map[string]interface{})

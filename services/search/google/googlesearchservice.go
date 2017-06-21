@@ -86,7 +86,7 @@ func (gs *GoogleSearchService) UpdateIndex(ctx core.RequestContext, id string, s
 		return errors.WrapError(ctx, err)
 	}
 	utils.SetObjectFields(bs, u)
-	log.Logger.Info(ctx, "Creating index ***********", "bs", bs, "u", u)
+	log.Info(ctx, "Creating index ***********", "bs", bs, "u", u)
 	_, err = index.Put(appengineCtx, id, bs)
 	if err != nil {
 		return errors.WrapError(ctx, err)

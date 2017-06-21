@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"laatoo/sdk/core"
+	slog "laatoo/sdk/log"
 	"strings"
 	"time"
 
@@ -13,19 +14,19 @@ import (
 )
 
 func init() {
-	logFormats["happycolor"] = printHappyColor
-	logFormats["happymaxcolor"] = printHappyMaxColor
+	logFormats[CONF_FMT_HAPPYCOLOR] = printHappyColor
+	logFormats[CONF_FMT_HAPPYMAXCOLOR] = printHappyMaxColor
 }
 
-func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
 	var buffer bytes.Buffer
 	firstline := ""
-	if level <= ERROR {
+	if level <= slog.ERROR {
 		firstline = color.RedString("%s: %s", strings.ToUpper(strlevel), msg)
-	} else if level == INFO {
+	} else if level == slog.INFO {
 		firstline = color.BlueString("%s: %s", strings.ToUpper(strlevel), msg)
 	} else {
 		firstline = color.GreenString("%s: %s", strings.ToUpper(strlevel), msg)
@@ -50,15 +51,16 @@ func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh Simple
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappyColor(ctx core.Context, app string, strlevel string, wh SimpleWriteHandler, level int, msg string, args ...interface{}) {
+
+func printHappyColor(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
 	var buffer bytes.Buffer
 	firstline := ""
-	if level <= ERROR {
+	if level <= slog.ERROR {
 		firstline = color.RedString("%s: %s", strings.ToUpper(strlevel), msg)
-	} else if level == INFO {
+	} else if level == slog.INFO {
 		firstline = color.BlueString("%s: %s", strings.ToUpper(strlevel), msg)
 	} else {
 		firstline = color.GreenString("%s: %s", strings.ToUpper(strlevel), msg)

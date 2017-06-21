@@ -187,7 +187,7 @@ func (svc *SecurityService) Initialize(ctx core.Context) error {
 		if !ok {
 			return errors.ThrowError(ctx, AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 		}
-		log.Logger.Debug(ctx, LOGGING_CONTEXT, "User storer set for authenticaion")
+		log.Debug(ctx, LOGGING_CONTEXT, "User storer set for authenticaion")
 		//get and set the data service for accessing users
 		svc.UserDataService = userDataService
 
@@ -205,7 +205,7 @@ func (svc *SecurityService) Serve(ctx core.Context) error {
 		userId := seedUserConf[CONF_SECURITYSERVICE_SEEDUSER_ID].(string)
 		user, _ := svc.UserDataService.GetById(ctx, svc.UserObject, userId)
 		if user == nil {
-			log.Logger.Info(ctx, LOGGING_CONTEXT, "Creating seed user", "ID", userId)
+			log.Info(ctx, LOGGING_CONTEXT, "Creating seed user", "ID", userId)
 			suserInt, err := laatoocore.CreateEmptyObject(ctx, svc.UserObject)
 			sUser := suserInt.(auth.RbacUser)
 			sLocalUser := suserInt.(auth.LocalAuthUser)

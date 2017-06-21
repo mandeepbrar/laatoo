@@ -18,7 +18,7 @@ type channelManager struct {
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	chanmgrInitializeCtx := chanMgr.createContext(ctx, "Initialize channel manager")
-	log.Logger.Trace(chanmgrInitializeCtx, "Create Channels")
+	log.Trace(chanmgrInitializeCtx, "Create Channels")
 	err := chanMgr.createChannels(chanmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -74,8 +74,8 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 			return errors.WrapError(createCtx, err)
 		}
 	}
-	//log.Logger.Trace(ctx, "Creating channel", "Name:", channelName)
-	log.Logger.Info(createCtx, "Created channel", "Name:", channelName)
+	//log.Trace(ctx, "Creating channel", "Name:", channelName)
+	log.Info(createCtx, "Created channel", "Name:", channelName)
 	return nil
 }
 

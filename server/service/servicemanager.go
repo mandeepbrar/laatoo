@@ -50,13 +50,13 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 	chanMgr := ctx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
 	for svcname, svcStruct := range svcMgr.servicesStore {
 		if svcStruct.owner == svcMgr {
-			log.Logger.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
+			log.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
 			svcStartCtx := svcmgrStartCtx.NewContextWithElements("Start "+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 			err := svcStruct.start(svcStartCtx)
 			if err != nil {
 				return errors.WrapError(svcStartCtx, err)
 			}
-			log.Logger.Info(svcmgrStartCtx, "Started service ", "name", svcname)
+			log.Info(svcmgrStartCtx, "Started service ", "name", svcname)
 		}
 	}
 
@@ -78,7 +78,7 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 							return errors.WrapError(svcServeCtx, err)
 						}
 					}
-					log.Logger.Info(svcmgrStartCtx, "Serving service ", "name", svcname, "channel", channelName)
+					log.Info(svcmgrStartCtx, "Serving service ", "name", svcname, "channel", channelName)
 				}
 			}
 		}
@@ -93,7 +93,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 	if ok {
 		groups := allgroups.AllConfigurations()
 		for _, groupname := range groups {
-			log.Logger.Debug(ctx, "Process Service group", "groupname", groupname)
+			log.Debug(ctx, "Process Service group", "groupname", groupname)
 			svcgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
 			if err != nil {
 				return errors.WrapError(ctx, err)
@@ -133,7 +133,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 			} else {
 			services[svcAlias] = svc
 			}*/
-			log.Logger.Debug(ctx, "Registered service", "service name", svcAlias)
+			log.Debug(ctx, "Registered service", "service name", svcAlias)
 		}
 	}
 	return nil
@@ -188,12 +188,12 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
 		svcStruct.Set("__cache", cacheToUse)
-		log.Logger.Error(ctx, "Setting cache for service ", "cacheToUse", cacheToUse)
+		log.Error(ctx, "Setting cache for service ", "cacheToUse", cacheToUse)
 	}
 
 	//pass a server context to service with element set to service
 	svcCreationCtx := ctx.NewContextWithElements("Create"+serviceAlias, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: facElem}, core.ServerElementService)
-	log.Logger.Trace(ctx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
+	log.Trace(ctx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
 	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
 		return errors.WrapError(svcCreationCtx, err)
@@ -216,10 +216,10 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 	for svcname, svcStruct := range svcMgr.servicesStore {
 		if svcStruct.owner == svcMgr {
-			log.Logger.Debug(ctx, "Initializing service", "service name", svcname)
+			log.Debug(ctx, "Initializing service", "service name", svcname)
 			svcInitializeCtx := ctx.NewContextWithElements("Initialize"+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
 			svc := svcStruct.service
-			log.Logger.Trace(ctx, "Initializing service", "conf", svcStruct.conf)
+			log.Trace(ctx, "Initializing service", "conf", svcStruct.conf)
 			err := svc.Initialize(svcInitializeCtx, svcStruct.conf)
 			if err != nil {
 				return errors.WrapError(svcInitializeCtx, err)

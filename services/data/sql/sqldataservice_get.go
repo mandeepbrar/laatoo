@@ -14,7 +14,7 @@ import (
 
 func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
-	log.Logger.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
+	log.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
 	object := svc.ObjectCreator()
 
@@ -73,7 +73,7 @@ func (svc *sqlDataService) postArrayGet(ctx core.RequestContext, results interfa
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Processing results in postArrayGet ", "number", len(resultStor))
+	log.Trace(ctx, "Processing results in postArrayGet ", "number", len(resultStor))
 	for _, stor := range resultStor {
 		svc.postLoad(ctx, stor)
 	}
@@ -105,7 +105,7 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Logger.Trace(ctx, "Got multiple objects by Ids", "len Ids", lenids, "collection", svc.collection)
+	log.Trace(ctx, "Got multiple objects by Ids", "len Ids", lenids, "collection", svc.collection)
 	return results, nil
 }
 
@@ -194,7 +194,7 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if recsreturned > totalrecs {
 		totalrecs = recsreturned
 	}
-	log.Logger.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
+	log.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", svc.Object, "recsreturned", recsreturned)
 	return resultStor, ids, totalrecs, recsreturned, nil
 }
 
