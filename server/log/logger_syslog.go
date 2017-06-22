@@ -4,14 +4,14 @@ package log
 
 import (
 	"io"
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
-	slog "laatoo/sdk/log"
 	"log/syslog"
 )
 
 var syslogWriteHandler WriteHandler
 
-func NewSysLogger(appname string) slog.Logger {
+func NewSysLogger(appname string) components.Logger {
 	if syslogWriteHandler == nil {
 		logWriter, err := syslog.Dial("", "", syslog.LOG_ERR, appname)
 		if err != nil {

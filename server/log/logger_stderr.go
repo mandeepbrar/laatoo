@@ -3,14 +3,14 @@
 package log
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
-	slog "laatoo/sdk/log"
 	"os"
 )
 
 var stderrWriteHandler WriteHandler
 
-func NewStdLogger(appname string) slog.Logger {
+func NewStdLogger(appname string) components.Logger {
 	if stderrWriteHandler == nil {
 		stderrWriteHandler = stdSimpleLogsHandler()
 	}

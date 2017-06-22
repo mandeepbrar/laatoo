@@ -5,7 +5,6 @@ import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
-	"laatoo/sdk/server"
 	"laatoo/server/common"
 )
 
@@ -33,7 +32,7 @@ type requestContext struct {
 	//if the request is a subrequest, times are not reported and variables are not cleared
 	subRequest bool
 
-	logger server.Logger
+	logger components.Logger
 }
 
 // context of the engine that received a request

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	slog "laatoo/sdk/log"
@@ -26,31 +27,36 @@ const (
 type logger struct {
 	parent         core.ServerElement
 	proxy          server.Logger
-	loggerInstance slog.Logger
+	loggerInstance components.Logger
 	name           string
 }
 
 func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error {
 	logconf, ok := conf.GetSubConfig(constants.CONF_LOGGING)
 	if ok {
-		loggerType := CONF_STDERR_LOGGER
-		loggingFormat := CONF_FMT_JSON
-		loggingLevel := slog.INFO
-		val, ok := logconf.GetString(CONF_LOGGER_TYPE)
-		if ok {
-			loggerType = val
-		}
-		val, ok = logconf.GetString(CONF_LOGGING_FORMAT)
-		if ok {
-			loggingFormat = val
-		}
-		lLevel, ok := logconf.GetString(CONF_LOGGINGLEVEL)
-		if ok {
-			loggingLevel = GetLevel(lLevel)
-		}
+		loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
 		lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
 	}
 	return nil
+}
+
+func processConf(ctx core.ServerContext, logconf config.Config) (string, string, int) {
+	loggerType := CONF_STDERR_LOGGER
+	loggingFormat := CONF_FMT_JSON
+	loggingLevel := slog.INFO
+	val, ok := logconf.GetString(CONF_LOGGER_TYPE)
+	if ok {
+		loggerType = val
+	}
+	val, ok = logconf.GetString(CONF_LOGGING_FORMAT)
+	if ok {
+		loggingFormat = val
+	}
+	lLevel, ok := logconf.GetString(CONF_LOGGINGLEVEL)
+	if ok {
+		loggingLevel = GetLevel(lLevel)
+	}
+	return loggerType, loggingFormat, loggingLevel
 }
 
 func (lgr *logger) Start(ctx core.ServerContext) error {

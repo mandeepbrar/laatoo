@@ -1,6 +1,7 @@
 package log
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	slog "laatoo/sdk/log"
 )
@@ -25,7 +26,7 @@ var (
 	logFormats = make(map[string]logPrinter, 6)
 )
 
-func NewSimpleLogger(appname string, wh WriteHandler) slog.Logger {
+func NewSimpleLogger(appname string, wh WriteHandler) components.Logger {
 	logger := &SimpleLogger{format: "json", level: slog.INFO, wh: wh, app: "Laatoo"}
 	logger.printer = printJSON
 	return logger

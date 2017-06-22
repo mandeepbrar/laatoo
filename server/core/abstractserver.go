@@ -153,6 +153,49 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Trace(objinit, "Initialized object loader")
 
+	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
+	if ok {
+		parentMw, ok := as.proxy.GetStringArray(constants.CONF_MIDDLEWARE)
+		if ok {
+			middleware = append(parentMw, middleware...)
+		}
+		as.proxy.Set(constants.CONF_MIDDLEWARE, middleware)
+	}
+
+	facinit := ctx.SubContext("Initialize factory manager")
+	err = initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
+	if err != nil {
+		return err
+	}
+	log.Trace(facinit, "Initialized factory manager")
+
+	svcinit := ctx.SubContext("Initialize service manager")
+	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
+	if err != nil {
+		return err
+	}
+	log.Trace(svcinit, "Initialized service manager")
+
+	var parentCacheMgr server.CacheManager
+	if as.parent != nil {
+		parentCacheMgr = as.parent.cacheManager
+	}
+	cacheMgrHandle, cacheMgr, err := createCacheManager(ctx, as.name, conf, parentCacheMgr, as.proxy)
+	if err != nil {
+		return err
+	}
+	if cacheMgr == nil {
+		as.cacheManager = parentCacheMgr
+	} else {
+		as.cacheManager = cacheMgr
+		as.cacheManagerHandle = cacheMgrHandle
+	}
+	ctx.cacheManager = as.cacheManager
+	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
+	if ok {
+		as.proxy.Set("__cache", cacheToUse)
+	}
+
 	enginit := ctx.SubContext("Initialize engines")
 	err = as.initializeEngines(enginit, conf)
 	if err != nil {
@@ -165,16 +208,8 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	if err != nil {
 		return errors.WrapError(chaninit, err)
 	}
+	ctx.channelManager = as.channelMgr
 	log.Debug(chaninit, "Initialized channel manager")
-
-	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
-	if ok {
-		parentMw, ok := as.proxy.GetStringArray(constants.CONF_MIDDLEWARE)
-		if ok {
-			middleware = append(parentMw, middleware...)
-		}
-		as.proxy.Set(constants.CONF_MIDDLEWARE, middleware)
-	}
 
 	msgCreate := ctx.SubContext("Create messaging manager")
 	msgHandle, msgElem, err := createMessagingManager(msgCreate, as.name, conf, as.proxy, as.parent)
@@ -197,40 +232,6 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		}
 	}
 	ctx.taskManager = as.taskManager
-
-	var parentCacheMgr server.CacheManager
-	if as.parent != nil {
-		parentCacheMgr = as.parent.cacheManager
-	}
-	cacheMgrHandle, cacheMgr, err := createCacheManager(ctx, as.name, conf, parentCacheMgr, as.proxy)
-	if err != nil {
-		return err
-	}
-	if cacheMgr == nil {
-		as.cacheManager = parentCacheMgr
-	} else {
-		as.cacheManager = cacheMgr
-		as.cacheManagerHandle = cacheMgrHandle
-	}
-	ctx.cacheManager = as.cacheManager
-	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
-	if ok {
-		as.proxy.Set("__cache", cacheToUse)
-	}
-
-	facinit := ctx.SubContext("Initialize factory manager")
-	err = initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
-	if err != nil {
-		return err
-	}
-	log.Trace(facinit, "Initialized factory manager")
-
-	svcinit := ctx.SubContext("Initialize service manager")
-	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
-	if err != nil {
-		return err
-	}
-	log.Trace(svcinit, "Initialized service manager")
 
 	rulesMgrHandle, rulesMgr, err := createRulesManager(ctx, as.name, conf, as.proxy)
 	if err != nil {

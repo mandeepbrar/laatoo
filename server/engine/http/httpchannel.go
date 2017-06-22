@@ -4,10 +4,12 @@ import (
 	//	jwt "github.com/dgrijalva/jwt-go"
 	//	"laatoosdk/auth"
 	"fmt"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http/net"
 	"net/http"
@@ -42,6 +44,7 @@ type httpChannel struct {
 	engine         *httpEngine
 	allowedQParams []string
 	skipAuth       bool
+	cacheManager   server.CacheManager
 }
 
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
@@ -64,7 +67,9 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		skipAuth = parentChannel.skipAuth
 	}
 
-	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
+	val := ctx.GetServerElement(core.ServerElementCacheManager)
+
+	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth, cacheManager: val.(server.CacheManager)}
 
 	allowedQParams, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
@@ -158,7 +163,7 @@ func (channel *httpChannel) group(ctx core.ServerContext, name string, conf conf
 	return newHttpChannel(ctx, name, conf, channel.engine, channel)
 }
 
-func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName string, handler core.ServiceFunc) net.HandlerFunc {
+func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName string, handler core.ServiceFunc, svc server.Service) net.HandlerFunc {
 	var shandler server.SecurityHandler
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	authtoken := ""
@@ -166,6 +171,15 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		shandler = sh.(server.SecurityHandler)
 		authtoken, _ = sh.GetString(config.AUTHHEADER)
 	}
+
+	var cache components.CacheComponent
+	cacheToUse, ok := svc.GetString("__cache")
+	if ok {
+		if channel.cacheManager != nil {
+			cache = channel.cacheManager.GetCache(ctx, cacheToUse)
+		}
+	}
+
 	processRequest := func(reqctx core.RequestContext) error {
 		if (!channel.skipAuth) && (shandler != nil) {
 			_, err := shandler.AuthenticateRequest(reqctx, false)
@@ -178,9 +192,15 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		}
 		return handler(reqctx)
 	}
+
 	return func(pathCtx net.WebContext) error {
 		result := make(chan error)
-		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
+		rparams := &common.RequestContextParams{EngineContext: pathCtx, Cache: cache}
+		logger, ok := svc.Get("__logger")
+		if ok {
+			rparams.Logger = logger.(components.Logger)
+		}
+		corectx := ctx.CreateNewRequest(serviceName, rparams)
 		req := pathCtx.GetRequest()
 		corectx.SetGaeReq(req)
 		corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
@@ -198,33 +218,33 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	}
 }
 
-func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
+func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler))
+	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler, svc))
 }
 
-func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
+func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
-	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler))
+	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler, svc))
 }
 
-func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
+func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler))
+	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler, svc))
 }
 
-func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
+func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler))
+	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler, svc))
 }
 
-func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc) {
+func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler))
+	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler, svc))
 }
 
-func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler core.ServiceFunc) {
-	channel.Router.Use(channel.httpAdapter(ctx, middlewareName, handler))
+func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler core.ServiceFunc, svc server.Service) {
+	channel.Router.Use(channel.httpAdapter(ctx, middlewareName, handler, svc))
 }
 
 func (channel *httpChannel) useMW(ctx core.ServerContext, handler func(http.Handler) http.Handler) {

@@ -309,20 +309,24 @@ func (ctx *serverContext) newContextWithElements(name string, elements core.Cont
 }
 
 //creates a new request with engine context
-func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) core.RequestContext {
+func (ctx *serverContext) CreateNewRequest(name string, params interface{}) core.RequestContext {
+
+	rparams := params.(*common.RequestContextParams)
 	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.service == nil {
 		return nil
 	}
-	reqCtx := ctx.createNewRequest(name, engineCtx, ctx.service)
-	cacheToUse, ok := ctx.service.GetString("__cache")
-	if ok {
-		if ctx.cacheManager != nil {
-			cache := ctx.cacheManager.GetCache(ctx, cacheToUse)
-			reqCtx.cache = cache
-		}
+	reqCtx := ctx.createNewRequest(name, rparams.EngineContext, ctx.service)
+
+	if rparams.Logger != nil {
+		reqCtx.logger = rparams.Logger
 	}
+
+	if rparams.Cache != nil {
+		reqCtx.cache = rparams.Cache
+	}
+
 	return reqCtx
 }
 
