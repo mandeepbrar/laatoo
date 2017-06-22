@@ -4,9 +4,13 @@ import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
 	slog "laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/sdk/utils"
+	"laatoo/server/common"
 	"laatoo/server/constants"
+	"path"
 )
 
 const (
@@ -36,6 +40,18 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 	if ok {
 		loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
 		lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
+	} else {
+		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		confFile := path.Join(baseDir, constants.CONF_LOGGING, constants.CONF_CONFIG_FILE)
+		ok, _, _ = utils.FileExists(confFile)
+		var err error
+		if ok {
+			if logconf, err = common.NewConfigFromFile(confFile); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
+			lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
+		}
 	}
 	return nil
 }
