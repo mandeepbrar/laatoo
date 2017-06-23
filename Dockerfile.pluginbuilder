@@ -1,0 +1,15 @@
+FROM laatoobase:latest
+
+RUN mkdir -p /go/src/laatoo
+
+COPY sdk /go/src/laatoo/sdk
+
+VOLUME /go/src/app
+
+VOLUME /dist
+
+WORKDIR /go/src/app
+
+ARG pluginname
+
+RUN go build -buildmode=plugin *.go -o /dist/$pluginname.so

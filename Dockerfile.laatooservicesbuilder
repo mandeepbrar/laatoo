@@ -1,0 +1,7 @@
+FROM laatoobase:latest
+
+VOLUME /go/src/laatoo
+
+WORKDIR /go/src/laatoo
+
+ENTRYPOINT ["./buildservices.sh"]

@@ -1,4 +1,8 @@
-FROM baselaatoo:0.1
+FROM laatoobase:latest
+
+RUN mkdir /go/src/laatoo
+
+COPY sdk /go/src/laatoo
 
 WORKDIR /go/src/laatoo
 
