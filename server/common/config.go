@@ -10,6 +10,7 @@ import (
 	"laatoo/sdk/utils"
 	"laatoo/server/constants"
 	"path"
+	"path/filepath"
 )
 
 const (
@@ -38,8 +39,10 @@ func ProcessDirectoryFiles(ctx core.ServerContext, subdir string, processor func
 		}
 		for _, info := range files {
 			if !info.IsDir() {
-				elemName := info.Name()
-				confFile := path.Join(subDir, elemName)
+				elemfileName := info.Name()
+				extension := filepath.Ext(elemfileName)
+				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
+				confFile := path.Join(subDir, elemfileName)
 				elemConf, err := NewConfigFromFile(confFile)
 				if err != nil {
 					return errors.WrapError(ctx, err)

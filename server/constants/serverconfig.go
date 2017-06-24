@@ -22,7 +22,7 @@ const (
 	CONF_APPLICATION_ENGINE = "engine"
 	CONF_APPL_APPLICATION   = "application"
 	CONF_CHANNELS           = "channels"
-	CONF_CACHE              = "cache"
+	CONF_CACHES             = "caches"
 	CONF_TASKS              = "tasks"
 	CONF_TASKS_QUEUE        = "queue"
 	CONF_TASK_PRODUCER      = "producer"

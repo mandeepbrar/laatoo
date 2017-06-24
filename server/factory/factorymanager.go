@@ -162,12 +162,13 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error {
 	for facname, facStruct := range facMgr.serviceFactoryStore {
 		if facStruct.owner == facMgr {
-			log.Debug(ctx, "Initializing factory", "factory name", facname)
 			facInitializeCtx := ctx.NewContextWithElements("Initialize "+facname, core.ContextMap{core.ServerElementServiceFactory: facStruct}, core.ServerElementServiceFactory)
+			log.Debug(facInitializeCtx, "Initializing factory", "factory name", facname)
 			err := facStruct.factory.Initialize(facInitializeCtx, facStruct.conf)
 			if err != nil {
 				return errors.WrapError(facInitializeCtx, err)
 			}
+			log.Trace(facInitializeCtx, "Initialized factory", "factory name", facname)
 		}
 	}
 	return nil

@@ -172,7 +172,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	svcinit := ctx.SubContext("Initialize service manager")
 	err = initializeServiceManager(svcinit, conf, as.serviceManagerHandle)
 	if err != nil {
-		return err
+		return errors.WrapError(svcinit, err)
 	}
 	log.Trace(svcinit, "Initialized service manager")
 
@@ -194,6 +194,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
 		as.proxy.Set("__cache", cacheToUse)
+		log.Debug(ctx, "Cache Set ", "Cache name", cacheToUse)
 	}
 
 	enginit := ctx.SubContext("Initialize engines")
@@ -404,19 +405,32 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 			}
 		}
 	}
-	if ok {
+	initializeHandler := false
+	createSecHandler := func(ctx core.ServerContext) {
 		secCtx := ctx.SubContext("Create Security Handler")
+		log.Trace(secCtx, "Creating security handler")
 		shElem, sh := newSecurityHandler(secCtx, "Security Handler:"+as.name, as.proxy)
-		secInitCtx := ctx.NewContextWithElements("Initialize Security Handler", core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
-		err := shElem.Initialize(secInitCtx, secConf)
-		if err != nil {
-			return errors.WrapError(secInitCtx, err)
-		}
 		as.securityHandlerHandle = shElem
 		as.securityHandler = sh.(server.SecurityHandler)
+		initializeHandler = true
+	}
+
+	if secConf != nil {
+		createSecHandler(ctx)
 	} else {
 		if as.parent != nil {
 			as.securityHandler = as.parent.securityHandler
+			as.securityHandlerHandle = as.parent.securityHandlerHandle
+		} else {
+			createSecHandler(ctx)
+		}
+	}
+
+	if initializeHandler {
+		secInitCtx := ctx.NewContextWithElements("Initialize Security Handler", core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler}, core.ServerElementSecurityHandler)
+		err := as.securityHandlerHandle.Initialize(secInitCtx, secConf)
+		if err != nil {
+			return errors.WrapError(secInitCtx, err)
 		}
 	}
 	return nil

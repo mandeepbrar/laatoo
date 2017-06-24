@@ -4,12 +4,20 @@ RUN mkdir -p /go/src/laatoo
 
 COPY sdk /go/src/laatoo/sdk
 
-VOLUME /go/src/app
+RUN mkdir -p /plugin/src
 
-VOLUME /dist
+RUN mkdir -p /plugin/dist
 
-WORKDIR /go/src/app
+COPY plugincompiler.sh /compile.sh
 
-ARG pluginname
+VOLUME /plugin
 
-RUN go build -buildmode=plugin *.go -o /dist/$pluginname.so
+ENV GOPATH=$GOPATH:/plugin
+
+ENV name=plugin
+
+ENV package=.
+
+WORKDIR /plugin/src
+
+ENTRYPOINT /compile.sh /plugin/bin/$name.so $package

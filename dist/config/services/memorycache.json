@@ -1,5 +1,5 @@
 {
-    "name":"server.memorycache",
+  "name":"server.memorycache",
 	"factory":"memorycache",
 	"servicemethod":"cache"
 }

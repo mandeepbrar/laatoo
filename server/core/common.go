@@ -129,13 +129,6 @@ func createTaskManager(ctx core.ServerContext, name string, conf config.Config, 
 }
 
 func createCacheManager(ctx core.ServerContext, name string, conf config.Config, parentCacheMgr core.ServerElement, parent core.ServerElement) (server.ServerElementHandle, server.CacheManager, error) {
-	cacheManagerConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_CACHE)
-	if err != nil {
-		return nil, nil, err
-	}
-	if !ok {
-		return nil, nil, nil
-	}
 	cacheMgrCreateCtx := ctx.SubContext("Create Cache Manager")
 	var cacheMgrHandle server.ServerElementHandle
 	var cacheMgr server.CacheManager
@@ -144,9 +137,13 @@ func createCacheManager(ctx core.ServerContext, name string, conf config.Config,
 	} else {
 		cacheMgrHandle, cacheMgr = cache.ChildCacheManager(cacheMgrCreateCtx, name, parent, parentCacheMgr)
 	}
-	err = cacheMgrHandle.Initialize(ctx, cacheManagerConf)
+	log.Trace(cacheMgrCreateCtx, "Cache Manager Created")
+
+	cacheMgrInitCtx := ctx.SubContext("Initialize Cache Manager")
+	err := cacheMgrHandle.Initialize(cacheMgrInitCtx, conf)
 	if err != nil {
-		return nil, nil, errors.WrapError(ctx, err)
+		return nil, nil, errors.WrapError(cacheMgrInitCtx, err)
 	}
+	log.Trace(cacheMgrInitCtx, "Cache Manager Initialized")
 	return cacheMgrHandle, cacheMgr, nil
 }

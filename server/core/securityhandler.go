@@ -32,6 +32,7 @@ type securityHandler struct {
 	securityConf  config.Config
 	publicKey     *rsa.PublicKey
 	realm         string
+	skipSecurity  bool
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
@@ -41,6 +42,11 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 }
 
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
+	if conf == nil {
+		sh.skipSecurity = true
+		conf = make(common.GenericConfig, 0)
+	}
+
 	initCtx := sh.createContext(ctx, "Initialize Security Handler")
 	sh.securityConf = conf
 
@@ -78,15 +84,17 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	sh.Set(config.USER, userObject)
 	sh.userObject = userObject
 
-	publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
-	if !ok {
-		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PUBLICKEYPATH)
+	if !sh.skipSecurity {
+		publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
+		if !ok {
+			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PUBLICKEYPATH)
+		}
+		publicKey, err := utils.LoadPublicKey(publicKeyPath)
+		if err != nil {
+			return errors.RethrowError(initCtx, errors.CORE_ERROR_BAD_CONF, err, "conf", config.CONF_PUBLICKEYPATH)
+		}
+		sh.publicKey = publicKey
 	}
-	publicKey, err := utils.LoadPublicKey(publicKeyPath)
-	if err != nil {
-		return errors.RethrowError(initCtx, errors.CORE_ERROR_BAD_CONF, err, "conf", config.CONF_PUBLICKEYPATH)
-	}
-	sh.publicKey = publicKey
 
 	authToken, ok := conf.GetString(config.AUTHHEADER)
 	if !ok {
@@ -94,12 +102,14 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.authHeader = authToken
 	sh.Set(config.AUTHHEADER, authToken)
-
 	mode, ok := conf.GetString(constants.CONF_SECURITY_MODE)
 	if !ok {
-		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_SECURITY_MODE)
+		mode = constants.CONF_SECURITY_LOCAL
 	}
 	sh.securityMode = mode
+
+	log.Trace(initCtx, "Security handler initialized")
+
 	return nil
 }
 
@@ -125,6 +135,10 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	}
 	sh.anonymousUser = anonymousUser.(auth.User)
 
+	if sh.skipSecurity {
+		return nil
+	}
+
 	switch sh.securityMode {
 	case constants.CONF_SECURITY_LOCAL:
 		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.roleCreator, sh.realm)
@@ -146,6 +160,9 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 }
 
 func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
+	if sh.skipSecurity {
+		return "", nil
+	}
 	usr, isadmin, token, err := sh.getUserFromToken(ctx, loadFresh)
 	if err != nil {
 		return token, errors.WrapError(ctx, err)
@@ -162,10 +179,16 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFres
 }
 
 func (sh *securityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
+	if sh.skipSecurity {
+		return true
+	}
 	return sh.handler.HasPermission(ctx, perm)
 }
 
 func (sh *securityHandler) AllPermissions(ctx core.RequestContext) []string {
+	if sh.skipSecurity {
+		return []string{}
+	}
 	return sh.handler.AllPermissions(ctx)
 }
 

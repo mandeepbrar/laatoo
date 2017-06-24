@@ -1,0 +1,13 @@
+FROM gcr.io/distroless/base:latest
+
+COPY dist/bin/laatoo /laatoo
+
+COPY dist/lib /lib
+
+COPY dist/config /config
+
+ENV LAATOO_CONFIGDIR /config
+
+WORKDIR /
+
+ENTRYPOINT ["/laatoo"]

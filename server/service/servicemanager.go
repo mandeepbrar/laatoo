@@ -197,8 +197,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	svcStruct.Set("__logger", logger)
 
 	//pass a server context to service with element set to service
-	svcCreationCtx := ctx.NewContextWithElements("Create"+serviceAlias, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: facElem}, core.ServerElementService)
-	log.Trace(ctx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
+	svcCreationCtx := ctx.NewContextWithElements("Create: "+serviceAlias, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: facElem}, core.ServerElementService)
+	log.Trace(svcCreationCtx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
 	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
 		return errors.WrapError(svcCreationCtx, err)
@@ -214,6 +214,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}
 	svcMgr.servicesStore[serviceAlias] = svcStruct
 
+	log.Trace(svcCreationCtx, "Created service", "service name", serviceAlias)
+
 	return nil
 }
 
@@ -221,14 +223,14 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 	for svcname, svcStruct := range svcMgr.servicesStore {
 		if svcStruct.owner == svcMgr {
-			log.Debug(ctx, "Initializing service", "service name", svcname)
-			svcInitializeCtx := ctx.NewContextWithElements("Initialize"+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
+			svcInitializeCtx := ctx.NewContextWithElements("Initialize: "+svcname, core.ContextMap{core.ServerElementService: svcStruct, core.ServerElementServiceFactory: svcStruct.factory}, core.ServerElementService)
+			log.Debug(svcInitializeCtx, "Initializing service", "service name", svcname)
 			svc := svcStruct.service
-			log.Trace(ctx, "Initializing service", "conf", svcStruct.conf)
 			err := svc.Initialize(svcInitializeCtx, svcStruct.conf)
 			if err != nil {
 				return errors.WrapError(svcInitializeCtx, err)
 			}
+			log.Trace(svcInitializeCtx, "Initialized service")
 		}
 	}
 	return nil
