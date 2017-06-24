@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/constants"
+	"os"
 	"path"
 	"path/filepath"
 )
@@ -28,22 +29,21 @@ func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName st
 	}
 }
 
-func ProcessDirectoryFiles(ctx core.ServerContext, subdir string, processor func(core.ServerContext, config.Config, string) error) error {
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-	subDir := path.Join(baseDir, subdir)
-	ok, _, _ := utils.FileExists(subDir)
-	if ok {
+func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func(core.ServerContext, config.Config, string) error) error {
+	ok, fi, _ := utils.FileExists(subDir)
+	if ok && fi.IsDir() {
 		files, err := ioutil.ReadDir(subDir)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Subdirectory", subDir)
 		}
+
 		for _, info := range files {
+			elemfileName := info.Name()
+			file := path.Join(subDir, elemfileName)
 			if !info.IsDir() {
-				elemfileName := info.Name()
 				extension := filepath.Ext(elemfileName)
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
-				confFile := path.Join(subDir, elemfileName)
-				elemConf, err := NewConfigFromFile(confFile)
+				elemConf, err := NewConfigFromFile(file)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -55,10 +55,23 @@ func ProcessDirectoryFiles(ctx core.ServerContext, subdir string, processor func
 				if err := processor(elemCtx, elemConf, elemName); err != nil {
 					return err
 				}
+			} else {
+				if (info.Mode() & os.ModeSymlink) != 0 {
+					s, err := os.Readlink(file)
+					if err == nil {
+						processDirectoryFiles(ctx, s, processor)
+					}
+				}
 			}
 		}
 	}
 	return nil
+}
+
+func ProcessDirectoryFiles(ctx core.ServerContext, dir string, processor func(core.ServerContext, config.Config, string) error) error {
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	subDir := path.Join(baseDir, dir)
+	return processDirectoryFiles(ctx, subDir, processor)
 }
 
 func FileAdapter(conf config.Config, configName string) (config.Config, error, bool) {
