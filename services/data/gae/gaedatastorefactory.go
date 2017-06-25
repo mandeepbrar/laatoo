@@ -1,7 +1,6 @@
 package main
 
 import (
-	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	//"laatoo/sdk/errors"
@@ -25,13 +24,7 @@ func (gf *gaeDataServicesFactory) Initialize(ctx core.ServerContext, conf config
 
 //Create the services configured for factory.
 func (gf *gaeDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	switch method {
-	case data.CONF_DATA_SVCS:
-		{
-			return newGaeDataService(ctx, name)
-		}
-	}
-	return nil, nil
+	return newGaeDataService(ctx, name)
 }
 
 //The services start serving when this method is called

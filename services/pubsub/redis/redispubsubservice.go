@@ -12,13 +12,15 @@ import (
 )
 
 const (
-	CONF_REDISPUBSUB_SVC        = "redis"
+	CONF_REDISPUBSUB_FACTORY    = "redispubsubfactory"
+	CONF_REDISPUBSUB_SVC        = "redispubsub"
 	CONF_REDIS_CONNECTIONSTRING = "server"
 	CONF_REDIS_DATABASE         = "db"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISPUBSUB_SVC, Object: RedisPubSubService{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISPUBSUB_SVC, Object: RedisPubSubService{}},
+		core.PluginComponent{Name: CONF_REDISPUBSUB_FACTORY, Object: core.NewFactory(func() interface{} { return &RedisPubSubService{} })}}
 }
 
 type RedisPubSubService struct {

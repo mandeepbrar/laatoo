@@ -15,7 +15,6 @@ type AppengineCacheFactory struct {
 
 const (
 	CONF_APPENGINECACHE_FACTORY = "appenginecache"
-	CONF_APPENGINECACHE_SVC     = "cache"
 )
 
 func Manifest() []core.PluginComponent {
@@ -24,10 +23,7 @@ func Manifest() []core.PluginComponent {
 
 //Create the services configured for factory.
 func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	if method == CONF_APPENGINECACHE_SVC {
-		return &AppengineCacheService{}, nil
-	}
-	return nil, nil
+	return &AppengineCacheService{}, nil
 }
 
 func (ds *AppengineCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

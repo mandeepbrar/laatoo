@@ -142,6 +142,9 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+	if !common.CheckContextCondition(ctx, conf) {
+		return nil
+	}
 
 	factoryname, ok := conf.GetString(CONF_FACTORY)
 	if !ok {
@@ -150,7 +153,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	serviceMethod, ok := conf.GetString(CONF_SERVICEMETHOD)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Service", serviceAlias, "Conf", CONF_SERVICEMETHOD)
+		log.Debug(ctx, "No service method provided for service", "Service", serviceAlias)
 	}
 
 	//get the factory from factory manager

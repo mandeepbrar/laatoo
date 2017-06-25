@@ -16,10 +16,12 @@ import (
 
 const (
 	CONF_BLEVESEARCH_SVC = "blevesearch"
+	CONF_BLEVESEARCH_FAC = "blevesearchfactory"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_BLEVESEARCH_SVC, Object: BleveSearchService{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_BLEVESEARCH_SVC, Object: BleveSearchService{}},
+		core.PluginComponent{Name: CONF_BLEVESEARCH_FAC, Object: core.NewFactory(func() interface{} { return &BleveSearchService{} })}}
 }
 
 type BleveSearchService struct {

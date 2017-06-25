@@ -12,7 +12,6 @@ type MemoryCacheFactory struct {
 
 const (
 	CONF_MEMORYCACHE_NAME = "memory_cache"
-	CONF_MEMORYCACHE_SVC  = "cache"
 )
 
 func Manifest() []core.PluginComponent {
@@ -21,14 +20,10 @@ func Manifest() []core.PluginComponent {
 
 //Create the services configured for factory.
 func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	if method == CONF_MEMORYCACHE_SVC {
-		return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), name: name}, nil
-	}
-	return nil, nil
+	return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), name: name}, nil
 }
 
 func (ds *MemoryCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-
 	return nil
 }
 

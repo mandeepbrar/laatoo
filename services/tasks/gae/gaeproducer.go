@@ -15,12 +15,12 @@ const (
 	GAE_PATH = "path"
 )
 
-type gaeProducer struct {
+type GaeProducer struct {
 	path       string
 	authHeader string
 }
 
-func (svc *gaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *GaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	path, ok := conf.GetString(GAE_PATH)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", GAE_PATH)
@@ -42,7 +42,7 @@ func (svc *gaeProducer) Initialize(ctx core.ServerContext, conf config.Config) e
 	return nil
 }
 
-func (svc *gaeProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
+func (svc *GaeProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
 	appEngineContext := ctx.GetAppengineContext()
 	bytes, err := json.Marshal(t)
 	if err != nil {
@@ -54,10 +54,10 @@ func (svc *gaeProducer) PushTask(ctx core.RequestContext, queue string, t *compo
 	return err
 }
 
-func (svc *gaeProducer) Invoke(ctx core.RequestContext) error {
+func (svc *GaeProducer) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *gaeProducer) Start(ctx core.ServerContext) error {
+func (svc *GaeProducer) Start(ctx core.ServerContext) error {
 	return nil
 }

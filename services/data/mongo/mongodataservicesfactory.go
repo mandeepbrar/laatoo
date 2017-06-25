@@ -55,13 +55,7 @@ func (mf *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 
 //Create the services configured for factory.
 func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	switch method {
-	case data.CONF_DATA_SVCS:
-		{
-			return newMongoDataService(ctx, name, ms)
-		}
-	}
-	return nil, nil
+	return newMongoDataService(ctx, name, ms)
 }
 
 //The services start serving when this method is called

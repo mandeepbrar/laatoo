@@ -7,7 +7,6 @@ import (
 	// import _ "github.com/jinzhu/gorm/dialects/sqlite"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql
 
-	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -46,19 +45,7 @@ func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext, conf config
 
 //Create the services configured for factory.
 func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	switch method {
-	case data.CONF_DATA_SVCS:
-		{
-			return newSqlDataService(ctx, name, sf)
-			/*cache, _ := conf.GetBool(data.CONF_DATA_CACHEABLE)
-			if err == nil && cache {
-				return data.NewCachedDataService(ctx, svc), nil
-			} else {
-				return svc, err
-			}*/
-		}
-	}
-	return nil, nil
+	return newSqlDataService(ctx, name, sf)
 }
 
 //The services start serving when this method is called

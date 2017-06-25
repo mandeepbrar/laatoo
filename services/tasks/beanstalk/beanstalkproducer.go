@@ -16,13 +16,13 @@ const (
 	CONF_BEANSTALK_SERVER = "server"
 )
 
-type beanstalkProducer struct {
+type BeanstalkProducer struct {
 	pool       *beanstalk.ProducerPool
 	params     *beanstalk.PutParams
 	authHeader string
 }
 
-func (svc *beanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	addr, ok := conf.GetString(CONF_BEANSTALK_SERVER)
 	if !ok {
 		addr = ":11300"
@@ -49,7 +49,7 @@ func (svc *beanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (svc *beanstalkProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
+func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err
@@ -58,10 +58,10 @@ func (svc *beanstalkProducer) PushTask(ctx core.RequestContext, queue string, t 
 	return err
 }
 
-func (svc *beanstalkProducer) Invoke(ctx core.RequestContext) error {
+func (svc *BeanstalkProducer) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *beanstalkProducer) Start(ctx core.ServerContext) error {
+func (svc *BeanstalkProducer) Start(ctx core.ServerContext) error {
 	return nil
 }

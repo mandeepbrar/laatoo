@@ -1,9 +1,7 @@
-package cache
+package cacheadapter
 
-/*
 import (
-	"laatoo/framework/core/objects"
-	"log"
+	"laatoo/sdk/log"
 	//"laatoo/sdk/components"
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
@@ -27,35 +25,30 @@ const (
 	CONF_CACHED_VAL_PARAMSPOSTTOREQBODY = "setbody"
 	CONF_CACHED_VAL_PARAMSADDTOQUERY    = "addtoquery"
 	CONF_CACHED_VALS                    = "cacheunits"
-	CONF_CACHED_VAL                     = "cacheunit"
-)*/
+	CONF_CACHED_VAL                     = "cacheunit"*/
+)
 
-/*
 type ParamsMode int
 
 const (
 	ADDTOBODY ParamsMode = iota
 	SETBODY
 	ADDTOQUERY
-)*/
-/*
-func init() {
-	objects.RegisterObject(CONF_CACHEADAPTER_SERVICES, createCacheAdapterFactory, nil)
+)
+
+func Manifest() []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_CACHEADAPTER_SERVICES, Object: CacheAdapterFactory{}}}
 }
 
-type cacheAdapterFactory struct {
+type CacheAdapterFactory struct {
 }
 
-func createCacheAdapterFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &cacheAdapterFactory{}, nil
-}
-
-func (es *cacheAdapterFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (es *CacheAdapterFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
 //Create the services configured for factory.
-func (es *cacheAdapterFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
+func (es *CacheAdapterFactory) CreateService(ctx core.ServerContext, name string, method string) (core.Service, error) {
 	cs := &cacheService{name: name}
 	switch method {
 	case CONF_SVC_RESULTSCACHEMETHOD:
@@ -72,7 +65,7 @@ func (es *cacheAdapterFactory) CreateService(ctx core.ServerContext, name string
 }
 
 //The services start serving when this method is called
-func (es *cacheAdapterFactory) Start(ctx core.ServerContext) error {
+func (es *CacheAdapterFactory) Start(ctx core.ServerContext) error {
 	return nil
 }
 
@@ -133,7 +126,7 @@ func (cs *cacheService) Initialize(ctx core.ServerContext, conf config.Config) e
 				cVal.serviceName = svcName
 				cs.cachedVals[name] = cVal
 			}
-		}
+		}*/
 	return nil
 }
 
@@ -158,7 +151,7 @@ func (cs *cacheService) Start(ctx core.ServerContext) error {
 			return errors.WrapError(ctx, err)
 		}
 		cVal.service = svc
-	}
+	}*/
 	return nil
 }
 

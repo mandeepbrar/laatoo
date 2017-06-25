@@ -1,4 +1,4 @@
 {
-    "name":"memorycache",
+  "name":"memorycache",
 	"factory":"memory_cache"
 }

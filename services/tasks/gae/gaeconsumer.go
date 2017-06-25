@@ -3,16 +3,10 @@ package main
 import (
 	"encoding/json"
 	"laatoo/sdk/components"
-	//	"google.golang.org/appengine/taskqueue"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-)
-
-const (
-	CONF_TASKS_GAE_PRODUCER = "gaetaskpublisher"
-	CONF_TASKS_GAE_CONSUMER = "gaetaskprocessor"
 )
 
 type taskQueue struct {
@@ -26,19 +20,14 @@ type task struct {
 	Token string
 }
 
-type gaeConsumer struct {
+type GaeConsumer struct {
 	queues      map[string]*taskQueue
 	authHeader  string
 	shandler    server.SecurityHandler
 	taskManager server.TaskManager
 }
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_TASKS_GAE_PRODUCER, Object: gaeConsumer{}},
-		core.PluginComponent{Name: CONF_TASKS_GAE_CONSUMER, Object: gaeProducer{}}}
-}
-
-func (svc *gaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *GaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	/*queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
 	if ok {
 		queueNames := queuesConf.AllConfigurations()
@@ -84,7 +73,7 @@ func (svc *gaeConsumer) createQueue(ctx core.ServerContext, queue string, lstnr 
 	return nil
 }*/
 
-func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
+func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
 	//gae header... if an outside request comes, this header would not be there.. gae will remove it
 	//_, ok := ctx.GetString("X-AppEngine-TaskName")
 	//if ok {
@@ -120,9 +109,9 @@ func (svc *gaeConsumer) Invoke(ctx core.RequestContext) error {
 	}*/
 	return nil
 }
-func (svc *gaeConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
+func (svc *GaeConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
 	return nil
 }
-func (svc *gaeConsumer) Start(ctx core.ServerContext) error {
+func (svc *GaeConsumer) Start(ctx core.ServerContext) error {
 	return nil
 }

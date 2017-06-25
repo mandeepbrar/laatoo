@@ -101,6 +101,9 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 }
 
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
+	if !common.CheckContextCondition(ctx, factoryConfig) {
+		return nil
+	}
 	factoryName, ok := factoryConfig.GetString(CONF_SERVICEFACTORY)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", CONF_SERVICEFACTORY)

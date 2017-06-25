@@ -1,6 +1,6 @@
-package cache
+package cacheadapter
 
-/*
+
 import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/config"
@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	CONF_SVC_ENTITYCACHEMETHOD = "entitycache"
+	CONF_SVC_RESULTSCACHEMETHOD = "resultscache"
 )
 
-type entityCacheService struct {
+type resultsCacheService struct {
 	name         string
-	entity       string
+	bucket       string
 	cacheSvcName string
 	cacheSvc     components.CacheComponent
 	dataSvcName  string
@@ -23,22 +23,22 @@ type entityCacheService struct {
 	conf         config.Config
 }
 
-func (es *entityCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (rs *resultsCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(CONF_SVC_CACHINGSERVICE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_SVC_CACHINGSERVICE)
 	}
-	es.cacheSvcName = svcName
+	rs.cacheSvcName = svcName
 	svcName, ok = conf.GetString(CONF_SVC_SERVICETOCACHE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_SVC_SERVICETOCACHE)
 	}
-	es.dataSvcName = svcName
-	entity, ok := conf.GetString(CONF_SVC_CACHEBUCKET)
+	rs.dataSvcName = svcName
+	bucket, ok := conf.GetString(CONF_SVC_CACHEBUCKET)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_SVC_CACHEBUCKET)
 	}
-	es.entity = entity
+	rs.bucket = bucket
 	/*	cachedvalsConf, ok := conf.GetSubConfig(CONF_CACHED_VALS)
 		if ok {
 			cachedvalNames := cachedvalsConf.AllConfigurations()
@@ -73,7 +73,7 @@ func (es *entityCacheService) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (es *entityCacheService) Start(ctx core.ServerContext) error {
+func (rs *resultsCacheService) Start(ctx core.ServerContext) error {
 	var ok bool
 	svc, err := ctx.GetService(rs.cacheSvcName)
 	if err != nil {
@@ -97,7 +97,7 @@ func (es *entityCacheService) Start(ctx core.ServerContext) error {
 	}
 	return nil
 }
-func (es *entityCacheService) Invoke(ctx core.RequestContext) error {
+func (rs *resultsCacheService) Invoke(ctx core.RequestContext) error {
 	//	var err error
 	var retResponse core.ServiceResponse
 	//	var argsMap map[string]interface{}
@@ -111,6 +111,54 @@ func (es *entityCacheService) Invoke(ctx core.RequestContext) error {
 		return nil
 	}
 	log.Trace(ctx, "Cache Miss ")
+	return nil
+}
+
+/*
+func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
+	cachedVal, ok := ctx.GetString(CONF_CACHED_VAL)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "Arg", CONF_CACHED_VAL)
+	}
+	var err error
+	var retResponse core.ServiceResponse
+	var argsMap map[string]interface{}
+	body := ctx.GetRequest()
+	cacheKey := components.GetCacheKey(cachedVal, body)
+	log.Trace(ctx, "Looking up key", "key", cacheKey)
+	prs := ctx.GetFromCache(cacheKey, &retResponse)
+	if prs {
+		log.Trace(ctx, "Cache Hit ")
+		ctx.SetResponse(&retResponse)
+		return nil
+	}
+	cVal, ok := cs.cachedVals[cachedVal]
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Arg", CONF_CACHED_VAL)
+	}
+	switch cVal.paramsMode {
+	case SETBODY:
+		ctx.SetRequest(&cVal.configParams)
+	case ADDTOQUERY:
+		for k, v := range cVal.configParams {
+			ctx.Set(k, v)
+		}
+	case ADDTOBODY:
+		argsMap = *body.(*map[string]interface{})
+		for k, v := range cVal.configParams {
+			argsMap[k] = v
+		}
+		ctx.SetRequest(&argsMap)
+	}
+	err = cVal.service.Invoke(ctx)
+	if err != nil {
+		return err
+	}
+	resp := ctx.GetResponse()
+	err = ctx.PutInCache(cacheKey, resp)
+	if err != nil {
+		log.Error(ctx, err.Error())
+	}
 	return nil
 }
 */

@@ -23,6 +23,8 @@ const (
 	CONF_APPL_APPLICATION   = "application"
 	CONF_CHANNELS           = "channels"
 	CONF_CACHES             = "caches"
+	CONF_CONTEXT            = "context"
+	CONF_CONDITION          = "condition"
 	CONF_TASKS              = "tasks"
 	CONF_TASKS_QUEUE        = "queue"
 	CONF_TASK_PRODUCER      = "producer"

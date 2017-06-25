@@ -1,16 +1,6 @@
 {
 	"cache":"memorycache",
 	"address":"localhost:2000",
-	"logging": {
-		"application":"punjabimehfil",
-		"format":"happymaxcolor",
-		"level":"trace"
-	},
-	"factorymanager":"config/server/factories.json",
-	"cachemanager":"config/server/cache.json",
 	"servicemanager":"config/server/services.json",
-	"engines":{
-		"root":"config/server/root.json"
-	},
-	"objects":"/usr/lib/laatoo/objects",
+	"objectsbasedir":"/lib/laatoo"
 }

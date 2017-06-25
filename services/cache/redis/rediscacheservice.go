@@ -16,7 +16,6 @@ type RedisCacheFactory struct {
 
 const (
 	CONF_REDISCACHE_NAME        = "redis_cache"
-	CONF_REDISCACHE_SVC         = "cache"
 	CONF_REDIS_CONNECTIONSTRING = "server"
 	CONF_REDIS_DATABASE         = "db"
 )
@@ -27,10 +26,7 @@ func Manifest() []core.PluginComponent {
 
 //Create the services configured for factory.
 func (mf *RedisCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	if method == CONF_REDISCACHE_SVC {
-		return &RedisCacheService{name: name}, nil
-	}
-	return nil, nil
+	return &RedisCacheService{name: name}, nil
 }
 
 func (ds *RedisCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

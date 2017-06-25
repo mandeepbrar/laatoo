@@ -12,23 +12,13 @@ import (
 	"github.com/prep/beanstalk"
 )
 
-const (
-	CONF_TASKS_BEANSTALK_PRODUCER = "beanstalktaskpublisher"
-	CONF_TASKS_BEANSTALK_CONSUMER = "beanstalktaskprocessor"
-)
-
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_TASKS_BEANSTALK_PRODUCER, Object: beanstalkConsumer{}},
-		core.PluginComponent{Name: CONF_TASKS_BEANSTALK_CONSUMER, Object: beanstalkProducer{}}}
-}
-
-type beanstalkConsumer struct {
+type BeanstalkConsumer struct {
 	addr        string
 	taskManager server.TaskManager
 	worker      func(ctx core.ServerContext, pool *beanstalk.ConsumerPool)
 }
 
-func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	addr, ok := conf.GetString(CONF_BEANSTALK_SERVER)
 	if !ok {
 		addr = ":11300"
@@ -73,11 +63,11 @@ func (svc *beanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (svc *beanstalkConsumer) Invoke(ctx core.RequestContext) error {
+func (svc *BeanstalkConsumer) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *beanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
+func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
 	pool := beanstalk.NewConsumerPool([]string{svc.addr}, []string{queue}, nil)
 	if pool == nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", svc.addr)
@@ -87,7 +77,7 @@ func (svc *beanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string
 	return nil
 }
 
-func (svc *beanstalkConsumer) Start(ctx core.ServerContext) error {
+func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
 	svc.worker = func(workerctx core.ServerContext, pool *beanstalk.ConsumerPool) {
 		for {
 			select {

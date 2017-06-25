@@ -134,6 +134,22 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 
 //initialize application with object loader, factory manager, service manager
 func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
+
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	contextFile := path.Join(baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
+	ok, _, _ := utils.FileExists(contextFile)
+	if ok {
+		contextVars, err := common.NewConfigFromFile(contextFile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		keys := contextVars.AllConfigurations()
+		for _, key := range keys {
+			val, _ := contextVars.Get(key)
+			ctx.Set("@"+key, val)
+		}
+	}
+
 	if err := as.loggerHandle.Initialize(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
 	}

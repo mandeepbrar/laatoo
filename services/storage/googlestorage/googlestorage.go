@@ -18,12 +18,14 @@ import (
 
 const (
 	CONF_GOOGLESTORAGE_SERVICENAME = "googlestorage"
+	CONF_GOOGLESTORAGE_FACTORY     = "googlestoragefactory"
 	CONF_GS_FILESBUCKET            = "bucket"
 	CONF_GS_PUBLICFILE             = "public"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESTORAGE_SERVICENAME, Object: GoogleStorageSvc{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESTORAGE_SERVICENAME, Object: GoogleStorageSvc{}},
+		core.PluginComponent{Name: CONF_GOOGLESTORAGE_FACTORY, Object: core.NewFactory(func() interface{} { return &GoogleStorageSvc{} })}}
 }
 
 type GoogleStorageSvc struct {
