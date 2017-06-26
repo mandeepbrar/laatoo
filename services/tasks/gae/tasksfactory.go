@@ -13,17 +13,13 @@ const (
 	CONF_TASKS_PRODUCER     = "publisher"
 	CONF_TASKS_CONSUMER     = "consumer"
 	CONF_TASKS_GAE_PRODUCER = "gaetaskpublisher"
-	CONF_TASKS_GAE_CONSUMER = "gaetaskprocessor"
+	CONF_TASKS_GAE_CONSUMER = "gaetaskconsumer"
 )
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_TASKS_GAE_PRODUCER, Object: GaeProducer{}},
-		core.PluginComponent{Name: CONF_GAE_TASKS_FACTORY, Object: core.NewFactory(func() interface{} { return &TasksFactory{} })},
+		core.PluginComponent{Name: CONF_GAE_TASKS_FACTORY, Object: TasksFactory{}},
 		core.PluginComponent{Name: CONF_TASKS_GAE_CONSUMER, Object: GaeConsumer{}}}
-}
-
-func createTaskServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &TasksFactory{}, nil
 }
 
 //Create the services configured for factory.

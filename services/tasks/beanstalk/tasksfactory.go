@@ -13,17 +13,13 @@ const (
 	CONF_TASKS_PRODUCER           = "publisher"
 	CONF_TASKS_CONSUMER           = "consumer"
 	CONF_TASKS_BEANSTALK_PRODUCER = "beanstalktaskpublisher"
-	CONF_TASKS_BEANSTALK_CONSUMER = "beanstalktaskprocessor"
+	CONF_TASKS_BEANSTALK_CONSUMER = "beanstalktaskconsumer"
 )
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_TASKS_BEANSTALK_PRODUCER, Object: BeanstalkProducer{}},
-		core.PluginComponent{Name: CONF_BEANSTALK_TASKS_FACTORY, Object: core.NewFactory(func() interface{} { return &TasksFactory{} })},
+		core.PluginComponent{Name: CONF_BEANSTALK_TASKS_FACTORY, Object: TasksFactory{}},
 		core.PluginComponent{Name: CONF_TASKS_BEANSTALK_CONSUMER, Object: BeanstalkConsumer{}}}
-}
-
-func createTaskServiceFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
-	return &TasksFactory{}, nil
 }
 
 //Create the services configured for factory.

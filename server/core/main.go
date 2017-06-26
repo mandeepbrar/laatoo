@@ -13,7 +13,7 @@ import (
 )
 
 func main(rootctx *serverContext, configDir string) error {
-	log.Info(rootctx, "Setting base directory for server", "Dir Name", configDir)
+	log.Info(rootctx, "Setting base directory for server"+configDir)
 	rootctx.Set(constants.CONF_BASE_DIR, configDir)
 
 	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)

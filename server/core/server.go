@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 	"laatoo/server/constants"
 )
 
@@ -87,6 +88,10 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir string, name string, envConf config.Config) error {
 	envCreate := ctx.SubContext("Creating Environment: " + name).(*serverContext)
 	envCreate.Set(constants.CONF_BASE_DIR, baseDir)
+
+	if envConf == nil {
+		envConf = make(common.GenericConfig, 0)
+	}
 
 	log.Trace(envCreate, "Creating Environment")
 	filterConf, _ := envConf.GetSubConfig(constants.CONF_FILTERS)

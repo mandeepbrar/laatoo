@@ -21,7 +21,7 @@ const (
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_BLEVESEARCH_SVC, Object: BleveSearchService{}},
-		core.PluginComponent{Name: CONF_BLEVESEARCH_FAC, Object: core.NewFactory(func() interface{} { return &BleveSearchService{} })}}
+		core.PluginComponent{Name: CONF_BLEVESEARCH_FAC, ObjectCreator: core.NewFactory(func() interface{} { return &BleveSearchService{} })}}
 }
 
 type BleveSearchService struct {

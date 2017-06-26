@@ -17,9 +17,9 @@ type taskManager struct {
 	proxy              server.TaskManager
 	authHeader         string
 	shandler           server.SecurityHandler
-	taskProducers      map[string]string
-	taskProducerSvcs   map[string]components.TaskQueue
-	taskReceiverNames  map[string]string
+	taskPublishers     map[string]string
+	taskPublisherSvcs  map[string]components.TaskQueue
+	taskConsumerNames  map[string]string
 	taskProcessorNames map[string]string
 	taskProcessors     map[string]core.Service
 }
@@ -69,11 +69,11 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
 	}
 
-	receiver, ok := conf.GetString(constants.CONF_TASK_RECEIVER)
+	consumer, ok := conf.GetString(constants.CONF_TASK_CONSUMER)
 	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_RECEIVER, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
 	}
-	tskMgr.taskReceiverNames[queueName] = receiver
+	tskMgr.taskConsumerNames[queueName] = consumer
 
 	processor, ok := conf.GetString(constants.CONF_TASK_PROCESSOR)
 	if !ok {
@@ -81,18 +81,18 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 	}
 	tskMgr.taskProcessorNames[queueName] = processor
 
-	producer, ok := conf.GetString(constants.CONF_TASK_PRODUCER)
+	publisher, ok := conf.GetString(constants.CONF_TASK_PUBLISHER)
 	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_PRODUCER, "Task Name", taskName)
+		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
 	}
-	tskMgr.taskProducers[queueName] = producer
+	tskMgr.taskPublishers[queueName] = publisher
 	return nil
 }
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	tskmgrStartCtx := tskMgr.createContext(ctx, "Start task manager")
 	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
-	for queueName, svcName := range tskMgr.taskProducers {
+	for queueName, svcName := range tskMgr.taskPublishers {
 		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
 		tqSvc, err := tskmgrStartCtx.GetService(svcName)
 		if err != nil {
@@ -102,18 +102,18 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 		if !ok {
 			return errors.ThrowError(tskmgrStartCtx, errors.CORE_ERROR_BAD_CONF)
 		}
-		tskMgr.taskProducerSvcs[queueName] = tq
+		tskMgr.taskPublisherSvcs[queueName] = tq
 	}
 
-	for queueName, receiverName := range tskMgr.taskReceiverNames {
+	for queueName, consumerName := range tskMgr.taskConsumerNames {
 		log.Trace(tskmgrStartCtx, "Starting task consumer ", "queue", queueName)
-		receiverSvc, err := tskmgrStartCtx.GetService(receiverName)
+		consumerSvc, err := tskmgrStartCtx.GetService(consumerName)
 		if err != nil {
 			return errors.WrapError(tskmgrStartCtx, err)
 		}
-		ts, ok := receiverSvc.(components.TaskServer)
+		ts, ok := consumerSvc.(components.TaskServer)
 		if !ok {
-			return errors.BadConf(tskmgrStartCtx, constants.CONF_TASK_RECEIVER, "queue", queueName)
+			return errors.BadConf(tskmgrStartCtx, constants.CONF_TASK_PROCESSOR, "queue", queueName)
 		}
 
 		err = ts.SubsribeQueue(tskmgrStartCtx, queueName)
@@ -132,7 +132,7 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 }
 
 func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskData interface{}) error {
-	tq, ok := tskMgr.taskProducerSvcs[queue]
+	tq, ok := tskMgr.taskPublisherSvcs[queue]
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Missing Queue", queue)
 	}

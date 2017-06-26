@@ -22,7 +22,7 @@ const (
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_FILE_SERVICENAME, Object: FileSystemSvc{}},
-		core.PluginComponent{Name: CONF_FILES_SERVICEFACTORY, Object: core.NewFactory(func() interface{} { return &FileSystemSvc{} })}}
+		core.PluginComponent{Name: CONF_FILES_SERVICEFACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &FileSystemSvc{} })}}
 }
 
 type FileSystemSvc struct {

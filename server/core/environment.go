@@ -51,6 +51,10 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 	appCreateCtx := env.createContext(ctx, "CreateApplication: "+name)
 	appCreateCtx.Set(constants.CONF_BASE_DIR, baseDir)
 
+	if applicationConf == nil {
+		applicationConf = make(common.GenericConfig, 0)
+	}
+
 	log.Trace(appCreateCtx, "Creating Application")
 	filterConf, _ := applicationConf.GetSubConfig(constants.CONF_FILTERS)
 	//create an application

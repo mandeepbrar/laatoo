@@ -135,7 +135,7 @@ func createCacheManager(ctx core.ServerContext, name string, conf config.Config,
 	if parentCacheMgr == nil {
 		cacheMgrHandle, cacheMgr = cache.NewCacheManager(cacheMgrCreateCtx, "Root", parent)
 	} else {
-		cacheMgrHandle, cacheMgr = cache.ChildCacheManager(cacheMgrCreateCtx, name, parent, parentCacheMgr)
+		cacheMgrHandle, cacheMgr = cache.ChildCacheManager(cacheMgrCreateCtx, name, parentCacheMgr, parent)
 	}
 	log.Trace(cacheMgrCreateCtx, "Cache Manager Created")
 

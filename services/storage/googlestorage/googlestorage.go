@@ -25,7 +25,7 @@ const (
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESTORAGE_SERVICENAME, Object: GoogleStorageSvc{}},
-		core.PluginComponent{Name: CONF_GOOGLESTORAGE_FACTORY, Object: core.NewFactory(func() interface{} { return &GoogleStorageSvc{} })}}
+		core.PluginComponent{Name: CONF_GOOGLESTORAGE_FACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &GoogleStorageSvc{} })}}
 }
 
 type GoogleStorageSvc struct {

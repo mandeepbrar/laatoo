@@ -20,7 +20,7 @@ const (
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESEARCH_SVC, Object: GoogleSearchService{}},
-		core.PluginComponent{Name: CONF_GOOGLESEARCH_FAC, Object: core.NewFactory(func() interface{} { return &GoogleSearchService{} })}}
+		core.PluginComponent{Name: CONF_GOOGLESEARCH_FAC, ObjectCreator: core.NewFactory(func() interface{} { return &GoogleSearchService{} })}}
 
 }
 

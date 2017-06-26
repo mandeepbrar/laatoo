@@ -291,10 +291,12 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	log.Trace(engstart, "Started Engines")
 
 	chanstart := ctx.SubContextWithElement("Start Channel manager", core.ServerElementChannelManager)
+	log.Trace(chanstart, "Starting channel managers")
 	err = as.channelMgrHandle.Start(chanstart)
 	if err != nil {
 		return errors.WrapError(chanstart, err)
 	}
+	log.Trace(chanstart, "Started channel managers")
 
 	fmCtx := ctx.SubContextWithElement("Start Factory Manager", core.ServerElementFactoryManager)
 	err = as.factoryManagerHandle.Start(fmCtx)
@@ -463,16 +465,14 @@ func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 
 func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 	engStartCtx := ctx.SubContext("Start Engines")
-	errorsChan := make(chan error)
 	for engName, engineHandle := range as.engineHandles {
 		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
 			log.Info(ctx, "Starting engine*****", "name", name)
-			errorsChan <- engHandle.Start(ctx)
+			err := engHandle.Start(ctx)
+			if err != nil {
+				panic(err.Error())
+			}
 		}(engStartCtx, engineHandle, engName)
-	}
-	err := <-errorsChan
-	if err != nil {
-		panic(err.Error())
 	}
 	log.Trace(engStartCtx, "Started engines")
 	return nil

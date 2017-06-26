@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t="laatoo:latest" -f Dockerfile.laatoo .
+docker build --rm -t="laatoo:latest" -f Dockerfile.laatoo .

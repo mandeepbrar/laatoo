@@ -20,7 +20,7 @@ const (
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISPUBSUB_SVC, Object: RedisPubSubService{}},
-		core.PluginComponent{Name: CONF_REDISPUBSUB_FACTORY, Object: core.NewFactory(func() interface{} { return &RedisPubSubService{} })}}
+		core.PluginComponent{Name: CONF_REDISPUBSUB_FACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &RedisPubSubService{} })}}
 }
 
 type RedisPubSubService struct {
