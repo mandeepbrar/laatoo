@@ -19,11 +19,10 @@ type application struct {
 	applets map[string]server.Applet
 }
 
-func newApplication(svrCtx *serverContext, name string, env *environment, filterConf config.Config) (*application, *applicationProxy) {
+func newApplication(svrCtx *serverContext, name string, env *environment, baseDir string, filterConf config.Config) (*application, *applicationProxy) {
 	app := &application{env: env, applets: make(map[string]server.Applet, 1)}
-	appCtx := env.proxy.NewCtx(name)
-	proxy := &applicationProxy{Context: appCtx.(*common.Context), app: app}
-	app.abstractserver = newAbstractServer(svrCtx, name, env.abstractserver, proxy, filterConf)
+	proxy := &applicationProxy{app: app}
+	app.abstractserver = newAbstractServer(svrCtx, name, env.abstractserver, proxy, baseDir, filterConf)
 	app.proxy = proxy
 	log.Debug(svrCtx, "Created application", "Name", name)
 	return app, proxy

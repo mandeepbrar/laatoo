@@ -1,19 +1,24 @@
 package factory
 
-import (
-	"laatoo/server/common"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-)
+import "laatoo/sdk/core"
 
-type serviceFactory struct {
-	*common.Context
-	name    string
-	factory core.ServiceFactory
-	conf    config.Config
-	owner   *factoryManager
+type serviceFactoryProxy struct {
+	fac *serviceFactory
 }
 
-func (fac *serviceFactory) Factory() core.ServiceFactory {
-	return fac.factory
+func (proxy *serviceFactoryProxy) Factory() core.ServiceFactory {
+	return proxy.fac.factory
+}
+
+func (proxy *serviceFactoryProxy) Reference() core.ServerElement {
+	return &serviceFactoryProxy{fac: proxy.fac}
+}
+func (proxy *serviceFactoryProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *serviceFactoryProxy) GetName() string {
+	return proxy.fac.name
+}
+func (proxy *serviceFactoryProxy) GetType() core.ServerElementType {
+	return core.ServerElementServiceFactory
 }

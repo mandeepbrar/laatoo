@@ -5,12 +5,23 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 )
 
 type channelManagerProxy struct {
-	*common.Context
 	manager *channelManager
+}
+
+func (proxy *channelManagerProxy) Reference() core.ServerElement {
+	return &channelManagerProxy{manager: proxy.manager}
+}
+func (proxy *channelManagerProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *channelManagerProxy) GetName() string {
+	return proxy.manager.name
+}
+func (proxy *channelManagerProxy) GetType() core.ServerElementType {
+	return core.ServerElementChannelManager
 }
 
 func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string, svc server.Service, channelConfig config.Config) error {
@@ -23,9 +34,8 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{channelStore: make(map[string]server.Channel, 10)}
-	cmElemCtx := parentElem.NewCtx("Channel Manager:" + name)
-	cmElem := &channelManagerProxy{Context: cmElemCtx.(*common.Context), manager: cm}
+	cm := &channelManager{name: name, channelStore: make(map[string]server.Channel, 10), parent: parentElem}
+	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
 }
@@ -46,9 +56,8 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 			store[k] = v
 		}
 	}
-	cm := &channelManager{channelStore: store}
-	cmElemCtx := parent.NewCtx("Channel Manager:" + name)
-	cmElem := &channelManagerProxy{Context: cmElemCtx.(*common.Context), manager: cm}
+	cm := &channelManager{name: name, channelStore: store, parent: parent}
+	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
 }

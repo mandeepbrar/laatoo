@@ -4,23 +4,20 @@ import (
 	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 )
 
 func NewTaskManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*taskManager, *taskManagerProxy) {
-	tskMgr := &taskManager{parent: parentElem, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]core.Service, 10),
+	tskMgr := &taskManager{name: name, parent: parentElem, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]core.Service, 10),
 		taskPublishers: make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10), taskProcessorNames: make(map[string]string, 10)}
-	tskElemCtx := parentElem.NewCtx(name)
-	tskElem := &taskManagerProxy{Context: tskElemCtx.(*common.Context), manager: tskMgr}
+	tskElem := &taskManagerProxy{manager: tskMgr}
 	tskMgr.proxy = tskElem
 	return tskMgr, tskElem
 }
 
 func ChildTaskManager(ctx core.ServerContext, name string, parentTaskMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
-	childTaskMgr := &taskManager{parent: parent, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]core.Service, 10),
+	childTaskMgr := &taskManager{name: name, parent: parent, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]core.Service, 10),
 		taskPublishers: make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10), taskProcessorNames: make(map[string]string, 10)}
-	childtskMgrElemCtx := parentTaskMgr.NewCtx(name)
-	childtskMgrElem := &taskManagerProxy{Context: childtskMgrElemCtx.(*common.Context), manager: childTaskMgr}
+	childtskMgrElem := &taskManagerProxy{manager: childTaskMgr}
 	childTaskMgr.proxy = childtskMgrElem
 	return childTaskMgr, childtskMgrElem
 }

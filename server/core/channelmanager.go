@@ -11,7 +11,11 @@ import (
 )
 
 type channelManager struct {
+	name string
+
 	proxy server.ChannelManager
+
+	parent core.ServerElement
 	//store for service factory in an application
 	channelStore map[string]server.Channel
 }
@@ -24,7 +28,7 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, constants.CONF_CHANNELS, chanMgr.createChannel); err != nil {
+	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, chanMgr.parent, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
 		return errors.WrapError(chanmgrInitializeCtx, err)
 	}
 

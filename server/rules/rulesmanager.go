@@ -11,7 +11,9 @@ import (
 )
 
 type rulesManager struct {
+	name            string
 	registeredRules map[string][]rules.Rule
+	parent          core.ServerElement
 	proxy           *rulesManagerProxy
 }
 
@@ -39,7 +41,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_RULES, rm.processRuleConf); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, rm.parent, constants.CONF_RULES, rm.processRuleConf, true); err != nil {
 		return err
 	}
 

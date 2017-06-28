@@ -57,10 +57,13 @@ type abstractserver struct {
 	parent *abstractserver
 
 	proxy core.ServerElement
+
+	baseDir string
 }
 
-func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, filterConf config.Config) *abstractserver {
-	as := &abstractserver{name: name, parent: parent, proxy: proxy}
+func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, baseDir string, filterConf config.Config) *abstractserver {
+	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir}
+	svrCtx.Set(constants.CONF_BASE_DIR, baseDir)
 	as.engineHandles = make(map[string]server.ServerElementHandle, 5)
 	as.engines = make(map[string]server.Engine, 5)
 
@@ -134,9 +137,8 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 
 //initialize application with object loader, factory manager, service manager
 func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
-
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-	contextFile := path.Join(baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
+	ctx = ctx.subContext("initialize components: " + as.name)
+	contextFile := path.Join(as.baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
 	ok, _, _ := utils.FileExists(contextFile)
 	if ok {
 		contextVars, err := common.NewConfigFromFile(contextFile)
@@ -171,11 +173,11 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 
 	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
 	if ok {
-		parentMw, ok := as.proxy.GetStringArray(constants.CONF_MIDDLEWARE)
+		parentMw, ok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
 		if ok {
 			middleware = append(parentMw, middleware...)
 		}
-		as.proxy.Set(constants.CONF_MIDDLEWARE, middleware)
+		ctx.Set(constants.CONF_MIDDLEWARE, middleware)
 	}
 
 	facinit := ctx.SubContext("Initialize factory manager")
@@ -209,7 +211,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	ctx.cacheManager = as.cacheManager
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
-		as.proxy.Set("__cache", cacheToUse)
+		ctx.Set("__cache", cacheToUse)
 		log.Debug(ctx, "Cache Set ", "Cache name", cacheToUse)
 	}
 
@@ -398,7 +400,7 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_ENGINES, as.processEngineConf); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, as.proxy, constants.CONF_ENGINES, as.processEngineConf, true); err != nil {
 		return err
 	}
 
@@ -413,8 +415,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 	}
 
 	if !ok {
-		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-		confFile := path.Join(baseDir, constants.CONF_SECURITY, constants.CONF_CONFIG_FILE)
+		confFile := path.Join(as.baseDir, constants.CONF_SECURITY, constants.CONF_CONFIG_FILE)
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
@@ -508,4 +509,9 @@ func (as *abstractserver) contextMap(ctx core.ServerContext) core.ContextMap {
 		core.ServerElementRulesManager:     as.rulesManager,
 		core.ServerElementFactoryManager:   as.factoryManager,
 		core.ServerElementServiceManager:   as.serviceManager}
+}
+
+//initialize application with object loader, factory manager, service manager
+func (as *abstractserver) newContext(ctx *serverContext, name string, primaryElement core.ServerElementType) *serverContext {
+	return ctx.newContextWithElements(name, as.contextMap(ctx), primaryElement)
 }

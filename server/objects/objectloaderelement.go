@@ -1,13 +1,22 @@
 package objects
 
-import (
-	"laatoo/server/common"
-	"laatoo/sdk/core"
-)
+import "laatoo/sdk/core"
 
 type objectLoaderProxy struct {
-	*common.Context
 	loader *objectLoader
+}
+
+func (proxy *objectLoaderProxy) Reference() core.ServerElement {
+	return &objectLoaderProxy{loader: proxy.loader}
+}
+func (proxy *objectLoaderProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *objectLoaderProxy) GetName() string {
+	return proxy.loader.name
+}
+func (proxy *objectLoaderProxy) GetType() core.ServerElementType {
+	return core.ServerElementLoader
 }
 
 func (ldr *objectLoaderProxy) Register(ctx core.Context, objectName string, object interface{}) {

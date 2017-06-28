@@ -1,10 +1,20 @@
 package core
 
-import (
-	"laatoo/server/common"
-)
+import "laatoo/sdk/core"
 
 type serverProxy struct {
-	*common.Context
 	server *serverObject
+}
+
+func (proxy *serverProxy) Reference() core.ServerElement {
+	return &serverProxy{server: proxy.server}
+}
+func (proxy *serverProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *serverProxy) GetName() string {
+	return proxy.server.name
+}
+func (proxy *serverProxy) GetType() core.ServerElementType {
+	return core.ServerElementServer
 }

@@ -14,7 +14,6 @@ import (
 
 func main(rootctx *serverContext, configDir string) error {
 	log.Info(rootctx, "Setting base directory for server"+configDir)
-	rootctx.Set(constants.CONF_BASE_DIR, configDir)
 
 	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)
 	//read the config file
@@ -25,7 +24,7 @@ func main(rootctx *serverContext, configDir string) error {
 
 	//create the server
 	//object loader and engines are created
-	serverHandle, _, ctx := newServer(rootctx)
+	serverHandle, _, ctx := newServer(rootctx, configDir)
 
 	//initialize server
 	//factory and service manager are configured
@@ -77,13 +76,14 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 			if info.IsDir() {
 				envName := info.Name()
 				baseEnvDir := path.Join(envDir, envName)
+				envCtx := svrCtx.newContext("Create Environment: " + envName)
 				var envConfig config.Config
 				configFile := path.Join(baseEnvDir, constants.CONF_CONFIG_FILE)
 				if _, err := os.Stat(configFile); err == nil {
 					//read the config file
 					envConfig, err = common.NewConfigFromFile(configFile)
 					if err != nil {
-						return envs, errors.WrapError(ctx, err, "Environment config file", configFile)
+						return envs, errors.WrapError(envCtx, err, "Environment config file", configFile)
 					}
 					name, ok := envConfig.GetString(constants.CONF_OBJECT_NAME)
 					if ok {
@@ -92,9 +92,9 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 				}
 
 				//create named environment from a config
-				err = svrProx.server.createEnvironment(ctx, baseEnvDir, envName, envConfig)
+				err = svrProx.server.createEnvironment(envCtx, baseEnvDir, envName, envConfig)
 				if err != nil {
-					return envs, errors.WrapError(ctx, err, "Environment", envName, "Base directory", baseEnvDir)
+					return envs, errors.WrapError(envCtx, err, "Environment", envName, "Base directory", baseEnvDir)
 				}
 				envs[envName] = baseEnvDir
 			}
@@ -147,13 +147,14 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 				if info.IsDir() {
 					appName := info.Name()
 					baseAppDir := path.Join(appDir, appName)
+					appCtx := svrCtx.newContext("Create Application: " + appName)
 					var appConfig config.Config
 					configFile := path.Join(baseAppDir, constants.CONF_CONFIG_FILE)
 					if _, err := os.Stat(configFile); err == nil {
 						//read the config file
 						appConfig, err = common.NewConfigFromFile(configFile)
 						if err != nil {
-							return errors.WrapError(ctx, err, "Application config file", configFile)
+							return errors.WrapError(appCtx, err, "Application config file", configFile)
 						}
 						name, ok := appConfig.GetString(constants.CONF_OBJECT_NAME)
 						if ok {
@@ -161,9 +162,9 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 						}
 					}
 
-					err = envProxy.env.createApplications(ctx, baseAppDir, appName, appConfig)
+					err = envProxy.env.createApplications(appCtx, baseAppDir, appName, appConfig)
 					if err != nil {
-						return errors.WrapError(ctx, err, "Environment", envName, "Application", appName, "Base directory", baseAppDir)
+						return errors.WrapError(appCtx, err, "Environment", envName, "Application", appName, "Base directory", baseAppDir)
 					}
 				}
 			}

@@ -24,7 +24,7 @@ type serverObject struct {
 }
 
 //Create a new server
-func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.ServerContext) {
+func newServer(rootctx *serverContext, baseDir string) (*serverObject, core.ServerElement, *serverContext) {
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
 	svr.environments = make(map[string]server.Environment, 5)
@@ -32,10 +32,9 @@ func newServer(rootctx *serverContext) (*serverObject, core.ServerElement, core.
 	svrElem := &serverProxy{server: svr}
 
 	svrContext := rootctx.newContext("Server")
-	svrElem.Context = svrContext.Context
 	svrContext.setElements(core.ContextMap{core.ServerElementServer: svrElem}, core.ServerElementServer)
 
-	svr.abstractserver = newAbstractServer(svrContext, "Server", nil, svrElem, nil)
+	svr.abstractserver = newAbstractServer(svrContext, "Server", nil, svrElem, baseDir, nil)
 
 	cmap := svr.contextMap(svrContext)
 	cmap[core.ServerElementServer] = svr.proxy
@@ -87,7 +86,6 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 
 func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir string, name string, envConf config.Config) error {
 	envCreate := ctx.SubContext("Creating Environment: " + name).(*serverContext)
-	envCreate.Set(constants.CONF_BASE_DIR, baseDir)
 
 	if envConf == nil {
 		envConf = make(common.GenericConfig, 0)
@@ -96,7 +94,7 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	log.Trace(envCreate, "Creating Environment")
 	filterConf, _ := envConf.GetSubConfig(constants.CONF_FILTERS)
 
-	envHandle, envElem := newEnvironment(envCreate, name, svr, filterConf)
+	envHandle, envElem := newEnvironment(envCreate, name, svr, baseDir, filterConf)
 	log.Debug(envCreate, "Created environment")
 
 	err := envHandle.Initialize(envCreate, envConf)

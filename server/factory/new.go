@@ -1,7 +1,6 @@
 package factory
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
 	//	"laatoo/sdk/errors"
@@ -9,9 +8,8 @@ import (
 )
 
 func NewFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	fm := &factoryManager{parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactory, 30)}
-	fmElemCtx := parentElem.NewCtx("Factory Manager:" + name)
-	fmElem := &factoryManagerProxy{Context: fmElemCtx.(*common.Context), manager: fm}
+	fm := &factoryManager{name: name, parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactoryProxy, 30)}
+	fmElem := &factoryManagerProxy{manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
 }
@@ -19,7 +17,7 @@ func NewFactoryManager(ctx core.ServerContext, name string, parentElem core.Serv
 func ChildFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	facMgrProxy := parentFacMgr.(*factoryManagerProxy)
 	facMgr := facMgrProxy.manager
-	store := make(map[string]*serviceFactory, len(facMgr.serviceFactoryStore))
+	store := make(map[string]*serviceFactoryProxy, len(facMgr.serviceFactoryStore))
 	for k, v := range facMgr.serviceFactoryStore {
 		allowed := true
 		for _, filter := range filters {
@@ -33,8 +31,7 @@ func ChildFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.
 		}
 	}
 	fm := &factoryManager{parent: parent, serviceFactoryStore: store}
-	fmElemCtx := parentFacMgr.NewCtx("Factory Manager:" + name)
-	fmElem := &factoryManagerProxy{Context: fmElemCtx.(*common.Context), manager: fm}
+	fmElem := &factoryManagerProxy{manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
 }

@@ -1,14 +1,12 @@
 package factory
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
 )
 
 type factoryManagerProxy struct {
-	*common.Context
 	manager *factoryManager
 }
 
@@ -18,4 +16,16 @@ func (fm *factoryManagerProxy) GetFactory(ctx core.ServerContext, factoryName st
 		return elem, nil
 	}
 	return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Factory Name", factoryName)
+}
+func (proxy *factoryManagerProxy) Reference() core.ServerElement {
+	return &factoryManagerProxy{manager: proxy.manager}
+}
+func (proxy *factoryManagerProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *factoryManagerProxy) GetName() string {
+	return proxy.manager.name
+}
+func (proxy *factoryManagerProxy) GetType() core.ServerElementType {
+	return core.ServerElementFactoryManager
 }

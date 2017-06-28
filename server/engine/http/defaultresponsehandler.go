@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
-	"laatoo/server/common"
 	"laatoo/server/engine/http/net"
 	"net/http"
 	"strings"
 )
 
 type defaultResponseHandler struct {
-	*common.Context
 }
 
 func DefaultResponseHandler(ctx core.ServerContext) *defaultResponseHandler {
@@ -93,4 +91,20 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error 
 	}
 	log.Debug(ctx, "Returning request without content")
 	return engineContext.NoContent(http.StatusOK)
+}
+
+func (proxy *defaultResponseHandler) Reference() core.ServerElement {
+	anotherref := proxy
+	return anotherref
+}
+
+func (proxy *defaultResponseHandler) GetProperty(name string) interface{} {
+	return nil
+}
+
+func (proxy *defaultResponseHandler) GetName() string {
+	return "DefaultResponseHandler"
+}
+func (proxy *defaultResponseHandler) GetType() core.ServerElementType {
+	return core.ServerElementServiceResponseHandler
 }

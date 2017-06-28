@@ -18,10 +18,11 @@ const (
 )
 
 type factoryManager struct {
+	name   string
 	parent core.ServerElement
 	proxy  server.FactoryManager
 	//store for service factory in an application
-	serviceFactoryStore map[string]*serviceFactory
+	serviceFactoryStore map[string]*serviceFactoryProxy
 }
 
 func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -39,7 +40,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, constants.CONF_FACTORIES, facMgr.createServiceFactory); err != nil {
+	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, facMgr.parent, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
@@ -48,10 +49,11 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 
 func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 	facmgrStartCtx := facMgr.createContext(ctx, "Start factory manager")
-	for facname, facStruct := range facMgr.serviceFactoryStore {
+	for facname, facProxy := range facMgr.serviceFactoryStore {
+		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
 			log.Debug(ctx, "Starting factory", "factory name", facname)
-			facStartCtx := facmgrStartCtx.NewContextWithElements("Start"+facname, core.ContextMap{core.ServerElementServiceFactory: facStruct}, core.ServerElementServiceFactory)
+			facStartCtx := facmgrStartCtx.NewContextWithElements("Start"+facname, core.ContextMap{core.ServerElementServiceFactory: facProxy}, core.ServerElementServiceFactory)
 			err := facStruct.factory.Start(facStartCtx)
 			if err != nil {
 				return errors.WrapError(facStartCtx, err)
@@ -137,35 +139,38 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 	}
 
 	if factory != nil {
-		//creates a factory context from the parent
-		facElem := facMgr.parent.NewCtx(factoryAlias).(*common.Context)
-		fac := &serviceFactory{Context: facElem, name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig}
+
+		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig}
+		facProxy := &serviceFactoryProxy{fac: fac}
+
+		facCtx := facMgr.getFactoryContext(ctx)
 
 		middleware, ok := factoryConfig.GetStringArray(constants.CONF_MIDDLEWARE)
 		if ok {
-			parentMw, ok := facMgr.parent.GetStringArray(constants.CONF_MIDDLEWARE)
+			parentMw, ok := facCtx.GetStringArray(constants.CONF_MIDDLEWARE)
 			if ok {
 				middleware = append(parentMw, middleware...)
 			}
-			facElem.Set(constants.CONF_MIDDLEWARE, middleware)
+			facCtx.Set(constants.CONF_MIDDLEWARE, middleware)
 		}
 
 		cacheToUse, ok := factoryConfig.GetString(constants.CONF_CACHE_NAME)
 		if ok {
-			fac.Set("__cache", cacheToUse)
+			facCtx.Set("__cache", cacheToUse)
 		}
 
 		//add the service to the application
-		facMgr.serviceFactoryStore[factoryAlias] = fac
+		facMgr.serviceFactoryStore[factoryAlias] = facProxy
 	}
 	return nil
 }
 
 //initialize services within an application
 func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error {
-	for facname, facStruct := range facMgr.serviceFactoryStore {
+	for facname, facProxy := range facMgr.serviceFactoryStore {
+		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
-			facInitializeCtx := ctx.NewContextWithElements("Initialize "+facname, core.ContextMap{core.ServerElementServiceFactory: facStruct}, core.ServerElementServiceFactory)
+			facInitializeCtx := ctx.NewContextWithElements("Initialize "+facname, core.ContextMap{core.ServerElementServiceFactory: facProxy}, core.ServerElementServiceFactory)
 			log.Debug(facInitializeCtx, "Initializing factory", "factory name", facname)
 			err := facStruct.factory.Initialize(facInitializeCtx, facStruct.conf)
 			if err != nil {
@@ -175,6 +180,10 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 		}
 	}
 	return nil
+}
+
+func (facMgr *factoryManager) getFactoryContext(ctx core.ServerContext) core.ServerContext {
+	return ctx
 }
 
 //creates a context specific to factory manager

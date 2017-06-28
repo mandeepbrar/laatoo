@@ -12,6 +12,7 @@ import (
 )
 
 type messagingManager struct {
+	name        string
 	commSvcName string
 	commSvc     components.PubSubComponent
 	parent      core.ServerElement

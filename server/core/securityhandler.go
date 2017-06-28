@@ -18,7 +18,7 @@ import (
 )
 
 type securityHandler struct {
-	*common.Context
+	name          string
 	handler       security.SecurityPlugin
 	userCreator   core.ObjectCreator
 	roleCreator   core.ObjectCreator
@@ -36,9 +36,9 @@ type securityHandler struct {
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	shCtx := parent.NewCtx(name)
-	sh := &securityHandler{Context: shCtx.(*common.Context)}
-	return sh, sh
+	sh := &securityHandler{name: name}
+	proxy := &securityHandlerProxy{secHandler: sh}
+	return sh, proxy
 }
 
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -47,12 +47,11 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		conf = make(common.GenericConfig, 0)
 	}
 
-	initCtx := sh.createContext(ctx, "Initialize Security Handler")
+	initCtx := ctx.SubContext("Initialize Security Handler")
 	sh.securityConf = conf
 
 	realm, _ := conf.GetString(config.REALM)
 	sh.realm = realm
-	sh.Set(config.REALM, realm)
 
 	adminRole, ok := conf.GetString(config.ADMINROLE)
 	if !ok {
@@ -62,7 +61,6 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		adminRole = fmt.Sprintf("%s_%s", adminRole, realm)
 	}
 	sh.adminRole = adminRole
-	sh.Set(config.ADMINROLE, adminRole)
 
 	anonRole := "Anonymous"
 	if realm != "" {
@@ -74,14 +72,12 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	if !ok {
 		roleobject = config.DEFAULT_ROLE
 	}
-	sh.Set(config.ROLE, roleobject)
 	sh.roleObject = roleobject
 
 	userObject, ok := conf.GetString(config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
 	}
-	sh.Set(config.USER, userObject)
 	sh.userObject = userObject
 
 	if !sh.skipSecurity {
@@ -101,7 +97,6 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		authToken = config.DEFAULT_AUTHHEADER
 	}
 	sh.authHeader = authToken
-	sh.Set(config.AUTHHEADER, authToken)
 	mode, ok := conf.GetString(constants.CONF_SECURITY_MODE)
 	if !ok {
 		mode = constants.CONF_SECURITY_LOCAL
@@ -114,7 +109,7 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 }
 
 func (sh *securityHandler) Start(ctx core.ServerContext) error {
-	startCtx := sh.createContext(ctx, "Starting Security Handler")
+	startCtx := ctx.SubContext("Starting Security Handler")
 	userCreator, err := startCtx.GetObjectCreator(sh.userObject)
 	if err != nil {
 		return errors.WrapError(startCtx, err)
@@ -192,11 +187,11 @@ func (sh *securityHandler) AllPermissions(ctx core.RequestContext) []string {
 	return sh.handler.AllPermissions(ctx)
 }
 
-//creates a context specific to environment
+/*//creates a context specific to environment
 func (sh *securityHandler) createContext(ctx core.ServerContext, name string) core.ServerContext {
 	return ctx.NewContextWithElements(name,
 		core.ContextMap{core.ServerElementSecurityHandler: sh}, core.ServerElementSecurityHandler)
-}
+}*/
 
 func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh bool) (auth.User, bool, string, error) {
 	tokenVal, ok := ctx.GetString(sh.authHeader)

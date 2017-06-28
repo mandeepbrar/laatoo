@@ -8,6 +8,39 @@ import (
 	deflog "log"
 )
 
+/*
+	Server context movement
+
+	RootCtx -> Server -> Server Create -> Server Init -> Server Start -------- Server context---Context A --- same context or sub context travels
+	Server  -> Factory -> Service -> Channel---- Server Context ---- Context A1
+	Server Context -> SecurityHandler --- context A2
+	ServerContext -> TaskManager - > Tasks --- context A3
+	ServerContext -> RulesManager - > Rules --- context A4
+	FactoryManager ---- same as above
+	Service Manager---- same as above
+	Log Manager--- depends on parent... can be changed from factory, service or channel
+	....
+	ServerContext -> Started Server-> Environment Create -> Environment Init -> environment Start -> AE ---- new context from server..... same context travels in env init
+	Environment -> Factory -> Service - > Channel ---- Server Context ----- Context AE1 (for inherited service... it still runs in server )
+	Evironment Server Context -> SecurityHandler --- context AE2
+	Evironment ServerContext -> TaskManager - > Tasks --- context AE3 --- context does not flow from task manager to task manager because they have parent child relations
+	Evironment ServerContext -> RulesManager - > RulesManager --- context AE3 --- context does not flow from task manager to task manager because they have parent child relations
+	Evironment ServerContext -> ChannelManager - > Channels --- context AE4
+	FactoryManager ---- same as above
+	Service Manager---- same as above
+	..
+	..
+	>>>>>>>>>>>>>Factory Manager, Service Manager, Channel MAnager, Rules, Tasks need to pick right context to ensure execution of a service. >>>> Server -> Evironment -> Application-> Factory->Service->Channel
+	....
+	Started Environment Context -> Create Application Server Context -> Application Init - > Application start ---- AEA
+	Server -> Environment -> Application-> Factory -> Service - > Channel -> RequestContext---- Server Context ----- Context AEA1 (for inherited service... it still runs in server )
+
+
+	New context --- copies an original context---- duplicates the context map, copies the references of server elements.. changes are not refelected back to original context
+	Sub context --- name and path change... changes on server elements (excluding logger) are reflected on original context... changes on map are also reflected back...
+
+*/
+
 //proxy object for the server
 //this context is passed during initialization of factories and services
 type serverContext struct {
@@ -58,9 +91,9 @@ func newServerContext() *serverContext {
 }
 
 //returns the server type i.e. standalone or google app engine
-func (ctx *serverContext) GetServerType() string {
+/*func (ctx *serverContext) GetServerType() string {
 	return ctx.server.(*serverProxy).server.serverType
-}
+}*/
 
 //returns the primary element
 func (ctx *serverContext) GetElement() core.ServerElement {
@@ -136,14 +169,20 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 }
 
 func (ctx *serverContext) subContext(name string) *serverContext {
-	return ctx.newservercontext(ctx.SubCtx(name))
+	subctx := ctx.SubCtx(name)
+	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
+	return &serverContext{Context: subctx.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
+		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
+		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
+		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager, logger: ctx.logger,
+		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3, element: ctx.element, elementType: ctx.elementType}
 }
 
 //create a new server context; variables in this context be reflected in parent
 //sets a context element
 //id of the context is not changed. flow is updated
 func (ctx *serverContext) SubContextWithElement(name string, primaryElement core.ServerElementType) core.ServerContext {
-	retctx := ctx.newservercontext(ctx.SubCtx(name))
+	retctx := ctx.subContext(name)
 	elem := retctx.GetServerElement(primaryElement)
 	if elem != nil {
 		retctx.element = elem
@@ -153,21 +192,23 @@ func (ctx *serverContext) SubContextWithElement(name string, primaryElement core
 	return nil
 }
 
-//creates a new server context that is duplicate of the parent.
-func (ctx *serverContext) newservercontext(context core.Context) *serverContext {
-	log.Debug(ctx, "Entering new servercontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", context.GetName())
-	return &serverContext{Context: context.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
-		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
-		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager, logger: ctx.logger,
-		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3, element: ctx.element, elementType: ctx.elementType}
-}
-
 func (ctx *serverContext) NewContext(name string) core.ServerContext {
 	return ctx.newContext(name)
 }
 func (ctx *serverContext) newContext(name string) *serverContext {
-	return ctx.newservercontext(ctx.NewCtx(name))
+	newctx := ctx.NewCtx(name)
+	log.Debug(ctx, "Entering new server context ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
+	svrCtx := &serverContext{Context: newctx.(*common.Context), server: ctx.checkNil(ctx.server), serviceResponseHandler: ctx.checkNil(ctx.serviceResponseHandler).(server.ServiceResponseHandler),
+		engine: ctx.checkNil(ctx.engine).(server.Engine), objectLoader: ctx.checkNil(ctx.objectLoader).(server.ObjectLoader), application: ctx.checkNil(ctx.application).(server.Application),
+		environment: ctx.checkNil(ctx.environment).(server.Environment), securityHandler: ctx.checkNil(ctx.securityHandler).(server.SecurityHandler), factory: ctx.checkNil(ctx.factory).(server.Factory),
+		factoryManager: ctx.checkNil(ctx.factoryManager).(server.FactoryManager), serviceManager: ctx.checkNil(ctx.serviceManager).(server.ServiceManager), service: ctx.checkNil(ctx.service).(server.Service),
+		channel: ctx.checkNil(ctx.channel).(server.Channel), msgManager: ctx.checkNil(ctx.msgManager).(server.MessagingManager), channelManager: ctx.checkNil(ctx.channelManager).(server.ChannelManager),
+		rulesManager: ctx.checkNil(ctx.rulesManager).(server.RulesManager), cacheManager: ctx.checkNil(ctx.cacheManager).(server.CacheManager), taskManager: ctx.checkNil(ctx.taskManager).(server.TaskManager),
+		logger: ctx.checkNil(ctx.logger).(server.Logger), open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
+	elem := svrCtx.GetServerElement(ctx.elementType)
+	svrCtx.element = elem
+	svrCtx.elementType = ctx.elementType
+	return svrCtx
 }
 
 //create a new server context from the parent. variables set in this context will not be reflected in parent
@@ -175,6 +216,20 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 //sets a context element
 func (ctx *serverContext) NewContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) core.ServerContext {
 	return ctx.newContextWithElements(name, elements, primaryElement)
+}
+
+func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
+	newctx := ctx.newContext(name)
+	newctx.setElements(elements, primaryElement)
+	return newctx
+}
+
+func (ctx *serverContext) checkNil(elem core.ServerElement) core.ServerElement {
+	if elem != nil {
+		return elem.Reference()
+	} else {
+		return nil
+	}
 }
 
 func (ctx *serverContext) setElements(elements core.ContextMap, primaryElement core.ServerElementType) {
@@ -302,11 +357,6 @@ func (ctx *serverContext) setElements(elements core.ContextMap, primaryElement c
 		ctx.elementType = primaryElement
 	}
 }
-func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
-	newctx := ctx.newservercontext(ctx.NewCtx(name))
-	newctx.setElements(elements, primaryElement)
-	return newctx
-}
 
 //creates a new request with engine context
 func (ctx *serverContext) CreateNewRequest(name string, params interface{}) core.RequestContext {
@@ -334,7 +384,7 @@ func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, p
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
 
-	newctx := parent.NewCtx(name)
+	newctx := ctx.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.logger,
 		engineContext: engineCtx, subRequest: false}
 }

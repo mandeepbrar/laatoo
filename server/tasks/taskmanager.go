@@ -13,6 +13,7 @@ import (
 )
 
 type taskManager struct {
+	name               string
 	parent             core.ServerElement
 	proxy              server.TaskManager
 	authHeader         string
@@ -30,11 +31,11 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		shandler := sh.(server.SecurityHandler)
 		tskMgr.shandler = shandler
 
-		ah, ok := shandler.GetString(config.AUTHHEADER)
-		if !ok {
+		val := shandler.GetProperty(config.AUTHHEADER)
+		if val == nil {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 		}
-		tskMgr.authHeader = ah
+		tskMgr.authHeader = val.(string)
 	} else {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
@@ -56,7 +57,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, constants.CONF_TASKS, tskMgr.processTaskConf); err != nil {
+	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, tskMgr.parent, constants.CONF_TASKS, tskMgr.processTaskConf, true); err != nil {
 		return err
 	}
 

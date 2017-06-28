@@ -169,11 +169,12 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	authtoken := ""
 	if sh != nil {
 		shandler = sh.(server.SecurityHandler)
-		authtoken, _ = sh.GetString(config.AUTHHEADER)
+		val := sh.GetProperty(config.AUTHHEADER)
+		authtoken = val.(string)
 	}
 
 	var cache components.CacheComponent
-	cacheToUse, ok := svc.GetString("__cache")
+	cacheToUse, ok := ctx.GetString("__cache")
 	if ok {
 		if channel.cacheManager != nil {
 			cache = channel.cacheManager.GetCache(ctx, cacheToUse)
@@ -196,7 +197,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	return func(pathCtx net.WebContext) error {
 		result := make(chan error)
 		rparams := &common.RequestContextParams{EngineContext: pathCtx, Cache: cache}
-		logger, ok := svc.Get("__logger")
+		logger, ok := ctx.Get("__logger")
 		if ok {
 			rparams.Logger = logger.(components.Logger)
 		}

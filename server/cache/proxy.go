@@ -1,13 +1,11 @@
 package cache
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/components"
 	"laatoo/sdk/core"
 )
 
 type cacheManagerProxy struct {
-	*common.Context
 	manager *cacheManager
 }
 
@@ -17,4 +15,17 @@ func (cm *cacheManagerProxy) GetCache(ctx core.ServerContext, name string) compo
 		return nil
 	}
 	return cacheObj
+}
+
+func (proxy *cacheManagerProxy) Reference() core.ServerElement {
+	return &cacheManagerProxy{manager: proxy.manager}
+}
+func (proxy *cacheManagerProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *cacheManagerProxy) GetName() string {
+	return proxy.manager.name
+}
+func (proxy *cacheManagerProxy) GetType() core.ServerElementType {
+	return core.ServerElementCacheManager
 }

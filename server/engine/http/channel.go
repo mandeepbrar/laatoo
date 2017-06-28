@@ -4,11 +4,9 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 )
 
 type httpChannelProxy struct {
-	*common.Context
 	channel *httpChannel
 }
 
@@ -18,7 +16,20 @@ func (channel *httpChannelProxy) Serve(ctx core.ServerContext, svc server.Servic
 
 func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {
 	childChannel := channel.channel.group(ctx, name, channelConfig)
-	childCtx := channel.NewCtx("Channel:" + name)
-	proxy := &httpChannelProxy{Context: childCtx.(*common.Context), channel: childChannel}
+	proxy := &httpChannelProxy{channel: childChannel}
 	return proxy, nil
+}
+
+func (proxy *httpChannelProxy) Reference() core.ServerElement {
+	return &httpChannelProxy{channel: proxy.channel}
+}
+
+func (proxy *httpChannelProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *httpChannelProxy) GetName() string {
+	return proxy.channel.name
+}
+func (proxy *httpChannelProxy) GetType() core.ServerElementType {
+	return core.ServerElementChannel
 }

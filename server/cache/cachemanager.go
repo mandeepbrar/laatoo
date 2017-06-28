@@ -11,8 +11,10 @@ import (
 )
 
 type cacheManager struct {
+	name                 string
 	registeredCacheNames map[string]string
 	registeredCaches     map[string]components.CacheComponent
+	parent               core.ServerElement
 	proxy                *cacheManagerProxy
 }
 
@@ -40,7 +42,7 @@ func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) e
 
 	log.Trace(ctx, "Process Caches directory")
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_CACHES, cm.processCache); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, cm.parent, constants.CONF_CACHES, cm.processCache, true); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 

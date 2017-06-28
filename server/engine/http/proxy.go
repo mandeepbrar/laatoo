@@ -1,17 +1,29 @@
 package http
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
 )
 
 type httpEngineProxy struct {
-	*common.Context
 	engine *httpEngine
 }
 
 func (eng *httpEngineProxy) GetRootChannel(ctx core.ServerContext) server.Channel {
-	engCtx := ctx.GetServerElement(core.ServerElementServer).NewCtx("Channel:" + eng.engine.name)
-	return &httpChannelProxy{engCtx.(*common.Context), eng.engine.rootChannel}
+	return &httpChannelProxy{eng.engine.rootChannel}
+}
+
+func (proxy *httpEngineProxy) Reference() core.ServerElement {
+	return &httpEngineProxy{engine: proxy.engine}
+}
+
+func (proxy *httpEngineProxy) GetProperty(name string) interface{} {
+	return nil
+}
+
+func (proxy *httpEngineProxy) GetName() string {
+	return proxy.engine.name
+}
+func (proxy *httpEngineProxy) GetType() core.ServerElementType {
+	return core.ServerElementEngine
 }

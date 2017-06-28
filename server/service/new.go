@@ -1,7 +1,6 @@
 package service
 
 import (
-	"laatoo/server/common"
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
 	//	"laatoo/sdk/errors"
@@ -9,9 +8,8 @@ import (
 )
 
 func NewServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	sm := &serviceManager{parent: parentElem, servicesStore: make(map[string]*service, 100)}
-	smElemCtx := parentElem.NewCtx("Service Manager:" + name)
-	smElem := &serviceManagerProxy{Context: smElemCtx.(*common.Context), manager: sm}
+	sm := &serviceManager{name: name, parent: parentElem, servicesStore: make(map[string]*serviceProxy, 100)}
+	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
 }
@@ -19,7 +17,7 @@ func NewServiceManager(ctx core.ServerContext, name string, parentElem core.Serv
 func ChildServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	svcMgrProxy := parentSvcMgr.(*serviceManagerProxy)
 	svcMgr := svcMgrProxy.manager
-	store := make(map[string]*service, len(svcMgr.servicesStore))
+	store := make(map[string]*serviceProxy, len(svcMgr.servicesStore))
 	for k, v := range svcMgr.servicesStore {
 		allowed := true
 		for _, filter := range filters {
@@ -32,9 +30,8 @@ func ChildServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.
 			store[k] = v
 		}
 	}
-	sm := &serviceManager{parent: parent, servicesStore: store}
-	smElemCtx := parentSvcMgr.NewCtx("Service Manager:" + name)
-	smElem := &serviceManagerProxy{Context: smElemCtx.(*common.Context), manager: sm}
+	sm := &serviceManager{name: name, parent: parent, servicesStore: store}
+	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
 }

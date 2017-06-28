@@ -18,12 +18,11 @@ type environment struct {
 	server *serverObject
 }
 
-func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, filterConf config.Config) (*environment, *environmentProxy) {
+func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseDir string, filterConf config.Config) (*environment, *environmentProxy) {
 
 	env := &environment{server: svr, applications: make(map[string]server.Application, 5)}
-	envCtx := svr.proxy.NewCtx(name)
-	proxy := &environmentProxy{Context: envCtx.(*common.Context), env: env}
-	env.abstractserver = newAbstractServer(svrCtx, name, svr.abstractserver, proxy, filterConf)
+	proxy := &environmentProxy{env: env}
+	env.abstractserver = newAbstractServer(svrCtx, name, svr.abstractserver, proxy, baseDir, filterConf)
 	env.proxy = proxy
 	log.Debug(svrCtx, "Created environment", "Name", name)
 	return env, proxy
@@ -49,16 +48,15 @@ func (env *environment) Start(ctx core.ServerContext) error {
 
 func (env *environment) createApplications(ctx core.ServerContext, baseDir string, name string, applicationConf config.Config) error {
 	appCreateCtx := env.createContext(ctx, "CreateApplication: "+name)
-	appCreateCtx.Set(constants.CONF_BASE_DIR, baseDir)
 
 	if applicationConf == nil {
 		applicationConf = make(common.GenericConfig, 0)
 	}
 
-	log.Trace(appCreateCtx, "Creating Application")
+	log.Trace(appCreateCtx, "Creating Application", "Base Directory", baseDir)
 	filterConf, _ := applicationConf.GetSubConfig(constants.CONF_FILTERS)
 	//create an application
-	applHandle, applElem := newApplication(appCreateCtx, name, env, filterConf)
+	applHandle, applElem := newApplication(appCreateCtx, name, env, baseDir, filterConf)
 	log.Debug(appCreateCtx, "Created")
 
 	appInitCtx := env.createContext(ctx, "InitializeApplication: "+name)

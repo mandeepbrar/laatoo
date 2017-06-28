@@ -68,8 +68,8 @@ func createMessagingManager(ctx core.ServerContext, name string, conf config.Con
 	var messagingManager server.MessagingManager
 	var messagingManagerHandle server.ServerElementHandle
 	if !found {
-		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-		confFile := path.Join(baseDir, constants.CONF_MESSAGING, constants.CONF_CONFIG_FILE)
+		basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		confFile := path.Join(basedir, constants.CONF_MESSAGING, constants.CONF_CONFIG_FILE)
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error

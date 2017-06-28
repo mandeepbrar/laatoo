@@ -29,7 +29,7 @@ func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName st
 	}
 }
 
-func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func(core.ServerContext, config.Config, string) error) error {
+func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
 	ok, fi, _ := utils.FileExists(subDir)
 	if ok && fi.IsDir() {
 		files, err := ioutil.ReadDir(subDir)
@@ -55,12 +55,15 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 				if err := processor(elemCtx, elemConf, elemName); err != nil {
 					return err
 				}
-			} else {
 				if (info.Mode() & os.ModeSymlink) != 0 {
 					s, err := os.Readlink(file)
-					if err == nil {
-						processDirectoryFiles(ctx, s, processor)
+					if err == nil && recurse {
+						processDirectoryFiles(ctx, s, processor, recurse)
 					}
+				}
+			} else {
+				if recurse {
+					processDirectoryFiles(ctx, file, processor, recurse)
 				}
 			}
 		}
@@ -68,10 +71,10 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 	return nil
 }
 
-func ProcessDirectoryFiles(ctx core.ServerContext, dir string, processor func(core.ServerContext, config.Config, string) error) error {
+func ProcessDirectoryFiles(ctx core.ServerContext, parent core.ServerElement, dir string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 	subDir := path.Join(baseDir, dir)
-	return processDirectoryFiles(ctx, subDir, processor)
+	return processDirectoryFiles(ctx, subDir, processor, recurse)
 }
 
 func FileAdapter(conf config.Config, configName string) (config.Config, error, bool) {

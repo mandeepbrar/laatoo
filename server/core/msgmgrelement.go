@@ -3,12 +3,23 @@ package core
 import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 )
 
 type messagingManagerProxy struct {
-	*common.Context
 	manager *messagingManager
+}
+
+func (proxy *messagingManagerProxy) Reference() core.ServerElement {
+	return &messagingManagerProxy{manager: proxy.manager}
+}
+func (proxy *messagingManagerProxy) GetProperty(name string) interface{} {
+	return nil
+}
+func (proxy *messagingManagerProxy) GetName() string {
+	return proxy.manager.name
+}
+func (proxy *messagingManagerProxy) GetType() core.ServerElementType {
+	return core.ServerElementMessagingManager
 }
 
 //subscribe to a topic
@@ -22,9 +33,8 @@ func (mgr *messagingManagerProxy) Publish(ctx core.RequestContext, topic string,
 }
 
 func newMessagingManager(ctx core.ServerContext, name string, parentElem core.ServerElement, commSvcName string) (*messagingManager, *messagingManagerProxy) {
-	msgMgr := &messagingManager{parent: parentElem, topicStore: make(map[string][]core.ServiceFunc, 10), commSvcName: commSvcName}
-	msgElemCtx := parentElem.NewCtx(name)
-	msgElem := &messagingManagerProxy{Context: msgElemCtx.(*common.Context), manager: msgMgr}
+	msgMgr := &messagingManager{name: name, parent: parentElem, topicStore: make(map[string][]core.ServiceFunc, 10), commSvcName: commSvcName}
+	msgElem := &messagingManagerProxy{manager: msgMgr}
 	msgMgr.proxy = msgElem
 	return msgMgr, msgElem
 }
@@ -45,9 +55,8 @@ func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr
 			store[k] = []core.ServiceFunc{}
 		}
 	}
-	childmsgMgr := &messagingManager{parent: parent, topicStore: store, commSvcName: msgMgr.commSvcName}
-	childmsgMgrElemCtx := parentMessageMgr.NewCtx(name)
-	childmsgMgrElem := &messagingManagerProxy{Context: childmsgMgrElemCtx.(*common.Context), manager: childmsgMgr}
+	childmsgMgr := &messagingManager{name: name, parent: parent, topicStore: store, commSvcName: msgMgr.commSvcName}
+	childmsgMgrElem := &messagingManagerProxy{manager: childmsgMgr}
 	childmsgMgr.proxy = childmsgMgrElem
 	return childmsgMgr, childmsgMgrElem
 }

@@ -1,7 +1,6 @@
 package http
 
 import (
-	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http/echo"
 	"laatoo/server/engine/http/gin"
@@ -59,19 +58,11 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		eng.sslcert = cert
 		eng.sslkey = key
 	}
-	if initCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-		address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
-		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", constants.CONF_SERVER_ADDRESS)
-		} else {
-			eng.address = address
-		}
+	address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
+	if !ok {
+		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", constants.CONF_SERVER_ADDRESS)
 	} else {
-		rootPath, ok := conf.GetString(constants.CONF_HTTPENGINE_PATH)
-		if !ok {
-			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_HTTPENGINE_PATH)
-		}
-		eng.path = rootPath
+		eng.address = address
 	}
 	log.Trace(initCtx, "Initializing framework")
 	eng.framework.Initialize()
@@ -93,26 +84,21 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	startCtx := eng.createContext(ctx, "Start Engine: "+eng.name)
-	if startCtx.GetServerType() == core.CONF_SERVERTYPE_STANDALONE {
-		log.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
-		if eng.ssl {
-			//start listening
-			err := eng.framework.StartSSLServer(eng.address, eng.sslcert, eng.sslkey)
-			if err != nil {
-				panic("Failed to start application" + err.Error())
-			}
-			return nil
-		} else {
-			//start listening
-			err := eng.framework.StartServer(eng.address)
-			if err != nil {
-				panic("Failed to start application" + err.Error())
-			}
-			return nil
+	log.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
+	if eng.ssl {
+		//start listening
+		err := eng.framework.StartSSLServer(eng.address, eng.sslcert, eng.sslkey)
+		if err != nil {
+			panic("Failed to start application" + err.Error())
 		}
-	}
-	if startCtx.GetServerType() == core.CONF_SERVERTYPE_GOOGLEAPP {
-		common.GaeHandle(eng.path, eng.framework.GetRootHandler())
+		return nil
+	} else {
+		//start listening
+		err := eng.framework.StartServer(eng.address)
+		if err != nil {
+			panic("Failed to start application" + err.Error())
+		}
+		return nil
 	}
 	log.Info(startCtx, "Started engine*********************************")
 	return nil
