@@ -34,7 +34,8 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		}
 	}
 
-	if err := as.createConfBasedComponents(ctx, conf); err != nil {
+	createctx := ctx.subContext("Create Conf components")
+	if err := as.createConfBasedComponents(createctx, conf); err != nil {
 		return err
 	}
 
@@ -70,7 +71,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	log.Trace(enginit, "Initialized engines")
 
 	chaninit := ctx.SubContext("Initialize channel manager")
-	err = initializeChannelManager(chaninit, conf, as.channelMgrHandle)
+	err = initializeChannelManager(chaninit, conf, as.channelManagerHandle)
 	if err != nil {
 		return errors.WrapError(chaninit, err)
 	}

@@ -34,7 +34,7 @@ func (as *abstractserver) start(ctx *serverContext) error {
 
 	chanstart := ctx.SubContext("Start Channel manager")
 	log.Trace(chanstart, "Starting channel managers")
-	err = as.channelMgrHandle.Start(chanstart)
+	err = as.channelManagerHandle.Start(chanstart)
 	if err != nil {
 		return errors.WrapError(chanstart, err)
 	}

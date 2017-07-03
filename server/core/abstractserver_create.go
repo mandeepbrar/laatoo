@@ -46,8 +46,8 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
 		channelMgrHandle, channelMgr := newChannelManager(cmCreateCtx, name, proxy)
-		as.channelMgr = channelMgr
-		as.channelMgrHandle = channelMgrHandle
+		as.channelManager = channelMgr
+		as.channelManagerHandle = channelMgrHandle
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: channelMgr})
 
 	} else {
@@ -56,7 +56,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		loader := parent.objectLoader
 		factoryManager := parent.factoryManager
 		serviceManager := parent.serviceManager
-		channelMgr := parent.channelMgr
+		channelMgr := parent.channelManager
 
 		loggerHandle, logger := slog.ChildLogger(svrCtx, name, logger)
 		as.logger = logger
@@ -83,8 +83,8 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
 		childChanMgrHandle, childChannelMgr := childChannelManager(cmCreateCtx, name, channelMgr, proxy)
-		as.channelMgrHandle = childChanMgrHandle
-		as.channelMgr = childChannelMgr.(server.ChannelManager)
+		as.channelManagerHandle = childChanMgrHandle
+		as.channelManager = childChannelMgr.(server.ChannelManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: childChannelMgr})
 	}
 
@@ -111,13 +111,15 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 	if err := as.createSecurityHandler(createsecctx, conf); err != nil {
 		return errors.WrapError(createsecctx, err)
 	}
+	ctx.setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
 
 	createcachectx := ctx.subContext("Create Cache manager: " + as.name)
 	if err := as.createCacheManager(createcachectx, conf); err != nil {
 		return errors.WrapError(createcachectx, err)
 	}
+	ctx.setElements(core.ContextMap{core.ServerElementCacheManager: as.cacheManager})
 
-	createenginectx := ctx.SubContext("Create Engines")
+	createenginectx := ctx.SubContext("Create Engines: " + as.name)
 	if err := as.createEngines(createenginectx, conf); err != nil {
 		return errors.WrapError(createenginectx, err)
 	}
@@ -126,6 +128,7 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 	if err := as.createMessagingManager(createmsgctx, conf, as.parent); err != nil {
 		return errors.WrapError(createmsgctx, err)
 	}
+	ctx.setElements(core.ContextMap{core.ServerElementMessagingManager: as.messagingManager})
 
 	return nil
 }
@@ -251,7 +254,6 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 		as.messagingManagerHandle = childMsgMgrHandle
 		as.messagingManager = childMsgMgr.(server.MessagingManager)
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementMessagingManager: as.messagingManager})
 
 	return nil
 }
@@ -289,7 +291,6 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 			createSecHandler(ctx)
 		}
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
 	return nil
 }
 
@@ -323,13 +324,13 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 	if !found {
 		engCreateCtx := ctx.SubContext("Create Engine: " + name)
 		log.Trace(engCreateCtx, "Creating Engine", "Engine", name)
-		engHandle, eng, err := createEngine(engCreateCtx, name, conf)
+		engHandle, eng, err := as.createEngine(engCreateCtx, conf)
 		if err != nil {
 			return errors.WrapError(engCreateCtx, err)
 		}
 
 		//get a root channel and assign it to server channel manager
-		as.channelMgrHandle.(*channelManager).channelStore[name] = eng.GetRootChannel(engCreateCtx)
+		as.channelManagerHandle.(*channelManager).channelStore[name] = eng.GetRootChannel(engCreateCtx)
 
 		log.Info(engCreateCtx, "Registered root channel", "Name", name)
 
@@ -357,12 +358,11 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 		as.cacheManager = cacheMgr
 		as.cacheManagerHandle = cacheMgrHandle
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementCacheManager: as.cacheManager})
 	log.Trace(cacheMgrCreateCtx, "Cache Manager Created")
 	return nil
 }
 
-func createEngine(ctx core.ServerContext, name string, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {
+func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {
 	enginetype, ok := engConf.GetString(constants.CONF_ENGINE_TYPE)
 	if !ok {
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
@@ -371,7 +371,7 @@ func createEngine(ctx core.ServerContext, name string, engConf config.Config) (s
 	var engine server.Engine
 	switch enginetype {
 	case constants.CONF_ENGINETYPE_HTTP:
-		engineHandle, engine = http.NewEngine(ctx, name)
+		engineHandle, engine = http.NewEngine(ctx, as.name)
 	case core.CONF_ENGINE_TCP:
 	default:
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)

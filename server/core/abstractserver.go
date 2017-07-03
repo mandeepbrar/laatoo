@@ -13,8 +13,8 @@ type abstractserver struct {
 	objectLoader       server.ObjectLoader
 	objectLoaderHandle server.ServerElementHandle
 
-	channelMgr       server.ChannelManager
-	channelMgrHandle server.ServerElementHandle
+	channelManager       server.ChannelManager
+	channelManagerHandle server.ServerElementHandle
 
 	factoryManager       server.FactoryManager
 	factoryManagerHandle server.ServerElementHandle
