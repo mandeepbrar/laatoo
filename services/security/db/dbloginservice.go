@@ -37,11 +37,11 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
-	if !ok {
+	authHeader := sechandler.GetProperty(config.AUTHHEADER)
+	if authHeader == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ls.authHeader = authHeader
+	ls.authHeader = authHeader.(string)
 	userDataSvcName, ok := conf.GetString(common.CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", common.CONF_LOGINSERVICE_USERDATASERVICE)

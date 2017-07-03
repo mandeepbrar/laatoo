@@ -1,6 +1,7 @@
 package core
 
 import (
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -18,6 +19,9 @@ type service struct {
 	owner      *serviceManager
 	funcs      []core.ServiceFunc
 	paramsConf config.Config
+	cacheSvc   string
+	cache      components.CacheComponent
+	svrContext *serverContext
 }
 
 func (svc *service) start(ctx core.ServerContext) error {
@@ -46,6 +50,13 @@ func (svc *service) start(ctx core.ServerContext) error {
 	funcs = append(funcs, svc.service.Invoke)
 	svc.funcs = funcs
 	svc.paramsConf = mergedConf
+	if svc.cacheSvc != "" {
+		cacheSv, err := ctx.GetService(svc.cacheSvc)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		svc.cache = cacheSv.(components.CacheComponent)
+	}
 	log.Trace(ctx, "params config ", "service name", svc.name, "params conf", svc.paramsConf)
 	return svc.service.Start(ctx)
 }

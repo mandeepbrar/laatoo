@@ -13,7 +13,6 @@ import (
 
 const (
 	CONF_SERVICEGROUPS = "servicegroups"
-	CONF_SERVICES      = "services"
 	CONF_FACTORY       = "factory"
 	CONF_SERVICEMETHOD = "servicemethod"
 )
@@ -112,7 +111,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 		}
 	}
 
-	svcsConf, ok := conf.GetSubConfig(CONF_SERVICES)
+	svcsConf, ok := conf.GetSubConfig(constants.CONF_SERVICES)
 	if ok {
 		svcAliases := svcsConf.AllConfigurations()
 		for _, svcAlias := range svcAliases {
@@ -167,14 +166,14 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}
 
 	//get the factory from proxy
-	factory := facElem.Factory()
-
+	svcfactoryProxy := facElem.(*serviceFactoryProxy)
+	svcCtx := svcfactoryProxy.fac.svrContext.newContext("Service: " + serviceAlias)
+	factory := svcfactoryProxy.Factory()
 	//proxy for the service
-	svcStruct := &service{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem}
+	svcStruct := &service{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
 
 	svcProxy := &serviceProxy{svc: svcStruct}
-
-	svcCtx := svcMgr.getServiceContext(ctx)
+	svcCtx.setElements(core.ContextMap{core.ServerElementService: svcProxy})
 
 	parentMw, ok := svcCtx.GetStringArray(constants.CONF_MIDDLEWARE)
 	/*if ok {
@@ -196,34 +195,33 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
-		svcCtx.Set("__cache", cacheToUse)
-		log.Error(ctx, "Setting cache for service ", "cacheToUse", cacheToUse)
+		svcStruct.cacheSvc = cacheToUse
+		log.Error(svcCtx, "Setting cache for service ", "cacheToUse", cacheToUse)
 	}
 
 	elem := ctx.GetServerElement(core.ServerElementLogger)
 	_, logger := slog.ChildLoggerWithConf(ctx, serviceAlias, elem.(server.Logger), svcProxy, conf)
-	svcCtx.Set("__logger", logger)
+	svcCtx.setElements(core.ContextMap{core.ServerElementLogger: logger})
 
 	//pass a server context to service with element set to service
 	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: facElem}, core.ServerElementService
-	svcCreationCtx := ctx.SubContext("Create: " + serviceAlias)
-	log.Trace(svcCreationCtx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
-	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
+	log.Trace(svcCtx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
+	svc, err := factory.CreateService(svcCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
-		return errors.WrapError(svcCreationCtx, err)
+		return errors.WrapError(svcCtx, err)
 	}
 	if svc == nil {
-		return errors.ThrowError(svcCreationCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
+		return errors.ThrowError(svcCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
 	}
 	svcStruct.service = svc
 
 	_, ok = svcMgr.servicesStore[serviceAlias]
 	if ok {
-		return errors.ThrowError(svcCreationCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
+		return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
 	}
 	svcMgr.servicesStore[serviceAlias] = svcProxy
 
-	log.Trace(svcCreationCtx, "Created service", "service name", serviceAlias)
+	log.Trace(svcCtx, "Created service", "service name", serviceAlias)
 
 	return nil
 }
@@ -244,8 +242,4 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 		}
 	}
 	return nil
-}
-
-func (svcMgr *serviceManager) getServiceContext(ctx core.ServerContext) core.ServerContext {
-	return ctx
 }

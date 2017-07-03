@@ -4,12 +4,10 @@ import (
 	//	jwt "github.com/dgrijalva/jwt-go"
 	//	"laatoosdk/auth"
 	"fmt"
-	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http/net"
 	"net/http"
@@ -44,7 +42,6 @@ type httpChannel struct {
 	engine         *httpEngine
 	allowedQParams []string
 	skipAuth       bool
-	cacheManager   server.CacheManager
 }
 
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
@@ -67,9 +64,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		skipAuth = parentChannel.skipAuth
 	}
 
-	val := ctx.GetServerElement(core.ServerElementCacheManager)
-
-	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth, cacheManager: val.(server.CacheManager)}
+	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
 
 	allowedQParams, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
@@ -173,14 +168,6 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		authtoken = val.(string)
 	}
 
-	var cache components.CacheComponent
-	cacheToUse, ok := ctx.GetString("__cache")
-	if ok {
-		if channel.cacheManager != nil {
-			cache = channel.cacheManager.GetCache(ctx, cacheToUse)
-		}
-	}
-
 	processRequest := func(reqctx core.RequestContext) error {
 		if (!channel.skipAuth) && (shandler != nil) {
 			_, err := shandler.AuthenticateRequest(reqctx, false)
@@ -196,12 +183,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 
 	return func(pathCtx net.WebContext) error {
 		result := make(chan error)
-		rparams := &common.RequestContextParams{EngineContext: pathCtx, Cache: cache}
-		logger, ok := ctx.Get("__logger")
-		if ok {
-			rparams.Logger = logger.(components.Logger)
-		}
-		corectx := ctx.CreateNewRequest(serviceName, rparams)
+		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
 		req := pathCtx.GetRequest()
 		corectx.SetGaeReq(req)
 		corectx.Set(authtoken, pathCtx.GetHeader(authtoken))

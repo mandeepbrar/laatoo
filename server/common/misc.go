@@ -1,17 +1,10 @@
 package common
 
 import (
-	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/server/constants"
 )
-
-type RequestContextParams struct {
-	EngineContext interface{}
-	Cache         components.CacheComponent
-	Logger        components.Logger
-}
 
 func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 	cond, ok := conf.GetSubConfig(constants.CONF_CONDITION)

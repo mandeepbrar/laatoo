@@ -31,11 +31,11 @@ func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
 		shandler := sh.(server.SecurityHandler)
-		ah, ok := shandler.GetString(config.AUTHHEADER)
-		if !ok {
+		ah := shandler.GetProperty(config.AUTHHEADER)
+		if ah == nil {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 		}
-		svc.authHeader = ah
+		svc.authHeader = ah.(string)
 	} else {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}

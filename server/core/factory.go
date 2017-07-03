@@ -6,8 +6,9 @@ import (
 )
 
 type serviceFactory struct {
-	name    string
-	factory core.ServiceFactory
-	conf    config.Config
-	owner   *factoryManager
+	name       string
+	factory    core.ServiceFactory
+	conf       config.Config
+	owner      *factoryManager
+	svrContext *serverContext
 }

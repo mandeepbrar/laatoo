@@ -132,7 +132,6 @@ func createEnvironments(ctx core.ServerContext, confDir string, svr *serverObjec
 
 //create applications on named environments
 func createApplications(ctx core.ServerContext, envs map[string]string, conf config.Config, svr *serverObject) error {
-	svrCtx := ctx.(*serverContext)
 
 	for envName, baseDir := range envs {
 		//get the environment from the server
@@ -152,7 +151,7 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 				if info.IsDir() {
 					appName := info.Name()
 					baseAppDir := path.Join(appDir, appName)
-					appCtx := svrCtx.newContext("Create Application: " + appName)
+					appCtx := envProxy.env.svrContext.newContext("Create Application: " + appName)
 					var appConfig config.Config
 					configFile := path.Join(baseAppDir, constants.CONF_CONFIG_FILE)
 					if _, err := os.Stat(configFile); err == nil {

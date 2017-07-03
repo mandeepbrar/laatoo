@@ -47,28 +47,28 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
-	if !ok {
+	authHeader := sechandler.GetProperty(config.AUTHHEADER)
+	if authHeader == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ks.authHeader = authHeader
-	localRealm, ok := sechandler.GetString(config.REALM)
-	if !ok {
+	ks.authHeader = authHeader.(string)
+	localRealm := sechandler.GetProperty(config.REALM)
+	if localRealm == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ks.localRealm = localRealm
-	userObject, ok := sechandler.GetString(config.USER)
-	if !ok {
+	ks.localRealm = localRealm.(string)
+	userObject := sechandler.GetProperty(config.USER)
+	if userObject == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ks.userObject = userObject
-	adminRole, ok := sechandler.GetString(config.ADMINROLE)
-	if !ok {
+	ks.userObject = userObject.(string)
+	adminRole := sechandler.GetProperty(config.ADMINROLE)
+	if adminRole == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ks.adminRole = adminRole
+	ks.adminRole = adminRole.(string)
 
-	userCreator, err := ctx.GetObjectCreator(userObject)
+	userCreator, err := ctx.GetObjectCreator(ks.userObject)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

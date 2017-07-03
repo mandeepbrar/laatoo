@@ -19,6 +19,7 @@ const (
 
 type factoryManager struct {
 	name   string
+	svrref *abstractserver
 	parent core.ServerElement
 	proxy  server.FactoryManager
 	//store for service factory in an application
@@ -139,11 +140,12 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 	}
 
 	if factory != nil {
+		//derivce new context from abstract server context
+		facCtx := facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
 
-		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig}
+		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
 		facProxy := &serviceFactoryProxy{fac: fac}
-
-		facCtx := facMgr.getFactoryContext(ctx)
+		facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})
 
 		middleware, ok := factoryConfig.GetStringArray(constants.CONF_MIDDLEWARE)
 		if ok {
@@ -180,8 +182,4 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 		}
 	}
 	return nil
-}
-
-func (facMgr *factoryManager) getFactoryContext(ctx core.ServerContext) core.ServerContext {
-	return ctx
 }

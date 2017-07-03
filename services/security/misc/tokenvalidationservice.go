@@ -28,14 +28,11 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ls.sechandler = sechandler.(server.SecurityHandler)
-	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
-	if !ok {
+	authHeader := sechandler.GetProperty(config.AUTHHEADER)
+	if authHeader == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	if !ok {
-		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
-	}
-	ls.authHeader = authHeader
+	ls.authHeader = authHeader.(string)
 
 	log.Debug(ctx, "Token validation service initialized")
 	return nil

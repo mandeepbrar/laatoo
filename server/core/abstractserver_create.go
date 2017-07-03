@@ -33,13 +33,13 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: objectLoader})
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
-		factoryManagerHandle, factoryManager := newFactoryManager(fmCreateCtx, name, proxy)
+		factoryManagerHandle, factoryManager := as.newFactoryManager(fmCreateCtx, name, proxy)
 		as.factoryManagerHandle = factoryManagerHandle
 		as.factoryManager = factoryManager.(server.FactoryManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementFactoryManager: factoryManager})
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
-		serviceManagerHandle, serviceManager := newServiceManager(smCreateCtx, name, proxy)
+		serviceManagerHandle, serviceManager := as.newServiceManager(smCreateCtx, name, proxy)
 		as.serviceManagerHandle = serviceManagerHandle
 		as.serviceManager = serviceManager.(server.ServiceManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementServiceManager: serviceManager})
@@ -70,13 +70,13 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: childLoader})
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
-		childFactoryManagerHandle, childFactoryManager := childFactoryManager(fmCreateCtx, name, factoryManager, proxy)
+		childFactoryManagerHandle, childFactoryManager := as.childFactoryManager(fmCreateCtx, name, factoryManager, proxy)
 		as.factoryManagerHandle = childFactoryManagerHandle
 		as.factoryManager = childFactoryManager.(server.FactoryManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementFactoryManager: childFactoryManager})
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
-		childServiceManagerHandle, childServiceManager := childServiceManager(smCreateCtx, name, serviceManager, proxy)
+		childServiceManagerHandle, childServiceManager := as.childServiceManager(smCreateCtx, name, serviceManager, proxy)
 		as.serviceManagerHandle = childServiceManagerHandle
 		as.serviceManager = childServiceManager.(server.ServiceManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementServiceManager: childServiceManager})
@@ -133,14 +133,14 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 	return nil
 }
 
-func newServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) newServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
 	sm := &serviceManager{name: name, parent: parentElem, servicesStore: make(map[string]*serviceProxy, 100)}
 	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
 }
 
-func childServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	svcMgrProxy := parentSvcMgr.(*serviceManagerProxy)
 	svcMgr := svcMgrProxy.manager
 	store := make(map[string]*serviceProxy, len(svcMgr.servicesStore))
@@ -162,14 +162,14 @@ func childServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.
 	return sm, smElem
 }
 
-func newFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	fm := &factoryManager{name: name, parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactoryProxy, 30)}
+func (as *abstractserver) newFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+	fm := &factoryManager{name: name, parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactoryProxy, 30), svrref: as}
 	fmElem := &factoryManagerProxy{manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
 }
 
-func childFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	facMgrProxy := parentFacMgr.(*factoryManagerProxy)
 	facMgr := facMgrProxy.manager
 	store := make(map[string]*serviceFactoryProxy, len(facMgr.serviceFactoryStore))
@@ -185,7 +185,7 @@ func childFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.
 			store[k] = v
 		}
 	}
-	fm := &factoryManager{parent: parent, serviceFactoryStore: store}
+	fm := &factoryManager{parent: parent, serviceFactoryStore: store, svrref: as}
 	fmElem := &factoryManagerProxy{manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
@@ -220,6 +220,9 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 	return cm, cmElem
 }
 
+/*
+Messaging manager needs communication service
+*/
 func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config.Config, parent *abstractserver) error {
 	msgConf, err, found := common.ConfigFileAdapter(ctx, conf, constants.CONF_MESSAGING)
 	if err != nil {
@@ -258,6 +261,9 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 	return nil
 }
 
+/*
+override security handler depending upon the conf existence
+*/
 func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.Config) error {
 	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SECURITY)
 	if err != nil {

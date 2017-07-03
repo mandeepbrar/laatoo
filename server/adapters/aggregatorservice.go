@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/constants"
 	"laatoo/server/objects"
 )
 
@@ -26,7 +27,7 @@ func createServiceAggregator() interface{} {
 }
 
 func (ds *serviceAggregator) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svcConfig, ok := conf.GetSubConfig(CONF_SERVICES)
+	svcConfig, ok := conf.GetSubConfig(constants.CONF_SERVICES)
 	if ok {
 		svcs := svcConfig.AllConfigurations()
 		ds.serviceNames = make(map[string]string)

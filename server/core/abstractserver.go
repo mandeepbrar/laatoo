@@ -46,13 +46,15 @@ type abstractserver struct {
 
 	parent *abstractserver
 
+	svrContext *serverContext
+
 	proxy core.ServerElement
 
 	baseDir string
 }
 
 func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, baseDir string) *abstractserver {
-	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir}
+	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir, svrContext: svrCtx}
 	log.Trace(svrCtx, "Base directory set to ", baseDir)
 	svrCtx.Set(constants.CONF_BASE_DIR, baseDir)
 	as.engineHandles = make(map[string]server.ServerElementHandle, 5)

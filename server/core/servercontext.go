@@ -334,22 +334,20 @@ func (ctx *serverContext) setElements(elements core.ContextMap) {
 }
 
 //creates a new request with engine context
-func (ctx *serverContext) CreateNewRequest(name string, params interface{}) core.RequestContext {
+func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) core.RequestContext {
 
-	rparams := params.(*common.RequestContextParams)
 	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.elements.service == nil {
 		return nil
 	}
-	reqCtx := ctx.createNewRequest(name, rparams.EngineContext)
+	reqCtx := ctx.createNewRequest(name, engineCtx)
 
-	if rparams.Logger != nil {
-		reqCtx.logger = rparams.Logger
-	}
+	reqCtx.logger = ctx.elements.logger
+	svc := ctx.elements.service.(*serviceProxy)
 
-	if rparams.Cache != nil {
-		reqCtx.cache = rparams.Cache
+	if svc.svc.cache != nil {
+		reqCtx.cache = svc.svc.cache
 	}
 
 	return reqCtx

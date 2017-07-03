@@ -68,18 +68,18 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Conf
 	if !ok {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
-	authHeader, ok := sechandler.GetString(config.AUTHHEADER)
-	if !ok {
+	authHeader := sechandler.GetProperty(config.AUTHHEADER)
+	if authHeader == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	os.authHeader = authHeader
+	os.authHeader = authHeader.(string)
 
-	userObject, ok := sechandler.GetString(config.USER)
+	userObject := sechandler.GetProperty(config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
 	}
 
-	userCreator, err := ctx.GetObjectCreator(userObject)
+	userCreator, err := ctx.GetObjectCreator(userObject.(string))
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

@@ -37,23 +37,23 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	realm, ok := sechandler.GetString(config.REALM)
-	if !ok {
+	realm := sechandler.GetProperty(config.REALM)
+	if realm == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	rs.realm = realm
+	rs.realm = realm.(string)
 
-	userObject, ok := sechandler.GetString(config.USER)
-	if !ok {
+	userObject := sechandler.GetProperty(config.USER)
+	if userObject == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	rs.userObject = userObject
+	rs.userObject = userObject.(string)
 	defrole, ok := conf.GetString(CONF_DEF_ROLE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
 	}
 	rs.DefaultRole = defrole
-	userCreator, err := ctx.GetObjectCreator(userObject)
+	userCreator, err := ctx.GetObjectCreator(rs.userObject)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
