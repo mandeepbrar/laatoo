@@ -1,4 +1,4 @@
-package service
+package adapters
 
 import (
 	"laatoo/sdk/config"

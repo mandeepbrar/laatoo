@@ -1,4 +1,4 @@
-package factory
+package core
 
 import (
 	"laatoo/sdk/config"
@@ -26,7 +26,7 @@ type factoryManager struct {
 }
 
 func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	facmgrInitializeCtx := facMgr.createContext(ctx, "Initialize factory manager")
+	facmgrInitializeCtx := ctx.SubContext("Initialize factory manager")
 	err := facMgr.createServiceFactories(facmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -40,7 +40,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, facMgr.parent, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
+	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
 		return errors.WrapError(facmgrInitializeCtx, err)
 	}
 
@@ -48,12 +48,12 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
-	facmgrStartCtx := facMgr.createContext(ctx, "Start factory manager")
+	facmgrStartCtx := ctx.SubContext("Start factory manager")
 	for facname, facProxy := range facMgr.serviceFactoryStore {
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
 			log.Debug(ctx, "Starting factory", "factory name", facname)
-			facStartCtx := facmgrStartCtx.NewContextWithElements("Start"+facname, core.ContextMap{core.ServerElementServiceFactory: facProxy}, core.ServerElementServiceFactory)
+			facStartCtx := facmgrStartCtx.SubContext("Start" + facname).(*serverContext)
 			err := facStruct.factory.Start(facStartCtx)
 			if err != nil {
 				return errors.WrapError(facStartCtx, err)
@@ -170,7 +170,7 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 	for facname, facProxy := range facMgr.serviceFactoryStore {
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
-			facInitializeCtx := ctx.NewContextWithElements("Initialize "+facname, core.ContextMap{core.ServerElementServiceFactory: facProxy}, core.ServerElementServiceFactory)
+			facInitializeCtx := ctx.SubContext("Initialize " + facname)
 			log.Debug(facInitializeCtx, "Initializing factory", "factory name", facname)
 			err := facStruct.factory.Initialize(facInitializeCtx, facStruct.conf)
 			if err != nil {
@@ -184,10 +184,4 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 
 func (facMgr *factoryManager) getFactoryContext(ctx core.ServerContext) core.ServerContext {
 	return ctx
-}
-
-//creates a context specific to factory manager
-func (facMgr *factoryManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementFactoryManager: facMgr.proxy}, core.ServerElementFactoryManager)
 }

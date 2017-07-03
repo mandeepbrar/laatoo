@@ -2,6 +2,7 @@ package main
 
 import (
 	"laatoo/sdk/utils"
+	_ "laatoo/server/adapters"
 	"laatoo/server/constants"
 	"laatoo/server/core"
 	"log"

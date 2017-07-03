@@ -32,14 +32,14 @@ func (mgr *messagingManagerProxy) Publish(ctx core.RequestContext, topic string,
 	return mgr.manager.publishMessage(ctx, topic, message)
 }
 
-func newMessagingManager(ctx core.ServerContext, name string, parentElem core.ServerElement, commSvcName string) (*messagingManager, *messagingManagerProxy) {
-	msgMgr := &messagingManager{name: name, parent: parentElem, topicStore: make(map[string][]core.ServiceFunc, 10), commSvcName: commSvcName}
+func newMessagingManager(ctx core.ServerContext, name string, commSvcName string) (*messagingManager, *messagingManagerProxy) {
+	msgMgr := &messagingManager{name: name, topicStore: make(map[string][]core.ServiceFunc, 10), commSvcName: commSvcName}
 	msgElem := &messagingManagerProxy{manager: msgMgr}
 	msgMgr.proxy = msgElem
 	return msgMgr, msgElem
 }
 
-func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	msgMgrProxy := parentMessageMgr.(*messagingManagerProxy)
 	msgMgr := msgMgrProxy.manager
 	store := make(map[string][]core.ServiceFunc, len(msgMgr.topicStore))
@@ -55,7 +55,7 @@ func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr
 			store[k] = []core.ServiceFunc{}
 		}
 	}
-	childmsgMgr := &messagingManager{name: name, parent: parent, topicStore: store, commSvcName: msgMgr.commSvcName}
+	childmsgMgr := &messagingManager{name: name, topicStore: store, commSvcName: msgMgr.commSvcName}
 	childmsgMgrElem := &messagingManagerProxy{manager: childmsgMgr}
 	childmsgMgr.proxy = childmsgMgrElem
 	return childmsgMgr, childmsgMgrElem

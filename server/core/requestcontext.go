@@ -59,12 +59,12 @@ func (ctx *requestContext) SubContext(name string) core.RequestContext {
 
 //new context from the request if a part of the request needs to be tracked separately
 //as a subflow.
-func (ctx *requestContext) NewContext(name string) core.RequestContext {
+/*func (ctx *requestContext) NewContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request context ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.NewCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, subRequest: false}
-}
+}*/
 
 func (ctx *requestContext) PutInCache(bucket string, key string, item interface{}) error {
 	if ctx.cache != nil {
@@ -97,8 +97,8 @@ func (ctx *requestContext) DecrementInCache(bucket string, key string) error {
 }
 
 func (ctx *requestContext) PushTask(queue string, task interface{}) error {
-	if ctx.serverContext.taskManager != nil {
-		return ctx.serverContext.taskManager.PushTask(ctx, queue, task)
+	if ctx.serverContext.elements.taskManager != nil {
+		return ctx.serverContext.elements.taskManager.PushTask(ctx, queue, task)
 	}
 	log.Error(ctx, "No task manager", "queue", queue)
 	return nil
@@ -176,23 +176,23 @@ func (ctx *requestContext) SetRequest(request interface{}) {
 }
 
 func (ctx *requestContext) HasPermission(perm string) bool {
-	if ctx.serverContext.securityHandler != nil {
-		return ctx.serverContext.securityHandler.HasPermission(ctx, perm)
+	if ctx.serverContext.elements.securityHandler != nil {
+		return ctx.serverContext.elements.securityHandler.HasPermission(ctx, perm)
 	}
 	return false //ctx.serverContext.HasPermission(ctx, perm)
 }
 
 func (ctx *requestContext) SendSynchronousMessage(msgType string, data interface{}) error {
-	if ctx.serverContext.rulesManager != nil {
-		return ctx.serverContext.rulesManager.SendSynchronousMessage(ctx, msgType, data)
+	if ctx.serverContext.elements.rulesManager != nil {
+		return ctx.serverContext.elements.rulesManager.SendSynchronousMessage(ctx, msgType, data)
 	}
 	return nil
 }
 
 func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
-	if ctx.serverContext.msgManager != nil {
+	if ctx.serverContext.elements.msgManager != nil {
 		go func(ctx *requestContext, topic string, message interface{}) {
-			err := ctx.serverContext.msgManager.Publish(ctx, topic, message)
+			err := ctx.serverContext.elements.msgManager.Publish(ctx, topic, message)
 			if err != nil {
 				log.Error(ctx, err.Error())
 			}

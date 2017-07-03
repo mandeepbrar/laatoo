@@ -6,14 +6,14 @@ import (
 	"laatoo/sdk/server"
 )
 
-func NewCacheManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*cacheManager, *cacheManagerProxy) {
-	cacheMgr := &cacheManager{name: name, registeredCacheNames: make(map[string]string, 10), parent: parentElem, registeredCaches: make(map[string]components.CacheComponent, 10)}
+func NewCacheManager(ctx core.ServerContext, name string) (*cacheManager, *cacheManagerProxy) {
+	cacheMgr := &cacheManager{name: name, registeredCacheNames: make(map[string]string, 10), registeredCaches: make(map[string]components.CacheComponent, 10)}
 	cacheElem := &cacheManagerProxy{manager: cacheMgr}
 	cacheMgr.proxy = cacheElem
 	return cacheMgr, cacheElem
 }
 
-func ChildCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, parentElem core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {
+func ChildCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {
 	cacheMgrProxy := parentCacheManager.(*cacheManagerProxy)
 	cacheMgr := cacheMgrProxy.manager
 	registeredCaches := make(map[string]components.CacheComponent, len(cacheMgr.registeredCaches))
@@ -42,7 +42,7 @@ func ChildCacheManager(ctx core.ServerContext, name string, parentCacheManager c
 			registeredCacheNames[k] = v
 		}
 	}
-	childcacheMgr := &cacheManager{name: name, registeredCaches: registeredCaches, parent: parentElem, registeredCacheNames: registeredCacheNames}
+	childcacheMgr := &cacheManager{name: name, registeredCaches: registeredCaches, registeredCacheNames: registeredCacheNames}
 	childcacheMgrElem := &cacheManagerProxy{manager: childcacheMgr}
 	childcacheMgr.proxy = childcacheMgrElem
 	return childcacheMgr, childcacheMgrElem

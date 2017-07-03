@@ -13,45 +13,52 @@ import (
 )
 
 func main(rootctx *serverContext, configDir string) error {
-	log.Info(rootctx, "Setting base directory for server"+configDir)
+	log.Info(rootctx, "Config directory for server: "+configDir)
 
 	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)
 	//read the config file
 	conf, err := common.NewConfigFromFile(configFile)
 	if err != nil {
+		log.Info(rootctx, "Config file not found in dir: "+configDir)
 		return err
 	}
 
 	//create the server
 	//object loader and engines are created
-	serverHandle, _, ctx := newServer(rootctx, configDir)
+	ctx := rootctx.SubContext("Creating server")
+	serverHandle := newServer(ctx.(*serverContext), configDir)
 
 	//initialize server
 	//factory and service manager are configured
+	ctx = rootctx.SubContext("Initializing server")
 	err = serverHandle.Initialize(ctx, conf)
 	if err != nil {
 		return err
 	}
 
 	//start the server
+	ctx = rootctx.SubContext("Starting server")
 	err = serverHandle.Start(ctx)
 	if err != nil {
 		return err
 	}
 
 	//create environments on a running server
-	envs, err := createEnvironments(ctx, configDir)
+	ctx = rootctx.SubContext("Creating environments")
+	envs, err := createEnvironments(ctx, configDir, serverHandle)
 	if err != nil {
 		return err
 	}
 
 	//create applications on environments
 	//each application is hosted on an environment
-	err = createApplications(ctx, envs, conf)
+	ctx = rootctx.SubContext("Creating applications")
+	err = createApplications(ctx, envs, conf, serverHandle)
 	if err != nil {
 		return err
 	}
 
+	ctx = rootctx.SubContext("Listening")
 	err = startListening(ctx, conf)
 	if err != nil {
 		return err
@@ -60,12 +67,11 @@ func main(rootctx *serverContext, configDir string) error {
 }
 
 // create environments in the config on a running server
-func createEnvironments(ctx core.ServerContext, confDir string) (map[string]string, error) {
+func createEnvironments(ctx core.ServerContext, confDir string, svr *serverObject) (map[string]string, error) {
 	envDir := path.Join(confDir, constants.CONF_ENVIRONMENTS)
 	envs := make(map[string]string)
 	if _, err := os.Stat(envDir); err == nil {
 		svrCtx := ctx.(*serverContext)
-		svrProx := svrCtx.server.(*serverProxy)
 
 		files, err := ioutil.ReadDir(envDir)
 		if err != nil {
@@ -92,7 +98,7 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 				}
 
 				//create named environment from a config
-				err = svrProx.server.createEnvironment(envCtx, baseEnvDir, envName, envConfig)
+				err = svr.createEnvironment(envCtx, baseEnvDir, envName, envConfig)
 				if err != nil {
 					return envs, errors.WrapError(envCtx, err, "Environment", envName, "Base directory", baseEnvDir)
 				}
@@ -125,13 +131,12 @@ func createEnvironments(ctx core.ServerContext, confDir string) (map[string]stri
 }
 
 //create applications on named environments
-func createApplications(ctx core.ServerContext, envs map[string]string, conf config.Config) error {
+func createApplications(ctx core.ServerContext, envs map[string]string, conf config.Config, svr *serverObject) error {
 	svrCtx := ctx.(*serverContext)
-	svrProx := svrCtx.server.(*serverProxy)
 
 	for envName, baseDir := range envs {
 		//get the environment from the server
-		envElem, ok := svrProx.server.environments[envName]
+		envElem, ok := svr.environments[envName]
 		if !ok {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_APP_ENVIRONMENT)
 		}

@@ -6,6 +6,7 @@ const (
 	CONF_BASE_DIR           = "basedir"
 	CONF_APP_SERVER         = "server"
 	CONF_OBJECTS_BASE_DIR   = "objectsbasedir"
+	RELATIVE_DIR            = "relativedir"
 	CONF_CONFIG_DIR         = "config"
 	CONF_CONFIG_FILE        = "config.json"
 	CONF_OBJECTLDR_OBJECTS  = "objects"

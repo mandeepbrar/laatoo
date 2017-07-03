@@ -32,32 +32,3 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "No such channel", channelName)
 	}
 }
-
-func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{name: name, channelStore: make(map[string]server.Channel, 10), parent: parentElem}
-	cmElem := &channelManagerProxy{manager: cm}
-	cm.proxy = cmElem
-	return cm, cmElem
-}
-
-func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
-	chanMgrProxy := parentChannelMgr.(*channelManagerProxy)
-	chanMgr := chanMgrProxy.manager
-	store := make(map[string]server.Channel, len(chanMgr.channelStore))
-	for k, v := range chanMgr.channelStore {
-		allowed := true
-		for _, filter := range filters {
-			if !filter.Allowed(ctx, k) {
-				allowed = false
-				break
-			}
-		}
-		if allowed {
-			store[k] = v
-		}
-	}
-	cm := &channelManager{name: name, channelStore: store, parent: parent}
-	cmElem := &channelManagerProxy{manager: cm}
-	cm.proxy = cmElem
-	return cm, cmElem
-}

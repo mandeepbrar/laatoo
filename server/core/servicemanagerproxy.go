@@ -1,4 +1,4 @@
-package service
+package core
 
 import (
 	"laatoo/sdk/core"

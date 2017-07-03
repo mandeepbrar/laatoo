@@ -1,4 +1,4 @@
-package service
+package core
 
 import (
 	"laatoo/sdk/config"
@@ -30,14 +30,14 @@ type serviceManager struct {
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	elem := ctx.GetServerElement(core.ServerElementFactoryManager)
 	svcMgr.factoryManager = elem.(server.FactoryManager)
-	svcmgrInitializeCtx := svcMgr.createContext(ctx, "Initialize service manager ")
+	svcmgrInitializeCtx := ctx.SubContext("Initialize service manager ")
 	err := svcMgr.createServices(svcmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
 	}
 	basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 	log.Trace(ctx, "*************** Processing service manager", " base directory", basedir)
-	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, svcMgr.parent, constants.CONF_SERVICES, svcMgr.createService, true); err != nil {
+	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, constants.CONF_SERVICES, svcMgr.createService, true); err != nil {
 		return errors.WrapError(svcmgrInitializeCtx, err)
 	}
 
@@ -49,12 +49,13 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
-	svcmgrStartCtx := svcMgr.createContext(ctx, "Start service manager")
+	svcmgrStartCtx := ctx.SubContext("Start service manager").(*serverContext)
 	chanMgr := ctx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
 	for svcname, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {
 			log.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
-			svcStartCtx := svcmgrStartCtx.NewContextWithElements("Start "+svcname, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService)
+			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
+			svcStartCtx := svcmgrStartCtx.newContext("Start " + svcname)
 			err := svcProxy.svc.start(svcStartCtx)
 			if err != nil {
 				return errors.WrapError(svcStartCtx, err)
@@ -74,7 +75,8 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 						channelConfig, _ := svcChannels.GetSubConfig(channelName)
 						svcChannelConfigs = []config.Config{channelConfig}
 					}
-					svcServeCtx := ctx.NewContextWithElements("Serve: "+svcProxy.svc.name, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService)
+					//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
+					svcServeCtx := ctx.SubContext("Serve: " + svcProxy.svc.name)
 					for _, conf := range svcChannelConfigs {
 						err := chanMgr.Serve(svcServeCtx, channelName, svcProxy, conf)
 						if err != nil {
@@ -203,7 +205,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	svcCtx.Set("__logger", logger)
 
 	//pass a server context to service with element set to service
-	svcCreationCtx := ctx.NewContextWithElements("Create: "+serviceAlias, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: facElem}, core.ServerElementService)
+	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: facElem}, core.ServerElementService
+	svcCreationCtx := ctx.SubContext("Create: " + serviceAlias)
 	log.Trace(svcCreationCtx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
 	svc, err := factory.CreateService(svcCreationCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
@@ -229,7 +232,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 	for svcname, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {
-			svcInitializeCtx := ctx.NewContextWithElements("Initialize: "+svcname, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService)
+			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
+			svcInitializeCtx := ctx.SubContext("Initialize: " + svcname)
 			log.Debug(svcInitializeCtx, "Initializing service", "service name", svcname)
 			svc := svcProxy.svc.service
 			err := svc.Initialize(svcInitializeCtx, svcProxy.svc.conf)
@@ -244,11 +248,4 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 
 func (svcMgr *serviceManager) getServiceContext(ctx core.ServerContext) core.ServerContext {
 	return ctx
-}
-
-//creates a context specific to service manager
-func (svcMgr *serviceManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementServiceManager: svcMgr.proxy,
-			core.ServerElementFactoryManager: svcMgr.factoryManager}, core.ServerElementServiceManager)
 }

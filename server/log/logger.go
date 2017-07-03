@@ -29,7 +29,6 @@ const (
 )
 
 type logger struct {
-	parent         core.ServerElement
 	proxy          server.Logger
 	loggerInstance components.Logger
 	name           string

@@ -13,7 +13,6 @@ import (
 type rulesManager struct {
 	name            string
 	registeredRules map[string][]rules.Rule
-	parent          core.ServerElement
 	proxy           *rulesManagerProxy
 }
 
@@ -25,7 +24,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 
 	if ok {
-		ruleMgrCtx := rm.createContext(ctx, "Rules Manager")
+		ruleMgrCtx := ctx.SubContext("Rules Manager")
 		log.Debug(ruleMgrCtx, "Initializing rules manager")
 		ruleNames := rulesConf.AllConfigurations()
 		for _, ruleName := range ruleNames {
@@ -41,7 +40,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, rm.parent, constants.CONF_RULES, rm.processRuleConf, true); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_RULES, rm.processRuleConf, true); err != nil {
 		return err
 	}
 
@@ -136,9 +135,4 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 		}
 	}
 	return nil
-}
-
-func (rm *rulesManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementRulesManager: rm.proxy}, core.ServerElementRulesManager)
 }

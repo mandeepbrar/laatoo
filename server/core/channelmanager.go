@@ -21,14 +21,14 @@ type channelManager struct {
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	chanmgrInitializeCtx := chanMgr.createContext(ctx, "Initialize channel manager")
+	chanmgrInitializeCtx := ctx.SubContext("Initialize channel manager")
 	log.Trace(chanmgrInitializeCtx, "Create Channels")
 	err := chanMgr.createChannels(chanmgrInitializeCtx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, chanMgr.parent, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
+	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
 		return errors.WrapError(chanmgrInitializeCtx, err)
 	}
 
@@ -57,7 +57,7 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 }
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
-	createCtx := chanMgr.createContext(ctx, "Create Channel"+channelName)
+	createCtx := ctx.SubContext("Create Channel" + channelName)
 	parentChannelName, ok := channelConf.GetString(constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
 		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
@@ -81,10 +81,4 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	//log.Trace(ctx, "Creating channel", "Name:", channelName)
 	log.Info(createCtx, "Created channel", "Name:", channelName)
 	return nil
-}
-
-//creates a context specific to factory manager
-func (chanMgr *channelManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementChannelManager: chanMgr.proxy}, core.ServerElementChannelManager)
 }

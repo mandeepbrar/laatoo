@@ -30,7 +30,7 @@ type httpEngine struct {
 }
 
 func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
-	initCtx := eng.createContext(ctx, "InitializeEngine: "+eng.name)
+	initCtx := ctx.SubContext("InitializeEngine: " + eng.name)
 	eng.fwname = "Echo"
 	fw, ok := conf.GetString(constants.CONF_HTTP_FRAMEWORK)
 	if ok {
@@ -83,7 +83,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 }
 
 func (eng *httpEngine) Start(ctx core.ServerContext) error {
-	startCtx := eng.createContext(ctx, "Start Engine: "+eng.name)
+	startCtx := ctx.SubContext("Start Engine: " + eng.name)
 	log.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
 	if eng.ssl {
 		//start listening
@@ -102,10 +102,4 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	}
 	log.Info(startCtx, "Started engine*********************************")
 	return nil
-}
-
-//creates a context specific to environment
-func (eng *httpEngine) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementEngine: eng.proxy}, core.ServerElementEngine)
 }

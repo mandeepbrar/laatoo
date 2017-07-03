@@ -153,23 +153,10 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 
 	objectsbaseDir, found := ctx.GetString(constants.CONF_OBJECTS_BASE_DIR)
 	if found {
-		svrElementType := ctx.GetElementType()
-		switch svrElementType {
-		case core.ServerElementServer:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_APP_SERVER)); err != nil {
-				return err
-			}
-			break
-		case core.ServerElementEnvironment:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_ENVIRONMENTS, objLoader.name)); err != nil {
-				return err
-			}
-			break
-		case core.ServerElementApplication:
-			if err := objLoader.loadPluginsFolderIfExists(ctx, path.Join(objectsbaseDir, constants.CONF_APPLICATIONS, objLoader.name)); err != nil {
-				return err
-			}
-			break
+		relDir, _ := ctx.GetString(constants.RELATIVE_DIR)
+		baseFolder = path.Join(objectsbaseDir, relDir)
+		if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
+			return err
 		}
 	}
 	return nil

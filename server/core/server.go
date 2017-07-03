@@ -24,50 +24,32 @@ type serverObject struct {
 }
 
 //Create a new server
-func newServer(rootctx *serverContext, baseDir string) (*serverObject, core.ServerElement, *serverContext) {
+func newServer(ctx *serverContext, baseDir string) *serverObject {
+	ctx.Set(constants.RELATIVE_DIR, constants.CONF_APP_SERVER)
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
 	svr.environments = make(map[string]server.Environment, 5)
 	//create a proxy for the server
 	svrElem := &serverProxy{server: svr}
 
-	svrContext := rootctx.newContext("Server")
-	svrContext.setElements(core.ContextMap{core.ServerElementServer: svrElem}, core.ServerElementServer)
+	ctx.setElements(core.ContextMap{core.ServerElementServer: svrElem})
 
-	svr.abstractserver = newAbstractServer(svrContext, "Server", nil, svrElem, baseDir, nil)
+	//	svrContext := ctx.SubContext("Abstract Server")
+	svr.abstractserver = newAbstractServer(ctx, "Server", nil, svrElem, baseDir)
 
-	cmap := svr.contextMap(svrContext)
-	cmap[core.ServerElementServer] = svr.proxy
-	svrContext.setElements(cmap, core.ServerElementServer)
+	log.Info(ctx, "Created server")
 
-	log.Info(svrContext, "Created server")
-
-	return svr, svrElem, svrContext
+	return svr
 }
 
 //initialize the server with the read config
 func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svrCtx := ctx.(*serverContext)
 	initctx := ctx.SubContext("Initializing Server").(*serverContext)
 	svr.conf = conf
-
-	/*svrMsgCtx := initctx.SubContext("Create Messaging Manager")
-	msgSvcName, ok := conf.GetString(config.CONF_MESSAGING_SVC)
-	if ok {
-		msgHandle, msgElem := newMessagingManager(svrMsgCtx, "Server", svr.proxy, msgSvcName)
-		svr.messagingManager = msgElem
-		svr.messagingManagerHandle = msgHandle
-		log.Trace(initctx, "Created server messaging manager")
-	}*/
-
 	if err := svr.initialize(initctx, conf); err != nil {
 		return errors.WrapError(initctx, err)
 	}
 	log.Trace(initctx, "Initialized server")
-
-	cmap := svr.contextMap(svrCtx)
-	cmap[core.ServerElementServer] = svr.proxy
-	svrCtx.setElements(cmap, core.ServerElementServer)
 
 	return nil
 }
@@ -75,7 +57,6 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 func (svr *serverObject) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Starting Server").(*serverContext)
 
-	log.Trace(startCtx, "Starting server")
 	if err := svr.start(startCtx); err != nil {
 		return errors.WrapError(startCtx, err)
 	}
@@ -92,9 +73,7 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	}
 
 	log.Trace(envCreate, "Creating Environment")
-	filterConf, _ := envConf.GetSubConfig(constants.CONF_FILTERS)
-
-	envHandle, envElem := newEnvironment(envCreate, name, svr, baseDir, filterConf)
+	envHandle, envElem := newEnvironment(envCreate, name, svr, baseDir)
 	log.Debug(envCreate, "Created environment")
 
 	err := envHandle.Initialize(envCreate, envConf)

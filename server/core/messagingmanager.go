@@ -15,13 +15,12 @@ type messagingManager struct {
 	name        string
 	commSvcName string
 	commSvc     components.PubSubComponent
-	parent      core.ServerElement
 	proxy       server.MessagingManager
 	topicStore  map[string][]core.ServiceFunc
 }
 
 func (msgMgr *messagingManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	msgmgrInitializeCtx := msgMgr.createContext(ctx, "Initialize message manager")
+	msgmgrInitializeCtx := ctx.SubContext("Initialize message manager")
 	log.Trace(msgmgrInitializeCtx, "Create Message Topics")
 	err := msgMgr.createTopics(msgmgrInitializeCtx, conf)
 	if err != nil {
@@ -118,10 +117,4 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 		}*/
 	}
 	return nil
-}
-
-//creates a context specific to factory manager
-func (msgMgr *messagingManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementMessagingManager: msgMgr.proxy}, core.ServerElementMessagingManager)
 }

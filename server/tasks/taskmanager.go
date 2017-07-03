@@ -14,7 +14,6 @@ import (
 
 type taskManager struct {
 	name               string
-	parent             core.ServerElement
 	proxy              server.TaskManager
 	authHeader         string
 	shandler           server.SecurityHandler
@@ -40,7 +39,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
-	tskmgrInitializeCtx := tskMgr.createContext(ctx, "Initialize task manager")
+	tskmgrInitializeCtx := ctx.SubContext("Initialize task manager")
 	log.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
 	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
 	if err != nil {
@@ -57,7 +56,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, tskMgr.parent, constants.CONF_TASKS, tskMgr.processTaskConf, true); err != nil {
+	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, constants.CONF_TASKS, tskMgr.processTaskConf, true); err != nil {
 		return err
 	}
 
@@ -91,7 +90,7 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 }
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
-	tskmgrStartCtx := tskMgr.createContext(ctx, "Start task manager")
+	tskmgrStartCtx := ctx.SubContext("Start task manager")
 	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
 	for queueName, svcName := range tskMgr.taskPublishers {
 		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
@@ -173,10 +172,4 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		return processor.Invoke(ctx)
 	}
 	return nil
-}
-
-//creates a context specific to factory manager
-func (tskMgr *taskManager) createContext(ctx core.ServerContext, name string) core.ServerContext {
-	return ctx.NewContextWithElements(name,
-		core.ContextMap{core.ServerElementTaskManager: tskMgr.proxy}, core.ServerElementTaskManager)
 }

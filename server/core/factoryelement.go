@@ -1,4 +1,4 @@
-package factory
+package core
 
 import "laatoo/sdk/core"
 

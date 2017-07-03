@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
+	slog "laatoo/server/log"
 	deflog "log"
 )
 
@@ -39,14 +40,12 @@ import (
 	New context --- copies an original context---- duplicates the context map, copies the references of server elements.. changes are not refelected back to original context
 	Sub context --- name and path change... changes on server elements (excluding logger) are reflected on original context... changes on map are also reflected back...
 
+	e.g. in subcontext... same proxy object as parent is used.... so any changes to proxy in the child are reflected in the parent as well
+	in new context... duplicate reference of the same proxy object is used...
+
 */
 
-//proxy object for the server
-//this context is passed during initialization of factories and services
-type serverContext struct {
-	*common.Context
-	element     core.ServerElement
-	elementType core.ServerElementType
+type contextElements struct {
 	//main server reference
 	server server.Server
 	//engine to be used in a context
@@ -84,28 +83,25 @@ type serverContext struct {
 	open3 core.ServerElement
 }
 
+//proxy object for the server
+//this context is passed during initialization of factories and services
+type serverContext struct {
+	*common.Context
+	elements      *contextElements
+	childContexts []*serverContext
+}
+
 //create a new server context
 //this is a proxy to the server
 func newServerContext() *serverContext {
-	return &serverContext{Context: common.NewContext("/")}
-}
-
-//returns the server type i.e. standalone or google app engine
-/*func (ctx *serverContext) GetServerType() string {
-	return ctx.server.(*serverProxy).server.serverType
-}*/
-
-//returns the primary element
-func (ctx *serverContext) GetElement() core.ServerElement {
-	return ctx.element
-}
-
-func (ctx *serverContext) GetElementType() core.ServerElementType {
-	return ctx.elementType
+	ctx := &serverContext{Context: common.NewContext("/"), elements: &contextElements{}, childContexts: make([]*serverContext, 5)}
+	_, logger := slog.NewLogger(ctx, "Default")
+	ctx.setElements(core.ContextMap{core.ServerElementLogger: logger})
+	return ctx
 }
 
 func (ctx *serverContext) GetService(alias string) (core.Service, error) {
-	svcStruct, err := ctx.serviceManager.GetService(ctx, alias)
+	svcStruct, err := ctx.elements.serviceManager.GetService(ctx, alias)
 	if err != nil {
 		return nil, err
 	}
@@ -116,47 +112,47 @@ func (ctx *serverContext) GetService(alias string) (core.Service, error) {
 func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core.ServerElement {
 	switch elemType {
 	case core.ServerElementServer:
-		return ctx.server
+		return ctx.elements.server
 	case core.ServerElementEngine:
-		return ctx.engine
+		return ctx.elements.engine
 	case core.ServerElementEnvironment:
-		return ctx.environment
+		return ctx.elements.environment
 	case core.ServerElementLoader:
-		return ctx.objectLoader
+		return ctx.elements.objectLoader
 	case core.ServerElementServiceFactory:
-		return ctx.factory
+		return ctx.elements.factory
 	case core.ServerElementApplication:
-		return ctx.application
+		return ctx.elements.application
 	case core.ServerElementService:
-		return ctx.service
+		return ctx.elements.service
 	case core.ServerElementServiceManager:
-		return ctx.serviceManager
+		return ctx.elements.serviceManager
 	case core.ServerElementFactoryManager:
-		return ctx.factoryManager
+		return ctx.elements.factoryManager
 	case core.ServerElementChannel:
-		return ctx.channel
+		return ctx.elements.channel
 	case core.ServerElementChannelManager:
-		return ctx.channelManager
+		return ctx.elements.channelManager
 	case core.ServerElementSecurityHandler:
-		return ctx.securityHandler
+		return ctx.elements.securityHandler
 	case core.ServerElementMessagingManager:
-		return ctx.msgManager
+		return ctx.elements.msgManager
 	case core.ServerElementServiceResponseHandler:
-		return ctx.serviceResponseHandler
+		return ctx.elements.serviceResponseHandler
 	case core.ServerElementRulesManager:
-		return ctx.rulesManager
+		return ctx.elements.rulesManager
 	case core.ServerElementCacheManager:
-		return ctx.cacheManager
+		return ctx.elements.cacheManager
 	case core.ServerElementTaskManager:
-		return ctx.taskManager
+		return ctx.elements.taskManager
 	case core.ServerElementLogger:
-		return ctx.logger
+		return ctx.elements.logger
 	case core.ServerElementOpen1:
-		return ctx.open1
+		return ctx.elements.open1
 	case core.ServerElementOpen2:
-		return ctx.open2
+		return ctx.elements.open2
 	case core.ServerElementOpen3:
-		return ctx.open3
+		return ctx.elements.open3
 	}
 	return nil
 }
@@ -168,60 +164,40 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 	return ctx.subContext(name)
 }
 
-func (ctx *serverContext) subContext(name string) *serverContext {
-	subctx := ctx.SubCtx(name)
-	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
-	return &serverContext{Context: subctx.(*common.Context), server: ctx.server, serviceResponseHandler: ctx.serviceResponseHandler,
-		engine: ctx.engine, objectLoader: ctx.objectLoader, application: ctx.application, environment: ctx.environment, securityHandler: ctx.securityHandler,
-		factory: ctx.factory, factoryManager: ctx.factoryManager, serviceManager: ctx.serviceManager, service: ctx.service, channel: ctx.channel, msgManager: ctx.msgManager,
-		channelManager: ctx.channelManager, rulesManager: ctx.rulesManager, cacheManager: ctx.cacheManager, taskManager: ctx.taskManager, logger: ctx.logger,
-		open1: ctx.open1, open2: ctx.open2, open3: ctx.open3, element: ctx.element, elementType: ctx.elementType}
-}
-
 //create a new server context; variables in this context be reflected in parent
 //sets a context element
 //id of the context is not changed. flow is updated
-func (ctx *serverContext) SubContextWithElement(name string, primaryElement core.ServerElementType) core.ServerContext {
-	retctx := ctx.subContext(name)
-	elem := retctx.GetServerElement(primaryElement)
-	if elem != nil {
-		retctx.element = elem
-		retctx.elementType = primaryElement
-		return retctx
-	}
-	return nil
-}
-
-func (ctx *serverContext) NewContext(name string) core.ServerContext {
-	return ctx.newContext(name)
-}
-func (ctx *serverContext) newContext(name string) *serverContext {
-	newctx := ctx.NewCtx(name)
-	log.Debug(ctx, "Entering new server context ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
-	svrCtx := &serverContext{Context: newctx.(*common.Context), server: ctx.checkNil(ctx.server), serviceResponseHandler: ctx.checkNil(ctx.serviceResponseHandler).(server.ServiceResponseHandler),
-		engine: ctx.checkNil(ctx.engine).(server.Engine), objectLoader: ctx.checkNil(ctx.objectLoader).(server.ObjectLoader), application: ctx.checkNil(ctx.application).(server.Application),
-		environment: ctx.checkNil(ctx.environment).(server.Environment), securityHandler: ctx.checkNil(ctx.securityHandler).(server.SecurityHandler), factory: ctx.checkNil(ctx.factory).(server.Factory),
-		factoryManager: ctx.checkNil(ctx.factoryManager).(server.FactoryManager), serviceManager: ctx.checkNil(ctx.serviceManager).(server.ServiceManager), service: ctx.checkNil(ctx.service).(server.Service),
-		channel: ctx.checkNil(ctx.channel).(server.Channel), msgManager: ctx.checkNil(ctx.msgManager).(server.MessagingManager), channelManager: ctx.checkNil(ctx.channelManager).(server.ChannelManager),
-		rulesManager: ctx.checkNil(ctx.rulesManager).(server.RulesManager), cacheManager: ctx.checkNil(ctx.cacheManager).(server.CacheManager), taskManager: ctx.checkNil(ctx.taskManager).(server.TaskManager),
-		logger: ctx.checkNil(ctx.logger).(server.Logger), open1: ctx.open1, open2: ctx.open2, open3: ctx.open3}
-	elem := svrCtx.GetServerElement(ctx.elementType)
-	svrCtx.element = elem
-	svrCtx.elementType = ctx.elementType
-	return svrCtx
+func (ctx *serverContext) subContext(name string) *serverContext {
+	subctx := ctx.SubCtx(name)
+	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
+	return &serverContext{Context: subctx.(*common.Context), elements: ctx.elements, childContexts: ctx.childContexts}
 }
 
 //create a new server context from the parent. variables set in this context will not be reflected in parent
 //id of the context is changed when new context is created
-//sets a context element
-func (ctx *serverContext) NewContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) core.ServerContext {
-	return ctx.newContextWithElements(name, elements, primaryElement)
+/*func (ctx *serverContext) NewContext(name string) core.ServerContext {
+	return ctx.newContext(name)
+}*/
+
+func (ctx *serverContext) newContext(name string) *serverContext {
+	newctx := ctx.NewCtx(name)
+	log.Debug(ctx, "Entering new server context ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
+	elems := &contextElements{
+		server: ctx.checkNil(ctx.elements.server), serviceResponseHandler: ctx.checkNil(ctx.elements.serviceResponseHandler).(server.ServiceResponseHandler),
+		engine: ctx.checkNil(ctx.elements.engine).(server.Engine), objectLoader: ctx.checkNil(ctx.elements.objectLoader).(server.ObjectLoader), application: ctx.checkNil(ctx.elements.application).(server.Application),
+		environment: ctx.checkNil(ctx.elements.environment).(server.Environment), securityHandler: ctx.checkNil(ctx.elements.securityHandler).(server.SecurityHandler), factory: ctx.checkNil(ctx.elements.factory).(server.Factory),
+		factoryManager: ctx.checkNil(ctx.elements.factoryManager).(server.FactoryManager), serviceManager: ctx.checkNil(ctx.elements.serviceManager).(server.ServiceManager), service: ctx.checkNil(ctx.elements.service).(server.Service),
+		channel: ctx.checkNil(ctx.elements.channel).(server.Channel), msgManager: ctx.checkNil(ctx.elements.msgManager).(server.MessagingManager), channelManager: ctx.checkNil(ctx.elements.channelManager).(server.ChannelManager),
+		rulesManager: ctx.checkNil(ctx.elements.rulesManager).(server.RulesManager), cacheManager: ctx.checkNil(ctx.elements.cacheManager).(server.CacheManager), taskManager: ctx.checkNil(ctx.elements.taskManager).(server.TaskManager),
+		logger: ctx.checkNil(ctx.elements.logger).(server.Logger), open1: ctx.elements.open1, open2: ctx.elements.open2, open3: ctx.elements.open3,
+	}
+	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: elems, childContexts: make([]*serverContext, 5)}
+	ctx.addChild(svrCtx)
+	return svrCtx
 }
 
-func (ctx *serverContext) newContextWithElements(name string, elements core.ContextMap, primaryElement core.ServerElementType) *serverContext {
-	newctx := ctx.newContext(name)
-	newctx.setElements(elements, primaryElement)
-	return newctx
+func (ctx *serverContext) addChild(child *serverContext) {
+	ctx.childContexts = append(ctx.childContexts, child)
 }
 
 func (ctx *serverContext) checkNil(elem core.ServerElement) core.ServerElement {
@@ -232,129 +208,128 @@ func (ctx *serverContext) checkNil(elem core.ServerElement) core.ServerElement {
 	}
 }
 
-func (ctx *serverContext) setElements(elements core.ContextMap, primaryElement core.ServerElementType) {
+func (ctx *serverContext) setElements(elements core.ContextMap) {
+	ctxElems := ctx.elements
 	for elementToSet, element := range elements {
 		switch elementToSet {
 		case core.ServerElementServer:
 			if element == nil {
-				ctx.server = nil
+				ctxElems.server = nil
 			} else {
-				ctx.server = element.(server.Server)
+				ctxElems.server = element.(server.Server)
 			}
 		case core.ServerElementEngine:
 			if element == nil {
-				ctx.engine = nil
+				ctxElems.engine = nil
 			} else {
-				ctx.engine = element.(server.Engine)
+				ctxElems.engine = element.(server.Engine)
 			}
 		case core.ServerElementEnvironment:
 			if element == nil {
-				ctx.environment = nil
+				ctxElems.environment = nil
 			} else {
-				ctx.environment = element.(server.Environment)
+				ctxElems.environment = element.(server.Environment)
 			}
 		case core.ServerElementLoader:
 			if element == nil {
-				ctx.objectLoader = nil
+				ctxElems.objectLoader = nil
 			} else {
-				ctx.objectLoader = element.(server.ObjectLoader)
+				ctxElems.objectLoader = element.(server.ObjectLoader)
 			}
 		case core.ServerElementServiceFactory:
 			if element == nil {
-				ctx.factory = nil
+				ctxElems.factory = nil
 			} else {
-				ctx.factory = element.(server.Factory)
+				ctxElems.factory = element.(server.Factory)
 			}
 		case core.ServerElementApplication:
 			if element == nil {
-				ctx.application = nil
+				ctxElems.application = nil
 			} else {
-				ctx.application = element.(server.Application)
+				ctxElems.application = element.(server.Application)
 			}
 		case core.ServerElementService:
 			if element == nil {
-				ctx.service = nil
+				ctxElems.service = nil
 			} else {
-				ctx.service = element.(server.Service)
+				ctxElems.service = element.(server.Service)
 			}
 		case core.ServerElementChannelManager:
 			if element == nil {
-				ctx.channelManager = nil
+				ctxElems.channelManager = nil
 			} else {
-				ctx.channelManager = element.(server.ChannelManager)
+				ctxElems.channelManager = element.(server.ChannelManager)
 			}
 		case core.ServerElementChannel:
 			if element == nil {
-				ctx.channel = nil
+				ctxElems.channel = nil
 			} else {
-				ctx.channel = element.(server.Channel)
+				ctxElems.channel = element.(server.Channel)
 			}
 		case core.ServerElementServiceManager:
 			if element == nil {
-				ctx.serviceManager = nil
+				ctxElems.serviceManager = nil
 			} else {
-				ctx.serviceManager = element.(server.ServiceManager)
+				ctxElems.serviceManager = element.(server.ServiceManager)
 			}
 		case core.ServerElementFactoryManager:
 			if element == nil {
-				ctx.factoryManager = nil
+				ctxElems.factoryManager = nil
 			} else {
-				ctx.factoryManager = element.(server.FactoryManager)
+				ctxElems.factoryManager = element.(server.FactoryManager)
 			}
 		case core.ServerElementServiceResponseHandler:
 			if element == nil {
-				ctx.serviceResponseHandler = nil
+				ctxElems.serviceResponseHandler = nil
 			} else {
-				ctx.serviceResponseHandler = element.(server.ServiceResponseHandler)
+				ctxElems.serviceResponseHandler = element.(server.ServiceResponseHandler)
 			}
 		case core.ServerElementSecurityHandler:
 			if element == nil {
-				ctx.securityHandler = nil
+				ctxElems.securityHandler = nil
 			} else {
-				ctx.securityHandler = element.(server.SecurityHandler)
+				ctxElems.securityHandler = element.(server.SecurityHandler)
 			}
 		case core.ServerElementMessagingManager:
 			if element == nil {
-				ctx.msgManager = nil
+				ctxElems.msgManager = nil
 			} else {
-				ctx.msgManager = element.(server.MessagingManager)
+				ctxElems.msgManager = element.(server.MessagingManager)
 			}
 		case core.ServerElementRulesManager:
 			if element == nil {
-				ctx.rulesManager = nil
+				ctxElems.rulesManager = nil
 			} else {
-				ctx.rulesManager = element.(server.RulesManager)
+				ctxElems.rulesManager = element.(server.RulesManager)
 			}
 		case core.ServerElementCacheManager:
 			if element == nil {
-				ctx.cacheManager = nil
+				ctxElems.cacheManager = nil
 			} else {
-				ctx.cacheManager = element.(server.CacheManager)
+				ctxElems.cacheManager = element.(server.CacheManager)
 			}
 		case core.ServerElementTaskManager:
 			if element == nil {
-				ctx.taskManager = nil
+				ctxElems.taskManager = nil
 			} else {
-				ctx.taskManager = element.(server.TaskManager)
+				ctxElems.taskManager = element.(server.TaskManager)
 			}
 		case core.ServerElementLogger:
 			if element == nil {
-				ctx.logger = nil
+				ctxElems.logger = nil
 			} else {
-				ctx.logger = element.(server.Logger)
+				ctxElems.logger = element.(server.Logger)
 			}
 		case core.ServerElementOpen1:
-			ctx.open1 = element
+			ctxElems.open1 = element
 		case core.ServerElementOpen2:
-			ctx.open2 = element
+			ctxElems.open2 = element
 		case core.ServerElementOpen3:
-			ctx.open3 = element
+			ctxElems.open3 = element
 		}
 	}
-	elem := ctx.GetServerElement(primaryElement)
-	if elem != nil {
-		ctx.element = elem
-		ctx.elementType = primaryElement
+	for _, c := range ctx.childContexts {
+		c.setElements(elements)
 	}
 }
 
@@ -364,10 +339,10 @@ func (ctx *serverContext) CreateNewRequest(name string, params interface{}) core
 	rparams := params.(*common.RequestContextParams)
 	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
-	if ctx.service == nil {
+	if ctx.elements.service == nil {
 		return nil
 	}
-	reqCtx := ctx.createNewRequest(name, rparams.EngineContext, ctx.service)
+	reqCtx := ctx.createNewRequest(name, rparams.EngineContext)
 
 	if rparams.Logger != nil {
 		reqCtx.logger = rparams.Logger
@@ -380,91 +355,91 @@ func (ctx *serverContext) CreateNewRequest(name string, params interface{}) core
 	return reqCtx
 }
 
-func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, parent core.ServerElement) *requestContext {
+func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}) *requestContext {
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
 
 	newctx := ctx.NewCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.logger,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.elements.logger,
 		engineContext: engineCtx, subRequest: false}
 }
 
 func (ctx *serverContext) CreateCollection(objectName string, length int) (interface{}, error) {
-	return ctx.objectLoader.CreateCollection(ctx, objectName, length)
+	return ctx.elements.objectLoader.CreateCollection(ctx, objectName, length)
 }
 
 func (ctx *serverContext) CreateObject(objectName string) (interface{}, error) {
-	return ctx.objectLoader.CreateObject(ctx, objectName)
+	return ctx.elements.objectLoader.CreateObject(ctx, objectName)
 }
 
 func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.ObjectCollectionCreator, error) {
-	return ctx.objectLoader.GetObjectCollectionCreator(ctx, objectName)
+	return ctx.elements.objectLoader.GetObjectCollectionCreator(ctx, objectName)
 }
 
 func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreator, error) {
-	return ctx.objectLoader.GetObjectCreator(ctx, objectName)
+	return ctx.elements.objectLoader.GetObjectCreator(ctx, objectName)
 }
 
 func (ctx *serverContext) GetMethod(methodName string) (core.ServiceFunc, error) {
-	return ctx.objectLoader.GetMethod(ctx, methodName)
+	return ctx.elements.objectLoader.GetMethod(ctx, methodName)
 }
 
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
-	reqCtx := ctx.createNewRequest(name, nil, ctx.element)
+	reqCtx := ctx.createNewRequest(name, nil)
 	reqCtx.user = nil
 	reqCtx.admin = true
 	return reqCtx
 }
 
 func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.ServiceFunc) error {
-	if ctx.msgManager != nil {
-		return ctx.msgManager.Subscribe(ctx, topics, lstnr)
+	if ctx.elements.msgManager != nil {
+		return ctx.elements.msgManager.Subscribe(ctx, topics, lstnr)
 	}
 	return nil
 }
 func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Trace(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Trace(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}
 }
 
 func (ctx *serverContext) LogDebug(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Debug(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Debug(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}
 }
 
 func (ctx *serverContext) LogInfo(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Info(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Info(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}
 }
 
 func (ctx *serverContext) LogWarn(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Warn(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Warn(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}
 }
 
 func (ctx *serverContext) LogError(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Error(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Error(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}
 }
 
 func (ctx *serverContext) LogFatal(msg string, args ...interface{}) {
-	if ctx.logger != nil {
-		ctx.logger.Fatal(ctx, msg, args...)
+	if ctx.elements.logger != nil {
+		ctx.elements.logger.Fatal(ctx, msg, args...)
 	} else {
 		deflog.Println(msg)
 	}

@@ -9,8 +9,8 @@ import (
 	"laatoo/server/constants"
 )
 
-func NewLogger(ctx core.ServerContext, name string, parentElem core.ServerElement) (*logger, *loggerProxy) {
-	logger := &logger{parent: parentElem, name: name, loggerInstance: GetLogger(CONF_STDERR_LOGGER, CONF_FMT_JSON, slog.TRACE, "")}
+func NewLogger(ctx core.ServerContext, name string) (*logger, *loggerProxy) {
+	logger := &logger{name: name, loggerInstance: GetLogger(CONF_STDERR_LOGGER, CONF_FMT_JSON, slog.TRACE, "")}
 	loggerElem := &loggerProxy{logger: logger}
 	logger.proxy = loggerElem
 	return logger, loggerElem
@@ -27,18 +27,18 @@ func ChildLoggerWithConf(ctx core.ServerContext, name string, parentLogger core.
 			loggerInstance = parentLogger.(*loggerProxy).logger.loggerInstance
 		}
 	}
-	logger := &logger{parent: parentElem, name: name, loggerInstance: loggerInstance}
+	logger := &logger{name: name, loggerInstance: loggerInstance}
 	loggerElem := &loggerProxy{logger: logger}
 	logger.proxy = loggerElem
 	return logger, loggerElem
 }
 
-func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, server.Logger) {
+func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, server.Logger) {
 	var loggerInstance components.Logger
 	if parentLogger != nil {
 		loggerInstance = parentLogger.(*loggerProxy).logger.loggerInstance
 	}
-	childLogger := &logger{parent: parent, name: name, loggerInstance: loggerInstance}
+	childLogger := &logger{name: name, loggerInstance: loggerInstance}
 	childLoggerElem := &loggerProxy{logger: childLogger}
 	childLogger.proxy = childLoggerElem
 	return childLogger, childLoggerElem
