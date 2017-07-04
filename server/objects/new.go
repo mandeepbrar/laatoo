@@ -2,6 +2,7 @@ package objects
 
 import (
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	//"laatoo/sdk/log"
 	"laatoo/sdk/server"
 )
@@ -41,6 +42,7 @@ func ChildLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 			methodsregistry[k] = v
 		}
 	}
+	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry, "methods", methodsregistry)
 	ldr := &objectLoader{objectsFactoryRegister: registry, invokableMethodsRegister: methodsregistry, name: name, parentElem: parent}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem

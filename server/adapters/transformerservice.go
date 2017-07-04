@@ -6,10 +6,14 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
-	"laatoo/server/objects"
 )
 
-type transformerService struct {
+const (
+	CONF_TRANSFORMER_FUNC         = "transformer"
+	CONF_TRANSFORMER_SPLIT_PARAMS = "splitparams"
+)
+
+type TransformerService struct {
 	serviceNames        map[string]string
 	serviceMap          map[string]core.Service
 	transformerFunc     core.ServiceFunc
@@ -17,21 +21,7 @@ type transformerService struct {
 	splitParams         bool
 }
 
-const (
-	CONF_TRANSFORMERSERVICE_NAME  = "__transformerservice__"
-	CONF_TRANSFORMER_FUNC         = "transformer"
-	CONF_TRANSFORMER_SPLIT_PARAMS = "splitparams"
-)
-
-func init() {
-	objects.RegisterObject(CONF_TRANSFORMERSERVICE_NAME, createTransformerService, nil)
-}
-
-func createTransformerService() interface{} {
-	return &transformerService{}
-}
-
-func (ds *transformerService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (ds *TransformerService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcConfig, ok := conf.GetSubConfig(constants.CONF_SERVICES)
 	if ok {
 		svcs := svcConfig.AllConfigurations()
@@ -51,7 +41,7 @@ func (ds *transformerService) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 //The services start serving when this method is called
-func (ds *transformerService) Start(ctx core.ServerContext) error {
+func (ds *TransformerService) Start(ctx core.ServerContext) error {
 	for k, v := range ds.serviceNames {
 		svc, err := ctx.GetService(v)
 		if err != nil {
@@ -69,7 +59,7 @@ func (ds *transformerService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (ds *transformerService) Invoke(ctx core.RequestContext) error {
+func (ds *TransformerService) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Transformer Service")
 	var argsMap map[string]interface{}
 	if ds.splitParams {

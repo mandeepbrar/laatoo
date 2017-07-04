@@ -3,25 +3,15 @@ package adapters
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/server/objects"
 	//	"laatoo/sdk/log"
 	"laatoo/sdk/errors"
-	"laatoo/server/common"
 )
 
-type defaultFactory struct {
-}
-
-func init() {
-	objects.RegisterObject(common.CONF_DEFAULTFACTORY_NAME, createDefaultFactory, nil)
-}
-
-func createDefaultFactory() interface{} {
-	return &defaultFactory{}
+type DefaultFactory struct {
 }
 
 //Create the services configured for factory.
-func (mi *defaultFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
+func (mi *DefaultFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	obj, err := ctx.CreateObject(method)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -33,11 +23,11 @@ func (mi *defaultFactory) CreateService(ctx core.ServerContext, name string, met
 	return svc, nil
 }
 
-func (ds *defaultFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (ds *DefaultFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
 //The services start serving when this method is called
-func (ds *defaultFactory) Start(ctx core.ServerContext) error {
+func (ds *DefaultFactory) Start(ctx core.ServerContext) error {
 	return nil
 }

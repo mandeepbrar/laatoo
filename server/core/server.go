@@ -6,8 +6,10 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/adapters"
 	"laatoo/server/common"
 	"laatoo/server/constants"
+	"laatoo/server/security"
 )
 
 //Server hosting a number of applications
@@ -44,11 +46,20 @@ func newServer(ctx *serverContext, baseDir string) *serverObject {
 
 //initialize the server with the read config
 func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) error {
+	svr.objectLoader.Register(ctx, config.DEFAULT_ROLE, security.Role{})
+	svr.objectLoader.Register(ctx, config.DEFAULT_USER, security.DefaultUser{})
+	svr.objectLoader.Register(ctx, common.CONF_DEFAULTFACTORY_NAME, adapters.DefaultFactory{})
+	svr.objectLoader.Register(ctx, common.CONF_DEFAULTMETHODFACTORY_NAME, adapters.DefaultMethodFactory{})
+	svr.objectLoader.Register(ctx, common.CONF_SERVICEAGGREGATOR_NAME, adapters.ServiceAggregator{})
+	svr.objectLoader.Register(ctx, common.CONF_TRANSFORMERSERVICE_NAME, adapters.TransformerService{})
+	svr.objectLoader.RegisterInvokableMethod(ctx, constants.CONST_ALL_PERMISSIONS, security.GetAllPermissions)
+
 	initctx := ctx.SubContext("Initializing Server").(*serverContext)
 	svr.conf = conf
 	if err := svr.initialize(initctx, conf); err != nil {
 		return errors.WrapError(initctx, err)
 	}
+
 	log.Trace(initctx, "Initialized server")
 
 	return nil

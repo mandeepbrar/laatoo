@@ -87,6 +87,7 @@ type contextElements struct {
 //this context is passed during initialization of factories and services
 type serverContext struct {
 	*common.Context
+	level         int
 	elements      *contextElements
 	childContexts []*serverContext
 }
@@ -94,7 +95,7 @@ type serverContext struct {
 //create a new server context
 //this is a proxy to the server
 func newServerContext() *serverContext {
-	ctx := &serverContext{Context: common.NewContext("/"), elements: &contextElements{}, childContexts: make([]*serverContext, 0)}
+	ctx := &serverContext{Context: common.NewContext("/"), elements: &contextElements{}, level: 0, childContexts: make([]*serverContext, 0)}
 	_, logger := slog.NewLogger(ctx, "Default")
 	ctx.setElements(core.ContextMap{core.ServerElementLogger: logger})
 	return ctx
@@ -170,7 +171,7 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 func (ctx *serverContext) subContext(name string) *serverContext {
 	subctx := ctx.SubCtx(name)
 	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
-	return &serverContext{Context: subctx.(*common.Context), elements: ctx.elements, childContexts: ctx.childContexts}
+	return &serverContext{Context: subctx.(*common.Context), elements: ctx.elements, level: ctx.level, childContexts: ctx.childContexts}
 }
 
 //create a new server context from the parent. variables set in this context will not be reflected in parent
@@ -183,30 +184,25 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 	newctx := ctx.NewCtx(name)
 	log.Debug(ctx, "Entering new server context ", "Elapsed Time ", ctx.GetElapsedTime(), "Name ", name)
 
-	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: &contextElements{}, childContexts: make([]*serverContext, 0)}
-	svrCtx.setElementReferences(
-		core.ContextMap{core.ServerElementServer: ctx.elements.server, core.ServerElementEngine: ctx.elements.engine, core.ServerElementEnvironment: ctx.elements.environment,
-			core.ServerElementLoader: ctx.elements.objectLoader, core.ServerElementServiceFactory: ctx.elements.factory, core.ServerElementApplication: ctx.elements.application,
-			core.ServerElementService: ctx.elements.service, core.ServerElementServiceManager: ctx.elements.serviceManager, core.ServerElementFactoryManager: ctx.elements.factoryManager,
-			core.ServerElementChannel: ctx.elements.channel, core.ServerElementChannelManager: ctx.elements.channelManager, core.ServerElementSecurityHandler: ctx.elements.securityHandler,
-			core.ServerElementMessagingManager: ctx.elements.msgManager, core.ServerElementServiceResponseHandler: ctx.elements.serviceResponseHandler, core.ServerElementRulesManager: ctx.elements.rulesManager,
-			core.ServerElementCacheManager: ctx.elements.cacheManager, core.ServerElementTaskManager: ctx.elements.taskManager, core.ServerElementLogger: ctx.elements.logger,
-			core.ServerElementOpen1: ctx.elements.open1, core.ServerElementOpen2: ctx.elements.open2, core.ServerElementOpen3: ctx.elements.open3},
-		true)
+	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: &contextElements{}, level: ctx.level + 1, childContexts: make([]*serverContext, 0)}
+	cmap := ctx.getElementsContextMap()
+	svrCtx.setElementReferences(cmap, true)
 	ctx.addChild(svrCtx)
 	return svrCtx
 }
 
-func (ctx *serverContext) addChild(child *serverContext) {
-	ctx.childContexts = append(ctx.childContexts, child)
+func (ctx *serverContext) getElementsContextMap() core.ContextMap {
+	return core.ContextMap{core.ServerElementServer: ctx.elements.server, core.ServerElementEngine: ctx.elements.engine, core.ServerElementEnvironment: ctx.elements.environment,
+		core.ServerElementLoader: ctx.elements.objectLoader, core.ServerElementServiceFactory: ctx.elements.factory, core.ServerElementApplication: ctx.elements.application,
+		core.ServerElementService: ctx.elements.service, core.ServerElementServiceManager: ctx.elements.serviceManager, core.ServerElementFactoryManager: ctx.elements.factoryManager,
+		core.ServerElementChannel: ctx.elements.channel, core.ServerElementChannelManager: ctx.elements.channelManager, core.ServerElementSecurityHandler: ctx.elements.securityHandler,
+		core.ServerElementMessagingManager: ctx.elements.msgManager, core.ServerElementServiceResponseHandler: ctx.elements.serviceResponseHandler, core.ServerElementRulesManager: ctx.elements.rulesManager,
+		core.ServerElementCacheManager: ctx.elements.cacheManager, core.ServerElementTaskManager: ctx.elements.taskManager, core.ServerElementLogger: ctx.elements.logger,
+		core.ServerElementOpen1: ctx.elements.open1, core.ServerElementOpen2: ctx.elements.open2, core.ServerElementOpen3: ctx.elements.open3}
 }
 
-func (ctx *serverContext) checkNil(elem core.ServerElement) core.ServerElement {
-	if elem != nil {
-		return elem.Reference()
-	} else {
-		return nil
-	}
+func (ctx *serverContext) addChild(child *serverContext) {
+	ctx.childContexts = append(ctx.childContexts, child)
 }
 
 func (ctx *serverContext) setElements(elements core.ContextMap) {

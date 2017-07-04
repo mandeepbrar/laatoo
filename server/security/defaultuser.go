@@ -6,7 +6,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
-	"laatoo/server/objects"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,10 +24,6 @@ var (
 		Cacheable:       true,
 	}
 )
-
-func init() {
-	objects.Register(config.DEFAULT_USER, DefaultUser{})
-}
 
 /*
 //interface that needs to be implemented by any object provider in a system

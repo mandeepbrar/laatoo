@@ -3,7 +3,6 @@ package security
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
-	"laatoo/server/objects"
 )
 
 var (
@@ -19,10 +18,6 @@ var (
 		Cacheable:       false,
 	}
 )
-
-func init() {
-	objects.Register(config.DEFAULT_ROLE, Role{})
-}
 
 type Role struct {
 	data.SoftDeleteAuditable `bson:",inline"`

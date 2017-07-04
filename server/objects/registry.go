@@ -1,5 +1,6 @@
 package objects
 
+/*
 import (
 	"laatoo/server/common"
 	"laatoo/sdk/core"
@@ -43,4 +44,4 @@ func RegisterInvokableMethod(methodName string, method core.ServiceFunc) {
 		log.Debug(__regContext__, "Registering method ", "Method Name", methodName)
 		invokableMethodsRegister[methodName] = method
 	}
-}
+}*/

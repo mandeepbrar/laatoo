@@ -17,6 +17,8 @@ import (
 const (
 	CONF_DEFAULTFACTORY_NAME       = "__defaultfactory__"
 	CONF_DEFAULTMETHODFACTORY_NAME = "__defaultmethodfactory__"
+	CONF_SERVICEAGGREGATOR_NAME    = "__serviceaggregator__"
+	CONF_TRANSFORMERSERVICE_NAME   = "__transformerservice__"
 )
 
 func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName string) (config.Config, error, bool) {

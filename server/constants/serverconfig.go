@@ -11,6 +11,7 @@ const (
 	CONF_CONFIG_FILE        = "config.json"
 	CONF_OBJECTLDR_OBJECTS  = "objects"
 	CONF_OBJECTLDR_METHODS  = "methods"
+	CONST_ALL_PERMISSIONS   = "AllPermissions"
 	CONF_PLUGINS_FOLDER     = "plugins"
 	CONF_FACTORIES          = "factories"
 	CONF_SERVICES           = "services"

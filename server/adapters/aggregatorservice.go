@@ -6,27 +6,14 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
-	"laatoo/server/objects"
 )
 
-type serviceAggregator struct {
+type ServiceAggregator struct {
 	serviceNames map[string]string
 	serviceMap   map[string]core.Service
 }
 
-const (
-	CONF_SERVICEAGGREGATOR_NAME = "__serviceaggregator__"
-)
-
-func init() {
-	objects.RegisterObject(CONF_SERVICEAGGREGATOR_NAME, createServiceAggregator, nil)
-}
-
-func createServiceAggregator() interface{} {
-	return &serviceAggregator{}
-}
-
-func (ds *serviceAggregator) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (ds *ServiceAggregator) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcConfig, ok := conf.GetSubConfig(constants.CONF_SERVICES)
 	if ok {
 		svcs := svcConfig.AllConfigurations()
@@ -44,7 +31,7 @@ func (ds *serviceAggregator) Initialize(ctx core.ServerContext, conf config.Conf
 }
 
 //The services start serving when this method is called
-func (ds *serviceAggregator) Start(ctx core.ServerContext) error {
+func (ds *ServiceAggregator) Start(ctx core.ServerContext) error {
 	for k, v := range ds.serviceNames {
 		svc, err := ctx.GetService(v)
 		if err != nil {
@@ -55,7 +42,7 @@ func (ds *serviceAggregator) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (ds *serviceAggregator) Invoke(ctx core.RequestContext) error {
+func (ds *ServiceAggregator) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Aggregator Service")
 	body := ctx.GetRequest().(*map[string]interface{})
 	argsMap := *body

@@ -144,6 +144,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+	svcCreateCtx := ctx.(*serverContext)
 	if !common.CheckContextCondition(ctx, conf) {
 		return nil
 	}
@@ -166,8 +167,22 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	//get the factory from proxy
 	svcfactoryProxy := facElem.(*serviceFactoryProxy)
-	svcCtx := svcfactoryProxy.fac.svrContext.newContext("Service: " + serviceAlias)
+
+	facCtx := svcfactoryProxy.fac.svrContext
+
+	svcCtx := facCtx.newContext("Service: " + serviceAlias)
+
+	log.Trace(ctx, "levels", "factory", facCtx.level, "server", svcCreateCtx.level)
+	//use the latest context... i.e. server.. environment or application....
+	//if factory is from earlier level then override elements with latest context
+	if facCtx.level <= svcCreateCtx.level {
+		log.Trace(ctx, "factory from a lower level than context")
+		cmap := svcCreateCtx.getElementsContextMap()
+		svcCtx.setElementReferences(cmap, true)
+	}
+
 	factory := svcfactoryProxy.Factory()
+	svcCtx.PrintObjects()
 	//proxy for the service
 	svcStruct := &service{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
 

@@ -32,15 +32,17 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 	if err != nil {
 		return err
 	}
+	/*
+		if objLoader.parentElem == nil {
+			for objectName, objFactory := range objectsFactoryRegister {
+				objLoader.registerObjectFactory(ctx, objectName, objFactory)
+			}
 
-	for objectName, objFactory := range objectsFactoryRegister {
-		objLoader.registerObjectFactory(ctx, objectName, objFactory)
-	}
-
-	for methodName, method := range invokableMethodsRegister {
-		objLoader.registerInvokableMethod(ctx, methodName, method)
-	}
-
+			for methodName, method := range invokableMethodsRegister {
+				objLoader.registerInvokableMethod(ctx, methodName, method)
+			}
+		}
+	*/
 	/*
 		objectNames, ok := conf.GetStringArray(config.CONF_OBJECTLDR_OBJECTS)
 		if ok {
@@ -100,13 +102,13 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 				for _, comp := range components {
 					if comp.Name != "" {
 						if comp.ServiceFunc != nil {
-							RegisterInvokableMethod(comp.Name, comp.ServiceFunc)
+							objLoader.registerInvokableMethod(ctx, comp.Name, comp.ServiceFunc)
 						} else if comp.ObjectFactory != nil {
-							RegisterObjectFactory(comp.Name, comp.ObjectFactory)
+							objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
 						} else if comp.ObjectCreator != nil {
-							RegisterObject(comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
+							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
 						} else if comp.Object != nil {
-							Register(comp.Name, comp.Object)
+							objLoader.register(ctx, comp.Name, comp.Object)
 						} else {
 							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
 						}
@@ -199,6 +201,7 @@ func (objLoader *objectLoader) createObject(ctx core.Context, objectName string)
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
+		log.Trace(ctx, "Objects in the register", "Map", objLoader.objectsFactoryRegister)
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
 	return factory.CreateObject(), nil

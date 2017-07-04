@@ -43,3 +43,6 @@ func (ldr *objectLoaderProxy) GetObjectCreator(ctx core.Context, objectName stri
 func (ldr *objectLoaderProxy) GetMethod(ctx core.Context, methodName string) (core.ServiceFunc, error) {
 	return ldr.loader.getMethod(ctx, methodName)
 }
+func (ldr *objectLoaderProxy) RegisterInvokableMethod(ctx core.Context, methodName string, method core.ServiceFunc) {
+	ldr.loader.registerInvokableMethod(ctx, methodName, method)
+}
