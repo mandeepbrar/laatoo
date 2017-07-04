@@ -182,7 +182,6 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}
 
 	factory := svcfactoryProxy.Factory()
-	svcCtx.PrintObjects()
 	//proxy for the service
 	svcStruct := &service{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
 
