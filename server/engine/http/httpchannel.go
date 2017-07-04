@@ -155,6 +155,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 }
 
 func (channel *httpChannel) group(ctx core.ServerContext, name string, conf config.Config) *httpChannel {
+	log.Trace(ctx, "Creating child channel", "Parent", channel)
 	return newHttpChannel(ctx, name, conf, channel.engine, channel)
 }
 

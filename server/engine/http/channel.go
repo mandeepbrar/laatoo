@@ -3,6 +3,7 @@ package http
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 )
 
@@ -15,6 +16,7 @@ func (channel *httpChannelProxy) Serve(ctx core.ServerContext, svc server.Servic
 }
 
 func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {
+	log.Trace(ctx, "Creating child channel ", "Parent", channel.channel)
 	childChannel := channel.channel.group(ctx, name, channelConfig)
 	proxy := &httpChannelProxy{channel: childChannel}
 	return proxy, nil

@@ -58,12 +58,18 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 				if (info.Mode() & os.ModeSymlink) != 0 {
 					s, err := os.Readlink(file)
 					if err == nil && recurse {
-						processDirectoryFiles(ctx, s, processor, recurse)
+						err = processDirectoryFiles(ctx, s, processor, recurse)
+						if err != nil {
+							return errors.WrapError(ctx, err)
+						}
 					}
 				}
 			} else {
 				if recurse {
-					processDirectoryFiles(ctx, file, processor, recurse)
+					err = processDirectoryFiles(ctx, file, processor, recurse)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
 				}
 			}
 		}

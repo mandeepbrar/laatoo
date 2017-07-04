@@ -206,10 +206,18 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.Config) error {
 	for name, engHandle := range as.engineHandles {
 		engInitCtx := ctx.SubContext("Initialize Engine: " + name)
-		err := engHandle.Initialize(engInitCtx, conf)
+		engConf := as.engineConf[name]
+		err := engHandle.Initialize(engInitCtx, engConf)
 		if err != nil {
 			return errors.WrapError(engInitCtx, err)
 		}
+
+		//register engines root channel
+		eng := as.engines[name]
+		rootChannel := eng.GetRootChannel(engInitCtx)
+		//get a root channel and assign it to server channel manager
+		as.channelManagerHandle.(*channelManager).channelStore[name] = rootChannel
+
 		log.Trace(engInitCtx, "Initialized engine", "Engine", name)
 	}
 	log.Debug(ctx, "Initialized Engines")

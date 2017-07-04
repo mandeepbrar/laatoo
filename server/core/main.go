@@ -82,7 +82,7 @@ func createEnvironments(ctx core.ServerContext, confDir string, svr *serverObjec
 			if info.IsDir() {
 				envName := info.Name()
 				baseEnvDir := path.Join(envDir, envName)
-				envCtx := svrCtx.newContext("Create Environment: " + envName)
+				envCtx := svrCtx.newContext("Environment: " + envName)
 				var envConfig config.Config
 				configFile := path.Join(baseEnvDir, constants.CONF_CONFIG_FILE)
 				if _, err := os.Stat(configFile); err == nil {
@@ -151,7 +151,7 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 				if info.IsDir() {
 					appName := info.Name()
 					baseAppDir := path.Join(appDir, appName)
-					appCtx := envProxy.env.svrContext.newContext("Create Application: " + appName)
+					appCtx := envProxy.env.svrContext.newContext("Application: " + appName)
 					var appConfig config.Config
 					configFile := path.Join(baseAppDir, constants.CONF_CONFIG_FILE)
 					if _, err := os.Stat(configFile); err == nil {

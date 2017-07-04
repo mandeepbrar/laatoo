@@ -30,7 +30,7 @@ func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseD
 }
 
 func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) error {
-	envInitCtx := ctx.SubContext("InitializeEnvironment:" + env.name).(*serverContext)
+	envInitCtx := ctx.(*serverContext)
 	if err := env.initialize(envInitCtx, conf); err != nil {
 		return errors.WrapError(envInitCtx, err)
 	}
@@ -39,7 +39,7 @@ func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) e
 }
 
 func (env *environment) Start(ctx core.ServerContext) error {
-	envStartCtx := ctx.SubContext("StartEnvironment:" + env.name).(*serverContext)
+	envStartCtx := ctx.(*serverContext)
 	if err := env.start(envStartCtx); err != nil {
 		return errors.WrapError(envStartCtx, err)
 	}
@@ -48,7 +48,7 @@ func (env *environment) Start(ctx core.ServerContext) error {
 }
 
 func (env *environment) createApplications(ctx core.ServerContext, baseDir string, name string, applicationConf config.Config) error {
-	appCreateCtx := ctx.SubContext("CreateApplication: " + name).(*serverContext)
+	appCreateCtx := ctx.SubContext("Create").(*serverContext)
 
 	if applicationConf == nil {
 		applicationConf = make(common.GenericConfig, 0)
@@ -59,15 +59,16 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 	applHandle, applElem := newApplication(appCreateCtx, name, env, baseDir)
 	log.Debug(appCreateCtx, "Created")
 
-	appInitCtx := ctx.SubContext("InitializeApplication: " + name)
+	appInitCtx := ctx.SubContext("Initialize")
 	err := applHandle.Initialize(appInitCtx, applicationConf)
 	if err != nil {
 		return errors.WrapError(appInitCtx, err)
 	}
 
-	err = applHandle.Start(ctx)
+	appStartCtx := ctx.SubContext("Start")
+	err = applHandle.Start(appStartCtx)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(appStartCtx, err)
 	}
 
 	env.applications[name] = applElem

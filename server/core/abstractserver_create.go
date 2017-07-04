@@ -335,12 +335,8 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 			return errors.WrapError(engCreateCtx, err)
 		}
 
-		//get a root channel and assign it to server channel manager
-		as.channelManagerHandle.(*channelManager).channelStore[name] = eng.GetRootChannel(engCreateCtx)
-
-		log.Info(engCreateCtx, "Registered root channel", "Name", name)
-
 		as.engines[name] = eng
+		as.engineConf[name] = conf
 		as.engineHandles[name] = engHandle
 	} else {
 		log.Info(ctx, "Engine already exists", "Name", name)
@@ -377,7 +373,7 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	var engine server.Engine
 	switch enginetype {
 	case constants.CONF_ENGINETYPE_HTTP:
-		engineHandle, engine = http.NewEngine(ctx, as.name)
+		engineHandle, engine = http.NewEngine(ctx, as.name, engConf)
 	case core.CONF_ENGINE_TCP:
 	default:
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)

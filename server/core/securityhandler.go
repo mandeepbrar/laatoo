@@ -154,7 +154,7 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	return sh.handler.Start(ctx)
 }
 
-func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
+func (sh *securityHandler) authenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
 	if sh.skipSecurity {
 		return "", nil
 	}
@@ -173,14 +173,14 @@ func (sh *securityHandler) AuthenticateRequest(ctx core.RequestContext, loadFres
 	return token, nil
 }
 
-func (sh *securityHandler) HasPermission(ctx core.RequestContext, perm string) bool {
+func (sh *securityHandler) hasPermission(ctx core.RequestContext, perm string) bool {
 	if sh.skipSecurity {
 		return true
 	}
 	return sh.handler.HasPermission(ctx, perm)
 }
 
-func (sh *securityHandler) AllPermissions(ctx core.RequestContext) []string {
+func (sh *securityHandler) allPermissions(ctx core.RequestContext) []string {
 	if sh.skipSecurity {
 		return []string{}
 	}

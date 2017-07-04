@@ -66,7 +66,7 @@ func (svr *serverObject) Start(ctx core.ServerContext) error {
 }
 
 func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir string, name string, envConf config.Config) error {
-	envCreate := ctx.SubContext("Creating Environment: " + name).(*serverContext)
+	envCreate := ctx.SubContext("Create").(*serverContext)
 
 	if envConf == nil {
 		envConf = make(common.GenericConfig, 0)
@@ -76,18 +76,20 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	envHandle, envElem := newEnvironment(envCreate, name, svr, baseDir)
 	log.Debug(envCreate, "Created environment")
 
-	err := envHandle.Initialize(envCreate, envConf)
+	envInit := ctx.SubContext("Initialize").(*serverContext)
+	err := envHandle.Initialize(envInit, envConf)
 	if err != nil {
-		return errors.WrapError(envCreate, err)
+		return errors.WrapError(envInit, err)
 	}
-	log.Debug(envCreate, "Initialized environment")
+	log.Debug(envInit, "Initialized environment")
 
-	err = envHandle.Start(envCreate)
+	envStart := ctx.SubContext("Start").(*serverContext)
+	err = envHandle.Start(envStart)
 	if err != nil {
-		return errors.WrapError(envCreate, err)
+		return errors.WrapError(envStart, err)
 	}
 
-	log.Debug(envCreate, "Registered environment")
+	log.Debug(ctx, "Registered environment")
 	svr.environments[name] = envElem
 	return nil
 }

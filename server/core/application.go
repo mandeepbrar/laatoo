@@ -31,7 +31,7 @@ func newApplication(svrCtx *serverContext, name string, env *environment, baseDi
 
 //initialize application with object loader, factory manager, service manager
 func (app *application) Initialize(ctx core.ServerContext, conf config.Config) error {
-	appInitCtx := ctx.SubContext("InitializeApplication: " + app.name).(*serverContext)
+	appInitCtx := ctx.(*serverContext)
 	if err := app.initialize(appInitCtx, conf); err != nil {
 		return errors.WrapError(appInitCtx, err)
 	}
@@ -45,7 +45,7 @@ func (app *application) Initialize(ctx core.ServerContext, conf config.Config) e
 
 //start application with object loader, factory manager, service manager
 func (app *application) Start(ctx core.ServerContext) error {
-	applicationStartCtx := ctx.SubContext("Start Application: " + app.name).(*serverContext)
+	applicationStartCtx := ctx.(*serverContext)
 	if err := app.start(applicationStartCtx); err != nil {
 		return errors.WrapError(applicationStartCtx, err)
 	}

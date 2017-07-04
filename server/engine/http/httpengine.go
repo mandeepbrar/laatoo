@@ -32,7 +32,7 @@ type httpEngine struct {
 func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
 	initCtx := ctx.SubContext("InitializeEngine: " + eng.name)
 	eng.fwname = "Echo"
-	fw, ok := conf.GetString(constants.CONF_HTTP_FRAMEWORK)
+	fw, ok := eng.conf.GetString(constants.CONF_HTTP_FRAMEWORK)
 	if ok {
 		eng.fwname = fw
 	}
@@ -44,13 +44,13 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		/*	case "Goji":
 			eng.framework = &goji.GojiWebFramework{}*/
 	}
-	ssl, ok := conf.GetBool(constants.CONF_ENG_SSL)
+	ssl, ok := eng.conf.GetBool(constants.CONF_ENG_SSL)
 	if ok && ssl {
-		cert, ok := conf.GetString(constants.CONF_ENG_SSLCERT)
+		cert, ok := eng.conf.GetString(constants.CONF_ENG_SSLCERT)
 		if !ok {
 			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENG_SSLCERT)
 		}
-		key, ok := conf.GetString(constants.CONF_ENG_SSLKEY)
+		key, ok := eng.conf.GetString(constants.CONF_ENG_SSLKEY)
 		if !ok {
 			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENG_SSLKEY)
 		}
@@ -58,7 +58,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		eng.sslcert = cert
 		eng.sslkey = key
 	}
-	address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
+	address, ok := eng.conf.GetString(constants.CONF_SERVER_ADDRESS)
 	if !ok {
 		return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "Config name", constants.CONF_SERVER_ADDRESS)
 	} else {
@@ -68,10 +68,9 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	eng.framework.Initialize()
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
-	eng.conf = conf
 
 	eng.rootChannel = newHttpChannel(ctx, eng.name, eng.conf, eng, nil)
-
+	log.Trace(ctx, "Setting root channel", "root", eng.rootChannel)
 	//engCtx := ctx.SubContext("Configuring engine")
 	/*if err = eng.router.ConfigureRoutes(engCtx); err != nil {
 		return errors.RethrowError(engCtx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
@@ -91,14 +90,12 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 		if err != nil {
 			panic("Failed to start application" + err.Error())
 		}
-		return nil
 	} else {
 		//start listening
 		err := eng.framework.StartServer(eng.address)
 		if err != nil {
 			panic("Failed to start application" + err.Error())
 		}
-		return nil
 	}
 	log.Info(startCtx, "Started engine*********************************")
 	return nil

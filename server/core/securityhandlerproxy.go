@@ -34,3 +34,15 @@ func (proxy *securityHandlerProxy) GetName() string {
 func (proxy *securityHandlerProxy) GetType() core.ServerElementType {
 	return core.ServerElementSecurityHandler
 }
+
+func (sh *securityHandlerProxy) AuthenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
+	return sh.secHandler.authenticateRequest(ctx, loadFresh)
+}
+
+func (sh *securityHandlerProxy) HasPermission(ctx core.RequestContext, perm string) bool {
+	return sh.secHandler.hasPermission(ctx, perm)
+}
+
+func (sh *securityHandlerProxy) AllPermissions(ctx core.RequestContext) []string {
+	return sh.secHandler.allPermissions(ctx)
+}

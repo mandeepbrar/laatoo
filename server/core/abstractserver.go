@@ -1,6 +1,7 @@
 package core
 
 import (
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
@@ -39,6 +40,7 @@ type abstractserver struct {
 
 	//engines configured on the abstract server
 	engineHandles map[string]server.ServerElementHandle
+	engineConf    map[string]config.Config
 	engines       map[string]server.Engine
 
 	logger       server.Logger
@@ -55,10 +57,11 @@ type abstractserver struct {
 
 func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, baseDir string) *abstractserver {
 	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir, svrContext: svrCtx}
-	log.Trace(svrCtx, "Base directory set to ", baseDir)
+	log.Trace(svrCtx, "Base directory set to ", "Name", baseDir)
 	svrCtx.Set(constants.CONF_BASE_DIR, baseDir)
-	as.engineHandles = make(map[string]server.ServerElementHandle, 5)
-	as.engines = make(map[string]server.Engine, 5)
+	as.engineHandles = make(map[string]server.ServerElementHandle)
+	as.engines = make(map[string]server.Engine)
+	as.engineConf = make(map[string]config.Config)
 	as.createNonConfComponents(svrCtx, name, parent, proxy)
 	return as
 }

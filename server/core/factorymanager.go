@@ -27,25 +27,24 @@ type factoryManager struct {
 }
 
 func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	facmgrInitializeCtx := ctx.SubContext("Initialize factory manager")
-	err := facMgr.createServiceFactories(facmgrInitializeCtx, conf)
+	err := facMgr.createServiceFactories(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
+	err = facMgr.createServiceFactory(ctx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(facmgrInitializeCtx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
+	err = facMgr.createServiceFactory(ctx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
 	if err != nil {
-		return errors.WrapError(facmgrInitializeCtx, err)
+		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(facmgrInitializeCtx, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
-		return errors.WrapError(facmgrInitializeCtx, err)
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
-	return facMgr.initializeFactories(facmgrInitializeCtx)
+	return facMgr.initializeFactories(ctx)
 }
 
 func (facMgr *factoryManager) Start(ctx core.ServerContext) error {

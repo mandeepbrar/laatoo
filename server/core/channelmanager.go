@@ -21,15 +21,14 @@ type channelManager struct {
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	chanmgrInitializeCtx := ctx.SubContext("Initialize channel manager")
-	log.Trace(chanmgrInitializeCtx, "Create Channels")
-	err := chanMgr.createChannels(chanmgrInitializeCtx, conf)
+	log.Trace(ctx, "Create Channels")
+	err := chanMgr.createChannels(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(chanmgrInitializeCtx, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
-		return errors.WrapError(chanmgrInitializeCtx, err)
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	return nil
@@ -57,7 +56,7 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 }
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
-	createCtx := ctx.SubContext("Create Channel" + channelName)
+	createCtx := ctx.SubContext("Create Channel: " + channelName)
 	parentChannelName, ok := channelConf.GetString(constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
 		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
@@ -66,6 +65,7 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	if !ok {
 		return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
+	log.Trace(createCtx, "Found parent channel ", "Parent Channel Name", parentChannelName, "Found", ok)
 	channel, err := parentChannel.Child(createCtx, channelName, channelConf)
 	if err != nil {
 		return errors.WrapError(createCtx, err)

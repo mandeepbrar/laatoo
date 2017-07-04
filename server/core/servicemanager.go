@@ -29,26 +29,25 @@ type serviceManager struct {
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	elem := ctx.GetServerElement(core.ServerElementFactoryManager)
 	svcMgr.factoryManager = elem.(server.FactoryManager)
-	svcmgrInitializeCtx := ctx.SubContext("Initialize service manager ")
-	err := svcMgr.createServices(svcmgrInitializeCtx, conf)
+	err := svcMgr.createServices(ctx, conf)
 	if err != nil {
-		return errors.WrapError(svcmgrInitializeCtx, err)
+		return errors.WrapError(ctx, err)
 	}
 	basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 	log.Trace(ctx, "*************** Processing service manager", " base directory", basedir)
-	if err := common.ProcessDirectoryFiles(svcmgrInitializeCtx, constants.CONF_SERVICES, svcMgr.createService, true); err != nil {
-		return errors.WrapError(svcmgrInitializeCtx, err)
+	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_SERVICES, svcMgr.createService, true); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
-	err = svcMgr.initializeServices(svcmgrInitializeCtx)
+	err = svcMgr.initializeServices(ctx)
 	if err != nil {
-		return errors.WrapError(svcmgrInitializeCtx, err)
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }
 
 func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
-	svcmgrStartCtx := ctx.SubContext("Start service manager").(*serverContext)
+	svcmgrStartCtx := ctx.(*serverContext)
 	chanMgr := ctx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
 	for svcname, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {

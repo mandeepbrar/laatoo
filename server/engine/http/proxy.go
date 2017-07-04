@@ -10,7 +10,7 @@ type httpEngineProxy struct {
 }
 
 func (eng *httpEngineProxy) GetRootChannel(ctx core.ServerContext) server.Channel {
-	return &httpChannelProxy{eng.engine.rootChannel}
+	return &httpChannelProxy{channel: eng.engine.rootChannel}
 }
 
 func (proxy *httpEngineProxy) Reference() core.ServerElement {

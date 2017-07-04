@@ -18,7 +18,7 @@ func (as *abstractserver) start(ctx *serverContext) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	objldrCtx := ctx.SubContext("Start ObjectLoader")
+	objldrCtx := ctx.SubContext("Start Object Loader")
 	err = as.objectLoaderHandle.Start(objldrCtx)
 	if err != nil {
 		return errors.WrapError(objldrCtx, err)
