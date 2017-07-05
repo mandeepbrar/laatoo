@@ -16,11 +16,16 @@ type channelManager struct {
 	proxy server.ChannelManager
 
 	parent core.ServerElement
+
+	secondPass map[string]config.Config
+
 	//store for service factory in an application
 	channelStore map[string]server.Channel
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
+	chanMgr.secondPass = make(map[string]config.Config)
+
 	log.Trace(ctx, "Create Channels")
 	err := chanMgr.createChannels(ctx, conf)
 	if err != nil {
@@ -31,10 +36,38 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
+	for {
+		channelsToCreate := len(chanMgr.secondPass)
+		if channelsToCreate == 0 {
+			break
+		}
+		chansToCreate := chanMgr.secondPass
+		chanMgr.secondPass = make(map[string]config.Config)
+		if err := chanMgr.reviewMissingChannels(ctx, chansToCreate); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		moreChannelsToCreate := len(chanMgr.secondPass)
+		if moreChannelsToCreate == 0 {
+			break
+		}
+		if moreChannelsToCreate == channelsToCreate {
+			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Reason", "parents are missing for channels", "channels", chanMgr.secondPass)
+		}
+	}
+
 	return nil
 }
 
 func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
+	return nil
+}
+
+func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, chansToReview map[string]config.Config) error {
+	for channelName, channelConf := range chansToReview {
+		if err := chanMgr.createChannel(ctx, channelConf, channelName); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
 	return nil
 }
 
@@ -63,7 +96,9 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	}
 	parentChannel, ok := chanMgr.channelStore[parentChannelName]
 	if !ok {
-		return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
+		chanMgr.secondPass[channelName] = channelConf
+		return nil
+		//return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
 	log.Trace(createCtx, "Found parent channel ", "Parent Channel Name", parentChannelName, "Found", ok)
 	channel, err := parentChannel.Child(createCtx, channelName, channelConf)
