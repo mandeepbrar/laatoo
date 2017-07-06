@@ -97,6 +97,7 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	parentChannel, ok := chanMgr.channelStore[parentChannelName]
 	if !ok {
 		chanMgr.secondPass[channelName] = channelConf
+		log.Trace(createCtx, "Could not find parent channel", "Channel Name", channelName)
 		return nil
 		//return errors.ThrowError(createCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}

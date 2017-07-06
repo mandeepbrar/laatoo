@@ -51,9 +51,6 @@ func (rm *rulesManager) Start(ctx core.ServerContext) error {
 }
 
 func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {
-	if !common.CheckContextCondition(ruleCtx, ruleConf) {
-		return nil
-	}
 	triggerType, ok := ruleConf.GetString(constants.CONF_RULE_TRIGGER)
 	if !ok {
 		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_TRIGGER)

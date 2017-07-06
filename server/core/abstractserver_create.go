@@ -330,7 +330,7 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 	if !found {
 		engCreateCtx := ctx.SubContext("Create Engine: " + name)
 		log.Trace(engCreateCtx, "Creating Engine", "Engine", name)
-		engHandle, eng, err := as.createEngine(engCreateCtx, conf)
+		engHandle, eng, err := as.createEngine(engCreateCtx, conf, name)
 		if err != nil {
 			return errors.WrapError(engCreateCtx, err)
 		}
@@ -364,7 +364,7 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 	return nil
 }
 
-func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config) (server.ServerElementHandle, server.Engine, error) {
+func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config, engName string) (server.ServerElementHandle, server.Engine, error) {
 	enginetype, ok := engConf.GetString(constants.CONF_ENGINE_TYPE)
 	if !ok {
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
@@ -373,7 +373,7 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	var engine server.Engine
 	switch enginetype {
 	case constants.CONF_ENGINETYPE_HTTP:
-		engineHandle, engine = http.NewEngine(ctx, as.name, engConf)
+		engineHandle, engine = http.NewEngine(ctx, engName, engConf)
 	case core.CONF_ENGINE_TCP:
 	default:
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)

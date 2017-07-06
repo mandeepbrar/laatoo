@@ -12,6 +12,7 @@ import (
 )
 
 func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, routeConf config.Config) error {
+	ctx = ctx.SubContext("Serve")
 	disabled, _ := routeConf.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
 	if disabled {
 		return nil

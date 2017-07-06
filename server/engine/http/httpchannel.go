@@ -81,7 +81,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 
 	usecors, _ := conf.GetBool(constants.CONF_HTTPENGINE_USECORS)
 
-	log.Debug(ctx, "Created group router", "name", channel.name, "using cors", usecors, " skipauth", skipAuth)
+	log.Debug(ctx, "Created group router", "name", channel.name, "path", path, "using cors", usecors, " skipauth", skipAuth)
 	if usecors {
 		allowedOrigins, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
@@ -155,7 +155,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 }
 
 func (channel *httpChannel) group(ctx core.ServerContext, name string, conf config.Config) *httpChannel {
-	log.Trace(ctx, "Creating child channel", "Parent", channel)
+	log.Trace(ctx, "Creating child channel", "Parent", channel.name, "New channel", name)
 	return newHttpChannel(ctx, name, conf, channel.engine, channel)
 }
 

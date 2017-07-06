@@ -30,7 +30,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		keys := contextVars.AllConfigurations()
 		for _, key := range keys {
 			val, _ := contextVars.Get(key)
-			ctx.Set("@"+key, val)
+			ctx.SetVariable(key, val.(string))
 		}
 	}
 

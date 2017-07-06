@@ -16,7 +16,7 @@ func (channel *httpChannelProxy) Serve(ctx core.ServerContext, svc server.Servic
 }
 
 func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {
-	log.Trace(ctx, "Creating child channel ", "Parent", channel.channel)
+	log.Trace(ctx, "Creating child channel ", "Parent", channel.channel.name, "Name", name)
 	childChannel := channel.channel.group(ctx, name, channelConfig)
 	proxy := &httpChannelProxy{channel: childChannel}
 	return proxy, nil

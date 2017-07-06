@@ -13,7 +13,7 @@ func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 		for _, key := range keys {
 			str, ok := cond.GetString(key)
 			if ok {
-				contextVal, cok := ctx.GetString(key)
+				contextVal, cok := ctx.GetVariable(key)
 				if !cok || contextVal != str {
 					return false
 				}

@@ -74,7 +74,7 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 						svcChannelConfigs = []config.Config{channelConfig}
 					}
 					//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
-					svcServeCtx := ctx.SubContext("Serve: " + svcProxy.svc.name)
+					svcServeCtx := svcProxy.svc.svrContext.SubContext("Serve: " + svcProxy.svc.name)
 					for _, conf := range svcChannelConfigs {
 						err := chanMgr.Serve(svcServeCtx, channelName, svcProxy, conf)
 						if err != nil {
@@ -145,9 +145,6 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
 	svcCreateCtx := ctx.(*serverContext)
-	if !common.CheckContextCondition(ctx, conf) {
-		return nil
-	}
 
 	factoryname, ok := conf.GetString(CONF_FACTORY)
 	if !ok {

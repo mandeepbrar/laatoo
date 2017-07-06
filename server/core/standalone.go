@@ -10,6 +10,8 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
 	"net"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -20,6 +22,13 @@ const (
 
 func Main(configFile string) error {
 	rootctx := newServerContext()
+	for _, e := range os.Environ() {
+		pair := strings.Split(e, "=")
+		name := pair[0]
+		if strings.HasPrefix(name, "LAATOO_") {
+			rootctx.SetVariable(name[7:], pair[1])
+		}
+	}
 	return main(rootctx, configFile)
 }
 

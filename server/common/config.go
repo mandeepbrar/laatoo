@@ -49,6 +49,9 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
+				if !CheckContextCondition(ctx, elemConf) {
+					continue
+				}
 				name, ok := elemConf.GetString(constants.CONF_OBJECT_NAME)
 				if ok {
 					elemName = name
