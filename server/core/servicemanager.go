@@ -205,8 +205,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
-		svcStruct.cacheSvc = cacheToUse
-		log.Error(svcCtx, "Setting cache for service ", "cacheToUse", cacheToUse)
+		svcCtx.Set("__cache", cacheToUse)
+		log.Info(svcCtx, "Setting cache for service ", "cacheToUse", cacheToUse)
 	}
 
 	elem := ctx.GetServerElement(core.ServerElementLogger)

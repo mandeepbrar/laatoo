@@ -348,10 +348,14 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) c
 	reqCtx := ctx.createNewRequest(name, engineCtx)
 
 	reqCtx.logger = ctx.elements.logger
-	svc := ctx.elements.service.(*serviceProxy)
+	//svc := ctx.elements.service.(*serviceProxy)
 
-	if svc.svc.cache != nil {
-		reqCtx.cache = svc.svc.cache
+	cacheToUse, ok := ctx.GetString("__cache")
+	if ok {
+		if ctx.elements.cacheManager != nil {
+			cache := ctx.elements.cacheManager.GetCache(ctx, cacheToUse)
+			reqCtx.cache = cache
+		}
 	}
 
 	return reqCtx
