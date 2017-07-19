@@ -195,7 +195,6 @@ func (sh *securityHandler) createContext(ctx core.ServerContext, name string) co
 
 func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh bool) (auth.User, bool, string, error) {
 	tokenVal, ok := ctx.GetString(sh.authHeader)
-	log.Trace(ctx, "Token received", "token", tokenVal)
 	if ok {
 		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:

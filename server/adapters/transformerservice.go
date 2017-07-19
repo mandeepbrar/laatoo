@@ -58,18 +58,23 @@ func (ds *TransformerService) Start(ctx core.ServerContext) error {
 	}
 	return nil
 }
+func (ds *TransformerService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
+}
 
-func (ds *TransformerService) Invoke(ctx core.RequestContext) error {
+func (ds *TransformerService) Invoke(ctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
 	ctx = ctx.SubContext("Transformer Service")
 	var argsMap map[string]interface{}
 	if ds.splitParams {
-		body := ctx.GetRequest().(*map[string]interface{})
+		body := req.GetBody().(*map[string]interface{})
 		argsMap = *body
 		log.Trace(ctx, "Transformer Service. Split Params", "argsMap", argsMap)
 	}
 	retval := make(map[string]*core.ServiceResponse, len(ds.serviceMap))
 	for svcName, svc := range ds.serviceMap {
 		reqctx := ctx.SubContext(svcName)
+		svcreq := reqctx.CreateRequest()
 		if ds.splitParams {
 			v := argsMap[svcName]
 			sArg := v.(map[string]interface{})
@@ -80,35 +85,35 @@ func (ds *TransformerService) Invoke(ctx core.RequestContext) error {
 				if !ok {
 					reqmap = make(map[string]interface{})
 				}
-				reqctx.SetRequest(&reqmap)
+				//reqctx.SetRequest(&reqmap)
+				svcreq.SetBody(reqmap)
 			}
 			params, ok := sArg["Params"]
 			if ok {
 				paramsMap, ok := params.(map[string]interface{})
 				if ok {
+					reqparams := make(core.ServiceParamsMap)
 					for k, v := range paramsMap {
-						reqctx.Set(k, v)
+						reqparams.AddParam(k, v, "", false)
+						//						reqctx.Set(k, v)
 					}
+					svcreq.SetParams(reqparams)
 				}
 			}
 		}
-		err := svc.Invoke(reqctx)
+		resp, err := svc.Invoke(reqctx, svcreq)
 		if err != nil {
-			return errors.WrapError(reqctx, err)
+			return nil, errors.WrapError(reqctx, err)
 		}
-		resp := reqctx.GetResponse()
 		retval[svcName] = resp
 	}
 	if ds.transformerFunc != nil {
 		transformCtx := ctx.SubContext("transformer")
-		transformCtx.Set("Source", retval)
-		err := ds.transformerFunc(transformCtx)
-		if err != nil {
-			return errors.WrapError(transformCtx, err)
-		}
-		ctx.SetResponse(transformCtx.GetResponse())
+		transformreq := transformCtx.CreateRequest()
+		transformreq.SetBody(retval)
+		//transformCtx.Set("Source", retval)
+		return ds.transformerFunc(transformCtx, transformreq)
 	} else {
-		ctx.SetResponse(core.SuccessResponse(retval))
+		return core.SuccessResponse(retval), nil
 	}
-	return nil
 }

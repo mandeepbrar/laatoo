@@ -102,15 +102,15 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 			i++
 		}
 		log.Trace(ctx, "Subscribing topics", "topics", topics)
-		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext) error {
+		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
 			topic, ok := reqctx.GetString("messagetype")
 			if ok {
 				lsnrs := mgr.topicStore[topic]
 				for _, val := range lsnrs {
-					go val(reqctx)
+					go val(reqctx, req)
 				}
 			}
-			return nil
+			return nil, nil
 		})
 		/*if err != nil {
 			return err

@@ -27,6 +27,7 @@ type LoginService struct {
 	name           string
 	authHeader     string
 	adminRole      string
+	realm          string
 	tokenGenerator func(auth.User, string) (string, auth.User, error)
 	//data service to use for users
 	UserDataService data.DataComponent
@@ -42,6 +43,11 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ls.authHeader = authHeader.(string)
+	realm := sechandler.GetProperty(config.REALM)
+	if realm == nil {
+		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
+	}
+	ls.realm = realm.(string)
 	userDataSvcName, ok := conf.GetString(common.CONF_LOGINSERVICE_USERDATASERVICE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", common.CONF_LOGINSERVICE_USERDATASERVICE)
@@ -71,6 +77,11 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	}
 
 	realm := usr.GetRealm()
+	if realm != ls.realm {
+		log.Trace(ctx, "Realm not found")
+		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
+		return nil
+	}
 
 	username := usr.GetUserName()
 	log.Trace(ctx, "getting user from service", "username", username)

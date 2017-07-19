@@ -17,7 +17,7 @@ func (mi *DefaultMethodFactory) CreateService(ctx core.ServerContext, name strin
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	return core.NewService(ctx, name, svcFunc), nil
+	return core.NewService(ctx, name, svcFunc, nil, nil), nil
 }
 
 func (ds *DefaultMethodFactory) Initialize(ctx core.ServerContext, conf config.Config) error {

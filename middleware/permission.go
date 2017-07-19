@@ -28,6 +28,7 @@ func (svc *checkPermissionService) Start(ctx core.ServerContext) error {
 
 //The services start serving when this method is called
 func (svc *checkPermissionService) Invoke(ctx core.RequestContext) error {
+	log.Trace(ctx, "Checking permissions")
 	var perm string
 	var ok bool
 	if svc.svcperm {

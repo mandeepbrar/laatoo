@@ -13,16 +13,23 @@ import (
 	"laatoo/server/engine/http/net"
 )
 
+/*"github.com/vulcand/oxy/forward"
+"github.com/vulcand/oxy/buffer"
+"github.com/vulcand/oxy/roundrobin"*/
+
 //"laatoo/engine/http/goji"
 type httpEngine struct {
-	framework   net.Webframework
-	name        string
-	ssl         bool
-	sslcert     string
-	sslkey      string
-	address     string
-	path        string
-	authHeader  string
+	framework    net.Webframework
+	name         string
+	ssl          bool
+	sslcert      string
+	sslkey       string
+	address      string
+	path         string
+	authHeader   string
+	loadBalanced bool
+	leader       bool
+	//	lb *roundrobin.RoundRobin
 	proxy       server.Engine
 	rootChannel *httpChannel
 	conf        config.Config
@@ -71,6 +78,13 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	eng.rootChannel = newHttpChannel(ctx, eng.name, eng.conf, eng, nil)
 	log.Trace(ctx, "Setting root channel", "root", eng.rootChannel)
+
+	/*eng.loadBalanced, _ := eng.conf.GetBool(constants.CONF_LOAD_BALANCED)
+
+	if(eng.loadBalanced) {
+		eng.startGossping(ctx, conf)
+	}*/
+
 	//engCtx := ctx.SubContext("Configuring engine")
 	/*if err = eng.router.ConfigureRoutes(engCtx); err != nil {
 		return errors.RethrowError(engCtx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
@@ -80,6 +94,40 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 	log.Debug(initCtx, "Initialized engine")
 	return nil
 }
+
+/*
+func (eng *httpEngine) startGossping(ctx core.ServerContext, conf config.Config) error {
+	if(eng.leader) {
+		if err := eng.startBalancer(ctx, eng.conf); err!=nil {
+			return errors.ThrowError(ctx, err)
+		}
+	}
+	if eng.lb != nil {
+		eng.lb.UpsertServer(url)
+	}
+}
+
+
+func (eng *httpEngine) insertClusterNode(ctx core.ServerContext, url string) error {
+	if eng.lb != nil {
+		eng.lb.UpsertServer(url)
+	}
+}
+
+func (eng *httpEngine) startBalancer(ctx core.ServerContext, conf config.Config) error {
+	fwd, _ := forward.New()
+	eng.lb, _ := roundrobin.New(fwd)
+	// buffer will read the request body and will replay the request again in case if forward returned status
+	// corresponding to nework error (e.g. Gateway Timeout)
+	buffer, _ := buffer.New(eng.lb, buffer.Retry(`IsNetworkError() && Attempts() < 2`))
+
+	// that's it! our reverse proxy is ready!
+	s := &http.Server{
+		Addr:           ":8080",
+		Handler:        buffer,
+	}
+	s.ListenAndServe()
+}*/
 
 func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Start Engine: " + eng.name)

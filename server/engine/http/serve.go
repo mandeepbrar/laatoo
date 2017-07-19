@@ -5,26 +5,30 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/constants"
 	//"strconv"
 )
 
-func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, routeConf config.Config) error {
+func (channel *httpChannel) serve(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Serve")
-	disabled, _ := routeConf.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
+
+	disabled, _ := channel.config.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
 	if disabled {
 		return nil
 	}
-	path, ok := routeConf.GetString(constants.CONF_HTTPENGINE_PATH)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_HTTPENGINE_PATH)
+
+	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+	svc, err := svcManager.GetService(ctx, channel.svcName)
+	if err != nil {
+		return err
 	}
-	method, ok := routeConf.GetString(constants.CONF_HTTPENGINE_METHOD)
+
+	method, ok := channel.config.GetString(constants.CONF_HTTPENGINE_METHOD)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_HTTPENGINE_METHOD)
+		return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
 	}
+
 	var respHandler server.ServiceResponseHandler
 	handler := ctx.GetServerElement(core.ServerElementServiceResponseHandler)
 	if handler != nil {
@@ -33,13 +37,11 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 		respHandler = DefaultResponseHandler(ctx)
 	}
 
-	svcParams := svc.ParamsConfig()
-
-	var err error
+	//svcParams := svc.ParamsConfig()
 
 	////build value parameters
 	var routeParams map[string]string
-	routeParamValuesConf, ok := routeConf.GetSubConfig(constants.CONF_HTTPENGINE_ROUTEPARAMVALUES)
+	routeParamValuesConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_ROUTEPARAMVALUES)
 	if ok {
 		values := routeParamValuesConf.AllConfigurations()
 		routeParams = make(map[string]string, len(values))
@@ -67,8 +69,8 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 			}
 		}
 	}
-	allowedQParamsFunc(routeConf)
-	allowedQParamsFunc(svcParams)
+	allowedQParamsFunc(channel.config)
+	//allowedQParamsFunc(svcParams)
 
 	////build value parameters
 	staticValues := make(map[string]interface{})
@@ -84,8 +86,8 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 			}
 		}
 	}
-	staticValuesFunc(routeConf)
-	staticValuesFunc(svcParams)
+	staticValuesFunc(channel.config)
+	//staticValuesFunc(svcParams)
 
 	//build header param mappings
 	headers := make(map[string]string, 0)
@@ -102,58 +104,22 @@ func (channel *httpChannel) serve(ctx core.ServerContext, svc server.Service, ro
 			}
 		}
 	}
-	headersFunc(routeConf)
-	headersFunc(svcParams)
+	headersFunc(channel.config)
+	//headersFunc(svcParams)
 
-	//get any data creators for body objects that need to be bound
-	var dataObjectCreator core.ObjectCreator
-	var dataObjectCollectionCreator core.ObjectCollectionCreator
-	dataObjectName, isdataObject := routeConf.GetString(constants.CONF_ENGINE_DATA_OBJECT)
-	_, isdataCollection := routeConf.GetString(constants.CONF_ENGINE_DATA_COLLECTION)
-
-	var otype objectType
-	switch dataObjectName {
-	case constants.CONF_ENGINE_STRINGMAP_DATA_OBJECT:
-		otype = stringmap
-	case constants.CONF_ENGINE_BYTES_DATA_OBJECT:
-		otype = bytes
-	case constants.CONF_ENGINE_STRING_DATA_OBJECT:
-		otype = stringtype
-	case constants.CONF_ENGINE_FILES_DATA_OBJECT:
-		otype = files
-	default:
-		otype = custom
-	}
-
-	if isdataObject && (otype == custom) {
-		if isdataCollection {
-			dataObjectCollectionCreator, err = ctx.GetObjectCollectionCreator(dataObjectName)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", dataObjectName)
-			}
-		} else {
-			dataObjectCreator, err = ctx.GetObjectCreator(dataObjectName)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", dataObjectName)
-			}
-		}
-	}
-	log.Trace(ctx, "Service mapping for route", "name", channel.name, "method", method, "dataObjectName", dataObjectName, "isdataObject", isdataObject, "isdataCollection", isdataCollection)
-
-	webReqHandler, err := channel.processServiceRequest(ctx, respHandler, method, channel.name, svc, otype, dataObjectName, isdataObject,
-		isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers, allowedQueryParams)
+	webReqHandler, err := channel.processServiceRequest(ctx, method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams)
 	if err != nil {
 		return err
 	}
 	switch method {
 	case "GET":
-		channel.get(ctx, path, svc.GetName(), webReqHandler, svc)
+		channel.get(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "POST":
-		channel.post(ctx, path, svc.GetName(), webReqHandler, svc)
+		channel.post(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "PUT":
-		channel.put(ctx, path, svc.GetName(), webReqHandler, svc)
+		channel.put(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "DELETE":
-		channel.delete(ctx, path, svc.GetName(), webReqHandler, svc)
+		channel.delete(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 		/*	case CONF_ROUTE_METHOD_INVOKE:
 					router.Post(ctx, path, router.processServiceRequest(ctx, respHandler, method, router.name, svc, serverElement, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 			case CONF_ROUTE_METHOD_GETSTREAM:

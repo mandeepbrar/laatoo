@@ -39,9 +39,11 @@ type httpChannel struct {
 	name           string
 	Router         net.Router
 	config         config.Config
+	svcName        string
 	engine         *httpEngine
 	allowedQParams []string
 	skipAuth       bool
+	path           string
 }
 
 func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
@@ -51,6 +53,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 	if !ok {
 		path = engine.path
 	}
+
 	if parentChannel == nil {
 		routername = name
 		router = engine.framework.GetParentRouter(path)
@@ -59,12 +62,14 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 		router = parentChannel.Router.Group(path)
 	}
 
+	svc, _ := conf.GetString(constants.CONF_CHANNEL_SERVICE)
+
 	skipAuth, ok := conf.GetBool(constants.CONF_HTTPENGINE_SKIPAUTH)
 	if !ok && parentChannel != nil {
 		skipAuth = parentChannel.skipAuth
 	}
 
-	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth}
+	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth, svcName: svc, path: path}
 
 	allowedQParams, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
@@ -159,7 +164,7 @@ func (channel *httpChannel) group(ctx core.ServerContext, name string, conf conf
 	return newHttpChannel(ctx, name, conf, channel.engine, channel)
 }
 
-func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName string, handler core.ServiceFunc, svc server.Service) net.HandlerFunc {
+func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) net.HandlerFunc {
 	var shandler server.SecurityHandler
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	authtoken := ""
@@ -169,32 +174,41 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		authtoken = val.(string)
 	}
 
-	processRequest := func(reqctx core.RequestContext) error {
+	processRequest := func(reqctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.ServiceResponse, error) {
 		if (!channel.skipAuth) && (shandler != nil) {
 			_, err := shandler.AuthenticateRequest(reqctx, false)
 			if err != nil {
-				reqctx.SetResponse(core.StatusUnauthorizedResponse)
-				return nil
+				return core.StatusUnauthorizedResponse, nil
 			}
 		} else {
 			log.Trace(reqctx, "Auth skipped")
 		}
-		return handler(reqctx)
+		return handler(reqctx, vals, body)
 	}
 
 	return func(pathCtx net.WebContext) error {
-		result := make(chan error)
+		errChannel := make(chan error)
 		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
-		req := pathCtx.GetRequest()
-		corectx.SetGaeReq(req)
-		corectx.Set(authtoken, pathCtx.GetHeader(authtoken))
-		log.Info(corectx, "Got request", "Path", req.URL.RequestURI(), "Method", req.Method)
+		webreq := pathCtx.GetRequest()
+		corectx.SetGaeReq(webreq)
+		log.Info(corectx, "Got request", "Path", webreq.URL.RequestURI(), "Method", webreq.Method)
 		defer corectx.CompleteRequest()
-		go func(reqctx core.RequestContext) {
-			e := processRequest(reqctx)
-			result <- e
-		}(corectx)
-		err := <-result
+		go func(reqctx core.RequestContext, webctx net.WebContext) {
+			bytes, err := webreq.GetBody()
+			if err != nil {
+				errChannel <- err
+				return
+			}
+			vals := make(map[string]interface{})
+			vals[authtoken] = pathCtx.GetHeader(authtoken)
+			resp, err := processRequest(reqctx, vals, bytes)
+			log.Trace(reqctx, "Completed request for service. Handling Response")
+			if err == nil {
+				err = respHandler.HandleResponse(reqctx, resp)
+			}
+			errChannel <- err
+		}(corectx, pathCtx)
+		err := <-errChannel
 		if err != nil {
 			log.Info(corectx, "Got error in the request", "error", err)
 		}
@@ -202,33 +216,33 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	}
 }
 
-func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
+func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler, svc))
+	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
+func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
-	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler, svc))
+	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
+func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler, svc))
+	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
+func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler, svc))
+	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler core.ServiceFunc, svc server.Service) {
+func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler, svc))
+	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler core.ServiceFunc, svc server.Service) {
-	channel.Router.Use(channel.httpAdapter(ctx, middlewareName, handler, svc))
+func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) {
+	channel.Router.Use(channel.httpAdapter(ctx, middlewareName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) useMW(ctx core.ServerContext, handler func(http.Handler) http.Handler) {

@@ -59,8 +59,35 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 }
 
 func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
+	svcmgrStartCtx := ctx.(*serverContext)
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+
+	for chanName, channel := range chanMgr.channelStore {
+		svcName := channel.GetServiceName()
+		svcProxy, err := svcMgr.GetService(ctx, svcName)
+		if err != nil {
+			return err
+		}
+		proxy := svcProxy.(*serviceProxy)
+		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
+		err = channel.Serve(svcServeCtx)
+		if err != nil {
+			return err
+		}
+		log.Info(svcmgrStartCtx, "Serving channel ", "channel", chanName)
+	}
 	return nil
 }
+
+/*
+func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string, svc server.Service, channelConfig config.Config) error {
+	channel, ok := cm.manager.channelStore[channelName]
+	if ok {
+		return channel.Serve(ctx, svc, channelConfig)
+	} else {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "No such channel", channelName)
+	}
+}*/
 
 func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, chansToReview map[string]config.Config) error {
 	for channelName, channelConf := range chansToReview {

@@ -19,14 +19,8 @@ type requestContext struct {
 	//user who is executing the request
 	user auth.User
 	//is the user executing a request an admin
-	admin bool
-	//response data for the request
-	responseData *core.ServiceResponse
-	parent       *requestContext
-	//request body
-	//this can be plain bytes, data objects or collections depending upon
-	//engine configuration and service expectation
-	request interface{}
+	admin  bool
+	parent *requestContext
 	//server context that generated this request
 	serverContext *serverContext
 	//if the request is a subrequest, times are not reported and variables are not cleared
@@ -48,12 +42,16 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 	return ctx.serverContext.GetServerElement(elemType)
 }
 
+func (ctx *requestContext) CreateRequest() core.ServiceRequest {
+	return &request{Params: make(core.ServiceParamsMap)}
+}
+
 //subcontext of the request
 //retains id and tracks flow along with variables
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, responseData: ctx.responseData, request: ctx.request,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin,
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, subRequest: true}
 }
 
@@ -152,6 +150,7 @@ func (ctx *requestContext) IsAdmin() bool {
 	return ctx.admin
 }
 
+/*
 //sets or gets the response for a request
 func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 	ctx.responseData = responseData
@@ -163,17 +162,7 @@ func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 //gets response
 func (ctx *requestContext) GetResponse() *core.ServiceResponse {
 	return ctx.responseData
-}
-
-//gets request
-func (ctx *requestContext) GetRequest() interface{} {
-	return ctx.request
-}
-
-//sets the request
-func (ctx *requestContext) SetRequest(request interface{}) {
-	ctx.request = request
-}
+}*/
 
 func (ctx *requestContext) HasPermission(perm string) bool {
 	if ctx.serverContext.elements.securityHandler != nil {
@@ -210,8 +199,6 @@ func (ctx *requestContext) CompleteRequest() {
 	//ctx.ParamsStore = nil
 	ctx.user = nil
 	ctx.admin = false
-	ctx.responseData = nil
-	ctx.request = nil
 	ctx.serverContext = nil
 }
 

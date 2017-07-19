@@ -143,14 +143,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		facProxy := &serviceFactoryProxy{fac: fac}
 		facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})
 
-		middleware, ok := factoryConfig.GetStringArray(constants.CONF_MIDDLEWARE)
-		if ok {
-			parentMw, ok := facCtx.GetStringArray(constants.CONF_MIDDLEWARE)
-			if ok {
-				middleware = append(parentMw, middleware...)
-			}
-			facCtx.Set(constants.CONF_MIDDLEWARE, middleware)
-		}
+		common.SetupMiddleware(facCtx, factoryConfig)
 
 		cacheToUse, ok := factoryConfig.GetString(constants.CONF_CACHE_NAME)
 		if ok {

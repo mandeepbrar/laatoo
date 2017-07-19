@@ -79,9 +79,9 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
 		ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
-			return func(msgctx core.RequestContext) error {
+			return func(msgctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
 				go func() {
-					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: msgctx.GetRequest()}
+					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: req.GetBody()}
 					if rule.Condition(msgctx, tr) {
 						err := rule.Action(msgctx, tr)
 						if err != nil {
@@ -90,7 +90,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 					}
 
 				}()
-				return nil
+				return nil, nil
 			}
 		}
 		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
@@ -120,11 +120,11 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 	regrules, present := rm.registeredRules[msgType]
 	if present {
 		for _, rule := range regrules {
-			log.Error(ctx, "Executing rule")
+			log.Debug(ctx, "Executing rule")
 			if rule.Condition(ctx, tr) {
-				log.Error(ctx, "Executing rule", "message", msgType)
+				log.Debug(ctx, "Executing rule", "message", msgType)
 				err := rule.Action(ctx, tr)
-				log.Error(ctx, "Executed rule", "message", msgType)
+				log.Debug(ctx, "Executed rule", "message", msgType)
 				if err != nil {
 					return err
 				}

@@ -46,14 +46,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Trace(secinit, "Initialized security handler")
 
-	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
-	if ok {
-		parentMw, ok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
-		if ok {
-			middleware = append(parentMw, middleware...)
-		}
-		ctx.Set(constants.CONF_MIDDLEWARE, middleware)
-	}
+	common.SetupMiddleware(ctx, conf)
 
 	if err = as.initializeServicesCore(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)

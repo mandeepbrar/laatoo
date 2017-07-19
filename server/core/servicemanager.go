@@ -48,42 +48,16 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 
 func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 	svcmgrStartCtx := ctx.(*serverContext)
-	chanMgr := ctx.GetServerElement(core.ServerElementChannelManager).(server.ChannelManager)
 	for svcname, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {
 			log.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
 			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
-			svcStartCtx := svcmgrStartCtx.newContext("Start " + svcname)
+			svcStartCtx := svcProxy.svc.svrContext.subContext("Start " + svcname)
 			err := svcProxy.svc.start(svcStartCtx)
 			if err != nil {
 				return errors.WrapError(svcStartCtx, err)
 			}
 			log.Info(svcmgrStartCtx, "Started service ", "name", svcname)
-		}
-	}
-
-	for svcname, svcProxy := range svcMgr.servicesStore {
-		if svcProxy.svc.owner == svcMgr {
-			svcChannels, ok := svcProxy.svc.conf.GetSubConfig(constants.CONF_ENGINE_CHANNELS)
-			if ok {
-				channelnames := svcChannels.AllConfigurations()
-				for _, channelName := range channelnames {
-					svcChannelConfigs, ok := svcChannels.GetConfigArray(channelName)
-					if !ok {
-						channelConfig, _ := svcChannels.GetSubConfig(channelName)
-						svcChannelConfigs = []config.Config{channelConfig}
-					}
-					//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
-					svcServeCtx := svcProxy.svc.svrContext.SubContext("Serve: " + svcProxy.svc.name)
-					for _, conf := range svcChannelConfigs {
-						err := chanMgr.Serve(svcServeCtx, channelName, svcProxy, conf)
-						if err != nil {
-							return errors.WrapError(svcServeCtx, err)
-						}
-					}
-					log.Info(svcmgrStartCtx, "Serving service ", "name", svcname, "channel", channelName)
-				}
-			}
 		}
 	}
 	return nil
@@ -185,7 +159,6 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	svcProxy := &serviceProxy{svc: svcStruct}
 	svcCtx.setElements(core.ContextMap{core.ServerElementService: svcProxy})
 
-	parentMw, ok := svcCtx.GetStringArray(constants.CONF_MIDDLEWARE)
 	/*if ok {
 		if grpMw != nil {
 			parentMw = append(parentMw, grpMw...)
@@ -193,15 +166,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	} else {
 		parentMw = grpMw
 	}*/
-	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
-	if ok {
-		if parentMw != nil {
-			middleware = append(parentMw, middleware...)
-		}
-	}
-	if middleware != nil {
-		svcCtx.Set(constants.CONF_MIDDLEWARE, middleware)
-	}
+	common.SetupMiddleware(svcCtx, conf)
 
 	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
 	if ok {
@@ -241,10 +206,10 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 	for svcname, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {
 			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
-			svcInitializeCtx := ctx.SubContext("Initialize: " + svcname)
+			svcInitializeCtx := svcProxy.svc.svrContext.SubContext("Initialize: " + svcname)
 			log.Debug(svcInitializeCtx, "Initializing service", "service name", svcname)
-			svc := svcProxy.svc.service
-			err := svc.Initialize(svcInitializeCtx, svcProxy.svc.conf)
+			//svc := svcProxy.svc.service
+			err := svcProxy.svc.initialize(svcInitializeCtx, svcProxy.svc.conf)
 			if err != nil {
 				return errors.WrapError(svcInitializeCtx, err)
 			}

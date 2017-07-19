@@ -8,8 +8,9 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
 
+	"laatoo/sdk/log"
+
 	"github.com/prep/beanstalk"
-	//	"laatoo/sdk/log"
 )
 
 const (
@@ -50,6 +51,7 @@ func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t *components.Task) error {
+	log.Debug(ctx, "Pushing task into queue", "queue", queue)
 	bytes, err := json.Marshal(t)
 	if err != nil {
 		return err

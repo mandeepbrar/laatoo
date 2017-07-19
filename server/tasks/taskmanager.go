@@ -165,11 +165,13 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 	queue := t.Queue
 	processor, ok := tskMgr.taskProcessors[queue]
 	if ok {
-		ctx.SetRequest(t.Data)
-		ctx.Set(tskMgr.authHeader, t.Token)
+		req := ctx.CreateRequest()
+		req.SetBody(t.Data)
+		req.AddParam(tskMgr.authHeader, t.Token, "", false)
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Trace(ctx, "Processing background task")
-		return processor.Invoke(ctx)
+		_, err := processor.Invoke(ctx, req)
+		return err
 	}
 	return nil
 }

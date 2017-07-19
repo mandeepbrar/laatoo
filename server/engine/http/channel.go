@@ -11,8 +11,12 @@ type httpChannelProxy struct {
 	channel *httpChannel
 }
 
-func (channel *httpChannelProxy) Serve(ctx core.ServerContext, svc server.Service, channelConfig config.Config) error {
-	return channel.channel.serve(ctx, svc, channelConfig)
+func (channel *httpChannelProxy) Serve(ctx core.ServerContext) error {
+	return channel.channel.serve(ctx)
+}
+
+func (channel *httpChannelProxy) GetServiceName() string {
+	return channel.channel.svcName
 }
 
 func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {

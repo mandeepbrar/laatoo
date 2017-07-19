@@ -42,44 +42,52 @@ func (ds *ServiceAggregator) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (ds *ServiceAggregator) Invoke(ctx core.RequestContext) error {
+func (ds *ServiceAggregator) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
+}
+
+func (ds *ServiceAggregator) Invoke(ctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
 	ctx = ctx.SubContext("Aggregator Service")
-	body := ctx.GetRequest().(*map[string]interface{})
+	body := req.GetBody().(*map[string]interface{})
 	argsMap := *body
 	retval := make(map[string]*core.ServiceResponse, len(ds.serviceMap))
-	log.Trace(ctx, "Aggregator", "argsMap", argsMap)
+	log.Trace(ctx, "Aggregator args", "argsMap", argsMap)
 	for k, v := range argsMap {
 		reqctx := ctx.SubContext(k)
 		sArg := v.(map[string]interface{})
 		log.Trace(reqctx, "Service ", "Name", k, "Args", sArg)
+		svcreq := reqctx.CreateRequest()
 		reqbody, ok := sArg["Body"]
 		if ok {
 			reqmap, ok := reqbody.(map[string]interface{})
 			if !ok {
 				reqmap = make(map[string]interface{})
 			}
-			reqctx.SetRequest(&reqmap)
+			svcreq.SetBody(reqmap)
+			//reqctx.SetRequest(&reqmap)
 		}
 		params, ok := sArg["Params"]
 		if ok {
 			paramsMap, ok := params.(map[string]interface{})
 			if ok {
+				reqparams := make(core.ServiceParamsMap)
 				for k, v := range paramsMap {
-					reqctx.Set(k, v)
+					reqparams.AddParam(k, v, "", false)
+					//reqctx.Set(k, v)
 				}
+				svcreq.SetParams(reqparams)
 			}
 		}
 		svc, ok := ds.serviceMap[k]
 		if !ok {
-			return errors.BadRequest(ctx)
+			return nil, errors.BadRequest(ctx)
 		}
-		err := svc.Invoke(reqctx)
+		resp, err := svc.Invoke(reqctx, svcreq)
 		if err != nil {
-			return errors.WrapError(reqctx, err)
+			return nil, errors.WrapError(reqctx, err)
 		}
-		resp := reqctx.GetResponse()
 		retval[k] = resp
 	}
-	ctx.SetResponse(core.SuccessResponse(retval))
-	return nil
+	return core.SuccessResponse(retval), nil
 }

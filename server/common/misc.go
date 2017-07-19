@@ -3,6 +3,7 @@ package common
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	"laatoo/server/constants"
 )
 
@@ -21,4 +22,20 @@ func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 		}
 	}
 	return true
+}
+
+func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
+	parentMw, pok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
+	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
+	if pok {
+		if !ok {
+			middleware = parentMw
+		} else {
+			middleware = append(parentMw, middleware...)
+		}
+	}
+	if middleware != nil {
+		ctx.Set(constants.CONF_MIDDLEWARE, middleware)
+	}
+	log.Trace(ctx, "Middleware setup", "middleware", middleware)
 }

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"laatoo/sdk/config"
+	"io"
 	"laatoo/sdk/core"
 )
 
@@ -16,9 +16,10 @@ func (svc *serviceProxy) Service() core.Service {
 func (proxy *serviceProxy) Reference() core.ServerElement {
 	return &serviceProxy{svc: proxy.svc}
 }
-func (proxy *serviceProxy) ParamsConfig() config.Config {
+
+/*func (proxy *serviceProxy) ParamsConfig() config.Config {
 	return proxy.svc.paramsConf
-}
+}*/
 func (proxy *serviceProxy) GetProperty(name string) interface{} {
 	return nil
 }
@@ -29,6 +30,10 @@ func (proxy *serviceProxy) GetType() core.ServerElementType {
 	return core.ServerElementService
 }
 
-func (svc *serviceProxy) Invoke(ctx core.RequestContext) error {
-	return svc.svc.invoke(ctx)
+func (svc *serviceProxy) HandleStreamedRequest(ctx core.RequestContext, vals map[string]interface{}, body io.ReadCloser) (*core.ServiceResponse, error) {
+	return svc.svc.handleStreamedRequest(ctx, vals, body)
+}
+
+func (svc *serviceProxy) HandleRequest(ctx core.RequestContext, vals map[string]interface{}, body []byte) (*core.ServiceResponse, error) {
+	return svc.svc.handleRequest(ctx, vals, body)
 }

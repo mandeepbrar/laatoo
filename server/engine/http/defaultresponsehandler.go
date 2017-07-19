@@ -16,9 +16,8 @@ func DefaultResponseHandler(ctx core.ServerContext) *defaultResponseHandler {
 	return nil
 }
 
-func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext) error {
+func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.ServiceResponse) error {
 	log.Trace(ctx, "Returning request with default response handler")
-	resp := ctx.GetResponse()
 	if resp == nil {
 		resp = core.StatusSuccessResponse
 	}
