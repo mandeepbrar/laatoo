@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/constants"
 	"os"
 
 	"github.com/twinj/uuid"
@@ -38,9 +39,14 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 	return nil
 }
 
-func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
+func (svc *FileSystemSvc) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "File system storage service",
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
+}
+
+func (svc *FileSystemSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	log.Info(ctx, "writing file")
-	files := *ctx.GetRequest().(*map[string]*core.MultipartFile)
+	files := *req.GetBody().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -49,14 +55,13 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 		log.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		urls[i] = url
 		i++
 	}
 	log.Info(ctx, "writing file", "urls", urls)
-	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
-	return nil
+	return core.NewServiceResponse(core.StatusSuccess, urls, nil), nil
 }
 func (svc *FileSystemSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
 	fullpath := svc.GetFullPath(ctx, fileName)

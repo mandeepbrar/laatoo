@@ -61,10 +61,11 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 			switch v := psc.Receive().(type) {
 			case redis.Message:
 				log.Trace(ctx, "Message received on Queue")
-				req := ctx.CreateSystemRequest("Message Received")
-				req.Set("messagetype", v.Channel)
-				req.SetRequest(v.Data)
-				lstnr(req)
+				reqctx := ctx.CreateSystemRequest("Message Received")
+				req := reqctx.CreateRequest()
+				req.AddParam("messagetype", v.Channel, "", false)
+				req.SetBody(v.Data)
+				lstnr(reqctx, req)
 			case redis.Subscription:
 			case error:
 				log.Info(ctx, "Pubsub error ", "Error", v)
@@ -118,8 +119,12 @@ func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext, conf conf
 	return nil
 }
 
-func (rs *RedisPubSubService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (ds *RedisPubSubService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Redis pubsub component service"}
+}
+
+func (ms *RedisPubSubService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 func (rs *RedisPubSubService) Start(ctx core.ServerContext) error {
 	return nil

@@ -60,8 +60,12 @@ func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t 
 	return err
 }
 
-func (svc *BeanstalkProducer) Invoke(ctx core.RequestContext) error {
-	return nil
+func (bs *BeanstalkProducer) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Beanstalk producer component"}
+}
+
+func (svc *BeanstalkProducer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (svc *BeanstalkProducer) Start(ctx core.ServerContext) error {

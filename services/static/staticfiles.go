@@ -63,31 +63,35 @@ func (svc *staticFiles) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 	return nil
 }
+func (bs *staticFiles) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Static files service",
+		Request: core.BuildRequestInfo("", []string{CONF_STATIC_FILEPARAM})}
+}
 
-func (svc *staticFiles) Invoke(ctx core.RequestContext) error {
-	filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
-	filename = strings.TrimLeft(filename, "/")
+func (svc *staticFiles) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	fn, ok := req.GetParam(CONF_STATIC_FILEPARAM)
 	if ok {
+		filename := strings.TrimLeft(fn.Value.(string), "/")
 		if !svc.transformFile {
-			return svc.storage.ServeFile(ctx, filename)
+			return svc.storage.ServeFile(ctx, filename), nil
 		} else {
 			if svc.transformedFilesStorage.Exists(ctx, filename) {
-				return svc.transformedFilesStorage.ServeFile(ctx, filename)
+				return svc.transformedFilesStorage.ServeFile(ctx, filename), nil
 			} else {
 				created := svc.createFile(ctx, filename)
 				if created {
-					return svc.transformedFilesStorage.ServeFile(ctx, filename)
+					return svc.transformedFilesStorage.ServeFile(ctx, filename), nil
 				} else {
 					if svc.hasDefault {
 						return svc.transformedFilesStorage.ServeFile(ctx, svc.defaultImage)
 					} else {
-						ctx.SetResponse(core.StatusNotFoundResponse)
+						return core.StatusNotFoundResponse, nil
 					}
 				}
 			}
 		}
 	} else {
-		ctx.SetResponse(core.StatusNotFoundResponse)
+		return core.StatusNotFoundResponse, nil
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/constants"
 	"reflect"
 	"strconv"
 
@@ -48,14 +49,19 @@ func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Con
 	}
 	return nil
 }
-func (bs *BleveSearchService) Invoke(ctx core.RequestContext) error {
-	query := ctx.GetRequest().(string)
+
+func (bs *BleveSearchService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Bleve search service",
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRING}}
+}
+
+func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	query := req.GetBody().(string)
 	res, err := bs.Search(ctx, query)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	ctx.SetResponse(core.SuccessResponse(res))
-	return nil
+	return core.SuccessResponse(res), nil
 }
 func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 	ind, err := bleve.Open(bs.indexName)

@@ -14,7 +14,7 @@ func (mgr *taskManagerProxy) PushTask(ctx core.RequestContext, queue string, tas
 	return mgr.manager.pushTask(ctx, queue, task)
 }
 
-func (mgr *taskManagerProxy) ProcessTask(ctx core.RequestContext, task *components.Task) error {
+func (mgr *taskManagerProxy) ProcessTask(ctx core.RequestContext, task *components.Task) (*core.Response, error) {
 	return mgr.manager.processTask(ctx, task)
 }
 func (proxy *taskManagerProxy) Reference() core.ServerElement {

@@ -54,8 +54,12 @@ func (svc *GaeProducer) PushTask(ctx core.RequestContext, queue string, t *compo
 	return err
 }
 
-func (svc *GaeProducer) Invoke(ctx core.RequestContext) error {
-	return nil
+func (bs *GaeProducer) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "GAE task service producer component"}
+}
+
+func (svc *GaeProducer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (svc *GaeProducer) Start(ctx core.ServerContext) error {

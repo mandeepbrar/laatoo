@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
+	"laatoo/server/constants"
 )
 
 type taskQueue struct {
@@ -72,17 +73,21 @@ func (svc *gaeConsumer) createQueue(ctx core.ServerContext, queue string, lstnr 
 	svc.queues[queue] = tq
 	return nil
 }*/
+func (bs *GaeConsumer) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "GAE task service consumer component",
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_BYTES}}
+}
 
-func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
+func (svc *GaeConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	//gae header... if an outside request comes, this header would not be there.. gae will remove it
 	//_, ok := ctx.GetString("X-AppEngine-TaskName")
 	//if ok {
-	bytes := ctx.GetRequest().([]byte)
+	bytes := req.GetBody().([]byte)
 	t := &components.Task{}
 	err := json.Unmarshal(bytes, t)
 	if err != nil {
 		log.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
-		return err
+		return nil, err
 	} else {
 		return svc.taskManager.ProcessTask(ctx, t)
 
@@ -107,7 +112,6 @@ func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
 		log.Error(ctx, "Non gae requests to background processor")
 		ctx.SetResponse(core.StatusBadRequestResponse)
 	}*/
-	return nil
 }
 func (svc *GaeConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
 	return nil

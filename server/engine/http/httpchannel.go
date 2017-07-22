@@ -174,7 +174,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		authtoken = val.(string)
 	}
 
-	processRequest := func(reqctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.ServiceResponse, error) {
+	processRequest := func(reqctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
 		if (!channel.skipAuth) && (shandler != nil) {
 			_, err := shandler.AuthenticateRequest(reqctx, false)
 			if err != nil {

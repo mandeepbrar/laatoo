@@ -64,6 +64,10 @@ func (vs *customLoaderService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (vs *customLoaderService) Invoke(ctx core.RequestContext) error {
+func (vs *customLoaderService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Custom data loader service"}
+}
+
+func (vs *customLoaderService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	return vs.loader.LoadData(ctx, vs.sourceServices...)
 }

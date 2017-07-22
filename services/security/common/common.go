@@ -15,7 +15,7 @@ const (
 )
 
 /*
-func completeAuthentication(ctx core.RequestContext, user auth.User, jwtSecret string, authHeader string) (*core.ServiceResponse, error) {
+func completeAuthentication(ctx core.RequestContext, user auth.User, jwtSecret string, authHeader string) (*core.Response, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	rbac, ok := user.(auth.RbacUser)
 	if ok {

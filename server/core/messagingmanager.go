@@ -102,7 +102,7 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 			i++
 		}
 		log.Trace(ctx, "Subscribing topics", "topics", topics)
-		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
+		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, req core.Request) (*core.Response, error) {
 			topic, ok := reqctx.GetString("messagetype")
 			if ok {
 				lsnrs := mgr.topicStore[topic]

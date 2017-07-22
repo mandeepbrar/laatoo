@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+	"laatoo/server/constants"
 	"strconv"
 
 	googlesearch "google.golang.org/appengine/search"
@@ -47,15 +48,20 @@ func (gs *GoogleSearchService) Initialize(ctx core.ServerContext, conf config.Co
 	}
 	return nil
 }
-func (gs *GoogleSearchService) Invoke(ctx core.RequestContext) error {
-	query := ctx.GetRequest().(string)
+func (gs *GoogleSearchService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Google search service",
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRING}}
+}
+
+func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	query := req.GetBody().(string)
 	res, err := gs.Search(ctx, query)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	ctx.SetResponse(core.SuccessResponse(res))
-	return nil
+	return core.SuccessResponse(res), nil
 }
+
 func (gs *GoogleSearchService) Start(ctx core.ServerContext) error {
 	return nil
 }

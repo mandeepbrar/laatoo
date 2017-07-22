@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/constants"
 	//"golang.org/x/oauth2"
 	//"golang.org/x/oauth2/google"
 
@@ -44,8 +45,13 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 	return nil
 }
 
-func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
-	files := *ctx.GetRequest().(*map[string]*core.MultipartFile)
+func (svc *GoogleStorageSvc) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Google storage service",
+		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
+}
+
+func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	files := *req.GetBody().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -55,14 +61,14 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
 			log.Debug(ctx, "Error while invoking upload", "err", err)
-			return errors.WrapError(ctx, err)
+			return nil, errors.WrapError(ctx, err)
 		}
 		urls[i] = url
 		i++
 	}
-	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
-	return nil
+	return core.NewServiceResponse(core.StatusSuccess, urls, nil), nil
 }
+
 func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
 	log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
 

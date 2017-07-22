@@ -17,11 +17,6 @@ const (
 	CONF_SERVICES          = "services"
 	CONF_SVCPARAMS         = "params"
 
-	CONF_OBJECT_STRINGMAP = "__stringmap__"
-	CONF_OBJECT_BYTES     = "__bytes__"
-	CONF_OBJECT_FILES     = "__files__"
-	CONF_OBJECT_STRING    = "__string__"
-
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
 	CONF_LOGGING            = "logging"

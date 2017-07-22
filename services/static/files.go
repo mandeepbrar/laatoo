@@ -80,10 +80,16 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 	return nil
 }
 
-func (fs *FileService) Invoke(ctx core.RequestContext) error {
-	filename, ok := ctx.GetString(CONF_STATIC_FILEPARAM)
-	log.Trace(ctx, "Providing file", "filename", filename)
+func (fs *FileService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Static files service",
+		Request: core.BuildRequestInfo("", []string{CONF_STATIC_FILEPARAM})}
+}
+
+func (fs *FileService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	fn, ok := req.GetParam(CONF_STATIC_FILEPARAM)
 	if ok {
+		filename := fn.Value.(string)
+		log.Trace(ctx, "Providing file", "filename", filename)
 		file, ok := fs.filesMap[filename]
 		if ok {
 			lastModTimeStr, ok := ctx.GetString(core.LastModified)
@@ -92,27 +98,25 @@ func (fs *FileService) Invoke(ctx core.RequestContext) error {
 				lastModTime, err := time.Parse(http.TimeFormat, lastModTimeStr)
 				if err == nil {
 					if !file.lastModified.After(lastModTime) {
-						ctx.SetResponse(core.StatusNotModifiedResponse)
-						return nil
+						return core.StatusNotModifiedResponse, nil
 					}
 				}
 			}
 			if !file.fullcontent {
 				content, err := ioutil.ReadFile(file.path)
 				if err != nil {
-					return errors.WrapError(ctx, err)
+					return nil, errors.WrapError(ctx, err)
 				}
-				ctx.SetResponse(core.NewServiceResponse(core.StatusServeBytes, &content, file.info))
+				return core.NewServiceResponse(core.StatusServeBytes, &content, file.info), nil
 			} else {
-				ctx.SetResponse(core.NewServiceResponse(core.StatusServeBytes, file.Content, file.info))
+				return core.NewServiceResponse(core.StatusServeBytes, file.Content, file.info), nil
 			}
 		} else {
-			ctx.SetResponse(core.StatusNotFoundResponse)
+			return core.StatusNotFoundResponse, nil
 		}
 	} else {
-		ctx.SetResponse(core.StatusNotFoundResponse)
+		return core.StatusNotFoundResponse, nil
 	}
-	return nil
 }
 
 func (fs *FileService) Start(ctx core.ServerContext) error {

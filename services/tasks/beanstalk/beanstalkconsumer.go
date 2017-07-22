@@ -63,8 +63,12 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (svc *BeanstalkConsumer) Invoke(ctx core.RequestContext) error {
-	return nil
+func (bs *BeanstalkConsumer) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Beanstalk consumer component"}
+}
+
+func (svc *BeanstalkConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
@@ -92,7 +96,7 @@ func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
 						job.Bury()
 					} else {
 						req := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil)
-						err := svc.taskManager.ProcessTask(req, t)
+						_, err := svc.taskManager.ProcessTask(req, t)
 						if err != nil {
 							log.Error(req, "Error in background process", "job", job.ID, "err", err)
 							job.Bury()

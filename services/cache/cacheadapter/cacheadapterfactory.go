@@ -161,7 +161,7 @@ func (cs *cacheService) Invoke(ctx core.RequestContext) error {
 
 func (cs *cacheService) SELECT(ctx core.RequestContext) error {
 	//	var err error
-	var retResponse core.ServiceResponse
+	var retResponse core.Response
 	//	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(cs.bucket, body)
@@ -261,7 +261,7 @@ func (cs *cacheAdapterService) Start(ctx core.ServerContext) error {
 }
 func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
 	var err error
-	var retResponse core.ServiceResponse
+	var retResponse core.Response
 	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(cachedVal, body)
@@ -281,7 +281,7 @@ func (cs *cacheAdapterService) Invoke(ctx core.RequestContext) error {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG, "Arg", CONF_CACHED_VAL)
 	}
 	var err error
-	var retResponse core.ServiceResponse
+	var retResponse core.Response
 	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(cachedVal, body)

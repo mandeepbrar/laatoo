@@ -254,8 +254,12 @@ func (svc *RedisCacheService) Decrement(ctx core.RequestContext, bucket string, 
 	return nil
 }
 
-func (rs *RedisCacheService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (ds *RedisCacheService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Redis cache component service"}
+}
+
+func (ms *RedisCacheService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (rs *RedisCacheService) Start(ctx core.ServerContext) error {

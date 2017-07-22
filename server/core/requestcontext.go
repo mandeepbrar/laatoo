@@ -42,8 +42,8 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 	return ctx.serverContext.GetServerElement(elemType)
 }
 
-func (ctx *requestContext) CreateRequest() core.ServiceRequest {
-	return &request{Params: make(core.ServiceParamsMap)}
+func (ctx *requestContext) createRequest() *request {
+	return &request{Params: make(map[string]core.Param)}
 }
 
 //subcontext of the request
@@ -152,7 +152,7 @@ func (ctx *requestContext) IsAdmin() bool {
 
 /*
 //sets or gets the response for a request
-func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
+func (ctx *requestContext) SetResponse(responseData *core.Response) {
 	ctx.responseData = responseData
 	if ctx.parent != nil {
 		ctx.parent.SetResponse(responseData)
@@ -160,7 +160,7 @@ func (ctx *requestContext) SetResponse(responseData *core.ServiceResponse) {
 }
 
 //gets response
-func (ctx *requestContext) GetResponse() *core.ServiceResponse {
+func (ctx *requestContext) GetResponse() *core.Response {
 	return ctx.responseData
 }*/
 

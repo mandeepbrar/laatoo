@@ -7,11 +7,11 @@ import (
 	"laatoo/server/engine/http/net"
 )
 
-type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}, bytes interface{}) (*core.ServiceResponse, error)
+type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}, bytes interface{}) (*core.Response, error)
 
 func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string,
 	svc server.Service, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool) (ServiceInvoker, error) {
-	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.ServiceResponse, error) {
+	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
 		engineContext := webctx.EngineRequestContext().(net.WebContext)
 		log.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
 		reqctx := webctx.SubContext(svc.GetName())

@@ -104,8 +104,12 @@ func (ms *mongoDataService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (ms *mongoDataService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (bs *mongoDataService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Mongo data component"}
+}
+
+func (svc *mongoDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (fs *mongoDataService) GetName() string {

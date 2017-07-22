@@ -105,8 +105,12 @@ func (svc *gaeDataService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *gaeDataService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (bs *gaeDataService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "GAE data component"}
+}
+
+func (svc *gaeDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (svc *gaeDataService) GetName() string {

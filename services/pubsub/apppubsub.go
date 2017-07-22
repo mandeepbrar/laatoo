@@ -41,9 +41,12 @@ func (svc *AppPubSubService) Initialize(ctx core.ServerContext, conf config.Conf
 	svc.subscribers = make(map[string][]core.ServiceFunc, 10)
 	return nil
 }
+func (ds *AppPubSubService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "GAE pubsub component service"}
+}
 
-func (svc *AppPubSubService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (ms *AppPubSubService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 func (svc *AppPubSubService) Start(ctx core.ServerContext) error {
 	return nil

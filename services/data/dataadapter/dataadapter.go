@@ -173,7 +173,11 @@ func (ds *dataAdapterService) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (ds *dataAdapterService) Invoke(ctx core.RequestContext) error {
+func (ds *dataAdapterService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Data adapter service"}
+}
+
+func (ds *dataAdapterService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	return ds.svcfunc(ctx)
 }
 

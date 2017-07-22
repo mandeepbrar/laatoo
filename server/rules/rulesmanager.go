@@ -79,7 +79,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
 		ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
-			return func(msgctx core.RequestContext, req core.ServiceRequest) (*core.ServiceResponse, error) {
+			return func(msgctx core.RequestContext, req core.Request) (*core.Response, error) {
 				go func() {
 					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: req.GetBody()}
 					if rule.Condition(msgctx, tr) {

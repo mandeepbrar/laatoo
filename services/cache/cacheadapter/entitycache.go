@@ -99,7 +99,7 @@ func (es *entityCacheService) Start(ctx core.ServerContext) error {
 }
 func (es *entityCacheService) Invoke(ctx core.RequestContext) error {
 	//	var err error
-	var retResponse core.ServiceResponse
+	var retResponse core.Response
 	//	var argsMap map[string]interface{}
 	body := ctx.GetRequest()
 	cacheKey := components.GetCacheKey(rs.bucket, body)

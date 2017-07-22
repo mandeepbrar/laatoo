@@ -154,7 +154,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	factory := svcfactoryProxy.Factory()
 	//proxy for the service
-	svcStruct := &service{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
+	svcStruct := &serverService{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
 
 	svcProxy := &serviceProxy{svc: svcStruct}
 	svcCtx.setElements(core.ContextMap{core.ServerElementService: svcProxy})

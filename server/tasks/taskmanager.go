@@ -21,7 +21,7 @@ type taskManager struct {
 	taskPublisherSvcs  map[string]components.TaskQueue
 	taskConsumerNames  map[string]string
 	taskProcessorNames map[string]string
-	taskProcessors     map[string]core.Service
+	taskProcessors     map[string]server.Service
 }
 
 func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -91,6 +91,7 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	tskmgrStartCtx := ctx.SubContext("Start task manager")
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
 	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
 	for queueName, svcName := range tskMgr.taskPublishers {
 		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
@@ -121,7 +122,7 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 			return errors.WrapError(tskmgrStartCtx, err)
 		}
 
-		procSvc, err := tskmgrStartCtx.GetService(tskMgr.taskProcessorNames[queueName])
+		procSvc, err := svcMgr.GetService(tskmgrStartCtx, tskMgr.taskProcessorNames[queueName])
 		if err != nil {
 			return errors.WrapError(tskmgrStartCtx, err)
 		}
@@ -146,7 +147,7 @@ func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskD
 	return tq.PushTask(ctx, queue, t)
 }
 
-func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Task) error {
+func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Task) (*core.Response, error) {
 	/*
 		req := ctx.SubContext("Gae background task " + t.Queue)
 		log.Debug(req, "Received job ")
@@ -165,13 +166,12 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 	queue := t.Queue
 	processor, ok := tskMgr.taskProcessors[queue]
 	if ok {
-		req := ctx.CreateRequest()
+		/*req := ctx.CreateRequest()
 		req.SetBody(t.Data)
-		req.AddParam(tskMgr.authHeader, t.Token, "", false)
+		req.AddParam(tskMgr.authHeader, t.Token)*/
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Trace(ctx, "Processing background task")
-		_, err := processor.Invoke(ctx, req)
-		return err
+		processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token}, t.Data)
 	}
-	return nil
+	return nil, nil
 }

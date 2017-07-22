@@ -157,8 +157,12 @@ func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (ms *MemoryCacheService) Invoke(ctx core.RequestContext) error {
-	return nil
+func (ds *MemoryCacheService) Info() *core.ServiceInfo {
+	return &core.ServiceInfo{Description: "Memory cache component service"}
+}
+
+func (ms *MemoryCacheService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	return nil, nil
 }
 
 func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
