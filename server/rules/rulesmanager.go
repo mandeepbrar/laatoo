@@ -78,10 +78,10 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
-		ruleMethod := func(rule rules.Rule, msgType string) core.ServiceFunc {
-			return func(msgctx core.RequestContext, req core.Request) (*core.Response, error) {
+		ruleMethod := func(rule rules.Rule, msgType string) core.MessageListener {
+			return func(msgctx core.RequestContext, data interface{}, info map[string]interface{}) error {
 				go func() {
-					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: req.GetBody()}
+					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: data}
 					if rule.Condition(msgctx, tr) {
 						err := rule.Action(msgctx, tr)
 						if err != nil {
@@ -90,7 +90,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 					}
 
 				}()
-				return nil, nil
+				return nil
 			}
 		}
 		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))

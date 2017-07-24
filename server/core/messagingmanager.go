@@ -16,7 +16,7 @@ type messagingManager struct {
 	commSvcName string
 	commSvc     components.PubSubComponent
 	proxy       server.MessagingManager
-	topicStore  map[string][]core.ServiceFunc
+	topicStore  map[string][]core.MessageListener
 }
 
 func (msgMgr *messagingManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -61,12 +61,12 @@ func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config
 }
 
 func (msgMgr *messagingManager) createTopic(ctx core.ServerContext, name string, conf config.Config) error {
-	msgMgr.topicStore[name] = []core.ServiceFunc{}
+	msgMgr.topicStore[name] = []core.MessageListener{}
 	return nil
 }
 
 //subscribe to a topic
-func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []string, handler core.ServiceFunc) error {
+func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []string, handler core.MessageListener) error {
 	for _, topic := range topics {
 		listeners, prs := mgr.topicStore[topic]
 		if !prs {
@@ -102,15 +102,15 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 			i++
 		}
 		log.Trace(ctx, "Subscribing topics", "topics", topics)
-		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, req core.Request) (*core.Response, error) {
+		mgr.commSvc.Subscribe(ctx, topics, func(reqctx core.RequestContext, data interface{}, params map[string]interface{}) error {
 			topic, ok := reqctx.GetString("messagetype")
 			if ok {
 				lsnrs := mgr.topicStore[topic]
 				for _, val := range lsnrs {
-					go val(reqctx, req)
+					go val(reqctx, data, params)
 				}
 			}
-			return nil, nil
+			return nil
 		})
 		/*if err != nil {
 			return err

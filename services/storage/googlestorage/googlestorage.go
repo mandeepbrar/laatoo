@@ -7,7 +7,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/server/constants"
 	//"golang.org/x/oauth2"
 	//"golang.org/x/oauth2/google"
 
@@ -30,24 +29,17 @@ func Manifest() []core.PluginComponent {
 }
 
 type GoogleStorageSvc struct {
+	core.Service
 	bucket string
 	public bool
 }
 
 func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
-	bucket, ok := conf.GetString(CONF_GS_FILESBUCKET)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_GS_FILESBUCKET)
-	}
-	svc.bucket = bucket
-	public, _ := conf.GetBool(CONF_GS_PUBLICFILE)
-	svc.public = public
+	svc.SetDescription("Google storage service")
+	svc.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+	svc.AddStringConfigurations([]string{CONF_GS_FILESBUCKET}, nil)
+	svc.AddOptionalConfigurations(map[string]string{CONF_GS_PUBLICFILE: config.CONF_OBJECT_BOOL}, map[string]interface{}{CONF_GS_PUBLICFILE: false})
 	return nil
-}
-
-func (svc *GoogleStorageSvc) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Google storage service",
-		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
 }
 
 func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -112,9 +104,8 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 	return client.Bucket(svc.bucket).Object(fileName).NewReader(appengineCtx)
 }
 
-func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
-	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
-	return nil
+func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) (*core.Response, error) {
+	return core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil), nil
 }
 
 func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
@@ -147,6 +138,11 @@ func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadClo
 }
 
 func (svc *GoogleStorageSvc) Start(ctx core.ServerContext) error {
+	bucket, _ := svc.GetConfiguration(CONF_GS_FILESBUCKET)
+	svc.bucket = bucket.(string)
+	public, _ := svc.GetConfiguration(CONF_GS_PUBLICFILE)
+	svc.public = public.(bool)
+
 	return nil
 }
 

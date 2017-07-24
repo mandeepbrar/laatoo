@@ -14,10 +14,9 @@ import (
 )
 
 type objectLoader struct {
-	objectsFactoryRegister   map[string]core.ObjectFactory
-	invokableMethodsRegister map[string]core.ServiceFunc
-	name                     string
-	parentElem               core.ServerElement
+	objectsFactoryRegister map[string]core.ObjectFactory
+	name                   string
+	parentElem             core.ServerElement
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -101,9 +100,7 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 			if components != nil {
 				for _, comp := range components {
 					if comp.Name != "" {
-						if comp.ServiceFunc != nil {
-							objLoader.registerInvokableMethod(ctx, comp.Name, comp.ServiceFunc)
-						} else if comp.ObjectFactory != nil {
+						if comp.ObjectFactory != nil {
 							objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
 						} else if comp.ObjectCreator != nil {
 							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
@@ -177,13 +174,6 @@ func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectNam
 		objLoader.objectsFactoryRegister[objectName] = factory
 	}
 }
-func (objLoader *objectLoader) registerInvokableMethod(ctx core.Context, methodName string, method core.ServiceFunc) {
-	_, ok := objLoader.invokableMethodsRegister[methodName]
-	if !ok {
-		log.Debug(ctx, "Registering method ", "Method Name", methodName)
-		objLoader.invokableMethodsRegister[methodName] = method
-	}
-}
 
 //returns a collection of the object type
 func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, length int) (interface{}, error) {
@@ -225,13 +215,4 @@ func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, obje
 
 	}
 	return factory.CreateObjectCollection, nil
-}
-
-func (objLoader *objectLoader) getMethod(ctx core.Context, methodName string) (core.ServiceFunc, error) {
-	method, ok := objLoader.invokableMethodsRegister[methodName]
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Method Name", methodName)
-
-	}
-	return method, nil
 }

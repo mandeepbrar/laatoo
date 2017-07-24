@@ -36,38 +36,23 @@ type Bundle struct {
 }
 
 type BundledFileService struct {
+	core.Service
 	bundlesMap map[string]*Bundle
 	name       string
 }
 
-func (bs *BundledFileService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
+	bs.SetDescription("Bundle files service")
+	bs.AddConfigurations(map[string]string{CONF_STATIC_FILEBUNDLES: config.CONF_OBJECT_CONFIG})
+	bs.AddParam(CONF_STATIC_BUNDLEPARAM, config.CONF_OBJECT_STRING, false)
 	bs.bundlesMap = make(map[string]*Bundle, 10)
-	bundlesConf, ok := conf.GetSubConfig(CONF_STATIC_FILEBUNDLES)
-	if ok {
-		bundlenames := bundlesConf.AllConfigurations()
-		for _, bundlename := range bundlenames {
-			bundleconfig, _ := bundlesConf.GetSubConfig(bundlename)
-			bundle, err := buildBundle(ctx, bundleconfig)
-			if err != nil {
-				return err
-			}
-			bs.bundlesMap[bundlename] = bundle
-			log.Debug(ctx, "Created Bundle", "Name", bundlename)
-		}
-	}
-	log.Info(ctx, "Bundle service initialized")
 	return nil
-}
-
-func (bs *BundledFileService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Bundle files service",
-		Request: core.BuildRequestInfo("", []string{CONF_STATIC_BUNDLEPARAM})}
 }
 
 func (bs *BundledFileService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	bundlename, ok := req.GetParam(CONF_STATIC_BUNDLEPARAM)
 	if ok {
-		bundle, ok := bs.bundlesMap[bundlename.Value.(string)]
+		bundle, ok := bs.bundlesMap[bundlename.GetValue().(string)]
 		log.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
 		if ok {
 			lastModTimeStr, ok := ctx.GetString(core.LastModified)
@@ -99,6 +84,22 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext, req core.Request) 
 }
 
 func (svc *BundledFileService) Start(ctx core.ServerContext) error {
+	c, ok := svc.GetConfiguration(CONF_STATIC_FILEBUNDLES)
+	if ok {
+		bundlesConf := c.(config.Config)
+		bundlenames := bundlesConf.AllConfigurations()
+		for _, bundlename := range bundlenames {
+			bundleconfig, _ := bundlesConf.GetSubConfig(bundlename)
+			bundle, err := buildBundle(ctx, bundleconfig)
+			if err != nil {
+				return err
+			}
+			svc.bundlesMap[bundlename] = bundle
+			log.Debug(ctx, "Created Bundle", "Name", bundlename)
+		}
+	}
+	log.Info(ctx, "Bundle service started")
+
 	return nil
 }
 

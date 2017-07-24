@@ -17,18 +17,8 @@ type gaeDataService struct {
 	*data.BaseComponent
 
 	conf                    config.Config
-	objectConfig            *data.StorableConfig
 	name                    string
-	auditable               bool
-	softdelete              bool
-	presave                 bool
-	postsave                bool
-	postupdate              bool
-	postload                bool
 	collection              string
-	object                  string
-	objectid                string
-	softDeleteField         string
 	objectCollectionCreator core.ObjectCollectionCreator
 	objectCreator           core.ObjectCreator
 	serviceType             string
@@ -39,26 +29,30 @@ func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, er
 	return gaeDataSvc, nil
 }
 
-func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *gaeDataService) Initialize(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Initialize gae datastore service")
 
-	err := svc.BaseComponent.Initialize(ctx, conf)
+	err := svc.BaseComponent.Initialize(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	svc.AddOptionalConfigurations(map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
+
+	svc.SetDescription("GAE data component")
+
+	return nil
+}
+
+func (svc *gaeDataService) Start(ctx core.ServerContext) error {
+
+	err := svc.BaseComponent.Start(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	svc.objectid = svc.ObjectConfig.IdField
-	svc.softDeleteField = svc.ObjectConfig.SoftDeleteField
-
-	if svc.softDeleteField == "" {
-		svc.softdelete = false
-	} else {
-		svc.softdelete = true
-	}
-
-	collection, ok := conf.GetString(data.CONF_DATA_COLLECTION)
+	collection, ok := svc.GetConfiguration(data.CONF_DATA_COLLECTION)
 	if ok {
-		svc.collection = collection
+		svc.collection = collection.(string)
 	} else {
 		svc.collection = svc.ObjectConfig.Collection
 	}
@@ -67,46 +61,7 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", data.CONF_DATA_COLLECTION)
 	}
 
-	auditable, ok := conf.GetBool(data.CONF_DATA_AUDITABLE)
-	if ok {
-		svc.auditable = auditable
-	} else {
-		svc.auditable = svc.ObjectConfig.Auditable
-	}
-	postsave, ok := conf.GetBool(data.CONF_DATA_POSTSAVE)
-	if ok {
-		svc.postsave = postsave
-	} else {
-		svc.postsave = svc.ObjectConfig.PostSave
-	}
-	presave, ok := conf.GetBool(data.CONF_DATA_PRESAVE)
-	if ok {
-		svc.presave = presave
-	} else {
-		svc.presave = svc.ObjectConfig.PreSave
-	}
-	postupdate, ok := conf.GetBool(data.CONF_DATA_POSTUPDATE)
-	if ok {
-		svc.postupdate = postupdate
-	} else {
-		svc.postupdate = svc.ObjectConfig.PostUpdate
-	}
-	postload, ok := conf.GetBool(data.CONF_DATA_POSTLOAD)
-	if ok {
-		svc.postload = postload
-	} else {
-		svc.postload = svc.ObjectConfig.PostLoad
-	}
-
 	return nil
-}
-
-func (svc *gaeDataService) Start(ctx core.ServerContext) error {
-	return nil
-}
-
-func (bs *gaeDataService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "GAE data component"}
 }
 
 func (svc *gaeDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -143,7 +98,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if id == "" {
 		item.Init(ctx, nil)
 	}
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -153,7 +108,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 			return err
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, item)
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, item.GetId(), 0, nil)
@@ -167,7 +122,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -196,7 +151,7 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 		id := item.GetId()
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 		keys[ind] = key
-		if svc.presave {
+		if svc.PreSave {
 			err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
@@ -206,7 +161,7 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 				return err
 			}
 		}
-		if svc.auditable {
+		if svc.Auditable {
 			data.Audit(ctx, item)
 		}
 	}
@@ -214,9 +169,9 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		for _, item := range items {
-			if svc.postsave {
+			if svc.PostSave {
 				err = item.PostSave(ctx)
 				if err != nil {
 					errors.WrapError(ctx, err)
@@ -233,7 +188,7 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -243,14 +198,14 @@ func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Sto
 			return err
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, item)
 	}
 	_, err := datastore.Put(appEngineContext, datastore.NewKey(appEngineContext, svc.collection, id, 0, nil), item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -273,13 +228,13 @@ func (svc *gaeDataService) Update(ctx core.RequestContext, id string, newVals ma
 
 func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
 	appEngineContext := ctx.GetAppengineContext()
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return err
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
 
@@ -296,7 +251,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		return err
 	}
 	log.Info(ctx, "Set values", "object", object)
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, stor)
 		if err != nil {
 			return err
@@ -311,7 +266,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
-	if svc.postupdate {
+	if svc.PostUpdate {
 		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -332,13 +287,13 @@ func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 
 func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
 	appEngineContext := ctx.GetAppengineContext()
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
 	query := datastore.NewQuery(svc.collection)
@@ -367,7 +322,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	for ind, item := range resultStor {
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
-		/*if svc.presave {
+		/*if svc.PreSave {
 			err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return nil, err
@@ -383,7 +338,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	/*if svc.postsave {
+	/*if svc.PostSave {
 		for _, stor := range resultStor {
 			err = stor.PostSave(ctx)
 			if err != nil {
@@ -391,7 +346,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 			}
 		}
 	}*/
-	if svc.postupdate {
+	if svc.PostUpdate {
 		for _, id := range ids {
 			err := ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 			if err != nil {
@@ -406,13 +361,13 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpdateMulti")
 	appEngineContext := ctx.GetAppengineContext()
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
 	lenids := len(ids)
@@ -432,7 +387,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	resultStor, ids, err := data.CastToStorableCollection(results)
 	for ind, item := range resultStor {
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
-		/*if svc.presave {
+		/*if svc.PreSave {
 			err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
@@ -447,7 +402,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	if err != nil {
 		return err
 	}
-	/*if svc.postsave {
+	/*if svc.PostSave {
 		for _, stor := range resultStor {
 			err = stor.PostSave(ctx)
 			if err != nil {
@@ -455,7 +410,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			}
 		}
 	}*/
-	if svc.postupdate {
+	if svc.PostUpdate {
 		for _, id := range ids {
 			err := ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 			if err != nil {
@@ -471,8 +426,8 @@ func (svc *gaeDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
 	appEngineContext := ctx.GetAppengineContext()
 
-	if svc.softdelete {
-		return svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.Update(ctx, id, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	return datastore.Delete(appEngineContext, key)
@@ -483,8 +438,8 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	ctx = ctx.SubContext("DeleteMulti")
 	appEngineContext := ctx.GetAppengineContext()
 
-	if svc.softdelete {
-		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 	keys := make([]*datastore.Key, len(ids))
 	for ind, id := range ids {
@@ -497,8 +452,8 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 //Delete object by condition
 func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
-	if svc.softdelete {
-		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 
 	appEngineContext := ctx.GetAppengineContext()

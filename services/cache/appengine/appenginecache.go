@@ -36,9 +36,11 @@ func (ds *AppengineCacheFactory) Start(ctx core.ServerContext) error {
 }
 
 type AppengineCacheService struct {
+	core.Service
 }
 
-func (svc *AppengineCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *AppengineCacheService) Initialize(ctx core.ServerContext) error {
+	svc.SetComponent(true)
 	return nil
 }
 
@@ -99,11 +101,4 @@ func (svc *AppengineCacheService) Increment(ctx core.RequestContext, bucket stri
 func (svc *AppengineCacheService) Decrement(ctx core.RequestContext, bucket string, key string) error {
 	_, err := memcache.Increment(ctx.GetAppengineContext(), common.GetCacheKey(bucket, key), -1, 0)
 	return err
-}
-func (svc *AppengineCacheService) Invoke(ctx core.RequestContext) error {
-	return nil
-}
-
-func (svc *AppengineCacheService) Start(ctx core.ServerContext) error {
-	return nil
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 )
@@ -12,24 +11,27 @@ const (
 )
 
 type checkPermissionService struct {
-	perm    string
-	svcperm bool
+	core.Service
+	perm string
 }
 
 //The services start serving when this method is called
-func (svc *checkPermissionService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svc.perm, svc.svcperm = conf.GetString(SVC_PERMISSION_PARAM)
+func (svc *checkPermissionService) Initialize(ctx core.ServerContext) error {
+	svc.SetDescription("Check permission middleware service. Checks if the permission required by a service has been assigned to a user")
+	svc.AddStringConfigurations([]string{SVC_PERMISSION_PARAM}, nil)
 	return nil
 }
 
 func (svc *checkPermissionService) Start(ctx core.ServerContext) error {
+	permission, _ := svc.GetStringConfiguration(SVC_PERMISSION_PARAM)
+	svc.perm = permission
 	return nil
 }
 
 //The services start serving when this method is called
-func (svc *checkPermissionService) Invoke(ctx core.RequestContext) error {
-	log.Trace(ctx, "Checking permissions")
-	var perm string
+func (svc *checkPermissionService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	//	log.Trace(ctx, "Checking permissions")
+	/*var perm string
 	var ok bool
 	if svc.svcperm {
 		perm = svc.perm
@@ -37,14 +39,13 @@ func (svc *checkPermissionService) Invoke(ctx core.RequestContext) error {
 		perm, ok = ctx.GetString(SVC_PERMISSION_PARAM)
 		if !ok {
 			log.Trace(ctx, "Unauthorized response for ", "perm", perm)
-			ctx.SetResponse(core.StatusUnauthorizedResponse)
-			return nil
+			return core.StatusUnauthorizedResponse, nil
 		}
-	}
-	hasperm := ctx.HasPermission(perm)
-	log.Trace(ctx, "Checked permission", "perm", perm, "result", hasperm)
+	}*/
+	hasperm := ctx.HasPermission(svc.perm)
+	log.Trace(ctx, "Checked permission", "perm", svc.perm, "result", hasperm)
 	if !hasperm {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return core.StatusUnauthorizedResponse, nil
 	}
-	return nil
+	return nil, nil
 }

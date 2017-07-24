@@ -7,7 +7,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/server/constants"
 )
 
 type taskQueue struct {
@@ -22,13 +21,16 @@ type task struct {
 }
 
 type GaeConsumer struct {
+	core.Service
 	queues      map[string]*taskQueue
 	authHeader  string
 	shandler    server.SecurityHandler
 	taskManager server.TaskManager
 }
 
-func (svc *GaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *GaeConsumer) Initialize(ctx core.ServerContext) error {
+	svc.SetDescription("GAE task service consumer component")
+	svc.SetRequestType(config.CONF_OBJECT_BYTES, false, false)
 	/*queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
 	if ok {
 		queueNames := queuesConf.AllConfigurations()
@@ -73,10 +75,6 @@ func (svc *gaeConsumer) createQueue(ctx core.ServerContext, queue string, lstnr 
 	svc.queues[queue] = tq
 	return nil
 }*/
-func (bs *GaeConsumer) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "GAE task service consumer component",
-		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_BYTES}}
-}
 
 func (svc *GaeConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	//gae header... if an outside request comes, this header would not be there.. gae will remove it
@@ -114,8 +112,5 @@ func (svc *GaeConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core
 	}*/
 }
 func (svc *GaeConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
-	return nil
-}
-func (svc *GaeConsumer) Start(ctx core.ServerContext) error {
 	return nil
 }

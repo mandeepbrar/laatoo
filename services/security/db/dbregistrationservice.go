@@ -18,6 +18,7 @@ const (
 
 // SecurityService contains a configuration and other details for running.
 type RegistrationService struct {
+	core.Service
 	//authentication mode for service
 	AuthMode string
 	//admin role
@@ -32,7 +33,7 @@ type RegistrationService struct {
 	realm           string
 }
 
-func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (rs *RegistrationService) Initialize(ctx core.ServerContext) error {
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -48,32 +49,27 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	rs.userObject = userObject.(string)
-	defrole, ok := conf.GetString(CONF_DEF_ROLE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
-	}
-	rs.DefaultRole = defrole
+
 	userCreator, err := ctx.GetObjectCreator(rs.userObject)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	rs.userCreator = userCreator
-	userDataSvcName, ok := conf.GetString(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_DEF_ROLE)
-	}
-	rs.userDataSvcName = userDataSvcName
+
+	rs.SetDescription("Db Registration service")
+	rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+	rs.AddStringConfigurations([]string{CONF_REGISTRATIONSERVICE_USERDATASERVICE, CONF_DEF_ROLE}, nil)
+
 	return nil
 }
 
 //Expects Rbac user to be provided inside the request
-func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
-	ent := ctx.GetRequest()
+func (rs *RegistrationService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	ent := req.GetBody()
 	body, ok := ent.(*map[string]interface{})
 	if !ok {
 		log.Trace(ctx, "Not map")
-		ctx.SetResponse(core.StatusBadRequestResponse)
-		return nil
+		return core.StatusBadRequestResponse, nil
 	}
 	fieldMap := *body
 	fieldMap["Roles"] = []string{rs.DefaultRole}
@@ -87,43 +83,47 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	username := user.GetUserName()
 	if username == "" {
 		log.Trace(ctx, "Username not found")
-		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_MISSING_USER))
-		return nil
+		return core.BadRequestResponse(common.AUTH_ERROR_MISSING_USER), nil
 	}
 
 	realm := user.GetRealm()
 	if realm != rs.realm {
 		log.Trace(ctx, "Realm not found")
-		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
-		return nil
+		return core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH), nil
 	}
 
 	argsMap := map[string]interface{}{user.GetUsernameField(): username, config.REALM: realm}
 
 	cond, err := rs.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return err
+		return core.StatusInternalErrorResponse, err
 	}
 
 	_, _, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err == nil && recs > 0 {
 		log.Trace(ctx, "Tested user found")
-		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS))
-		return nil
+		return core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS), nil
 	}
 	if err != nil {
-		return err
+		return core.StatusInternalErrorResponse, err
 	}
 
 	err = rs.UserDataService.Save(ctx, obj.(data.Storable))
 	if err != nil {
-		return err
+		return core.StatusInternalErrorResponse, err
 	}
 	log.Trace(ctx, "Saved user")
-	return nil
+	return core.StatusSuccessResponse, nil
 }
 
 func (rs *RegistrationService) Start(ctx core.ServerContext) error {
+
+	userDataSvcName, _ := rs.GetConfiguration(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+	rs.userDataSvcName = userDataSvcName.(string)
+
+	defrole, ok := rs.GetConfiguration(CONF_DEF_ROLE)
+	rs.DefaultRole = defrole.(string)
+
 	userService, err := ctx.GetService(rs.userDataSvcName)
 	if err != nil {
 		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)

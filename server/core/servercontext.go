@@ -386,10 +386,6 @@ func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreato
 	return ctx.elements.objectLoader.GetObjectCreator(ctx, objectName)
 }
 
-func (ctx *serverContext) GetMethod(methodName string) (core.ServiceFunc, error) {
-	return ctx.elements.objectLoader.GetMethod(ctx, methodName)
-}
-
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	reqCtx := ctx.createNewRequest(name, nil)
 	reqCtx.user = nil
@@ -397,7 +393,7 @@ func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	return reqCtx
 }
 
-func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.ServiceFunc) error {
+func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageListener) error {
 	if ctx.elements.msgManager != nil {
 		return ctx.elements.msgManager.Subscribe(ctx, topics, lstnr)
 	}

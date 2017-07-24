@@ -10,7 +10,7 @@ go build -buildmode=plugin -o dist/lib/laatoo/server/cache/appenginecache.so ser
 go build -buildmode=plugin -o dist/lib/laatoo/server/cache/rediscache.so services/cache/redis/rediscacheservice.go
 
 #data services
-go build -buildmode=plugin -o dist/lib/laatoo/server/data/dataadapter.so services/data/dataadapter/dataadapter.go
+go build -buildmode=plugin -o dist/lib/laatoo/server/data/dataadapter.so services/data/dataadapter/*.go
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/mongo.so services/data/mongo/*.go
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/sql.so services/data/sql/*.go
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/gae.so services/data/gae/*.go

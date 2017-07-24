@@ -5,7 +5,11 @@ import (
 	"laatoo/sdk/server"
 )
 
-func GetAllPermissions(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+type AllPermissions struct {
+	core.Service
+}
+
+func (ap *AllPermissions) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	elem := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if elem != nil {
 		sh, ok := elem.(server.SecurityHandler)

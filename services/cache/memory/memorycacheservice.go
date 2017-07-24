@@ -33,6 +33,7 @@ func (ds *MemoryCacheFactory) Start(ctx core.ServerContext) error {
 }
 
 type MemoryCacheService struct {
+	core.Service
 	memoryStorer *utils.MemoryStorer
 	name         string
 	cacheEncoder *common.CacheEncoder
@@ -147,24 +148,20 @@ func (svc *MemoryCacheService) Decrement(ctx core.RequestContext, bucket string,
 	return svc.memoryStorer.Decrement(common.GetCacheKey(bucket, key), 1)
 }
 
-func (ms *MemoryCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	encoding, ok := conf.GetString(config.CONF_CACHE_ENC)
+func (ms *MemoryCacheService) Initialize(ctx core.ServerContext) error {
+	ms.SetComponent(true)
+	ms.SetDescription("Memory cache component service")
+	ms.AddOptionalConfigurations(map[string]string{config.ENCODING: config.CONF_OBJECT_STRING}, nil)
+	return nil
+}
+
+func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
+	encoding, ok := ms.GetStringConfiguration(config.ENCODING)
 	if ok {
 		ms.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
 	} else {
 		ms.cacheEncoder = nil
 	}
-	return nil
-}
 
-func (ds *MemoryCacheService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Memory cache component service"}
-}
-
-func (ms *MemoryCacheService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
-
-func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
 	return nil
 }

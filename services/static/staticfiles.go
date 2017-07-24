@@ -24,6 +24,7 @@ const (
 type FileTransform func(io.Reader, io.Writer) error
 
 type staticFiles struct {
+	core.Service
 	name                            string
 	transformedStorageComponentName string
 	transformedFilesStorage         components.StorageComponent
@@ -35,52 +36,28 @@ type staticFiles struct {
 	hasDefault                      bool
 }
 
-func (svc *staticFiles) Initialize(ctx core.ServerContext, conf config.Config) error {
-	stg, ok := conf.GetString(CONF_FILE_STORAGE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_FILE_STORAGE)
-	}
-	svc.storageComponentName = stg
-	oper, ok := conf.GetString(CONF_FILE_OPER)
-	if ok {
-		transformer := svc.getImageTransformationMethod(ctx, conf, oper)
-		if transformer == nil {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", CONF_FILE_OPER)
-		} else {
-			svc.transformFile = true
-			svc.transformer = transformer
-		}
-		transformedStorageComponentName, ok := conf.GetString(CONF_FILE_TRANSFORM_STG)
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", CONF_FILE_TRANSFORM_STG)
-		}
-		svc.transformedStorageComponentName = transformedStorageComponentName
-		defaultImage, ok := conf.GetString(CONF_FILE_DEFAULT)
-		if ok {
-			svc.defaultImage = defaultImage
-		}
-		svc.hasDefault = ok
-	}
+func (svc *staticFiles) Initialize(ctx core.ServerContext) error {
+	svc.SetDescription("Static files service")
+	svc.AddStringConfigurations([]string{CONF_FILE_STORAGE}, nil)
+	svc.AddStringConfigurations([]string{CONF_FILE_OPER, CONF_FILE_TRANSFORM_STG, CONF_FILE_DEFAULT, CONF_IMAGE_WIDTH, CONF_IMAGE_HEIGHT}, []string{"", "", "", "0", "0"})
+	svc.AddParam(CONF_STATIC_FILEPARAM, config.CONF_OBJECT_STRING, false)
+
 	return nil
-}
-func (bs *staticFiles) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Static files service",
-		Request: core.BuildRequestInfo("", []string{CONF_STATIC_FILEPARAM})}
 }
 
 func (svc *staticFiles) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	fn, ok := req.GetParam(CONF_STATIC_FILEPARAM)
 	if ok {
-		filename := strings.TrimLeft(fn.Value.(string), "/")
+		filename := strings.TrimLeft(fn.GetValue().(string), "/")
 		if !svc.transformFile {
-			return svc.storage.ServeFile(ctx, filename), nil
+			return svc.storage.ServeFile(ctx, filename)
 		} else {
 			if svc.transformedFilesStorage.Exists(ctx, filename) {
-				return svc.transformedFilesStorage.ServeFile(ctx, filename), nil
+				return svc.transformedFilesStorage.ServeFile(ctx, filename)
 			} else {
 				created := svc.createFile(ctx, filename)
 				if created {
-					return svc.transformedFilesStorage.ServeFile(ctx, filename), nil
+					return svc.transformedFilesStorage.ServeFile(ctx, filename)
 				} else {
 					if svc.hasDefault {
 						return svc.transformedFilesStorage.ServeFile(ctx, svc.defaultImage)
@@ -93,10 +70,36 @@ func (svc *staticFiles) Invoke(ctx core.RequestContext, req core.Request) (*core
 	} else {
 		return core.StatusNotFoundResponse, nil
 	}
-	return nil
 }
 
 func (svc *staticFiles) Start(ctx core.ServerContext) error {
+
+	stg, _ := svc.GetConfiguration(CONF_FILE_STORAGE)
+	svc.storageComponentName = stg.(string)
+
+	oper, ok := svc.GetConfiguration(CONF_FILE_OPER)
+	if ok {
+		transformer := svc.getImageTransformationMethod(ctx, oper.(string))
+		if transformer == nil {
+			return errors.BadConf(ctx, CONF_FILE_OPER)
+		} else {
+			svc.transformFile = true
+			svc.transformer = transformer
+		}
+
+		transformedStorageComponentName, ok := svc.GetConfiguration(CONF_FILE_TRANSFORM_STG)
+		if !ok {
+			return errors.MissingConf(ctx, CONF_FILE_TRANSFORM_STG)
+		}
+		svc.transformedStorageComponentName = transformedStorageComponentName.(string)
+
+		defaultImage, ok := svc.GetConfiguration(CONF_FILE_DEFAULT)
+		if ok {
+			svc.defaultImage = defaultImage.(string)
+		}
+		svc.hasDefault = ok
+	}
+
 	stgSvc, err := ctx.GetService(svc.storageComponentName)
 	if err != nil {
 		return err
@@ -112,17 +115,13 @@ func (svc *staticFiles) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, conf config.Config, oper string) FileTransform {
-	width := 0
-	widthStr, widthok := conf.GetString(CONF_IMAGE_WIDTH)
-	if widthok {
-		width, _ = strconv.Atoi(widthStr)
-	}
-	height := 0
-	heightStr, heightok := conf.GetString(CONF_IMAGE_HEIGHT)
-	if heightok {
-		height, _ = strconv.Atoi(heightStr)
-	}
+func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, oper string) FileTransform {
+	widthStr, _ := svc.GetConfiguration(CONF_IMAGE_WIDTH)
+	width, _ := strconv.Atoi(widthStr.(string))
+
+	heightStr, _ := svc.GetConfiguration(CONF_IMAGE_HEIGHT)
+	height, _ := strconv.Atoi(heightStr.(string))
+
 	switch oper {
 	case "crop":
 		{

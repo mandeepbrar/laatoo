@@ -1,5 +1,6 @@
 package adapters
 
+/*
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -26,4 +27,4 @@ func (ds *DefaultMethodFactory) Initialize(ctx core.ServerContext, conf config.C
 //The services start serving when this method is called
 func (ds *DefaultMethodFactory) Start(ctx core.ServerContext) error {
 	return nil
-}
+}*/

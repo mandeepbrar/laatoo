@@ -56,8 +56,8 @@ func NewPluginHookService(ctx core.ServerContext, name string, conf config.Confi
 	return &pluginHookService{DataPlugin: data.NewDataPluginWithBase(ctx, basePlugin), baseService: baseService}, nil
 }
 
-func (svc *pluginHookService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.baseService.Initialize(ctx, conf)
+func (svc *pluginHookService) Initialize(ctx core.ServerContext) error {
+	err := svc.baseService.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

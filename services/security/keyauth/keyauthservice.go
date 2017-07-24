@@ -31,6 +31,7 @@ func Manifest() []core.PluginComponent {
 }
 
 type KeyAuthService struct {
+	core.Service
 	clients        map[string]*client
 	userCreator    core.ObjectCreator
 	tokenGenerator func(auth.User, string) (string, auth.User, error)
@@ -42,7 +43,12 @@ type KeyAuthService struct {
 	localRealm     string
 }
 
-func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (ks *KeyAuthService) Initialize(ctx core.ServerContext) error {
+	ks.SetDescription("Keyauth service")
+	ks.AddParam(CONF_KEYAUTH_CLIENT_IDENTIFIER, config.CONF_OBJECT_STRING, false)
+	ks.SetRequestType(config.CONF_OBJECT_BYTES, false, false)
+	ks.AddConfigurations(map[string]string{CONF_KEYAUTH_CLIENTS: config.CONF_OBJECT_CONFIG})
+
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -73,8 +79,55 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 		return errors.WrapError(ctx, err)
 	}
 	ks.userCreator = userCreator
-	clientsConf, ok := conf.GetSubConfig(CONF_KEYAUTH_CLIENTS)
+	return nil
+}
+
+func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	idparam, ok := req.GetParam(CONF_KEYAUTH_CLIENT_IDENTIFIER)
+	id := idparam.GetValue().(string)
+	client, ok := ks.clients[id]
+
+	if !ok {
+		return core.StatusUnauthorizedResponse, nil
+	}
+	reqbytes := req.GetBody()
+	data, ok := reqbytes.([]byte)
+	if !ok {
+		return core.StatusUnauthorizedResponse, nil
+	}
+
+	// compute the sha1
+	h := sha256.New()
+	h.Write([]byte(id))
+
+	err := rsa.VerifyPKCS1v15(client.key, crypto.SHA256, h.Sum(nil), data)
+	if err != nil {
+		return core.StatusUnauthorizedResponse, nil
+	}
+
+	//create the user
+	usrInt := ks.userCreator()
+	init := usrInt.(core.Initializable)
+	init.Init(ctx, core.MethodArgs{"Id": "system", "Roles": []string{client.role}, "Realm": ks.localRealm})
+
+	usr := usrInt.(auth.RbacUser)
+	/*usr.SetId("system")
+	usr.SetRoles([]string{client.role})*/
+	token, user, err := ks.tokenGenerator(usr, ks.localRealm)
+	if err != nil {
+		return core.StatusUnauthorizedResponse, nil
+	}
+	return core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ks.authHeader: token}), nil
+}
+
+func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
+	ks.tokenGenerator = gen
+}
+func (ks *KeyAuthService) Start(ctx core.ServerContext) error {
+
+	c, ok := ks.GetConfiguration(CONF_KEYAUTH_CLIENTS)
 	if ok {
+		clientsConf := c.(config.Config)
 		allclients := clientsConf.AllConfigurations()
 		ks.clients = make(map[string]*client, len(allclients))
 		for _, clientName := range allclients {
@@ -92,57 +145,6 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 	} else {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_KEYAUTH_CLIENTS)
 	}
-	return nil
-}
 
-func (ks *KeyAuthService) Invoke(ctx core.RequestContext) error {
-	id, ok := ctx.GetString(CONF_KEYAUTH_CLIENT_IDENTIFIER)
-	if !ok {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-	client, ok := ks.clients[id]
-	if !ok {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-	req := ctx.GetRequest()
-	data, ok := req.([]byte)
-	if !ok {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-
-	// compute the sha1
-	h := sha256.New()
-	h.Write([]byte(id))
-
-	err := rsa.VerifyPKCS1v15(client.key, crypto.SHA256, h.Sum(nil), data)
-	if err != nil {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-
-	//create the user
-	usrInt := ks.userCreator()
-	init := usrInt.(core.Initializable)
-	init.Init(ctx, core.MethodArgs{"Id": "system", "Roles": []string{client.role}, "Realm": ks.localRealm})
-
-	usr := usrInt.(auth.RbacUser)
-	/*usr.SetId("system")
-	usr.SetRoles([]string{client.role})*/
-	token, user, err := ks.tokenGenerator(usr, ks.localRealm)
-	if err != nil {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
-	}
-	resp := core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ks.authHeader: token})
-	ctx.SetResponse(resp)
-	return nil
-}
-func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
-	ks.tokenGenerator = gen
-}
-func (ks *KeyAuthService) Start(ctx core.ServerContext) error {
 	return nil
 }

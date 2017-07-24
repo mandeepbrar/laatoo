@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"laatoo/sdk/components"
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
@@ -13,16 +12,17 @@ import (
 )
 
 type BeanstalkConsumer struct {
+	core.Service
 	addr        string
 	taskManager server.TaskManager
 	worker      func(ctx core.ServerContext, pool *beanstalk.ConsumerPool)
 }
 
-func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
-	addr, ok := conf.GetString(CONF_BEANSTALK_SERVER)
-	if !ok {
-		addr = ":11300"
-	}
+func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext) error {
+	svc.SetComponent(true)
+	svc.SetDescription("Beanstalk consumer component")
+	svc.AddStringConfigurations([]string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+
 	/*
 		sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 		if sh != nil {
@@ -36,8 +36,6 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 		} else {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 		}*/
-
-	svc.addr = addr
 
 	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
 
@@ -63,14 +61,6 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	return nil
 }
 
-func (bs *BeanstalkConsumer) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Beanstalk consumer component"}
-}
-
-func (svc *BeanstalkConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
-
 func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
 	pool := beanstalk.NewConsumerPool([]string{svc.addr}, []string{queue}, nil)
 	if pool == nil {
@@ -82,6 +72,10 @@ func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string
 }
 
 func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
+
+	addr, _ := svc.GetConfiguration(CONF_BEANSTALK_SERVER)
+	svc.addr = addr.(string)
+
 	svc.worker = func(workerctx core.ServerContext, pool *beanstalk.ConsumerPool) {
 		for {
 			select {

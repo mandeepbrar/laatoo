@@ -12,22 +12,14 @@ import (
 
 type sqlDataService struct {
 	*data.BaseComponent
-	conf            config.Config
-	connection      *gorm.DB
-	db              *gorm.DB
-	name            string
-	database        string
-	auditable       bool
-	softdelete      bool
-	presave         bool
-	postsave        bool
-	postload        bool
-	postupdate      bool
-	factory         *sqlDataServicesFactory
-	collection      string
-	softDeleteField string
-	objectid        string
-	serviceType     string
+	conf        config.Config
+	connection  *gorm.DB
+	db          *gorm.DB
+	name        string
+	database    string
+	factory     *sqlDataServicesFactory
+	collection  string
+	serviceType string
 }
 
 func newSqlDataService(ctx core.ServerContext, name string, svc *sqlDataServicesFactory) (*sqlDataService, error) {
@@ -35,13 +27,25 @@ func newSqlDataService(ctx core.ServerContext, name string, svc *sqlDataServices
 	return sqlDataSvc, nil
 }
 
-func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *sqlDataService) Initialize(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Initialize SQL Data Service")
 
-	err := svc.BaseComponent.Initialize(ctx, conf)
+	err := svc.BaseComponent.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	svc.SetDescription("SQL data component")
+
+	return nil
+}
+
+func (svc *sqlDataService) Start(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	object := svc.ObjectCreator()
 	sess, err := gorm.Open(svc.factory.vendor, svc.factory.connectionString)
 	if err != nil {
@@ -54,56 +58,8 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	svc.db = svc.connection.Table(svc.collection)
 	svc.db.LogMode(true)
-	svc.objectid = svc.ObjectConfig.IdField
-	svc.softDeleteField = svc.ObjectConfig.SoftDeleteField
-
-	if svc.softDeleteField == "" {
-		svc.softdelete = false
-	} else {
-		svc.softdelete = true
-	}
-
-	auditable, ok := conf.GetBool(data.CONF_DATA_AUDITABLE)
-	if ok {
-		svc.auditable = auditable
-	} else {
-		svc.auditable = svc.ObjectConfig.Auditable
-	}
-	postsave, ok := conf.GetBool(data.CONF_DATA_POSTSAVE)
-	if ok {
-		svc.postsave = postsave
-	} else {
-		svc.postsave = svc.ObjectConfig.PostSave
-	}
-	presave, ok := conf.GetBool(data.CONF_DATA_PRESAVE)
-	if ok {
-		svc.presave = presave
-	} else {
-		svc.presave = svc.ObjectConfig.PreSave
-	}
-	postload, ok := conf.GetBool(data.CONF_DATA_POSTLOAD)
-	if ok {
-		svc.postload = postload
-	} else {
-		svc.postload = svc.ObjectConfig.PostLoad
-	}
-
-	postupdate, ok := conf.GetBool(data.CONF_DATA_POSTUPDATE)
-	if ok {
-		svc.postupdate = postupdate
-	} else {
-		svc.postupdate = svc.ObjectConfig.PostUpdate
-	}
 
 	return nil
-}
-
-func (svc *sqlDataService) Start(ctx core.ServerContext) error {
-	return nil
-}
-
-func (bs *sqlDataService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "SQL data component"}
 }
 
 func (svc *sqlDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -154,7 +110,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	if id == "" {
 		item.Init(ctx, nil)
 	}
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -164,14 +120,14 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 			return err
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, item)
 	}
 	err := svc.db.Create(item).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -193,7 +149,7 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storable, createNew bool) error {
 	ctx = ctx.SubContext("PutMulti")
 	for _, item := range items {
-		if svc.presave {
+		if svc.PreSave {
 			err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 			if err != nil {
 				return err
@@ -203,7 +159,7 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 				return err
 			}
 		}
-		if svc.auditable {
+		if svc.Auditable {
 			data.Audit(ctx, item)
 		}
 	}
@@ -218,7 +174,7 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 			return errors.WrapError(ctx, err)
 		}
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		for _, item := range items {
 			err := item.PostSave(ctx)
 			if err != nil {
@@ -234,7 +190,7 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	ctx = ctx.SubContext("Put")
 	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -245,7 +201,7 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 			return err
 		}
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, item)
 	}
 
@@ -253,7 +209,7 @@ func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Sto
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postsave {
+	if svc.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -274,17 +230,17 @@ func (svc *sqlDataService) Update(ctx core.RequestContext, id string, newVals ma
 }
 
 func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return err
 		}
 	}
 	if upsert {
-		newVals[svc.objectid] = id
+		newVals[svc.ObjectId] = id
 	}
 	var err error
 	if upsert {
@@ -295,7 +251,7 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if err != nil {
 		return err
 	}
-	if svc.postupdate {
+	if svc.PostUpdate {
 		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -316,7 +272,7 @@ func (svc *sqlDataService) UpdateAll(ctx core.RequestContext, queryCond interfac
 
 func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
 	results := svc.ObjectCollectionCreator(0)
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
@@ -345,7 +301,7 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 		return []string{}, nil
 	}
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
 	log.Error(ctx, "Field details", "newVals", newVals)
@@ -353,7 +309,7 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	if svc.postupdate {
+	if svc.PostUpdate {
 		for _, id := range ids {
 			err := ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 			if err != nil {
@@ -367,10 +323,10 @@ func (svc *sqlDataService) updateAll(ctx core.RequestContext, queryCond interfac
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpdateMulti")
-	if svc.auditable {
+	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
-	if svc.presave {
+	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": svc.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -380,7 +336,7 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if svc.postupdate {
+	if svc.PostUpdate {
 		for _, id := range ids {
 			err := ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 			if err != nil {
@@ -394,8 +350,8 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 //item must support Deleted field for soft deletes
 func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
-	if svc.softdelete {
-		return svc.Update(ctx, id, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.Update(ctx, id, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 	return svc.db.Delete(id).Error
 }
@@ -403,8 +359,8 @@ func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 //Delete object by ids
 func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	ctx = ctx.SubContext("DeleteMulti")
-	if svc.softdelete {
-		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 	return svc.db.Delete(ids).Error
 }
@@ -412,8 +368,8 @@ func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 //Delete object by condition
 func (svc *sqlDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
-	if svc.softdelete {
-		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.softDeleteField: true})
+	if svc.SoftDelete {
+		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 	results := svc.ObjectCollectionCreator(0)
 	query, err := svc.processCondition(ctx, queryCond, svc.db)

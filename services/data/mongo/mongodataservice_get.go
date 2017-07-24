@@ -18,7 +18,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
-	condition[ms.objectid] = id
+	condition[ms.ObjectId] = id
 	err := connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
 	if err != nil {
 		if err.Error() == "not found" {
@@ -30,7 +30,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if ms.postload {
+	if ms.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return stor, nil
@@ -83,7 +83,7 @@ func (ms *mongoDataService) postArrayGet(ctx core.RequestContext, results interf
 }
 
 func (ms *mongoDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
-	if ms.postload {
+	if ms.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return nil
@@ -103,7 +103,7 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	condition := bson.M{}
 	operatorCond := bson.M{}
 	operatorCond["$in"] = ids
-	condition[ms.objectid] = operatorCond
+	condition[ms.ObjectId] = operatorCond
 	query := connCopy.DB(ms.database).C(ms.collection).Find(condition)
 	if len(orderBy) > 0 {
 		query = query.Sort(orderBy)
@@ -182,8 +182,8 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			argsMap := args[0].(map[string]interface{})
-			if ms.softdelete {
-				argsMap[ms.softDeleteField] = false
+			if ms.SoftDelete {
+				argsMap[ms.SoftDeleteField] = false
 			}
 			return argsMap, nil
 		}

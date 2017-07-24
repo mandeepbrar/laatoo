@@ -25,17 +25,16 @@ func NewCheckOwnerServiceWithBase(ctx core.ServerContext, base data.DataComponen
 	return &checkOwnerService{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
 }
 
-func (svc *checkOwnerService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.DataPlugin.Initialize(ctx, conf)
+func (svc *checkOwnerService) Initialize(ctx core.ServerContext) error {
+	err := svc.DataPlugin.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	checkRead, ok := conf.GetBool(CHECK_READ)
-	if ok {
-		svc.checkRead = checkRead
-	} else {
-		svc.checkRead = false
-	}
+	svc.AddOptionalConfigurations(map[string]string{CHECK_READ: config.CONF_OBJECT_BOOL}, map[string]interface{}{CHECK_READ: false})
+	return nil
+}
+func (svc *checkOwnerService) Start(ctx core.ServerContext) error {
+	svc.checkRead, _ = svc.GetBoolConfiguration(CHECK_READ)
 	return nil
 }
 

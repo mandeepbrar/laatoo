@@ -27,7 +27,7 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if svc.postload {
+	if svc.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return stor, nil
@@ -81,7 +81,7 @@ func (svc *sqlDataService) postArrayGet(ctx core.RequestContext, results interfa
 }
 
 func (svc *sqlDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
-	if svc.postload {
+	if svc.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return nil
@@ -234,8 +234,8 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			argsMap := cond.args[0].(map[string]interface{})
-			if svc.softdelete {
-				argsMap[svc.softDeleteField] = false
+			if svc.SoftDelete {
+				argsMap[svc.SoftDeleteField] = false
 			}
 			return input.Where(argsMap), nil
 		}

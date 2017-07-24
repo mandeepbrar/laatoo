@@ -18,16 +18,17 @@ const (
 )
 
 type BeanstalkProducer struct {
+	core.Service
 	pool       *beanstalk.ProducerPool
 	params     *beanstalk.PutParams
 	authHeader string
 }
 
-func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
-	addr, ok := conf.GetString(CONF_BEANSTALK_SERVER)
-	if !ok {
-		addr = ":11300"
-	}
+func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext) error {
+
+	svc.SetComponent(true)
+	svc.SetDescription("Beanstalk producer component")
+	svc.AddStringConfigurations([]string{CONF_BEANSTALK_SERVER}, []string{":11300"})
 
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
@@ -41,12 +42,6 @@ func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
-	svc.pool = beanstalk.NewProducerPool([]string{addr}, nil)
-	if svc.pool == nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", addr)
-	}
-	// Reusable put parameters.
-	svc.params = &beanstalk.PutParams{Priority: 0, Delay: 0, TTR: 5}
 	return nil
 }
 
@@ -60,14 +55,14 @@ func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t 
 	return err
 }
 
-func (bs *BeanstalkProducer) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Beanstalk producer component"}
-}
-
-func (svc *BeanstalkProducer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
-
 func (svc *BeanstalkProducer) Start(ctx core.ServerContext) error {
+	addr, _ := svc.GetConfiguration(CONF_BEANSTALK_SERVER)
+
+	svc.pool = beanstalk.NewProducerPool([]string{addr.(string)}, nil)
+	if svc.pool == nil {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", addr)
+	}
+	// Reusable put parameters.
+	svc.params = &beanstalk.PutParams{Priority: 0, Delay: 0, TTR: 5}
 	return nil
 }

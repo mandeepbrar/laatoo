@@ -28,31 +28,13 @@ func NewCascadeDeleteService(ctx core.ServerContext) *cascadeDelete {
 func NewCascadeDeleteWithBase(ctx core.ServerContext, base data.DataComponent) *cascadeDelete {
 	return &cascadeDelete{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
 }
-func (svc *cascadeDelete) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.DataPlugin.Initialize(ctx, conf)
+func (svc *cascadeDelete) Initialize(ctx core.ServerContext) error {
+	err := svc.DataPlugin.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	arr := make([]*cascadeDeleteOperation, 1)
-	ops, ok := conf.GetSubConfig(CONF_DELETE_OPERATION)
-	if ok {
-		delops := ops.AllConfigurations()
-		for _, delop := range delops {
-			oper, _ := ops.GetSubConfig(delop)
-			targetsvc, ok := oper.GetString(CONF_TARG_SVC)
-			if !ok {
-				return errors.MissingConf(ctx, CONF_TARG_SVC, "operation", delop)
-			}
-
-			targetfield, ok := oper.GetString(CONF_TARG_FIELD)
-			if !ok {
-				return errors.MissingConf(ctx, CONF_TARG_FIELD)
-			}
-			arr = append(arr, &cascadeDeleteOperation{targetSvcName: targetsvc, targetField: targetfield})
-		}
-	}
-	svc.ops = arr
+	svc.AddConfigurations(map[string]string{CONF_DELETE_OPERATION: config.CONF_OBJECT_CONFIG})
 
 	return nil
 }
@@ -62,6 +44,27 @@ func (svc *cascadeDelete) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	arr := make([]*cascadeDeleteOperation, 1)
+	val, _ := svc.GetConfiguration(CONF_DELETE_OPERATION)
+	ops := val.(config.Config)
+	delops := ops.AllConfigurations()
+	for _, delop := range delops {
+		oper, _ := ops.GetSubConfig(delop)
+		targetsvc, ok := oper.GetString(CONF_TARG_SVC)
+		if !ok {
+			return errors.MissingConf(ctx, CONF_TARG_SVC, "operation", delop)
+		}
+
+		targetfield, ok := oper.GetString(CONF_TARG_FIELD)
+		if !ok {
+			return errors.MissingConf(ctx, CONF_TARG_FIELD)
+		}
+		arr = append(arr, &cascadeDeleteOperation{targetSvcName: targetsvc, targetField: targetfield})
+	}
+
+	svc.ops = arr
+
 	for _, op := range svc.ops {
 		s, err := ctx.GetService(op.targetSvcName)
 		if err != nil {

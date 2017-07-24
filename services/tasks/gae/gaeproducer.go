@@ -16,17 +16,16 @@ const (
 )
 
 type GaeProducer struct {
+	core.Service
 	path       string
 	authHeader string
 }
 
-func (svc *GaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
-	path, ok := conf.GetString(GAE_PATH)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", GAE_PATH)
-	}
+func (svc *GaeProducer) Initialize(ctx core.ServerContext) error {
+	svc.SetDescription("GAE task service producer component")
+	svc.AddStringConfigurations([]string{GAE_PATH}, nil)
+	svc.SetComponent(true)
 
-	svc.path = path
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
 		shandler := sh.(server.SecurityHandler)
@@ -54,14 +53,8 @@ func (svc *GaeProducer) PushTask(ctx core.RequestContext, queue string, t *compo
 	return err
 }
 
-func (bs *GaeProducer) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "GAE task service producer component"}
-}
-
-func (svc *GaeProducer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
-
 func (svc *GaeProducer) Start(ctx core.ServerContext) error {
+	path, _ := svc.GetConfiguration(GAE_PATH)
+	svc.path = path.(string)
 	return nil
 }

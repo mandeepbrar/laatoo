@@ -1,6 +1,9 @@
 package core
 
-import "laatoo/sdk/core"
+import (
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+)
 
 func newServiceImpl() *serviceImpl {
 	info := &serviceInfo{
@@ -32,8 +35,8 @@ func (impl *serviceImpl) Invoke(core.RequestContext, core.Request) (*core.Respon
 
 func (impl *serviceImpl) ConfigureService(requestType string, collection bool, stream bool, params []string, config []string, description string) {
 	impl.SetRequestType(requestType, collection, stream)
-	impl.AddStringParams(params)
-	impl.AddStringConfigurations(config)
+	impl.AddStringParams(params, nil)
+	impl.AddStringConfigurations(config, nil)
 	impl.SetDescription(description)
 }
 
@@ -53,26 +56,51 @@ func (impl *serviceImpl) AddCollectionParams(params map[string]string) {
 	}
 }
 
-func (impl *serviceImpl) AddStringParams(params []string) {
-	for _, name := range params {
-		impl.svcInfo.request.params[name] = &param{name, "", true, nil}
+func (impl *serviceImpl) AddStringParams(params []string, defaultValues []string) {
+	for index, name := range params {
+		defaultValue := ""
+		if defaultValues != nil {
+			defaultValue = defaultValues[index]
+		}
+		impl.svcInfo.request.params[name] = &param{name, "", true, defaultValue}
 	}
 }
 
-func (impl *serviceImpl) AddStringConfigurations(configs []string) {
-	for _, name := range configs {
-		impl.svcInfo.configurations[name] = &configuration{name, "", true, nil}
+func (impl *serviceImpl) AddStringParam(name string) {
+	impl.AddParam(name, config.CONF_OBJECT_STRING, false)
+}
+
+func (impl *serviceImpl) AddStringConfigurations(configs []string, defaultValues []string) {
+	for index, name := range configs {
+		defaultValue := ""
+		if defaultValues != nil {
+			defaultValue = defaultValues[index]
+		}
+		required := true
+		if defaultValues != nil {
+			required = false
+		}
+		impl.svcInfo.configurations[name] = &configuration{name, config.CONF_OBJECT_STRING, required, "", defaultValue}
 	}
+}
+
+func (impl *serviceImpl) AddStringConfiguration(name string) {
+	impl.AddConfigurations(map[string]string{name: config.CONF_OBJECT_STRING})
 }
 
 func (impl *serviceImpl) AddConfigurations(configs map[string]string) {
 	for name, typ := range configs {
-		impl.svcInfo.configurations[name] = &configuration{name, typ, true, nil}
+		impl.svcInfo.configurations[name] = &configuration{name, typ, true, nil, nil}
 	}
 }
-func (impl *serviceImpl) AddOptionalConfigurations(configs map[string]string) {
+
+func (impl *serviceImpl) AddOptionalConfigurations(configs map[string]string, defaultValues map[string]interface{}) {
 	for name, typ := range configs {
-		impl.svcInfo.configurations[name] = &configuration{name, typ, false, nil}
+		var defaultValue interface{}
+		if defaultValues != nil {
+			defaultValue = defaultValues[name]
+		}
+		impl.svcInfo.configurations[name] = &configuration{name, typ, false, nil, defaultValue}
 	}
 }
 
@@ -86,12 +114,56 @@ func (impl *serviceImpl) SetResponseType(stream bool) {
 	impl.svcInfo.response.streaming = stream
 }
 
-func (impl *serviceImpl) GetConfiguration(name string) interface{} {
-	conf, ok := impl.svcInfo.configurations[name]
+func (impl *serviceImpl) GetConfiguration(name string) (interface{}, bool) {
+	c, ok := impl.svcInfo.configurations[name]
 	if !ok {
-		return nil
+		return nil, false
 	}
-	return conf.(*configuration).value
+	conf := c.(*configuration)
+	if conf.value != nil {
+		return conf.value, true
+	}
+	return conf.defaultValue, false
+}
+
+func (impl *serviceImpl) GetStringConfiguration(name string) (string, bool) {
+	c, ok := impl.GetConfiguration(name)
+	if !ok {
+		if c != nil {
+			return c.(string), ok
+		} else {
+			return "", ok
+		}
+	}
+	return c.(string), ok
+}
+
+func (impl *serviceImpl) GetBoolConfiguration(name string) (bool, bool) {
+	c, ok := impl.GetConfiguration(name)
+	if !ok {
+		if c != nil {
+			return c.(bool), ok
+		} else {
+			return false, ok
+		}
+	}
+	return c.(bool), ok
+}
+
+func (impl *serviceImpl) GetMapConfiguration(name string) (config.Config, bool) {
+	c, ok := impl.GetConfiguration(name)
+	if !ok {
+		if c != nil {
+			return c.(config.Config), ok
+		} else {
+			return nil, ok
+		}
+	}
+	return c.(config.Config), ok
+}
+
+func (impl *serviceImpl) SetComponent(component bool) {
+	impl.svcInfo.component = component
 }
 
 func (impl *serviceImpl) SetDescription(description string) {

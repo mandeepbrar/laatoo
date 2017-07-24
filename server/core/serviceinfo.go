@@ -58,10 +58,11 @@ func (ri *responseInfo) IsStream() bool {
 }
 
 type configuration struct {
-	name     string
-	conftype string
-	required bool
-	value    interface{}
+	name         string
+	conftype     string
+	required     bool
+	value        interface{}
+	defaultValue interface{}
 }
 
 type param struct {

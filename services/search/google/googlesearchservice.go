@@ -8,7 +8,6 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
-	"laatoo/server/constants"
 	"strconv"
 
 	googlesearch "google.golang.org/appengine/search"
@@ -26,31 +25,17 @@ func Manifest() []core.PluginComponent {
 }
 
 type GoogleSearchService struct {
+	core.Service
 	indexName    string
 	numOfResults int
 }
 
 func (gs *GoogleSearchService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	index, ok := conf.GetString(search.CONF_INDEX)
-	if !ok {
-		return errors.MissingConf(ctx, search.CONF_INDEX)
-	}
-	gs.indexName = index
-	num, ok := conf.GetString(search.CONF_NUMOFRESULTS)
-	var err error
-	if !ok {
-		gs.numOfResults = 15
-	} else {
-		gs.numOfResults, err = strconv.Atoi(num)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
+
+	gs.SetDescription("Google search service")
+	gs.SetRequestType(config.CONF_OBJECT_STRING, false, false)
+	gs.AddStringConfigurations([]string{search.CONF_INDEX, search.CONF_NUMOFRESULTS}, []string{"", "15"})
 	return nil
-}
-func (gs *GoogleSearchService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Google search service",
-		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRING}}
 }
 
 func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -63,6 +48,18 @@ func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request)
 }
 
 func (gs *GoogleSearchService) Start(ctx core.ServerContext) error {
+	index, ok := gs.GetConfiguration(search.CONF_INDEX)
+	if !ok {
+		return errors.MissingConf(ctx, search.CONF_INDEX)
+	}
+	gs.indexName = index.(string)
+
+	num, _ := gs.GetConfiguration(search.CONF_INDEX)
+	var err error
+	gs.numOfResults, err = strconv.Atoi(num.(string))
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	return nil
 }
 

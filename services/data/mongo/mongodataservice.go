@@ -12,20 +12,12 @@ import (
 
 type mongoDataService struct {
 	*data.BaseComponent
-	conf            config.Config
-	name            string
-	database        string
-	auditable       bool
-	softdelete      bool
-	presave         bool
-	postsave        bool
-	postload        bool
-	postupdate      bool
-	factory         *mongoDataServicesFactory
-	collection      string
-	softDeleteField string
-	objectid        string
-	serviceType     string
+	conf        config.Config
+	name        string
+	database    string
+	factory     *mongoDataServicesFactory
+	collection  string
+	serviceType string
 }
 
 const (
@@ -37,79 +29,39 @@ func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServi
 	return mongoSvc, nil
 }
 
-func (ms *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *mongoDataService) Initialize(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Initialize Mongo Service")
-	ms.database = ms.factory.database
+	svc.database = svc.factory.database
 
-	err := ms.BaseComponent.Initialize(ctx, conf)
+	err := svc.BaseComponent.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	ms.objectid = ms.ObjectConfig.IdField
-	ms.softDeleteField = ms.ObjectConfig.SoftDeleteField
+	svc.AddOptionalConfigurations(map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
 
-	if ms.softDeleteField == "" {
-		ms.softdelete = false
-	} else {
-		ms.softdelete = true
+	svc.SetDescription("Mongo data component")
+
+	return nil
+}
+
+func (svc *mongoDataService) Start(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
-
-	collection, ok := conf.GetString(data.CONF_DATA_COLLECTION)
+	collection, ok := svc.GetConfiguration(data.CONF_DATA_COLLECTION)
 	if ok {
-		ms.collection = collection
+		svc.collection = collection.(string)
 	} else {
-		ms.collection = ms.ObjectConfig.Collection
+		svc.collection = svc.ObjectConfig.Collection
 	}
 
-	if ms.collection == "" {
+	if svc.collection == "" {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", data.CONF_DATA_COLLECTION)
 	}
 
-	auditable, ok := conf.GetBool(data.CONF_DATA_AUDITABLE)
-	if ok {
-		ms.auditable = auditable
-	} else {
-		ms.auditable = ms.ObjectConfig.Auditable
-	}
-	postsave, ok := conf.GetBool(data.CONF_DATA_POSTSAVE)
-	if ok {
-		ms.postsave = postsave
-	} else {
-		ms.postsave = ms.ObjectConfig.PostSave
-	}
-	postupdate, ok := conf.GetBool(data.CONF_DATA_POSTUPDATE)
-	if ok {
-		ms.postupdate = postupdate
-	} else {
-		ms.postupdate = ms.ObjectConfig.PostUpdate
-	}
-	presave, ok := conf.GetBool(data.CONF_DATA_PRESAVE)
-	if ok {
-		ms.presave = presave
-	} else {
-		ms.presave = ms.ObjectConfig.PreSave
-	}
-	postload, ok := conf.GetBool(data.CONF_DATA_POSTLOAD)
-	if ok {
-		ms.postload = postload
-	} else {
-		ms.postload = ms.ObjectConfig.PostLoad
-	}
-
 	return nil
-}
-
-func (ms *mongoDataService) Start(ctx core.ServerContext) error {
-	return nil
-}
-
-func (bs *mongoDataService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Mongo data component"}
-}
-
-func (svc *mongoDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
 }
 
 func (fs *mongoDataService) GetName() string {
@@ -143,7 +95,7 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	if id == "" {
 		item.Init(ctx, nil)
 	}
-	if ms.presave {
+	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -153,14 +105,14 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 			return err
 		}
 	}
-	if ms.auditable {
+	if ms.Auditable {
 		data.Audit(ctx, item)
 	}
 	err := connCopy.DB(ms.database).C(ms.collection).Insert(item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if ms.postsave {
+	if ms.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -185,7 +137,7 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
 	for _, item := range items {
 		if item != nil {
-			if ms.presave {
+			if ms.PreSave {
 				err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 				if err != nil {
 					return err
@@ -195,19 +147,19 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 					return err
 				}
 			}
-			if ms.auditable {
+			if ms.Auditable {
 				data.Audit(ctx, item)
 			}
-			bulk.Upsert(bson.M{ms.objectid: item.GetId()}, item)
+			bulk.Upsert(bson.M{ms.ObjectId: item.GetId()}, item)
 		}
 	}
 	_, err := bulk.Run()
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if ms.postsave {
+	if ms.PostSave {
 		for _, item := range items {
-			if ms.postsave {
+			if ms.PostSave {
 				err = item.PostSave(ctx)
 				if err != nil {
 					errors.WrapError(ctx, err)
@@ -225,9 +177,9 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
-	condition[ms.objectid] = id
+	condition[ms.ObjectId] = id
 	item.SetId(id)
-	if ms.presave {
+	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
 		if err != nil {
 			return err
@@ -238,14 +190,14 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 			return err
 		}
 	}
-	if ms.auditable {
+	if ms.Auditable {
 		data.Audit(ctx, item)
 	}
 	_, err := connCopy.DB(ms.database).C(ms.collection).Upsert(condition, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if ms.postsave {
+	if ms.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
 			errors.WrapError(ctx, err)
@@ -266,20 +218,20 @@ func (ms *mongoDataService) Update(ctx core.RequestContext, id string, newVals m
 }
 
 func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
-	if ms.auditable {
+	if ms.Auditable {
 		data.Audit(ctx, newVals)
 	}
-	if ms.presave {
+	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 		if err != nil {
 			return err
 		}
 	}
 	if upsert {
-		newVals[ms.objectid] = id
+		newVals[ms.ObjectId] = id
 	}
 	condition := bson.M{}
-	condition[ms.objectid] = id
+	condition[ms.ObjectId] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	var err error
@@ -293,7 +245,7 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	if err != nil {
 		return err
 	}
-	if ms.postupdate {
+	if ms.PostUpdate {
 		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -315,7 +267,7 @@ func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interfa
 func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
 	results := ms.ObjectCollectionCreator(0)
 
-	if ms.presave {
+	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": ms.Object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
@@ -343,14 +295,14 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 		}
 		return []string{}, nil
 	}
-	if ms.auditable {
+	if ms.Auditable {
 		data.Audit(ctx, newVals)
 	}
 	_, err = connCopy.DB(ms.database).C(ms.collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	if ms.postupdate {
+	if ms.PostUpdate {
 		for _, id := range ids {
 			err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 			if err != nil {
@@ -364,24 +316,24 @@ func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interfa
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpdateMulti")
-	if ms.auditable {
+	if ms.Auditable {
 		data.Audit(ctx, newVals)
 	}
-	if ms.presave {
+	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": ms.Object, "data": newVals})
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 	updateInterface := map[string]interface{}{"$set": newVals}
-	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.objectid, ids)
+	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.ObjectId, ids)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	_, err := connCopy.DB(ms.database).C(ms.collection).UpdateAll(condition, updateInterface)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if ms.postupdate {
+	if ms.PostUpdate {
 		for _, id := range ids {
 			err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 			if err != nil {
@@ -395,11 +347,11 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 //item must support Deleted field for soft deletes
 func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 	ctx = ctx.SubContext("Delete")
-	if ms.softdelete {
-		return ms.Update(ctx, id, map[string]interface{}{ms.softDeleteField: true})
+	if ms.SoftDelete {
+		return ms.Update(ctx, id, map[string]interface{}{ms.SoftDeleteField: true})
 	}
 	condition := bson.M{}
-	condition[ms.objectid] = id
+	condition[ms.ObjectId] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	err := connCopy.DB(ms.database).C(ms.collection).Remove(condition)
@@ -409,13 +361,13 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 //Delete object by ids
 func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	ctx = ctx.SubContext("DeleteMulti")
-	if ms.softdelete {
-		return ms.UpdateMulti(ctx, ids, map[string]interface{}{ms.softDeleteField: true})
+	if ms.SoftDelete {
+		return ms.UpdateMulti(ctx, ids, map[string]interface{}{ms.SoftDeleteField: true})
 	}
 	conditionVal := bson.M{}
 	conditionVal["$in"] = ids
 	condition := bson.M{}
-	condition[ms.objectid] = conditionVal
+	condition[ms.ObjectId] = conditionVal
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	_, err := connCopy.DB(ms.database).C(ms.collection).RemoveAll(condition)
@@ -425,8 +377,8 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 //Delete object by condition
 func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
-	if ms.softdelete {
-		return ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.softDeleteField: true})
+	if ms.SoftDelete {
+		return ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.SoftDeleteField: true})
 	}
 	results := ms.ObjectCollectionCreator(0)
 	connCopy := ms.factory.connection.Copy()

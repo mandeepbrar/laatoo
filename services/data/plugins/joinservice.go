@@ -31,27 +31,13 @@ func NewJoinServiceWithBase(ctx core.ServerContext, base data.DataComponent) *jo
 	return &joinService{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
 }
 
-func (svc *joinService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.DataPlugin.Initialize(ctx, conf)
+func (svc *joinService) Initialize(ctx core.ServerContext) error {
+	err := svc.DataPlugin.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	var arr []*joinOperation
-	ops, ok := conf.GetSubConfig(CONF_JOIN_OPERATION)
-	if ok {
-		joinops := ops.AllConfigurations()
-		for _, joinop := range joinops {
-			oper, _ := ops.GetSubConfig(joinop)
-			targetsvc, ok := oper.GetString(CONF_TARG_SVC)
-			if !ok {
-				return errors.MissingConf(ctx, CONF_TARG_SVC, "operation", joinop)
-			}
 
-			targetfield, _ := oper.GetString(CONF_TARG_FIELD)
-			arr = append(arr, &joinOperation{targetSvcName: targetsvc, targetField: targetfield})
-		}
-	}
-	svc.ops = arr
+	svc.AddConfigurations(map[string]string{CONF_JOIN_OPERATION: config.CONF_OBJECT_CONFIG})
 	return nil
 }
 
@@ -60,6 +46,23 @@ func (svc *joinService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	val, _ := svc.GetConfiguration(CONF_JOIN_OPERATION)
+	arr := make([]*joinOperation, 1)
+	ops := val.(config.Config)
+	joinops := ops.AllConfigurations()
+	for _, joinop := range joinops {
+		oper, _ := ops.GetSubConfig(joinop)
+		targetsvc, ok := oper.GetString(CONF_TARG_SVC)
+		if !ok {
+			return errors.MissingConf(ctx, CONF_TARG_SVC, "operation", joinop)
+		}
+
+		targetfield, _ := oper.GetString(CONF_TARG_FIELD)
+		arr = append(arr, &joinOperation{targetSvcName: targetsvc, targetField: targetfield})
+	}
+	svc.ops = arr
+
 	if svc.ops == nil {
 		return nil
 	}

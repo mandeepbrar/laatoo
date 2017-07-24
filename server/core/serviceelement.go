@@ -18,6 +18,7 @@ const (
 	stringmap objectType = iota
 	bytes
 	files
+	inttype
 	stringtype
 	stringarr
 	booltype
@@ -114,16 +115,31 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 		}
 		if ok {
 			switch configuration.conftype {
+			case "", config.CONF_OBJECT_STRING:
+				val, ok = svcconf.GetString(name)
+				if ok {
+					configuration.value = val
+				}
 			case config.CONF_OBJECT_STRINGMAP:
-				configuration.value, ok = svcconf.GetSubConfig(name)
-			case config.CONF_OBJECT_STRING:
-				configuration.value, ok = svcconf.GetString(name)
+				val, ok = svcconf.GetSubConfig(name)
+				if ok {
+					configuration.value = val
+				}
 			case config.CONF_OBJECT_STRINGARR:
-				configuration.value, ok = svcconf.GetStringArray(name)
+				val, ok = svcconf.GetStringArray(name)
+				if ok {
+					configuration.value = val
+				}
 			case config.CONF_OBJECT_CONFIG:
-				configuration.value, ok = svcconf.GetSubConfig(name)
+				val, ok = svcconf.GetSubConfig(name)
+				if ok {
+					configuration.value = val
+				}
 			case config.CONF_OBJECT_BOOL:
-				configuration.value, ok = svcconf.GetBool(name)
+				val, ok = svcconf.GetBool(name)
+				if ok {
+					configuration.value = val
+				}
 			default:
 				configuration.value = val
 			}
@@ -243,8 +259,13 @@ func (svc *serverService) populateParams(ctx core.RequestContext, vals map[strin
 			switch svcParam.GetDataType() {
 			case config.CONF_OBJECT_STRINGMAP:
 				reqParam.value, ok = val.(map[string]interface{})
+			case config.CONF_OBJECT_INT:
+				reqParam.value, ok = val.(int)
 			case config.CONF_OBJECT_STRING:
-				reqParam.value, ok = val.(string)
+				strval, ok := val.(string)
+				if ok {
+					reqParam.value = strval
+				}
 			case config.CONF_OBJECT_STRINGARR:
 				reqParam.value, ok = val.([]string)
 			case config.CONF_OBJECT_BOOL:

@@ -38,6 +38,7 @@ func Manifest() []core.PluginComponent {
 }
 
 type OAuthLoginService struct {
+	core.Service
 	adminRole       string
 	authHeader      string
 	tokenGenerator  func(auth.User, string) (string, auth.User, error)
@@ -51,22 +52,11 @@ type OAuthLoginService struct {
 	callbackmode    bool
 }
 
-func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
+
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
-	}
-	userDataSvcName, ok := conf.GetString(common.CONF_LOGINSERVICE_USERDATASERVICE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", common.CONF_LOGINSERVICE_USERDATASERVICE)
-	}
-	userService, err := ctx.GetService(userDataSvcName)
-	if err != nil {
-		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
-	}
-	userDataService, ok := userService.(data.DataComponent)
-	if !ok {
-		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
 	}
 	authHeader := sechandler.GetProperty(config.AUTHHEADER)
 	if authHeader == nil {
@@ -75,9 +65,6 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Conf
 	os.authHeader = authHeader.(string)
 
 	userObject := sechandler.GetProperty(config.USER)
-	if !ok {
-		userObject = config.DEFAULT_USER
-	}
 
 	userCreator, err := ctx.GetObjectCreator(userObject.(string))
 	if err != nil {
@@ -85,19 +72,18 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext, conf config.Conf
 	}
 	os.userCreator = userCreator
 
-	//get and set the data service for accessing users
-	os.userDataService = userDataService
-	siteconf, ok := conf.GetSubConfig(CONF_OAUTHLOGINSERVICE_SITE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_SITE)
-	}
-	return os.configureSite(ctx, siteconf)
+	os.SetDescription("Oauth login service")
+	os.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+	os.AddStringConfigurations([]string{common.CONF_LOGINSERVICE_USERDATASERVICE}, nil)
+	os.AddConfigurations(map[string]string{CONF_OAUTHLOGINSERVICE_SITE: config.CONF_OBJECT_CONFIG})
+	os.AddParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE, config.CONF_OBJECT_BOOL, false)
+	return nil
 }
 
 //Expects Local user to be provided inside the request
-func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
-	callbackmode, _ := ctx.GetBool(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
-	if callbackmode {
+func (os *OAuthLoginService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	callbackmode, _ := req.GetParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
+	if callbackmode.GetValue().(bool) {
 		return os.callbackRequest(ctx)
 	} else {
 		return os.initialRequest(ctx)
@@ -105,7 +91,7 @@ func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
 }
 
 //Expects Local user to be provided inside the request
-func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
+func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) (*core.Response, error) {
 	returl, _ := ctx.GetString("callbackurl")
 	stateVal, _ := ctx.GetString("state")
 	realm, _ := ctx.GetString(config.REALM)
@@ -113,18 +99,17 @@ func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) error {
 	st := &stateInfo{Url: returl, State: stateVal, Realm: realm}
 	state, err := json.Marshal(st)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return core.StatusInternalErrorResponse, errors.WrapError(ctx, err)
 	}
 	log.Trace(ctx, "redirecting to url", "state", state)
 	encodedState := base64.StdEncoding.EncodeToString(state)
 	url := os.config.AuthCodeURL(encodedState)
 	log.Trace(ctx, "redirecting to url", "url", url)
-	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, url, nil))
-	return nil
+	return core.NewServiceResponse(core.StatusRedirect, url, nil), nil
 }
 
 //Expects Local user to be provided inside the request
-func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
+func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) (*core.Response, error) {
 	log.Info(ctx, "callback received")
 	receivedState, ok := ctx.GetString("state")
 	if !ok {
@@ -146,22 +131,17 @@ func (os *OAuthLoginService) callbackRequest(ctx core.RequestContext) error {
 	return os.authenticate(ctx, code, st)
 }
 
-func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, url string) error {
+func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, url string) (*core.Response, error) {
 	log.Trace(ctx, "unauthorized")
-	ctx.SetResponse(core.StatusUnauthorizedResponse)
 	if url == "" {
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginFailure\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>"))
-		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
-		ctx.SetResponse(resp)
-
+		return core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
 	} else {
-		resp := core.NewServiceResponse(core.StatusRedirect, url, map[string]interface{}{os.authHeader: "", "Error": err})
-		ctx.SetResponse(resp)
+		return core.NewServiceResponse(core.StatusRedirect, url, map[string]interface{}{os.authHeader: "", "Error": err}), nil
 	}
-	return nil
 }
 
-func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, st *stateInfo) error {
+func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, st *stateInfo) (*core.Response, error) {
 	oauthCtx := ctx.GetOAuthContext()
 	token, err := os.config.Exchange(oauthCtx, code)
 	if err != nil {
@@ -219,13 +199,9 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
 		permissionsArr, _ := json.Marshal(permissions)
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
-		resp := core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"})
-		ctx.SetResponse(resp)
-		return nil
+		return core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
 	}
-	resp := core.NewServiceResponse(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr})
-	ctx.SetResponse(resp)
-	return nil
+	return core.NewServiceResponse(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr}), nil
 }
 
 //Expects Local user to be provided inside the request
@@ -276,8 +252,26 @@ func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf conf
 func (os *OAuthLoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	os.tokenGenerator = gen
 }
+
 func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
-	return nil
+
+	userDataSvcName, _ := os.GetConfiguration(common.CONF_LOGINSERVICE_USERDATASERVICE)
+
+	userService, err := ctx.GetService(userDataSvcName.(string))
+	if err != nil {
+		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
+	}
+	userDataService, ok := userService.(data.DataComponent)
+	if !ok {
+		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
+	}
+
+	//get and set the data service for accessing users
+	os.userDataService = userDataService
+
+	siteconf, _ := os.GetConfiguration(CONF_OAUTHLOGINSERVICE_SITE)
+	return os.configureSite(ctx, siteconf.(config.Config))
+
 }
 
 type stateInfo struct {

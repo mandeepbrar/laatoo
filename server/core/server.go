@@ -49,9 +49,8 @@ func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) 
 	svr.objectLoader.Register(ctx, config.DEFAULT_ROLE, security.Role{})
 	svr.objectLoader.Register(ctx, config.DEFAULT_USER, security.DefaultUser{})
 	svr.objectLoader.Register(ctx, common.CONF_DEFAULTFACTORY_NAME, adapters.DefaultFactory{})
-	svr.objectLoader.Register(ctx, common.CONF_DEFAULTMETHODFACTORY_NAME, adapters.DefaultMethodFactory{})
 	svr.objectLoader.Register(ctx, common.CONF_SERVICEAGGREGATOR_NAME, adapters.ServiceAggregator{})
-	svr.objectLoader.RegisterInvokableMethod(ctx, constants.CONST_ALL_PERMISSIONS, security.GetAllPermissions)
+	svr.objectLoader.Register(ctx, constants.CONST_ALL_PERMISSIONS, security.AllPermissions{})
 
 	initctx := ctx.SubContext("Initializing Server").(*serverContext)
 	svr.conf = conf

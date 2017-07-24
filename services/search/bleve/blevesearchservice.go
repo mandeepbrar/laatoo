@@ -7,7 +7,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/server/constants"
 	"reflect"
 	"strconv"
 
@@ -26,33 +25,18 @@ func Manifest() []core.PluginComponent {
 }
 
 type BleveSearchService struct {
-	indexName    string
+	core.Service
 	numOfResults int
 	index        bleve.Index
 }
 
-func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	index, ok := conf.GetString(searchsdk.CONF_INDEX)
-	if !ok {
-		return errors.MissingConf(ctx, searchsdk.CONF_INDEX)
-	}
-	var err error
-	bs.indexName = index
-	num, ok := conf.GetString(searchsdk.CONF_NUMOFRESULTS)
-	if !ok {
-		bs.numOfResults = 15
-	} else {
-		bs.numOfResults, err = strconv.Atoi(num)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-	return nil
-}
+func (bs *BleveSearchService) Initialize(ctx core.ServerContext) error {
 
-func (bs *BleveSearchService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Bleve search service",
-		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRING}}
+	bs.SetDescription("Bleve search service")
+	bs.SetRequestType(config.CONF_OBJECT_STRING, false, false)
+	bs.AddStringConfigurations([]string{searchsdk.CONF_INDEX, searchsdk.CONF_NUMOFRESULTS}, []string{"", "15"})
+
+	return nil
 }
 
 func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -63,16 +47,32 @@ func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) 
 	}
 	return core.SuccessResponse(res), nil
 }
+
 func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
-	ind, err := bleve.Open(bs.indexName)
+
+	index, ok := bs.GetConfiguration(searchsdk.CONF_INDEX)
+	if !ok {
+		return errors.MissingConf(ctx, searchsdk.CONF_INDEX)
+	}
+	indexName := index.(string)
+
+	num, _ := bs.GetConfiguration(searchsdk.CONF_INDEX)
+	var err error
+	bs.numOfResults, err = strconv.Atoi(num.(string))
 	if err != nil {
-		ind, err = bleve.New(bs.indexName, bleve.NewIndexMapping())
-		log.Info(ctx, "Creating index ***********", "index", bs.indexName, "Err", err)
+		return errors.WrapError(ctx, err)
+	}
+
+	ind, err := bleve.Open(indexName)
+	if err != nil {
+		ind, err = bleve.New(indexName, bleve.NewIndexMapping())
+		log.Info(ctx, "Creating index ***********", "index", indexName, "Err", err)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 	bs.index = ind
+
 	return nil
 }
 

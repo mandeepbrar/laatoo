@@ -25,17 +25,21 @@ func NewCacheServiceWithBase(ctx core.ServerContext, base data.DataComponent) *d
 	return &dataCacheService{DataPlugin: data.NewDataPluginWithBase(ctx, base)}
 }
 
-func (svc *dataCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	err := svc.DataPlugin.Initialize(ctx, conf)
+func (svc *dataCacheService) Initialize(ctx core.ServerContext) error {
+	err := svc.DataPlugin.Initialize(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	bucket, ok := conf.GetString(CACHE_BUCKET)
-	if !ok {
-		svc.bucket = svc.Object
-	} else {
-		svc.bucket = bucket
+	svc.AddOptionalConfigurations(map[string]string{CACHE_BUCKET: config.CONF_OBJECT_STRING}, map[string]interface{}{CACHE_BUCKET: svc.Object})
+	return nil
+}
+
+func (svc *dataCacheService) Start(ctx core.ServerContext) error {
+	err := svc.DataPlugin.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
+	svc.bucket, _ = svc.GetStringConfiguration(CACHE_BUCKET)
 	return nil
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 func NewObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem, invokableMethodsRegister: make(map[string]core.ServiceFunc, 30)}
+	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }
@@ -29,21 +29,8 @@ func ChildLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 			registry[k] = v
 		}
 	}
-	methodsregistry := make(map[string]core.ServiceFunc, len(objLoader.invokableMethodsRegister))
-	for k, v := range objLoader.invokableMethodsRegister {
-		allowed := true
-		for _, filter := range filters {
-			if !filter.Allowed(ctx, k) {
-				allowed = false
-				break
-			}
-		}
-		if allowed {
-			methodsregistry[k] = v
-		}
-	}
-	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry, "methods", methodsregistry)
-	ldr := &objectLoader{objectsFactoryRegister: registry, invokableMethodsRegister: methodsregistry, name: name, parentElem: parent}
+	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry)
+	ldr := &objectLoader{objectsFactoryRegister: registry, name: name, parentElem: parent}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }

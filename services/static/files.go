@@ -31,14 +31,58 @@ type File struct {
 }
 
 type FileService struct {
+	core.Service
 	filesMap map[string]*File
 	name     string
 }
 
-func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (fs *FileService) Initialize(ctx core.ServerContext) error {
+	fs.SetDescription("Static files service")
+	fs.AddConfigurations(map[string]string{CONF_STATIC_FILES: config.CONF_OBJECT_CONFIG})
+	fs.AddStringParams([]string{CONF_STATIC_FILEPARAM}, nil)
 	fs.filesMap = make(map[string]*File, 10)
-	filesConf, ok := conf.GetSubConfig(CONF_STATIC_FILES)
+	return nil
+}
+
+func (fs *FileService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	fn, ok := req.GetParam(CONF_STATIC_FILEPARAM)
 	if ok {
+		filename := fn.GetValue().(string)
+		log.Trace(ctx, "Providing file", "filename", filename)
+		file, ok := fs.filesMap[filename]
+		if ok {
+			lastModTimeStr, ok := ctx.GetString(core.LastModified)
+			log.Trace(ctx, "got header", "lastModTimeStr", lastModTimeStr)
+			if ok {
+				lastModTime, err := time.Parse(http.TimeFormat, lastModTimeStr)
+				if err == nil {
+					if !file.lastModified.After(lastModTime) {
+						return core.StatusNotModifiedResponse, nil
+					}
+				}
+			}
+			if !file.fullcontent {
+				content, err := ioutil.ReadFile(file.path)
+				if err != nil {
+					return nil, errors.WrapError(ctx, err)
+				}
+				return core.NewServiceResponse(core.StatusServeBytes, &content, file.info), nil
+			} else {
+				return core.NewServiceResponse(core.StatusServeBytes, file.Content, file.info), nil
+			}
+		} else {
+			return core.StatusNotFoundResponse, nil
+		}
+	} else {
+		return core.StatusNotFoundResponse, nil
+	}
+}
+
+func (fs *FileService) Start(ctx core.ServerContext) error {
+
+	conf, ok := fs.GetConfiguration(CONF_STATIC_FILES)
+	if ok {
+		filesConf := conf.(config.Config)
 		filenames := filesConf.AllConfigurations()
 		for _, filename := range filenames {
 			fileconfig, _ := filesConf.GetSubConfig(filename)
@@ -77,48 +121,6 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 			fs.filesMap[filename] = file
 		}
 	}
-	return nil
-}
 
-func (fs *FileService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Static files service",
-		Request: core.BuildRequestInfo("", []string{CONF_STATIC_FILEPARAM})}
-}
-
-func (fs *FileService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	fn, ok := req.GetParam(CONF_STATIC_FILEPARAM)
-	if ok {
-		filename := fn.Value.(string)
-		log.Trace(ctx, "Providing file", "filename", filename)
-		file, ok := fs.filesMap[filename]
-		if ok {
-			lastModTimeStr, ok := ctx.GetString(core.LastModified)
-			log.Trace(ctx, "got header", "lastModTimeStr", lastModTimeStr)
-			if ok {
-				lastModTime, err := time.Parse(http.TimeFormat, lastModTimeStr)
-				if err == nil {
-					if !file.lastModified.After(lastModTime) {
-						return core.StatusNotModifiedResponse, nil
-					}
-				}
-			}
-			if !file.fullcontent {
-				content, err := ioutil.ReadFile(file.path)
-				if err != nil {
-					return nil, errors.WrapError(ctx, err)
-				}
-				return core.NewServiceResponse(core.StatusServeBytes, &content, file.info), nil
-			} else {
-				return core.NewServiceResponse(core.StatusServeBytes, file.Content, file.info), nil
-			}
-		} else {
-			return core.StatusNotFoundResponse, nil
-		}
-	} else {
-		return core.StatusNotFoundResponse, nil
-	}
-}
-
-func (fs *FileService) Start(ctx core.ServerContext) error {
 	return nil
 }

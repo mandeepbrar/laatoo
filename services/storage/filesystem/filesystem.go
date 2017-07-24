@@ -4,9 +4,7 @@ import (
 	"io"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/server/constants"
 	"os"
 
 	"github.com/twinj/uuid"
@@ -27,21 +25,8 @@ func Manifest() []core.PluginComponent {
 }
 
 type FileSystemSvc struct {
+	core.Service
 	filesDir string
-}
-
-func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
-	filesDir, ok := conf.GetString(CONF_FILESDIR)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_FILESDIR)
-	}
-	svc.filesDir = filesDir
-	return nil
-}
-
-func (svc *FileSystemSvc) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "File system storage service",
-		Request: core.RequestInfo{DataType: constants.CONF_OBJECT_STRINGMAP}}
 }
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
@@ -83,9 +68,8 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 	return os.Open(fullpath)
 }
 
-func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) error {
-	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil))
-	return nil
+func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) (*core.Response, error) {
+	return core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil), nil
 }
 
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
@@ -108,6 +92,16 @@ func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser
 	return fileName, nil
 }
 
+func (svc *FileSystemSvc) Initialize(ctx core.ServerContext) error {
+	svc.SetDescription("File system storage service")
+	svc.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+	svc.AddStringConfigurations([]string{CONF_FILESDIR}, nil)
+	return nil
+}
+
 func (svc *FileSystemSvc) Start(ctx core.ServerContext) error {
+	filesDir, _ := svc.GetConfiguration(CONF_FILESDIR)
+	svc.filesDir = filesDir.(string)
+
 	return nil
 }

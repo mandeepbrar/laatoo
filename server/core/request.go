@@ -29,6 +29,42 @@ func (req *request) GetParam(name string) (core.Param, bool) {
 	val, ok := req.Params[name]
 	return val, ok
 }
+func (req *request) GetStringParam(name string) (string, bool) {
+	val, ok := req.Params[name]
+	if ok {
+		pval, ok := val.GetValue().(string)
+		if ok {
+			return pval, ok
+		}
+		return "", ok
+	}
+	return "", ok
+}
+
+func (req *request) GetIntParam(name string) (int, bool) {
+	val, ok := req.Params[name]
+	if ok {
+		pval, ok := val.GetValue().(int)
+		if ok {
+			return pval, ok
+		}
+		return -1, ok
+	}
+	return -1, ok
+}
+
+func (req *request) GetStringMapValue(name string) (map[string]interface{}, bool) {
+	val, ok := req.Params[name]
+	if ok {
+		pval, ok := val.GetValue().(map[string]interface{})
+		if ok {
+			return pval, ok
+		}
+		return nil, ok
+	}
+	return nil, ok
+}
+
 func (req *request) addParam(name string, val string) {
 	req.addObjectParam(name, val, "", false)
 }

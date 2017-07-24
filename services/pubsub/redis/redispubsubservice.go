@@ -24,11 +24,10 @@ func Manifest() []core.PluginComponent {
 }
 
 type RedisPubSubService struct {
-	connectionstring string
-	name             string
-	database         string
-	conn             redis.Conn
-	pool             *redis.Pool
+	core.Service
+	name string
+	conn redis.Conn
+	pool *redis.Pool
 }
 
 func (svc *RedisPubSubService) Publish(ctx core.RequestContext, topic string, message interface{}) error {
@@ -47,7 +46,7 @@ func (svc *RedisPubSubService) Publish(ctx core.RequestContext, topic string, me
 	return nil
 }
 
-func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string, lstnr core.ServiceFunc) error {
+func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string, lstnr core.MessageListener) error {
 	conn := svc.pool.Get()
 	psc := redis.PubSubConn{Conn: conn}
 	for _, topic := range topics {
@@ -62,10 +61,8 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 			case redis.Message:
 				log.Trace(ctx, "Message received on Queue")
 				reqctx := ctx.CreateSystemRequest("Message Received")
-				req := reqctx.CreateRequest()
-				req.AddParam("messagetype", v.Channel, "", false)
-				req.SetBody(v.Data)
-				lstnr(reqctx, req)
+				reqctx.Set("messagetype", v.Channel)
+				lstnr(reqctx, v.Data, nil)
 			case redis.Subscription:
 			case error:
 				log.Info(ctx, "Pubsub error ", "Error", v)
@@ -75,20 +72,17 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 	return nil
 }
 
-func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	connectionString, ok := conf.GetString(CONF_REDIS_CONNECTIONSTRING)
-	if ok {
-		redisSvc.connectionstring = connectionString
-	} else {
-		redisSvc.connectionstring = ":6379"
-	}
+func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext) error {
+	redisSvc.SetComponent(true)
+	redisSvc.AddStringConfigurations([]string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
+	redisSvc.SetDescription("Redis pubsub component service")
+	return nil
+}
 
-	connectiondb, ok := conf.GetString(CONF_REDIS_DATABASE)
-	if ok {
-		redisSvc.database = connectiondb
-	} else {
-		redisSvc.database = "0"
-	}
+func (redisSvc *RedisPubSubService) Start(ctx core.ServerContext) error {
+	connectionString, _ := redisSvc.GetConfiguration(CONF_REDIS_CONNECTIONSTRING)
+
+	connectiondb, _ := redisSvc.GetConfiguration(CONF_REDIS_DATABASE)
 
 	redisSvc.pool = &redis.Pool{
 		MaxIdle:     3,
@@ -101,11 +95,11 @@ func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext, conf conf
 			return err
 		},
 		Dial: func() (redis.Conn, error) {
-			conn, err := redis.Dial("tcp", redisSvc.connectionstring)
+			conn, err := redis.Dial("tcp", connectionString.(string))
 			if err != nil {
 				return nil, err
 			}
-			_, err = conn.Do("SELECT", redisSvc.database)
+			_, err = conn.Do("SELECT", connectiondb.(string))
 			if err != nil {
 				conn.Close()
 				return nil, err
@@ -116,16 +110,5 @@ func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext, conf conf
 			}
 			return conn, nil
 		}}
-	return nil
-}
-
-func (ds *RedisPubSubService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Redis pubsub component service"}
-}
-
-func (ms *RedisPubSubService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
-func (rs *RedisPubSubService) Start(ctx core.ServerContext) error {
 	return nil
 }

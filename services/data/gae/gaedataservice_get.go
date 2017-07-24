@@ -40,7 +40,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	if stor.IsDeleted() {
 		return nil, nil
 	}
-	if svc.postload {
+	if svc.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return stor, nil
@@ -93,7 +93,7 @@ func (svc *gaeDataService) postArrayGet(ctx core.RequestContext, results interfa
 }
 
 func (svc *gaeDataService) postLoad(ctx core.RequestContext, stor data.Storable) error {
-	if svc.postload {
+	if svc.PostLoad {
 		stor.PostLoad(ctx)
 	}
 	return nil
@@ -240,8 +240,8 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 	case data.FIELDVALUE:
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
 		if ok {
-			if svc.softdelete {
-				queryCondMap[svc.softDeleteField] = false
+			if svc.SoftDelete {
+				queryCondMap[svc.SoftDeleteField] = false
 			}
 			for k, v := range queryCondMap {
 				query = query.Filter(fmt.Sprintf("%s =", k), v)

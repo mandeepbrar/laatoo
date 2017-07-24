@@ -39,65 +39,13 @@ func (ds *RedisCacheFactory) Start(ctx core.ServerContext) error {
 }
 
 type RedisCacheService struct {
+	core.Service
 	connectionstring string
 	database         string
 	conn             redis.Conn
 	pool             *redis.Pool
 	name             string
 	cacheEncoder     *common.CacheEncoder
-}
-
-func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext, conf config.Config) error {
-
-	connectionString, ok := conf.GetString(CONF_REDIS_CONNECTIONSTRING)
-	if ok {
-		redisSvc.connectionstring = connectionString
-	} else {
-		redisSvc.connectionstring = ":6379"
-	}
-
-	connectiondb, ok := conf.GetString(CONF_REDIS_DATABASE)
-	if ok {
-		redisSvc.database = connectiondb
-	} else {
-		redisSvc.database = "0"
-	}
-
-	encoding, ok := conf.GetString(config.CONF_CACHE_ENC)
-	if ok {
-		redisSvc.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
-	} else {
-		redisSvc.cacheEncoder = common.NewCacheEncoder(ctx, "binary")
-	}
-
-	redisSvc.pool = &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			if err != nil {
-				log.Error(ctx, "TestOnBorrow", "Error", err)
-			}
-			return err
-		},
-		Dial: func() (redis.Conn, error) {
-			conn, err := redis.Dial("tcp", redisSvc.connectionstring)
-			if err != nil {
-				return nil, err
-			}
-			_, err = conn.Do("SELECT", redisSvc.database)
-			if err != nil {
-				conn.Close()
-				return nil, err
-			}
-			_, err = conn.Do("FLUSHDB")
-			if err != nil {
-				return nil, err
-			}
-			return conn, nil
-		},
-	}
-	return nil
 }
 
 func (svc *RedisCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {
@@ -254,14 +202,51 @@ func (svc *RedisCacheService) Decrement(ctx core.RequestContext, bucket string, 
 	return nil
 }
 
-func (ds *RedisCacheService) Info() *core.ServiceInfo {
-	return &core.ServiceInfo{Description: "Redis cache component service"}
+func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext) error {
+	redisSvc.SetDescription("Redis cache component service")
+	redisSvc.SetComponent(true)
+	redisSvc.AddStringConfigurations([]string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
+
+	return nil
 }
 
-func (ms *RedisCacheService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
-}
+func (redisSvc *RedisCacheService) Start(ctx core.ServerContext) error {
+	connectionString, _ := redisSvc.GetStringConfiguration(CONF_REDIS_CONNECTIONSTRING)
+	redisSvc.connectionstring = connectionString
 
-func (rs *RedisCacheService) Start(ctx core.ServerContext) error {
+	connectiondb, _ := redisSvc.GetStringConfiguration(CONF_REDIS_DATABASE)
+	redisSvc.database = connectiondb
+
+	encoding, _ := redisSvc.GetStringConfiguration(config.ENCODING)
+	redisSvc.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
+
+	redisSvc.pool = &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			if err != nil {
+				log.Error(ctx, "TestOnBorrow", "Error", err)
+			}
+			return err
+		},
+		Dial: func() (redis.Conn, error) {
+			conn, err := redis.Dial("tcp", redisSvc.connectionstring)
+			if err != nil {
+				return nil, err
+			}
+			_, err = conn.Do("SELECT", redisSvc.database)
+			if err != nil {
+				conn.Close()
+				return nil, err
+			}
+			_, err = conn.Do("FLUSHDB")
+			if err != nil {
+				return nil, err
+			}
+			return conn, nil
+		},
+	}
+
 	return nil
 }

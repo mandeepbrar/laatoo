@@ -24,6 +24,7 @@ func Manifest() []core.PluginComponent {
 }
 
 type LoginService struct {
+	core.Service
 	name           string
 	authHeader     string
 	adminRole      string
@@ -33,7 +34,8 @@ type LoginService struct {
 	UserDataService data.DataComponent
 }
 
-func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (ls *LoginService) Initialize(ctx core.ServerContext) error {
+
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -48,39 +50,29 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
 	ls.realm = realm.(string)
-	userDataSvcName, ok := conf.GetString(common.CONF_LOGINSERVICE_USERDATASERVICE)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", common.CONF_LOGINSERVICE_USERDATASERVICE)
-	}
-	userService, err := ctx.GetService(userDataSvcName)
-	if err != nil {
-		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
-	}
-	userDataService, ok := userService.(data.DataComponent)
-	if !ok {
-		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
-	}
-	log.Debug(ctx, "User storer set for registration")
-	//get and set the data service for accessing users
-	ls.UserDataService = userDataService
+
+	userObject := sechandler.GetProperty(config.USER)
+
+	ls.SetDescription("Db Login service")
+	ls.SetRequestType(userObject.(string), false, false)
+	ls.AddStringConfigurations([]string{common.CONF_LOGINSERVICE_USERDATASERVICE}, nil)
+
 	return nil
 }
 
 //Expects Local user to be provided inside the request
-func (ls *LoginService) Invoke(ctx core.RequestContext) error {
+func (ls *LoginService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 
-	ent := ctx.GetRequest()
+	ent := req.GetBody()
 	usr, ok := ent.(auth.LocalAuthUser)
 	if !ok {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return core.StatusUnauthorizedResponse, nil
 	}
 
 	realm := usr.GetRealm()
 	if realm != ls.realm {
 		log.Trace(ctx, "Realm not found")
-		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
-		return nil
+		return core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH), nil
 	}
 
 	username := usr.GetUserName()
@@ -90,15 +82,13 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
 	cond, err := ls.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return core.StatusUnauthorizedResponse, nil
 	}
 
 	usrs, _, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
 		log.Trace(ctx, "Tested user not found", "Err", err)
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return core.StatusUnauthorizedResponse, nil
 	}
 
 	//compare the user requested with the user from database
@@ -108,24 +98,33 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 	log.Trace(ctx, "compared user********", "err", err)
 	existingUser.ClearPassword()
 	if err != nil {
-		ctx.SetResponse(core.StatusUnauthorizedResponse)
-		return nil
+		return core.StatusUnauthorizedResponse, nil
 	} else {
 		existingUser.ClearPassword()
 		token, user, err := ls.tokenGenerator(existingUser, realm)
 		if err != nil {
-			ctx.SetResponse(core.StatusUnauthorizedResponse)
-			return nil
+			return core.StatusUnauthorizedResponse, nil
 		}
-		resp := core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token})
-		ctx.SetResponse(resp)
+		return core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token}), nil
 	}
-	return nil
 }
 func (ls *LoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	ls.tokenGenerator = gen
 }
 
 func (ls *LoginService) Start(ctx core.ServerContext) error {
+	userDataSvcName, _ := ls.GetConfiguration(common.CONF_LOGINSERVICE_USERDATASERVICE)
+	userService, err := ctx.GetService(userDataSvcName.(string))
+	if err != nil {
+		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
+	}
+	userDataService, ok := userService.(data.DataComponent)
+	if !ok {
+		return errors.ThrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE)
+	}
+	log.Debug(ctx, "User storer set for login")
+
+	//get and set the data service for accessing users
+	ls.UserDataService = userDataService
 	return nil
 }
