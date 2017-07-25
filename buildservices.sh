@@ -15,7 +15,6 @@ go build -buildmode=plugin -o dist/lib/laatoo/server/data/mongo.so services/data
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/sql.so services/data/sql/*.go
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/gae.so services/data/gae/*.go
 go build -buildmode=plugin -o dist/lib/laatoo/server/data/plugins.so services/data/plugins/*.go
-go build -buildmode=plugin -o dist/lib/laatoo/server/data/customloader.so services/data/customloader/*.go
 
 
 #pubsub services

@@ -53,7 +53,7 @@ func NewPluginHookService(ctx core.ServerContext, name string, conf config.Confi
 			}
 		}
 	}
-	return &pluginHookService{DataPlugin: data.NewDataPluginWithBase(ctx, basePlugin), baseService: baseService}, nil
+	return &pluginHookService{DataPlugin: data.NewDataPluginWithBase(ctx, basePlugin), plugins: plugins, baseService: baseService}, nil
 }
 
 func (svc *pluginHookService) Initialize(ctx core.ServerContext) error {
@@ -63,12 +63,12 @@ func (svc *pluginHookService) Initialize(ctx core.ServerContext) error {
 	}
 	for _, plugin := range svc.plugins {
 		svc := plugin.(core.Service)
-		err := svc.Initialize(ctx, conf)
+		err := svc.Initialize(ctx)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	return svc.DataPlugin.Initialize(ctx, conf)
+	return svc.DataPlugin.Initialize(ctx)
 }
 func (svc *pluginHookService) Start(ctx core.ServerContext) error {
 	err := svc.baseService.Start(ctx)

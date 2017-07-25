@@ -15,6 +15,7 @@ const (
 type dataCacheService struct {
 	*data.DataPlugin
 	bucket string
+	object string
 }
 
 func NewDataCacheService(ctx core.ServerContext) *dataCacheService {
@@ -30,7 +31,7 @@ func (svc *dataCacheService) Initialize(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	svc.AddOptionalConfigurations(map[string]string{CACHE_BUCKET: config.CONF_OBJECT_STRING}, map[string]interface{}{CACHE_BUCKET: svc.Object})
+	svc.AddOptionalConfigurations(map[string]string{CACHE_BUCKET: config.CONF_OBJECT_STRING}, nil)
 	return nil
 }
 
@@ -39,7 +40,14 @@ func (svc *dataCacheService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	svc.bucket, _ = svc.GetStringConfiguration(CACHE_BUCKET)
+
+	svc.object = svc.GetObject()
+	bucket, ok := svc.GetStringConfiguration(CACHE_BUCKET)
+	if !ok {
+		svc.bucket = svc.object
+	} else {
+		svc.bucket = bucket
+	}
 	return nil
 }
 
@@ -148,7 +156,7 @@ func (svc *dataCacheService) DeleteAll(ctx core.RequestContext, queryCond interf
 func (svc *dataCacheService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetById")
 
-	ent, ok := ctx.GetObjectFromCache(svc.bucket, id, svc.Object)
+	ent, ok := ctx.GetObjectFromCache(svc.bucket, id, svc.object)
 	if ok {
 		return ent.(data.Storable), nil
 	}
@@ -163,7 +171,7 @@ func (svc *dataCacheService) GetById(ctx core.RequestContext, id string) (data.S
 func (svc *dataCacheService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
 	ctx = ctx.SubContext("Cache_GetMulti")
 	res := make([]data.Storable, len(ids))
-	cachedItems := ctx.GetObjectsFromCache(svc.bucket, ids, svc.Object)
+	cachedItems := ctx.GetObjectsFromCache(svc.bucket, ids, svc.object)
 	idsNotCached := make([]string, 0, 10)
 	for index, id := range ids {
 		item, ok := cachedItems[id]

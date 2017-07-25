@@ -48,8 +48,7 @@ func (svc *checkOwnerService) isOwned(ctx core.RequestContext, id string) (bool,
 		if ok {
 			log.Trace(ctx, "checking owned", "created by", i.GetCreatedBy(), "user", ctx.GetUser().GetId())
 			if i.GetCreatedBy() != ctx.GetUser().GetId() {
-				ctx.SetResponse(core.StatusUnauthorizedResponse)
-				return false, nil
+				return false, errors.Unauthorized(ctx, "Reason", "Mismatching owner")
 			}
 		}
 	}
@@ -67,8 +66,7 @@ func (svc *checkOwnerService) areOwned(ctx core.RequestContext, ids []string) (b
 		if ok && item.GetId() != "" {
 			if i.GetCreatedBy() != userId {
 				log.Info(ctx, "not owned", "item", item, "id", item.GetId(), "created by", i.GetCreatedBy(), "user id", userId)
-				ctx.SetResponse(core.StatusUnauthorizedResponse)
-				return false, nil
+				return false, errors.Unauthorized(ctx, "Reason", "Mismatching owner", "Entity", item.GetId())
 			}
 		}
 	}
