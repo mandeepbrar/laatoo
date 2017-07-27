@@ -106,6 +106,12 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 
 func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config, info core.ServiceInfo) error {
 	reqInfo := info.GetRequestInfo()
+
+	svcs := info.GetRequiredServices()
+	if err := svc.injectServices(ctx, svcconf, svcs); err != nil {
+		return err
+	}
+
 	confs := info.GetConfigurations()
 	for name, configObj := range confs {
 		configuration := configObj.(*configuration)
@@ -184,6 +190,32 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 		}
 	}
 	log.Trace(ctx, "Processed info for service", "name", svc.name, "conf", svc.info)
+	return nil
+}
+
+func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.Config, svcsToInject map[string]string) error {
+	if svcsToInject == nil {
+		return nil
+	}
+	for confName, fieldName := range svcsToInject {
+		svcName, ok := svcconf.GetString(confName)
+		if !ok {
+			errors.MissingConf(ctx, confName)
+		}
+		svrsvc, err := svc.owner.getService(ctx, svcName)
+		if err != nil {
+			errors.MissingService(ctx, svcName)
+		}
+		svctoinject := svrsvc.Service()
+		svcval := reflect.ValueOf(svc.service)
+		fld := svcval.FieldByName(fieldName)
+		if fld.IsNil() {
+			errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Field", fieldName)
+		}
+		if fld.CanSet() {
+			fld.Set(reflect.ValueOf(svctoinject))
+		}
+	}
 	return nil
 }
 

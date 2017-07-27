@@ -18,15 +18,19 @@ type environment struct {
 	server *serverObject
 }
 
-func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseDir string) (*environment, *environmentProxy) {
+func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseDir string) (*environment, *environmentProxy, error) {
 
 	env := &environment{server: svr, applications: make(map[string]server.Application, 5)}
 	proxy := &environmentProxy{env: env}
-	env.abstractserver = newAbstractServer(svrCtx, name, svr.abstractserver, proxy, baseDir)
+	abstractserver, err := newAbstractServer(svrCtx, name, svr.abstractserver, proxy, baseDir)
+	if err != nil {
+		return nil, nil, err
+	}
+	env.abstractserver = abstractserver
 	svrCtx.Set(constants.RELATIVE_DIR, constants.CONF_ENVIRONMENTS)
 	env.proxy = proxy
 	log.Debug(svrCtx, "Created environment", "Name", name)
-	return env, proxy
+	return env, proxy, nil
 }
 
 func (env *environment) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -56,11 +60,14 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 
 	log.Trace(appCreateCtx, "Creating Application", "Base Directory", baseDir)
 	//create an application
-	applHandle, applElem := newApplication(appCreateCtx, name, env, baseDir)
+	applHandle, applElem, err := newApplication(appCreateCtx, name, env, baseDir)
+	if err != nil {
+		return err
+	}
 	log.Debug(appCreateCtx, "Created")
 
 	appInitCtx := ctx.SubContext("Initialize")
-	err := applHandle.Initialize(appInitCtx, applicationConf)
+	err = applHandle.Initialize(appInitCtx, applicationConf)
 	if err != nil {
 		return errors.WrapError(appInitCtx, err)
 	}

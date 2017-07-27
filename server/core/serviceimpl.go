@@ -40,6 +40,10 @@ func (impl *serviceImpl) ConfigureService(requestType string, collection bool, s
 	impl.SetDescription(description)
 }
 
+func (impl *serviceImpl) InjectServices(services map[string]string) {
+	impl.svcInfo.svcsToInject = services
+}
+
 func (impl *serviceImpl) AddParams(params map[string]string) {
 	for name, typ := range params {
 		impl.svcInfo.request.params[name] = &param{name, typ, false, nil}

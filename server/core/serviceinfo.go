@@ -7,6 +7,7 @@ type serviceInfo struct {
 	response       *responseInfo
 	description    string
 	component      bool
+	svcsToInject   map[string]string
 	configurations map[string]interface{}
 }
 
@@ -27,6 +28,9 @@ func (svcinfo *serviceInfo) IsComponent() bool {
 }
 func (svcinfo *serviceInfo) GetConfigurations() map[string]interface{} {
 	return svcinfo.configurations
+}
+func (svcinfo *serviceInfo) GetRequiredServices() map[string]string {
+	return svcinfo.svcsToInject
 }
 
 type requestInfo struct {

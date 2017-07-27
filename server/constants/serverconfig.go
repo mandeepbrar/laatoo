@@ -9,6 +9,7 @@ const (
 	RELATIVE_DIR           = "relativedir"
 	CONF_CONFIG_DIR        = "config"
 	CONF_CONFIG_FILE       = "config.json"
+	CONF_MODULES_DIR       = "modules"
 	CONF_OBJECTLDR_OBJECTS = "objects"
 	CONF_OBJECTLDR_METHODS = "methods"
 	CONST_ALL_PERMISSIONS  = "AllPermissions"

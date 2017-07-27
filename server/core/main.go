@@ -26,7 +26,10 @@ func main(rootctx *serverContext, configDir string) error {
 	//create the server
 	//object loader and engines are created
 	ctx := rootctx.SubContext("Creating server")
-	serverHandle := newServer(ctx.(*serverContext), configDir)
+	serverHandle, err := newServer(ctx.(*serverContext), configDir)
+	if err != nil {
+		return err
+	}
 
 	//initialize server
 	//factory and service manager are configured

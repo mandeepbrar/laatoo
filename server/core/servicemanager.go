@@ -63,6 +63,14 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
+func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (server.Service, error) {
+	elem, ok := svcMgr.servicesStore[serviceName]
+	if ok {
+		return elem, nil
+	}
+	return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", serviceName)
+}
+
 //create services within an application
 func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config.Config) error {
 	//get a map of all the services

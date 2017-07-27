@@ -19,14 +19,18 @@ type application struct {
 	applets map[string]server.Applet
 }
 
-func newApplication(svrCtx *serverContext, name string, env *environment, baseDir string) (*application, *applicationProxy) {
+func newApplication(svrCtx *serverContext, name string, env *environment, baseDir string) (*application, *applicationProxy, error) {
 	app := &application{env: env, applets: make(map[string]server.Applet, 1)}
 	proxy := &applicationProxy{app: app}
-	app.abstractserver = newAbstractServer(svrCtx, name, env.abstractserver, proxy, baseDir)
+	abstractserver, err := newAbstractServer(svrCtx, name, env.abstractserver, proxy, baseDir)
+	if err != nil {
+		return nil, nil, err
+	}
+	app.abstractserver = abstractserver
 	app.proxy = proxy
 	svrCtx.Set(constants.RELATIVE_DIR, constants.CONF_APPLICATIONS)
 	log.Debug(svrCtx, "Created application", "Name", name)
-	return app, proxy
+	return app, proxy, nil
 }
 
 //initialize application with object loader, factory manager, service manager

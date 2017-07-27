@@ -1,0 +1,11 @@
+FROM laatoo:latest
+
+COPY list /
+
+COPY dist/keys /
+
+COPY site/publicdir /
+
+COPY dist/config/local config/environments/local
+
+COPY dist/lib/punjabimehfil lib/laatoo/applications/

@@ -140,7 +140,7 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
 	pluginsFolder, ok := conf.GetString(constants.CONF_OBJECTLDR_OBJECTS)
 	if ok {
-		if err := objLoader.loadPluginsFolder(ctx, pluginsFolder); err != nil {
+		if err := objLoader.loadPluginsFolderIfExists(ctx, pluginsFolder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}

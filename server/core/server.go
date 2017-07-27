@@ -26,7 +26,7 @@ type serverObject struct {
 }
 
 //Create a new server
-func newServer(ctx *serverContext, baseDir string) *serverObject {
+func newServer(ctx *serverContext, baseDir string) (*serverObject, error) {
 	ctx.Set(constants.RELATIVE_DIR, constants.CONF_APP_SERVER)
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
@@ -37,11 +37,15 @@ func newServer(ctx *serverContext, baseDir string) *serverObject {
 	ctx.setElements(core.ContextMap{core.ServerElementServer: svrElem})
 
 	//	svrContext := ctx.SubContext("Abstract Server")
-	svr.abstractserver = newAbstractServer(ctx, "Server", nil, svrElem, baseDir)
+	abstractserver, err := newAbstractServer(ctx, "Server", nil, svrElem, baseDir)
+	if err != nil {
+		return nil, err
+	}
+	svr.abstractserver = abstractserver
 
 	log.Info(ctx, "Created server")
 
-	return svr
+	return svr, nil
 }
 
 //initialize the server with the read config
@@ -82,11 +86,14 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	}
 
 	log.Trace(envCreate, "Creating Environment")
-	envHandle, envElem := newEnvironment(envCreate, name, svr, baseDir)
+	envHandle, envElem, err := newEnvironment(envCreate, name, svr, baseDir)
+	if err != nil {
+		return err
+	}
 	log.Debug(envCreate, "Created environment")
 
 	envInit := ctx.SubContext("Initialize").(*serverContext)
-	err := envHandle.Initialize(envInit, envConf)
+	err = envHandle.Initialize(envInit, envConf)
 	if err != nil {
 		return errors.WrapError(envInit, err)
 	}

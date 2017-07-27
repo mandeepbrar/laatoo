@@ -1,0 +1,1 @@
+docker run -it --rm -v /home/mandeep/goprogs/src/laatoo/config/designer:/config/environments/designer -v /home/mandeep/goprogs/src/laatoo/dist/lib/designer:/lib/laatoo/applications/designer -v /home/mandeep/goprogs/src/laatoo/dist/bin:/bin  -v /home/mandeep/goprogs/src/laatoo/designer/publicdir:/bin/publicdir --net="host" designertester:latest

@@ -2,7 +2,6 @@ package entities
 
 import (
 	"laatoo/sdk/core"
-	"laatoo/sdk/registry"
 
 	"github.com/twinj/uuid"
 )
@@ -10,10 +9,6 @@ import (
 const (
 	ENTITY_SERVER_NAME = "Server"
 )
-
-func init() {
-	registry.RegisterObject(ENTITY_SERVER_NAME, CreateServer, CreateServerCollection)
-}
 
 //Creates object
 func CreateServer(ctx core.Context, args core.MethodArgs) (interface{}, error) {
