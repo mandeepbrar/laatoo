@@ -32,9 +32,16 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_CHANNELS, chanMgr.createChannel, true); err != nil {
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+
+	if err := chanMgr.loadChannelsFromFolder(ctx, baseDir); err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	return nil
+}
+
+func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 
 	for {
 		channelsToCreate := len(chanMgr.secondPass)
@@ -55,10 +62,6 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		}
 	}
 
-	return nil
-}
-
-func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 	svcmgrStartCtx := ctx.(*serverContext)
 	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
 
@@ -88,6 +91,10 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "No such channel", channelName)
 	}
 }*/
+
+func (chanMgr *channelManager) loadChannelsFromFolder(ctx core.ServerContext, folder string) error {
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_CHANNELS, chanMgr.createChannel, true)
+}
 
 func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, chansToReview map[string]config.Config) error {
 	for channelName, channelConf := range chansToReview {

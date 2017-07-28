@@ -1,4 +1,4 @@
-package rules
+package core
 
 import (
 	"laatoo/sdk/components/rules"
@@ -17,14 +17,12 @@ type rulesManager struct {
 }
 
 func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-
-	rulesConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_RULES)
+	ruleMgrCtx := ctx.SubContext("Rules Manager")
+	rulesConf, err, ok := common.ConfigFileAdapter(ruleMgrCtx, conf, constants.CONF_RULES)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(ruleMgrCtx, err)
 	}
-
 	if ok {
-		ruleMgrCtx := ctx.SubContext("Rules Manager")
 		log.Debug(ruleMgrCtx, "Initializing rules manager")
 		ruleNames := rulesConf.AllConfigurations()
 		for _, ruleName := range ruleNames {
@@ -40,14 +38,16 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_RULES, rm.processRuleConf, true); err != nil {
-		return err
-	}
-
-	return nil
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	return rm.loadRulesFromDirectory(ruleMgrCtx, baseDir)
 }
+
 func (rm *rulesManager) Start(ctx core.ServerContext) error {
 	return nil
+}
+
+func (rm *rulesManager) loadRulesFromDirectory(ctx core.ServerContext, baseDir string) error {
+	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_RULES, rm.processRuleConf, true)
 }
 
 func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {

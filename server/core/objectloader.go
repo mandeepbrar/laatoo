@@ -1,4 +1,4 @@
-package objects
+package core
 
 import (
 	"laatoo/sdk/config"
@@ -162,10 +162,10 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 }
 
 func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}) {
-	objLoader.registerObjectFactory(ctx, objectName, NewObjectType(object))
+	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object))
 }
 func (objLoader *objectLoader) registerObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) {
-	objLoader.registerObjectFactory(ctx, objectName, NewObjectFactory(objectCreator, objectCollectionCreator))
+	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(objectCreator, objectCollectionCreator))
 }
 func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectName string, factory core.ObjectFactory) {
 	_, ok := objLoader.objectsFactoryRegister[objectName]

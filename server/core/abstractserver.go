@@ -1,17 +1,11 @@
 package core
 
 import (
-	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/sdk/utils"
 	"laatoo/server/constants"
-	"os"
-	"path"
-	"path/filepath"
 )
 
 const (
@@ -39,6 +33,9 @@ type abstractserver struct {
 
 	messagingManager       server.MessagingManager
 	messagingManagerHandle server.ServerElementHandle
+
+	moduleManager       server.ModuleManager
+	moduleManagerHandle server.ServerElementHandle
 
 	taskManager       server.TaskManager
 	taskManagerHandle server.ServerElementHandle
@@ -74,12 +71,13 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 	as.engines = make(map[string]server.Engine)
 	as.engineConf = make(map[string]config.Config)
 	as.createNonConfComponents(svrCtx, name, parent, proxy)
-	if err := as.installModules(svrCtx, baseDir); err != nil {
+	/*	if err := as.installModules(svrCtx, baseDir); err != nil {
 		return nil, err
-	}
+	}*/
 	return as, nil
 }
 
+/*
 func (as *abstractserver) installModules(ctx *serverContext, baseDir string) error {
 	modulesDir := path.Join(baseDir, constants.CONF_MODULES_DIR)
 	ok, fi, _ := utils.FileExists(modulesDir)
@@ -132,29 +130,27 @@ func (as *abstractserver) installModule(ctx *serverContext, baseDir, moduleFileN
 	if err := utils.Unzip(moduleFileName, moduleDir); err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	/*confFile := path.Join(moduleDir, constants.CONF_CONFIG_FILE)
-	conf, err := common.NewConfigFromFile(confFile)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}*/
+
+	prefix := fmt.Sprintf("__%s__.", modulename)
 
 	servicesPath := path.Join(moduleDir, constants.CONF_SERVICES)
 	ok, _, _ := utils.FileExists(servicesPath)
 	if ok {
-		utils.CopyDir(path.Join(baseDir, constants.CONF_SERVICES), servicesPath)
+		utils.CopyDir(servicesPath, path.Join(baseDir, modulename, constants.CONF_SERVICES), prefix)
 	}
 
 	factoriesPath := path.Join(moduleDir, constants.CONF_FACTORIES)
 	ok, _, _ = utils.FileExists(factoriesPath)
 	if ok {
-		utils.CopyDir(path.Join(baseDir, constants.CONF_FACTORIES), factoriesPath)
+		utils.CopyDir(factoriesPath, path.Join(baseDir, modulename, constants.CONF_FACTORIES), prefix)
 	}
 
 	objectsPath := path.Join(moduleDir, constants.CONF_OBJECTLDR_OBJECTS)
 	ok, _, _ = utils.FileExists(objectsPath)
 	if ok {
-		utils.CopyDir(path.Join(baseDir, constants.CONF_OBJECTLDR_OBJECTS), objectsPath)
+		utils.CopyDir(objectsPath, path.Join(baseDir, modulename, constants.CONF_OBJECTLDR_OBJECTS), prefix)
 	}
 
 	return nil
 }
+*/

@@ -1,4 +1,4 @@
-package objects
+package core
 
 import (
 	"laatoo/sdk/core"
@@ -6,7 +6,7 @@ import (
 )
 
 //service method for doing various tasks
-func NewObjectFactory(objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) core.ObjectFactory {
+func newObjectFactory(objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) core.ObjectFactory {
 	if objectCreator != nil {
 		return &objectFactory{objectCreator: objectCreator, objectCollectionCreator: objectCollectionCreator}
 	} else {
@@ -14,7 +14,7 @@ func NewObjectFactory(objectCreator core.ObjectCreator, objectCollectionCreator 
 	}
 }
 
-func NewObjectType(obj interface{}) *objectFactory {
+func newObjectType(obj interface{}) *objectFactory {
 	typ := reflect.TypeOf(obj)
 	slice := reflect.MakeSlice(reflect.SliceOf(typ), 0, 0)
 	slicTyp := slice.Type()

@@ -33,9 +33,11 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
 	basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 	log.Trace(ctx, "*************** Processing service manager", " base directory", basedir)
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_SERVICES, svcMgr.createService, true); err != nil {
+	err = svcMgr.loadServicesFromFolder(ctx, basedir)
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
@@ -61,6 +63,10 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 		}
 	}
 	return nil
+}
+
+func (svcMgr *serviceManager) loadServicesFromFolder(ctx core.ServerContext, folderName string) error {
+	return common.ProcessDirectoryFiles(ctx, folderName, constants.CONF_SERVICES, svcMgr.createService, true)
 }
 
 func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (server.Service, error) {

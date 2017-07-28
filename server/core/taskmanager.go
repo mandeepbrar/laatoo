@@ -1,4 +1,4 @@
-package tasks
+package core
 
 import (
 	"encoding/json"
@@ -56,11 +56,13 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(tskmgrInitializeCtx, constants.CONF_TASKS, tskMgr.processTaskConf, true); err != nil {
-		return err
-	}
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 
-	return nil
+	return tskMgr.loadTasksFromDirectory(ctx, baseDir)
+}
+
+func (tskMgr *taskManager) loadTasksFromDirectory(ctx core.ServerContext, baseDir string) error {
+	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_TASKS, tskMgr.processTaskConf, true)
 }
 
 func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {

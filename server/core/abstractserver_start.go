@@ -40,6 +40,13 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Trace(chanstart, "Started channel managers")
 
+	modstart := ctx.SubContext("Start module manager")
+	err = as.moduleManagerHandle.Start(modstart)
+	if err != nil {
+		return errors.WrapError(modstart, err)
+	}
+	log.Trace(chanstart, "Started module managers")
+
 	fmCtx := ctx.SubContext("Start Factory Manager")
 	err = as.factoryManagerHandle.Start(fmCtx)
 	if err != nil {

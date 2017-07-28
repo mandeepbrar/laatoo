@@ -40,7 +40,9 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_FACTORIES, facMgr.createServiceFactory, true); err != nil {
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+
+	if err := facMgr.loadFactoriesFromFolder(ctx, baseDir); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
@@ -61,6 +63,10 @@ func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 		}
 	}
 	return nil
+}
+
+func (facMgr *factoryManager) loadFactoriesFromFolder(ctx core.ServerContext, baseDir string) error {
+	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_FACTORIES, facMgr.createServiceFactory, true)
 }
 
 func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, conf config.Config) error {

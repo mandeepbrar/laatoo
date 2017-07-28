@@ -1,4 +1,4 @@
-package objects
+package core
 
 import "laatoo/sdk/core"
 

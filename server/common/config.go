@@ -82,9 +82,8 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 	return nil
 }
 
-func ProcessDirectoryFiles(ctx core.ServerContext, dir string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-	subDir := path.Join(baseDir, dir)
+func ProcessDirectoryFiles(ctx core.ServerContext, baseDir string, object string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
+	subDir := path.Join(baseDir, object)
 	return processDirectoryFiles(ctx, subDir, processor, recurse)
 }
 

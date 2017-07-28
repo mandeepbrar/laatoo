@@ -1,4 +1,4 @@
-package rules
+package core
 
 import (
 	"laatoo/sdk/components/rules"

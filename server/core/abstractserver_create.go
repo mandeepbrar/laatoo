@@ -1,20 +1,18 @@
 package core
 
 import (
+	"laatoo/sdk/components"
+	"laatoo/sdk/components/rules"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
-	"laatoo/server/cache"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http"
 	slog "laatoo/server/log"
-	"laatoo/server/objects"
-	"laatoo/server/rules"
-	"laatoo/server/tasks"
 	"path"
 )
 
@@ -27,7 +25,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementLogger: logger})
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
-		objectLoaderHandle, objectLoader := objects.NewObjectLoader(objCreateCtx, name, proxy)
+		objectLoaderHandle, objectLoader := newObjectLoader(objCreateCtx, name, proxy)
 		as.objectLoaderHandle = objectLoaderHandle
 		as.objectLoader = objectLoader.(server.ObjectLoader)
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: objectLoader})
@@ -64,7 +62,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementLogger: logger})
 
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
-		childLoaderHandle, childLoader := objects.ChildLoader(objCreateCtx, name, loader, proxy)
+		childLoaderHandle, childLoader := childLoader(objCreateCtx, name, loader, proxy)
 		as.objectLoaderHandle = childLoaderHandle
 		as.objectLoader = childLoader.(server.ObjectLoader)
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: childLoader})
@@ -88,8 +86,16 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: childChannelMgr})
 	}
 
+	modCreateCtx := svrCtx.SubContext("Create Module Manager")
+	modMgrHandle, modMgr := as.newModuleManager(modCreateCtx, name, proxy)
+	if modMgr != nil {
+		as.moduleManager = modMgr
+		as.moduleManagerHandle = modMgrHandle
+	}
+	svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
+
 	taskCreateCtx := svrCtx.SubContext("Create Task Manager")
-	taskMgrHandle, taskMgr := tasks.NewTaskManager(taskCreateCtx, name)
+	taskMgrHandle, taskMgr := newTaskManager(taskCreateCtx, name)
 	if taskMgr != nil {
 		as.taskManager = taskMgr
 		as.taskManagerHandle = taskMgrHandle
@@ -97,7 +103,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 	svrCtx.setElements(core.ContextMap{core.ServerElementTaskManager: taskMgr})
 
 	rulesCreateCtx := svrCtx.SubContext("Create Rules Manager")
-	rulesMgrHandle, rulesMgr := rules.NewRulesManager(rulesCreateCtx, name)
+	rulesMgrHandle, rulesMgr := newRulesManager(rulesCreateCtx, name)
 	if rulesMgr != nil {
 		as.rulesManager = rulesMgr
 		as.rulesManagerHandle = rulesMgrHandle
@@ -319,7 +325,7 @@ func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Conf
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_ENGINES, as.processEngineConf, true); err != nil {
+	if err := common.ProcessDirectoryFiles(ctx, as.baseDir, constants.CONF_ENGINES, as.processEngineConf, true); err != nil {
 		return err
 	}
 	return nil
@@ -349,9 +355,9 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 	var cacheMgrHandle server.ServerElementHandle
 	var cacheMgr server.CacheManager
 	if as.parent == nil || as.parent.cacheManager == nil {
-		cacheMgrHandle, cacheMgr = cache.NewCacheManager(cacheMgrCreateCtx, "Root")
+		cacheMgrHandle, cacheMgr = newCacheManager(cacheMgrCreateCtx, "Root")
 	} else {
-		cacheMgrHandle, cacheMgr = cache.ChildCacheManager(cacheMgrCreateCtx, as.name, as.parent.cacheManager)
+		cacheMgrHandle, cacheMgr = childCacheManager(cacheMgrCreateCtx, as.name, as.parent.cacheManager)
 	}
 
 	if cacheMgr == nil && as.parent != nil {
@@ -379,4 +385,96 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
 	}
 	return engineHandle, engine, nil
+}
+
+func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+	mm := &moduleManager{name: name, parent: parentElem}
+	mmElem := &moduleManagerProxy{modMgr: mm}
+	mm.proxy = mmElem
+	return mm, mmElem
+}
+
+func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem}
+	ldrElem := &objectLoaderProxy{loader: ldr}
+	return ldr, ldrElem
+}
+
+func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+	objLdrProxy := parentLdr.(*objectLoaderProxy)
+	objLoader := objLdrProxy.loader
+	registry := make(map[string]core.ObjectFactory, len(objLoader.objectsFactoryRegister))
+	for k, v := range objLoader.objectsFactoryRegister {
+		allowed := true
+		for _, filter := range filters {
+			if !filter.Allowed(ctx, k) {
+				allowed = false
+				break
+			}
+		}
+		if allowed {
+			registry[k] = v
+		}
+	}
+	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry)
+	ldr := &objectLoader{objectsFactoryRegister: registry, name: name, parentElem: parent}
+	ldrElem := &objectLoaderProxy{loader: ldr}
+	return ldr, ldrElem
+}
+
+func newRulesManager(ctx core.ServerContext, name string) (*rulesManager, *rulesManagerProxy) {
+	rulesMgr := &rulesManager{registeredRules: make(map[string][]rules.Rule, 10), name: name}
+	rulesElem := &rulesManagerProxy{manager: rulesMgr}
+	rulesMgr.proxy = rulesElem
+	return rulesMgr, rulesElem
+}
+
+func newTaskManager(ctx core.ServerContext, name string) (*taskManager, *taskManagerProxy) {
+	tskMgr := &taskManager{name: name, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]server.Service, 10),
+		taskPublishers: make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10), taskProcessorNames: make(map[string]string, 10)}
+	tskElem := &taskManagerProxy{manager: tskMgr}
+	tskMgr.proxy = tskElem
+	return tskMgr, tskElem
+}
+
+func newCacheManager(ctx core.ServerContext, name string) (*cacheManager, *cacheManagerProxy) {
+	cacheMgr := &cacheManager{name: name, registeredCacheNames: make(map[string]string, 10), registeredCaches: make(map[string]components.CacheComponent, 10)}
+	cacheElem := &cacheManagerProxy{manager: cacheMgr}
+	cacheMgr.proxy = cacheElem
+	return cacheMgr, cacheElem
+}
+
+func childCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {
+	cacheMgrProxy := parentCacheManager.(*cacheManagerProxy)
+	cacheMgr := cacheMgrProxy.manager
+	registeredCaches := make(map[string]components.CacheComponent, len(cacheMgr.registeredCaches))
+	registeredCacheNames := make(map[string]string, len(cacheMgr.registeredCacheNames))
+	for k, v := range cacheMgr.registeredCaches {
+		allowed := true
+		for _, filter := range filters {
+			if !filter.Allowed(ctx, k) {
+				allowed = false
+				break
+			}
+		}
+		if allowed {
+			registeredCaches[k] = v
+		}
+	}
+	for k, v := range cacheMgr.registeredCacheNames {
+		allowed := true
+		for _, filter := range filters {
+			if !filter.Allowed(ctx, k) {
+				allowed = false
+				break
+			}
+		}
+		if allowed {
+			registeredCacheNames[k] = v
+		}
+	}
+	childcacheMgr := &cacheManager{name: name, registeredCaches: registeredCaches, registeredCacheNames: registeredCacheNames}
+	childcacheMgrElem := &cacheManagerProxy{manager: childcacheMgr}
+	childcacheMgr.proxy = childcacheMgrElem
+	return childcacheMgr, childcacheMgrElem
 }

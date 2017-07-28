@@ -1,4 +1,4 @@
-package cache
+package core
 
 import (
 	"laatoo/sdk/components"
@@ -40,12 +40,13 @@ func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 
 	log.Trace(ctx, "Process Caches directory")
+	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 
-	if err := common.ProcessDirectoryFiles(ctx, constants.CONF_CACHES, cm.processCache, true); err != nil {
-		return errors.WrapError(ctx, err)
-	}
+	return cm.loadCachesFromDirectory(ctx, baseDir)
+}
 
-	return nil
+func (cm *cacheManager) loadCachesFromDirectory(ctx core.ServerContext, baseDir string) error {
+	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_CACHES, cm.processCache, true)
 }
 
 func (cm *cacheManager) processCache(ctx core.ServerContext, cacheConf config.Config, cacheName string) error {

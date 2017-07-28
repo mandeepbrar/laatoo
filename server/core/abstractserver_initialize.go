@@ -79,6 +79,13 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		log.Debug(msginit, "Initialized messaging manager")
 	}
 
+	modsctx := ctx.SubContext("Modules Manager: " + as.name)
+	err = as.moduleManagerHandle.Initialize(modsctx, conf)
+	if err != nil {
+		return errors.WrapError(modsctx, err)
+	}
+	log.Debug(ctx, "Initialized modules manager")
+
 	taskctx := ctx.SubContext("Task Manager: " + as.name)
 	err = as.taskManagerHandle.Initialize(taskctx, conf)
 	if err != nil {
