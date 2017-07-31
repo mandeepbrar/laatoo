@@ -77,6 +77,9 @@ type contextElements struct {
 	rulesManager   server.RulesManager
 	cacheManager   server.CacheManager
 	taskManager    server.TaskManager
+	moduleManager  server.ModuleManager
+	module         server.Module
+
 	//open element for client applications
 	open1 core.ServerElement
 	open2 core.ServerElement
@@ -146,6 +149,10 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.elements.cacheManager
 	case core.ServerElementTaskManager:
 		return ctx.elements.taskManager
+	case core.ServerElementModuleManager:
+		return ctx.elements.moduleManager
+	case core.ServerElementModule:
+		return ctx.elements.module
 	case core.ServerElementLogger:
 		return ctx.elements.logger
 	case core.ServerElementOpen1:
@@ -198,6 +205,7 @@ func (ctx *serverContext) getElementsContextMap() core.ContextMap {
 		core.ServerElementChannel: ctx.elements.channel, core.ServerElementChannelManager: ctx.elements.channelManager, core.ServerElementSecurityHandler: ctx.elements.securityHandler,
 		core.ServerElementMessagingManager: ctx.elements.msgManager, core.ServerElementServiceResponseHandler: ctx.elements.serviceResponseHandler, core.ServerElementRulesManager: ctx.elements.rulesManager,
 		core.ServerElementCacheManager: ctx.elements.cacheManager, core.ServerElementTaskManager: ctx.elements.taskManager, core.ServerElementLogger: ctx.elements.logger,
+		core.ServerElementModuleManager: ctx.elements.moduleManager, core.ServerElementModule: ctx.elements.module,
 		core.ServerElementOpen1: ctx.elements.open1, core.ServerElementOpen2: ctx.elements.open2, core.ServerElementOpen3: ctx.elements.open3}
 }
 
@@ -323,6 +331,18 @@ func (ctx *serverContext) setElementReferences(elements core.ContextMap, ref boo
 				ctxElems.logger = nil
 			} else {
 				ctxElems.logger = element.(server.Logger)
+			}
+		case core.ServerElementModuleManager:
+			if element == nil {
+				ctxElems.moduleManager = nil
+			} else {
+				ctxElems.moduleManager = element.(server.ModuleManager)
+			}
+		case core.ServerElementModule:
+			if element == nil {
+				ctxElems.module = nil
+			} else {
+				ctxElems.module = element.(server.Module)
 			}
 		case core.ServerElementOpen1:
 			ctxElems.open1 = element

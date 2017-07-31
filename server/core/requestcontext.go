@@ -26,6 +26,10 @@ type requestContext struct {
 	//if the request is a subrequest, times are not reported and variables are not cleared
 	subRequest bool
 
+	responseData *core.Response
+
+	req *request
+
 	logger components.Logger
 }
 
@@ -51,7 +55,7 @@ func (ctx *requestContext) createRequest() *request {
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req,
 		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, subRequest: true}
 }
 
@@ -150,7 +154,6 @@ func (ctx *requestContext) IsAdmin() bool {
 	return ctx.admin
 }
 
-/*
 //sets or gets the response for a request
 func (ctx *requestContext) SetResponse(responseData *core.Response) {
 	ctx.responseData = responseData
@@ -162,7 +165,35 @@ func (ctx *requestContext) SetResponse(responseData *core.Response) {
 //gets response
 func (ctx *requestContext) GetResponse() *core.Response {
 	return ctx.responseData
-}*/
+}
+
+func (ctx *requestContext) GetRequest() core.Request {
+	return ctx.req
+}
+
+func (ctx *requestContext) GetBody() interface{} {
+	return ctx.req.GetBody()
+}
+
+func (ctx *requestContext) GetParam(name string) (core.Param, bool) {
+	return ctx.req.GetParam(name)
+}
+
+func (ctx *requestContext) GetParams() map[string]core.Param {
+	return ctx.req.GetParams()
+}
+
+func (ctx *requestContext) GetIntParam(name string) (int, bool) {
+	return ctx.req.GetIntParam(name)
+}
+
+func (ctx *requestContext) GetStringParam(name string) (string, bool) {
+	return ctx.req.GetStringParam(name)
+}
+
+func (ctx *requestContext) GetStringMapValue(name string) (map[string]interface{}, bool) {
+	return ctx.req.GetStringMapValue(name)
+}
 
 func (ctx *requestContext) HasPermission(perm string) bool {
 	if ctx.serverContext.elements.securityHandler != nil {

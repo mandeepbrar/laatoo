@@ -150,12 +150,19 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 		return errors.WrapError(ctx, err)
 	}
 
-	//get the factory from proxy
 	svcfactoryProxy := facElem.(*serviceFactoryProxy)
-
 	facCtx := svcfactoryProxy.fac.svrContext
 
-	svcCtx := facCtx.newContext("Service: " + serviceAlias)
+	var svcCtx *serverContext
+
+	mod := svcCreateCtx.GetServerElement(core.ServerElementModule)
+
+	if mod != nil {
+		svcCtx = mod.(*module).svrContext.newContext("Service: " + serviceAlias)
+	} else {
+		//get the factory from proxy
+		svcCtx = facCtx.newContext("Service: " + serviceAlias)
+	}
 
 	log.Trace(ctx, "levels", "factory", facCtx.level, "server", svcCreateCtx.level)
 	//use the latest context... i.e. server.. environment or application....

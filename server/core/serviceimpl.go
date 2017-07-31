@@ -33,34 +33,34 @@ func (impl *serviceImpl) Invoke(core.RequestContext, core.Request) (*core.Respon
 	return core.StatusSuccessResponse, nil
 }
 
-func (impl *serviceImpl) ConfigureService(requestType string, collection bool, stream bool, params []string, config []string, description string) {
-	impl.SetRequestType(requestType, collection, stream)
-	impl.AddStringParams(params, nil)
-	impl.AddStringConfigurations(config, nil)
-	impl.SetDescription(description)
+func (impl *serviceImpl) ConfigureService(ctx core.ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string) {
+	impl.SetRequestType(ctx, requestType, collection, stream)
+	impl.AddStringParams(ctx, params, nil)
+	impl.AddStringConfigurations(ctx, config, nil)
+	impl.SetDescription(ctx, description)
 }
 
-func (impl *serviceImpl) InjectServices(services map[string]string) {
+func (impl *serviceImpl) InjectServices(ctx core.ServerContext, services map[string]string) {
 	impl.svcInfo.svcsToInject = services
 }
 
-func (impl *serviceImpl) AddParams(params map[string]string) {
+func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string) {
 	for name, typ := range params {
 		impl.svcInfo.request.params[name] = &param{name, typ, false, nil}
 	}
 }
 
-func (impl *serviceImpl) AddParam(name string, datatype string, collection bool) {
+func (impl *serviceImpl) AddParam(ctx core.ServerContext, name string, datatype string, collection bool) {
 	impl.svcInfo.request.params[name] = &param{name, datatype, collection, nil}
 }
 
-func (impl *serviceImpl) AddCollectionParams(params map[string]string) {
+func (impl *serviceImpl) AddCollectionParams(ctx core.ServerContext, params map[string]string) {
 	for name, typ := range params {
 		impl.svcInfo.request.params[name] = &param{name, typ, true, nil}
 	}
 }
 
-func (impl *serviceImpl) AddStringParams(params []string, defaultValues []string) {
+func (impl *serviceImpl) AddStringParams(ctx core.ServerContext, params []string, defaultValues []string) {
 	for index, name := range params {
 		defaultValue := ""
 		if defaultValues != nil {
@@ -70,11 +70,11 @@ func (impl *serviceImpl) AddStringParams(params []string, defaultValues []string
 	}
 }
 
-func (impl *serviceImpl) AddStringParam(name string) {
-	impl.AddParam(name, config.CONF_OBJECT_STRING, false)
+func (impl *serviceImpl) AddStringParam(ctx core.ServerContext, name string) {
+	impl.AddParam(ctx, name, config.CONF_OBJECT_STRING, false)
 }
 
-func (impl *serviceImpl) AddStringConfigurations(configs []string, defaultValues []string) {
+func (impl *serviceImpl) AddStringConfigurations(ctx core.ServerContext, configs []string, defaultValues []string) {
 	for index, name := range configs {
 		defaultValue := ""
 		if defaultValues != nil {
@@ -88,17 +88,17 @@ func (impl *serviceImpl) AddStringConfigurations(configs []string, defaultValues
 	}
 }
 
-func (impl *serviceImpl) AddStringConfiguration(name string) {
-	impl.AddConfigurations(map[string]string{name: config.CONF_OBJECT_STRING})
+func (impl *serviceImpl) AddStringConfiguration(ctx core.ServerContext, name string) {
+	impl.AddConfigurations(ctx, map[string]string{name: config.CONF_OBJECT_STRING})
 }
 
-func (impl *serviceImpl) AddConfigurations(configs map[string]string) {
+func (impl *serviceImpl) AddConfigurations(ctx core.ServerContext, configs map[string]string) {
 	for name, typ := range configs {
 		impl.svcInfo.configurations[name] = &configuration{name, typ, true, nil, nil}
 	}
 }
 
-func (impl *serviceImpl) AddOptionalConfigurations(configs map[string]string, defaultValues map[string]interface{}) {
+func (impl *serviceImpl) AddOptionalConfigurations(ctx core.ServerContext, configs map[string]string, defaultValues map[string]interface{}) {
 	for name, typ := range configs {
 		var defaultValue interface{}
 		if defaultValues != nil {
@@ -108,30 +108,41 @@ func (impl *serviceImpl) AddOptionalConfigurations(configs map[string]string, de
 	}
 }
 
-func (impl *serviceImpl) SetRequestType(datatype string, collection bool, stream bool) {
+func (impl *serviceImpl) SetRequestType(ctx core.ServerContext, datatype string, collection bool, stream bool) {
 	impl.svcInfo.request.dataType = datatype
 	impl.svcInfo.request.isCollection = collection
 	impl.svcInfo.request.streaming = stream
 }
 
-func (impl *serviceImpl) SetResponseType(stream bool) {
+func (impl *serviceImpl) SetResponseType(ctx core.ServerContext, stream bool) {
 	impl.svcInfo.response.streaming = stream
 }
 
-func (impl *serviceImpl) GetConfiguration(name string) (interface{}, bool) {
-	c, ok := impl.svcInfo.configurations[name]
-	if !ok {
-		return nil, false
+func (impl *serviceImpl) GetConfiguration(ctx core.ServerContext, name string) (interface{}, bool) {
+	var val interface{}
+	c, found := impl.svcInfo.configurations[name]
+	if !found {
+		val, found = ctx.Get(name)
+		if !found {
+			s, found := ctx.GetVariable(name)
+			if found {
+				val = s
+			}
+		}
+	} else {
+		conf := c.(*configuration)
+		if conf.value != nil {
+			val = conf.value
+		} else {
+			val = conf.defaultValue
+			found = false
+		}
 	}
-	conf := c.(*configuration)
-	if conf.value != nil {
-		return conf.value, true
-	}
-	return conf.defaultValue, false
+	return val, found
 }
 
-func (impl *serviceImpl) GetStringConfiguration(name string) (string, bool) {
-	c, ok := impl.GetConfiguration(name)
+func (impl *serviceImpl) GetStringConfiguration(ctx core.ServerContext, name string) (string, bool) {
+	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok {
 		if c != nil {
 			return c.(string), ok
@@ -142,8 +153,8 @@ func (impl *serviceImpl) GetStringConfiguration(name string) (string, bool) {
 	return c.(string), ok
 }
 
-func (impl *serviceImpl) GetBoolConfiguration(name string) (bool, bool) {
-	c, ok := impl.GetConfiguration(name)
+func (impl *serviceImpl) GetBoolConfiguration(ctx core.ServerContext, name string) (bool, bool) {
+	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok {
 		if c != nil {
 			return c.(bool), ok
@@ -154,8 +165,8 @@ func (impl *serviceImpl) GetBoolConfiguration(name string) (bool, bool) {
 	return c.(bool), ok
 }
 
-func (impl *serviceImpl) GetMapConfiguration(name string) (config.Config, bool) {
-	c, ok := impl.GetConfiguration(name)
+func (impl *serviceImpl) GetMapConfiguration(ctx core.ServerContext, name string) (config.Config, bool) {
+	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok {
 		if c != nil {
 			return c.(config.Config), ok
@@ -166,61 +177,10 @@ func (impl *serviceImpl) GetMapConfiguration(name string) (config.Config, bool) 
 	return c.(config.Config), ok
 }
 
-func (impl *serviceImpl) SetComponent(component bool) {
+func (impl *serviceImpl) SetComponent(ctx core.ServerContext, component bool) {
 	impl.svcInfo.component = component
 }
 
-func (impl *serviceImpl) SetDescription(description string) {
+func (impl *serviceImpl) SetDescription(ctx core.ServerContext, description string) {
 	impl.svcInfo.description = description
 }
-
-/*
-type ServiceParams map[string]*Param
-type ServiceConfigurations map[string]*Configuration
-
-func (paramsMap ServiceParams) AddParam(name string, val interface{}, typ string, collection bool) {
-	paramsMap[name] = &Param{name, val, typ, collection}
-}
-
-func (configs ServiceConfigurations) AddConfiguration(name string, val interface{}, typ string, required bool) {
-	configs[name] = &Configuration{name, val, typ, required}
-}
-
-func BuildParams(names []string) ServiceParams {
-	smap := make(ServiceParams)
-	if names != nil {
-		for _, name := range names {
-			smap.AddParam(name, "", "", false)
-		}
-	}
-	return smap
-}
-
-func BuildConfigurations(configs []string) ServiceConfigurations {
-	cmap := make(ServiceConfigurations)
-	if configs != nil {
-		for _, name := range configs {
-			cmap.AddConfiguration(name, "", "", true)
-		}
-	}
-	return cmap
-}
-
-func BuildRequestInfo(bodytype string, params []string) *RequestInfo {
-	return &RequestInfo{DataType: bodytype, Params: BuildParams(params)}
-}
-
-func BuildServiceInfo(bodytype string, params []string, configs []string) *ServiceInfo {
-	return &ServiceInfo{Request: BuildRequestInfo(bodytype, params), Configurations: BuildConfigurations(configs)}
-}
-
-type Request interface {
-	GetBody() interface{}
-	SetBody(interface{})
-	GetParams() ServiceParams
-	SetParams(ServiceParams)
-	GetParam(string) (*Param, bool)
-	AddParam(name string, val string)
-	AddObjectParam(name string, val interface{}, typ string, collection bool)
-}
-*/

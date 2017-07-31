@@ -149,14 +149,14 @@ func (svc *MemoryCacheService) Decrement(ctx core.RequestContext, bucket string,
 }
 
 func (ms *MemoryCacheService) Initialize(ctx core.ServerContext) error {
-	ms.SetComponent(true)
-	ms.SetDescription("Memory cache component service")
-	ms.AddOptionalConfigurations(map[string]string{config.ENCODING: config.CONF_OBJECT_STRING}, nil)
+	ms.SetComponent(ctx, true)
+	ms.SetDescription(ctx, "Memory cache component service")
+	ms.AddOptionalConfigurations(ctx, map[string]string{config.ENCODING: config.CONF_OBJECT_STRING}, nil)
 	return nil
 }
 
 func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
-	encoding, ok := ms.GetStringConfiguration(config.ENCODING)
+	encoding, ok := ms.GetStringConfiguration(ctx, config.ENCODING)
 	if ok {
 		ms.cacheEncoder = common.NewCacheEncoder(ctx, encoding)
 	} else {

@@ -142,8 +142,17 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 	}
 
 	if factory != nil {
-		//derivce new context from abstract server context
-		facCtx := facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
+
+		var facCtx *serverContext
+
+		mod := ctx.GetServerElement(core.ServerElementModule)
+
+		if mod != nil {
+			facCtx = mod.(*module).svrContext.newContext("Factory: " + factoryAlias)
+		} else {
+			//derivce new context from abstract server context
+			facCtx = facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
+		}
 
 		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
 		facProxy := &serviceFactoryProxy{fac: fac}

@@ -48,6 +48,14 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		as.channelManagerHandle = channelMgrHandle
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: channelMgr})
 
+		modCreateCtx := svrCtx.SubContext("Create Module Manager")
+		modMgrHandle, modMgr := newModuleManager(modCreateCtx, name, proxy)
+		if modMgr != nil {
+			as.moduleManager = modMgr
+			as.moduleManagerHandle = modMgrHandle
+		}
+		svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
+
 	} else {
 
 		logger := parent.logger
@@ -55,6 +63,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		factoryManager := parent.factoryManager
 		serviceManager := parent.serviceManager
 		channelMgr := parent.channelManager
+		moduleMgr := parent.moduleManager
 
 		loggerHandle, logger := slog.ChildLogger(svrCtx, name, logger)
 		as.logger = logger
@@ -84,15 +93,15 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		as.channelManagerHandle = childChanMgrHandle
 		as.channelManager = childChannelMgr.(server.ChannelManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: childChannelMgr})
-	}
 
-	modCreateCtx := svrCtx.SubContext("Create Module Manager")
-	modMgrHandle, modMgr := as.newModuleManager(modCreateCtx, name, proxy)
-	if modMgr != nil {
-		as.moduleManager = modMgr
-		as.moduleManagerHandle = modMgrHandle
+		modCreateCtx := svrCtx.SubContext("Create Module Manager")
+		modMgrHandle, modMgr := childModuleManager(modCreateCtx, name, moduleMgr, proxy)
+		if modMgr != nil {
+			as.moduleManager = modMgr
+			as.moduleManagerHandle = modMgrHandle
+		}
+		svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
 	}
-	svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
 
 	taskCreateCtx := svrCtx.SubContext("Create Task Manager")
 	taskMgrHandle, taskMgr := newTaskManager(taskCreateCtx, name)
@@ -387,11 +396,23 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	return engineHandle, engine, nil
 }
 
-func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem}
+func newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*module)}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
+}
+
+func childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+	modMgrProxy := parentModMgr.(*moduleManagerProxy)
+	modMgr := modMgrProxy.modMgr
+	modules := make(map[string]*module, len(modMgr.modules))
+	for k, v := range modMgr.modules {
+		modules[k] = v
+	}
+	childModMgr := &moduleManager{name: name, parent: parent, modules: modules}
+	childModMgrProxy := &moduleManagerProxy{modMgr: childModMgr}
+	return childModMgr, childModMgrProxy
 }
 
 func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {

@@ -15,14 +15,14 @@ type ServiceAggregator struct {
 }
 
 func (svc *ServiceAggregator) Initialize(ctx core.ServerContext) error {
-	svc.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddConfigurations(map[string]string{constants.CONF_SERVICES: config.CONF_OBJECT_CONFIG})
+	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
+	svc.AddConfigurations(ctx, map[string]string{constants.CONF_SERVICES: config.CONF_OBJECT_CONFIG})
 	return nil
 }
 
 //The services start serving when this method is called
 func (svc *ServiceAggregator) Start(ctx core.ServerContext) error {
-	c, _ := svc.GetConfiguration(constants.CONF_SERVICES)
+	c, _ := svc.GetConfiguration(ctx, constants.CONF_SERVICES)
 	svcConfig := c.(config.Config)
 	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
 	svcs := svcConfig.AllConfigurations()

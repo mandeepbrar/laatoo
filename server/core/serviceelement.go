@@ -219,7 +219,7 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.
 	return nil
 }
 
-func (svc *serverService) handleEncodedRequest(ctx core.RequestContext, vals map[string]interface{}, body []byte) (*core.Response, error) {
+func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[string]interface{}, body []byte) (*core.Response, error) {
 	codecname := "json"
 	co, ok := vals["encoding"]
 	if ok {
@@ -260,26 +260,35 @@ func (svc *serverService) handleEncodedRequest(ctx core.RequestContext, vals map
 	return svc.handleRequest(ctx, vals, reqData)
 }
 
-func (svc *serverService) handleRequest(ctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
-	req := ctx.(*requestContext).createRequest()
+func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
+	req := ctx.createRequest()
 	req.setBody(body)
 	if err := svc.populateParams(ctx, vals, req); err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	return svc.invoke(ctx, req)
+	ctx.req = req
+	err := svc.invoke(ctx)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	return ctx.GetResponse(), nil
 }
 
-func (svc *serverService) handleStreamedRequest(ctx core.RequestContext, vals map[string]interface{}, body io.ReadCloser) (*core.Response, error) {
-	req := ctx.(*requestContext).createRequest()
+func (svc *serverService) handleStreamedRequest(ctx *requestContext, vals map[string]interface{}, body io.ReadCloser) (*core.Response, error) {
+	req := ctx.createRequest()
 	req.setBody(body)
 	if err := svc.populateParams(ctx, vals, req); err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-
-	return svc.invoke(ctx, req)
+	ctx.req = req
+	err := svc.invoke(ctx)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	return ctx.GetResponse(), nil
 }
 
-func (svc *serverService) populateParams(ctx core.RequestContext, vals map[string]interface{}, req *request) error {
+func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request) error {
 	reqParams := make(map[string]core.Param)
 	reqInfo := svc.service.Info().GetRequestInfo()
 	params := reqInfo.GetParams()
@@ -317,22 +326,24 @@ func (svc *serverService) populateParams(ctx core.RequestContext, vals map[strin
 	return nil
 }
 
-func (svc *serverService) invoke(ctx core.RequestContext, request core.Request) (*core.Response, error) {
+func (svc *serverService) invoke(ctx core.RequestContext) error {
 	for _, svcStruct := range svc.middleware {
 		log.Trace(ctx, "Invoking middleware service", "name", svcStruct.name)
 		/*req, err := svc.createRequest(ctx, svcStruct, request)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}*/
-		res, err := svc.service.Invoke(ctx, request)
+		err := svc.service.Invoke(ctx)
 		if err != nil {
 			log.Trace(ctx, "got error ", "service name", svc.name)
-			return nil, errors.WrapError(ctx, err)
+			return errors.WrapError(ctx, err)
 		}
+
+		res := ctx.GetResponse()
 		if res != nil {
 			log.Trace(ctx, "Got response ", "service name", svc.name)
-			return res, nil
+			return nil
 		}
 	}
-	return nil, nil
+	return nil
 }

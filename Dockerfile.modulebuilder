@@ -1,0 +1,21 @@
+FROM laatoobase:latest
+
+VOLUME /plugin
+
+ENV name=plugin
+
+ENV package=.
+
+RUN mkdir -p /go/src/laatoo
+
+COPY sdk /go/src/laatoo/sdk
+
+RUN mkdir -p /plugin/src
+
+COPY makelaatoomodule.sh /make.sh
+
+ENV GOPATH=$GOPATH:/plugin
+
+WORKDIR /plugin/src
+
+ENTRYPOINT /make.sh $name $package /plugin/dist/modules/
