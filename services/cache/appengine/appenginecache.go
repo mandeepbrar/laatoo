@@ -40,7 +40,7 @@ type AppengineCacheService struct {
 }
 
 func (svc *AppengineCacheService) Initialize(ctx core.ServerContext) error {
-	svc.SetComponent(true)
+	svc.SetComponent(ctx, true)
 	return nil
 }
 

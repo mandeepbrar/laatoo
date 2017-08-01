@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
+	"regexp"
 )
 
 func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
@@ -38,4 +39,13 @@ func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 		ctx.Set(constants.CONF_MIDDLEWARE, middleware)
 	}
 	log.Trace(ctx, "Middleware setup", "middleware", middleware)
+}
+
+var varReplacer = regexp.MustCompile(`\[(.*?)\]`)
+
+func FillVariables(ctx core.ServerContext, name string) string {
+	return varReplacer.ReplaceAllStringFunc(name, func(variableName string) string {
+		val, _ := ctx.GetVariable(variableName)
+		return val
+	})
 }

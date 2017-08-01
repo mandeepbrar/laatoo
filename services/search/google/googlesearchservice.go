@@ -15,7 +15,7 @@ import (
 
 const (
 	CONF_GOOGLESEARCH_SVC = "googlesearch"
-	CONF_GOOGLESEARCH_FAC = "googlesearch"
+	CONF_GOOGLESEARCH_FAC = "googlesearchfactory"
 )
 
 func Manifest() []core.PluginComponent {
@@ -32,9 +32,9 @@ type GoogleSearchService struct {
 
 func (gs *GoogleSearchService) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	gs.SetDescription("Google search service")
-	gs.SetRequestType(config.CONF_OBJECT_STRING, false, false)
-	gs.AddStringConfigurations([]string{search.CONF_INDEX, search.CONF_NUMOFRESULTS}, []string{"", "15"})
+	gs.SetDescription(ctx, "Google search service")
+	gs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
+	gs.AddStringConfigurations(ctx, []string{search.CONF_INDEX, search.CONF_NUMOFRESULTS}, []string{"", "15"})
 	return nil
 }
 
@@ -48,13 +48,13 @@ func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request)
 }
 
 func (gs *GoogleSearchService) Start(ctx core.ServerContext) error {
-	index, ok := gs.GetConfiguration(search.CONF_INDEX)
+	index, ok := gs.GetConfiguration(ctx, search.CONF_INDEX)
 	if !ok {
 		return errors.MissingConf(ctx, search.CONF_INDEX)
 	}
 	gs.indexName = index.(string)
 
-	num, _ := gs.GetConfiguration(search.CONF_INDEX)
+	num, _ := gs.GetConfiguration(ctx, search.CONF_INDEX)
 	var err error
 	gs.numOfResults, err = strconv.Atoi(num.(string))
 	if err != nil {

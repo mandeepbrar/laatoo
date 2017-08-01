@@ -1,0 +1,12 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "redispubsubfactory":"Redis pubsub factory",
+    "redispubsub":"Redis pubsub service"
+  },
+  "params":{
+    "redispubsubserver":"Address of redis server",
+    "redispubsubdb": "Redis db to be used for pubsub"
+  }
+}

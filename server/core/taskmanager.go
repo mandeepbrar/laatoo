@@ -75,18 +75,21 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
 	}
+	consumer = common.FillVariables(ctx, consumer)
 	tskMgr.taskConsumerNames[queueName] = consumer
 
 	processor, ok := conf.GetString(constants.CONF_TASK_PROCESSOR)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_PROCESSOR, "Task Name", taskName)
 	}
+	processor = common.FillVariables(ctx, processor)
 	tskMgr.taskProcessorNames[queueName] = processor
 
 	publisher, ok := conf.GetString(constants.CONF_TASK_PUBLISHER)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
 	}
+	publisher = common.FillVariables(ctx, publisher)
 	tskMgr.taskPublishers[queueName] = publisher
 	return nil
 }

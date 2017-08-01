@@ -1,0 +1,11 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "redis_cache":"Redis cache factory"
+  },
+  "params":{
+    "rediscacheserver":"Address of redis server",
+    "rediscachedb": "Redis db to be used for caching"
+  }
+}

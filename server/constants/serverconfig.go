@@ -22,6 +22,7 @@ const (
 	CONF_MODULE_OBJ        = "object"
 	CONF_MODULE_PARAMS     = "params"
 	CONF_MODULE_DISABLED   = "disabled"
+	CONF_MODULE            = "module"
 
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"

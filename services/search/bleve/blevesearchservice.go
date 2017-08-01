@@ -32,9 +32,9 @@ type BleveSearchService struct {
 
 func (bs *BleveSearchService) Initialize(ctx core.ServerContext) error {
 
-	bs.SetDescription("Bleve search service")
-	bs.SetRequestType(config.CONF_OBJECT_STRING, false, false)
-	bs.AddStringConfigurations([]string{searchsdk.CONF_INDEX, searchsdk.CONF_NUMOFRESULTS}, []string{"", "15"})
+	bs.SetDescription(ctx, "Bleve search service")
+	bs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
+	bs.AddStringConfigurations(ctx, []string{searchsdk.CONF_INDEX, searchsdk.CONF_NUMOFRESULTS}, []string{"", "15"})
 
 	return nil
 }
@@ -50,13 +50,13 @@ func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) 
 
 func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 
-	index, ok := bs.GetConfiguration(searchsdk.CONF_INDEX)
+	index, ok := bs.GetConfiguration(ctx, searchsdk.CONF_INDEX)
 	if !ok {
 		return errors.MissingConf(ctx, searchsdk.CONF_INDEX)
 	}
 	indexName := index.(string)
 
-	num, _ := bs.GetConfiguration(searchsdk.CONF_INDEX)
+	num, _ := bs.GetConfiguration(ctx, searchsdk.CONF_INDEX)
 	var err error
 	bs.numOfResults, err = strconv.Atoi(num.(string))
 	if err != nil {

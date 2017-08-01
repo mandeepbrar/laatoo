@@ -1,0 +1,12 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "blevesearchfactory":"Bleve search factory",
+    "blevesearch":"Bleve search service"
+  },
+  "params":{
+    "searchindex":"Index to be used for search service",
+    "searchresults": "Number of results to be returned by search"
+  }
+}

@@ -132,12 +132,16 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+	serviceAlias = common.FillVariables(ctx, serviceAlias)
+
 	svcCreateCtx := ctx.(*serverContext)
 
 	factoryname, ok := conf.GetString(CONF_FACTORY)
 	if !ok {
 		factoryname = common.CONF_DEFAULTFACTORY_NAME
 	}
+
+	factoryname = common.FillVariables(ctx, factoryname)
 
 	serviceMethod, ok := conf.GetString(CONF_SERVICEMETHOD)
 	if !ok {

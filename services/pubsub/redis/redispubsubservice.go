@@ -14,8 +14,8 @@ import (
 const (
 	CONF_REDISPUBSUB_FACTORY    = "redispubsubfactory"
 	CONF_REDISPUBSUB_SVC        = "redispubsub"
-	CONF_REDIS_CONNECTIONSTRING = "server"
-	CONF_REDIS_DATABASE         = "db"
+	CONF_REDIS_CONNECTIONSTRING = "redispubsubserver"
+	CONF_REDIS_DATABASE         = "redispubsubdb"
 )
 
 func Manifest() []core.PluginComponent {
@@ -73,16 +73,16 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 }
 
 func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext) error {
-	redisSvc.SetComponent(true)
-	redisSvc.AddStringConfigurations([]string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
-	redisSvc.SetDescription("Redis pubsub component service")
+	redisSvc.SetComponent(ctx, true)
+	redisSvc.AddStringConfigurations(ctx, []string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
+	redisSvc.SetDescription(ctx, "Redis pubsub component service")
 	return nil
 }
 
 func (redisSvc *RedisPubSubService) Start(ctx core.ServerContext) error {
-	connectionString, _ := redisSvc.GetConfiguration(CONF_REDIS_CONNECTIONSTRING)
+	connectionString, _ := redisSvc.GetConfiguration(ctx, CONF_REDIS_CONNECTIONSTRING)
 
-	connectiondb, _ := redisSvc.GetConfiguration(CONF_REDIS_DATABASE)
+	connectiondb, _ := redisSvc.GetConfiguration(ctx, CONF_REDIS_DATABASE)
 
 	redisSvc.pool = &redis.Pool{
 		MaxIdle:     3,

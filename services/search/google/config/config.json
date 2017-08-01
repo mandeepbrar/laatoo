@@ -1,0 +1,12 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "googlesearchfactory":"Google search factory",
+    "googlesearch":"Google search service"
+  },
+  "params":{
+    "searchindex":"Index to be used for search service",
+    "searchresults": "Number of results to be returned by search"
+  }
+}

@@ -67,6 +67,8 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 
 	for chanName, channel := range chanMgr.channelStore {
 		svcName := channel.GetServiceName()
+		svcName = common.FillVariables(ctx, svcName)
+
 		svcProxy, err := svcMgr.GetService(ctx, svcName)
 		if err != nil {
 			return err
