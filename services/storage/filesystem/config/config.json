@@ -1,0 +1,11 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "filesystemfactory":"File system storage factory.",
+    "filesystem":"File system service"
+  },
+  "params":{
+    "filestoragedir":"Directory to be used for storing files"
+  }
+}

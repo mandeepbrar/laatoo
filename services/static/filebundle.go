@@ -42,15 +42,15 @@ type BundledFileService struct {
 }
 
 func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
-	bs.SetDescription("Bundle files service")
-	bs.AddConfigurations(map[string]string{CONF_STATIC_FILEBUNDLES: config.CONF_OBJECT_CONFIG})
-	bs.AddParam(CONF_STATIC_BUNDLEPARAM, config.CONF_OBJECT_STRING, false)
+	bs.SetDescription(ctx, "Bundle files service")
+	bs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILEBUNDLES: config.CONF_OBJECT_CONFIG})
+	bs.AddParam(ctx, CONF_STATIC_BUNDLEPARAM, config.CONF_OBJECT_STRING, false)
 	bs.bundlesMap = make(map[string]*Bundle, 10)
 	return nil
 }
 
-func (bs *BundledFileService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	bundlename, ok := req.GetParam(CONF_STATIC_BUNDLEPARAM)
+func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
+	bundlename, ok := ctx.GetParam(CONF_STATIC_BUNDLEPARAM)
 	if ok {
 		bundle, ok := bs.bundlesMap[bundlename.GetValue().(string)]
 		log.Trace(ctx, "Get Bundle Method called", "Bundle", bundlename, "BundleFound", ok)
@@ -60,7 +60,8 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext, req core.Request) 
 				lastModTime, err := time.Parse(http.TimeFormat, lastModTimeStr)
 				if err == nil {
 					if !bundle.lastModified.After(lastModTime) {
-						return core.StatusNotModifiedResponse, nil
+						ctx.SetResponse(core.StatusNotModifiedResponse)
+						return nil
 					}
 				}
 			}
@@ -68,23 +69,25 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext, req core.Request) 
 			if !bundle.fullcontent {
 				newbundle, err := buildFullContentBundle(ctx, bundle)
 				if err != nil {
-					return nil, errors.WrapError(ctx, err)
+					return errors.WrapError(ctx, err)
 				}
-				return core.NewServiceResponse(core.StatusSuccess, newbundle, nil), nil
+				ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, newbundle, nil))
+				return nil
 			} else {
-				return core.NewServiceResponse(core.StatusSuccess, bundle, nil), nil
+				ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, bundle, nil))
+				return nil
 			}
 		} else {
-			return core.StatusNotFoundResponse, nil
+			ctx.SetResponse(core.StatusNotFoundResponse)
 		}
 	} else {
-		return core.StatusNotFoundResponse, nil
+		ctx.SetResponse(core.StatusNotFoundResponse)
 	}
-	return nil, nil
+	return nil
 }
 
 func (svc *BundledFileService) Start(ctx core.ServerContext) error {
-	c, ok := svc.GetConfiguration(CONF_STATIC_FILEBUNDLES)
+	c, ok := svc.GetConfiguration(ctx, CONF_STATIC_FILEBUNDLES)
 	if ok {
 		bundlesConf := c.(config.Config)
 		bundlenames := bundlesConf.AllConfigurations()

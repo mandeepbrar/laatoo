@@ -16,7 +16,7 @@ import (
 const (
 	CONF_FILE_SERVICENAME     = "filesystem"
 	CONF_FILES_SERVICEFACTORY = "filesystemfactory"
-	CONF_FILESDIR             = "filesdir"
+	CONF_FILESDIR             = "filestoragedir"
 )
 
 func Manifest() []core.PluginComponent {
@@ -29,9 +29,9 @@ type FileSystemSvc struct {
 	filesDir string
 }
 
-func (svc *FileSystemSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	log.Info(ctx, "writing file")
-	files := *req.GetBody().(*map[string]*core.MultipartFile)
+	files := *ctx.GetBody().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -40,13 +40,14 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext, req core.Request) (*co
 		log.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		urls[i] = url
 		i++
 	}
 	log.Info(ctx, "writing file", "urls", urls)
-	return core.NewServiceResponse(core.StatusSuccess, urls, nil), nil
+	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
+	return nil
 }
 func (svc *FileSystemSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
 	fullpath := svc.GetFullPath(ctx, fileName)
@@ -68,8 +69,9 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 	return os.Open(fullpath)
 }
 
-func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) (*core.Response, error) {
-	return core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil), nil
+func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) error {
+	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil))
+	return nil
 }
 
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
@@ -93,14 +95,14 @@ func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser
 }
 
 func (svc *FileSystemSvc) Initialize(ctx core.ServerContext) error {
-	svc.SetDescription("File system storage service")
-	svc.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddStringConfigurations([]string{CONF_FILESDIR}, nil)
+	svc.SetDescription(ctx, "File system storage service")
+	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
+	svc.AddStringConfigurations(ctx, []string{CONF_FILESDIR}, nil)
 	return nil
 }
 
 func (svc *FileSystemSvc) Start(ctx core.ServerContext) error {
-	filesDir, _ := svc.GetConfiguration(CONF_FILESDIR)
+	filesDir, _ := svc.GetConfiguration(ctx, CONF_FILESDIR)
 	svc.filesDir = filesDir.(string)
 
 	return nil

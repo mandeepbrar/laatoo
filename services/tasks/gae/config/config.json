@@ -1,0 +1,11 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "gaetasksfactory":"Gae tasks factory. Can produce publisher and consumer using service methods publisher and consumer",
+    "gaetaskpublisher":"Gae publisher service",
+    "gaetaskconsumer":"Gae consumer service"
+  },
+  "params":{
+  }
+}

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	CONF_STATIC_SERVICEFACTORY = "static_files"
+	CONF_STATIC_SERVICEFACTORY = "staticfilesfactory"
 	CONF_STATICSVC_DIRECTORY   = "directory"
 	CONF_STATIC_CACHE          = "cache"
 	CONF_STATIC_DIR            = "directory"

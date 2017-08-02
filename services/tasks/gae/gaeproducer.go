@@ -22,9 +22,9 @@ type GaeProducer struct {
 }
 
 func (svc *GaeProducer) Initialize(ctx core.ServerContext) error {
-	svc.SetDescription("GAE task service producer component")
-	svc.AddStringConfigurations([]string{GAE_PATH}, nil)
-	svc.SetComponent(true)
+	svc.SetDescription(ctx, "GAE task service producer component")
+	svc.AddStringConfigurations(ctx, []string{GAE_PATH}, nil)
+	svc.SetComponent(ctx, true)
 
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
@@ -54,7 +54,7 @@ func (svc *GaeProducer) PushTask(ctx core.RequestContext, queue string, t *compo
 }
 
 func (svc *GaeProducer) Start(ctx core.ServerContext) error {
-	path, _ := svc.GetConfiguration(GAE_PATH)
+	path, _ := svc.GetConfiguration(ctx, GAE_PATH)
 	svc.path = path.(string)
 	return nil
 }

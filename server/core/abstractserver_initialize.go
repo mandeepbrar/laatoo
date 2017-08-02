@@ -48,6 +48,13 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 
 	common.SetupMiddleware(ctx, conf)
 
+	modsctx := ctx.SubContext("Modules Manager: " + as.name)
+	err = as.moduleManagerHandle.Initialize(modsctx, conf)
+	if err != nil {
+		return errors.WrapError(modsctx, err)
+	}
+	log.Debug(ctx, "Initialized modules manager")
+
 	if err = as.initializeServicesCore(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -92,13 +99,6 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		return errors.WrapError(rulesctx, err)
 	}
 	log.Debug(ctx, "Initialized rules manager")
-
-	modsctx := ctx.SubContext("Modules Manager: " + as.name)
-	err = as.moduleManagerHandle.Initialize(modsctx, conf)
-	if err != nil {
-		return errors.WrapError(modsctx, err)
-	}
-	log.Debug(ctx, "Initialized modules manager")
 
 	return nil
 }

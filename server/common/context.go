@@ -133,14 +133,14 @@ func (ctx *Context) GetStringArray(key string) ([]string, bool) {
 }
 
 func (ctx *Context) GetVariable(key string) (string, bool) {
-	val, ok := ctx.Get(fmt.Sprint("@", key))
+	val, ok := ctx.Get(fmt.Sprint(":", key))
 	if ok {
 		return val.(string), ok
 	}
 	return "", ok
 }
 func (ctx *Context) SetVariable(key string, value string) {
-	ctx.Set(fmt.Sprint("@", key), value)
+	ctx.Set(fmt.Sprint(":", key), value)
 }
 
 func (ctx *Context) Set(key string, val interface{}) {

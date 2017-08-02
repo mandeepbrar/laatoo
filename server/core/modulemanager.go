@@ -46,38 +46,23 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 		modulesConfig := path.Join(modulesDir, constants.CONF_CONFIG_FILE)
 		conf, err := common.NewConfigFromFile(modulesConfig)
 		if err == nil {
+			pendingModules := make(map[string]config.Config)
 			instances := conf.AllConfigurations()
 			for _, instance := range instances {
 				params, _ := conf.GetSubConfig(instance)
-				mod, ok := params.GetString(constants.CONF_MODULE)
-				if !ok {
-					mod = instance
+				loaded, err := modMgr.loadInstance(ctx, instance, params, modulesDir)
+				if err != nil {
+					return err
 				}
-				disabled, _ := params.GetBool(constants.CONF_MODULE_DISABLED)
-				if !disabled {
-					modDir := path.Join(modulesDir, mod)
-					ok, _, _ := utils.FileExists(modDir)
-					if ok {
-						if err = modMgr.loadModule(ctx, instance, mod, modDir, params); err != nil {
-							return err
-						}
-					} else {
-						modFile := path.Join(modulesDir, fmt.Sprint(mod, ".tar.gz"))
-						ok, _, _ := utils.FileExists(modFile)
-						if ok {
-							if err = archiver.TarGz.Open(modFile, modulesDir); err != nil {
-								return errors.WrapError(ctx, err)
-							}
-							if err = modMgr.loadModule(ctx, instance, mod, modDir, params); err != nil {
-								return err
-							}
-						} else {
-							return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", mod)
-						}
-					}
+				if !loaded {
+					pendingModules[instance] = params
 				}
 			}
+			if len(pendingModules) > 0 {
+				return modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
+			}
 		}
+
 		/*
 			files, err := ioutil.ReadDir(modulesDir)
 			if err != nil {
@@ -91,6 +76,27 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 					}
 				}
 			}*/
+	}
+	return nil
+}
+
+func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext, mods map[string]config.Config, modulesDir string) error {
+	pendingModules := make(map[string]config.Config)
+	for instance, params := range mods {
+		loaded, err := modMgr.loadInstance(ctx, instance, params, modulesDir)
+		if err != nil {
+			return err
+		}
+		if !loaded {
+			pendingModules[instance] = params
+		}
+	}
+	if len(pendingModules) > 0 && len(pendingModules) < len(mods) {
+		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir); err != nil {
+			return err
+		}
+	} else {
+		return errors.DepNotMet(ctx, "Multiple Modules", "Modules", pendingModules)
 	}
 	return nil
 }
@@ -110,21 +116,48 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, params config.Config) error {
+func (modMgr *moduleManager) loadInstance(ctx core.ServerContext, instance string, params config.Config, modulesDir string) (bool, error) {
+	mod, ok := params.GetString(constants.CONF_MODULE)
+	if !ok {
+		mod = instance
+	}
+	disabled, _ := params.GetBool(constants.CONF_MODULE_DISABLED)
+	if !disabled {
+		modDir := path.Join(modulesDir, mod)
+		ok, _, _ := utils.FileExists(modDir)
+		if ok {
+			return modMgr.loadModule(ctx, instance, mod, modDir, params)
+		} else {
+			modFile := path.Join(modulesDir, fmt.Sprint(mod, ".tar.gz"))
+			ok, _, _ := utils.FileExists(modFile)
+			if ok {
+				if err := archiver.TarGz.Open(modFile, modulesDir); err != nil {
+					return false, errors.WrapError(ctx, err)
+				}
+				return modMgr.loadModule(ctx, instance, mod, modDir, params)
+			} else {
+				return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", mod)
+			}
+		}
+	}
+	return true, nil
+}
+
+func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, params config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
 
 	conf, err := common.NewConfigFromFile(path.Join(dirPath, constants.CONF_CONFIG_FILE))
 	if err != nil {
-		return errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleInstance)
+		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleInstance)
 	}
 
 	ver, ok := conf.GetString(constants.CONF_MODULE_VER)
 	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_MODULE_VER, "Module", moduleInstance)
+		return false, errors.MissingConf(ctx, constants.CONF_MODULE_VER, "Module", moduleInstance)
 	}
 	semver_Ver, err := semver.Parse(ver)
 	if err != nil {
-		return errors.BadConf(ctx, constants.CONF_MODULE_VER, "Module", moduleInstance)
+		return false, errors.BadConf(ctx, constants.CONF_MODULE_VER, "Module", moduleInstance)
 	}
 	modu := &module{name: moduleInstance, version: semver_Ver}
 	dependencies := make(map[string]semver.Range)
@@ -135,11 +168,11 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, 
 		for _, mod := range mods {
 			ra, ok := deps.GetString(mod)
 			if !ok {
-				return errors.MissingConf(ctx, constants.CONF_MODULE_DEP, "Module", moduleInstance)
+				return false, errors.MissingConf(ctx, constants.CONF_MODULE_DEP, "Module", moduleInstance)
 			}
 			r, err := semver.ParseRange(ra)
 			if err != nil {
-				return errors.WrapError(ctx, err, "Module", moduleInstance)
+				return false, errors.WrapError(ctx, err, "Module", moduleInstance)
 			}
 			dependencies[moduleInstance] = r
 		}
@@ -147,6 +180,7 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, 
 	modu.dependencies = dependencies
 	modCtx := modMgr.svrref.svrContext.newContext("Module: " + moduleInstance)
 	modCtx.setElements(core.ContextMap{core.ServerElementModule: modu})
+	modCtx.SetVariable(constants.CONF_MODULE, moduleInstance)
 
 	moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
 
@@ -164,16 +198,16 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, 
 	}
 
 	if err := modMgr.loadModuleDirs(modCtx, moduleInstance, dirPath, params, moduleAlreadLoaded); err != nil {
-		return err
+		return false, err
 	}
 
 	if err := modMgr.loadModuleFromObj(modCtx, moduleInstance, dirPath, conf, params, moduleAlreadLoaded); err != nil {
-		return err
+		return false, err
 	}
 	modu.svrContext = modCtx
 	modMgr.modules[moduleInstance] = modu
 
-	return nil
+	return true, nil
 }
 
 func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstance, dirPath string, params config.Config, moduleAlreadLoaded bool) error {

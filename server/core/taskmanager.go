@@ -152,7 +152,7 @@ func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskD
 	return tq.PushTask(ctx, queue, t)
 }
 
-func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Task) (*core.Response, error) {
+func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Task) error {
 	/*
 		req := ctx.SubContext("Gae background task " + t.Queue)
 		log.Debug(req, "Received job ")
@@ -176,7 +176,9 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		req.AddParam(tskMgr.authHeader, t.Token)*/
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Trace(ctx, "Processing background task")
-		processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token}, t.Data)
+		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token}, t.Data)
+		ctx.SetResponse(res)
+		return err
 	}
-	return nil, nil
+	return nil
 }

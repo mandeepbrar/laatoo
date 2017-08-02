@@ -1,0 +1,11 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "googlestoragefactory":"Google storage factory.",
+    "googlestorage":"Google storage service"
+  },
+  "params":{
+    "googlestoragebucket":"Bucket to be used by google storage service"
+  }
+}

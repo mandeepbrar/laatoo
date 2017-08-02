@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"strings"
 )
 
 func newServiceImpl() *serviceImpl {
@@ -118,21 +119,33 @@ func (impl *serviceImpl) SetResponseType(ctx core.ServerContext, stream bool) {
 	impl.svcInfo.response.streaming = stream
 }
 
+func (impl *serviceImpl) lookupContext(ctx core.ServerContext, name string) (interface{}, bool) {
+	val, found := ctx.Get(name)
+	if !found {
+		val, found = ctx.GetVariable(name)
+		if found {
+			return val, found
+		} else {
+			return nil, false
+		}
+	} else {
+		return val, found
+	}
+}
+
 func (impl *serviceImpl) GetConfiguration(ctx core.ServerContext, name string) (interface{}, bool) {
 	var val interface{}
 	c, found := impl.svcInfo.configurations[name]
 	if !found {
-		val, found = ctx.Get(name)
-		if !found {
-			s, found := ctx.GetVariable(name)
-			if found {
-				val = s
-			}
-		}
+		val, found = impl.lookupContext(ctx, name)
 	} else {
 		conf := c.(*configuration)
 		if conf.value != nil {
 			val = conf.value
+			valStr, ok := val.(string)
+			if ok && strings.HasPrefix(valStr, ":") {
+				val, found = impl.lookupContext(ctx, valStr[1:])
+			}
 		} else {
 			val = conf.defaultValue
 			found = false

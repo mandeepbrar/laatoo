@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	CONF_BEANSTALK_SERVER = "server"
+	CONF_BEANSTALK_SERVER = "beanstalkserver"
 )
 
 type BeanstalkProducer struct {
@@ -26,9 +26,9 @@ type BeanstalkProducer struct {
 
 func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext) error {
 
-	svc.SetComponent(true)
-	svc.SetDescription("Beanstalk producer component")
-	svc.AddStringConfigurations([]string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+	svc.SetComponent(ctx, true)
+	svc.SetDescription(ctx, "Beanstalk producer component")
+	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
 
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
@@ -56,7 +56,7 @@ func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t 
 }
 
 func (svc *BeanstalkProducer) Start(ctx core.ServerContext) error {
-	addr, _ := svc.GetConfiguration(CONF_BEANSTALK_SERVER)
+	addr, _ := svc.GetConfiguration(ctx, CONF_BEANSTALK_SERVER)
 
 	svc.pool = beanstalk.NewProducerPool([]string{addr.(string)}, nil)
 	if svc.pool == nil {

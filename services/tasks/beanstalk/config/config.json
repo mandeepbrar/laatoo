@@ -1,0 +1,12 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "beanstalkfactory":"Beanstalk tasks factory. Can produce publisher and consumer using service methods publisher and consumer",
+    "beanstalktaskpublisher":"Beanstalk publisher service",
+    "beanstalktaskconsumer":"Beanstalk consumer service"
+  },
+  "params":{
+    "beanstalkserver":"Address of beanstalk server"
+  }
+}

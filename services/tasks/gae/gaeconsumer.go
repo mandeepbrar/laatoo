@@ -29,8 +29,8 @@ type GaeConsumer struct {
 }
 
 func (svc *GaeConsumer) Initialize(ctx core.ServerContext) error {
-	svc.SetDescription("GAE task service consumer component")
-	svc.SetRequestType(config.CONF_OBJECT_BYTES, false, false)
+	svc.SetDescription(ctx, "GAE task service consumer component")
+	svc.SetRequestType(ctx, config.CONF_OBJECT_BYTES, false, false)
 	/*queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
 	if ok {
 		queueNames := queuesConf.AllConfigurations()
@@ -76,16 +76,16 @@ func (svc *gaeConsumer) createQueue(ctx core.ServerContext, queue string, lstnr 
 	return nil
 }*/
 
-func (svc *GaeConsumer) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
 	//gae header... if an outside request comes, this header would not be there.. gae will remove it
 	//_, ok := ctx.GetString("X-AppEngine-TaskName")
 	//if ok {
-	bytes := req.GetBody().([]byte)
+	bytes := ctx.GetBody().([]byte)
 	t := &components.Task{}
 	err := json.Unmarshal(bytes, t)
 	if err != nil {
 		log.Error(ctx, "Error in background process", "job", string(bytes), "err", err)
-		return nil, err
+		return err
 	} else {
 		return svc.taskManager.ProcessTask(ctx, t)
 

@@ -19,9 +19,9 @@ type BeanstalkConsumer struct {
 }
 
 func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext) error {
-	svc.SetComponent(true)
-	svc.SetDescription("Beanstalk consumer component")
-	svc.AddStringConfigurations([]string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+	svc.SetComponent(ctx, true)
+	svc.SetDescription(ctx, "Beanstalk consumer component")
+	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
 
 	/*
 		sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
@@ -73,7 +73,7 @@ func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string
 
 func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
 
-	addr, _ := svc.GetConfiguration(CONF_BEANSTALK_SERVER)
+	addr, _ := svc.GetConfiguration(ctx, CONF_BEANSTALK_SERVER)
 	svc.addr = addr.(string)
 
 	svc.worker = func(workerctx core.ServerContext, pool *beanstalk.ConsumerPool) {
@@ -90,7 +90,7 @@ func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
 						job.Bury()
 					} else {
 						req := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil)
-						_, err := svc.taskManager.ProcessTask(req, t)
+						err := svc.taskManager.ProcessTask(req, t)
 						if err != nil {
 							log.Error(req, "Error in background process", "job", job.ID, "err", err)
 							job.Bury()

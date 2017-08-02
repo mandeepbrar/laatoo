@@ -19,7 +19,7 @@ import (
 const (
 	CONF_GOOGLESTORAGE_SERVICENAME = "googlestorage"
 	CONF_GOOGLESTORAGE_FACTORY     = "googlestoragefactory"
-	CONF_GS_FILESBUCKET            = "bucket"
+	CONF_GS_FILESBUCKET            = "googlestoragebucket"
 	CONF_GS_PUBLICFILE             = "public"
 )
 
@@ -35,15 +35,15 @@ type GoogleStorageSvc struct {
 }
 
 func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svc.SetDescription("Google storage service")
-	svc.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddStringConfigurations([]string{CONF_GS_FILESBUCKET}, nil)
-	svc.AddOptionalConfigurations(map[string]string{CONF_GS_PUBLICFILE: config.CONF_OBJECT_BOOL}, map[string]interface{}{CONF_GS_PUBLICFILE: false})
+	svc.SetDescription(ctx, "Google storage service")
+	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
+	svc.AddStringConfigurations(ctx, []string{CONF_GS_FILESBUCKET}, nil)
+	svc.AddOptionalConfigurations(ctx, map[string]string{CONF_GS_PUBLICFILE: config.CONF_OBJECT_BOOL}, map[string]interface{}{CONF_GS_PUBLICFILE: false})
 	return nil
 }
 
-func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	files := *req.GetBody().(*map[string]*core.MultipartFile)
+func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
+	files := *ctx.GetBody().(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -53,12 +53,13 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext, req core.Request) (
 		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
 		if err != nil {
 			log.Debug(ctx, "Error while invoking upload", "err", err)
-			return nil, errors.WrapError(ctx, err)
+			return errors.WrapError(ctx, err)
 		}
 		urls[i] = url
 		i++
 	}
-	return core.NewServiceResponse(core.StatusSuccess, urls, nil), nil
+	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
+	return nil
 }
 
 func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
@@ -104,8 +105,9 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 	return client.Bucket(svc.bucket).Object(fileName).NewReader(appengineCtx)
 }
 
-func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) (*core.Response, error) {
-	return core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil), nil
+func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
+	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
+	return nil
 }
 
 func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
@@ -138,9 +140,9 @@ func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadClo
 }
 
 func (svc *GoogleStorageSvc) Start(ctx core.ServerContext) error {
-	bucket, _ := svc.GetConfiguration(CONF_GS_FILESBUCKET)
+	bucket, _ := svc.GetConfiguration(ctx, CONF_GS_FILESBUCKET)
 	svc.bucket = bucket.(string)
-	public, _ := svc.GetConfiguration(CONF_GS_PUBLICFILE)
+	public, _ := svc.GetConfiguration(ctx, CONF_GS_PUBLICFILE)
 	svc.public = public.(bool)
 
 	return nil

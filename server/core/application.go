@@ -29,6 +29,7 @@ func newApplication(svrCtx *serverContext, name string, env *environment, baseDi
 	app.abstractserver = abstractserver
 	app.proxy = proxy
 	svrCtx.Set(constants.RELATIVE_DIR, constants.CONF_APPLICATIONS)
+	svrCtx.SetVariable(constants.CONF_APPL_APPLICATION, name)
 	log.Debug(svrCtx, "Created application", "Name", name)
 	return app, proxy, nil
 }

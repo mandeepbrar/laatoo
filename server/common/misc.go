@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
 	"regexp"
+	"strings"
 )
 
 func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
@@ -44,8 +45,9 @@ func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 var varReplacer = regexp.MustCompile(`\[(.*?)\]`)
 
 func FillVariables(ctx core.ServerContext, name string) string {
-	return varReplacer.ReplaceAllStringFunc(name, func(variableName string) string {
-		val, _ := ctx.GetVariable(variableName)
-		return val
+	return varReplacer.ReplaceAllStringFunc(name, func(exp string) string {
+		varName := strings.Replace(exp, ".", "", -1)
+		val, _ := ctx.GetVariable(varName)
+		return strings.Replace(exp, varName, val, -1)
 	})
 }
