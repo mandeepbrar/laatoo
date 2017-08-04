@@ -1,5 +1,7 @@
 FROM gcr.io/distroless/base:latest
 
+COPY list /
+
 COPY dist/bin/laatoo /laatoo
 
 COPY dist/lib /lib

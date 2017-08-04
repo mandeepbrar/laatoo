@@ -1,0 +1,4 @@
+{
+  "name":"server.memorycache",
+	"factory":"memorycache"
+}

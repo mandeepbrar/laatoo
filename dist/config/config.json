@@ -1,6 +1,4 @@
 {
-	"cache":"memorycache",
 	"address":"localhost:2000",
-	"servicemanager":"config/server/services.json",
 	"objectsbasedir":"/lib/laatoo"
 }

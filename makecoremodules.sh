@@ -17,4 +17,6 @@ docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/storage/googlestorage -e name=googlestorage laatoomodulebuilder:latest
 
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/static -e name=staticfileserver laatoomodulebuilder:latest
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicfiles -e name=publicfileserver laatoomodulebuilder:latest
+
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicdir -e name=publicdirserver laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicfiles -e name=publicfilesserver laatoomodulebuilder:latest

@@ -5,10 +5,12 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
+	"os"
 	"path"
 
 	"github.com/blang/semver"
@@ -49,13 +51,13 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 			pendingModules := make(map[string]config.Config)
 			instances := conf.AllConfigurations()
 			for _, instance := range instances {
-				params, _ := conf.GetSubConfig(instance)
-				loaded, err := modMgr.loadInstance(ctx, instance, params, modulesDir)
+				instanceConf, _ := conf.GetSubConfig(instance)
+				loaded, err := modMgr.loadInstance(ctx, instance, instanceConf, modulesDir)
 				if err != nil {
 					return err
 				}
 				if !loaded {
-					pendingModules[instance] = params
+					pendingModules[instance] = instanceConf
 				}
 			}
 			if len(pendingModules) > 0 {
@@ -82,16 +84,21 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext, mods map[string]config.Config, modulesDir string) error {
 	pendingModules := make(map[string]config.Config)
-	for instance, params := range mods {
-		loaded, err := modMgr.loadInstance(ctx, instance, params, modulesDir)
+	log.Trace(ctx, "iteratign on pending modules", "modules", mods)
+	for instance, instanceConf := range mods {
+		loaded, err := modMgr.loadInstance(ctx, instance, instanceConf, modulesDir)
 		if err != nil {
 			return err
 		}
 		if !loaded {
-			pendingModules[instance] = params
+			pendingModules[instance] = instanceConf
 		}
 	}
-	if len(pendingModules) > 0 && len(pendingModules) < len(mods) {
+	if len(pendingModules) == 0 {
+		return nil
+	}
+	log.Trace(ctx, "iteratign on pending modules", "modules", pendingModules, "loaded modules", modMgr.loadedModules)
+	if len(pendingModules) < len(mods) {
 		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir); err != nil {
 			return err
 		}
@@ -102,39 +109,61 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 }
 
 func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
-	for modName, module := range modMgr.modules {
-		for dep, semver_range := range module.dependencies {
-			dependency, ok := modMgr.modules[dep]
-			if !ok {
-				return errors.DepNotMet(ctx, dep, "Module Name", modName)
-			}
-			if !semver_range(dependency.version) {
-				return errors.DepNotMet(ctx, dep, "Module Name", modName)
+
+	/*
+		if !
+		for modName, module := range modMgr.modules {
+			for dep, semver_range := range module.dependencies {
+				dependency, ok := modMgr.modules[dep]
+				if !ok {
+					return errors.DepNotMet(ctx, dep, "Module Name", modName)
+				}
+				if !semver_range(dependency.version) {
+					return errors.DepNotMet(ctx, dep, "Module Name", modName)
+				}
 			}
 		}
-	}
+	*/
 	return nil
 }
 
-func (modMgr *moduleManager) loadInstance(ctx core.ServerContext, instance string, params config.Config, modulesDir string) (bool, error) {
-	mod, ok := params.GetString(constants.CONF_MODULE)
+func (modMgr *moduleManager) loadInstance(ctx core.ServerContext, instance string, instanceConf config.Config, modulesDir string) (bool, error) {
+	mod, ok := instanceConf.GetString(constants.CONF_MODULE)
 	if !ok {
 		mod = instance
 	}
-	disabled, _ := params.GetBool(constants.CONF_MODULE_DISABLED)
+	disabled, _ := instanceConf.GetBool(constants.CONF_MODULE_DISABLED)
 	if !disabled {
+		modSettings, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_SETTINGS)
 		modDir := path.Join(modulesDir, mod)
-		ok, _, _ := utils.FileExists(modDir)
-		if ok {
-			return modMgr.loadModule(ctx, instance, mod, modDir, params)
-		} else {
-			modFile := path.Join(modulesDir, fmt.Sprint(mod, ".tar.gz"))
-			ok, _, _ := utils.FileExists(modFile)
-			if ok {
+		modDirExists, modDirInf, _ := utils.FileExists(modDir)
+		modFile := path.Join(modulesDir, fmt.Sprint(mod, ".tar.gz"))
+		modFileExist, modFileInf, _ := utils.FileExists(modFile)
+		log.Debug(ctx, "Loading module", "Module", mod, "Dir exists", modDirExists, "File exists", modFileExist)
+		if modFileExist {
+			extractFile := true
+			if modDirExists {
+				tim := modDirInf.ModTime().Sub(modFileInf.ModTime())
+				if tim < 0 {
+					err := os.RemoveAll(modDir)
+					if err != nil {
+						return false, errors.WrapError(ctx, err)
+					}
+					log.Debug(ctx, "Deleted old version of module", "Module", mod)
+				} else {
+					extractFile = false
+				}
+			}
+			if extractFile {
 				if err := archiver.TarGz.Open(modFile, modulesDir); err != nil {
 					return false, errors.WrapError(ctx, err)
 				}
-				return modMgr.loadModule(ctx, instance, mod, modDir, params)
+				log.Info(ctx, "Extracted module ", "Module", mod, "Module file", modFile, "Destination", modulesDir, "Module directory", modDir)
+			}
+			return modMgr.loadModule(ctx, instance, mod, modDir, modSettings)
+		} else {
+			if modDirExists {
+				return modMgr.loadModule(ctx, instance, mod, modDir, modSettings)
 			} else {
 				return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", mod)
 			}
@@ -143,7 +172,7 @@ func (modMgr *moduleManager) loadInstance(ctx core.ServerContext, instance strin
 	return true, nil
 }
 
-func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, params config.Config) (bool, error) {
+func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, modSettings config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
 
 	conf, err := common.NewConfigFromFile(path.Join(dirPath, constants.CONF_CONFIG_FILE))
@@ -175,18 +204,24 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, 
 				return false, errors.WrapError(ctx, err, "Module", moduleInstance)
 			}
 			dependencies[moduleInstance] = r
+
+			currentVer, deploaded := modMgr.loadedModules[mod]
+			if !deploaded || !r(currentVer) {
+				return false, nil
+			}
 		}
 	}
 	modu.dependencies = dependencies
 	modCtx := modMgr.svrref.svrContext.newContext("Module: " + moduleInstance)
 	modCtx.setElements(core.ContextMap{core.ServerElementModule: modu})
+	modu.svrContext = modCtx
 	modCtx.SetVariable(constants.CONF_MODULE, moduleInstance)
 
 	moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
 
 	paramNames := moduleparams.AllConfigurations()
 	for _, paramName := range paramNames {
-		val, ok := params.Get(paramName)
+		val, ok := modSettings.Get(paramName)
 		if ok {
 			modCtx.Set(paramName, val)
 		}
@@ -197,29 +232,29 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, moduleInstance, 
 		modMgr.loadedModules[moduleName] = semver_Ver
 	}
 
-	if err := modMgr.loadModuleDirs(modCtx, moduleInstance, dirPath, params, moduleAlreadLoaded); err != nil {
+	if err := modMgr.loadModuleDirs(modCtx, moduleInstance, dirPath, modSettings, moduleAlreadLoaded); err != nil {
 		return false, err
 	}
 
-	if err := modMgr.loadModuleFromObj(modCtx, moduleInstance, dirPath, conf, params, moduleAlreadLoaded); err != nil {
+	if err := modMgr.loadModuleFromObj(modCtx, moduleInstance, dirPath, conf, modSettings, moduleAlreadLoaded); err != nil {
 		return false, err
 	}
-	modu.svrContext = modCtx
 	modMgr.modules[moduleInstance] = modu
 
 	return true, nil
 }
 
-func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstance, dirPath string, params config.Config, moduleAlreadLoaded bool) error {
+func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstance, dirPath string, modSettings config.Config, moduleAlreadLoaded bool) error {
 	var err error
 	if !moduleAlreadLoaded {
-		err := modMgr.objLoader.loadPluginsFolderIfExists(ctx, dirPath)
+		objsPath := path.Join(dirPath, constants.CONF_OBJECTLDR_OBJECTS)
+		err := modMgr.objLoader.loadPluginsFolderIfExists(ctx, objsPath)
 		if err != nil {
-			return errors.WrapError(ctx, err, "Module", moduleInstance)
+			return errors.WrapError(ctx, err, "Module", moduleInstance, "Directory Path", objsPath)
 		}
 	}
 
-	factoriesEnabled, ok := params.GetBool(constants.CONF_FACTORIES)
+	factoriesEnabled, ok := modSettings.GetBool(constants.CONF_FACTORIES)
 
 	if !ok || factoriesEnabled {
 		err = modMgr.facMgr.loadFactoriesFromFolder(ctx, dirPath)
@@ -228,7 +263,7 @@ func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstan
 		}
 	}
 
-	servicesEnabled, ok := params.GetBool(constants.CONF_SERVICES)
+	servicesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICES)
 
 	if !ok || servicesEnabled {
 		err = modMgr.svcMgr.loadServicesFromFolder(ctx, dirPath)
@@ -237,7 +272,7 @@ func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstan
 		}
 	}
 
-	channelsEnabled, ok := params.GetBool(constants.CONF_CHANNELS)
+	channelsEnabled, ok := modSettings.GetBool(constants.CONF_CHANNELS)
 
 	if !ok || channelsEnabled {
 		err = modMgr.chanMgr.loadChannelsFromFolder(ctx, dirPath)
@@ -246,7 +281,7 @@ func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstan
 		}
 	}
 
-	rulesEnabled, ok := params.GetBool(constants.CONF_RULES)
+	rulesEnabled, ok := modSettings.GetBool(constants.CONF_RULES)
 
 	if !ok || rulesEnabled {
 		err = modMgr.rulMgr.loadRulesFromDirectory(ctx, dirPath)
@@ -255,7 +290,7 @@ func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstan
 		}
 	}
 
-	tasksEnabled, ok := params.GetBool(constants.CONF_TASKS)
+	tasksEnabled, ok := modSettings.GetBool(constants.CONF_TASKS)
 	if !ok || tasksEnabled {
 		err = modMgr.tskMgr.loadTasksFromDirectory(ctx, dirPath)
 		if err != nil {
@@ -265,7 +300,7 @@ func (modMgr *moduleManager) loadModuleDirs(ctx core.ServerContext, moduleInstan
 	return nil
 }
 
-func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleInstance, dirPath string, conf config.Config, params config.Config, moduleAlreadLoaded bool) error {
+func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleInstance, dirPath string, conf config.Config, modSettings config.Config, moduleAlreadLoaded bool) error {
 	objName, ok := conf.GetString(constants.CONF_MODULE_OBJ)
 	if ok {
 
@@ -284,12 +319,12 @@ func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleIns
 		if !ok {
 			return errors.TypeMismatch(ctx, err, "Module", moduleInstance, "Object", objName)
 		}
-		err = mod.Initialize(params)
+		err = mod.Initialize(modSettings)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 
-		factoriesEnabled, ok := params.GetBool(constants.CONF_FACTORIES)
+		factoriesEnabled, ok := modSettings.GetBool(constants.CONF_FACTORIES)
 
 		if !ok || factoriesEnabled {
 			facs := mod.Factories()
@@ -302,7 +337,7 @@ func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleIns
 			}
 		}
 
-		servicesEnabled, ok := params.GetBool(constants.CONF_SERVICES)
+		servicesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICES)
 
 		if !ok || servicesEnabled {
 			svcs := mod.Services()
@@ -315,7 +350,7 @@ func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleIns
 			}
 		}
 
-		channelsEnabled, ok := params.GetBool(constants.CONF_CHANNELS)
+		channelsEnabled, ok := modSettings.GetBool(constants.CONF_CHANNELS)
 
 		if !ok || channelsEnabled {
 			channels := mod.Channels()
@@ -328,7 +363,7 @@ func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleIns
 			}
 		}
 
-		rulesEnabled, ok := params.GetBool(constants.CONF_RULES)
+		rulesEnabled, ok := modSettings.GetBool(constants.CONF_RULES)
 
 		if !ok || rulesEnabled {
 			rules := mod.Rules()
@@ -341,7 +376,7 @@ func (modMgr *moduleManager) loadModuleFromObj(ctx core.ServerContext, moduleIns
 			}
 		}
 
-		tasksEnabled, ok := params.GetBool(constants.CONF_TASKS)
+		tasksEnabled, ok := modSettings.GetBool(constants.CONF_TASKS)
 		if !ok || tasksEnabled {
 			tasks := mod.Tasks()
 			tskCtx := ctx.SubContext("Module tasks " + moduleInstance)

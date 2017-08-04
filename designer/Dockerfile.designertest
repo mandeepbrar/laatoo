@@ -1,11 +1,7 @@
 FROM laatootester:latest
 
-COPY list /
-
 COPY dist/keys /keys
 
-VOLUME /config/environments/mehfil
+VOLUME /config/environments/designer
 
 VOLUME /bin/publicdir
-
-VOLUME /lib/laatoo/applications/punjabimehfil

@@ -1,0 +1,4 @@
+{
+  "name":"memorycache",
+	"factory":"memory_cache"
+}

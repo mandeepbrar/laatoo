@@ -18,4 +18,4 @@ ENV GOPATH=$GOPATH:/plugin
 
 WORKDIR /plugin/src
 
-ENTRYPOINT /make.sh $name $package /plugin/dist/modules/
+ENTRYPOINT /make.sh $name $package /plugin/bin/modules/

@@ -14,6 +14,8 @@ import (
 	"laatoo/server/engine/http"
 	slog "laatoo/server/log"
 	"path"
+
+	"github.com/blang/semver"
 )
 
 func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement) {
@@ -49,7 +51,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: channelMgr})
 
 		modCreateCtx := svrCtx.SubContext("Create Module Manager")
-		modMgrHandle, modMgr := newModuleManager(modCreateCtx, name, proxy)
+		modMgrHandle, modMgr := as.newModuleManager(modCreateCtx, name, proxy)
 		if modMgr != nil {
 			as.moduleManager = modMgr
 			as.moduleManagerHandle = modMgrHandle
@@ -95,7 +97,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: childChannelMgr})
 
 		modCreateCtx := svrCtx.SubContext("Create Module Manager")
-		modMgrHandle, modMgr := childModuleManager(modCreateCtx, name, moduleMgr, proxy)
+		modMgrHandle, modMgr := as.childModuleManager(modCreateCtx, name, moduleMgr, proxy)
 		if modMgr != nil {
 			as.moduleManager = modMgr
 			as.moduleManagerHandle = modMgrHandle
@@ -149,7 +151,7 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 }
 
 func (as *abstractserver) newServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	sm := &serviceManager{name: name, parent: parentElem, servicesStore: make(map[string]*serviceProxy, 100)}
+	sm := &serviceManager{name: name, parent: parentElem, servicesStore: make(map[string]*serviceProxy, 100), factoryManager: as.factoryManager}
 	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
@@ -171,7 +173,7 @@ func (as *abstractserver) childServiceManager(ctx core.ServerContext, name strin
 			store[k] = v
 		}
 	}
-	sm := &serviceManager{name: name, parent: parent, servicesStore: store}
+	sm := &serviceManager{name: name, parent: parent, servicesStore: store, factoryManager: as.factoryManager}
 	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
@@ -396,21 +398,25 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	return engineHandle, engine, nil
 }
 
-func newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*module)}
+func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*module), loadedModules: make(map[string]semver.Version), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
 }
 
-func childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	modMgrProxy := parentModMgr.(*moduleManagerProxy)
 	modMgr := modMgrProxy.modMgr
 	modules := make(map[string]*module, len(modMgr.modules))
 	for k, v := range modMgr.modules {
 		modules[k] = v
 	}
-	childModMgr := &moduleManager{name: name, parent: parent, modules: modules}
+	loadedModules := make(map[string]semver.Version, len(modMgr.loadedModules))
+	for k, v := range modMgr.loadedModules {
+		loadedModules[k] = v
+	}
+	childModMgr := &moduleManager{name: name, parent: parent, modules: modules, loadedModules: loadedModules, svrref: as}
 	childModMgrProxy := &moduleManagerProxy{modMgr: childModMgr}
 	return childModMgr, childModMgrProxy
 }

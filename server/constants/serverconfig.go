@@ -20,6 +20,7 @@ const (
 	CONF_MODULE_VER        = "version"
 	CONF_MODULE_DEP        = "dependencies"
 	CONF_MODULE_OBJ        = "object"
+	CONF_MODULE_SETTINGS   = "settings"
 	CONF_MODULE_PARAMS     = "params"
 	CONF_MODULE_DISABLED   = "disabled"
 	CONF_MODULE            = "module"

@@ -45,11 +45,13 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	//inject service implementation into
 	//every service
 	impl := newServiceImpl()
+	var svcval core.Service
+	svcval = impl
 	val := reflect.ValueOf(svc.service)
 	elem := val.Elem()
 	fld := elem.FieldByName("Service")
 	if fld.CanSet() {
-		fld.Set(reflect.ValueOf(impl))
+		fld.Set(reflect.ValueOf(svcval))
 	} else {
 		return errors.TypeMismatch(ctx, "Service does not inherit from core.Service", svc.name)
 	}

@@ -27,8 +27,7 @@ type serviceManager struct {
 }
 
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	elem := ctx.GetServerElement(core.ServerElementFactoryManager)
-	svcMgr.factoryManager = elem.(server.FactoryManager)
+
 	err := svcMgr.createServices(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)

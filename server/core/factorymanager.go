@@ -35,10 +35,6 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(ctx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTMETHODFACTORY_NAME}, common.CONF_DEFAULTMETHODFACTORY_NAME)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
 
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 
@@ -109,6 +105,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 }
 
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
+	ctx = ctx.SubContext("Create Service Factory")
 	factoryAlias = common.FillVariables(ctx, factoryAlias)
 	factoryName, ok := factoryConfig.GetString(CONF_SERVICEFACTORY)
 	if !ok {
@@ -132,6 +129,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		return nil
 	}
 
+	log.Trace(ctx, "Creating factory object", "Name", factoryName)
 	factoryInt, err := ctx.CreateObject(factoryName)
 
 	if err != nil {
@@ -149,6 +147,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 		mod := ctx.GetServerElement(core.ServerElementModule)
 
 		if mod != nil {
+			log.Trace(ctx, "Creating factory object for module", "facmgr", facMgr)
 			facCtx = mod.(*module).svrContext.newContext("Factory: " + factoryAlias)
 		} else {
 			//derivce new context from abstract server context
@@ -168,6 +167,8 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 
 		//add the service to the application
 		facMgr.serviceFactoryStore[factoryAlias] = facProxy
+		log.Trace(ctx, "factory store in manager", "serviceFactoryStore", facMgr.serviceFactoryStore)
+
 	}
 	return nil
 }

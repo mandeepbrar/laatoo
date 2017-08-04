@@ -128,6 +128,7 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext, folder string) error {
 	exists, _, _ := utils.FileExists(folder)
 	if exists {
+		log.Trace(ctx, "Loading plugins folder", "Folder", folder)
 		if err := objLoader.loadPluginsFolder(ctx, folder); err != nil {
 			return errors.WrapError(ctx, err)
 		}

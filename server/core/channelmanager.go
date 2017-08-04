@@ -68,18 +68,21 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 	for chanName, channel := range chanMgr.channelStore {
 		svcName := channel.GetServiceName()
 		svcName = common.FillVariables(ctx, svcName)
-
-		svcProxy, err := svcMgr.GetService(ctx, svcName)
-		if err != nil {
-			return err
+		if svcName != "" {
+			svcProxy, err := svcMgr.GetService(ctx, svcName)
+			if err != nil {
+				return err
+			}
+			proxy := svcProxy.(*serviceProxy)
+			svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
+			err = channel.Serve(svcServeCtx)
+			if err != nil {
+				return err
+			}
+			log.Info(svcmgrStartCtx, "Serving channel ", "channel", chanName)
+		} else {
+			log.Info(svcmgrStartCtx, "No service configured channel ", "channel", chanName)
 		}
-		proxy := svcProxy.(*serviceProxy)
-		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
-		err = channel.Serve(svcServeCtx)
-		if err != nil {
-			return err
-		}
-		log.Info(svcmgrStartCtx, "Serving channel ", "channel", chanName)
 	}
 	return nil
 }

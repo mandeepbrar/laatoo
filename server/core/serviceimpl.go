@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/log"
 	"strings"
 )
 
@@ -30,8 +31,8 @@ func (impl *serviceImpl) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (impl *serviceImpl) Invoke(core.RequestContext, core.Request) (*core.Response, error) {
-	return core.StatusSuccessResponse, nil
+func (impl *serviceImpl) Invoke(core.RequestContext) error {
+	return nil
 }
 
 func (impl *serviceImpl) ConfigureService(ctx core.ServerContext, requestType string, collection bool, stream bool, params []string, config []string, description string) {
@@ -135,6 +136,7 @@ func (impl *serviceImpl) lookupContext(ctx core.ServerContext, name string) (int
 
 func (impl *serviceImpl) GetConfiguration(ctx core.ServerContext, name string) (interface{}, bool) {
 	var val interface{}
+	log.Trace(ctx, "getting configuration for servce", "name", name)
 	c, found := impl.svcInfo.configurations[name]
 	if !found {
 		val, found = impl.lookupContext(ctx, name)
