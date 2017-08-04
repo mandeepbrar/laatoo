@@ -1,2 +1,20 @@
 {
+  "modules":{
+    "filesystemstorage":{
+      "module":"filesystemstorage",
+      "settings":{
+      }
+    },
+    "staticfileserver":{
+      "module":"staticfileserver",
+      "settings":{
+      }
+    },
+    "publicdirserver":{
+      "module":"publicdirserver",
+      "settings":{
+        "publicfilesdir":"/bin/publicdir"
+      }
+    }
+  }
 }

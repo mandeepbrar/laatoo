@@ -33,6 +33,11 @@ type moduleManager struct {
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
+
+	modulesConfig, err, _ := common.ConfigFileAdapter(ctx, conf, constants.CONF_MODULES)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	modMgr.svcMgr = modMgr.svrref.serviceManagerHandle.(*serviceManager)
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 	modMgr.facMgr = modMgr.svrref.factoryManagerHandle.(*factoryManager)
@@ -41,28 +46,24 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	modMgr.chanMgr = modMgr.svrref.channelManagerHandle.(*channelManager)
 
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-	modulesDir := path.Join(baseDir, constants.CONF_MODULES_DIR)
+	modulesDir := path.Join(baseDir, constants.CONF_MODULES)
 	ok, fi, _ := utils.FileExists(modulesDir)
 	if ok && fi.IsDir() {
 
-		modulesConfig := path.Join(modulesDir, constants.CONF_CONFIG_FILE)
-		conf, err := common.NewConfigFromFile(modulesConfig)
-		if err == nil {
-			pendingModules := make(map[string]config.Config)
-			instances := conf.AllConfigurations()
-			for _, instance := range instances {
-				instanceConf, _ := conf.GetSubConfig(instance)
-				loaded, err := modMgr.loadInstance(ctx, instance, instanceConf, modulesDir)
-				if err != nil {
-					return err
-				}
-				if !loaded {
-					pendingModules[instance] = instanceConf
-				}
+		pendingModules := make(map[string]config.Config)
+		instances := modulesConfig.AllConfigurations()
+		for _, instance := range instances {
+			instanceConf, _ := modulesConfig.GetSubConfig(instance)
+			loaded, err := modMgr.loadInstance(ctx, instance, instanceConf, modulesDir)
+			if err != nil {
+				return err
 			}
-			if len(pendingModules) > 0 {
-				return modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
+			if !loaded {
+				pendingModules[instance] = instanceConf
 			}
+		}
+		if len(pendingModules) > 0 {
+			return modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
 		}
 
 		/*

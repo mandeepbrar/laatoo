@@ -21,6 +21,10 @@ const (
 )
 
 func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName string) (config.Config, error, bool) {
+	retconf, ok := conf.GetSubConfig(configName)
+	if ok {
+		return retconf, nil, ok
+	}
 	confFileName, ok := conf.GetString(configName)
 	if ok {
 		log.Debug(ctx, "Reading config from file "+confFileName)
