@@ -1,9 +1,0 @@
-{
-  "version":"0.0.1",
-  "dependencies":{},
-  "objects":{
-    "staticfilesfactory":"Static files server factory. Factory provides three services 'directory', 'file' and 'filebundle'."
-  },
-  "params":{
-  }
-}

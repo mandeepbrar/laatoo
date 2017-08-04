@@ -1,6 +1,0 @@
-{
-  "name":"server.publicdirectory[.instance]",
-  "factory":"staticfileserver",
-  "servicemethod":"directory",
-  "storage": "server.publicstoragedirectory[.instance]"
-}
