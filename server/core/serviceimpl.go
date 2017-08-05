@@ -77,16 +77,16 @@ func (impl *serviceImpl) AddStringParam(ctx core.ServerContext, name string) {
 }
 
 func (impl *serviceImpl) AddStringConfigurations(ctx core.ServerContext, configs []string, defaultValues []string) {
+	required := true
+	if defaultValues != nil {
+		required = false
+	}
 	for index, name := range configs {
 		defaultValue := ""
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
 		}
-		required := true
-		if defaultValues != nil {
-			required = false
-		}
-		impl.svcInfo.configurations[name] = &configuration{name, config.CONF_OBJECT_STRING, required, "", defaultValue}
+		impl.svcInfo.configurations[name] = &configuration{name, config.CONF_OBJECT_STRING, required, nil, defaultValue}
 	}
 }
 

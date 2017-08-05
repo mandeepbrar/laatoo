@@ -1,8 +1,10 @@
 package gin
 
 import (
+	"fmt"
 	"laatoo/server/engine/http/net"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +19,9 @@ func (router *GinRouter) Group(path string) net.Router {
 }
 
 func (router *GinRouter) Get(path string, handler net.HandlerFunc) {
+	if strings.HasSuffix(path, "*") {
+		path = fmt.Sprint(path, "__0")
+	}
 	router.routerGrp.GET(path, router.httpAdapater(handler))
 }
 

@@ -46,8 +46,13 @@ var varReplacer = regexp.MustCompile(`\[(.*?)\]`)
 
 func FillVariables(ctx core.ServerContext, name string) string {
 	return varReplacer.ReplaceAllStringFunc(name, func(exp string) string {
-		varName := strings.Replace(exp, ".", "", -1)
-		val, _ := ctx.GetVariable(varName)
-		return strings.Replace(exp, varName, val, -1)
+		removebrackets := exp[1 : len(exp)-1]
+		varname := strings.Replace(removebrackets, ".", "", -1)
+		val, ok := ctx.Get(varname)
+		if ok {
+			return strings.Replace(removebrackets, varname, val.(string), -1)
+		} else {
+			return exp
+		}
 	})
 }

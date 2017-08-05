@@ -5,3 +5,5 @@ COPY dist/keys /keys
 VOLUME /config/environments/designer
 
 VOLUME /bin/publicdir
+
+EXPOSE 6060

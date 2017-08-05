@@ -85,7 +85,6 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext, mods map[string]config.Config, modulesDir string) error {
 	pendingModules := make(map[string]config.Config)
-	log.Trace(ctx, "iteratign on pending modules", "modules", mods)
 	for instance, instanceConf := range mods {
 		loaded, err := modMgr.loadInstance(ctx, instance, instanceConf, modulesDir)
 		if err != nil {
@@ -98,7 +97,6 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 	if len(pendingModules) == 0 {
 		return nil
 	}
-	log.Trace(ctx, "iteratign on pending modules", "modules", pendingModules, "loaded modules", modMgr.loadedModules)
 	if len(pendingModules) < len(mods) {
 		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir); err != nil {
 			return err

@@ -21,7 +21,10 @@ func (channel *httpChannelProxy) GetServiceName() string {
 
 func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {
 	log.Trace(ctx, "Creating child channel ", "Parent", channel.channel.name, "Name", name)
-	childChannel := channel.channel.group(ctx, name, channelConfig)
+	childChannel, err := channel.channel.child(ctx, name, channelConfig)
+	if err != nil {
+		return nil, err
+	}
 	proxy := &httpChannelProxy{channel: childChannel}
 	return proxy, nil
 }

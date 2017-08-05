@@ -13,7 +13,8 @@
     "publicdirserver":{
       "module":"publicdirserver",
       "settings":{
-        "publicfilesdir":"/bin/publicdir"
+        "publicfilesdir":"/bin/publicdir",
+        "instance":"publicdir"
       }
     }
   }

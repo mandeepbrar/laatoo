@@ -75,8 +75,7 @@ func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) er
 }
 
 func (svc *FileSystemSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
-	log.Error(ctx, "Full Path:***********", "path", svc.filesDir+fileName)
-	return svc.filesDir + fileName
+	return path.Join(svc.filesDir, fileName)
 }
 
 func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {

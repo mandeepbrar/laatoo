@@ -21,9 +21,11 @@ type channelManager struct {
 
 	//store for service factory in an application
 	channelStore map[string]server.Channel
+	channelConfs map[string]config.Config
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
+	chanMgr.channelConfs = make(map[string]config.Config)
 	chanMgr.secondPass = make(map[string]config.Config)
 
 	log.Trace(ctx, "Create Channels")
@@ -75,6 +77,13 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 			}
 			proxy := svcProxy.(*serviceProxy)
 			svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
+
+			chanConf := chanMgr.channelConfs[chanName]
+
+			if err := processLogging(svcServeCtx, chanConf, chanName); err != nil {
+				return errors.WrapError(svcServeCtx, err)
+			}
+
 			err = channel.Serve(svcServeCtx)
 			if err != nil {
 				return err
@@ -153,6 +162,7 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 			return errors.WrapError(createCtx, err)
 		}
 	}
+	chanMgr.channelConfs[channelName] = channelConf
 	//log.Trace(ctx, "Creating channel", "Name:", channelName)
 	log.Info(createCtx, "Created channel", "Name:", channelName)
 	return nil

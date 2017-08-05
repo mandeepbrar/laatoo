@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/server"
+	"laatoo/server/common"
 )
 
 type serviceManagerProxy struct {
@@ -10,6 +11,7 @@ type serviceManagerProxy struct {
 }
 
 func (proxy *serviceManagerProxy) GetService(ctx core.ServerContext, serviceName string) (server.Service, error) {
+	serviceName = common.FillVariables(ctx, serviceName)
 	return proxy.manager.getService(ctx, serviceName)
 }
 

@@ -76,7 +76,12 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
 
-	eng.rootChannel = newHttpChannel(ctx, eng.name, eng.conf, eng, nil)
+	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), config: eng.conf, engine: eng}
+	err := eng.rootChannel.configure(ctx)
+	if err != nil {
+		return err
+	}
+
 	log.Trace(ctx, "Setting root channel", "root", eng.rootChannel)
 
 	/*eng.loadBalanced, _ := eng.conf.GetBool(constants.CONF_LOAD_BALANCED)

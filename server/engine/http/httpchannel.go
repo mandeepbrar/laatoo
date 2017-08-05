@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/constants"
@@ -37,6 +38,7 @@ const (
 
 type httpChannel struct {
 	name           string
+	method         string
 	Router         net.Router
 	config         config.Config
 	svcName        string
@@ -44,53 +46,35 @@ type httpChannel struct {
 	allowedQParams []string
 	skipAuth       bool
 	path           string
+	parentChannel  *httpChannel
 }
 
-func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, engine *httpEngine, parentChannel *httpChannel) *httpChannel {
-	var routername string
-	var router net.Router
-	path, ok := conf.GetString(constants.CONF_HTTPENGINE_PATH)
-	if !ok {
-		path = engine.path
+func (channel *httpChannel) configure(ctx core.ServerContext) error {
+	skipAuth, ok := channel.config.GetBool(constants.CONF_HTTPENGINE_SKIPAUTH)
+	if !ok && channel.parentChannel != nil {
+		skipAuth = channel.parentChannel.skipAuth
 	}
+	channel.skipAuth = skipAuth
 
-	if parentChannel == nil {
-		routername = name
-		router = engine.framework.GetParentRouter(path)
-	} else {
-		routername = fmt.Sprintf("%s > %s", parentChannel.name, name)
-		router = parentChannel.Router.Group(path)
-	}
-
-	svc, _ := conf.GetString(constants.CONF_CHANNEL_SERVICE)
-
-	skipAuth, ok := conf.GetBool(constants.CONF_HTTPENGINE_SKIPAUTH)
-	if !ok && parentChannel != nil {
-		skipAuth = parentChannel.skipAuth
-	}
-
-	channel := &httpChannel{name: routername, Router: router, config: conf, engine: engine, skipAuth: skipAuth, svcName: svc, path: path}
-
-	allowedQParams, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+	allowedQParams, ok := channel.config.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
-		if parentChannel != nil && parentChannel.allowedQParams != nil {
-			channel.allowedQParams = append(parentChannel.allowedQParams, allowedQParams...)
+		if channel.parentChannel != nil && channel.parentChannel.allowedQParams != nil {
+			channel.allowedQParams = append(channel.parentChannel.allowedQParams, allowedQParams...)
 		} else {
 			channel.allowedQParams = allowedQParams
 		}
 	} else {
-		if parentChannel != nil {
-			channel.allowedQParams = parentChannel.allowedQParams
+		if channel.parentChannel != nil {
+			channel.allowedQParams = channel.parentChannel.allowedQParams
 		}
 	}
 
-	usecors, _ := conf.GetBool(constants.CONF_HTTPENGINE_USECORS)
+	usecors, _ := channel.config.GetBool(constants.CONF_HTTPENGINE_USECORS)
 
-	log.Debug(ctx, "Created group router", "name", channel.name, "path", path, "using cors", usecors, " skipauth", skipAuth)
 	if usecors {
-		allowedOrigins, ok := conf.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
+		allowedOrigins, ok := channel.config.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
-			corsOptionsPath, _ := conf.GetString(constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
+			corsOptionsPath, _ := channel.config.GetString(constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
 			corsMw := cors.New(cors.Options{
 				AllowedOrigins:     allowedOrigins,
 				AllowedHeaders:     []string{"*"},
@@ -99,7 +83,7 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 				OptionsPassthrough: true,
 				AllowCredentials:   true,
 			})
-			switch engine.fwname {
+			switch channel.engine.fwname {
 			case "Echo":
 				if corsOptionsPath == "" {
 					corsOptionsPath = "/*"
@@ -124,44 +108,34 @@ func newHttpChannel(ctx core.ServerContext, name string, conf config.Config, eng
 			log.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
 		}
 	}
-
-	/*
-		bypassauth := false
-		//authentication required by default unless explicitly turned off
-		bypassauthInt, ok := conf[CONF_SERVICE_AUTHBYPASS]
-		if ok {
-			bypassauth = (bypassauthInt == "true")
-		}
-
-		//provide application context to every request using middleware
-		retRouter.Use(ctx, func(ctx core.Context) error {
-			//ctx.Set(CONF_ENV_CONTEXT, env)
-			if bypassauth {
-				ctx.Set(CONF_SERVICE_AUTHBYPASS, true)
-			}
-			return nil
-		})
-
-		retRouter.setupAuthMiddleware(ctx, bypassauth)
-		if !bypassauth {
-			_, confok := conf[CONF_AUTHORIZATION]
-			if confok {
-				retRouter.Use(ctx, func(permCtx core.Context) error {
-					authorized, err := retRouter.authorize(permCtx, conf)
-					if !authorized {
-						return errors.ThrowError(ctx, AUTH_ERROR_SECURITY)
-					}
-					return errors.WrapError(err)
-				})
-			}
-		}*/
-
-	return channel
+	return nil
 }
 
-func (channel *httpChannel) group(ctx core.ServerContext, name string, conf config.Config) *httpChannel {
+func (channel *httpChannel) child(ctx core.ServerContext, name string, channelConfig config.Config) (*httpChannel, error) {
+	ctx = ctx.SubContext("Channel " + name)
 	log.Trace(ctx, "Creating child channel", "Parent", channel.name, "New channel", name)
-	return newHttpChannel(ctx, name, conf, channel.engine, channel)
+	path, ok := channelConfig.GetString(constants.CONF_HTTPENGINE_PATH)
+	if !ok {
+		errors.BadConf(ctx, constants.CONF_HTTPENGINE_PATH)
+	}
+	svc, found := channelConfig.GetString(constants.CONF_CHANNEL_SERVICE)
+
+	var routername string
+	var router net.Router
+	if found {
+		router = channel.Router
+		routername = fmt.Sprintf("%s > %s", channel.name, name)
+	} else {
+		routername = fmt.Sprintf("%s > %s", channel.name, name)
+		router = channel.Router.Group(path)
+	}
+
+	childChannel := &httpChannel{name: routername, Router: router, config: channelConfig, engine: channel.engine, svcName: svc, path: path}
+	err := childChannel.configure(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return childChannel, nil
 }
 
 func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName string, handler ServiceInvoker, respHandler server.ServiceResponseHandler, svc server.Service) net.HandlerFunc {
@@ -189,12 +163,12 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	return func(pathCtx net.WebContext) error {
 		errChannel := make(chan error)
 		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
-		webreq := pathCtx.GetRequest()
-		corectx.SetGaeReq(webreq)
-		log.Info(corectx, "Got request", "Path", webreq.URL.RequestURI(), "Method", webreq.Method)
+		httpreq := pathCtx.GetRequest()
+		corectx.SetGaeReq(httpreq)
+		log.Info(corectx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)
 		defer corectx.CompleteRequest()
 		go func(reqctx core.RequestContext, webctx net.WebContext) {
-			bytes, err := webreq.GetBody()
+			bytes, err := webctx.GetBody()
 			if err != nil {
 				errChannel <- err
 				return

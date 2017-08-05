@@ -2,7 +2,7 @@ package http
 
 import (
 	//	"laatoo/core/common"
-	"laatoo/sdk/config"
+
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
@@ -58,54 +58,26 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		}
 	}
 
-	allowedQParamsFunc := func(confElem config.Config) {
-		if confElem == nil {
-			return
-		}
-		allowedParams, ok := confElem.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
-		if ok {
-			for _, p := range allowedParams {
-				allowedQueryParams[p] = true
-			}
-		}
-	}
-	allowedQParamsFunc(channel.config)
-	//allowedQParamsFunc(svcParams)
-
 	////build value parameters
 	staticValues := make(map[string]interface{})
-	staticValuesFunc := func(confElem config.Config) {
-		if confElem == nil {
-			return
-		}
-		staticValuesConf, ok := confElem.GetSubConfig(constants.CONF_HTTPENGINE_STATICVALUES)
-		if ok {
-			values := staticValuesConf.AllConfigurations()
-			for _, paramname := range values {
-				staticValues[paramname], _ = staticValuesConf.Get(paramname)
-			}
+	staticValuesConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_STATICVALUES)
+	if ok {
+		values := staticValuesConf.AllConfigurations()
+		for _, paramname := range values {
+			staticValues[paramname], _ = staticValuesConf.Get(paramname)
 		}
 	}
-	staticValuesFunc(channel.config)
-	//staticValuesFunc(svcParams)
 
 	//build header param mappings
 	headers := make(map[string]string, 0)
-	headersFunc := func(confElem config.Config) {
-		if confElem == nil {
-			return
-		}
-		headersConf, ok := confElem.GetSubConfig(constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
-		if ok {
-			headersToInclude := headersConf.AllConfigurations()
-			for _, paramName := range headersToInclude {
-				header, _ := headersConf.GetString(paramName)
-				headers[paramName] = header
-			}
+	headersConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
+	if ok {
+		headersToInclude := headersConf.AllConfigurations()
+		for _, paramName := range headersToInclude {
+			header, _ := headersConf.GetString(paramName)
+			headers[paramName] = header
 		}
 	}
-	headersFunc(channel.config)
-	//headersFunc(svcParams)
 
 	webReqHandler, err := channel.processServiceRequest(ctx, method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams)
 	if err != nil {

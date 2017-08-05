@@ -154,6 +154,10 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 			facCtx = facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
 		}
 
+		if err := processLogging(facCtx, factoryConfig, factoryAlias); err != nil {
+			return errors.WrapError(facCtx, err)
+		}
+
 		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
 		facProxy := &serviceFactoryProxy{fac: fac}
 		facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})

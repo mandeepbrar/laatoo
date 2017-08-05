@@ -23,6 +23,7 @@ const (
 	stringarr
 	booltype
 	custom
+	none
 )
 
 type serverService struct {
@@ -160,6 +161,8 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 
 	datatype := reqInfo.GetDataType()
 	switch datatype {
+	case "":
+		svc.dataObjectType = none
 	case config.CONF_OBJECT_STRINGMAP:
 		svc.dataObjectType = stringmap
 	case config.CONF_OBJECT_BYTES:
@@ -222,6 +225,10 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.
 }
 
 func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[string]interface{}, body []byte) (*core.Response, error) {
+	if svc.dataObjectType == none {
+		return svc.handleRequest(ctx, vals, nil)
+	}
+
 	codecname := "json"
 	co, ok := vals["encoding"]
 	if ok {

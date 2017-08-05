@@ -8,7 +8,6 @@ import (
 	"laatoo/sdk/server"
 	"laatoo/server/common"
 	"laatoo/server/constants"
-	slog "laatoo/server/log"
 )
 
 const (
@@ -198,9 +197,9 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 		log.Info(svcCtx, "Setting cache for service ", "cacheToUse", cacheToUse)
 	}
 
-	elem := ctx.GetServerElement(core.ServerElementLogger)
-	_, logger := slog.ChildLoggerWithConf(ctx, serviceAlias, elem.(server.Logger), svcProxy, conf)
-	svcCtx.setElements(core.ContextMap{core.ServerElementLogger: logger})
+	if err := processLogging(svcCtx, conf, serviceAlias); err != nil {
+		return errors.WrapError(svcCtx, err)
+	}
 
 	//pass a server context to service with element set to service
 	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: facElem}, core.ServerElementService
