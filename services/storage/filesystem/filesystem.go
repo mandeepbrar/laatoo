@@ -101,8 +101,8 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext) error {
 }
 
 func (svc *FileSystemSvc) Start(ctx core.ServerContext) error {
-	filesDir, _ := svc.GetConfiguration(ctx, CONF_FILESDIR)
-	svc.filesDir = filesDir.(string)
+	filesDir, _ := svc.GetStringConfiguration(ctx, CONF_FILESDIR)
+	svc.filesDir = filesDir
 
 	return nil
 }

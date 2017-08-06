@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -33,11 +34,13 @@ type File struct {
 type FileService struct {
 	core.Service
 	filesMap map[string]*File
+	storage  components.StorageComponent
 	name     string
 }
 
 func (fs *FileService) Initialize(ctx core.ServerContext) error {
 	fs.SetDescription(ctx, "Static files service")
+	fs.AddStringConfigurations(ctx, []string{CONF_FILE_STORAGE}, nil)
 	fs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILES: config.CONF_OBJECT_CONFIG})
 	fs.AddStringParams(ctx, []string{CONF_STATIC_FILEPARAM}, nil)
 	fs.filesMap = make(map[string]*File, 10)
@@ -85,7 +88,14 @@ func (fs *FileService) Invoke(ctx core.RequestContext) error {
 
 func (fs *FileService) Start(ctx core.ServerContext) error {
 
-	conf, ok := fs.GetConfiguration(ctx, CONF_STATIC_FILES)
+	stg, _ := fs.GetStringConfiguration(ctx, CONF_FILE_STORAGE)
+	stgSvc, err := ctx.GetService(stg)
+	if err != nil {
+		return err
+	}
+	fs.storage = stgSvc.(components.StorageComponent)
+
+	conf, ok := fs.GetMapConfiguration(ctx, CONF_STATIC_FILES)
 	if ok {
 		filesConf := conf.(config.Config)
 		filenames := filesConf.AllConfigurations()
@@ -97,9 +107,12 @@ func (fs *FileService) Start(ctx core.ServerContext) error {
 			if !ok {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATIC_FILE_PATH)
 			}
+			req := ctx.CreateSystemRequest("GetFilePath")
+			path = fs.storage.GetFullPath(req, path)
+
 			fil, err := os.Stat(path)
 			if err != nil {
-				return err
+				return errors.WrapError(ctx, err, "Filepath", path)
 			}
 			mimetype := ""
 			extension := filepath.Ext(fil.Name())

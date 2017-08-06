@@ -16,6 +16,23 @@
         "publicfilesdir":"/bin/publicdir",
         "instance":"publicdir"
       }
+    },
+    "publicfilesserver":{
+      "module":"publicfilesserver",
+      "settings":{
+        "filestoragedir":"/bin/appfiles",
+        "instance":"appfiles",
+        "files": {
+          "services.conf.js": {
+            "cache": "true",
+            "path": "scripts/services.conf.js"
+          },
+          "index.html": {
+            "cache": "true",
+            "path": "index.html"
+          }
+        }
+      }
     }
   }
 }

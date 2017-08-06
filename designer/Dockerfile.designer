@@ -4,4 +4,6 @@ COPY dist/keys /
 
 COPY dist/publicdir /
 
+VOLUME dist/appfiles /
+
 COPY dist/config/designer config/environments/designer

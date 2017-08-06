@@ -6,4 +6,6 @@ VOLUME /config/environments/designer
 
 VOLUME /bin/publicdir
 
+VOLUME /bin/appfiles
+
 EXPOSE 6060

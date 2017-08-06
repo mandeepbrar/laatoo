@@ -3,8 +3,16 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/server/common"
 	"strings"
+)
+
+type ServiceState int
+
+const (
+	Created ServiceState = iota
+	Initialized
+	Started
 )
 
 func newServiceImpl() *serviceImpl {
@@ -12,11 +20,12 @@ func newServiceImpl() *serviceImpl {
 		request:        &requestInfo{params: make(map[string]core.Param)},
 		response:       &responseInfo{},
 		configurations: make(map[string]interface{})}
-	return &serviceImpl{svcInfo: info}
+	return &serviceImpl{svcInfo: info, state: Created}
 }
 
 type serviceImpl struct {
 	svcInfo *serviceInfo
+	state   ServiceState
 }
 
 func (impl *serviceImpl) Info() core.ServiceInfo {
@@ -136,7 +145,6 @@ func (impl *serviceImpl) lookupContext(ctx core.ServerContext, name string) (int
 
 func (impl *serviceImpl) GetConfiguration(ctx core.ServerContext, name string) (interface{}, bool) {
 	var val interface{}
-	log.Trace(ctx, "getting configuration for servce", "name", name)
 	c, found := impl.svcInfo.configurations[name]
 	if !found {
 		val, found = impl.lookupContext(ctx, name)
@@ -158,38 +166,31 @@ func (impl *serviceImpl) GetConfiguration(ctx core.ServerContext, name string) (
 
 func (impl *serviceImpl) GetStringConfiguration(ctx core.ServerContext, name string) (string, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
-	if !ok {
-		if c != nil {
-			return c.(string), ok
-		} else {
-			return "", ok
-		}
+	if !ok && c == nil {
+		return "", ok
 	}
 	return c.(string), ok
 }
 
 func (impl *serviceImpl) GetBoolConfiguration(ctx core.ServerContext, name string) (bool, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
-	if !ok {
-		if c != nil {
-			return c.(bool), ok
-		} else {
-			return false, ok
-		}
+	if !ok && c == nil {
+		return false, ok
 	}
 	return c.(bool), ok
 }
 
 func (impl *serviceImpl) GetMapConfiguration(ctx core.ServerContext, name string) (config.Config, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
-	if !ok {
-		if c != nil {
-			return c.(config.Config), ok
-		} else {
-			return nil, ok
-		}
+	if !ok && c == nil {
+		return nil, ok
 	}
-	return c.(config.Config), ok
+	m, mok := c.(map[string]interface{})
+	if mok {
+		return common.GenericConfig(m), true
+	} else {
+		return nil, false
+	}
 }
 
 func (impl *serviceImpl) SetComponent(ctx core.ServerContext, component bool) {

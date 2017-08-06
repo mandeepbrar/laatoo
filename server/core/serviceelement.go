@@ -10,6 +10,7 @@ import (
 	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"reflect"
+	"strings"
 )
 
 type objectType int
@@ -34,6 +35,7 @@ type serverService struct {
 	owner                       *serviceManager
 	middleware                  []*serverService
 	paramValues                 map[string]interface{}
+	impl                        *serviceImpl
 	info                        core.ServiceInfo
 	svrContext                  *serverContext
 	dataObjectCreator           core.ObjectCreator
@@ -46,6 +48,7 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	//inject service implementation into
 	//every service
 	impl := newServiceImpl()
+	svc.impl = impl
 	var svcval core.Service
 	svcval = impl
 	val := reflect.ValueOf(svc.service)
@@ -61,6 +64,7 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	impl.state = Initialized
 
 	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
 	svc.info = svc.service.Info()
@@ -104,7 +108,11 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 	}
 	middleware = append(middleware, svc)
 	svc.middleware = middleware
-	return svc.service.Start(ctx)
+	err := svc.service.Start(ctx)
+	if err == nil {
+		svc.impl.state = Started
+	}
+	return err
 }
 
 func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config, info core.ServiceInfo) error {
@@ -119,6 +127,7 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 	for name, configObj := range confs {
 		configuration := configObj.(*configuration)
 		val, ok := svcconf.Get(name)
+
 		if !ok && configuration.required {
 			return errors.MissingConf(ctx, name)
 		}
@@ -152,6 +161,17 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 			default:
 				configuration.value = val
 			}
+
+			//check if value provided is a variable name..
+			//allow assignment if its a variable name
+			if !ok {
+				strval, _ := svcconf.GetString(name)
+				if strings.HasPrefix(strval, ":") {
+					configuration.value = strval
+					ok = true
+				}
+			}
+
 			//configuration was there but wrong type
 			if !ok && configuration.required {
 				return errors.BadConf(ctx, name)

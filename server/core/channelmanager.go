@@ -107,7 +107,7 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 }*/
 
 func (chanMgr *channelManager) loadChannelsFromFolder(ctx core.ServerContext, folder string) error {
-	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_CHANNELS, chanMgr.createChannel, true)
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_CHANNELS, chanMgr.processChannel, true)
 }
 
 func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, chansToReview map[string]config.Config) error {
@@ -132,6 +132,24 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 				return errors.WrapError(ctx, err)
 			}
 		}
+	}
+	return nil
+}
+
+func (chanMgr *channelManager) processChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
+	arr, ok := channelConf.GetConfigArray(constants.CONF_CHANNELS)
+	if ok {
+		for _, conf := range arr {
+			name, ok := conf.GetString(constants.CONF_OBJECT_NAME)
+			if !ok {
+				return errors.MissingConf(ctx, constants.CONF_OBJECT_NAME, "Channels", channelName)
+			}
+			if err := chanMgr.createChannel(ctx, conf, name); err != nil {
+				return err
+			}
+		}
+	} else {
+		return chanMgr.createChannel(ctx, channelConf, channelName)
 	}
 	return nil
 }

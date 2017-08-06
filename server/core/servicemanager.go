@@ -47,19 +47,27 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
-	svcmgrStartCtx := ctx.(*serverContext)
-	for svcname, svcProxy := range svcMgr.servicesStore {
+	//	svcmgrStartCtx := ctx.(*serverContext)
+	for _, svcProxy := range svcMgr.servicesStore {
 		if svcProxy.svc.owner == svcMgr {
-			log.Debug(svcmgrStartCtx, "Starting service ", "service name", svcname)
-			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
-			svcStartCtx := svcProxy.svc.svrContext.subContext("Start " + svcname)
-			err := svcProxy.svc.start(svcStartCtx)
+			err := svcMgr.startService(ctx, svcProxy)
 			if err != nil {
-				return errors.WrapError(svcStartCtx, err)
+				return err
 			}
-			log.Info(svcmgrStartCtx, "Started service ", "name", svcname)
 		}
 	}
+	return nil
+}
+
+func (svcMgr *serviceManager) startService(ctx core.ServerContext, svcProxy *serviceProxy) error {
+	svcStartCtx := svcProxy.svc.svrContext.subContext("Start " + svcProxy.svc.name)
+	log.Debug(svcStartCtx, "Starting service ", "service name", svcProxy.svc.name)
+	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
+	err := svcProxy.svc.start(svcStartCtx)
+	if err != nil {
+		return errors.WrapError(svcStartCtx, err)
+	}
+	log.Info(svcStartCtx, "Started service ", "name", svcProxy.svc.name)
 	return nil
 }
 
@@ -69,10 +77,22 @@ func (svcMgr *serviceManager) loadServicesFromFolder(ctx core.ServerContext, fol
 
 func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (server.Service, error) {
 	elem, ok := svcMgr.servicesStore[serviceName]
-	if ok {
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", serviceName)
+	}
+	svc := elem.svc
+	switch svc.impl.state {
+	case Created:
+		return nil, nil
+	case Initialized:
+		err := svcMgr.startService(ctx, elem)
+		if err != nil {
+			return nil, err
+		}
+		return elem, err
+	default:
 		return elem, nil
 	}
-	return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", serviceName)
 }
 
 //create services within an application
