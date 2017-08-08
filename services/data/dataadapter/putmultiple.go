@@ -14,22 +14,24 @@ type putmultiple struct {
 }
 
 func (gi *putmultiple) Initialize(ctx core.ServerContext) error {
-	gi.SetDescription("Put multiple objects using data component. Input an array of objects")
-	gi.SetRequestType(gi.DataStore.GetObject(), true, false)
+	gi.SetDescription(ctx, "Put multiple objects using data component. Input an array of objects")
+	gi.SetRequestType(ctx, gi.DataStore.GetObject(), true, false)
 	return nil
 }
 
-func (es *putmultiple) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (es *putmultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUTMULTIPLE")
-	arr := req.GetBody()
+	arr := ctx.GetBody()
 	log.Trace(ctx, "Collection ", "arr", arr)
 	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
-		return core.StatusInternalErrorResponse, err
+		ctx.SetResponse(core.StatusInternalErrorResponse)
+		return err
 	}
 	err = es.DataStore.PutMulti(ctx, storables)
 	if err != nil {
-		return core.StatusNotFoundResponse, errors.WrapError(ctx, err)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.WrapError(ctx, err)
 	}
-	return nil, nil
+	return nil
 }

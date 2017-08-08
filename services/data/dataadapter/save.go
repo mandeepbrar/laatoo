@@ -13,20 +13,22 @@ type save struct {
 }
 
 func (gi *save) Initialize(ctx core.ServerContext) error {
-	gi.SetDescription("Saves a storable using data component.")
-	gi.SetRequestType(gi.DataStore.GetObject(), false, false)
+	gi.SetDescription(ctx, "Saves a storable using data component.")
+	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
 	return nil
 }
 
-func (es *save) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (es *save) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SAVE")
-	ent := req.GetBody()
+	ent := ctx.GetBody()
 	stor := ent.(data.Storable)
 	err := es.DataStore.Save(ctx, stor)
 	if err == nil {
 		ctx.Set("Id", stor.GetId())
-		return core.NewServiceResponse(core.StatusSuccess, stor.GetId(), nil), nil
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, stor.GetId(), nil))
+		return nil
 	} else {
-		return core.StatusNotFoundResponse, errors.WrapError(ctx, err)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.WrapError(ctx, err)
 	}
 }

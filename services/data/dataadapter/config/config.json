@@ -1,0 +1,15 @@
+{
+  "version":"0.0.1",
+  "object":"DataAdapterModule",
+  "dependencies":{
+  },
+  "objects":{
+    "dataadapter":"Data adapter factory",
+    "DataAdapterModule":"Module creating Data Adapter services"
+  },
+  "params":{
+    "dataservicefactory":"Underlying data service factory. Service instance from this factory are passed the identified object",
+    "object": "Object for which services are being created",
+    "instance":"Discriminator to distinguish multiple services created by multiple instances of the module"
+  }
+}

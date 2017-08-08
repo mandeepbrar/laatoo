@@ -36,9 +36,9 @@ func (svc *gaeDataService) Initialize(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	svc.AddOptionalConfigurations(map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
+	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
 
-	svc.SetDescription("GAE data component")
+	svc.SetDescription(ctx, "GAE data component")
 
 	return nil
 }
@@ -50,7 +50,7 @@ func (svc *gaeDataService) Start(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	collection, ok := svc.GetConfiguration(data.CONF_DATA_COLLECTION)
+	collection, ok := svc.GetConfiguration(ctx, data.CONF_DATA_COLLECTION)
 	if ok {
 		svc.collection = collection.(string)
 	} else {
@@ -62,10 +62,6 @@ func (svc *gaeDataService) Start(ctx core.ServerContext) error {
 	}
 
 	return nil
-}
-
-func (svc *gaeDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
 }
 
 func (svc *gaeDataService) GetName() string {

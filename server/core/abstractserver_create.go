@@ -255,7 +255,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 				return errors.WrapError(ctx, err)
 			}
 		} else {
-			msgConf = make(common.GenericConfig, 0)
+			msgConf = make(config.GenericConfig, 0)
 		}
 	}
 	if found {
@@ -399,7 +399,7 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 }
 
 func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*module), loadedModules: make(map[string]semver.Version), svrref: as}
+	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*serverModule), loadedModules: make(map[string]semver.Version), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
@@ -408,7 +408,7 @@ func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, 
 func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
 	modMgrProxy := parentModMgr.(*moduleManagerProxy)
 	modMgr := modMgrProxy.modMgr
-	modules := make(map[string]*module, len(modMgr.modules))
+	modules := make(map[string]*serverModule, len(modMgr.modules))
 	for k, v := range modMgr.modules {
 		modules[k] = v
 	}

@@ -21,7 +21,7 @@ type mongoDataService struct {
 }
 
 const (
-	CONF_MONGO_DATABASE = "database"
+	CONF_MONGO_DATABASE = "mongodatabase"
 )
 
 func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServicesFactory) (*mongoDataService, error) {
@@ -38,9 +38,9 @@ func (svc *mongoDataService) Initialize(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	svc.AddOptionalConfigurations(map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
+	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
 
-	svc.SetDescription("Mongo data component")
+	svc.SetDescription(ctx, "Mongo data component")
 
 	return nil
 }
@@ -50,7 +50,7 @@ func (svc *mongoDataService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	collection, ok := svc.GetConfiguration(data.CONF_DATA_COLLECTION)
+	collection, ok := svc.GetConfiguration(ctx, data.CONF_DATA_COLLECTION)
 	if ok {
 		svc.collection = collection.(string)
 	} else {

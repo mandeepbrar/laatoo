@@ -14,7 +14,6 @@ const (
 	CONF_OBJECTLDR_METHODS = "methods"
 	CONST_ALL_PERMISSIONS  = "AllPermissions"
 	CONF_PLUGINS_FOLDER    = "plugins"
-	CONF_FACTORIES         = "factories"
 	CONF_SERVICES          = "services"
 	CONF_SVCPARAMS         = "params"
 	CONF_MODULE_VER        = "version"
@@ -24,6 +23,8 @@ const (
 	CONF_MODULE_PARAMS     = "params"
 	CONF_MODULE_DISABLED   = "disabled"
 	CONF_MODULE            = "module"
+	CONF_SERVICEFACTORIES  = "factories"
+	CONF_SERVICEFACTORY    = "factory"
 
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"

@@ -1,0 +1,11 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "mongo_services":"Mongo database service."
+  },
+  "params":{
+    "mongoconnectionstring":"Connection string for mongo database",
+    "mongodatabase":"Mongo database to connect"
+  }
+}

@@ -12,8 +12,7 @@ import (
 
 const (
 	CONF_SERVICEFACTORYGROUPS = "factorygroups"
-	CONF_SERVICEFACTORIES     = "factories"
-	CONF_SERVICEFACTORY       = "factory"
+
 	CONF_SERVICEFACTORYCONFIG = "config"
 )
 
@@ -31,7 +30,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(ctx, &common.GenericConfig{CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
+	err = facMgr.createServiceFactory(ctx, &config.GenericConfig{constants.CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -62,7 +61,7 @@ func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 }
 
 func (facMgr *factoryManager) loadFactoriesFromFolder(ctx core.ServerContext, baseDir string) error {
-	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_FACTORIES, facMgr.createServiceFactory, true)
+	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_SERVICEFACTORIES, facMgr.createServiceFactory, true)
 }
 
 func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, conf config.Config) error {
@@ -84,7 +83,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 		}
 	}
 	//get a map of all the services
-	factoriesConfig, ok := conf.GetSubConfig(CONF_SERVICEFACTORIES)
+	factoriesConfig, ok := conf.GetSubConfig(constants.CONF_SERVICEFACTORIES)
 	if !ok {
 		return nil
 	}
@@ -107,9 +106,9 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
 	ctx = ctx.SubContext("Create Service Factory")
 	factoryAlias = common.FillVariables(ctx, factoryAlias)
-	factoryName, ok := factoryConfig.GetString(CONF_SERVICEFACTORY)
+	factoryName, ok := factoryConfig.GetString(constants.CONF_SERVICEFACTORY)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", CONF_SERVICEFACTORY)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)
 	}
 
 	/*svcfacConfig, err, ok := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
@@ -148,7 +147,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 
 		if mod != nil {
 			log.Trace(ctx, "Creating factory object for module", "facmgr", facMgr)
-			facCtx = mod.(*module).svrContext.newContext("Factory: " + factoryAlias)
+			facCtx = mod.(*moduleProxy).mod.svrContext.newContext("Factory: " + factoryAlias)
 		} else {
 			//derivce new context from abstract server context
 			facCtx = facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
@@ -182,9 +181,9 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 	for facname, facProxy := range facMgr.serviceFactoryStore {
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
-			facInitializeCtx := ctx.SubContext("Initialize " + facname)
+			facInitializeCtx := facStruct.svrContext.SubContext("Initialize: " + facname)
 			log.Debug(facInitializeCtx, "Initializing factory", "factory name", facname)
-			err := facStruct.factory.Initialize(facInitializeCtx, facStruct.conf)
+			err := facStruct.initialize(facInitializeCtx, facStruct.conf)
 			if err != nil {
 				return errors.WrapError(facInitializeCtx, err)
 			}

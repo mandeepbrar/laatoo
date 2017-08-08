@@ -109,7 +109,7 @@ func FileAdapter(conf config.Config, configName string) (config.Config, error, b
 }
 
 func Cast(conf interface{}) (config.Config, bool) {
-	var gc GenericConfig
+	var gc config.GenericConfig
 	cf, ok := conf.(map[string]interface{})
 	if ok {
 		gc = cf
@@ -119,7 +119,7 @@ func Cast(conf interface{}) (config.Config, bool) {
 }
 
 func Merge(conf1 config.Config, conf2 config.Config) config.Config {
-	mergedConf := make(GenericConfig)
+	mergedConf := make(config.GenericConfig)
 	copyConfs := func(conf config.Config) {
 		if conf == nil {
 			return

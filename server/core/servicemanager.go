@@ -180,7 +180,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	mod := svcCreateCtx.GetServerElement(core.ServerElementModule)
 
 	if mod != nil {
-		svcCtx = mod.(*module).svrContext.newContext("Service: " + serviceAlias)
+		svcCtx = mod.(*moduleProxy).mod.svrContext.newContext("Service: " + serviceAlias)
 	} else {
 		//get the factory from proxy
 		svcCtx = facCtx.newContext("Service: " + serviceAlias)

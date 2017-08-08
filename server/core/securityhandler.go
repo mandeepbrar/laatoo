@@ -10,7 +10,6 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
-	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/security"
 
@@ -44,7 +43,7 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	if conf == nil {
 		sh.skipSecurity = true
-		conf = make(common.GenericConfig, 0)
+		conf = make(config.GenericConfig, 0)
 	}
 
 	initCtx := ctx.SubContext("Initialize Security Handler")

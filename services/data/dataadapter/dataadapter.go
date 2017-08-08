@@ -9,7 +9,7 @@ import (
 
 const (
 	CONF_DATAADAPTER_SERVICES      = "dataadapter"
-	CONF_DATAADAPTER_DATA_SVC      = "data_svc"
+	CONF_DATAADAPTER_DATA_SVC      = "dataservice"
 	CONF_DATA_ID                   = "id"
 	CONF_DATA_IDS                  = "ids"
 	CONF_SVC_GET                   = "GET"
@@ -35,21 +35,13 @@ const (
 	CONF_SVC_UPDATE_FIELDS         = "updatefields"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_DATAADAPTER_SERVICES, Object: DataAdapterFactory{}}}
-}
-
 type DataAdapterFactory struct {
-	DataStore       data.DataComponent
-	dataServiceName string
+	core.ServiceFactory
+	DataStore data.DataComponent
 }
 
-func (es *DataAdapterFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	datasvc, ok := conf.GetString(CONF_DATAADAPTER_DATA_SVC)
-	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Configuration", CONF_DATAADAPTER_DATA_SVC)
-	}
-	es.dataServiceName = datasvc
+func (es *DataAdapterFactory) Initialize(ctx core.ServerContext) error {
+	es.AddStringConfiguration(ctx, CONF_DATAADAPTER_DATA_SVC)
 	return nil
 }
 
@@ -60,9 +52,11 @@ func (es *DataAdapterFactory) CreateService(ctx core.ServerContext, name string,
 
 //The services start serving when this method is called
 func (es *DataAdapterFactory) Start(ctx core.ServerContext) error {
-	dataSvc, err := ctx.GetService(es.dataServiceName)
+	dataServiceName, _ := es.GetStringConfiguration(ctx, CONF_DATAADAPTER_DATA_SVC)
+
+	dataSvc, err := ctx.GetService(dataServiceName)
 	if err != nil {
-		return errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, err, "Name", es.dataServiceName)
+		return errors.MissingService(ctx, dataServiceName)
 	}
 	es.DataStore = dataSvc.(data.DataComponent)
 	return nil

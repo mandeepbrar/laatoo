@@ -7,6 +7,14 @@ import (
 	"laatoo/server/log"
 )
 
+type State int
+
+const (
+	Created State = iota
+	Initialized
+	Started
+)
+
 func processLogging(ctx *serverContext, conf config.Config, name string) error {
 	_, ok := conf.GetSubConfig(constants.CONF_LOGGING)
 	if ok {

@@ -5,6 +5,20 @@
       "settings":{
       }
     },
+    "mongodatabase": {
+      "module":"mongodatabase",
+      "settings": {
+        "mongoconnectionstring":"127.0.0.1",
+        "mongodatabase":"PunjabiMehfil"
+      }
+    },
+    "users": {
+      "module":"dataadapter",
+      "settings":{
+        "object":"User",
+        "dataservicefactory":"mongodatabase"
+      }
+    },
     "staticfileserver":{
       "module":"staticfileserver",
       "settings":{

@@ -13,20 +13,21 @@ type put struct {
 }
 
 func (gi *put) Initialize(ctx core.ServerContext) error {
-	gi.SetDescription("Put a storable using data component. Takes object id as the parameter")
-	gi.SetRequestType(gi.DataStore.GetObject(), false, false)
-	gi.AddStringParam(CONF_DATA_ID)
+	gi.SetDescription(ctx, "Put a storable using data component. Takes object id as the parameter")
+	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
+	gi.AddStringParam(ctx, CONF_DATA_ID)
 	return nil
 }
 
-func (es *put) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (es *put) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUT")
-	id, _ := req.GetStringParam(CONF_DATA_ID)
-	ent := req.GetBody()
+	id, _ := ctx.GetStringParam(CONF_DATA_ID)
+	ent := ctx.GetBody()
 	stor := ent.(data.Storable)
 	err := es.DataStore.Put(ctx, id, stor)
 	if err != nil {
-		return core.StatusNotFoundResponse, errors.WrapError(ctx, err)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.WrapError(ctx, err)
 	}
-	return nil, nil
+	return nil
 }

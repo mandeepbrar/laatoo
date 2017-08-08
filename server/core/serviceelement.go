@@ -10,7 +10,6 @@ import (
 	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"reflect"
-	"strings"
 )
 
 type objectType int
@@ -64,13 +63,14 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	impl.state = Initialized
 
 	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
 	svc.info = svc.service.Info()
 	if err := svc.processInfo(ctx, conf, svc.info); err != nil {
 		return err
 	}
+
+	impl.state = Initialized
 
 	/*svc.metaParams = make(core.ServiceParamsMap)
 	svc.paramValues = make(map[string]interface{})
@@ -123,60 +123,8 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 		return err
 	}
 
-	confs := info.GetConfigurations()
-	for name, configObj := range confs {
-		configuration := configObj.(*configuration)
-		val, ok := svcconf.Get(name)
-
-		if !ok && configuration.required {
-			return errors.MissingConf(ctx, name)
-		}
-		if ok {
-			switch configuration.conftype {
-			case "", config.CONF_OBJECT_STRING:
-				val, ok = svcconf.GetString(name)
-				if ok {
-					configuration.value = val
-				}
-			case config.CONF_OBJECT_STRINGMAP:
-				val, ok = svcconf.GetSubConfig(name)
-				if ok {
-					configuration.value = val
-				}
-			case config.CONF_OBJECT_STRINGARR:
-				val, ok = svcconf.GetStringArray(name)
-				if ok {
-					configuration.value = val
-				}
-			case config.CONF_OBJECT_CONFIG:
-				val, ok = svcconf.GetSubConfig(name)
-				if ok {
-					configuration.value = val
-				}
-			case config.CONF_OBJECT_BOOL:
-				val, ok = svcconf.GetBool(name)
-				if ok {
-					configuration.value = val
-				}
-			default:
-				configuration.value = val
-			}
-
-			//check if value provided is a variable name..
-			//allow assignment if its a variable name
-			if !ok {
-				strval, _ := svcconf.GetString(name)
-				if strings.HasPrefix(strval, ":") {
-					configuration.value = strval
-					ok = true
-				}
-			}
-
-			//configuration was there but wrong type
-			if !ok && configuration.required {
-				return errors.BadConf(ctx, name)
-			}
-		}
+	if err := svc.impl.processInfo(ctx, svcconf); err != nil {
+		return err
 	}
 
 	datatype := reqInfo.GetDataType()

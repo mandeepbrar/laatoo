@@ -1,0 +1,4 @@
+{
+	"factory":"sql_services",
+	"sqlconnectionstring":":sqlconnectionstring"
+}

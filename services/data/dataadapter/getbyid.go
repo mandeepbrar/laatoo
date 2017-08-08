@@ -13,25 +13,29 @@ type getById struct {
 }
 
 func (gi *getById) Initialize(ctx core.ServerContext) error {
-	gi.SetDescription("Get element by Id from the underlying data component")
-	gi.AddStringParam(CONF_DATA_ID)
+	gi.SetDescription(ctx, "Get element by Id from the underlying data component")
+	gi.AddStringParam(ctx, CONF_DATA_ID)
 	return nil
 }
 
-func (es *getById) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (es *getById) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("GETBYID")
-	id, ok := req.GetStringParam(CONF_DATA_ID)
+	id, ok := ctx.GetStringParam(CONF_DATA_ID)
 	if !ok {
-		return core.StatusNotFoundResponse, errors.BadArg(ctx, CONF_DATA_ID)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.BadArg(ctx, CONF_DATA_ID)
 	}
 	result, err := es.DataStore.GetById(ctx, id)
 	if err == nil {
 		if result == nil {
-			return core.StatusNotFoundResponse, nil
+			ctx.SetResponse(core.StatusNotFoundResponse)
+			return nil
 		} else {
-			return core.NewServiceResponse(core.StatusSuccess, result, nil), nil
+			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+			return nil
 		}
 	} else {
-		return core.StatusNotFoundResponse, errors.WrapError(ctx, err)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.WrapError(ctx, err)
 	}
 }

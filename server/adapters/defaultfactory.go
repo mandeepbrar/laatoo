@@ -8,6 +8,7 @@ import (
 )
 
 type DefaultFactory struct {
+	core.ServiceFactory
 }
 
 //Create the services configured for factory.
@@ -21,13 +22,4 @@ func (mi *DefaultFactory) CreateService(ctx core.ServerContext, name string, met
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", method)
 	}
 	return svc, nil
-}
-
-func (ds *DefaultFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (ds *DefaultFactory) Start(ctx core.ServerContext) error {
-	return nil
 }

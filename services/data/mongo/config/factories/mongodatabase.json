@@ -1,0 +1,5 @@
+{
+	"factory":"mongo_services",
+	"mongoconnectionstring":":mongoconnectionstring",
+	"mongodatabase":":mongodatabase"
+}

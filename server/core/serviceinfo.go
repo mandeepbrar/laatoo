@@ -26,9 +26,7 @@ func (svcinfo *serviceInfo) GetDescription() string {
 func (svcinfo *serviceInfo) IsComponent() bool {
 	return svcinfo.component
 }
-func (svcinfo *serviceInfo) GetConfigurations() map[string]interface{} {
-	return svcinfo.configurations
-}
+
 func (svcinfo *serviceInfo) GetRequiredServices() map[string]string {
 	return svcinfo.svcsToInject
 }
@@ -59,14 +57,6 @@ type responseInfo struct {
 
 func (ri *responseInfo) IsStream() bool {
 	return ri.streaming
-}
-
-type configuration struct {
-	name         string
-	conftype     string
-	required     bool
-	value        interface{}
-	defaultValue interface{}
 }
 
 type param struct {

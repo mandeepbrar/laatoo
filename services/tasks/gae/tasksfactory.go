@@ -6,6 +6,7 @@ import (
 )
 
 type TasksFactory struct {
+	core.ServiceFactory
 }
 
 const (
@@ -31,13 +32,4 @@ func (tf *TasksFactory) CreateService(ctx core.ServerContext, name string, metho
 		return &GaeConsumer{queues: make(map[string]*taskQueue, 10)}, nil
 	}
 	return nil, nil
-}
-
-func (tf *TasksFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (tf *TasksFactory) Start(ctx core.ServerContext) error {
-	return nil
 }

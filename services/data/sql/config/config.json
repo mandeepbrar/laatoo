@@ -1,0 +1,10 @@
+{
+  "version":"0.0.1",
+  "dependencies":{},
+  "objects":{
+    "sql_services":"SQL database service."
+  },
+  "params":{
+    "sqlconnectionstring":"Connection string for sql database"
+  }
+}

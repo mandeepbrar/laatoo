@@ -6,7 +6,6 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 	"laatoo/server/constants"
 )
 
@@ -56,7 +55,7 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 	appCreateCtx := ctx.SubContext("Create").(*serverContext)
 
 	if applicationConf == nil {
-		applicationConf = make(common.GenericConfig, 0)
+		applicationConf = make(config.GenericConfig, 0)
 	}
 
 	log.Trace(appCreateCtx, "Creating Application", "Base Directory", baseDir)

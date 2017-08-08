@@ -13,17 +13,18 @@ type deleteSvc struct {
 }
 
 func (gi *deleteSvc) Initialize(ctx core.ServerContext) error {
-	gi.SetDescription("Delete an entity represented by id")
-	gi.AddStringParam(CONF_DATA_ID)
+	gi.SetDescription(ctx, "Delete an entity represented by id")
+	gi.AddStringParam(ctx, CONF_DATA_ID)
 	return nil
 }
 
-func (es *deleteSvc) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (es *deleteSvc) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("DELETE")
-	id, _ := req.GetStringParam(CONF_DATA_ID)
+	id, _ := ctx.GetStringParam(CONF_DATA_ID)
 	err := es.DataStore.Delete(ctx, id)
 	if err != nil {
-		return core.StatusNotFoundResponse, errors.WrapError(ctx, err)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return errors.WrapError(ctx, err)
 	}
-	return nil, nil
+	return nil
 }

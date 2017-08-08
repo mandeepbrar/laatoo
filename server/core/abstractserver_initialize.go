@@ -135,7 +135,7 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 		return err
 	}
 	if !ok {
-		chmgrconf = make(common.GenericConfig, 0)
+		chmgrconf = make(config.GenericConfig, 0)
 	}
 	err = channelManagerHandle.Initialize(ctx, chmgrconf)
 	if err != nil {
@@ -159,7 +159,7 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 				return errors.WrapError(ctx, err)
 			}
 		} else {
-			msgConf = make(common.GenericConfig, 0)
+			msgConf = make(config.GenericConfig, 0)
 		}
 	}
 	if as.messagingManagerHandle != nil {
@@ -174,12 +174,12 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 }
 
 func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle server.ServerElementHandle) error {
-	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_FACTORIES)
+	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SERVICEFACTORIES)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		facConf = make(common.GenericConfig, 0)
+		facConf = make(config.GenericConfig, 0)
 	}
 	err = factoryManagerHandle.Initialize(ctx, facConf)
 	if err != nil {
@@ -194,7 +194,7 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 		return err
 	}
 	if !ok {
-		svcConf = make(common.GenericConfig, 0)
+		svcConf = make(config.GenericConfig, 0)
 	}
 	err = serviceManagerHandle.Initialize(ctx, svcConf)
 	if err != nil {

@@ -14,17 +14,11 @@ const (
 )
 
 type StaticServiceFactory struct {
-	conf config.Config
+	core.ServiceFactory
 }
 
 func Manifest() []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_STATIC_SERVICEFACTORY, Object: StaticServiceFactory{}}}
-}
-
-//The services start serving when this method is called
-func (ds *StaticServiceFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	ds.conf = conf
-	return nil
 }
 
 //Create the services configured for factory.
@@ -48,9 +42,4 @@ func (sf *StaticServiceFactory) CreateService(ctx core.ServerContext, name strin
 		}
 	}
 	return nil, nil
-}
-
-//The services start serving when this method is called
-func (ds *StaticServiceFactory) Start(ctx core.ServerContext) error {
-	return nil
 }

@@ -20,3 +20,9 @@ docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/
 
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicdir -e name=publicdirserver laatoomodulebuilder:latest
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicfiles -e name=publicfilesserver laatoomodulebuilder:latest
+
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/dataadapter -e name=dataadapter laatoomodulebuilder:latest
+
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/mongo -e name=mongodatabase laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/gae -e name=gaedatastore laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/sql -e name=sqldatabase laatoomodulebuilder:latest

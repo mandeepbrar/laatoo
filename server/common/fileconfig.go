@@ -33,13 +33,13 @@ func init() {
 
 //Json based viper implementation of Config interface
 type FileConfig struct {
-	root GenericConfig
+	root config.GenericConfig
 }
 
 //creates a new config object from file provided to it
 //only works for json configs
 func NewConfigFromFile(file string) (config.Config, error) {
-	rootElement := make(GenericConfig, 50)
+	rootElement := make(config.GenericConfig, 50)
 	fileData, err := ioutil.ReadFile(file)
 	if err == nil {
 		fileStr := string(fileData)

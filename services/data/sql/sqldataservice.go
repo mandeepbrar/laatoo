@@ -35,7 +35,7 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	svc.SetDescription("SQL data component")
+	svc.SetDescription(ctx, "SQL data component")
 
 	return nil
 }
@@ -60,10 +60,6 @@ func (svc *sqlDataService) Start(ctx core.ServerContext) error {
 	svc.db.LogMode(true)
 
 	return nil
-}
-
-func (svc *sqlDataService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	return nil, nil
 }
 
 func (svc *sqlDataService) CreateDBCollection(ctx core.RequestContext) error {
