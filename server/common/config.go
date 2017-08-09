@@ -34,7 +34,17 @@ func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName st
 	}
 }
 
-func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
+func ProcessObjects(ctx core.ServerContext, objs map[string]config.Config, processor func(core.ServerContext, config.Config, string) error) error {
+	for elemName, elemConf := range objs {
+		elemCtx := ctx.SubContext(elemName)
+		if err := processor(elemCtx, elemConf, elemName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[string]config.Config, recurse bool) error {
 	ok, fi, _ := utils.FileExists(subDir)
 	if ok && fi.IsDir() {
 		files, err := ioutil.ReadDir(subDir)
@@ -59,14 +69,15 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 				if ok {
 					elemName = name
 				}
-				elemCtx := ctx.SubContext(elemName)
+				objs[elemName] = elemConf
+				/*elemCtx := ctx.SubContext(elemName)
 				if err := processor(elemCtx, elemConf, elemName); err != nil {
 					return err
-				}
+				}*/
 				if (info.Mode() & os.ModeSymlink) != 0 {
 					s, err := os.Readlink(file)
 					if err == nil && recurse {
-						err = processDirectoryFiles(ctx, s, processor, recurse)
+						err = processDirectoryFiles(ctx, s, objs, recurse)
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
@@ -74,7 +85,7 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 				}
 			} else {
 				if recurse {
-					err = processDirectoryFiles(ctx, file, processor, recurse)
+					err = processDirectoryFiles(ctx, file, objs, recurse)
 					if err != nil {
 						return errors.WrapError(ctx, err)
 					}
@@ -85,9 +96,14 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, processor func
 	return nil
 }
 
-func ProcessDirectoryFiles(ctx core.ServerContext, baseDir string, object string, processor func(core.ServerContext, config.Config, string) error, recurse bool) error {
+func ProcessDirectoryFiles(ctx core.ServerContext, baseDir string, object string, recurse bool) (map[string]config.Config, error) {
+	objs := make(map[string]config.Config)
 	subDir := path.Join(baseDir, object)
-	return processDirectoryFiles(ctx, subDir, processor, recurse)
+	err := processDirectoryFiles(ctx, subDir, objs, recurse)
+	if err != nil {
+		return nil, err
+	}
+	return objs, nil
 }
 
 func FileAdapter(conf config.Config, configName string) (config.Config, error, bool) {
@@ -116,6 +132,17 @@ func Cast(conf interface{}) (config.Config, bool) {
 		return gc, true
 	}
 	return nil, false
+}
+
+func MergeConfigMaps(conf1 map[string]config.Config, conf2 map[string]config.Config) map[string]config.Config {
+	res := make(map[string]config.Config)
+	for k, v := range conf1 {
+		res[k] = v
+	}
+	for k, v := range conf2 {
+		res[k] = v
+	}
+	return res
 }
 
 func Merge(conf1 config.Config, conf2 config.Config) config.Config {

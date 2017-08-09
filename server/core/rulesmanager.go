@@ -22,6 +22,13 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	if err != nil {
 		return errors.WrapError(ruleMgrCtx, err)
 	}
+
+	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+
+	if err = modManager.loadRules(ctx, rm.processRuleConf); err != nil {
+		return err
+	}
+
 	if ok {
 		log.Debug(ruleMgrCtx, "Initializing rules manager")
 		ruleNames := rulesConf.AllConfigurations()
@@ -39,15 +46,27 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
-	return rm.loadRulesFromDirectory(ruleMgrCtx, baseDir)
+	return rm.processRulesFromFolder(ruleMgrCtx, baseDir)
 }
 
 func (rm *rulesManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (rm *rulesManager) loadRulesFromDirectory(ctx core.ServerContext, baseDir string) error {
-	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_RULES, rm.processRuleConf, true)
+func (rm *rulesManager) processRulesFromFolder(ctx core.ServerContext, folder string) error {
+	objs, err := rm.loadRulesFromDirectory(ctx, folder)
+	if err != nil {
+		return err
+	}
+
+	if err = common.ProcessObjects(ctx, objs, rm.processRuleConf); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rm *rulesManager) loadRulesFromDirectory(ctx core.ServerContext, folder string) (map[string]config.Config, error) {
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_RULES, true)
 }
 
 func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {

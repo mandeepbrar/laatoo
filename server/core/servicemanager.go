@@ -27,6 +27,12 @@ type serviceManager struct {
 
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 
+	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+
+	if err := modManager.loadServices(ctx, svcMgr.createService); err != nil {
+		return err
+	}
+
 	err := svcMgr.createServices(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -34,7 +40,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 	log.Trace(ctx, "*************** Processing service manager", " base directory", basedir)
-	err = svcMgr.loadServicesFromFolder(ctx, basedir)
+	err = svcMgr.processServicesFromFolder(ctx, basedir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -71,8 +77,20 @@ func (svcMgr *serviceManager) startService(ctx core.ServerContext, svcProxy *ser
 	return nil
 }
 
-func (svcMgr *serviceManager) loadServicesFromFolder(ctx core.ServerContext, folderName string) error {
-	return common.ProcessDirectoryFiles(ctx, folderName, constants.CONF_SERVICES, svcMgr.createService, true)
+func (svcMgr *serviceManager) processServicesFromFolder(ctx core.ServerContext, folder string) error {
+	objs, err := svcMgr.loadServicesFromFolder(ctx, folder)
+	if err != nil {
+		return err
+	}
+
+	if err = common.ProcessObjects(ctx, objs, svcMgr.createService); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (svcMgr *serviceManager) loadServicesFromFolder(ctx core.ServerContext, folder string) (map[string]config.Config, error) {
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_SERVICES, true)
 }
 
 func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (server.Service, error) {

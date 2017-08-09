@@ -12,10 +12,10 @@
         "mongodatabase":"PunjabiMehfil"
       }
     },
-    "users": {
+    "roles": {
       "module":"dataadapter",
       "settings":{
-        "object":"User",
+        "object":"Role",
         "dataservicefactory":"mongodatabase"
       }
     },

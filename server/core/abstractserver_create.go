@@ -209,7 +209,7 @@ func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name strin
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{name: name, channelStore: make(map[string]server.Channel, 10), parent: parentElem}
+	cm := &channelManager{name: name, channelStore: make(map[string]server.Channel, 10), parent: parentElem, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
 	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
@@ -231,7 +231,7 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 			store[k] = v
 		}
 	}
-	cm := &channelManager{name: name, channelStore: store, parent: parent}
+	cm := &channelManager{name: name, channelStore: store, parent: parent, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
 	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
@@ -336,9 +336,15 @@ func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Conf
 		}
 	}
 
-	if err := common.ProcessDirectoryFiles(ctx, as.baseDir, constants.CONF_ENGINES, as.processEngineConf, true); err != nil {
+	engs, err := common.ProcessDirectoryFiles(ctx, as.baseDir, constants.CONF_ENGINES, true)
+	if err != nil {
 		return err
 	}
+
+	if err = common.ProcessObjects(ctx, engs, as.processEngineConf); err != nil {
+		return err
+	}
+
 	return nil
 }
 

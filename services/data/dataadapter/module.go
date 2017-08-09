@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
+	"strings"
 )
 
 const (
@@ -13,7 +14,14 @@ const (
 	DATA_ADAPTER_INSTANCE    = "instance"
 	CONF_DATASERVICE_FACTORY = "dataservicefactory"
 	CONF_SERVICEFACTORY      = "factory"
+	CONF_PARENT_CHANNEL      = "parent"
+	CHANNEL_SERVICE          = "service"
+	REST_METHOD              = "method"
+	REST_PATH                = "path"
+	REST_PARAMS              = "paramvalues"
+	REST_STATIC              = "staticvalues"
 	SERVICE_METHOD           = "servicemethod"
+	MIDDLEWARE               = "middleware"
 )
 
 func Manifest() []core.PluginComponent {
@@ -28,12 +36,14 @@ type DataAdapterModule struct {
 	instance           string
 	adapterfacName     string
 	adapterdataSvcName string
+	middleware         string
+	parentChannel      string
 }
 
 func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext) error {
 	adapter.AddStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.AddStringConfiguration(ctx, data.CONF_DATA_OBJECT)
-	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE}, []string{""})
+	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE, MIDDLEWARE, CONF_PARENT_CHANNEL}, []string{"", "", "root"})
 	return nil
 }
 
@@ -41,6 +51,8 @@ func (adapter *DataAdapterModule) Start(ctx core.ServerContext) error {
 	adapter.factory, _ = adapter.GetStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.object, _ = adapter.GetStringConfiguration(ctx, data.CONF_DATA_OBJECT)
 	adapter.instance, _ = adapter.GetStringConfiguration(ctx, DATA_ADAPTER_INSTANCE)
+	adapter.middleware, _ = adapter.GetStringConfiguration(ctx, MIDDLEWARE)
+	adapter.parentChannel, _ = adapter.GetStringConfiguration(ctx, CONF_PARENT_CHANNEL)
 
 	adapter.adapterfacName = adapter.createName(ctx, "factory")
 	adapter.adapterdataSvcName = adapter.createName(ctx, "dataservice")
@@ -55,6 +67,7 @@ func (adapter *DataAdapterModule) Factories(ctx core.ServerContext) map[string]c
 	factory := make(config.GenericConfig)
 	factory[CONF_SERVICEFACTORY] = CONF_DATAADAPTER_SERVICES
 	factory[CONF_DATAADAPTER_DATA_SVC] = adapter.adapterdataSvcName
+	factory[MIDDLEWARE] = adapter.middleware
 	facs[adapter.adapterfacName] = factory
 
 	log.Error(ctx, "Returned factories", "facs", facs)
@@ -98,7 +111,32 @@ func (adapter *DataAdapterModule) Rules(ctx core.ServerContext) map[string]confi
 	return nil
 }
 func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]config.Config {
-	return nil
+
+	ctx = ctx.SubContext("Getting channels for module ")
+	chans := make(map[string]config.Config)
+
+	objectChann := make(config.GenericConfig)
+	objectChann[CONF_PARENT_CHANNEL] = adapter.parentChannel
+	objectChann[REST_PATH] = fmt.Sprintf("/%s", strings.ToLower(adapter.object))
+	chans[adapter.object] = objectChann
+
+	getRestChannName := adapter.createName(ctx, "get")
+	getRestChann := make(config.GenericConfig)
+	getRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "get")
+	getRestChann[CONF_PARENT_CHANNEL] = adapter.object
+	getRestChann[CONF_SERVICEFACTORY] = adapter.adapterfacName
+	getRestChann[REST_METHOD] = CONF_SVC_GET
+	getRestChann[REST_PATH] = "/:id"
+	params := make(config.GenericConfig)
+	params["id"] = "id"
+	getRestChann[REST_PARAMS] = params
+	staticvals := make(config.GenericConfig)
+	staticvals["permission"] = "View " + adapter.object
+	getRestChann[REST_STATIC] = staticvals
+	chans[getRestChannName] = getRestChann
+
+	log.Error(ctx, "Returned channels", "chans", chans)
+	return chans
 }
 func (adapter *DataAdapterModule) Tasks(ctx core.ServerContext) map[string]config.Config {
 	return nil

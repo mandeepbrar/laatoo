@@ -25,8 +25,6 @@ type channelManager struct {
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-	chanMgr.channelConfs = make(map[string]config.Config)
-	chanMgr.secondPass = make(map[string]config.Config)
 
 	log.Trace(ctx, "Create Channels")
 	err := chanMgr.createChannels(ctx, conf)
@@ -36,7 +34,13 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 
-	if err := chanMgr.loadChannelsFromFolder(ctx, baseDir); err != nil {
+	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+
+	if err = modManager.loadChannels(ctx, chanMgr.processChannel); err != nil {
+		return err
+	}
+
+	if err := chanMgr.processChannelsFromFolder(ctx, baseDir); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
@@ -106,8 +110,20 @@ func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string,
 	}
 }*/
 
-func (chanMgr *channelManager) loadChannelsFromFolder(ctx core.ServerContext, folder string) error {
-	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_CHANNELS, chanMgr.processChannel, true)
+func (chanMgr *channelManager) processChannelsFromFolder(ctx core.ServerContext, folder string) error {
+	objs, err := chanMgr.loadChannelsFromFolder(ctx, folder)
+	if err != nil {
+		return err
+	}
+
+	if err = common.ProcessObjects(ctx, objs, chanMgr.processChannel); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (chanMgr *channelManager) loadChannelsFromFolder(ctx core.ServerContext, folder string) (map[string]config.Config, error) {
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_CHANNELS, true)
 }
 
 func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, chansToReview map[string]config.Config) error {

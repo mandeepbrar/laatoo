@@ -39,6 +39,12 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
+	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+
+	if err := modManager.loadTasks(ctx, tskMgr.processTaskConf); err != nil {
+		return err
+	}
+
 	tskmgrInitializeCtx := ctx.SubContext("Initialize task manager")
 	log.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
 	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
@@ -58,11 +64,23 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 
 	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
 
-	return tskMgr.loadTasksFromDirectory(ctx, baseDir)
+	return tskMgr.processTasksFromFolder(ctx, baseDir)
 }
 
-func (tskMgr *taskManager) loadTasksFromDirectory(ctx core.ServerContext, baseDir string) error {
-	return common.ProcessDirectoryFiles(ctx, baseDir, constants.CONF_TASKS, tskMgr.processTaskConf, true)
+func (tskMgr *taskManager) processTasksFromFolder(ctx core.ServerContext, folder string) error {
+	objs, err := tskMgr.loadTasksFromDirectory(ctx, folder)
+	if err != nil {
+		return err
+	}
+
+	if err = common.ProcessObjects(ctx, objs, tskMgr.processTaskConf); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (tskMgr *taskManager) loadTasksFromDirectory(ctx core.ServerContext, folder string) (map[string]config.Config, error) {
+	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_TASKS, true)
 }
 
 func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
