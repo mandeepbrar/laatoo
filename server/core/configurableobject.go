@@ -4,7 +4,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"log"
+	"laatoo/sdk/log"
 	"strings"
 )
 
@@ -16,20 +16,49 @@ type configuration struct {
 	defaultValue interface{}
 }
 
+func newConfiguration(name, conftype string, required bool, defaultValue interface{}) core.Configuration {
+	return &configuration{name, conftype, required, nil, defaultValue}
+}
+
+func (conf *configuration) GetName() string {
+	return conf.name
+}
+func (conf *configuration) IsRequired() bool {
+	return conf.required
+}
+func (conf *configuration) GetDefaultValue() interface{} {
+	return conf.defaultValue
+}
+func (conf *configuration) GetValue() interface{} {
+	return conf.value
+}
+func (conf *configuration) GetType() string {
+	return conf.conftype
+}
+
 type configurableObject struct {
-	configurations map[string]interface{}
+	*objectInfo
+	configurations map[string]core.Configuration
 }
 
-func newConfigurableObject() *configurableObject {
-	return &configurableObject{configurations: make(map[string]interface{})}
+func newConfigurableObject(description, objectType string) *configurableObject {
+	return &configurableObject{objectInfo: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
 }
 
-func (impl *configurableObject) GetConfigurations() map[string]interface{} {
+func (impl *configurableObject) setConfigurations(confs []core.Configuration) {
+	if confs != nil {
+		for _, c := range confs {
+			impl.configurations[c.GetName()] = c
+		}
+	}
+}
+
+func (impl *configurableObject) GetConfigurations() map[string]core.Configuration {
 	return impl.configurations
 }
 func (impl *configurableObject) AddStringConfigurations(ctx core.ServerContext, configs []string, defaultValues []string) {
 	if defaultValues != nil && len(configs) != len(defaultValues) {
-		log.Fatal("Length of configurations not equal to length of default values", ctx.GetName())
+		log.Error(ctx, "Length of configurations not equal to length of default values", ctx.GetName())
 		return
 	}
 	required := true
@@ -41,7 +70,7 @@ func (impl *configurableObject) AddStringConfigurations(ctx core.ServerContext, 
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
 		}
-		impl.configurations[name] = &configuration{name, config.CONF_OBJECT_STRING, required, nil, defaultValue}
+		impl.configurations[name] = newConfiguration(name, config.CONF_OBJECT_STRING, required, defaultValue)
 	}
 }
 
@@ -51,7 +80,7 @@ func (impl *configurableObject) AddStringConfiguration(ctx core.ServerContext, n
 
 func (impl *configurableObject) AddConfigurations(ctx core.ServerContext, configs map[string]string) {
 	for name, typ := range configs {
-		impl.configurations[name] = &configuration{name, typ, true, nil, nil}
+		impl.configurations[name] = newConfiguration(name, typ, true, nil)
 	}
 }
 
@@ -61,7 +90,7 @@ func (impl *configurableObject) AddOptionalConfigurations(ctx core.ServerContext
 		if defaultValues != nil {
 			defaultValue = defaultValues[name]
 		}
-		impl.configurations[name] = &configuration{name, typ, false, nil, defaultValue}
+		impl.configurations[name] = newConfiguration(name, typ, false, defaultValue)
 	}
 }
 

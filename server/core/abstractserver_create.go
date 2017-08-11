@@ -428,7 +428,7 @@ func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string
 }
 
 func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem}
+	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem, provider: &metadataProvider{}}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }
@@ -450,7 +450,7 @@ func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 		}
 	}
 	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry)
-	ldr := &objectLoader{objectsFactoryRegister: registry, name: name, parentElem: parent}
+	ldr := &objectLoader{objectsFactoryRegister: registry, name: name, parentElem: parent, provider: objLoader.provider}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }

@@ -8,12 +8,16 @@
     "mongodatabase": {
       "module":"mongodatabase",
       "settings": {
-        "mongoconnectionstring":"127.0.0.1",
+        "mongoconnectionstring":"mongo",
         "mongodatabase":"PunjabiMehfil"
       }
     },
     "roles": {
       "module":"dataadapter",
+      "logging": {
+        "format":"happymaxcolor",
+        "level":"trace"
+      },
       "settings":{
         "object":"Role",
         "dataservicefactory":"mongodatabase"

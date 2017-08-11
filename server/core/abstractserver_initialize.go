@@ -55,6 +55,15 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Debug(ctx, "Initialized modules manager")
 
+	//module manager must be started before service manager and factory manager initializations
+	//module manager is used during init of other managers
+	modstart := ctx.SubContext("Start module manager")
+	err = as.moduleManagerHandle.Start(modstart)
+	if err != nil {
+		return errors.WrapError(modstart, err)
+	}
+	log.Trace(modstart, "Started module managers")
+
 	if err = as.initializeServicesCore(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
 	}

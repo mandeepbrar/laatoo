@@ -111,16 +111,21 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 }
 
 func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, instance string, instanceConf config.Config, modulesDir string) (bool, error) {
-	ctx = ctx.SubContext("Processing module instance conf " + instance)
 	//get module to be used
 	mod, ok := instanceConf.GetString(constants.CONF_MODULE)
 	if !ok {
 		mod = instance
 	}
 
+	ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
+	ctx.SetVariable(constants.CONF_MODULE, instance)
+
+	if err := processLogging(ctx.(*serverContext), instanceConf, instance); err != nil {
+		return false, errors.WrapError(ctx, err)
+	}
+
 	disabled, _ := instanceConf.GetBool(constants.CONF_MODULE_DISABLED)
 	if !disabled {
-		modSettings, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_SETTINGS)
 		//check if module directory exists
 		modDir := path.Join(modulesDir, mod)
 		modDirExists, modDirInf, _ := utils.FileExists(modDir)
@@ -153,11 +158,11 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 				log.Info(ctx, "Extracted module ", "Module", mod, "Module file", modFile, "Destination", modulesDir, "Module directory", modDir)
 			}
 			//create a new module instance with provided settings
-			return modMgr.createModuleInstance(ctx, instance, mod, modDir, modSettings)
+			return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf)
 		} else {
 			if modDirExists {
 				//create a new module instance with provided settings
-				return modMgr.createModuleInstance(ctx, instance, mod, modDir, modSettings)
+				return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf)
 			} else {
 				return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", mod)
 			}
@@ -166,8 +171,10 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 	return true, nil
 }
 
-func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, modSettings config.Config) (bool, error) {
+func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
+
+	modSettings, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_SETTINGS)
 
 	_, moduleAlreadLoaded := modMgr.loadedModules[moduleName]
 
@@ -176,7 +183,8 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleInstance)
 	}
 
-	modu := newServerModule(ctx, moduleInstance, dirPath)
+	modu := newServerModule(ctx, moduleInstance, dirPath, instanceConf)
+	ctx.(*serverContext).setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
 
 	if !moduleAlreadLoaded {
 		objsPath := path.Join(dirPath, constants.CONF_OBJECTLDR_OBJECTS)
@@ -198,6 +206,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 			return false, errors.TypeMismatch(ctx, "Module", moduleInstance, "Object", objName)
 		}
 		modu.userModule = usermod
+		modu.objectName = objName
 	}
 
 	ver, ok := conf.GetString(constants.CONF_MODULE_VER)
@@ -235,22 +244,17 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 
 	modu.dependencies = dependencies
 
-	modCtx := modMgr.svrref.svrContext.newContext("Module: " + moduleInstance)
-	modCtx.setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
-	modu.svrContext = modCtx
-	modCtx.SetVariable(constants.CONF_MODULE, moduleInstance)
-
 	moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
 
 	paramNames := moduleparams.AllConfigurations()
 	for _, paramName := range paramNames {
 		val, ok := modSettings.Get(paramName)
 		if ok {
-			modCtx.Set(paramName, val)
+			ctx.Set(paramName, val)
 		}
 	}
 
-	initCtx := modCtx.SubContext("Initialize Module")
+	initCtx := ctx.SubContext("Initialize Module")
 	err = modu.initialize(initCtx, modSettings)
 	if err != nil {
 		return false, errors.WrapError(initCtx, err)
@@ -268,6 +272,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, mod := range modMgr.modules {
 		svcCtx := mod.svrContext.SubContext("Load Services")
+		log.Trace(svcCtx, "Services to process", "Services", mod.services)
 		if err := common.ProcessObjects(svcCtx, mod.services, processor); err != nil {
 			return errors.WrapError(svcCtx, err)
 		}
@@ -288,6 +293,7 @@ func (modMgr *moduleManager) loadFactories(ctx core.ServerContext, processor fun
 func (modMgr *moduleManager) loadChannels(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, mod := range modMgr.modules {
 		chanCtx := mod.svrContext.SubContext("Load Channels")
+		log.Trace(chanCtx, "Channels to process", "channels", mod.channels, "name", mod.name)
 		if err := common.ProcessObjects(chanCtx, mod.channels, processor); err != nil {
 			return errors.WrapError(chanCtx, err)
 		}

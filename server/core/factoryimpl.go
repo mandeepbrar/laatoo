@@ -5,20 +5,36 @@ import (
 	"laatoo/sdk/core"
 )
 
-func newFactoryImpl() *factoryImpl {
-	return &factoryImpl{state: Created, configurableObject: newConfigurableObject()}
+type factoryInfo struct {
+	*configurableObject
+}
+
+func newFactoryInfo(description string, configurations []core.Configuration) *factoryInfo {
+	f := &factoryInfo{newConfigurableObject(description, "Factory")}
+	f.setConfigurations(configurations)
+	return f
 }
 
 type factoryImpl struct {
-	*configurableObject
+	*factoryInfo
 	state State
 }
 
-func (impl *factoryImpl) Initialize(ctx core.ServerContext) error {
+func newFactoryImpl() *factoryImpl {
+	return &factoryImpl{state: Created, factoryInfo: newFactoryInfo("", nil)}
+}
+
+func (impl *factoryImpl) setFactoryInfo(fi *factoryInfo) {
+	impl.factoryInfo = fi
+}
+
+func (impl *factoryImpl) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 func (impl *factoryImpl) Start(ctx core.ServerContext) error {
 	return nil
+}
+func (impl *factoryImpl) Describe(ctx core.ServerContext) {
 }
 
 //Create the services configured for factory.

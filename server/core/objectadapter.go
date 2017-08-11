@@ -6,15 +6,15 @@ import (
 )
 
 //service method for doing various tasks
-func newObjectFactory(objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) core.ObjectFactory {
+func newObjectFactory(objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) *objectFactory {
 	if objectCreator != nil {
-		return &objectFactory{objectCreator: objectCreator, objectCollectionCreator: objectCollectionCreator}
+		return &objectFactory{objectCreator: objectCreator, objectCollectionCreator: objectCollectionCreator, metadata: metadata}
 	} else {
 		panic("Could not register object factory. Creator is nil.")
 	}
 }
 
-func newObjectType(obj interface{}) *objectFactory {
+func newObjectType(obj interface{}, metadata core.Info) *objectFactory {
 	typ := reflect.TypeOf(obj)
 	slice := reflect.MakeSlice(reflect.SliceOf(typ), 0, 0)
 	slicTyp := slice.Type()
@@ -28,12 +28,13 @@ func newObjectType(obj interface{}) *objectFactory {
 		x.Elem().Set(k)
 		return x.Interface()
 	}
-	return &objectFactory{objectCreator: objectCreator, objectCollectionCreator: collectCreator}
+	return &objectFactory{objectCreator: objectCreator, objectCollectionCreator: collectCreator, metadata: metadata}
 }
 
 type objectFactory struct {
 	objectCreator           core.ObjectCreator
 	objectCollectionCreator core.ObjectCollectionCreator
+	metadata                core.Info
 }
 
 //Creates object
@@ -44,4 +45,8 @@ func (fac *objectFactory) CreateObject() interface{} {
 //Creates collection
 func (fac *objectFactory) CreateObjectCollection(length int) interface{} {
 	return fac.objectCollectionCreator(length)
+}
+
+func (fac *objectFactory) Info() core.Info {
+	return fac.metadata
 }

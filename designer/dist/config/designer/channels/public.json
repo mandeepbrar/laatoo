@@ -4,10 +4,6 @@
   "service":"server.publicdirectory.publicdir",
   "method":"GET",
   "path": "/public/*",
-  "logging": {
-    "format":"happymaxcolor",
-    "level":"trace"
-  },
   "paramvalues": {
     "file": "__0"
   }

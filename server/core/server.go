@@ -50,11 +50,11 @@ func newServer(ctx *serverContext, baseDir string) (*serverObject, error) {
 
 //initialize the server with the read config
 func (svr *serverObject) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svr.objectLoader.Register(ctx, config.DEFAULT_ROLE, security.Role{})
-	svr.objectLoader.Register(ctx, config.DEFAULT_USER, security.DefaultUser{})
-	svr.objectLoader.Register(ctx, common.CONF_DEFAULTFACTORY_NAME, adapters.DefaultFactory{})
-	svr.objectLoader.Register(ctx, common.CONF_SERVICEAGGREGATOR_NAME, adapters.ServiceAggregator{})
-	svr.objectLoader.Register(ctx, constants.CONST_ALL_PERMISSIONS, security.AllPermissions{})
+	svr.objectLoader.Register(ctx, config.DEFAULT_ROLE, security.Role{}, nil)
+	svr.objectLoader.Register(ctx, config.DEFAULT_USER, security.DefaultUser{}, nil)
+	svr.objectLoader.Register(ctx, common.CONF_DEFAULTFACTORY_NAME, adapters.DefaultFactory{}, nil)
+	svr.objectLoader.Register(ctx, common.CONF_SERVICEAGGREGATOR_NAME, adapters.ServiceAggregator{}, nil)
+	svr.objectLoader.Register(ctx, constants.CONST_ALL_PERMISSIONS, security.AllPermissions{}, nil)
 
 	initctx := ctx.SubContext("Initializing Server").(*serverContext)
 	svr.conf = conf

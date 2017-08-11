@@ -16,6 +16,7 @@ type serverModule struct {
 	impl         *moduleImpl
 	dir          string
 	name         string
+	objectName   string
 	version      semver.Version
 	dependencies map[string]semver.Range
 	svrContext   *serverContext
@@ -24,10 +25,11 @@ type serverModule struct {
 	channels     map[string]config.Config
 	tasks        map[string]config.Config
 	rules        map[string]config.Config
+	modSettings  config.Config
 }
 
-func newServerModule(ctx core.ServerContext, name, dirpath string) *serverModule {
-	mod := &serverModule{name: name, dir: dirpath}
+func newServerModule(ctx core.ServerContext, name, dirpath string, modconf config.Config) *serverModule {
+	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, dir: dirpath}
 	mod.services = make(map[string]config.Config)
 	mod.factories = make(map[string]config.Config)
 	mod.channels = make(map[string]config.Config)
@@ -36,7 +38,7 @@ func newServerModule(ctx core.ServerContext, name, dirpath string) *serverModule
 	return mod
 }
 
-func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) error {
+func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
 	impl := newModuleImpl()
@@ -52,111 +54,135 @@ func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) 
 		} else {
 			return errors.TypeMismatch(ctx, "Module does not inherit from core.Module", mod.name)
 		}
-		err := mod.userModule.Initialize(ctx)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
+
+		mod.userModule.Describe(ctx)
+	}
+	return nil
+}
+
+func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) error {
+	if conf != nil {
+		mod.modSettings = conf
+	} else {
+		mod.modSettings = make(config.GenericConfig)
 	}
 
 	if err := mod.impl.processInfo(ctx, conf); err != nil {
 		return err
 	}
 
-	impl.state = Initialized
-
 	if mod.userModule != nil {
-		if err := mod.loadModuleFromObj(ctx, conf); err != nil {
-			return err
+		err := mod.userModule.Initialize(ctx, conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		if err := mod.loadModuleFromObj(ctx); err != nil {
+			return errors.WrapError(ctx, err)
 		}
 	}
-	return mod.loadModuleDirs(ctx, conf)
+	if err := mod.loadModuleDir(ctx); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	mod.impl.state = Initialized
+	return nil
 }
 
 func (mod *serverModule) start(ctx core.ServerContext) error {
 	if mod.userModule != nil {
-		return mod.userModule.Start(ctx)
-	} else {
-		return nil
-	}
-}
-
-func (mod *serverModule) loadModuleDirs(ctx core.ServerContext, modSettings config.Config) error {
-	var err error
-	factoriesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
-
-	if !ok || factoriesEnabled {
-		mod.factories, err = common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICEFACTORIES, true)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Module", mod.name)
-		}
-	}
-
-	servicesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICES)
-
-	if !ok || servicesEnabled {
-		mod.services, err = common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICES, true)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Module", mod.name)
-		}
-	}
-
-	channelsEnabled, ok := modSettings.GetBool(constants.CONF_CHANNELS)
-
-	if !ok || channelsEnabled {
-		mod.channels, err = common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_CHANNELS, true)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Module", mod.name)
-		}
-	}
-
-	rulesEnabled, ok := modSettings.GetBool(constants.CONF_RULES)
-
-	if !ok || rulesEnabled {
-		mod.rules, err = common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_RULES, true)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Module", mod.name)
-		}
-	}
-
-	tasksEnabled, ok := modSettings.GetBool(constants.CONF_TASKS)
-	if !ok || tasksEnabled {
-		mod.tasks, err = common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_TASKS, true)
-		if err != nil {
-			return errors.WrapError(ctx, err, "Module", mod.name)
+		if err := mod.userModule.Start(ctx); err != nil {
+			return errors.WrapError(ctx, err)
 		}
 	}
 	return nil
 }
 
-func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext, modSettings config.Config) error {
-
-	factoriesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
+func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
+	factoriesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
 
 	if !ok || factoriesEnabled {
-		mod.factories = mod.userModule.Factories(ctx)
+		factories, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICEFACTORIES, true)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Module", mod.name)
+		}
+		mod.factories = common.MergeConfigMaps(mod.factories, factories)
 	}
 
-	servicesEnabled, ok := modSettings.GetBool(constants.CONF_SERVICES)
+	servicesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICES)
 
 	if !ok || servicesEnabled {
-		mod.services = mod.userModule.Services(ctx)
+		services, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICES, true)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Module", mod.name)
+		}
+		mod.services = common.MergeConfigMaps(mod.services, services)
 	}
 
-	channelsEnabled, ok := modSettings.GetBool(constants.CONF_CHANNELS)
+	channelsEnabled, ok := mod.modSettings.GetBool(constants.CONF_CHANNELS)
 
 	if !ok || channelsEnabled {
-		mod.channels = mod.userModule.Channels(ctx)
+		channels, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_CHANNELS, true)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Module", mod.name)
+		}
+		mod.channels = common.MergeConfigMaps(mod.channels, channels)
 	}
 
-	rulesEnabled, ok := modSettings.GetBool(constants.CONF_RULES)
+	rulesEnabled, ok := mod.modSettings.GetBool(constants.CONF_RULES)
 
 	if !ok || rulesEnabled {
-		mod.rules = mod.userModule.Rules(ctx)
+		rules, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_RULES, true)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Module", mod.name)
+		}
+		mod.rules = common.MergeConfigMaps(mod.rules, rules)
 	}
 
-	tasksEnabled, ok := modSettings.GetBool(constants.CONF_TASKS)
+	tasksEnabled, ok := mod.modSettings.GetBool(constants.CONF_TASKS)
 	if !ok || tasksEnabled {
-		mod.tasks = mod.userModule.Tasks(ctx)
+		tasks, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_TASKS, true)
+		if err != nil {
+			return errors.WrapError(ctx, err, "Module", mod.name)
+		}
+		mod.tasks = common.MergeConfigMaps(mod.tasks, tasks)
+	}
+	return nil
+}
+
+func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext) error {
+
+	factoriesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
+
+	if !ok || factoriesEnabled {
+		factories := mod.userModule.Factories(ctx)
+		mod.factories = common.MergeConfigMaps(mod.factories, factories)
+	}
+
+	servicesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICES)
+
+	if !ok || servicesEnabled {
+		services := mod.userModule.Services(ctx)
+		mod.services = common.MergeConfigMaps(mod.services, services)
+	}
+
+	channelsEnabled, ok := mod.modSettings.GetBool(constants.CONF_CHANNELS)
+
+	if !ok || channelsEnabled {
+		channels := mod.userModule.Channels(ctx)
+		mod.channels = common.MergeConfigMaps(mod.channels, channels)
+	}
+
+	rulesEnabled, ok := mod.modSettings.GetBool(constants.CONF_RULES)
+
+	if !ok || rulesEnabled {
+		rules := mod.userModule.Rules(ctx)
+		mod.rules = common.MergeConfigMaps(mod.rules, rules)
+	}
+
+	tasksEnabled, ok := mod.modSettings.GetBool(constants.CONF_TASKS)
+	if !ok || tasksEnabled {
+		tasks := mod.userModule.Tasks(ctx)
+		mod.tasks = common.MergeConfigMaps(mod.tasks, tasks)
 	}
 	return nil
 }

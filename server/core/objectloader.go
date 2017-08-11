@@ -17,6 +17,7 @@ type objectLoader struct {
 	objectsFactoryRegister map[string]core.ObjectFactory
 	name                   string
 	parentElem             core.ServerElement
+	provider               *metadataProvider
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -89,23 +90,23 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 			if err != nil {
 				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
 			}
-			manifest, ok := sym.(func() []core.PluginComponent)
+			manifest, ok := sym.(func(core.MetaDataProvider) []core.PluginComponent)
 			if !ok {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
 			}
 			if manifest == nil {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, "Path", path, "Err", "Manifest incorrect")
 			}
-			components := manifest()
+			components := manifest(objLoader.provider)
 			if components != nil {
 				for _, comp := range components {
 					if comp.Name != "" {
 						if comp.ObjectFactory != nil {
 							objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
 						} else if comp.ObjectCreator != nil {
-							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator)
+							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.MetaData)
 						} else if comp.Object != nil {
-							objLoader.register(ctx, comp.Name, comp.Object)
+							objLoader.register(ctx, comp.Name, comp.Object, comp.MetaData)
 						} else {
 							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
 						}
@@ -162,11 +163,11 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 	return nil
 }
 
-func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object))
+func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}, metadata core.Info) {
+	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object, metadata))
 }
-func (objLoader *objectLoader) registerObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(objectCreator, objectCollectionCreator))
+func (objLoader *objectLoader) registerObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
+	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(objectCreator, objectCollectionCreator, metadata))
 }
 func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectName string, factory core.ObjectFactory) {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
@@ -216,4 +217,14 @@ func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, obje
 
 	}
 	return factory.CreateObjectCollection, nil
+}
+
+func (objLoader *objectLoader) getMetaData(ctx core.Context, objectName string) (core.Info, error) {
+	//get the factory object from the register
+	factory, ok := objLoader.objectsFactoryRegister[objectName]
+	if !ok {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
+
+	}
+	return factory.Info(), nil
 }

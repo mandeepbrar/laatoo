@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	//"log"
 
 	"gopkg.in/mgo.v2"
@@ -56,6 +57,7 @@ func (ms *mongoDataServicesFactory) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.RethrowError(ctx, data.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}
+	log.Info(ctx, "Connection established to mongo database", "connectionString", connectionString)
 	ms.connection = sess
 	ms.database = database
 	return nil

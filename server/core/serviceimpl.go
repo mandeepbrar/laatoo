@@ -6,28 +6,31 @@ import (
 )
 
 func newServiceImpl() *serviceImpl {
-	info := &serviceInfo{
-		request:  &requestInfo{params: make(map[string]core.Param)},
-		response: &responseInfo{}}
-	return &serviceImpl{svcInfo: info, state: Created, configurableObject: newConfigurableObject()}
+	return &serviceImpl{serviceInfo: newServiceInfo("", nil, false, nil), state: Created}
 }
 
 type serviceImpl struct {
-	*configurableObject
-	svcInfo *serviceInfo
-	state   State
+	*serviceInfo
+	state State
 }
 
-func (impl *serviceImpl) Info() core.ServiceInfo {
-	return impl.svcInfo
+func (impl *serviceImpl) setServiceInfo(si *serviceInfo) {
+	impl.serviceInfo = si
 }
 
-func (impl *serviceImpl) Initialize(ctx core.ServerContext) error {
+func (impl *serviceImpl) info() core.ServiceInfo {
+	return impl.serviceInfo
+}
+
+func (impl *serviceImpl) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
 func (impl *serviceImpl) Start(ctx core.ServerContext) error {
 	return nil
+}
+
+func (impl *serviceImpl) Describe(ctx core.ServerContext) {
 }
 
 func (impl *serviceImpl) Invoke(core.RequestContext) error {
@@ -42,22 +45,22 @@ func (impl *serviceImpl) ConfigureService(ctx core.ServerContext, requestType st
 }
 
 func (impl *serviceImpl) InjectServices(ctx core.ServerContext, services map[string]string) {
-	impl.svcInfo.svcsToInject = services
+	impl.serviceInfo.svcsToInject = services
 }
 
 func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string) {
 	for name, typ := range params {
-		impl.svcInfo.request.params[name] = &param{name, typ, false, nil}
+		impl.serviceInfo.request.params[name] = &param{name, typ, false, nil}
 	}
 }
 
 func (impl *serviceImpl) AddParam(ctx core.ServerContext, name string, datatype string, collection bool) {
-	impl.svcInfo.request.params[name] = &param{name, datatype, collection, nil}
+	impl.serviceInfo.request.params[name] = &param{name, datatype, collection, nil}
 }
 
 func (impl *serviceImpl) AddCollectionParams(ctx core.ServerContext, params map[string]string) {
 	for name, typ := range params {
-		impl.svcInfo.request.params[name] = &param{name, typ, true, nil}
+		impl.serviceInfo.request.params[name] = &param{name, typ, true, nil}
 	}
 }
 
@@ -67,7 +70,7 @@ func (impl *serviceImpl) AddStringParams(ctx core.ServerContext, params []string
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
 		}
-		impl.svcInfo.request.params[name] = &param{name, "", true, defaultValue}
+		impl.serviceInfo.request.params[name] = &param{name, "", true, defaultValue}
 	}
 }
 
@@ -76,19 +79,19 @@ func (impl *serviceImpl) AddStringParam(ctx core.ServerContext, name string) {
 }
 
 func (impl *serviceImpl) SetRequestType(ctx core.ServerContext, datatype string, collection bool, stream bool) {
-	impl.svcInfo.request.dataType = datatype
-	impl.svcInfo.request.isCollection = collection
-	impl.svcInfo.request.streaming = stream
+	impl.serviceInfo.request.dataType = datatype
+	impl.serviceInfo.request.isCollection = collection
+	impl.serviceInfo.request.streaming = stream
 }
 
 func (impl *serviceImpl) SetResponseType(ctx core.ServerContext, stream bool) {
-	impl.svcInfo.response.streaming = stream
+	impl.serviceInfo.response.streaming = stream
 }
 
 func (impl *serviceImpl) SetComponent(ctx core.ServerContext, component bool) {
-	impl.svcInfo.component = component
+	impl.serviceInfo.component = component
 }
 
 func (impl *serviceImpl) SetDescription(ctx core.ServerContext, description string) {
-	impl.svcInfo.description = description
+	impl.serviceInfo.description = description
 }

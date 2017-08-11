@@ -44,10 +44,12 @@ func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext) error {
 	adapter.AddStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.AddStringConfiguration(ctx, data.CONF_DATA_OBJECT)
 	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE, MIDDLEWARE, CONF_PARENT_CHANNEL}, []string{"", "", "root"})
+
 	return nil
 }
 
 func (adapter *DataAdapterModule) Start(ctx core.ServerContext) error {
+	ctx = ctx.SubContext("Starting data adapter module")
 	adapter.factory, _ = adapter.GetStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.object, _ = adapter.GetStringConfiguration(ctx, data.CONF_DATA_OBJECT)
 	adapter.instance, _ = adapter.GetStringConfiguration(ctx, DATA_ADAPTER_INSTANCE)
@@ -56,6 +58,10 @@ func (adapter *DataAdapterModule) Start(ctx core.ServerContext) error {
 
 	adapter.adapterfacName = adapter.createName(ctx, "factory")
 	adapter.adapterdataSvcName = adapter.createName(ctx, "dataservice")
+
+	if adapter.instance == "" {
+		adapter.instance = adapter.object
+	}
 
 	return nil
 }
@@ -100,11 +106,11 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 }
 
 func (adapter *DataAdapterModule) createName(ctx core.ServerContext, svc string) string {
-	svcName := fmt.Sprintf("dataadapter.%s.%s", svc, adapter.object)
 	if adapter.instance != "" {
-		svcName = fmt.Sprint(svcName, ".", adapter.instance)
+		return fmt.Sprintf("dataadapter.%s.%s", svc, adapter.instance)
+	} else {
+		return fmt.Sprintf("dataadapter.%s.%s", svc, adapter.object)
 	}
-	return svcName
 }
 
 func (adapter *DataAdapterModule) Rules(ctx core.ServerContext) map[string]config.Config {
@@ -117,13 +123,13 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 
 	objectChann := make(config.GenericConfig)
 	objectChann[CONF_PARENT_CHANNEL] = adapter.parentChannel
-	objectChann[REST_PATH] = fmt.Sprintf("/%s", strings.ToLower(adapter.object))
-	chans[adapter.object] = objectChann
+	objectChann[REST_PATH] = fmt.Sprintf("/%s", strings.ToLower(adapter.instance))
+	chans[adapter.instance] = objectChann
 
 	getRestChannName := adapter.createName(ctx, "get")
 	getRestChann := make(config.GenericConfig)
 	getRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "get")
-	getRestChann[CONF_PARENT_CHANNEL] = adapter.object
+	getRestChann[CONF_PARENT_CHANNEL] = adapter.instance
 	getRestChann[CONF_SERVICEFACTORY] = adapter.adapterfacName
 	getRestChann[REST_METHOD] = CONF_SVC_GET
 	getRestChann[REST_PATH] = "/:id"
@@ -131,7 +137,7 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	params["id"] = "id"
 	getRestChann[REST_PARAMS] = params
 	staticvals := make(config.GenericConfig)
-	staticvals["permission"] = "View " + adapter.object
+	staticvals["permission"] = "View " + adapter.instance
 	getRestChann[REST_STATIC] = staticvals
 	chans[getRestChannName] = getRestChann
 

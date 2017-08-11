@@ -16,10 +16,6 @@
       "method": "GET",
       "service":"server.publicfiles.appfiles",
       "path": "/services.conf.js",
-      "logging": {
-        "format":"happymaxcolor",
-        "level":"trace"
-      },
       "staticvalues": {
         "file": "services.conf.js"
       }

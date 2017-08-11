@@ -5,6 +5,7 @@ import (
 
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/constants"
 	//"strconv"
@@ -12,6 +13,8 @@ import (
 
 func (channel *httpChannel) serve(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Serve")
+
+	log.Trace(ctx, "Channel config", "name", channel.name, "config", channel.config)
 
 	disabled, _ := channel.config.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
 	if disabled {

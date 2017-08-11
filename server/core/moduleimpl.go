@@ -5,20 +5,38 @@ import (
 	"laatoo/sdk/core"
 )
 
-func newModuleImpl() *moduleImpl {
-	return &moduleImpl{state: Created, configurableObject: newConfigurableObject()}
+type moduleInfo struct {
+	*configurableObject
+}
+
+func newModuleInfo(description string, configurations []core.Configuration) *moduleInfo {
+	f := &moduleInfo{newConfigurableObject(description, "Module")}
+	f.setConfigurations(configurations)
+	return f
 }
 
 type moduleImpl struct {
-	*configurableObject
+	*moduleInfo
 	state State
 }
 
-func (impl *moduleImpl) Initialize(ctx core.ServerContext) error {
+func newModuleImpl() *moduleImpl {
+	return &moduleImpl{state: Created, moduleInfo: newModuleInfo("", nil)}
+}
+
+func (impl *moduleImpl) setModuleInfo(inf *moduleInfo) {
+	impl.moduleInfo = inf
+}
+
+func (impl *moduleImpl) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
+
 func (impl *moduleImpl) Start(ctx core.ServerContext) error {
 	return nil
+}
+
+func (impl *moduleImpl) Describe(ctx core.ServerContext) {
 }
 
 func (impl *moduleImpl) Factories(ctx core.ServerContext) map[string]config.Config {

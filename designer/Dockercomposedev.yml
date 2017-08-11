@@ -1,0 +1,21 @@
+version: '3'
+services:
+  designer:
+    build:
+      context: .
+      dockerfile: Dockerfile.designertest
+    volumes:
+    - /home/mandeep/goprogs/src/laatoo/designer/dist/config/designer:/config/environments/designer
+    - /home/mandeep/goprogs/src/laatoo/dist/bin:/bin
+    - /home/mandeep/goprogs/src/laatoo/designer/dist/appfiles:/bin/appfiles
+    - /home/mandeep/goprogs/src/laatoo/designer/dist/publicdir:/bin/publicdir
+    ports:
+     - "6060:6060"
+    depends_on:
+    - mongo
+  mongo:
+    image: mongo
+    volumes:
+    - /backups/punjabimehfilmongo:/data/db
+volumes:
+  logvolume01: {}

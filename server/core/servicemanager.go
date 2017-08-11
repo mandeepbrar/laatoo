@@ -172,8 +172,8 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	svcCreateCtx := ctx.(*serverContext)
 
-	factoryname, ok := conf.GetString(CONF_FACTORY)
-	if !ok {
+	factoryname, factoryok := conf.GetString(CONF_FACTORY)
+	if !factoryok {
 		factoryname = common.CONF_DEFAULTFACTORY_NAME
 	}
 
@@ -216,6 +216,9 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	factory := svcfactoryProxy.Factory()
 	//proxy for the service
 	svcStruct := &serverService{name: serviceAlias, conf: conf, owner: svcMgr, factory: facElem, svrContext: svcCtx}
+	if !factoryok {
+		svcStruct.objectName = serviceMethod
+	}
 
 	svcProxy := &serviceProxy{svc: svcStruct}
 	svcCtx.setElements(core.ContextMap{core.ServerElementService: svcProxy})

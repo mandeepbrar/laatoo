@@ -53,10 +53,10 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 	facmgrStartCtx := ctx.SubContext("Start factory manager")
 	for facname, facProxy := range facMgr.serviceFactoryStore {
+		log.Debug(facmgrStartCtx, "Starting factory", "factory name", facname)
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
-			log.Debug(ctx, "Starting factory", "factory name", facname)
-			facStartCtx := facmgrStartCtx.SubContext("Start" + facname).(*serverContext)
+			facStartCtx := facStruct.svrContext.subContext("Start " + facname)
 			err := facStruct.factory.Start(facStartCtx)
 			if err != nil {
 				return errors.WrapError(facStartCtx, err)
@@ -175,7 +175,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 			return errors.WrapError(facCtx, err)
 		}
 
-		fac := &serviceFactory{name: factoryAlias, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
+		fac := &serviceFactory{name: factoryAlias, objectName: factoryName, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
 		facProxy := &serviceFactoryProxy{fac: fac}
 		facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})
 

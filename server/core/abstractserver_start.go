@@ -25,28 +25,6 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Trace(objldrCtx, "Started Object Loader")
 
-	engstart := ctx.SubContext("Start Engines")
-	err = as.startEngines(engstart)
-	if err != nil {
-		return errors.WrapError(engstart, err)
-	}
-	log.Trace(engstart, "Started Engines")
-
-	chanstart := ctx.SubContext("Start Channel manager")
-	log.Trace(chanstart, "Starting channel managers")
-	err = as.channelManagerHandle.Start(chanstart)
-	if err != nil {
-		return errors.WrapError(chanstart, err)
-	}
-	log.Trace(chanstart, "Started channel managers")
-
-	modstart := ctx.SubContext("Start module manager")
-	err = as.moduleManagerHandle.Start(modstart)
-	if err != nil {
-		return errors.WrapError(modstart, err)
-	}
-	log.Trace(chanstart, "Started module managers")
-
 	fmCtx := ctx.SubContext("Start Factory Manager")
 	err = as.factoryManagerHandle.Start(fmCtx)
 	if err != nil {
@@ -68,6 +46,21 @@ func (as *abstractserver) start(ctx *serverContext) error {
 			return errors.WrapError(smCtx, err)
 		}
 	}
+
+	engstart := ctx.SubContext("Start Engines")
+	err = as.startEngines(engstart)
+	if err != nil {
+		return errors.WrapError(engstart, err)
+	}
+	log.Trace(engstart, "Started Engines")
+
+	chanstart := ctx.SubContext("Start Channel manager")
+	log.Trace(chanstart, "Starting channel managers")
+	err = as.channelManagerHandle.Start(chanstart)
+	if err != nil {
+		return errors.WrapError(chanstart, err)
+	}
+	log.Trace(chanstart, "Started channel managers")
 
 	if as.messagingManagerHandle != nil {
 		msgstart := ctx.SubContext("Start messaging manager")

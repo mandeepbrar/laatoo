@@ -28,6 +28,7 @@ const (
 
 type serverService struct {
 	name                        string
+	objectName                  string
 	service                     core.Service
 	conf                        config.Config
 	factory                     server.Factory
@@ -43,7 +44,7 @@ type serverService struct {
 	codecs                      map[string]core.Codec
 }
 
-func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
 	impl := newServiceImpl()
@@ -59,34 +60,34 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 		return errors.TypeMismatch(ctx, "Service does not inherit from core.Service", svc.name)
 	}
 
-	err := svc.service.Initialize(ctx)
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
+	ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+
+	md, _ := ldr.GetMetaData(ctx, svc.objectName)
+	if md != nil {
+		//	svc.populate
+	} else {
+		svc.service.Describe(ctx)
 	}
 
-	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
-	svc.info = svc.service.Info()
+	//svc.info = svc.service.Info()
+
+	return nil
+}
+
+func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config) error {
+
 	if err := svc.processInfo(ctx, conf, svc.info); err != nil {
 		return err
 	}
 
-	impl.state = Initialized
+	err := svc.service.Initialize(ctx, conf)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
-	/*svc.metaParams = make(core.ServiceParamsMap)
-	svc.paramValues = make(map[string]interface{})
-	svcParamsConf, ok := conf.GetSubConfig(constants.CONF_SVCPARAMS)
-	if ok {
-		staticValuesConf, ok := conf.GetSubConfig(constants.CONF_SVCPARAMS_STATIC)
-		if ok {
-			values := staticValuesConf.AllConfigurations()
-			for _, paramName := range values {
-				val, _ = staticValuesConf.Get(paramname)
-				svc.paramValues[paramName] = val
-			}
-		}
-	}*/
+	svc.impl.state = Initialized
 
-	//svc.info = info
 	return nil
 }
 
@@ -209,7 +210,7 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 
 	var reqData interface{}
 
-	reqInfo := svc.service.Info().GetRequestInfo()
+	reqInfo := svc.info.GetRequestInfo()
 
 	if !reqInfo.IsStream() {
 		switch svc.dataObjectType {
@@ -267,7 +268,7 @@ func (svc *serverService) handleStreamedRequest(ctx *requestContext, vals map[st
 
 func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request) error {
 	reqParams := make(map[string]core.Param)
-	reqInfo := svc.service.Info().GetRequestInfo()
+	reqInfo := svc.info.GetRequestInfo()
 	params := reqInfo.GetParams()
 	for name, svcParam := range params {
 		reqParam := &param{}

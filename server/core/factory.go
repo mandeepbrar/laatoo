@@ -9,6 +9,7 @@ import (
 
 type serviceFactory struct {
 	name       string
+	objectName string
 	factory    core.ServiceFactory
 	conf       config.Config
 	owner      *factoryManager
@@ -16,7 +17,7 @@ type serviceFactory struct {
 	impl       *factoryImpl
 }
 
-func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config) error {
+func (fac *serviceFactory) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
 	impl := newFactoryImpl()
@@ -32,16 +33,22 @@ func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config
 		return errors.TypeMismatch(ctx, "Factory does not inherit from core.ServiceFactory", fac.name)
 	}
 
-	err := fac.factory.Initialize(ctx)
+	fac.factory.Describe(ctx)
+
+	return nil
+}
+
+func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config) error {
+	if err := fac.impl.processInfo(ctx, conf); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	err := fac.factory.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	if err := fac.impl.processInfo(ctx, conf); err != nil {
-		return err
-	}
-
-	impl.state = Initialized
+	fac.impl.state = Initialized
 	return nil
 }
 
