@@ -8,28 +8,22 @@ import (
 )
 
 type MemoryCacheFactory struct {
+	core.ServiceFactory
 }
 
 const (
 	CONF_MEMORYCACHE_NAME = "memory_cache"
+	CONF_MEMORYCACHE_SVC  = "memory_cache_service"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_MEMORYCACHE_NAME, Object: MemoryCacheFactory{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_MEMORYCACHE_NAME, Object: MemoryCacheFactory{}},
+		core.PluginComponent{Name: CONF_MEMORYCACHE_SVC, Object: MemoryCacheService{}}}
 }
 
 //Create the services configured for factory.
 func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	return &MemoryCacheService{memoryStorer: utils.NewMemoryStorer(), name: name}, nil
-}
-
-func (ds *MemoryCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (ds *MemoryCacheFactory) Start(ctx core.ServerContext) error {
-	return nil
+	return &MemoryCacheService{name: name}, nil
 }
 
 type MemoryCacheService struct {
@@ -148,14 +142,14 @@ func (svc *MemoryCacheService) Decrement(ctx core.RequestContext, bucket string,
 	return svc.memoryStorer.Decrement(common.GetCacheKey(bucket, key), 1)
 }
 
-func (ms *MemoryCacheService) Initialize(ctx core.ServerContext) error {
+func (ms *MemoryCacheService) Describe(ctx core.ServerContext) {
 	ms.SetComponent(ctx, true)
 	ms.SetDescription(ctx, "Memory cache component service")
-	ms.AddOptionalConfigurations(ctx, map[string]string{config.ENCODING: config.CONF_OBJECT_STRING}, nil)
-	return nil
+	ms.AddOptionalConfigurations(ctx, map[string]string{config.ENCODING: config.OBJECTTYPE_STRING}, nil)
 }
 
 func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
+	ms.memoryStorer = utils.NewMemoryStorer()
 	encoding, ok := ms.GetStringConfiguration(ctx, config.ENCODING)
 	if ok {
 		ms.cacheEncoder = common.NewCacheEncoder(ctx, encoding)

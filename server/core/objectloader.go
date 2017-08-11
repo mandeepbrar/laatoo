@@ -163,6 +163,13 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 	return nil
 }
 
+func (objLoader *objectLoader) setObjectInfo(ctx core.Context, objectName string, metadata core.Info) {
+	factory, ok := objLoader.objectsFactoryRegister[objectName]
+	if ok {
+		factory.(*objectFactory).metadata = metadata
+	}
+}
+
 func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}, metadata core.Info) {
 	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object, metadata))
 }

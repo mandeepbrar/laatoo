@@ -61,14 +61,16 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	}
 
 	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
-	ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
 
+	ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
 	md, _ := ldr.GetMetaData(ctx, svc.objectName)
 	if md != nil {
-		//	svc.populate
-	} else {
-		svc.service.Describe(ctx)
+		inf, ok := md.(*serviceInfo)
+		if ok {
+			impl.serviceInfo = inf
+		}
 	}
+	svc.service.Describe(ctx)
 
 	//svc.info = svc.service.Info()
 
@@ -132,17 +134,17 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 	switch datatype {
 	case "":
 		svc.dataObjectType = none
-	case config.CONF_OBJECT_STRINGMAP:
+	case config.OBJECTTYPE_STRINGMAP:
 		svc.dataObjectType = stringmap
-	case config.CONF_OBJECT_BYTES:
+	case config.OBJECTTYPE_BYTES:
 		svc.dataObjectType = bytes
-	case config.CONF_OBJECT_STRING:
+	case config.OBJECTTYPE_STRING:
 		svc.dataObjectType = stringtype
-	case config.CONF_OBJECT_STRINGARR:
+	case config.OBJECTTYPE_STRINGARR:
 		svc.dataObjectType = stringarr
-	case config.CONF_OBJECT_BOOL:
+	case config.OBJECTTYPE_BOOL:
 		svc.dataObjectType = booltype
-	case config.CONF_OBJECT_FILES:
+	case config.OBJECTTYPE_FILES:
 		svc.dataObjectType = files
 	default:
 		svc.dataObjectType = custom
@@ -276,18 +278,18 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 		val, ok := vals[name]
 		if ok {
 			switch svcParam.GetDataType() {
-			case config.CONF_OBJECT_STRINGMAP:
+			case config.OBJECTTYPE_STRINGMAP:
 				reqParam.value, ok = val.(map[string]interface{})
-			case config.CONF_OBJECT_INT:
+			case config.OBJECTTYPE_INT:
 				reqParam.value, ok = val.(int)
-			case config.CONF_OBJECT_STRING:
+			case config.OBJECTTYPE_STRING:
 				strval, ok := val.(string)
 				if ok {
 					reqParam.value = strval
 				}
-			case config.CONF_OBJECT_STRINGARR:
+			case config.OBJECTTYPE_STRINGARR:
 				reqParam.value, ok = val.([]string)
-			case config.CONF_OBJECT_BOOL:
+			case config.OBJECTTYPE_BOOL:
 				reqParam.value, ok = val.(bool)
 			default:
 				reqParam.value = val

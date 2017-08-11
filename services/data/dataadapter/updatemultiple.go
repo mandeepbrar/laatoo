@@ -14,10 +14,9 @@ type updatemultiple struct {
 	DataStore data.DataComponent
 }
 
-func (gi *updatemultiple) Initialize(ctx core.ServerContext) error {
+func (gi *updatemultiple) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Update multiple objects using data component. Input a string map containing 'ids' as well as 'data' containing string map of field value updates")
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *updatemultiple) Invoke(ctx core.RequestContext) error {

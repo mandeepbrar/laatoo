@@ -45,6 +45,29 @@ func newConfigurableObject(description, objectType string) *configurableObject {
 	return &configurableObject{objectInfo: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
 }
 
+const (
+	CONFIGURATIONS   = "configurations"
+	CONFTYPE         = "type"
+	CONFDEFAULTVALUE = "default"
+	CONFREQ          = "required"
+)
+
+func buildConfigurableObject(conf config.Config) *configurableObject {
+	co := &configurableObject{objectInfo: buildObjectInfo(conf), configurations: make(map[string]core.Configuration)}
+	confs, ok := conf.GetSubConfig(CONFIGURATIONS)
+	if ok {
+		confNames := confs.AllConfigurations()
+		for _, confName := range confNames {
+			confDesc, _ := confs.GetSubConfig(confName)
+			required, _ := confDesc.GetBool(CONFREQ)
+			conftype, _ := confDesc.GetString(CONFTYPE)
+			defaultValue, _ := confDesc.Get(CONFDEFAULTVALUE)
+			co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
+		}
+	}
+	return co
+}
+
 func (impl *configurableObject) setConfigurations(confs []core.Configuration) {
 	if confs != nil {
 		for _, c := range confs {
@@ -70,12 +93,12 @@ func (impl *configurableObject) AddStringConfigurations(ctx core.ServerContext, 
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
 		}
-		impl.configurations[name] = newConfiguration(name, config.CONF_OBJECT_STRING, required, defaultValue)
+		impl.configurations[name] = newConfiguration(name, config.OBJECTTYPE_STRING, required, defaultValue)
 	}
 }
 
 func (impl *configurableObject) AddStringConfiguration(ctx core.ServerContext, name string) {
-	impl.AddConfigurations(ctx, map[string]string{name: config.CONF_OBJECT_STRING})
+	impl.AddConfigurations(ctx, map[string]string{name: config.OBJECTTYPE_STRING})
 }
 
 func (impl *configurableObject) AddConfigurations(ctx core.ServerContext, configs map[string]string) {
@@ -169,27 +192,27 @@ func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.
 		}
 		if ok {
 			switch configu.conftype {
-			case "", config.CONF_OBJECT_STRING:
+			case "", config.OBJECTTYPE_STRING:
 				val, ok = conf.GetString(name)
 				if ok {
 					configu.value = val
 				}
-			case config.CONF_OBJECT_STRINGMAP:
+			case config.OBJECTTYPE_STRINGMAP:
 				val, ok = conf.GetSubConfig(name)
 				if ok {
 					configu.value = val
 				}
-			case config.CONF_OBJECT_STRINGARR:
+			case config.OBJECTTYPE_STRINGARR:
 				val, ok = conf.GetStringArray(name)
 				if ok {
 					configu.value = val
 				}
-			case config.CONF_OBJECT_CONFIG:
+			case config.OBJECTTYPE_CONFIG:
 				val, ok = conf.GetSubConfig(name)
 				if ok {
 					configu.value = val
 				}
-			case config.CONF_OBJECT_BOOL:
+			case config.OBJECTTYPE_BOOL:
 				val, ok = conf.GetBool(name)
 				if ok {
 					configu.value = val

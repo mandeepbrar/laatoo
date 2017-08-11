@@ -12,11 +12,10 @@ type update struct {
 	DataStore data.DataComponent
 }
 
-func (gi *update) Initialize(ctx core.ServerContext) error {
+func (gi *update) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Update object using underlying data component. Expects an entity id. Value should be map containing field values")
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 	gi.AddStringParam(ctx, CONF_DATA_ID)
-	return nil
 }
 
 func (es *update) Invoke(ctx core.RequestContext) error {

@@ -23,14 +23,13 @@ const (
 	HASHMAP_PARAM = "hashmap"
 )
 
-func (gi *getmulti_select) Initialize(ctx core.ServerContext) error {
+func (gi *getmulti_select) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Get multiple element by criteria from the underlying data component. Criteria passed in the body")
 	gi.AddStringConfigurations(ctx, []string{CONF_SVC_LOOKUP_FIELD, CONF_SVC_LOOKUPSVC}, nil)
-	gi.AddOptionalConfigurations(ctx, map[string]string{HASHMAP_PARAM: config.CONF_OBJECT_BOOL}, map[string]interface{}{HASHMAP_PARAM: false})
+	gi.AddOptionalConfigurations(ctx, map[string]string{HASHMAP_PARAM: config.OBJECTTYPE_BOOL}, map[string]interface{}{HASHMAP_PARAM: false})
 	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.CONF_OBJECT_INT, data.DATA_PAGENUM: config.CONF_OBJECT_INT})
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *getmulti_select) Start(ctx core.ServerContext) error {

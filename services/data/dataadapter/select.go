@@ -13,12 +13,11 @@ type selectSvc struct {
 	DataStore data.DataComponent
 }
 
-func (gi *selectSvc) Initialize(ctx core.ServerContext) error {
+func (gi *selectSvc) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Get multiple element by criteria. Criteria is specified in stringmap.")
 	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.CONF_OBJECT_INT, data.DATA_PAGENUM: config.CONF_OBJECT_INT})
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *selectSvc) Invoke(ctx core.RequestContext) error {

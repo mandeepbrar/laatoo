@@ -23,6 +23,7 @@ const (
 	CONF_MODULE_PARAMS     = "params"
 	CONF_MODULE_DISABLED   = "disabled"
 	CONF_MODULE            = "module"
+	CONF_MODULE_ENV        = "environment"
 	CONF_SERVICEFACTORIES  = "factories"
 	CONF_SERVICEFACTORY    = "factory"
 

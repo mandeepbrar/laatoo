@@ -12,11 +12,10 @@ type put struct {
 	DataStore data.DataComponent
 }
 
-func (gi *put) Initialize(ctx core.ServerContext) error {
+func (gi *put) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Put a storable using data component. Takes object id as the parameter")
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
 	gi.AddStringParam(ctx, CONF_DATA_ID)
-	return nil
 }
 
 func (es *put) Invoke(ctx core.RequestContext) error {

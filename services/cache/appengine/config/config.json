@@ -1,7 +1,11 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":"Module provides google app engine cache service. By default a factory named 'appenginecache' and a service named 'laatoo.appenginecache' are created",
   "objects":{
-    "appenginecache":"Appengine cache factory"
+    "appenginecache": {
+      "type":"factory",
+      "description":"Appengine cache factory"
+    }
   }
 }

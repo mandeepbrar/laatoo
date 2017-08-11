@@ -52,6 +52,10 @@ func FillVariables(ctx core.ServerContext, name string) string {
 		if ok {
 			return strings.Replace(removebrackets, varname, val.(string), -1)
 		} else {
+			val, ok = ctx.GetVariable(varname)
+			if ok {
+				return strings.Replace(removebrackets, varname, val.(string), -1)
+			}
 			return exp
 		}
 	})

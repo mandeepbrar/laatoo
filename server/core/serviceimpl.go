@@ -75,7 +75,7 @@ func (impl *serviceImpl) AddStringParams(ctx core.ServerContext, params []string
 }
 
 func (impl *serviceImpl) AddStringParam(ctx core.ServerContext, name string) {
-	impl.AddParam(ctx, name, config.CONF_OBJECT_STRING, false)
+	impl.AddParam(ctx, name, config.OBJECTTYPE_STRING, false)
 }
 
 func (impl *serviceImpl) SetRequestType(ctx core.ServerContext, datatype string, collection bool, stream bool) {

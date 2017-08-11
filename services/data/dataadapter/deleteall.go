@@ -13,10 +13,9 @@ type deleteAll struct {
 	DataStore data.DataComponent
 }
 
-func (gi *deleteAll) Initialize(ctx core.ServerContext) error {
+func (gi *deleteAll) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Delete all objects specified by criteria. Criteria should be map containing field values")
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *deleteAll) Invoke(ctx core.RequestContext) error {

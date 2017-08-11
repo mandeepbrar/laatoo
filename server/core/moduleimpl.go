@@ -15,6 +15,10 @@ func newModuleInfo(description string, configurations []core.Configuration) *mod
 	return f
 }
 
+func buildModuleInfo(conf config.Config) *moduleInfo {
+	return &moduleInfo{buildConfigurableObject(conf)}
+}
+
 type moduleImpl struct {
 	*moduleInfo
 	state State

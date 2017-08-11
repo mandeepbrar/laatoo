@@ -40,13 +40,12 @@ type DataAdapterModule struct {
 	parentChannel      string
 }
 
-func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext) error {
+/*
+func (adapter *DataAdapterModule) Describe(ctx core.ServerContext) {
 	adapter.AddStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.AddStringConfiguration(ctx, data.CONF_DATA_OBJECT)
 	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE, MIDDLEWARE, CONF_PARENT_CHANNEL}, []string{"", "", "root"})
-
-	return nil
-}
+}*/
 
 func (adapter *DataAdapterModule) Start(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Starting data adapter module")

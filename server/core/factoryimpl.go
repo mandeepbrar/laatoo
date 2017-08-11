@@ -15,6 +15,10 @@ func newFactoryInfo(description string, configurations []core.Configuration) *fa
 	return f
 }
 
+func buildFactoryInfo(conf config.Config) *factoryInfo {
+	return &factoryInfo{buildConfigurableObject(conf)}
+}
+
 type factoryImpl struct {
 	*factoryInfo
 	state State

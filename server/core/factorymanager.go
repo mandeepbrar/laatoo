@@ -186,6 +186,10 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 			facCtx.Set("__cache", cacheToUse)
 		}
 
+		if err := fac.loadMetaData(facCtx); err != nil {
+			return errors.WrapError(facCtx, err)
+		}
+
 		//add the service to the application
 		facMgr.serviceFactoryStore[factoryAlias] = facProxy
 		log.Trace(ctx, "factory store in manager", "serviceFactoryStore", facMgr.serviceFactoryStore)

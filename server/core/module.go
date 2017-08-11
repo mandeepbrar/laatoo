@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/server"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"reflect"
@@ -45,6 +46,7 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 	mod.impl = impl
 	var modval core.Module
 	modval = impl
+
 	if mod.userModule != nil {
 		val := reflect.ValueOf(mod.userModule)
 		elem := val.Elem()
@@ -55,6 +57,14 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 			return errors.TypeMismatch(ctx, "Module does not inherit from core.Module", mod.name)
 		}
 
+		ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+		md, _ := ldr.GetMetaData(ctx, mod.objectName)
+		if md != nil {
+			inf, ok := md.(*moduleInfo)
+			if ok {
+				impl.moduleInfo = inf
+			}
+		}
 		mod.userModule.Describe(ctx)
 	}
 	return nil
@@ -65,6 +75,15 @@ func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) 
 		mod.modSettings = conf
 	} else {
 		mod.modSettings = make(config.GenericConfig)
+	}
+
+	modenv, ok := conf.GetSubConfig(constants.CONF_MODULE_ENV)
+	if ok {
+		envvars := modenv.AllConfigurations()
+		for _, varname := range envvars {
+			varvalue, _ := modenv.GetString(varname)
+			ctx.SetVariable(varname, varvalue)
+		}
 	}
 
 	if err := mod.impl.processInfo(ctx, conf); err != nil {

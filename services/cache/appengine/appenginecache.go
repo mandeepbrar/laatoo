@@ -11,14 +11,17 @@ import (
 )
 
 type AppengineCacheFactory struct {
+	core.ServiceFactory
 }
 
 const (
-	CONF_APPENGINECACHE_FACTORY = "appenginecache"
+	APPENGINECACHE_FACTORY = "appengine_cache"
+	APPENGINECACHE_SERVICE = "appengine_service"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_APPENGINECACHE_FACTORY, Object: AppengineCacheFactory{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: APPENGINECACHE_FACTORY, Object: AppengineCacheFactory{}},
+		core.PluginComponent{Name: APPENGINECACHE_SERVICE, Object: AppengineCacheService{}}}
 }
 
 //Create the services configured for factory.
@@ -26,22 +29,12 @@ func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name stri
 	return &AppengineCacheService{}, nil
 }
 
-func (ds *AppengineCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (ds *AppengineCacheFactory) Start(ctx core.ServerContext) error {
-	return nil
-}
-
 type AppengineCacheService struct {
 	core.Service
 }
 
-func (svc *AppengineCacheService) Initialize(ctx core.ServerContext) error {
+func (svc *AppengineCacheService) Describe(ctx core.ServerContext) {
 	svc.SetComponent(ctx, true)
-	return nil
 }
 
 func (svc *AppengineCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {

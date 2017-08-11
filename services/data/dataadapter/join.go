@@ -18,13 +18,12 @@ type join struct {
 	lookupField   string
 }
 
-func (gi *join) Initialize(ctx core.ServerContext) error {
+func (gi *join) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Get multiple element by Ids from the underlying data component. Ids are separated by comma")
 	gi.AddStringConfigurations(ctx, []string{CONF_SVC_LOOKUP_FIELD, CONF_SVC_LOOKUPSVC}, nil)
 	gi.AddStringParams(ctx, []string{CONF_DATA_IDS, CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.CONF_OBJECT_INT, data.DATA_PAGENUM: config.CONF_OBJECT_INT})
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *join) Start(ctx core.ServerContext) error {

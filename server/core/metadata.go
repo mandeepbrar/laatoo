@@ -1,6 +1,9 @@
 package core
 
-import "laatoo/sdk/core"
+import (
+	"laatoo/sdk/config"
+	"laatoo/sdk/core"
+)
 
 type objectInfo struct {
 	description string
@@ -10,6 +13,18 @@ type objectInfo struct {
 func newObjectInfo(description, objtype string) *objectInfo {
 	return &objectInfo{description, objtype}
 }
+
+const (
+	OBJECT_TYPE = "type"
+	DESCRIPTION = "description"
+)
+
+func buildObjectInfo(conf config.Config) *objectInfo {
+	desc, _ := conf.GetString(DESCRIPTION)
+	objtype, _ := conf.GetString(OBJECT_TYPE)
+	return newObjectInfo(desc, objtype)
+}
+
 func (inf *objectInfo) GetDescription() string {
 	return inf.description
 }

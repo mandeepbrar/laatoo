@@ -194,6 +194,10 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		}
 	}
 
+	if err = modMgr.processModuleConfMetadata(ctx, conf); err != nil {
+		return false, errors.WrapError(ctx, err)
+	}
+
 	objName, ok := conf.GetString(constants.CONF_MODULE_OBJ)
 	if ok {
 		obj, err := ctx.CreateObject(objName)
@@ -207,6 +211,10 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		}
 		modu.userModule = usermod
 		modu.objectName = objName
+	}
+
+	if err := modu.loadMetaData(ctx); err != nil {
+		return false, errors.WrapError(ctx, err)
 	}
 
 	ver, ok := conf.GetString(constants.CONF_MODULE_VER)
@@ -267,6 +275,35 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	modMgr.modules[moduleInstance] = modu
 
 	return true, nil
+}
+
+const (
+	OBJECTS = "objects"
+)
+
+func (modMgr *moduleManager) processModuleConfMetadata(ctx core.ServerContext, conf config.Config) error {
+	objsconf, ok := conf.GetSubConfig(OBJECTS)
+	if ok {
+		objs := objsconf.AllConfigurations()
+		for _, objname := range objs {
+			objconf, _ := objsconf.GetSubConfig(objname)
+			objtyp, _ := objconf.GetString(OBJECT_TYPE)
+			var inf core.Info
+			switch objtyp {
+			case "service":
+				inf = buildServiceInfo(conf)
+			case "module":
+				inf = buildModuleInfo(conf)
+			case "factory":
+				inf = buildFactoryInfo(conf)
+			}
+			if inf != nil {
+				ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader
+				ldr.setObjectInfo(ctx, objname, inf)
+			}
+		}
+	}
+	return nil
 }
 
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {

@@ -14,10 +14,9 @@ type ServiceAggregator struct {
 	serviceMap map[string]server.Service
 }
 
-func (svc *ServiceAggregator) Initialize(ctx core.ServerContext) error {
-	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddConfigurations(ctx, map[string]string{constants.CONF_SERVICES: config.CONF_OBJECT_CONFIG})
-	return nil
+func (svc *ServiceAggregator) Describe(ctx core.ServerContext) {
+	svc.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	svc.AddConfigurations(ctx, map[string]string{constants.CONF_SERVICES: config.OBJECTTYPE_CONFIG})
 }
 
 //The services start serving when this method is called

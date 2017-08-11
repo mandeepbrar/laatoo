@@ -12,30 +12,24 @@ import (
 )
 
 type RedisCacheFactory struct {
+	core.ServiceFactory
 }
 
 const (
-	CONF_REDISCACHE_NAME        = "redis_cache"
-	CONF_REDIS_CONNECTIONSTRING = "rediscacheserver"
-	CONF_REDIS_DATABASE         = "rediscachedb"
+	REDISCACHE_FACTORY     = "redis_cache"
+	REDISCACHE_SERVICE     = "redis_cache_service"
+	REDIS_CONNECTIONSTRING = "rediscacheserver"
+	REDIS_DATABASE         = "rediscachedb"
 )
 
 func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISCACHE_NAME, Object: RedisCacheFactory{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: REDISCACHE_FACTORY, Object: RedisCacheFactory{}},
+		core.PluginComponent{Name: REDISCACHE_SERVICE, Object: RedisCacheService{}}}
 }
 
 //Create the services configured for factory.
 func (mf *RedisCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
 	return &RedisCacheService{name: name}, nil
-}
-
-func (ds *RedisCacheFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-//The services start serving when this method is called
-func (ds *RedisCacheFactory) Start(ctx core.ServerContext) error {
-	return nil
 }
 
 type RedisCacheService struct {
@@ -202,19 +196,17 @@ func (svc *RedisCacheService) Decrement(ctx core.RequestContext, bucket string, 
 	return nil
 }
 
-func (redisSvc *RedisCacheService) Initialize(ctx core.ServerContext) error {
+func (redisSvc *RedisCacheService) Describe(ctx core.ServerContext) {
 	redisSvc.SetDescription(ctx, "Redis cache component service")
 	redisSvc.SetComponent(ctx, true)
-	redisSvc.AddStringConfigurations(ctx, []string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
-
-	return nil
+	redisSvc.AddStringConfigurations(ctx, []string{REDIS_CONNECTIONSTRING, REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
 }
 
 func (redisSvc *RedisCacheService) Start(ctx core.ServerContext) error {
-	connectionString, _ := redisSvc.GetStringConfiguration(ctx, CONF_REDIS_CONNECTIONSTRING)
+	connectionString, _ := redisSvc.GetStringConfiguration(ctx, REDIS_CONNECTIONSTRING)
 	redisSvc.connectionstring = connectionString
 
-	connectiondb, _ := redisSvc.GetStringConfiguration(ctx, CONF_REDIS_DATABASE)
+	connectiondb, _ := redisSvc.GetStringConfiguration(ctx, REDIS_DATABASE)
 	redisSvc.database = connectiondb
 
 	encoding, _ := redisSvc.GetStringConfiguration(ctx, config.ENCODING)

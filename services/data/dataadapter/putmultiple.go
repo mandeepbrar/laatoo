@@ -13,10 +13,9 @@ type putmultiple struct {
 	DataStore data.DataComponent
 }
 
-func (gi *putmultiple) Initialize(ctx core.ServerContext) error {
+func (gi *putmultiple) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Put multiple objects using data component. Input an array of objects")
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), true, false)
-	return nil
 }
 
 func (es *putmultiple) Invoke(ctx core.RequestContext) error {

@@ -13,10 +13,9 @@ type count struct {
 	DataStore data.DataComponent
 }
 
-func (gi *count) Initialize(ctx core.ServerContext) error {
+func (gi *count) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Count objects meeting selection criteria")
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *count) Invoke(ctx core.RequestContext) error {

@@ -254,6 +254,10 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}
 	svcStruct.service = svc
 
+	if err := svcStruct.loadMetaData(svcCtx); err != nil {
+		return errors.WrapError(svcCtx, err)
+	}
+
 	_, ok = svcMgr.servicesStore[serviceAlias]
 	if ok {
 		return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")

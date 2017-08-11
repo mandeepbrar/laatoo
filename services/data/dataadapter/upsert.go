@@ -13,10 +13,9 @@ type upsert struct {
 	DataStore data.DataComponent
 }
 
-func (gi *upsert) Initialize(ctx core.ServerContext) error {
+func (gi *upsert) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Upsert object using underlying data component. Expects a map containing condition and value. Value should be map containing field values")
-	gi.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	return nil
+	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 
 func (es *upsert) Invoke(ctx core.RequestContext) error {

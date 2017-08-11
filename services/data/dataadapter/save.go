@@ -12,10 +12,9 @@ type save struct {
 	DataStore data.DataComponent
 }
 
-func (gi *save) Initialize(ctx core.ServerContext) error {
+func (gi *save) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Saves a storable using data component.")
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
-	return nil
 }
 
 func (es *save) Invoke(ctx core.RequestContext) error {

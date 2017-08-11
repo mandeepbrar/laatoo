@@ -12,10 +12,9 @@ type deleteSvc struct {
 	DataStore data.DataComponent
 }
 
-func (gi *deleteSvc) Initialize(ctx core.ServerContext) error {
+func (gi *deleteSvc) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Delete an entity represented by id")
 	gi.AddStringParam(ctx, CONF_DATA_ID)
-	return nil
 }
 
 func (es *deleteSvc) Invoke(ctx core.RequestContext) error {
