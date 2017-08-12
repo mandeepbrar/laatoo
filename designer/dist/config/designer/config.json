@@ -7,7 +7,7 @@
     },
     "mongodatabase": {
       "module":"mongodatabase",
-      "settings": {
+      "environment": {
         "mongoconnectionstring":"mongo",
         "mongodatabase":"PunjabiMehfil"
       }

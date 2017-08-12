@@ -13,7 +13,7 @@ const (
 	CONF_SECURITYSERVICE_TOKENVALIDATION = "TOKEN_VALIDATE"
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_TOKENVALIDATION, Object: TokenValidationService{}}}
 }
 
@@ -23,8 +23,7 @@ type TokenValidationService struct {
 	authHeader string
 }
 
-func (ls *TokenValidationService) Initialize(ctx core.ServerContext) error {
-	ls.SetDescription("Token Validation Service")
+func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -41,20 +40,18 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext) error {
 }
 
 //Expects Local user to be provided inside the request
-func (ls *TokenValidationService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (ls *TokenValidationService) Invoke(ctx core.RequestContext) error {
 	token, err := ls.sechandler.AuthenticateRequest(ctx, true)
 	usr := ctx.GetUser()
 	log.Error(ctx, "checked token", "err", err, "usr", usr)
 	if err == nil && usr != nil {
 		log.Error(ctx, "checked token", "usr", usr.GetId())
 		if usr.GetId() != "Anonymous" {
-			return core.NewServiceResponse(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token}), nil
+			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token}))
+			return nil
 		}
 	}
 	log.Error(ctx, "checked token - sending unauthorized response")
-	return core.StatusUnauthorizedResponse, nil
-}
-
-func (ls *TokenValidationService) Start(ctx core.ServerContext) error {
+	ctx.SetResponse(core.StatusUnauthorizedResponse)
 	return nil
 }

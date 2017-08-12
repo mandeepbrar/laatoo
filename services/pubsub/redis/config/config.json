@@ -1,9 +1,29 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":"This module provides redis pub sub implementation. A service 'laatoo.redispubsub' is created by default that connects to localhost:6379 and databse 0",
   "objects":{
-    "redispubsubfactory":"Redis pubsub factory",
-    "redispubsub":"Redis pubsub service"
+    "redispubsub": {
+      "type":"service",
+      "description":"This service provides component for redis pubsub implementation",
+      "configurations": {
+        "redispubsubserver": {
+            "description":"Address of redis server",
+            "type":"string",
+            "default":":6379"
+        },
+        "redispubsubdb": {
+            "description":"Redis db to be used for pubsub",
+            "type":"string",
+            "default":":0"
+        },
+        "encoding":{
+            "description":"Encoding to be used while working with redis",
+            "type":"string",
+            "default":"binary"
+        }
+      }
+    }
   },
   "params":{
     "redispubsubserver":"Address of redis server",

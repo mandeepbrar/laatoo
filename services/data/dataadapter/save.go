@@ -16,7 +16,10 @@ func (gi *save) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Saves a storable using data component.")
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
 }
-
+func (svc *save) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *save) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SAVE")
 	ent := ctx.GetBody()

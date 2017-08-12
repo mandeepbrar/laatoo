@@ -7,23 +7,12 @@ import (
 	"laatoo/services/cache/common"
 )
 
-type MemoryCacheFactory struct {
-	core.ServiceFactory
-}
-
 const (
-	CONF_MEMORYCACHE_NAME = "memory_cache"
-	CONF_MEMORYCACHE_SVC  = "memory_cache_service"
+	CONF_MEMORYCACHE_SVC = "memory_cache"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_MEMORYCACHE_NAME, Object: MemoryCacheFactory{}},
-		core.PluginComponent{Name: CONF_MEMORYCACHE_SVC, Object: MemoryCacheService{}}}
-}
-
-//Create the services configured for factory.
-func (mf *MemoryCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	return &MemoryCacheService{name: name}, nil
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_MEMORYCACHE_SVC, Object: MemoryCacheService{}}}
 }
 
 type MemoryCacheService struct {
@@ -142,11 +131,12 @@ func (svc *MemoryCacheService) Decrement(ctx core.RequestContext, bucket string,
 	return svc.memoryStorer.Decrement(common.GetCacheKey(bucket, key), 1)
 }
 
+/*
 func (ms *MemoryCacheService) Describe(ctx core.ServerContext) {
 	ms.SetComponent(ctx, true)
 	ms.SetDescription(ctx, "Memory cache component service")
 	ms.AddOptionalConfigurations(ctx, map[string]string{config.ENCODING: config.OBJECTTYPE_STRING}, nil)
-}
+}*/
 
 func (ms *MemoryCacheService) Start(ctx core.ServerContext) error {
 	ms.memoryStorer = utils.NewMemoryStorer()

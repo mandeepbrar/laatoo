@@ -23,7 +23,9 @@ func (gi *updateStorable) Describe(ctx core.ServerContext) {
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 
 }
+
 func (es *updateStorable) Start(ctx core.ServerContext) error {
+	es.DataStore = es.fac.DataStore
 	v, _ := es.GetConfiguration(ctx, CONF_SVC_UPDATE_FIELDS)
 	uf, ok := v.([]string)
 	if !ok {

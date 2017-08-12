@@ -19,7 +19,10 @@ func (gi *selectSvc) Describe(ctx core.ServerContext) {
 	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
-
+func (svc *selectSvc) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *selectSvc) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SELECT")
 	retdata, _, totalrecs, recsreturned, err := selectMethod(ctx, es.DataStore)

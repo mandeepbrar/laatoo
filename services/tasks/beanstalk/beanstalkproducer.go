@@ -24,12 +24,13 @@ type BeanstalkProducer struct {
 	authHeader string
 }
 
-func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext) error {
-
+func (svc *BeanstalkProducer) Describe(ctx core.ServerContext) {
 	svc.SetComponent(ctx, true)
 	svc.SetDescription(ctx, "Beanstalk producer component")
 	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+}
 
+func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
 		shandler := sh.(server.SecurityHandler)

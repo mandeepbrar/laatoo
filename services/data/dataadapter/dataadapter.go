@@ -64,35 +64,35 @@ func (es *DataAdapterFactory) Start(ctx core.ServerContext) error {
 func newDataAdapterService(ctx core.ServerContext, name string, method string, fac *DataAdapterFactory) (core.Service, error) {
 	switch method {
 	case CONF_SVC_GET:
-		return &getById{fac: fac, DataStore: fac.DataStore}, nil
+		return &getById{fac: fac}, nil
 	case CONF_SVC_PUT:
-		return &put{fac: fac, DataStore: fac.DataStore}, nil
+		return &put{fac: fac}, nil
 	case CONF_SVC_GETMULTIPLE:
-		return &getMulti{fac: fac, DataStore: fac.DataStore}, nil
+		return &getMulti{fac: fac}, nil
 	case CONF_SVC_COUNT:
-		return &count{fac: fac, DataStore: fac.DataStore}, nil
+		return &count{fac: fac}, nil
 	case CONF_SVC_SAVE:
-		return &save{fac: fac, DataStore: fac.DataStore}, nil
+		return &save{fac: fac}, nil
 	case CONF_SVC_JOIN:
-		return &join{fac: fac, DataStore: fac.DataStore}, nil
+		return &join{fac: fac}, nil
 	case CONF_SVC_DELETE:
-		return &deleteSvc{fac: fac, DataStore: fac.DataStore}, nil
+		return &deleteSvc{fac: fac}, nil
 	case CONF_SVC_DELETEALL:
-		return &deleteAll{fac: fac, DataStore: fac.DataStore}, nil
+		return &deleteAll{fac: fac}, nil
 	case CONF_SVC_SELECT:
-		return &selectSvc{fac: fac, DataStore: fac.DataStore}, nil
+		return &selectSvc{fac: fac}, nil
 	case CONF_SVC_UPSERT:
-		return &upsert{fac: fac, DataStore: fac.DataStore}, nil
+		return &upsert{fac: fac}, nil
 	case CONF_SVC_UPDATE:
-		return &update{fac: fac, DataStore: fac.DataStore}, nil
+		return &update{fac: fac}, nil
 	case CONF_SVC_PUTMULTIPLE:
-		return &putmultiple{fac: fac, DataStore: fac.DataStore}, nil
+		return &putmultiple{fac: fac}, nil
 	case CONF_SVC_UPDATEMULTIPLE:
-		return &updatemultiple{fac: fac, DataStore: fac.DataStore}, nil
+		return &updatemultiple{fac: fac}, nil
 	case CONF_SVC_UPDATE_WITH_STORABLE:
-		return &updateStorable{fac: fac, DataStore: fac.DataStore}, nil
+		return &updateStorable{fac: fac}, nil
 	case CONF_SVC_GETMULTIPLE_SELECTIDS:
-		return &getmulti_select{fac: fac, DataStore: fac.DataStore}, nil
+		return &getmulti_select{fac: fac}, nil
 	default:
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Wrong Service method", method)
 	}

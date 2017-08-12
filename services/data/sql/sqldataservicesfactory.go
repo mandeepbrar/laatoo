@@ -21,19 +21,19 @@ type sqlDataServicesFactory struct {
 
 const (
 	CONF_SQL_CONNECTIONSTRING = "sqlconnectionstring"
-	CONF_SQL_VENDOR           = "vendor"
-	CONF_SQL_SERVICES         = "sql_services"
+	CONF_SQL_VENDOR           = "sqlvendor"
+	SQL_FACTORY               = "sql_services"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_SQL_SERVICES, Object: sqlDataServicesFactory{}}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: SQL_FACTORY, Object: sqlDataServicesFactory{}}}
 }
 
-func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext) error {
+/*func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext) error {
 	sf.AddStringConfiguration(ctx, CONF_SQL_CONNECTIONSTRING)
 	sf.AddStringConfiguration(ctx, CONF_SQL_VENDOR)
 	return nil
-}
+}*/
 
 //Create the services configured for factory.
 func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {

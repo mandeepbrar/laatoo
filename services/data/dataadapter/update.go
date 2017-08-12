@@ -17,7 +17,10 @@ func (gi *update) Describe(ctx core.ServerContext) {
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 }
-
+func (svc *update) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *update) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATE")
 	id, _ := ctx.GetStringParam(CONF_DATA_ID)

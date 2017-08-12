@@ -29,27 +29,20 @@ func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServi
 	return mongoSvc, nil
 }
 
-func (svc *mongoDataService) Initialize(ctx core.ServerContext) error {
-	ctx = ctx.SubContext("Initialize Mongo Service")
-	svc.database = svc.factory.database
-
-	err := svc.BaseComponent.Initialize(ctx)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-
-	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
-
+func (svc *mongoDataService) Describe(ctx core.ServerContext) {
+	svc.BaseComponent.Describe(ctx)
+	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.OBJECTTYPE_STRING}, nil)
 	svc.SetDescription(ctx, "Mongo data component")
-
-	return nil
 }
 
-func (svc *mongoDataService) Start(ctx core.ServerContext) error {
-	err := svc.BaseComponent.Start(ctx)
+func (svc *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("Initialize Mongo Service")
+
+	err := svc.BaseComponent.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
 	collection, ok := svc.GetConfiguration(ctx, data.CONF_DATA_COLLECTION)
 	if ok {
 		svc.collection = collection.(string)
@@ -59,6 +52,16 @@ func (svc *mongoDataService) Start(ctx core.ServerContext) error {
 
 	if svc.collection == "" {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", data.CONF_DATA_COLLECTION)
+	}
+
+	return nil
+}
+
+func (svc *mongoDataService) Start(ctx core.ServerContext) error {
+	svc.database = svc.factory.database
+	err := svc.BaseComponent.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	return nil

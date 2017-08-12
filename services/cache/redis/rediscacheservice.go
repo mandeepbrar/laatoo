@@ -11,25 +11,14 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-type RedisCacheFactory struct {
-	core.ServiceFactory
-}
-
 const (
-	REDISCACHE_FACTORY     = "redis_cache"
-	REDISCACHE_SERVICE     = "redis_cache_service"
+	REDISCACHE_SERVICE     = "redis_cache"
 	REDIS_CONNECTIONSTRING = "rediscacheserver"
 	REDIS_DATABASE         = "rediscachedb"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: REDISCACHE_FACTORY, Object: RedisCacheFactory{}},
-		core.PluginComponent{Name: REDISCACHE_SERVICE, Object: RedisCacheService{}}}
-}
-
-//Create the services configured for factory.
-func (mf *RedisCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	return &RedisCacheService{name: name}, nil
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: REDISCACHE_SERVICE, Object: RedisCacheService{}}}
 }
 
 type RedisCacheService struct {

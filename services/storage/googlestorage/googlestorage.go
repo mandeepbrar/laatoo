@@ -7,25 +7,24 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	//"golang.org/x/oauth2"
-	//"golang.org/x/oauth2/google"
 
 	"cloud.google.com/go/storage"
 	"github.com/twinj/uuid"
-	//"net/http"
-	//"strings"
 )
+
+//"golang.org/x/oauth2"
+//"golang.org/x/oauth2/google"
+//"net/http"
+//"strings"
 
 const (
 	CONF_GOOGLESTORAGE_SERVICENAME = "googlestorage"
-	CONF_GOOGLESTORAGE_FACTORY     = "googlestoragefactory"
 	CONF_GS_FILESBUCKET            = "googlestoragebucket"
 	CONF_GS_PUBLICFILE             = "public"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESTORAGE_SERVICENAME, Object: GoogleStorageSvc{}},
-		core.PluginComponent{Name: CONF_GOOGLESTORAGE_FACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &GoogleStorageSvc{} })}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESTORAGE_SERVICENAME, Object: GoogleStorageSvc{}}}
 }
 
 type GoogleStorageSvc struct {
@@ -35,10 +34,13 @@ type GoogleStorageSvc struct {
 }
 
 func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svc.SetDescription(ctx, "Google storage service")
-	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddStringConfigurations(ctx, []string{CONF_GS_FILESBUCKET}, nil)
-	svc.AddOptionalConfigurations(ctx, map[string]string{CONF_GS_PUBLICFILE: config.CONF_OBJECT_BOOL}, map[string]interface{}{CONF_GS_PUBLICFILE: false})
+	svc.bucket, _ = svc.GetStringConfiguration(ctx, CONF_GS_FILESBUCKET)
+	svc.public, _ = svc.GetBoolConfiguration(ctx, CONF_GS_PUBLICFILE)
+	/*
+		svc.SetDescription(ctx, "Google storage service")
+		svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
+		svc.AddStringConfigurations(ctx, []string{CONF_GS_FILESBUCKET}, nil)
+		svc.AddOptionalConfigurations(ctx, map[string]string{CONF_GS_PUBLICFILE: config.CONF_OBJECT_BOOL}, map[string]interface{}{CONF_GS_PUBLICFILE: false})*/
 	return nil
 }
 
@@ -137,15 +139,6 @@ func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadClo
 	inpStr.Close()
 	log.Debug(ctx, "Copying complete", "Filename", fileName, "bucket", svc.bucket, "bytes", numbytes)
 	return fileName, nil
-}
-
-func (svc *GoogleStorageSvc) Start(ctx core.ServerContext) error {
-	bucket, _ := svc.GetConfiguration(ctx, CONF_GS_FILESBUCKET)
-	svc.bucket = bucket.(string)
-	public, _ := svc.GetConfiguration(ctx, CONF_GS_PUBLICFILE)
-	svc.public = public.(bool)
-
-	return nil
 }
 
 /*

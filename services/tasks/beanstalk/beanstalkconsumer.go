@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"laatoo/sdk/components"
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
@@ -18,11 +19,12 @@ type BeanstalkConsumer struct {
 	worker      func(ctx core.ServerContext, pool *beanstalk.ConsumerPool)
 }
 
-func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext) error {
+func (svc *BeanstalkConsumer) Describe(ctx core.ServerContext) {
 	svc.SetComponent(ctx, true)
 	svc.SetDescription(ctx, "Beanstalk consumer component")
 	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
-
+}
+func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	/*
 		sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 		if sh != nil {

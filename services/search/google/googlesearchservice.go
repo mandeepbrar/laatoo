@@ -15,13 +15,10 @@ import (
 
 const (
 	CONF_GOOGLESEARCH_SVC = "googlesearch"
-	CONF_GOOGLESEARCH_FAC = "googlesearchfactory"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESEARCH_SVC, Object: GoogleSearchService{}},
-		core.PluginComponent{Name: CONF_GOOGLESEARCH_FAC, ObjectCreator: core.NewFactory(func() interface{} { return &GoogleSearchService{} })}}
-
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_GOOGLESEARCH_SVC, Object: GoogleSearchService{}}}
 }
 
 type GoogleSearchService struct {
@@ -32,22 +29,11 @@ type GoogleSearchService struct {
 
 func (gs *GoogleSearchService) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	gs.SetDescription(ctx, "Google search service")
-	gs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
-	gs.AddStringConfigurations(ctx, []string{search.CONF_INDEX, search.CONF_NUMOFRESULTS}, []string{"", "15"})
-	return nil
-}
+	/*	gs.SetDescription(ctx, "Google search service")
+		gs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
+		gs.AddStringConfigurations(ctx, []string{search.CONF_INDEX, search.CONF_NUMOFRESULTS}, []string{"", "15"})
+	*/
 
-func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	query := req.GetBody().(string)
-	res, err := gs.Search(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	return core.SuccessResponse(res), nil
-}
-
-func (gs *GoogleSearchService) Start(ctx core.ServerContext) error {
 	index, ok := gs.GetConfiguration(ctx, search.CONF_INDEX)
 	if !ok {
 		return errors.MissingConf(ctx, search.CONF_INDEX)
@@ -60,7 +46,17 @@ func (gs *GoogleSearchService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
 	return nil
+}
+
+func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+	query := req.GetBody().(string)
+	res, err := gs.Search(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return core.SuccessResponse(res), nil
 }
 
 func (gs *GoogleSearchService) Index(ctx core.RequestContext, s search.Searchable) error {

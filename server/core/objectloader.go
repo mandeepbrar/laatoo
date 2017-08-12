@@ -227,11 +227,14 @@ func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, obje
 }
 
 func (objLoader *objectLoader) getMetaData(ctx core.Context, objectName string) (core.Info, error) {
+	if objectName == "" {
+		return nil, nil
+	}
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
-
+		log.Trace(ctx, "Object not found by loader", "Object Name", objectName)
+		return nil, nil
 	}
 	return factory.Info(), nil
 }

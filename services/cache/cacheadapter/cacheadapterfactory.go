@@ -36,7 +36,7 @@ const (
 	ADDTOQUERY
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_CACHEADAPTER_SERVICES, Object: CacheAdapterFactory{}}}
 }
 

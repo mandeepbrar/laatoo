@@ -1,4 +1,0 @@
-{
-  "name":"rediscache",
-	"factory":"redis_cache"
-}

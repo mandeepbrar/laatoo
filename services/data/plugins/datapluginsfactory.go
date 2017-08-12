@@ -17,7 +17,7 @@ const (
 type DataPluginsFactory struct {
 }
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: DATAPLUGINS_FACTORY, Object: DataPluginsFactory{}}}
 }
 

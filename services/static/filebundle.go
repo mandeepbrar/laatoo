@@ -16,11 +16,10 @@ import (
 )
 
 const (
-	CONF_STATICSVC_FILEBUNDLE = "filebundle"
-	CONF_STATIC_BUNDLEPARAM   = "bundle"
-	CONF_STATIC_BUNDLEFILES   = "files"
-	CONF_STATIC_FILEBUNDLES   = "bundles"
-	CONF_STATIC_MINIFY        = "minify"
+	CONF_STATIC_BUNDLEPARAM = "bundle"
+	CONF_STATIC_BUNDLEFILES = "files"
+	CONF_STATIC_FILEBUNDLES = "bundles"
+	CONF_STATIC_MINIFY      = "minify"
 )
 
 type BundledFile struct {
@@ -41,10 +40,10 @@ type BundledFileService struct {
 	name       string
 }
 
-func (bs *BundledFileService) Initialize(ctx core.ServerContext) error {
-	bs.SetDescription(ctx, "Bundle files service")
-	bs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILEBUNDLES: config.CONF_OBJECT_CONFIG})
-	bs.AddParam(ctx, CONF_STATIC_BUNDLEPARAM, config.CONF_OBJECT_STRING, false)
+func (bs *BundledFileService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	/*bs.SetDescription(ctx, "Bundle files service")
+	bs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILEBUNDLES: config.OBJECTTYPE_CONFIG})
+	bs.AddParam(ctx, CONF_STATIC_BUNDLEPARAM, config.OBJECTTYPE_STRING, false)*/
 	bs.bundlesMap = make(map[string]*Bundle, 10)
 	return nil
 }

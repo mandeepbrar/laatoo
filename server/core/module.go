@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -67,21 +68,21 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 		}
 		mod.userModule.Describe(ctx)
 	}
+	log.Trace(ctx, "Module info ", "Name", mod.name, "Info", mod.impl.moduleInfo.configurations)
 	return nil
 }
 
-func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) error {
+func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config, env config.Config) error {
 	if conf != nil {
 		mod.modSettings = conf
 	} else {
 		mod.modSettings = make(config.GenericConfig)
 	}
 
-	modenv, ok := conf.GetSubConfig(constants.CONF_MODULE_ENV)
-	if ok {
-		envvars := modenv.AllConfigurations()
+	if env != nil {
+		envvars := env.AllConfigurations()
 		for _, varname := range envvars {
-			varvalue, _ := modenv.GetString(varname)
+			varvalue, _ := env.GetString(varname)
 			ctx.SetVariable(varname, varvalue)
 		}
 	}

@@ -1,5 +1,5 @@
 {
   "name":"server.resourcedirectory[.instance]",
-  "factory":"filesystemstorage",
+  "servicemethod":"filesystem",
   "filestoragedir":":filestoragedir"
 }

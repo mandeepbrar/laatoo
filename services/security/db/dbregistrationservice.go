@@ -55,21 +55,22 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 	rs.userCreator = userCreator
-
-	rs.SetDescription("Db Registration service")
-	rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
-	rs.AddStringConfigurations([]string{CONF_REGISTRATIONSERVICE_USERDATASERVICE, CONF_DEF_ROLE}, nil)
-
+	/*
+		rs.SetDescription("Db Registration service")
+		rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+		rs.AddStringConfigurations([]string{CONF_REGISTRATIONSERVICE_USERDATASERVICE, CONF_DEF_ROLE}, nil)
+	*/
 	return nil
 }
 
 //Expects Rbac user to be provided inside the request
-func (rs *RegistrationService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	ent := req.GetBody()
+func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
+	ent := ctx.GetBody()
 	body, ok := ent.(*map[string]interface{})
 	if !ok {
 		log.Trace(ctx, "Not map")
-		return core.StatusBadRequestResponse, nil
+		ctx.SetResponse(core.StatusBadRequestResponse)
+		return nil
 	}
 	fieldMap := *body
 	fieldMap["Roles"] = []string{rs.DefaultRole}
@@ -83,45 +84,52 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext, req core.Request)
 	username := user.GetUserName()
 	if username == "" {
 		log.Trace(ctx, "Username not found")
-		return core.BadRequestResponse(common.AUTH_ERROR_MISSING_USER), nil
+		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_MISSING_USER))
+		return nil
 	}
 
 	realm := user.GetRealm()
 	if realm != rs.realm {
 		log.Trace(ctx, "Realm not found")
-		return core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH), nil
+		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
+		return nil
 	}
 
 	argsMap := map[string]interface{}{user.GetUsernameField(): username, config.REALM: realm}
 
 	cond, err := rs.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return core.StatusInternalErrorResponse, err
+		ctx.SetResponse(core.StatusInternalErrorResponse)
+		return err
 	}
 
 	_, _, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err == nil && recs > 0 {
 		log.Trace(ctx, "Tested user found")
-		return core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS), nil
+		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS))
+		return nil
 	}
 	if err != nil {
-		return core.StatusInternalErrorResponse, err
+		ctx.SetResponse(core.StatusInternalErrorResponse)
+		return err
 	}
 
 	err = rs.UserDataService.Save(ctx, obj.(data.Storable))
 	if err != nil {
-		return core.StatusInternalErrorResponse, err
+		ctx.SetResponse(core.StatusInternalErrorResponse)
+		return err
 	}
 	log.Trace(ctx, "Saved user")
-	return core.StatusSuccessResponse, nil
+	ctx.SetResponse(core.StatusSuccessResponse)
+	return nil
 }
 
 func (rs *RegistrationService) Start(ctx core.ServerContext) error {
 
-	userDataSvcName, _ := rs.GetConfiguration(CONF_REGISTRATIONSERVICE_USERDATASERVICE)
+	userDataSvcName, _ := rs.GetConfiguration(ctx, CONF_REGISTRATIONSERVICE_USERDATASERVICE)
 	rs.userDataSvcName = userDataSvcName.(string)
 
-	defrole, ok := rs.GetConfiguration(CONF_DEF_ROLE)
+	defrole, ok := rs.GetConfiguration(ctx, CONF_DEF_ROLE)
 	rs.DefaultRole = defrole.(string)
 
 	userService, err := ctx.GetService(rs.userDataSvcName)

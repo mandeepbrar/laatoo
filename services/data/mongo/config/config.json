@@ -1,11 +1,23 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":"Module provides mongo connection services. Component Service created from this factory must be provided 'object' specifying the object to manage. Optional environment variables for service include 'collection', 'auditable', 'cacheable', 'presave', 'postupdate', 'postload', 'auditable'. Factory 'mongodatabase' is created by default using environment variables 'mongoconnectionstring' and 'mongodatabase' ",
   "objects":{
-    "mongo_services":"Mongo database service."
-  },
-  "params":{
-    "mongoconnectionstring":"Connection string for mongo database",
-    "mongodatabase":"Mongo database to connect"
+    "mongo_services":{
+      "type":"factory",
+      "description":"Mongo database",
+      "configurations": {
+        "mongoconnectionstring": {
+            "description":"Connection string for mongo database",
+            "type":"string",
+            "required":true
+        },
+        "mongodatabase": {
+            "description":"Mongo database to connect",
+            "type":"string",
+            "required":true
+        }
+      }
+    }
   }
 }

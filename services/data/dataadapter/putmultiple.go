@@ -18,6 +18,10 @@ func (gi *putmultiple) Describe(ctx core.ServerContext) {
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), true, false)
 }
 
+func (svc *putmultiple) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *putmultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUTMULTIPLE")
 	arr := ctx.GetBody()

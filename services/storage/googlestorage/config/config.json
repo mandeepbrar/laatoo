@@ -1,9 +1,22 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":"This module provides access to google storage service. By default a service server.googlestorage is created.",
   "objects":{
-    "googlestoragefactory":"Google storage factory.",
-    "googlestorage":"Google storage service"
+    "googlestorage": {
+      "type":"service",
+      "description":"Google storage service",
+      "request":{
+        "type":"stringmap"
+      },
+      "configurations": {
+        "googlestoragebucket": {
+          "description":"Bucket to be used by the storage component",
+          "type":"string",
+          "required":true
+        }
+      }
+    }
   },
   "params":{
     "googlestoragebucket":"Bucket to be used by google storage service"

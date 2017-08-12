@@ -253,17 +253,21 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	modu.dependencies = dependencies
 
 	moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
-
-	paramNames := moduleparams.AllConfigurations()
-	for _, paramName := range paramNames {
-		val, ok := modSettings.Get(paramName)
-		if ok {
-			ctx.Set(paramName, val)
+	if moduleparams != nil {
+		paramNames := moduleparams.AllConfigurations()
+		for _, paramName := range paramNames {
+			val, ok := modSettings.Get(paramName)
+			if ok {
+				ctx.Set(paramName, val)
+			}
 		}
 	}
 
+	//get the environment in which module should operate
+	modenv, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_ENV)
+
 	initCtx := ctx.SubContext("Initialize Module")
-	err = modu.initialize(initCtx, modSettings)
+	err = modu.initialize(initCtx, modSettings, modenv)
 	if err != nil {
 		return false, errors.WrapError(initCtx, err)
 	}
@@ -291,11 +295,11 @@ func (modMgr *moduleManager) processModuleConfMetadata(ctx core.ServerContext, c
 			var inf core.Info
 			switch objtyp {
 			case "service":
-				inf = buildServiceInfo(conf)
+				inf = buildServiceInfo(objconf)
 			case "module":
-				inf = buildModuleInfo(conf)
+				inf = buildModuleInfo(objconf)
 			case "factory":
-				inf = buildFactoryInfo(conf)
+				inf = buildFactoryInfo(objconf)
 			}
 			if inf != nil {
 				ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader

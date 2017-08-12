@@ -1,9 +1,28 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":" Provides access to google search service in gae environment. Complies with search sdk. A default service laatoo.googlesearch is provided.",
   "objects":{
-    "googlesearchfactory":"Google search factory",
-    "googlesearch":"Google search service"
+    "googlesearch":{
+      "type":"service",
+      "description":"Google search service",
+      "request":{
+        "description":"Words to be searched",
+        "type":"string"
+      },
+      "configurations": {
+        "searchindex": {
+          "description":"Index to be used",
+          "type":"string",
+          "default":""
+        },
+        "searchresults": {
+          "description":"Number of results to be returned",
+          "type":"string",
+          "default":"15"
+        }
+      }
+    }
   },
   "params":{
     "searchindex":"Index to be used for search service",

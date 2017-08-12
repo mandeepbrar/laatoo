@@ -1,5 +1,5 @@
 {
   "name":"server.publicstoragedirectory[.instance]",
-  "factory":"filesystemstorage",
+  "servicemethod":"filesystem",
   "filestoragedir":":publicfilesdir"
 }

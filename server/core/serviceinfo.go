@@ -105,7 +105,7 @@ func buildRequestInfo(conf config.Config) *requestInfo {
 		}
 		return newRequestInfo(requesttype, collection, stream, params)
 	}
-	return nil
+	return newRequestInfo("", false, false, nil)
 }
 
 func (ri *requestInfo) GetDataType() string {
@@ -131,7 +131,7 @@ func buildResponseInfo(conf config.Config) *responseInfo {
 		stream, _ := res.GetBool(SVCSTREAM)
 		return newResponseInfo(stream)
 	}
-	return nil
+	return newResponseInfo(false)
 }
 
 func newResponseInfo(streaming bool) *responseInfo {

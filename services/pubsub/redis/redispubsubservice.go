@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 
 	"github.com/garyburd/redigo/redis"
@@ -12,15 +11,13 @@ import (
 )
 
 const (
-	CONF_REDISPUBSUB_FACTORY    = "redispubsubfactory"
 	CONF_REDISPUBSUB_SVC        = "redispubsub"
 	CONF_REDIS_CONNECTIONSTRING = "redispubsubserver"
 	CONF_REDIS_DATABASE         = "redispubsubdb"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISPUBSUB_SVC, Object: RedisPubSubService{}},
-		core.PluginComponent{Name: CONF_REDISPUBSUB_FACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &RedisPubSubService{} })}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_REDISPUBSUB_SVC, Object: RedisPubSubService{}}}
 }
 
 type RedisPubSubService struct {
@@ -72,12 +69,12 @@ func (svc *RedisPubSubService) Subscribe(ctx core.ServerContext, topics []string
 	return nil
 }
 
-func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext) error {
+/*func (redisSvc *RedisPubSubService) Initialize(ctx core.ServerContext) error {
 	redisSvc.SetComponent(ctx, true)
 	redisSvc.AddStringConfigurations(ctx, []string{CONF_REDIS_CONNECTIONSTRING, CONF_REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
 	redisSvc.SetDescription(ctx, "Redis pubsub component service")
 	return nil
-}
+}*/
 
 func (redisSvc *RedisPubSubService) Start(ctx core.ServerContext) error {
 	connectionString, _ := redisSvc.GetConfiguration(ctx, CONF_REDIS_CONNECTIONSTRING)

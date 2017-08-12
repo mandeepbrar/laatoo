@@ -3,38 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/services/cache/common"
 
 	"google.golang.org/appengine/memcache"
 )
 
-type AppengineCacheFactory struct {
-	core.ServiceFactory
-}
-
 const (
-	APPENGINECACHE_FACTORY = "appengine_cache"
-	APPENGINECACHE_SERVICE = "appengine_service"
+	APPENGINECACHE_SERVICE = "appengine_cache"
 )
-
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: APPENGINECACHE_FACTORY, Object: AppengineCacheFactory{}},
-		core.PluginComponent{Name: APPENGINECACHE_SERVICE, Object: AppengineCacheService{}}}
-}
-
-//Create the services configured for factory.
-func (af *AppengineCacheFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {
-	return &AppengineCacheService{}, nil
-}
 
 type AppengineCacheService struct {
 	core.Service
-}
-
-func (svc *AppengineCacheService) Describe(ctx core.ServerContext) {
-	svc.SetComponent(ctx, true)
 }
 
 func (svc *AppengineCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {

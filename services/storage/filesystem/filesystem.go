@@ -14,14 +14,12 @@ import (
 )
 
 const (
-	CONF_FILE_SERVICENAME     = "filesystem"
-	CONF_FILES_SERVICEFACTORY = "filesystemfactory"
-	CONF_FILESDIR             = "filestoragedir"
+	CONF_FILE_SERVICENAME = "filesystem"
+	CONF_FILESDIR         = "filestoragedir"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_FILE_SERVICENAME, Object: FileSystemSvc{}},
-		core.PluginComponent{Name: CONF_FILES_SERVICEFACTORY, ObjectCreator: core.NewFactory(func() interface{} { return &FileSystemSvc{} })}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_FILE_SERVICENAME, Object: FileSystemSvc{}}}
 }
 
 type FileSystemSvc struct {
@@ -70,7 +68,9 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 }
 
 func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) error {
-	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, svc.GetFullPath(ctx, fileName), nil))
+	path := svc.GetFullPath(ctx, fileName)
+	log.Trace(ctx, "Serving file", "filename", path)
+	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, path, nil))
 	return nil
 }
 
@@ -93,16 +93,10 @@ func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser
 	return fileName, nil
 }
 
-func (svc *FileSystemSvc) Initialize(ctx core.ServerContext) error {
-	svc.SetDescription(ctx, "File system storage service")
+func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
+	/*svc.SetDescription(ctx, "File system storage service")
 	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
-	svc.AddStringConfigurations(ctx, []string{CONF_FILESDIR}, nil)
-	return nil
-}
-
-func (svc *FileSystemSvc) Start(ctx core.ServerContext) error {
-	filesDir, _ := svc.GetStringConfiguration(ctx, CONF_FILESDIR)
-	svc.filesDir = filesDir
-
+	svc.AddStringConfigurations(ctx, []string{CONF_FILESDIR}, nil)*/
+	svc.filesDir, _ = svc.GetStringConfiguration(ctx, CONF_FILESDIR)
 	return nil
 }

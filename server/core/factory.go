@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"reflect"
 )
@@ -43,7 +44,7 @@ func (fac *serviceFactory) loadMetaData(ctx core.ServerContext) error {
 		}
 	}
 	fac.factory.Describe(ctx)
-
+	log.Trace(ctx, "Factory info ", "Name", fac.name, "Info", fac.impl.factoryInfo.configurations)
 	return nil
 }
 

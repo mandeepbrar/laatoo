@@ -17,6 +17,10 @@ func (gi *put) Describe(ctx core.ServerContext) {
 	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 }
+func (svc *put) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 
 func (es *put) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUT")

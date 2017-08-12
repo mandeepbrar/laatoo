@@ -27,6 +27,7 @@ func (gi *join) Describe(ctx core.ServerContext) {
 }
 
 func (es *join) Start(ctx core.ServerContext) error {
+	es.DataStore = es.fac.DataStore
 	es.lookupField, _ = es.GetStringConfiguration(ctx, CONF_SVC_LOOKUP_FIELD)
 	es.lookupSvcName, _ = es.GetStringConfiguration(ctx, CONF_SVC_LOOKUPSVC)
 

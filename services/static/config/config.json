@@ -1,9 +1,97 @@
 {
   "version":"0.0.1",
   "dependencies":{},
+  "description":"Module provides static file services. ",
   "objects":{
-    "staticfilesfactory":"Static files server factory. Factory provides three services 'directory', 'file' and 'filebundle'."
-  },
-  "params":{
+    "static_files_service":{
+      "type":"service",
+      "description":"This service serves static files from a storage component",
+      "configurations": {
+        "storage": {
+            "description":"Storage service from which files are to be served",
+            "type":"string",
+            "required":true
+        },
+        "operation": {
+            "description":"Operation to perform on a file",
+            "type":"string"
+        },
+        "transformedstorage": {
+          "description":"Storage to be used for keeping transformed files",
+          "type":"string"
+        },
+        "default": {
+          "description":"File to be used in case a file is not avilable",
+          "type":"string"
+        },
+        "width": {
+          "description":"Width of a transformed image file",
+          "type":"string"
+        },
+        "height": {
+          "description":"Height of a transformed image file",
+          "type":"string"
+        }
+      },
+      "request": {
+        "params": {
+          "file": {
+            "description":"File to be served by this service",
+            "type":"string",
+            "required":true
+          }
+        }
+      }
+    },
+    "named_files_service": {
+      "type":"service",
+      "description":"This service serves named files from a storage component. Only disk files are supported",
+      "configurations": {
+        "storage": {
+            "description":"Storage service from which files are to be served",
+            "type":"string",
+            "required":true
+        },
+        "files": {
+            "description":"File and path mapping",
+            "type":"config",
+            "required":true
+        }
+      },
+      "request": {
+        "params": {
+          "file": {
+            "description":"File to be served by this service",
+            "type":"string",
+            "required":true
+          }
+        }
+      }
+    },
+    "filebundle_service": {
+      "type":"service",
+      "description":"This service serves named files from a storage component. Only disk files are supported",
+      "configurations": {
+        "storage": {
+            "description":"Storage service from which files are to be served",
+            "type":"string",
+            "required":true
+        },
+        "bundles": {
+            "description":"File and path mapping",
+            "type":"config",
+            "required":true
+        }
+      },
+      "request": {
+        "params": {
+          "bundle": {
+            "description":"Bundle to be served by this service",
+            "type":"string",
+            "required":true
+          }
+        }
+      }
+    }
   }
 }

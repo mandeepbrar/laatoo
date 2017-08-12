@@ -16,12 +16,10 @@ import (
 
 const (
 	CONF_BLEVESEARCH_SVC = "blevesearch"
-	CONF_BLEVESEARCH_FAC = "blevesearchfactory"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_BLEVESEARCH_SVC, Object: BleveSearchService{}},
-		core.PluginComponent{Name: CONF_BLEVESEARCH_FAC, ObjectCreator: core.NewFactory(func() interface{} { return &BleveSearchService{} })}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_BLEVESEARCH_SVC, Object: BleveSearchService{}}}
 }
 
 type BleveSearchService struct {
@@ -30,12 +28,18 @@ type BleveSearchService struct {
 	index        bleve.Index
 }
 
-func (bs *BleveSearchService) Initialize(ctx core.ServerContext) error {
+func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	bs.SetDescription(ctx, "Bleve search service")
+	num, _ := bs.GetConfiguration(ctx, searchsdk.CONF_INDEX)
+	var err error
+	bs.numOfResults, err = strconv.Atoi(num.(string))
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	/*bs.SetDescription(ctx, "Bleve search service")
 	bs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
 	bs.AddStringConfigurations(ctx, []string{searchsdk.CONF_INDEX, searchsdk.CONF_NUMOFRESULTS}, []string{"", "15"})
-
+	*/
 	return nil
 }
 
@@ -50,18 +54,7 @@ func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) 
 
 func (bs *BleveSearchService) Start(ctx core.ServerContext) error {
 
-	index, ok := bs.GetConfiguration(ctx, searchsdk.CONF_INDEX)
-	if !ok {
-		return errors.MissingConf(ctx, searchsdk.CONF_INDEX)
-	}
-	indexName := index.(string)
-
-	num, _ := bs.GetConfiguration(ctx, searchsdk.CONF_INDEX)
-	var err error
-	bs.numOfResults, err = strconv.Atoi(num.(string))
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
+	indexName, _ := bs.GetStringConfiguration(ctx, searchsdk.CONF_INDEX)
 
 	ind, err := bleve.Open(indexName)
 	if err != nil {

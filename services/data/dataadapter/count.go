@@ -17,7 +17,10 @@ func (gi *count) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Count objects meeting selection criteria")
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
-
+func (svc *count) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *count) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("COUNT")
 	body := ctx.GetBody().(*map[string]interface{})

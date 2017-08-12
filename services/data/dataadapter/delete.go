@@ -17,6 +17,11 @@ func (gi *deleteSvc) Describe(ctx core.ServerContext) {
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 }
 
+func (svc *deleteSvc) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
+
 func (es *deleteSvc) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("DELETE")
 	id, _ := ctx.GetStringParam(CONF_DATA_ID)

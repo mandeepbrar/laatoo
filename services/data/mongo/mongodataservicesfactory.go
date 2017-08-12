@@ -19,29 +19,20 @@ type mongoDataServicesFactory struct {
 
 const (
 	CONF_MONGO_CONNECTIONSTRING = "mongoconnectionstring"
-	CONF_MONGO_SERVICES         = "mongo_services"
+	MONGO_FACTORY               = "mongo_services"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_MONGO_SERVICES, Object: mongoDataServicesFactory{}}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: MONGO_FACTORY, Object: mongoDataServicesFactory{}}}
 }
 
-func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext) error {
+/*
+func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ms.AddStringConfiguration(ctx, CONF_MONGO_CONNECTIONSTRING)
 	ms.AddStringConfiguration(ctx, CONF_MONGO_DATABASE)
-	/*mongoSvc.objects = make(map[string]string, len(objs))
-	for obj, collection := range objs {
 
-		mongoSvc.objects[obj] = collection.(string)
-	}
-	deleteOps, _, _, _, err := buildRefOps(ctx, conf)
-	if err != nil {
-		return nil, err
-	}
-	mongoSvc.deleteRefOpers = deleteOps
-	log.Debug(ctx, LOGGING_CONTEXT, "Mongo service configured for objects ", "Objects", mongoSvc.objects)*/
 	return nil
-}
+}*/
 
 //Create the services configured for factory.
 func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name string, method string, conf config.Config) (core.Service, error) {

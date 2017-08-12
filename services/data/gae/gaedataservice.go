@@ -29,23 +29,17 @@ func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, er
 	return gaeDataSvc, nil
 }
 
-func (svc *gaeDataService) Initialize(ctx core.ServerContext) error {
-	ctx = ctx.SubContext("Initialize gae datastore service")
-
-	err := svc.BaseComponent.Initialize(ctx)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.CONF_OBJECT_STRING}, nil)
+func (svc *gaeDataService) Describe(ctx core.ServerContext) {
+	svc.BaseComponent.Describe(ctx)
+	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.OBJECTTYPE_STRING}, nil)
 
 	svc.SetDescription(ctx, "GAE data component")
-
-	return nil
 }
 
-func (svc *gaeDataService) Start(ctx core.ServerContext) error {
+func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("Initialize gae datastore service")
 
-	err := svc.BaseComponent.Start(ctx)
+	err := svc.BaseComponent.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -59,6 +53,15 @@ func (svc *gaeDataService) Start(ctx core.ServerContext) error {
 
 	if svc.collection == "" {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", data.CONF_DATA_COLLECTION)
+	}
+	return nil
+}
+
+func (svc *gaeDataService) Start(ctx core.ServerContext) error {
+
+	err := svc.BaseComponent.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	return nil

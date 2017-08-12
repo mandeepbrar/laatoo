@@ -28,39 +28,12 @@ type GaeConsumer struct {
 	taskManager server.TaskManager
 }
 
-func (svc *GaeConsumer) Initialize(ctx core.ServerContext) error {
+func (svc *GaeConsumer) Describe(ctx core.ServerContext) {
 	svc.SetDescription(ctx, "GAE task service consumer component")
-	svc.SetRequestType(ctx, config.CONF_OBJECT_BYTES, false, false)
-	/*queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
-	if ok {
-		queueNames := queuesConf.AllConfigurations()
-		for _, queueName := range queueNames {
-			qCtx := ctx.SubContext("Creating Queue" + queueName)
-			queueProcessorName, _ := queuesConf.GetString(queueName)
-			processor, err := qCtx.GetService(queueProcessorName)
-			if err != nil {
-				return errors.WrapError(qCtx, err)
-			}
-			svc.createQueue(qCtx, queueName, processor)
-		}
-	} else {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", config.CONF_TASK_QUEUES)
-	}
+	svc.SetRequestType(ctx, config.OBJECTTYPE_BYTES, false, false)
+}
 
-	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
-	if sh != nil {
-		shandler := sh.(server.SecurityHandler)
-		svc.shandler = shandler
-		ah, ok := shandler.GetString(config.AUTHHEADER)
-		if !ok {
-			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
-		}
-		svc.authHeader = ah
-	} else {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
-	}
-
-	*/
+func (svc *GaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
 	return nil
 }

@@ -23,7 +23,6 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[param] = paramVal
 			}
 		}
-		log.Trace(webctx, "Headers provided", "headers", headers)
 		if headers != nil {
 			for param, header := range headers {
 				headerVal := engineContext.GetHeader(header)
@@ -47,6 +46,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[name] = val
 			}
 		}
+		log.Trace(webctx, "Handle Request", "info", vals)
 		return svc.HandleRequest(reqctx, vals, body.([]byte))
 	}, nil
 }

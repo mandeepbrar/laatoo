@@ -25,6 +25,15 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Trace(objldrCtx, "Started Object Loader")
 
+	//module manager must be started before service manager and factory manager initializations
+	//module manager is used during init of other managers
+	modstart := ctx.SubContext("Start module manager")
+	err = as.moduleManagerHandle.Start(modstart)
+	if err != nil {
+		return errors.WrapError(modstart, err)
+	}
+	log.Trace(modstart, "Started module managers")
+
 	fmCtx := ctx.SubContext("Start Factory Manager")
 	err = as.factoryManagerHandle.Start(fmCtx)
 	if err != nil {

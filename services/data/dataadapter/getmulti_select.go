@@ -31,8 +31,8 @@ func (gi *getmulti_select) Describe(ctx core.ServerContext) {
 	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
-
 func (es *getmulti_select) Start(ctx core.ServerContext) error {
+	es.DataStore = es.fac.DataStore
 	es.lookupField, _ = es.GetStringConfiguration(ctx, CONF_SVC_LOOKUP_FIELD)
 	es.lookupSvcName, _ = es.GetStringConfiguration(ctx, CONF_SVC_LOOKUPSVC)
 	es.hashmap, _ = es.GetBoolConfiguration(ctx, HASHMAP_PARAM)

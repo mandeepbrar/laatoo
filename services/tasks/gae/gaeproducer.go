@@ -21,11 +21,12 @@ type GaeProducer struct {
 	authHeader string
 }
 
-func (svc *GaeProducer) Initialize(ctx core.ServerContext) error {
+func (svc *GaeProducer) Describe(ctx core.ServerContext) {
 	svc.SetDescription(ctx, "GAE task service producer component")
 	svc.AddStringConfigurations(ctx, []string{GAE_PATH}, nil)
 	svc.SetComponent(ctx, true)
-
+}
+func (svc *GaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
 		shandler := sh.(server.SecurityHandler)
@@ -38,6 +39,7 @@ func (svc *GaeProducer) Initialize(ctx core.ServerContext) error {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
+	svc.path, _ = svc.GetStringConfiguration(ctx, GAE_PATH)
 	return nil
 }
 
@@ -51,10 +53,4 @@ func (svc *GaeProducer) PushTask(ctx core.RequestContext, queue string, t *compo
 	gaetask.Payload = bytes
 	_, err = taskqueue.Add(appEngineContext, gaetask, "")
 	return err
-}
-
-func (svc *GaeProducer) Start(ctx core.ServerContext) error {
-	path, _ := svc.GetConfiguration(ctx, GAE_PATH)
-	svc.path = path.(string)
-	return nil
 }

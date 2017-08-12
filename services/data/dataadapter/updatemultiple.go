@@ -18,7 +18,10 @@ func (gi *updatemultiple) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Update multiple objects using data component. Input a string map containing 'ids' as well as 'data' containing string map of field value updates")
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
-
+func (svc *updatemultiple) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 func (es *updatemultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATEMULTIPLE")
 	body := ctx.GetBody().(*map[string]interface{})

@@ -17,7 +17,7 @@ const (
 	CONF_TASKS_GAE_CONSUMER = "gaetaskconsumer"
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_TASKS_GAE_PRODUCER, Object: GaeProducer{}},
 		core.PluginComponent{Name: CONF_GAE_TASKS_FACTORY, Object: TasksFactory{}},
 		core.PluginComponent{Name: CONF_TASKS_GAE_CONSUMER, Object: GaeConsumer{}}}

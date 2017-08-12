@@ -12,11 +12,11 @@ type gaeDataServicesFactory struct {
 }
 
 const (
-	CONF_GAEDATA_SERVICES = "gaedatastore"
+	GAEDATA_SERVICES = "gaedatastore_services"
 )
 
-func Manifest() []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_GAEDATA_SERVICES, Object: gaeDataServicesFactory{}}}
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: GAEDATA_SERVICES, Object: gaeDataServicesFactory{}}}
 }
 
 //Create the services configured for factory.

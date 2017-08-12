@@ -33,7 +33,7 @@ const (
 	CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL   = "profileurl"
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_OAUTH, Object: OAuthLoginService{}}}
 }
 
@@ -51,6 +51,15 @@ type OAuthLoginService struct {
 	profileURL      string
 	callbackmode    bool
 }
+
+/*
+func (os *OAuthLoginService) Describe(ctx core.ServerContext) {
+	os.SetDescription("Oauth login service")
+	os.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
+	os.AddStringConfigurations([]string{common.CONF_LOGINSERVICE_USERDATASERVICE}, nil)
+	os.AddConfigurations(map[string]string{CONF_OAUTHLOGINSERVICE_SITE: config.CONF_OBJECT_CONFIG})
+	os.AddParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE, config.CONF_OBJECT_BOOL, false)
+}*/
 
 func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
 
@@ -72,22 +81,22 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
 	}
 	os.userCreator = userCreator
 
-	os.SetDescription("Oauth login service")
-	os.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
-	os.AddStringConfigurations([]string{common.CONF_LOGINSERVICE_USERDATASERVICE}, nil)
-	os.AddConfigurations(map[string]string{CONF_OAUTHLOGINSERVICE_SITE: config.CONF_OBJECT_CONFIG})
-	os.AddParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE, config.CONF_OBJECT_BOOL, false)
 	return nil
+
 }
 
 //Expects Local user to be provided inside the request
-func (os *OAuthLoginService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	callbackmode, _ := req.GetParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
+func (os *OAuthLoginService) Invoke(ctx core.RequestContext) error {
+	callbackmode, _ := ctx.GetParam(CONF_OAUTHLOGINSERVICE_CALLBACKMODE)
+	var res *core.Response
+	var err error
 	if callbackmode.GetValue().(bool) {
-		return os.callbackRequest(ctx)
+		res, err = os.callbackRequest(ctx)
 	} else {
-		return os.initialRequest(ctx)
+		res, err = os.initialRequest(ctx)
 	}
+	ctx.SetResponse(res)
+	return err
 }
 
 //Expects Local user to be provided inside the request
@@ -255,9 +264,9 @@ func (os *OAuthLoginService) SetTokenGenerator(ctx core.ServerContext, gen func(
 
 func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
 
-	userDataSvcName, _ := os.GetConfiguration(common.CONF_LOGINSERVICE_USERDATASERVICE)
+	userDataSvcName, _ := os.GetStringConfiguration(ctx, common.CONF_LOGINSERVICE_USERDATASERVICE)
 
-	userService, err := ctx.GetService(userDataSvcName.(string))
+	userService, err := ctx.GetService(userDataSvcName)
 	if err != nil {
 		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)
 	}
@@ -269,7 +278,7 @@ func (os *OAuthLoginService) Start(ctx core.ServerContext) error {
 	//get and set the data service for accessing users
 	os.userDataService = userDataService
 
-	siteconf, _ := os.GetConfiguration(CONF_OAUTHLOGINSERVICE_SITE)
+	siteconf, _ := os.GetConfiguration(ctx, CONF_OAUTHLOGINSERVICE_SITE)
 	return os.configureSite(ctx, siteconf.(config.Config))
 
 }

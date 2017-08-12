@@ -16,6 +16,10 @@ func (gi *getById) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Get element by Id from the underlying data component")
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 }
+func (svc *getById) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
 
 func (es *getById) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("GETBYID")

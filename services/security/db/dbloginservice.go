@@ -18,7 +18,7 @@ const (
 	CONF_SECURITYSERVICE_DB                  = "DB_LOGIN"
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}},
 		core.PluginComponent{Name: CONF_SECURITYSERVICE_DB, Object: LoginService{}}}
 }
@@ -34,8 +34,7 @@ type LoginService struct {
 	UserDataService data.DataComponent
 }
 
-func (ls *LoginService) Initialize(ctx core.ServerContext) error {
-
+func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
@@ -52,27 +51,26 @@ func (ls *LoginService) Initialize(ctx core.ServerContext) error {
 	ls.realm = realm.(string)
 
 	userObject := sechandler.GetProperty(config.USER)
-
-	ls.SetDescription("Db Login service")
-	ls.SetRequestType(userObject.(string), false, false)
-	ls.AddStringConfigurations([]string{common.CONF_LOGINSERVICE_USERDATASERVICE}, nil)
+	ls.SetRequestType(ctx, userObject.(string), false, false)
 
 	return nil
 }
 
 //Expects Local user to be provided inside the request
-func (ls *LoginService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
-	ent := req.GetBody()
+	ent := ctx.GetBody()
 	usr, ok := ent.(auth.LocalAuthUser)
 	if !ok {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 
 	realm := usr.GetRealm()
 	if realm != ls.realm {
 		log.Trace(ctx, "Realm not found")
-		return core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH), nil
+		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_REALM_MISMATCH))
+		return nil
 	}
 
 	username := usr.GetUserName()
@@ -82,13 +80,15 @@ func (ls *LoginService) Invoke(ctx core.RequestContext, req core.Request) (*core
 
 	cond, err := ls.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 
 	usrs, _, _, recs, err := ls.UserDataService.Get(ctx, cond, -1, -1, "", "")
 	if err != nil || recs <= 0 {
 		log.Trace(ctx, "Tested user not found", "Err", err)
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 
 	//compare the user requested with the user from database
@@ -98,22 +98,25 @@ func (ls *LoginService) Invoke(ctx core.RequestContext, req core.Request) (*core
 	log.Trace(ctx, "compared user********", "err", err)
 	existingUser.ClearPassword()
 	if err != nil {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	} else {
 		existingUser.ClearPassword()
 		token, user, err := ls.tokenGenerator(existingUser, realm)
 		if err != nil {
-			return core.StatusUnauthorizedResponse, nil
+			ctx.SetResponse(core.StatusUnauthorizedResponse)
+			return nil
 		}
-		return core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token}), nil
+		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token}))
 	}
+	return nil
 }
 func (ls *LoginService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
 	ls.tokenGenerator = gen
 }
 
 func (ls *LoginService) Start(ctx core.ServerContext) error {
-	userDataSvcName, _ := ls.GetConfiguration(common.CONF_LOGINSERVICE_USERDATASERVICE)
+	userDataSvcName, _ := ls.GetConfiguration(ctx, common.CONF_LOGINSERVICE_USERDATASERVICE)
 	userService, err := ctx.GetService(userDataSvcName.(string))
 	if err != nil {
 		return errors.RethrowError(ctx, common.AUTH_ERROR_MISSING_USER_DATA_SERVICE, err)

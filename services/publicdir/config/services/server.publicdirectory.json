@@ -1,6 +1,5 @@
 {
   "name":"server.publicdirectory[.instance]",
-  "factory":"staticfileserver",
-  "servicemethod":"directory",
+  "servicemethod":"static_files_service",
   "storage": "server.publicstoragedirectory[.instance]"
 }

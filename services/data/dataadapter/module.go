@@ -24,7 +24,7 @@ const (
 	MIDDLEWARE               = "middleware"
 )
 
-func Manifest() []core.PluginComponent {
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_DATAADAPTER_SERVICES, Object: DataAdapterFactory{}},
 		core.PluginComponent{Name: DATA_ADAPTER_MODULE, Object: DataAdapterModule{}}}
 }
@@ -47,7 +47,7 @@ func (adapter *DataAdapterModule) Describe(ctx core.ServerContext) {
 	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE, MIDDLEWARE, CONF_PARENT_CHANNEL}, []string{"", "", "root"})
 }*/
 
-func (adapter *DataAdapterModule) Start(ctx core.ServerContext) error {
+func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Starting data adapter module")
 	adapter.factory, _ = adapter.GetStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.object, _ = adapter.GetStringConfiguration(ctx, data.CONF_DATA_OBJECT)

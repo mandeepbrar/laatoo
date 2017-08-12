@@ -36,7 +36,6 @@ type serverService struct {
 	middleware                  []*serverService
 	paramValues                 map[string]interface{}
 	impl                        *serviceImpl
-	info                        core.ServiceInfo
 	svrContext                  *serverContext
 	dataObjectCreator           core.ObjectCreator
 	dataObjectCollectionCreator core.ObjectCollectionCreator
@@ -73,13 +72,14 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	svc.service.Describe(ctx)
 
 	//svc.info = svc.service.Info()
+	log.Trace(ctx, "Service info ", "Name", svc.name, "Info", svc.impl.serviceInfo)
 
 	return nil
 }
 
 func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config) error {
 
-	if err := svc.processInfo(ctx, conf, svc.info); err != nil {
+	if err := svc.processInfo(ctx, conf, svc.impl); err != nil {
 		return err
 	}
 
@@ -165,7 +165,7 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 			svc.dataObjectCreator = dataObjectCreator
 		}
 	}
-	log.Trace(ctx, "Processed info for service", "name", svc.name, "conf", svc.info)
+	log.Trace(ctx, "Processed info for service", "name", svc.name, "conf", svc.impl)
 	return nil
 }
 
@@ -212,7 +212,7 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 
 	var reqData interface{}
 
-	reqInfo := svc.info.GetRequestInfo()
+	reqInfo := svc.impl.GetRequestInfo()
 
 	if !reqInfo.IsStream() {
 		switch svc.dataObjectType {
@@ -247,6 +247,7 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 		return nil, errors.WrapError(ctx, err)
 	}
 	ctx.req = req
+	log.Trace(ctx, "Invoking service", "info", vals)
 	err := svc.invoke(ctx)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -270,7 +271,7 @@ func (svc *serverService) handleStreamedRequest(ctx *requestContext, vals map[st
 
 func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request) error {
 	reqParams := make(map[string]core.Param)
-	reqInfo := svc.info.GetRequestInfo()
+	reqInfo := svc.impl.GetRequestInfo()
 	params := reqInfo.GetParams()
 	for name, svcParam := range params {
 		reqParam := &param{}
@@ -302,13 +303,14 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 		}
 		reqParams[name] = reqParam
 	}
+	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params)
 	req.setParams(reqParams)
 	return nil
 }
 
 func (svc *serverService) invoke(ctx core.RequestContext) error {
 	for _, svcStruct := range svc.middleware {
-		log.Trace(ctx, "Invoking middleware service", "name", svcStruct.name)
+		log.Trace(ctx, "Invoking middleware service", "name", svcStruct.name, "params configured", svcStruct.impl.request.params)
 		/*req, err := svc.createRequest(ctx, svcStruct, request)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)

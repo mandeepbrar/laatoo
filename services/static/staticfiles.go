@@ -4,7 +4,6 @@ import (
 	"io"
 	"laatoo/libraries/disintegration/imaging"
 	"laatoo/sdk/components"
-	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
@@ -23,7 +22,7 @@ const (
 
 type FileTransform func(io.Reader, io.Writer) error
 
-type staticFiles struct {
+type StaticFiles struct {
 	core.Service
 	name                            string
 	transformedStorageComponentName string
@@ -36,17 +35,19 @@ type staticFiles struct {
 	hasDefault                      bool
 }
 
-func (svc *staticFiles) Initialize(ctx core.ServerContext) error {
+/*
+func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 	svc.SetDescription(ctx, "Static files service")
 	svc.AddStringConfigurations(ctx, []string{CONF_FILE_STORAGE}, nil)
 	svc.AddStringConfigurations(ctx, []string{CONF_FILE_OPER, CONF_FILE_TRANSFORM_STG, CONF_FILE_DEFAULT, CONF_IMAGE_WIDTH, CONF_IMAGE_HEIGHT}, []string{"", "", "", "0", "0"})
-	svc.AddParam(ctx, CONF_STATIC_FILEPARAM, config.CONF_OBJECT_STRING, false)
+	svc.AddParam(ctx, CONF_STATIC_FILEPARAM, config.OBJECTTYPE_STRING, false)
 
 	return nil
-}
+}*/
 
-func (svc *staticFiles) Invoke(ctx core.RequestContext) error {
+func (svc *StaticFiles) Invoke(ctx core.RequestContext) error {
 	fn, ok := ctx.GetParam(CONF_STATIC_FILEPARAM)
+	log.Trace(ctx, "Received request for file", "filename", fn)
 	if ok {
 		filename := strings.TrimLeft(fn.GetValue().(string), "/")
 		if !svc.transformFile {
@@ -73,7 +74,7 @@ func (svc *staticFiles) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *staticFiles) Start(ctx core.ServerContext) error {
+func (svc *StaticFiles) Start(ctx core.ServerContext) error {
 
 	stg, _ := svc.GetConfiguration(ctx, CONF_FILE_STORAGE)
 	svc.storageComponentName = stg.(string)
@@ -116,7 +117,7 @@ func (svc *staticFiles) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *staticFiles) getImageTransformationMethod(ctx core.ServerContext, oper string) FileTransform {
+func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, oper string) FileTransform {
 	widthStr, _ := svc.GetConfiguration(ctx, CONF_IMAGE_WIDTH)
 	width, _ := strconv.Atoi(widthStr.(string))
 
@@ -182,7 +183,7 @@ func getFormat(format string) imaging.Format {
 	return imaging.JPEG
 }
 
-func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) bool {
+func (svc *StaticFiles) createFile(ctx core.RequestContext, filename string) bool {
 	log.Trace(ctx, "Opening file", "filename", filename)
 	inStr, err := svc.storage.Open(ctx, filename)
 	if err != nil {
@@ -197,14 +198,6 @@ func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) boo
 		return false
 	}
 	defer writer.Close()
-	/*destdir, _ := path.Split(destfile)
-	os.MkdirAll(destdir, 0755)
-	writer, err := os.Create(destfile)
-	defer writer.Close()
-	if err != nil {
-		log.Info(ctx, "error creating file", "destfile", destfile, "err", err)
-		return "", err
-	}*/
 
 	err = svc.transformer(inStr, writer)
 	if err != nil {
@@ -213,26 +206,3 @@ func (svc *staticFiles) createFile(ctx core.RequestContext, filename string) boo
 	}
 	return true
 }
-
-/*
-func (svc *staticFiles) copyFile(ctx core.Context, fileurl string, writer io.Writer) error {
-	_, realpath := svc.parsePath(fileurl)
-	rd, err := svc.storage.Open(ctx, realpath)
-	defer rd.Close()
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(writer, rd)
-	return err
-}
-
-func (svc *staticFiles) parsePath(url string) (string, string) {
-	var prefix string
-	if url[0] != '/' && svc.filesUrl[0] == '/' {
-		prefix = svc.filesUrl[1:]
-	} else {
-		prefix = svc.filesUrl
-	}
-	pathinfolder := strings.TrimPrefix(url, prefix)
-	return pathinfolder, fmt.Sprintf("%s%s", svc.directory, pathinfolder)
-}*/

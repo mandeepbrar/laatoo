@@ -17,7 +17,10 @@ func (gi *upsert) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Upsert object using underlying data component. Expects a map containing condition and value. Value should be map containing field values")
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
-
+func (es *upsert) Start(ctx core.ServerContext) error {
+	es.DataStore = es.fac.DataStore
+	return nil
+}
 func (es *upsert) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPSERT")
 	body := ctx.GetBody().(*map[string]interface{})

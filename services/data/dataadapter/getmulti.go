@@ -19,6 +19,11 @@ func (gi *getMulti) Describe(ctx core.ServerContext) {
 	gi.AddStringParams(ctx, []string{CONF_DATA_IDS, CONF_FIELD_ORDERBY}, nil)
 }
 
+func (svc *getMulti) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	return nil
+}
+
 func (es *getMulti) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("GETMULTI")
 	idsstr, ok := ctx.GetStringParam(CONF_DATA_IDS)

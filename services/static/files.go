@@ -18,7 +18,6 @@ const (
 	CONF_STATIC_FILEPARAM = "file"
 	CONF_STATIC_FILE_PATH = "path"
 	CONF_STATIC_FILE_INFO = "info"
-	CONF_STATICSVC_FILE   = "file"
 	CONF_STATIC_FILES     = "files"
 )
 
@@ -38,11 +37,11 @@ type FileService struct {
 	name     string
 }
 
-func (fs *FileService) Initialize(ctx core.ServerContext) error {
-	fs.SetDescription(ctx, "Static files service")
+func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	/*fs.SetDescription(ctx, "Static files service")
 	fs.AddStringConfigurations(ctx, []string{CONF_FILE_STORAGE}, nil)
-	fs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILES: config.CONF_OBJECT_CONFIG})
-	fs.AddStringParams(ctx, []string{CONF_STATIC_FILEPARAM}, nil)
+	fs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILES: config.OBJECTTYPE_CONFIG})
+	fs.AddStringParams(ctx, []string{CONF_STATIC_FILEPARAM}, nil)*/
 	fs.filesMap = make(map[string]*File, 10)
 	return nil
 }
