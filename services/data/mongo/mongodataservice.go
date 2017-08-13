@@ -53,12 +53,11 @@ func (svc *mongoDataService) Initialize(ctx core.ServerContext, conf config.Conf
 	if svc.collection == "" {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Missing Conf", data.CONF_DATA_COLLECTION)
 	}
-
+	svc.database = svc.factory.database
 	return nil
 }
 
 func (svc *mongoDataService) Start(ctx core.ServerContext) error {
-	svc.database = svc.factory.database
 	err := svc.BaseComponent.Start(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)

@@ -41,7 +41,7 @@ func (sf *sqlDataServicesFactory) CreateService(ctx core.ServerContext, name str
 }
 
 //The services start serving when this method is called
-func (sf *sqlDataServicesFactory) Start(ctx core.ServerContext) error {
+func (sf *sqlDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	connectionString, _ := sf.GetStringConfiguration(ctx, CONF_SQL_CONNECTIONSTRING)
 	vendor, _ := sf.GetStringConfiguration(ctx, CONF_SQL_VENDOR)
 

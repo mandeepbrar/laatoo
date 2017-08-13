@@ -39,16 +39,6 @@ func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
-	return nil
-}
-
-func (svc *sqlDataService) Start(ctx core.ServerContext) error {
-	err := svc.BaseComponent.Start(ctx)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-
 	object := svc.ObjectCreator()
 	sess, err := gorm.Open(svc.factory.vendor, svc.factory.connectionString)
 	if err != nil {
@@ -61,6 +51,15 @@ func (svc *sqlDataService) Start(ctx core.ServerContext) error {
 	}
 	svc.db = svc.connection.Table(svc.collection)
 	svc.db.LogMode(true)
+
+	return nil
+}
+
+func (svc *sqlDataService) Start(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	return nil
 }

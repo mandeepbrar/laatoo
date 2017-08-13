@@ -1,8 +1,9 @@
-package security
+package main
 
 import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
+	"laatoo/sdk/core"
 )
 
 var (
@@ -18,6 +19,10 @@ var (
 		Cacheable:       false,
 	}
 )
+
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: config.DEFAULT_ROLE, Object: Role{}}}
+}
 
 type Role struct {
 	data.SoftDeleteAuditable `bson:",inline"`

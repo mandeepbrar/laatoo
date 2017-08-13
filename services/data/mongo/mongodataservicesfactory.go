@@ -40,7 +40,7 @@ func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name s
 }
 
 //The services start serving when this method is called
-func (ms *mongoDataServicesFactory) Start(ctx core.ServerContext) error {
+func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	connectionString, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_CONNECTIONSTRING)
 	database, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_DATABASE)
 

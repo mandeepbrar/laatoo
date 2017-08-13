@@ -149,7 +149,10 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	default:
 		return errors.ThrowError(startCtx, errors.CORE_ERROR_BAD_CONF, "conf", constants.CONF_SECURITY_MODE)
 	}
+	return nil
+}
 
+func (sh *securityHandler) onServerReady(ctx core.ServerContext) error {
 	return sh.handler.Start(ctx)
 }
 

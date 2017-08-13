@@ -4,7 +4,7 @@
     "staticfileserver":">=0.0.1",
     "filesystemstorage":">=0.0.1"
   },
-  "description": "This module provides two services by default server.publicdirectory[.instance] that serves files from public directory and a service server.publicstoragedirectory.[instance] which provides access to the underlying file system storage component. 'instance' parameter can be used to create multiple copies of the module",
+  "description": "This module provides two services by default server.publicdirectory[.instance] that serves files from public directory and a service server.publicstoragedirectory.[instance] which provides access to the underlying file system storage component. 'instance' parameter can be used to create multiple copies of the module. An http channel public is also provided with path of /public/",
   "objects":{
   },
   "params":{

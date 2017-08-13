@@ -96,7 +96,8 @@ func (as *abstractserver) start(ctx *serverContext) error {
 			return errors.WrapError(taskHCtx, err)
 		}
 	}
-	return nil
+
+	return as.onReady(ctx)
 }
 
 func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {

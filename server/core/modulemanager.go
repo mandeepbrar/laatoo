@@ -47,7 +47,7 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 		//loop through module instances
 		for _, instance := range instances {
 			instanceConf, _ := modulesConfig.GetSubConfig(instance)
-
+			modMgr.addModuleSubInstances(ctx, instanceConf, pendingModules)
 			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir)
 			if err != nil {
 				return err
@@ -73,6 +73,7 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 
 	//loop through provided modules
 	for instance, instanceConf := range mods {
+		modMgr.addModuleSubInstances(ctx, instanceConf, pendingModules)
 		loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir)
 		if err != nil {
 			return err
@@ -97,6 +98,20 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 		return errors.DepNotMet(ctx, "Multiple Modules", "Modules", pendingModules)
 	}
 	return nil
+}
+
+//adds any modules that need to be instantiated as  a part of another module instance
+
+func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instanceConf config.Config, pendingModules map[string]config.Config) {
+	//retInstances := make(map[string]config.Config)
+	modInstances, ok := instanceConf.GetSubConfig(constants.CONF_MODULES)
+	if ok {
+		instanceNames := modInstances.AllConfigurations()
+		for _, instanceName := range instanceNames {
+			subInstanceConf, _ := modInstances.GetSubConfig(instanceName)
+			pendingModules[instanceName] = subInstanceConf
+		}
+	}
 }
 
 func (modMgr *moduleManager) Start(ctx core.ServerContext) error {

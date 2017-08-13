@@ -1,4 +1,4 @@
-package security
+package main
 
 import (
 	"laatoo/sdk/components/data"
@@ -24,6 +24,10 @@ var (
 		Cacheable:       true,
 	}
 )
+
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: config.DEFAULT_USER, Object: DefaultUser{}}}
+}
 
 /*
 //interface that needs to be implemented by any object provider in a system
