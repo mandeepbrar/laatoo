@@ -24,11 +24,12 @@ type moduleManager struct {
 	proxy         server.ModuleManager
 	modules       map[string]*serverModule
 	loadedModules map[string]semver.Version
+	parentModules map[string]string
 	objLoader     *objectLoader
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
-
+	ctx = ctx.SubContext("Module manager initialized ")
 	modulesConfig, err, _ := common.ConfigFileAdapter(ctx, conf, constants.CONF_MODULES)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -47,8 +48,9 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 		//loop through module instances
 		for _, instance := range instances {
 			instanceConf, _ := modulesConfig.GetSubConfig(instance)
-			modMgr.addModuleSubInstances(ctx, instanceConf, pendingModules)
-			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir)
+			log.Info(ctx, "Loading module instance", "Name", instance)
+
+			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir, pendingModules)
 			if err != nil {
 				return err
 			}
@@ -73,8 +75,7 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 
 	//loop through provided modules
 	for instance, instanceConf := range mods {
-		modMgr.addModuleSubInstances(ctx, instanceConf, pendingModules)
-		loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir)
+		loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir, pendingModules)
 		if err != nil {
 			return err
 		}
@@ -88,9 +89,19 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 		return nil
 	}
 
+	continueRecursion := false
+	for k, _ := range mods {
+		_, ok := pendingModules[k]
+		if !ok {
+			//check if atleast one of the initial modules is no longer pending
+			continueRecursion = true
+			break
+		}
+	}
+
 	//if no new modules have been loaded in this iteration
 	// and there are still modules pending... error out
-	if len(pendingModules) < len(mods) {
+	if continueRecursion {
 		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir); err != nil {
 			return err
 		}
@@ -100,21 +111,35 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 	return nil
 }
 
+func compareMaps(c1, c2 map[string]config.Config) bool {
+	for k, _ := range c1 {
+		_, ok := c2[k]
+		if !ok {
+			return false
+		}
+	}
+	return true
+}
+
 //adds any modules that need to be instantiated as  a part of another module instance
 
-func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instanceConf config.Config, pendingModules map[string]config.Config) {
+func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModules map[string]config.Config) {
 	//retInstances := make(map[string]config.Config)
 	modInstances, ok := instanceConf.GetSubConfig(constants.CONF_MODULES)
 	if ok {
 		instanceNames := modInstances.AllConfigurations()
-		for _, instanceName := range instanceNames {
-			subInstanceConf, _ := modInstances.GetSubConfig(instanceName)
-			pendingModules[instanceName] = subInstanceConf
+		for _, subinstanceName := range instanceNames {
+			subInstanceConf, _ := modInstances.GetSubConfig(subinstanceName)
+			newInstanceName := fmt.Sprintf("%s->%s", instance, subinstanceName)
+			modMgr.parentModules[newInstanceName] = instance
+			log.Trace(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)
+			pendingModules[newInstanceName] = subInstanceConf
 		}
 	}
 }
 
 func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
+	ctx = ctx.SubContext("Module manager start")
 	for _, mod := range modMgr.modules {
 		startCtx := mod.svrContext.SubContext("Module Start")
 		err := mod.start(startCtx)
@@ -125,14 +150,26 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, instance string, instanceConf config.Config, modulesDir string) (bool, error) {
+func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, instance string, instanceConf config.Config, modulesDir string,
+	pendingModules map[string]config.Config) (bool, error) {
 	//get module to be used
 	mod, ok := instanceConf.GetString(constants.CONF_MODULE)
 	if !ok {
 		mod = instance
 	}
 
-	ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
+	parentModuleName, pok := modMgr.parentModules[instance]
+	if pok {
+		parentModule, ok := modMgr.modules[parentModuleName]
+		if !ok {
+			return false, nil
+		} else {
+			ctx = parentModule.svrContext.newContext("Module: " + instance)
+		}
+	} else {
+		ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
+	}
+
 	ctx.SetVariable(constants.CONF_MODULE, instance)
 
 	if err := processLogging(ctx.(*serverContext), instanceConf, instance); err != nil {
@@ -173,11 +210,11 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 				log.Info(ctx, "Extracted module ", "Module", mod, "Module file", modFile, "Destination", modulesDir, "Module directory", modDir)
 			}
 			//create a new module instance with provided settings
-			return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf)
+			return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf, pendingModules)
 		} else {
 			if modDirExists {
 				//create a new module instance with provided settings
-				return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf)
+				return modMgr.createModuleInstance(ctx, instance, mod, modDir, instanceConf, pendingModules)
 			} else {
 				return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", mod)
 			}
@@ -186,7 +223,7 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 	return true, nil
 }
 
-func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config) (bool, error) {
+func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
 
 	modSettings, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_SETTINGS)
@@ -197,6 +234,8 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	if err != nil {
 		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleInstance)
 	}
+
+	modMgr.addModuleSubInstances(ctx, moduleInstance, conf, pendingModules)
 
 	modu := newServerModule(ctx, moduleInstance, dirPath, instanceConf)
 	ctx.(*serverContext).setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
@@ -260,20 +299,22 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 
 			currentVer, deploaded := modMgr.loadedModules[mod]
 			if !deploaded || !r(currentVer) {
+				log.Info(ctx, "Dependency has not been loaded for the module", "Instance", moduleInstance, "Dependency", mod, "deploaded", "deploaded")
 				return false, nil
 			}
 		}
 	}
 
 	modu.dependencies = dependencies
-
-	moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
-	if moduleparams != nil {
-		paramNames := moduleparams.AllConfigurations()
-		for _, paramName := range paramNames {
-			val, ok := modSettings.Get(paramName)
-			if ok {
-				ctx.Set(paramName, val)
+	if modSettings != nil {
+		moduleparams, _ := conf.GetSubConfig(constants.CONF_MODULE_PARAMS)
+		if moduleparams != nil {
+			paramNames := moduleparams.AllConfigurations()
+			for _, paramName := range paramNames {
+				val, ok := modSettings.Get(paramName)
+				if ok {
+					ctx.Set(paramName, val)
+				}
 			}
 		}
 	}

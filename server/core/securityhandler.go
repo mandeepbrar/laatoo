@@ -43,7 +43,8 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	if conf == nil {
 		sh.skipSecurity = true
-		conf = make(config.GenericConfig, 0)
+		log.Trace(ctx, "Skipping security handler start")
+		return nil
 	}
 
 	initCtx := ctx.SubContext("Initialize Security Handler")
@@ -109,6 +110,10 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 
 func (sh *securityHandler) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Starting Security Handler")
+	if sh.skipSecurity {
+		log.Trace(startCtx, "Skipping security handler start")
+		return nil
+	}
 	userCreator, err := startCtx.GetObjectCreator(sh.userObject)
 	if err != nil {
 		return errors.WrapError(startCtx, err)
@@ -153,6 +158,9 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 }
 
 func (sh *securityHandler) onServerReady(ctx core.ServerContext) error {
+	if sh.skipSecurity {
+		return nil
+	}
 	return sh.handler.Start(ctx)
 }
 

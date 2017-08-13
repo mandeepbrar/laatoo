@@ -5,6 +5,15 @@
       "settings":{
       }
     },
+    "user":{
+      "module":"user"
+    },
+    "role":{
+      "module":"role",
+      "settings":{
+        "roledatafactory":"mongodatabase"
+      }
+    },
     "mongodatabase": {
       "module":"mongodatabase",
       "environment": {
@@ -12,14 +21,14 @@
         "mongodatabase":"PunjabiMehfil"
       }
     },
-    "roles": {
-      "module":"dataadapter",
+    "localauth": {
+      "module":"localauth",
       "logging": {
         "format":"happymaxcolor",
-        "level":"trace"
+        "level":"error"
       },
       "settings":{
-        "object":"Role",
+        "userobject":"User",
         "dataservicefactory":"mongodatabase"
       }
     },

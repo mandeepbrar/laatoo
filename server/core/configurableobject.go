@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
+	"laatoo/server/common"
 	"strings"
 )
 
@@ -117,32 +118,18 @@ func (impl *configurableObject) AddOptionalConfigurations(ctx core.ServerContext
 	}
 }
 
-func (impl *configurableObject) lookupContext(ctx core.ServerContext, name string) (interface{}, bool) {
-	val, found := ctx.Get(name)
-	if !found {
-		val, found = ctx.GetVariable(name)
-		if found {
-			return val, found
-		} else {
-			return nil, false
-		}
-	} else {
-		return val, found
-	}
-}
-
 func (impl *configurableObject) GetConfiguration(ctx core.ServerContext, name string) (interface{}, bool) {
 	var val interface{}
 	c, found := impl.configurations[name]
 	if !found {
-		val, found = impl.lookupContext(ctx, name)
+		val, found = common.LookupContext(ctx, name)
 	} else {
 		conf := c.(*configuration)
 		if conf.value != nil {
 			val = conf.value
 			valStr, ok := val.(string)
 			if ok && strings.HasPrefix(valStr, ":") {
-				val, found = impl.lookupContext(ctx, valStr[1:])
+				val, found = common.LookupContext(ctx, valStr[1:])
 			}
 		} else {
 			val = conf.defaultValue

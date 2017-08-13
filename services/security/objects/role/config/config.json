@@ -1,0 +1,9 @@
+{
+  "version":"0.0.1",
+  "dependencies":{
+  },
+  "description": "Default role object",
+  "params": {
+    "roledatafactory":"Data factory that creates service to use for fetching roles"
+  }
+}

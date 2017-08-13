@@ -1,0 +1,4 @@
+{
+	"servicemethod":"DB_LOGIN",
+	"user_data_svc":"dataadapter.dataservice.User"
+}

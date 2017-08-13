@@ -38,7 +38,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	if err := as.createConfBasedComponents(createctx, conf); err != nil {
 		return err
 	}
-
+	log.Error(ctx, "Initializing security handler")
 	secinit := ctx.subContext("Initialize security handleer")
 	err := as.initializeSecurityHandler(secinit, conf)
 	if err != nil {
@@ -48,6 +48,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 
 	common.SetupMiddleware(ctx, conf)
 
+	log.Error(ctx, "Initializing modules handler")
 	modsctx := ctx.SubContext("Modules Manager: " + as.name)
 	err = as.moduleManagerHandle.Initialize(modsctx, conf)
 	if err != nil {
@@ -55,6 +56,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Debug(ctx, "Initialized modules manager")
 
+	log.Error(ctx, "Initializing objects,factories and services")
 	if err = as.initializeServicesCore(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
 	}

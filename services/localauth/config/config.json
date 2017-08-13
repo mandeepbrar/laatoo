@@ -5,8 +5,26 @@
     "role":">=0.0.1"
   },
   "description": "This module provides local database authentication system",
+  "modules": {
+    "roles": {
+      "module":"dataadapter",
+      "settings":{
+        "object":"Role",
+        "dataservicefactory":":dataservicefactory"
+      }
+    },
+    "users": {
+      "module":"dataadapter",
+      "settings":{
+        "object":":userobject",
+        "dataservicefactory":":dataservicefactory"
+      }
+    }
+  },
   "objects":{
   },
   "params":{
+    "userobject":"User object to be used for local authentication",
+    "dataservicefactory":"Data service factory to be used for auth purposes"
   }
 }

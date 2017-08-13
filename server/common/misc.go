@@ -45,6 +45,12 @@ func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 var varReplacer = regexp.MustCompile(`\[(.*?)\]`)
 
 func FillVariables(ctx core.ServerContext, name string) string {
+	if strings.HasPrefix(name, ":") {
+		newname, ok := LookupString(ctx, name)
+		if ok {
+			return newname
+		}
+	}
 	return varReplacer.ReplaceAllStringFunc(name, func(exp string) string {
 		removebrackets := exp[1 : len(exp)-1]
 		varname := strings.Replace(removebrackets, ".", "", -1)
@@ -59,4 +65,31 @@ func FillVariables(ctx core.ServerContext, name string) string {
 			return exp
 		}
 	})
+}
+
+func LookupContext(ctx core.Context, name string) (interface{}, bool) {
+	val, found := ctx.Get(name)
+	if !found {
+		val, found = ctx.GetVariable(name)
+		if found {
+			return val, found
+		} else {
+			return nil, false
+		}
+	} else {
+		return val, found
+	}
+}
+
+func LookupString(ctx core.Context, str string) (string, bool) {
+	if strings.HasPrefix(str, ":") {
+		varValue, ok := LookupContext(ctx, str[1:])
+		if ok {
+			varstr, ok := varValue.(string)
+			if ok {
+				return varstr, true
+			}
+		}
+	}
+	return "", false
 }
