@@ -9,25 +9,21 @@ import (
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"reflect"
-
-	"github.com/blang/semver"
 )
 
 type serverModule struct {
-	userModule   core.Module
-	impl         *moduleImpl
-	dir          string
-	name         string
-	objectName   string
-	version      semver.Version
-	dependencies map[string]semver.Range
-	svrContext   *serverContext
-	services     map[string]config.Config
-	factories    map[string]config.Config
-	channels     map[string]config.Config
-	tasks        map[string]config.Config
-	rules        map[string]config.Config
-	modSettings  config.Config
+	userModule  core.Module
+	impl        *moduleImpl
+	dir         string
+	name        string
+	objectName  string
+	svrContext  *serverContext
+	services    map[string]config.Config
+	factories   map[string]config.Config
+	channels    map[string]config.Config
+	tasks       map[string]config.Config
+	rules       map[string]config.Config
+	modSettings config.Config
 }
 
 func newServerModule(ctx core.ServerContext, name, dirpath string, modconf config.Config) *serverModule {

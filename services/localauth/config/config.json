@@ -2,7 +2,9 @@
   "version":"0.0.1",
   "dependencies":{
     "user":">=0.0.1",
-    "role":">=0.0.1"
+    "role":">=0.0.1",
+    "dataadapter":">=0.0.1",
+    "dblogin":">=0.0.1"
   },
   "description": "This module provides local database authentication system",
   "modules": {

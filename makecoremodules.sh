@@ -1,8 +1,8 @@
 #!/bin/sh
 
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/objects/role -e name=role laatoomodulebuilder:latest
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/objects/user -e name=user laatoomodulebuilder:latest
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/objects/db -e name=dblogin laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/role -e name=role laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/user -e name=user laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/db -e name=dblogin laatoomodulebuilder:latest
 
 
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/cache/memory -e name=memorycache laatoomodulebuilder:latest

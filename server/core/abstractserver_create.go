@@ -405,7 +405,8 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 }
 
 func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*serverModule), loadedModules: make(map[string]semver.Version), parentModules: make(map[string]string), svrref: as}
+	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]*serverModule), installedModules: make(map[string]*semver.Version),
+		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]string), moduleConf: make(map[string]config.Config), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
@@ -418,11 +419,20 @@ func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string
 	for k, v := range modMgr.modules {
 		modules[k] = v
 	}
-	loadedModules := make(map[string]semver.Version, len(modMgr.loadedModules))
-	for k, v := range modMgr.loadedModules {
+	installedModules := make(map[string]*semver.Version, len(modMgr.installedModules))
+	for k, v := range modMgr.installedModules {
+		installedModules[k] = v
+	}
+	loadedModules := make(map[string]*semver.Version, len(modMgr.loadedModules))
+	for k, v := range modMgr.installedModules {
 		loadedModules[k] = v
 	}
-	childModMgr := &moduleManager{name: name, parent: parent, modules: modules, loadedModules: loadedModules, parentModules: make(map[string]string), svrref: as}
+	moduleConf := make(map[string]config.Config, len(modMgr.moduleConf))
+	for k, v := range modMgr.moduleConf {
+		moduleConf[k] = v
+	}
+	childModMgr := &moduleManager{name: name, parent: parent, modules: modules, installedModules: installedModules, parentModules: make(map[string]string),
+		loadedModules: loadedModules, moduleConf: moduleConf, svrref: as}
 	childModMgrProxy := &moduleManagerProxy{modMgr: childModMgr}
 	return childModMgr, childModMgrProxy
 }
