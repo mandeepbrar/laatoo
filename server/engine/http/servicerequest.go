@@ -47,7 +47,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 			}
 		}
 		log.Trace(webctx, "Handle Request", "info", vals)
-		return svc.HandleRequest(reqctx, vals, body.([]byte))
+		return svc.HandleEncodedRequest(reqctx, vals, body.([]byte))
 	}, nil
 }
 

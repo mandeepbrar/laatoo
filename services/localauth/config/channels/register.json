@@ -1,0 +1,6 @@
+{
+  "parent": "root",
+  "service":"register",
+  "method":"POST",
+  "path":"/register"
+}

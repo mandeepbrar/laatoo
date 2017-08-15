@@ -17,10 +17,14 @@ type configuration struct {
 	defaultValue interface{}
 }
 
-func newConfiguration(name, conftype string, required bool, defaultValue interface{}) core.Configuration {
+func newConfiguration(name, conftype string, required bool, defaultValue interface{}) *configuration {
 	return &configuration{name, conftype, required, nil, defaultValue}
 }
-
+func (conf *configuration) clone() *configuration {
+	c := newConfiguration(conf.name, conf.conftype, conf.required, conf.defaultValue)
+	c.value = conf.value
+	return c
+}
 func (conf *configuration) GetName() string {
 	return conf.name
 }
@@ -44,6 +48,14 @@ type configurableObject struct {
 
 func newConfigurableObject(description, objectType string) *configurableObject {
 	return &configurableObject{objectInfo: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
+}
+func (impl *configurableObject) clone() *configurableObject {
+	inf := &configurableObject{objectInfo: impl.objectInfo.clone()}
+	inf.configurations = make(map[string]core.Configuration, len(impl.configurations))
+	for k, v := range impl.configurations {
+		inf.configurations[k] = v.(*configuration).clone()
+	}
+	return inf
 }
 
 const (
@@ -159,6 +171,10 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok && c == nil {
 		return nil, ok
+	}
+	conf, cok := c.(config.Config)
+	if cok {
+		return conf, cok
 	}
 	m, mok := c.(map[string]interface{})
 	if mok {

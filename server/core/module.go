@@ -59,12 +59,12 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 		if md != nil {
 			inf, ok := md.(*moduleInfo)
 			if ok {
-				impl.moduleInfo = inf
+				impl.moduleInfo = inf.clone()
 			}
 		}
 		mod.userModule.Describe(ctx)
 	}
-	log.Trace(ctx, "Module info ", "Name", mod.name, "Info", mod.impl.moduleInfo.configurations)
+	log.Trace(ctx, "Module info ", "Name", mod.name, "Object", mod.objectName, "Info", mod.impl.moduleInfo.configurations)
 	return nil
 }
 

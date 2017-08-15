@@ -40,7 +40,7 @@ func (fac *serviceFactory) loadMetaData(ctx core.ServerContext) error {
 	if md != nil {
 		inf, ok := md.(*factoryInfo)
 		if ok {
-			impl.factoryInfo = inf
+			impl.factoryInfo = inf.clone()
 		}
 	}
 	fac.factory.Describe(ctx)

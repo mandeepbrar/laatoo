@@ -1,0 +1,10 @@
+{
+  "name":"index",
+  "parent": "root",
+  "method": "GET",
+  "service":"shell.publicfiles",
+  "path": "/index",
+  "staticvalues": {
+    "file": "index.html"
+  }
+}

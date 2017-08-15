@@ -33,7 +33,7 @@ type RegistrationService struct {
 	realm           string
 }
 
-func (rs *RegistrationService) Initialize(ctx core.ServerContext) error {
+func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sechandler := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)

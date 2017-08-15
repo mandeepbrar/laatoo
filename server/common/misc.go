@@ -91,5 +91,5 @@ func LookupString(ctx core.Context, str string) (string, bool) {
 			}
 		}
 	}
-	return "", false
+	return str, false
 }

@@ -1,0 +1,15 @@
+{
+  "version":"0.0.1",
+  "dependencies":{
+    "staticfileserver":">=0.0.1",
+    "filesystemstorage":">=0.0.1"
+  },
+  "description": "This module provides two services by default server.publicfiles[.instance] that serves files from public directory and a service server.resourcedirectory[.instance] which provides access to the underlying file system storage component. 'instance' parameter can be used to create multiple copies of the module",
+  "objects":{
+  },
+  "params":{
+    "files":"Config providing mapping of filename, internal path relative to storage directory, caching to be used for serving public files",
+    "filestoragedir":"Directory where files to be served are stored",
+    "instance":"Discriminator to distinguish multiple services created by multiple instances of the module"
+  }
+}

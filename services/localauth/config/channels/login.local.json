@@ -2,6 +2,5 @@
   "parent": "root",
   "service":"login.local",
   "method":"POST",
-  "dataobject":":userobject",
   "path":"/login"
 }

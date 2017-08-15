@@ -146,7 +146,7 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 			return errors.WrapError(ctx, err)
 		}
 	}
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 	baseFolder := path.Join(baseDir, constants.CONF_OBJECTLDR_OBJECTS)
 	if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
 		return err

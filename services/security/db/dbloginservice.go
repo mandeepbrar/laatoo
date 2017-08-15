@@ -51,6 +51,9 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 	ls.realm = realm.(string)
 
 	userObject := sechandler.GetProperty(config.USER)
+
+	log.Error(ctx, "***********************Got user object", "userObject", userObject)
+
 	ls.SetRequestType(ctx, userObject.(string), false, false)
 
 	return nil
@@ -102,6 +105,12 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 		return nil
 	} else {
 		existingUser.ClearPassword()
+
+		if ls.tokenGenerator == nil {
+			ctx.SetResponse(core.StatusUnauthorizedResponse)
+			return nil
+
+		}
 		token, user, err := ls.tokenGenerator(existingUser, realm)
 		if err != nil {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)

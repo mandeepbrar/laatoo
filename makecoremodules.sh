@@ -1,7 +1,7 @@
 #!/bin/sh
 
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/role -e name=role laatoomodulebuilder:latest
-docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/user -e name=user laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/objects/role -e name=role laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/objects/user -e name=user laatoomodulebuilder:latest
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/security/db -e name=dblogin laatoomodulebuilder:latest
 
 
@@ -25,6 +25,7 @@ docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/
 
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicdir -e name=publicdirserver laatoomodulebuilder:latest
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/publicfiles -e name=publicfilesserver laatoomodulebuilder:latest
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/shell -e name=shell laatoomodulebuilder:latest
 
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/localauth -e name=localauth laatoomodulebuilder:latest
 

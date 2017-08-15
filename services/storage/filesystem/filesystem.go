@@ -97,6 +97,15 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 	/*svc.SetDescription(ctx, "File system storage service")
 	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
 	svc.AddStringConfigurations(ctx, []string{CONF_FILESDIR}, nil)*/
-	svc.filesDir, _ = svc.GetStringConfiguration(ctx, CONF_FILESDIR)
+	filesDir, ok := svc.GetStringConfiguration(ctx, CONF_FILESDIR)
+	if ok {
+		svc.filesDir = filesDir
+	} else {
+		baseDir, ok := ctx.GetString(config.MODULEDIR)
+		if !ok {
+			baseDir, _ = ctx.GetString(config.BASEDIR)
+		}
+		svc.filesDir = path.Join(baseDir, "files")
+	}
 	return nil
 }

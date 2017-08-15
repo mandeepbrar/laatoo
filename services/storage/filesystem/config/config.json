@@ -12,8 +12,7 @@
       "configurations": {
         "filestoragedir": {
           "description":"Directory to be used by the storage component",
-          "type":"string",
-          "required":true
+          "type":"string"
         }
       }
     }

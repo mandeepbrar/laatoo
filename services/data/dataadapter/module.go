@@ -61,7 +61,6 @@ func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config
 	if adapter.instance == "" {
 		adapter.instance = adapter.object
 	}
-
 	return nil
 }
 

@@ -152,7 +152,7 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 		return errors.WrapError(ctx, err)
 	}
 	if !found {
-		basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		basedir, _ := ctx.GetString(config.BASEDIR)
 		confFile := path.Join(basedir, constants.CONF_MESSAGING, constants.CONF_CONFIG_FILE)
 		found, _, _ = utils.FileExists(confFile)
 		if found {

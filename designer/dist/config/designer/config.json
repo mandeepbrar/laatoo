@@ -1,14 +1,12 @@
 {
+
   "modules":{
     "filesystemstorage":{
       "module":"filesystemstorage",
       "settings":{
       }
     },
-    "user":{
-      "module":"user"
-    },
-    "role":{
+    "securityhandler.role":{
       "module":"role",
       "settings":{
         "roledatafactory":"mongodatabase"
@@ -23,17 +21,23 @@
     },
     "localauth": {
       "module":"localauth",
-      "logging": {
-        "format":"happymaxcolor",
-        "level":"error"
-      },
       "settings":{
         "userobject":"User",
-        "dataservicefactory":"mongodatabase"
+        "dataservicefactory":"mongodatabase",
+        "defaultrole":"Admin"
       }
     },
     "staticfileserver":{
       "module":"staticfileserver",
+      "settings":{
+      }
+    },
+    "shell": {
+      "module":"shell",
+      "logging": {
+        "format":"happymaxcolor",
+        "level":"trace"
+      },
       "settings":{
       }
     },

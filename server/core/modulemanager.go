@@ -37,7 +37,7 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 	modulesDir := path.Join(baseDir, constants.CONF_MODULES)
 	ok, fi, _ := utils.FileExists(modulesDir)
 	if ok && fi.IsDir() {

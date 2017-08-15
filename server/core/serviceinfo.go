@@ -33,6 +33,18 @@ func buildServiceInfo(conf config.Config) *serviceInfo {
 		svcsToInject: make(map[string]string)}
 }
 
+func (svcinfo *serviceInfo) clone() *serviceInfo {
+	inf := &serviceInfo{configurableObject: svcinfo.configurableObject.clone(),
+		component: svcinfo.component,
+		request:   svcinfo.request.clone(),
+		response:  svcinfo.response.clone()}
+	inf.svcsToInject = make(map[string]string, len(svcinfo.svcsToInject))
+	for k, v := range svcinfo.svcsToInject {
+		inf.svcsToInject[k] = v
+	}
+	return inf
+}
+
 func (svcinfo *serviceInfo) GetRequestInfo() core.RequestInfo {
 	return svcinfo.request
 }
@@ -108,6 +120,14 @@ func buildRequestInfo(conf config.Config) *requestInfo {
 	return newRequestInfo("", false, false, nil)
 }
 
+func (ri *requestInfo) clone() *requestInfo {
+	params := make(map[string]core.Param, len(ri.params))
+	for k, v := range ri.params {
+		params[k] = v.(*param).clone()
+	}
+	return &requestInfo{ri.dataType, ri.isCollection, ri.streaming, params}
+}
+
 func (ri *requestInfo) GetDataType() string {
 	return ri.dataType
 }
@@ -141,6 +161,10 @@ func (ri *responseInfo) IsStream() bool {
 	return ri.streaming
 }
 
+func (ri *responseInfo) clone() *responseInfo {
+	return newResponseInfo(ri.streaming)
+}
+
 type param struct {
 	name       string
 	ptype      string
@@ -150,6 +174,10 @@ type param struct {
 
 func newParam(name, ptype string, collection bool) *param {
 	return &param{name, ptype, collection, nil}
+}
+
+func (p *param) clone() *param {
+	return &param{p.name, p.ptype, p.collection, p.value}
 }
 
 func (p *param) GetName() string {

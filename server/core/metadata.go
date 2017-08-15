@@ -25,6 +25,10 @@ func buildObjectInfo(conf config.Config) *objectInfo {
 	return newObjectInfo(desc, objtype)
 }
 
+func (inf *objectInfo) clone() *objectInfo {
+	return newObjectInfo(inf.description, inf.objtype)
+}
+
 func (inf *objectInfo) GetDescription() string {
 	return inf.description
 }

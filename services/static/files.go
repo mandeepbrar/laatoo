@@ -48,6 +48,7 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 
 func (fs *FileService) Invoke(ctx core.RequestContext) error {
 	filename, ok := ctx.GetStringParam(CONF_STATIC_FILEPARAM)
+	log.Trace(ctx, "Param name for file", "filename", filename, "ok", ok)
 	if ok {
 		//filename := fn.GetValue().(string)
 		log.Trace(ctx, "Providing file", "filename", filename)

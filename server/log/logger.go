@@ -40,7 +40,7 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 		loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
 		lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
 	} else {
-		baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+		baseDir, _ := ctx.GetString(config.BASEDIR)
 		confFile := path.Join(baseDir, constants.CONF_LOGGING, constants.CONF_CONFIG_FILE)
 		ok, _, _ = utils.FileExists(confFile)
 		var err error

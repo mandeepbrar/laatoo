@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/codecs"
+	"laatoo/server/common"
 	"laatoo/server/constants"
 	"reflect"
 )
@@ -66,7 +67,7 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	if md != nil {
 		inf, ok := md.(*serviceInfo)
 		if ok {
-			impl.serviceInfo = inf
+			impl.serviceInfo = inf.clone()
 		}
 	}
 	svc.service.Describe(ctx)
@@ -94,43 +95,11 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 }
 
 func (svc *serverService) start(ctx core.ServerContext) error {
-	middleware := make([]*serverService, 0)
-	middlewareNames, ok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
-	log.Trace(ctx, "Getting middleware", "middleware", middlewareNames, "service", svc.name)
-	if ok {
-		for _, mwName := range middlewareNames {
-			log.Trace(ctx, "Adding middleware", "name", mwName, "service", svc.name)
-			//			mwSvc, err := ctx.GetService(mwName)
-			mwSvcStruct, err := svc.owner.proxy.GetService(ctx, mwName)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			mwSvc := mwSvcStruct.(*serviceProxy).svc
-			middleware = append(middleware, mwSvc)
-		}
-	}
-	middleware = append(middleware, svc)
-	svc.middleware = middleware
-	err := svc.service.Start(ctx)
-	if err == nil {
-		svc.impl.state = Started
-	}
-	return err
-}
+	ctx = ctx.SubContext("Service Start")
 
-func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config, info core.ServiceInfo) error {
-	reqInfo := info.GetRequestInfo()
+	reqInfo := svc.impl.info().GetRequestInfo()
 
-	svcs := info.GetRequiredServices()
-	if err := svc.injectServices(ctx, svcconf, svcs); err != nil {
-		return err
-	}
-
-	if err := svc.impl.processInfo(ctx, svcconf); err != nil {
-		return err
-	}
-
-	datatype := reqInfo.GetDataType()
+	datatype, _ := common.LookupString(ctx, reqInfo.GetDataType())
 	switch datatype {
 	case "":
 		svc.dataObjectType = none
@@ -165,7 +134,43 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 			svc.dataObjectCreator = dataObjectCreator
 		}
 	}
-	log.Trace(ctx, "Processed info for service", "name", svc.name, "conf", svc.impl)
+
+	middleware := make([]*serverService, 0)
+	middlewareNames, ok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
+	log.Trace(ctx, "Getting middleware", "middleware", middlewareNames, "service", svc.name)
+	if ok {
+		for _, mwName := range middlewareNames {
+			log.Trace(ctx, "Adding middleware", "name", mwName, "service", svc.name)
+			//			mwSvc, err := ctx.GetService(mwName)
+			mwSvcStruct, err := svc.owner.proxy.GetService(ctx, mwName)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			mwSvc := mwSvcStruct.(*serviceProxy).svc
+			middleware = append(middleware, mwSvc)
+		}
+	}
+	middleware = append(middleware, svc)
+	svc.middleware = middleware
+	err := svc.service.Start(ctx)
+	if err == nil {
+		svc.impl.state = Started
+	}
+	return err
+}
+
+func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config, info core.ServiceInfo) error {
+
+	svcs := info.GetRequiredServices()
+	if err := svc.injectServices(ctx, svcconf, svcs); err != nil {
+		return err
+	}
+
+	if err := svc.impl.processInfo(ctx, svcconf); err != nil {
+		return err
+	}
+
+	log.Info(ctx, "Processed info for service", "name", svc.name)
 	return nil
 }
 
@@ -213,7 +218,6 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 	var reqData interface{}
 
 	reqInfo := svc.impl.GetRequestInfo()
-
 	if !reqInfo.IsStream() {
 		switch svc.dataObjectType {
 		case stringmap:

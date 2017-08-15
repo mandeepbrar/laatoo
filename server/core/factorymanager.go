@@ -35,7 +35,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(ctx, err)
 	}
 
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 

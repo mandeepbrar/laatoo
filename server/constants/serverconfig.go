@@ -3,7 +3,6 @@ package constants
 const (
 	CONF_OBJECTLDR         = "objectloader"
 	CONF_OBJECT_NAME       = "name"
-	CONF_BASE_DIR          = "basedir"
 	CONF_APP_SERVER        = "server"
 	CONF_OBJECTS_BASE_DIR  = "objectsbasedir"
 	RELATIVE_DIR           = "relativedir"

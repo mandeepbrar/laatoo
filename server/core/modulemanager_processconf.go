@@ -26,6 +26,7 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 		}
 	} else {
 		ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
+		ctx.Set(config.MODULEDIR, modMgr.getModuleDir(ctx, modulesDir, moduleName))
 	}
 
 	ctx.SetVariable(constants.CONF_MODULE, instance)

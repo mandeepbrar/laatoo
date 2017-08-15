@@ -5,7 +5,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"laatoo/server/constants"
 )
 
 const (
@@ -66,7 +65,7 @@ type abstractserver struct {
 func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserver, proxy core.ServerElement, baseDir string) (*abstractserver, error) {
 	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir, svrContext: svrCtx}
 	log.Trace(svrCtx, "Base directory set to ", "Name", baseDir)
-	svrCtx.Set(constants.CONF_BASE_DIR, baseDir)
+	svrCtx.Set(config.BASEDIR, baseDir)
 	as.engineHandles = make(map[string]server.ServerElementHandle)
 	as.engines = make(map[string]server.Engine)
 	as.engineConf = make(map[string]config.Config)

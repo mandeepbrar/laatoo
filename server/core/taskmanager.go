@@ -62,7 +62,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		}
 	}
 
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 
 	return tskMgr.processTasksFromFolder(ctx, baseDir)
 }

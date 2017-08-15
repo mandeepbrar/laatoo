@@ -19,6 +19,10 @@ func buildModuleInfo(conf config.Config) *moduleInfo {
 	return &moduleInfo{buildConfigurableObject(conf)}
 }
 
+func (modInfo *moduleInfo) clone() *moduleInfo {
+	return &moduleInfo{modInfo.configurableObject.clone()}
+}
+
 type moduleImpl struct {
 	*moduleInfo
 	state State

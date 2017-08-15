@@ -40,7 +40,7 @@ func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 
 	log.Trace(ctx, "Process Caches directory")
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 
 	return cm.processCachesFromFolder(ctx, baseDir)
 }

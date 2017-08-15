@@ -155,6 +155,12 @@ func (ctx *Context) HttpClient() *http.Client {
 func (ctx *Context) GetOAuthContext() glctx.Context {
 	return GetOAuthContext(ctx)
 }
+func (ctx *Context) Dump() {
+	log.Println(ctx.Path, "---->")
+	for k, v := range ctx.ParamsStore {
+		log.Println(k, "  ", v)
+	}
+}
 func (ctx *Context) LogTrace(msg string, args ...interface{}) {
 	log.Println(msg)
 }

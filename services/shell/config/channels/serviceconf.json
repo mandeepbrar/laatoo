@@ -1,0 +1,9 @@
+{
+  "parent": "root",
+  "method": "GET",
+  "service":"shell.publicfiles",
+  "path": "/services.conf.js",
+  "staticvalues": {
+    "file": "services.conf.js"
+  }
+}

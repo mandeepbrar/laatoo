@@ -45,7 +45,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 		}
 	}
 
-	baseDir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	baseDir, _ := ctx.GetString(config.BASEDIR)
 	return rm.processRulesFromFolder(ruleMgrCtx, baseDir)
 }
 

@@ -6,7 +6,7 @@
     "dataadapter":">=0.0.1",
     "dblogin":">=0.0.1"
   },
-  "description": "This module provides local database authentication system",
+  "description": "This module provides local database authentication system. Two services 'login.local' and 'register' are provided along with http channels '/login' and '/register'",
   "modules": {
     "roles": {
       "module":"dataadapter",
@@ -27,6 +27,7 @@
   },
   "params":{
     "userobject":"User object to be used for local authentication",
-    "dataservicefactory":"Data service factory to be used for auth purposes"
+    "dataservicefactory":"Data service factory to be used for auth purposes",
+    "defaultrole":"Default role for the registered user"
   }
 }

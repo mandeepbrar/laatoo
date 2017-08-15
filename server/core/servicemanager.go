@@ -38,7 +38,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(ctx, err)
 	}
 
-	basedir, _ := ctx.GetString(constants.CONF_BASE_DIR)
+	basedir, _ := ctx.GetString(config.BASEDIR)
 	log.Trace(ctx, "*************** Processing service manager", " base directory", basedir)
 	err = svcMgr.processServicesFromFolder(ctx, basedir)
 	if err != nil {
@@ -208,7 +208,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	//use the latest context... i.e. server.. environment or application....
 	//if factory is from earlier level then override elements with latest context
 	if facCtx.level <= svcCreateCtx.level {
-		log.Trace(ctx, "factory from a lower level than context")
+		//	log.Trace(ctx, "factory from a lower level than context")
 		cmap := svcCreateCtx.getElementsContextMap()
 		svcCtx.setElementReferences(cmap, true)
 	}
