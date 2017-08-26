@@ -1,0 +1,9 @@
+{
+  "parent": "root",
+  "service":"shell.images",
+  "method":"GET",
+  "path": "/images/*",
+  "paramvalues": {
+    "file": "__0"
+  }
+}

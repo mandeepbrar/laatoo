@@ -1,0 +1,6 @@
+{
+  "servicemethod":"ui",
+  "ModuleManagerPlugin": true,
+  "uifile":":uifile",
+  "descriptor":":descriptor"
+}

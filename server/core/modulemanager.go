@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"laatoo/sdk/components"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -20,7 +21,7 @@ type moduleManager struct {
 	svrref           *abstractserver
 	parent           core.ServerElement
 	proxy            server.ModuleManager
-	modules          map[string]*serverModule
+	modules          map[string]server.Module
 	installedModules map[string]*semver.Version
 	moduleConf       map[string]config.Config
 	loadedModules    map[string]*semver.Version
@@ -63,9 +64,22 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 		//load pending modules
 		if len(pendingModules) > 0 {
-			return modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
+			err = modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
 	}
+	/*
+		pluginsConf, ok := conf.GetSubConfig(constants.MODULEPLUGINS)
+		if ok {
+			plugins := pluginsConf.AllConfigurations()
+			for _, pluginName := range plugins {
+				pluginConf, _ := pluginsConf.GetSubConfig(pluginName)
+				modMgr.modulePlugins[pluginName] = pluginConf
+			}
+		}
+	*/
 	return nil
 }
 
@@ -130,7 +144,8 @@ func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, insta
 
 func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Module manager start")
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		startCtx := mod.svrContext.SubContext("Module Start")
 		err := mod.start(startCtx)
 		if err != nil {
@@ -149,7 +164,8 @@ func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string
 }
 
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		svcCtx := mod.svrContext.SubContext("Load Services")
 		log.Trace(svcCtx, "Services to process", "Services", mod.services)
 		if err := common.ProcessObjects(svcCtx, mod.services, processor); err != nil {
@@ -159,8 +175,59 @@ func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func
 	return nil
 }
 
+/*
+processor func(core.ServerContext, config.Config, string) error
+*/
+
+func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
+
+	svcMgr := modMgr.svrref.serviceManagerHandle.(*serviceManager)
+
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
+		modPlugins := mod.plugins(ctx)
+		for svcName, pluginConf := range modPlugins {
+			pluginObj, err := svcMgr.getService(ctx, svcName)
+			if err != nil {
+				return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
+			}
+			pluginSvc := pluginObj.(*serviceProxy)
+
+			plugin, ok := pluginSvc.svc.service.(components.ModuleManagerPlugin)
+			if !ok {
+				return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
+			}
+
+			for passedModName, passedModProxy := range modMgr.modules {
+				log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
+				passedMod := passedModProxy.(*moduleProxy).mod
+				passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
+				err := plugin.Load(passedModCtx, passedModName, passedMod.dir, passedMod.userModule, passedMod.modConf)
+				if err != nil {
+					return errors.WrapError(passedModCtx, err)
+				}
+			}
+			err = plugin.Loaded(pluginSvc.svc.svrContext)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+	}
+
+	/*
+		for name, pluginConf := range modMgr.modulePlugins {
+			svcName, ok := pluginConf.GetString(constants.MODULEPLUGIN_SVC)
+			if !ok {
+				return errors.MissingConf(ctx, constants.MODULEPLUGIN_SVC, "Module Plugin", name)
+			}
+
+		}*/
+	return nil
+}
+
 func (modMgr *moduleManager) loadFactories(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		facCtx := mod.svrContext.SubContext("Load Factories")
 		if err := common.ProcessObjects(facCtx, mod.factories, processor); err != nil {
 			return errors.WrapError(facCtx, err)
@@ -170,7 +237,8 @@ func (modMgr *moduleManager) loadFactories(ctx core.ServerContext, processor fun
 }
 
 func (modMgr *moduleManager) loadChannels(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		chanCtx := mod.svrContext.SubContext("Load Channels")
 		log.Trace(chanCtx, "Channels to process", "channels", mod.channels, "name", mod.name)
 		if err := common.ProcessObjects(chanCtx, mod.channels, processor); err != nil {
@@ -181,7 +249,8 @@ func (modMgr *moduleManager) loadChannels(ctx core.ServerContext, processor func
 }
 
 func (modMgr *moduleManager) loadRules(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		ruleCtx := mod.svrContext.SubContext("Load Rules")
 		if err := common.ProcessObjects(ruleCtx, mod.rules, processor); err != nil {
 			return errors.WrapError(ruleCtx, err)
@@ -191,7 +260,8 @@ func (modMgr *moduleManager) loadRules(ctx core.ServerContext, processor func(co
 }
 
 func (modMgr *moduleManager) loadTasks(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
-	for _, mod := range modMgr.modules {
+	for _, modProxy := range modMgr.modules {
+		mod := modProxy.(*moduleProxy).mod
 		taskCtx := mod.svrContext.SubContext("Load Tasks")
 		if err := common.ProcessObjects(taskCtx, mod.tasks, processor); err != nil {
 			return errors.WrapError(taskCtx, err)

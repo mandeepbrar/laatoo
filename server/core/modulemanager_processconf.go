@@ -22,12 +22,14 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 		if !ok {
 			return false, nil
 		} else {
-			ctx = parentModule.svrContext.newContext("Module: " + instance)
+			parentmod := parentModule.(*moduleProxy).mod
+			ctx = parentmod.svrContext.newContext("Module: " + instance)
 		}
 	} else {
 		ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
-		ctx.Set(config.MODULEDIR, modMgr.getModuleDir(ctx, modulesDir, moduleName))
 	}
+
+	ctx.Set(config.MODULEDIR, modMgr.getModuleDir(ctx, modulesDir, moduleName))
 
 	ctx.SetVariable(constants.CONF_MODULE, instance)
 
@@ -98,7 +100,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		return false, errors.WrapError(initCtx, err)
 	}
 
-	modMgr.modules[moduleInstance] = modu
+	modMgr.modules[moduleInstance] = &moduleProxy{mod: modu}
 
 	return true, nil
 }

@@ -23,6 +23,7 @@ const (
 	CONF_MODULE_DISABLED   = "disabled"
 	CONF_MODULE            = "module"
 	CONF_MODULE_ENV        = "environment"
+	MODULEMGR_PLUGIN       = "ModuleManagerPlugin"
 	CONF_SERVICEFACTORIES  = "factories"
 	CONF_SERVICEFACTORY    = "factory"
 

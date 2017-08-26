@@ -23,11 +23,12 @@ type serverModule struct {
 	channels    map[string]config.Config
 	tasks       map[string]config.Config
 	rules       map[string]config.Config
+	modConf     config.Config
 	modSettings config.Config
 }
 
 func newServerModule(ctx core.ServerContext, name, dirpath string, modconf config.Config) *serverModule {
-	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, dir: dirpath}
+	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, dir: dirpath, modConf: modconf}
 	mod.services = make(map[string]config.Config)
 	mod.factories = make(map[string]config.Config)
 	mod.channels = make(map[string]config.Config)
@@ -201,4 +202,15 @@ func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext) error {
 		mod.tasks = common.MergeConfigMaps(mod.tasks, tasks)
 	}
 	return nil
+}
+
+func (mod *serverModule) plugins(ctx core.ServerContext) map[string]config.Config {
+	retVal := make(map[string]config.Config)
+	for k, v := range mod.services {
+		isPlugin, _ := v.GetBool(constants.MODULEMGR_PLUGIN)
+		if isPlugin {
+			retVal[k] = v
+		}
+	}
+	return retVal
 }

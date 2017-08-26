@@ -1,0 +1,14 @@
+{
+  "servicemethod":"named_files_service",
+  "files": {
+    "app.js": {
+      "cache": "true",
+      "path": "app.js"
+    },
+    "services.conf.js": {
+      "cache": "true",
+      "path": "services.conf.js"
+    }
+  },
+  "storage": "uiapp.filesstorage"
+}

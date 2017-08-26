@@ -1,1 +1,1 @@
-cp ../common/dist/assets/index.js node_modules/laatoocommon/
+cp ../common/dist/scripts/index.js node_modules/laatoocommon/

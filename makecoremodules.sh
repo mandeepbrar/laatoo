@@ -34,3 +34,5 @@ docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/mongo -e name=mongodatabase laatoomodulebuilder:latest
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/gae -e name=gaedatastore laatoomodulebuilder:latest
 docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/data/sql -e name=sqldatabase laatoomodulebuilder:latest
+
+docker run -it --rm -v /home/mandeep/goprogs:/plugin -e package=laatoo/services/ui -e name=ui laatoomodulebuilder:latest

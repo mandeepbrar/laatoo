@@ -1,5 +1,4 @@
 {
-
   "modules":{
     "filesystemstorage":{
       "module":"filesystemstorage",
@@ -36,7 +35,7 @@
       "module":"shell",
       "logging": {
         "format":"happymaxcolor",
-        "level":"trace"
+        "level":"info"
       },
       "settings":{
       }

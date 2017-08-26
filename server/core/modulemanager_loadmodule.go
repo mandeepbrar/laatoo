@@ -20,7 +20,7 @@ func (modMgr *moduleManager) loadModule(ctx core.ServerContext, modulesDir strin
 	if moduleAlreadyLoaded {
 		return modver, nil
 	}
-	log.Error(ctx, "Loading module", "moduleName", moduleName)
+	log.Info(ctx, "Loading module", "moduleName", moduleName)
 	module_ver, err := modMgr.installModule(ctx, modulesDir, moduleName)
 	if err != nil {
 		return nil, errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, err, "Module", moduleName)

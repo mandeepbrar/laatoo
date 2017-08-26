@@ -19,3 +19,7 @@ func (mod *moduleProxy) GetName() string {
 func (mod *moduleProxy) GetType() core.ServerElementType {
 	return core.ServerElementModule
 }
+
+func (mod *moduleProxy) GetObject() core.Module {
+	return mod.mod.userModule
+}

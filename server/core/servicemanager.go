@@ -98,19 +98,7 @@ func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName str
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", serviceName)
 	}
-	svc := elem.svc
-	switch svc.impl.state {
-	case Created:
-		return nil, nil
-	case Initialized:
-		err := svcMgr.startService(ctx, elem)
-		if err != nil {
-			return nil, err
-		}
-		return elem, err
-	default:
-		return elem, nil
-	}
+	return elem, nil
 }
 
 //create services within an application

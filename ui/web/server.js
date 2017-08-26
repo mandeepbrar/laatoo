@@ -1,17 +1,47 @@
-/*eslint no-console:0 */
-'use strict';
-require('core-js/fn/object/assign');
-const webpack = require('webpack');
-const WebpackDevServer = require('webpack-dev-server');
-const config = require('./webpack.config');
-const open = require('open');
+// Creates a hot reloading development environment
 
-new WebpackDevServer(webpack(config), config.devServer)
-.listen(config.port, 'localhost', (err) => {
+const path = require('path');
+const express = require('express');
+const webpack = require('webpack');
+const config = require('./cfg/webpack.dev')
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const webpackHotMiddleware = require('webpack-hot-middleware');
+const DashboardPlugin = require('webpack-dashboard/plugin');
+
+const app = express();
+const compiler = webpack(config);
+
+// Apply CLI dashboard for your webpack dev server
+compiler.apply(new DashboardPlugin());
+
+const host = process.env.HOST || 'localhost';
+const port = process.env.PORT || 3000;
+
+function log() {
+  arguments[0] = '\nWebpack: ' + arguments[0];
+  console.log.apply(console, arguments);
+}
+
+app.use(webpackDevMiddleware(compiler, {
+  noInfo: true,
+  publicPath: config.output.publicPath,
+  stats: {
+    colors: true
+  },
+  historyApiFallback: true
+}));
+
+app.use(webpackHotMiddleware(compiler));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, './src/index.html'));
+});
+
+app.listen(port, host, (err) => {
   if (err) {
-    console.log(err);
+    log(err);
+    return;
   }
-  console.log('Listening at localhost:' + config.port);
-  console.log('Opening your system browser...');
-  open('http://localhost:' + config.port + '/webpack-dev-server/');
+
+  log('🚧  App is listening at http://%s:%s', host, port);
 });

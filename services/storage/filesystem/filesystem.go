@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"os"
+	"path/filepath"
 
 	"github.com/twinj/uuid"
 	//"net/http"
@@ -97,15 +98,20 @@ func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config)
 	/*svc.SetDescription(ctx, "File system storage service")
 	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)
 	svc.AddStringConfigurations(ctx, []string{CONF_FILESDIR}, nil)*/
-	filesDir, ok := svc.GetStringConfiguration(ctx, CONF_FILESDIR)
-	if ok {
+
+	filesDir, _ := svc.GetStringConfiguration(ctx, CONF_FILESDIR)
+	if filepath.IsAbs(filesDir) {
 		svc.filesDir = filesDir
 	} else {
 		baseDir, ok := ctx.GetString(config.MODULEDIR)
 		if !ok {
 			baseDir, _ = ctx.GetString(config.BASEDIR)
 		}
-		svc.filesDir = path.Join(baseDir, "files")
+		if filesDir != "" {
+			svc.filesDir = path.Join(baseDir, "files", filesDir)
+		} else {
+			svc.filesDir = path.Join(baseDir, "files")
+		}
 	}
 	return nil
 }
