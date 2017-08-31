@@ -40,6 +40,12 @@
       "settings":{
       }
     },
+    "laatooui":{
+      "module":"laatooui"
+    },
+    "designerui":{
+      "module":"designerui"      
+    },
     "publicdirserver":{
       "module":"publicdirserver",
       "settings":{

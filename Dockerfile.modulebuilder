@@ -1,21 +1,45 @@
 FROM laatoobase:latest
 
-VOLUME /plugin
+RUN groupadd --gid 1000 node \
+  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
 
-ENV name=plugin
+RUN NODE_VERSION='8.4.0' ARCH='x64' \
+  && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.gz" \
+  && tar -xzf "node-v$NODE_VERSION-linux-$ARCH.tar.gz" -C /usr/local --strip-components=1 \
+  && rm "node-v$NODE_VERSION-linux-$ARCH.tar.gz" \
+  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
-ENV package=.
+RUN mkdir -p /build
+
+RUN npm i -g webpack shelljs fs-extra sprintf-js minimist
+
+
+VOLUME /nodemodules
+
+VOLUME /plugins
+
+VOLUME /deploy
+
+ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin packageFolder=.
+
+ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 
 RUN mkdir -p /go/src/laatoo
 
 COPY sdk /go/src/laatoo/sdk
 
-RUN mkdir -p /plugin/src
+RUN mkdir -p /plugins/src
 
 COPY makelaatoomodule.sh /make.sh
 
-ENV GOPATH=$GOPATH:/plugin
+ENV GOPATH=$GOPATH:/plugins
 
-WORKDIR /plugin/src
+COPY build/ /build
 
-ENTRYPOINT /make.sh $name $package /plugin/bin/modules/
+WORKDIR /build
+
+ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --skipObjects $skipObjects
+
+#ENTRYPOINT /bin/bash
+
+#ENTRYPOINT /make.sh $name $package /plugins/bin/modules/

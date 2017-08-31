@@ -10,12 +10,12 @@
         "uifile": {
             "description":"Storage service from which files are to be served",
             "type":"string",
-            "default":"index.js"
+            "default":"webui.js"
         },
         "descriptor": {
             "description":"Operation to perform on a file",
             "type":"string",
-            "default":"descriptor.js"
+            "default":"webdescriptor.js"
         }
       }
     }

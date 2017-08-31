@@ -10,6 +10,8 @@
     "ui": {
       "module":"ui",
       "settings":{
+        "uifile":"webui.js",
+        "descriptor":"webdescriptor.js"
       }
     }
   },

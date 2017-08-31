@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -17,6 +18,7 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 const (
 	UI_SVC           = "ui"
+	FILES_DIR        = "files"
 	CONF_FILE_UI     = "uifile"
 	CONF_FILE_DESC   = "descriptor"
 	MERGED_SVCS_FILE = "services.conf.js"
@@ -51,9 +53,14 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *UI) Load(ctx core.ServerContext, name, dir string, mod core.Module, modConf config.Config) error {
-	uifile := path.Join(dir, UI_SVC, svc.uifile)
-	ok, _, _ := utils.FileExists(uifile)
+func (svc *UI) Load(ctx core.ServerContext, name, dir string, mod core.Module, modConf config.Config, settings config.Config) error {
+	ui, ok := settings.GetBool(UI_SVC)
+	if ok && !ui {
+		return nil
+	}
+	uifile := path.Join(dir, FILES_DIR, svc.uifile)
+	log.Error(ctx, " UI file", "*****************", svc.uifile)
+	ok, _, _ = utils.FileExists(uifile)
 	if ok {
 		cont, err := ioutil.ReadFile(uifile)
 		if err != nil {
@@ -62,7 +69,7 @@ func (svc *UI) Load(ctx core.ServerContext, name, dir string, mod core.Module, m
 		svc.uiFiles[name] = cont
 	}
 
-	descfile := path.Join(dir, UI_SVC, svc.descfile)
+	descfile := path.Join(dir, FILES_DIR, svc.descfile)
 	ok, _, _ = utils.FileExists(descfile)
 	if ok {
 		cont, err := ioutil.ReadFile(descfile)
@@ -79,7 +86,7 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
 	log.Error(ctx, "base directory of module", "files", baseDir)
-	almondjsfile := path.Join(baseDir, "files", "almond.js")
+	almondjsfile := path.Join(baseDir, FILES_DIR, "almond.js")
 	almondjs, err := ioutil.ReadFile(almondjsfile)
 	if err != nil {
 		return errors.WrapError(ctx, err, "basedir", baseDir)
@@ -105,17 +112,25 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 		}
 	}
 
-	uifile := path.Join(baseDir, "files", MERGED_UI_FILE)
+	funcCont := new(bytes.Buffer)
+	for name, _ := range filesWritten {
+		funcCont.WriteString(fmt.Sprintf("try{console.log('Initializing %s');var m=require('%s'); m.Initialize();}catch(exc){};", name, name))
+	}
+	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Services:{}, Actions:{}};%s;if(window.StartApplication){window.StartApplication();}}", funcCont.String())
+	descFileCont.WriteString(initFunc)
+
+	uifile := path.Join(baseDir, FILES_DIR, MERGED_UI_FILE)
 	err = ioutil.WriteFile(uifile, uiFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	descfile := path.Join(baseDir, "files", MERGED_SVCS_FILE)
+	descfile := path.Join(baseDir, FILES_DIR, MERGED_SVCS_FILE)
 	err = ioutil.WriteFile(descfile, descFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
 	return nil
 }
 

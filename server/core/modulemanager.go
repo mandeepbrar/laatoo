@@ -202,7 +202,7 @@ func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
 				log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
 				passedMod := passedModProxy.(*moduleProxy).mod
 				passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
-				err := plugin.Load(passedModCtx, passedModName, passedMod.dir, passedMod.userModule, passedMod.modConf)
+				err := plugin.Load(passedModCtx, passedModName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings)
 				if err != nil {
 					return errors.WrapError(passedModCtx, err)
 				}

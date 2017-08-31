@@ -1,0 +1,21 @@
+FROM node:latest
+
+RUN mkdir -p /build
+
+RUN npm i -g webpack shelljs file-exists rimraf mkdirp path 
+
+COPY ui_template/ /build
+
+VOLUME /nodemodules
+
+VOLUME /plugin
+
+ENV libname=mylib
+
+ENV skipmodules=false
+
+ENV printconfig=false
+
+ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
+
+ENTRYPOINT node /build/build.js $libname $skipmodules $printconfig
