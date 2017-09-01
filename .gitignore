@@ -1,5 +1,6 @@
 ui/node_modules
 designer/dist/config/designer/modules
+modules
 dist/lib
 dist/bin
 laatoo

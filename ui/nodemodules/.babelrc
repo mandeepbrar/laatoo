@@ -6,8 +6,7 @@
   ],
   "plugins": [
     "transform-runtime",
-    "transform-flow-strip-types",
-    "react-hot-loader/babel"
+    "transform-flow-strip-types"
   ],
   "env": {
     "production": {

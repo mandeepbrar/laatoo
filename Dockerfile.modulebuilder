@@ -20,7 +20,7 @@ VOLUME /plugins
 
 VOLUME /deploy
 
-ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin packageFolder=.
+ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin verbose=false packageFolder=.
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 
@@ -38,7 +38,7 @@ COPY build/ /build
 
 WORKDIR /build
 
-ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --skipObjects $skipObjects
+ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --skipObjects $skipObjects
 
 #ENTRYPOINT /bin/bash
 

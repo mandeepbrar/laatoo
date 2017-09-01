@@ -4,7 +4,7 @@ var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 
-var argv = require('minimist')(process.argv.slice(2), {boolean:["skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
+var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
 
 //, default: {skipObjects: false, skipUI: false, skipUIModules: false, printUIConfig: false}
 
@@ -28,6 +28,11 @@ let nodeModulesFolder = "/nodemodules"
 
 let buildFolder = "/build"
 
+function log(message) {
+  if(argv.verbose) {
+    console.log(message);
+  }
+}
 
 function buildModule() {
   createTempDirectory(!(argv.skipUI || argv.skipObjects))
@@ -45,7 +50,7 @@ function buildUI(nextTask) {
   }
 
   compileWebUI(function() {
-    console.log("Copying UI files")
+    log("Copying UI files")
     fs.mkdirsSync(filesFolder)
     fs.copySync(path.join(uiFolder, "dist/scripts/index.js"), path.join(filesFolder, "webui.js"))
     nextTask()
@@ -68,32 +73,35 @@ function compileWebUI(nextTask) {
       config = custom.config(config)
     }
   } else {
-    console.log("No custom ui build file")
+    log("No custom ui build file")
   }
 
   if(argv.printUIConfig) {
-    console.log("config", config)
+    log("UI Config", config)
   }
 
   let compiler = webpack(config)
 
   fs.removeSync(path.join(uiFolder,'dist'))
 
-  console.log("Removed directory dist")
+  log("Removed directory dist")
 
   fs.mkdirsSync(path.join(uiFolder,'dist/scripts'))
 
-  console.log("Starting compilation")
+  log("Starting compilation")
   compiler.run(function(err, stats) {
-    console.log("Errors: ", stats.compilation.errors);
+    if(stats.compilation.errors.length != 0) {
+      console.log("Errors: ", stats.compilation.errors);
+    }
     nextTask()
   });
 }
 
 function getUIModules() {
+  let silent = argv.verbose?"":"-s";
   if (fs.pathExistsSync(path.join(nodeModulesFolder,'package.json'))) {
-    console.log("Installing package json from nodemodules")
-    let command = sprintf('cd %s && npm i --prefix %s', nodeModulesFolder, nodeModulesFolder)
+    log("Installing package json from nodemodules")
+    let command = sprintf('cd %s && npm i %s --prefix %s', nodeModulesFolder, silent, nodeModulesFolder)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
       shell.exit(1);
@@ -103,25 +111,25 @@ function getUIModules() {
   }
 
   if (fs.pathExistsSync(path.join(uiFolder,'package.json'))) {
-    console.log("Installing package json from plugin")
-    let command = sprintf('cd %s && npm i --prefix %s', uiFolder, nodeModulesFolder)
+    log("Installing package json from plugin")
+    let command = sprintf('cd %s && npm i %s --prefix %s', uiFolder, silent, nodeModulesFolder)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
       shell.exit(1);
     }
   } else {
-    console.log("No package json file for plugin ui")
+    log("No package json file for plugin ui")
   }
 
   if (fs.pathExistsSync(path.join(buildFolder,'package.json'))) {
-    console.log("Installing package json from build folder")
-    let command = sprintf('cd %s && npm i --prefix %s', buildFolder, nodeModulesFolder)
+    log("Installing package json from build folder")
+    let command = sprintf('cd %s && npm i %s --prefix %s', buildFolder, silent, nodeModulesFolder)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
       shell.exit(1);
     }
   } else {
-    console.log("No package json in build")
+    log("No package json in build")
   }
 }
 
@@ -139,7 +147,7 @@ function buildObjects(nextTask) {
     return
   }
 
-  console.log("Compiling golang")
+  log("Compiling golang")
 
   let files = fs.readdirSync(pluginFolder)
   let goFilesPresent = false
@@ -172,10 +180,10 @@ function buildObjects(nextTask) {
 }
 
 function copyConfig(nextTask) {
-  console.log("Copying config")
+  log("Copying config")
   let configDestFolder = path.join("/plugins", "tmp", name, "config")
   let configSrcFolder = path.join(pluginFolder, "config")
-  console.log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
+  log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
 
   fs.removeSync(configDestFolder)
   fs.copySync(configSrcFolder, configDestFolder)
@@ -189,7 +197,7 @@ function copyFiles(nextTask) {
     nextTask()
     return
   }
-  console.log("Copying config")
+  log("Copying config")
   let filesDestFolder = path.join("/plugins", "tmp", name, "files")
   fs.removeSync(filesDestFolder)
 
@@ -198,7 +206,8 @@ function copyFiles(nextTask) {
 }
 
 function bundleModule(nextTask) {
-  let command = sprintf('tar -czvf %s -C %s %s', path.join("/plugins", "tmp", name+".tar.gz"), path.join("/plugins", "tmp"), name)
+  let verbose = argv.verbose? "-v":""
+  let command = sprintf('tar -czf %s %s -C %s %s', verbose, path.join("/plugins", "tmp", name+".tar.gz"), path.join("/plugins", "tmp"), name)
   if (shell.exec(command).code !== 0) {
     shell.echo('Could not compress module failed');
     shell.exit(1);
@@ -241,12 +250,12 @@ function startTask(taskName) {
   }
   if ( taskName === null || taskName === "" ){
     return function() {
-      console.log("Tasks complete")
+      console.log("Tasks complete. Module Built ", argv.name)
     }
   }
   return function() {
     nextTaskFunc = startTask(nextTask)
-    console.log("Starting task ", taskName)
+    log("Starting task ", taskName)
     func(nextTaskFunc)
   }
 }
