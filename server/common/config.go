@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
@@ -21,14 +22,14 @@ const (
 )
 
 func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName string) (config.Config, error, bool) {
-	retconf, ok := conf.GetSubConfig(configName)
+	retconf, ok := conf.GetSubConfig(ctx, configName)
 	if ok {
 		return retconf, nil, ok
 	}
-	confFileName, ok := conf.GetString(configName)
+	confFileName, ok := conf.GetString(ctx, configName)
 	if ok {
 		log.Debug(ctx, "Reading config from file "+confFileName)
-		return FileAdapter(conf, configName)
+		return FileAdapter(ctx, conf, configName)
 	} else {
 		return nil, nil, false
 	}
@@ -58,14 +59,14 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 			if !info.IsDir() {
 				extension := filepath.Ext(elemfileName)
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
-				elemConf, err := NewConfigFromFile(file)
+				elemConf, err := config.NewConfigFromFile(ctx, file)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
 				if !CheckContextCondition(ctx, elemConf) {
 					continue
 				}
-				name, ok := elemConf.GetString(constants.CONF_OBJECT_NAME)
+				name, ok := elemConf.GetString(ctx, constants.CONF_OBJECT_NAME)
 				if ok {
 					elemName = name
 				}
@@ -106,17 +107,17 @@ func ProcessDirectoryFiles(ctx core.ServerContext, baseDir string, object string
 	return objs, nil
 }
 
-func FileAdapter(conf config.Config, configName string) (config.Config, error, bool) {
+func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config.Config, error, bool) {
 	var configToRet config.Config
 	var err error
-	confFileName, ok := conf.GetString(configName)
+	confFileName, ok := conf.GetString(ctx, configName)
 	if ok {
-		configToRet, err = NewConfigFromFile(confFileName)
+		configToRet, err = config.NewConfigFromFile(ctx, confFileName)
 		if err != nil {
 			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
 		}
 	} else {
-		configToRet, ok = conf.GetSubConfig(configName)
+		configToRet, ok = conf.GetSubConfig(ctx, configName)
 		if !ok {
 			return nil, nil, false
 		}
@@ -145,22 +146,22 @@ func MergeConfigMaps(conf1 map[string]config.Config, conf2 map[string]config.Con
 	return res
 }
 
-func Merge(conf1 config.Config, conf2 config.Config) config.Config {
+func Merge(ctx ctx.Context, conf1 config.Config, conf2 config.Config) config.Config {
 	mergedConf := make(config.GenericConfig)
 	copyConfs := func(conf config.Config) {
 		if conf == nil {
 			return
 		}
-		confNames := conf.AllConfigurations()
+		confNames := conf.AllConfigurations(ctx)
 		for _, confName := range confNames {
-			val, _ := conf.Get(confName)
+			val, _ := conf.Get(ctx, confName)
 			subConf, ok := val.(config.Config)
 			if ok {
 				existingVal, eok := mergedConf[confName]
 				if eok {
 					existingConf, cok := existingVal.(config.Config)
 					if cok {
-						mergedSubConf := Merge(existingConf, subConf)
+						mergedSubConf := Merge(ctx, existingConf, subConf)
 						mergedConf[confName] = mergedSubConf
 					} else {
 						mergedConf[confName] = val

@@ -2,7 +2,7 @@ package common
 
 import (
 	"fmt"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,7 +32,7 @@ func (ctx *Context) GetId() string {
 	return ctx.Id
 }
 
-func (ctx *Context) GetParent() core.Context {
+func (ctx *Context) GetParent() ctx.Context {
 	return ctx.Parent
 }
 
@@ -61,12 +61,12 @@ func (ctx *Context) GetElapsedTime() time.Duration {
 	return time.Now().Sub(ctx.creationTime)
 }
 
-func (ctx *Context) SubCtx(name string) core.Context {
+func (ctx *Context) SubCtx(name string) ctx.Context {
 	return &Context{Name: name, Path: fmt.Sprintf("%s  -> @%s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id,
 		creationTime: ctx.creationTime, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
-func (ctx *Context) NewCtx(name string) core.Context {
+func (ctx *Context) NewCtx(name string) ctx.Context {
 	duplicateMap := make(map[string]interface{}, len(ctx.ParamsStore))
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
@@ -130,17 +130,6 @@ func (ctx *Context) GetStringArray(key string) ([]string, bool) {
 		}
 	}
 	return nil, false
-}
-
-func (ctx *Context) GetVariable(key string) (string, bool) {
-	val, ok := ctx.Get(fmt.Sprint(":", key))
-	if ok {
-		return val.(string), ok
-	}
-	return "", ok
-}
-func (ctx *Context) SetVariable(key string, value string) {
-	ctx.Set(fmt.Sprint(":", key), value)
 }
 
 func (ctx *Context) Set(key string, val interface{}) {

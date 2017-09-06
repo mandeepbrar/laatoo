@@ -1,14 +1,15 @@
 {
+  "name":"{uiapp.files[.application]}",
   "servicemethod":"named_files_service",
   "files": {
     "app.js": {
       "cache": "true",
-      "path": "app.js"
+      "path": "{app[.application].js}"
     },
     "services.conf.js": {
       "cache": "true",
-      "path": "services.conf.js"
+      "path": "{services[.application].conf.js}"
     }
   },
-  "storage": "uiapp.filesstorage"
+  "storage": "{uiapp.filesstorage[.application]}"
 }

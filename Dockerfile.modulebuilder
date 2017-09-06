@@ -38,6 +38,8 @@ COPY build/ /build
 
 WORKDIR /build
 
+COPY /build/.babelrc /
+
 ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --skipObjects $skipObjects
 
 #ENTRYPOINT /bin/bash

@@ -109,7 +109,7 @@ func (modMgr *moduleManager) processDependentModules(ctx core.ServerContext, mod
 		return nil, nil, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleName)
 	}
 
-	ver, ok := modconf.GetString(constants.CONF_MODULE_VER)
+	ver, ok := modconf.GetString(ctx, constants.CONF_MODULE_VER)
 	if !ok {
 		return nil, nil, errors.MissingConf(ctx, constants.CONF_MODULE_VER, "Module", moduleName)
 	}
@@ -118,12 +118,12 @@ func (modMgr *moduleManager) processDependentModules(ctx core.ServerContext, mod
 		return nil, nil, errors.BadConf(ctx, constants.CONF_MODULE_VER, "Module", moduleName)
 	}
 
-	deps, ok := modconf.GetSubConfig(constants.CONF_MODULE_DEP)
+	deps, ok := modconf.GetSubConfig(ctx, constants.CONF_MODULE_DEP)
 	if ok {
 		log.Debug(ctx, "Processing module conf", "deps", deps, "moduleName", moduleName)
-		mods := deps.AllConfigurations()
+		mods := deps.AllConfigurations(ctx)
 		for _, mod := range mods {
-			ra, ok := deps.GetString(mod)
+			ra, ok := deps.GetString(ctx, mod)
 			if !ok {
 				return nil, nil, errors.MissingConf(ctx, constants.CONF_MODULE_DEP, "Module", moduleName)
 			}

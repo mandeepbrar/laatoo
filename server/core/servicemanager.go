@@ -104,9 +104,9 @@ func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName str
 //create services within an application
 func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config.Config) error {
 	//get a map of all the services
-	allgroups, ok := conf.GetSubConfig(CONF_SERVICEGROUPS)
+	allgroups, ok := conf.GetSubConfig(ctx, CONF_SERVICEGROUPS)
 	if ok {
-		groups := allgroups.AllConfigurations()
+		groups := allgroups.AllConfigurations(ctx)
 		for _, groupname := range groups {
 			log.Debug(ctx, "Process Service group", "groupname", groupname)
 			svcgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
@@ -122,9 +122,9 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 		}
 	}
 
-	svcsConf, ok := conf.GetSubConfig(constants.CONF_SERVICES)
+	svcsConf, ok := conf.GetSubConfig(ctx, constants.CONF_SERVICES)
 	if ok {
-		svcAliases := svcsConf.AllConfigurations()
+		svcAliases := svcsConf.AllConfigurations(ctx)
 		for _, svcAlias := range svcAliases {
 			_, ok := svcMgr.servicesStore[svcAlias]
 			if ok {
@@ -156,18 +156,14 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
-	serviceAlias = common.FillVariables(ctx, serviceAlias)
-
 	svcCreateCtx := ctx.(*serverContext)
 
-	factoryname, factoryok := conf.GetString(CONF_FACTORY)
+	factoryname, factoryok := conf.GetString(ctx, CONF_FACTORY)
 	if !factoryok {
 		factoryname = common.CONF_DEFAULTFACTORY_NAME
 	}
 
-	factoryname = common.FillVariables(ctx, factoryname)
-
-	serviceMethod, ok := conf.GetString(CONF_SERVICEMETHOD)
+	serviceMethod, ok := conf.GetString(ctx, CONF_SERVICEMETHOD)
 	if !ok {
 		log.Debug(ctx, "No service method provided for service", "Service", serviceAlias)
 	}
@@ -220,7 +216,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}*/
 	common.SetupMiddleware(svcCtx, conf)
 
-	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
+	cacheToUse, ok := conf.GetString(ctx, constants.CONF_CACHE_NAME)
 	if ok {
 		svcCtx.Set("__cache", cacheToUse)
 		log.Info(svcCtx, "Setting cache for service ", "cacheToUse", cacheToUse)

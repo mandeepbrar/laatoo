@@ -21,3 +21,11 @@ mongodatabase laatoo/services/data/mongo
 gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
 ui laatoo/services/ui
+reactuibase laatoo/services/reactuibase
+reactwebui laatoo/services/reactwebui
+reactapplication laatoo/services/reactapplication
+gurmukhi laatoo/services/gurmukhi
+reactmaterialkit laatoo/services/reactmaterialkit
+reactbootstrapkit laatoo/services/reactbootstrapkit
+reactwebrouter laatoo/services/reactwebrouter
+dashboardtheme laatoo/services/dashboardtheme

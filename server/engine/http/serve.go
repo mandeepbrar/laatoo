@@ -16,7 +16,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 
 	log.Trace(ctx, "Channel config", "name", channel.name, "config", channel.config)
 
-	disabled, _ := channel.config.GetBool(constants.CONF_HTTPENGINE_DISABLEROUTE)
+	disabled, _ := channel.config.GetBool(ctx, constants.CONF_HTTPENGINE_DISABLEROUTE)
 	if disabled {
 		return nil
 	}
@@ -27,7 +27,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		return err
 	}
 
-	method, ok := channel.config.GetString(constants.CONF_HTTPENGINE_METHOD)
+	method, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_METHOD)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
 	}
@@ -44,12 +44,12 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 
 	////build value parameters
 	var routeParams map[string]string
-	routeParamValuesConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_ROUTEPARAMVALUES)
+	routeParamValuesConf, ok := channel.config.GetSubConfig(ctx, constants.CONF_HTTPENGINE_ROUTEPARAMVALUES)
 	if ok {
-		values := routeParamValuesConf.AllConfigurations()
+		values := routeParamValuesConf.AllConfigurations(ctx)
 		routeParams = make(map[string]string, len(values))
 		for _, paramname := range values {
-			routeParams[paramname], _ = routeParamValuesConf.GetString(paramname)
+			routeParams[paramname], _ = routeParamValuesConf.GetString(ctx, paramname)
 		}
 	}
 
@@ -63,21 +63,21 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 
 	////build value parameters
 	staticValues := make(map[string]interface{})
-	staticValuesConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_STATICVALUES)
+	staticValuesConf, ok := channel.config.GetSubConfig(ctx, constants.CONF_HTTPENGINE_STATICVALUES)
 	if ok {
-		values := staticValuesConf.AllConfigurations()
+		values := staticValuesConf.AllConfigurations(ctx)
 		for _, paramname := range values {
-			staticValues[paramname], _ = staticValuesConf.Get(paramname)
+			staticValues[paramname], _ = staticValuesConf.Get(ctx, paramname)
 		}
 	}
 
 	//build header param mappings
 	headers := make(map[string]string, 0)
-	headersConf, ok := channel.config.GetSubConfig(constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
+	headersConf, ok := channel.config.GetSubConfig(ctx, constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
 	if ok {
-		headersToInclude := headersConf.AllConfigurations()
+		headersToInclude := headersConf.AllConfigurations(ctx)
 		for _, paramName := range headersToInclude {
-			header, _ := headersConf.GetString(paramName)
+			header, _ := headersConf.GetString(ctx, paramName)
 			headers[paramName] = header
 		}
 	}

@@ -1,0 +1,16 @@
+{
+  "version":"0.0.1",
+  "dependencies":{
+  },
+  "description":"Module provides gurmukhi keymap ",
+  "objects":{
+  },
+  "ui":{
+    "skipUIModules":true,
+    "externals":{
+      "react":"react"
+    },
+    "packages":{
+    }
+  }
+}

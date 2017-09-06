@@ -98,12 +98,12 @@ func (fs *FileService) Start(ctx core.ServerContext) error {
 	conf, ok := fs.GetMapConfiguration(ctx, CONF_STATIC_FILES)
 	if ok {
 		filesConf := conf.(config.Config)
-		filenames := filesConf.AllConfigurations()
+		filenames := filesConf.AllConfigurations(ctx)
 		for _, filename := range filenames {
-			fileconfig, _ := filesConf.GetSubConfig(filename)
-			cacheStr, ok := fileconfig.GetString(CONF_STATIC_CACHE)
+			fileconfig, _ := filesConf.GetSubConfig(ctx, filename)
+			cacheStr, ok := fileconfig.GetString(ctx, CONF_STATIC_CACHE)
 			cache := (cacheStr == "true")
-			path, ok := fileconfig.GetString(CONF_STATIC_FILE_PATH)
+			path, ok := fileconfig.GetString(ctx, CONF_STATIC_FILE_PATH)
 			if !ok {
 				return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATIC_FILE_PATH)
 			}
@@ -131,7 +131,7 @@ func (fs *FileService) Start(ctx core.ServerContext) error {
 				}
 				file.Content = &content
 			}
-			encoding, ok := fileconfig.GetString(core.ContentEncoding)
+			encoding, ok := fileconfig.GetString(ctx, core.ContentEncoding)
 			if ok {
 				file.info[core.ContentEncoding] = encoding
 			}

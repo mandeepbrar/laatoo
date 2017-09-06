@@ -68,6 +68,20 @@
         }
       }
     },
+    "template_files_service":{
+      "type":"service",
+      "description":"This service converts files with name.tpl extension to name files by applying golang text template package. Method var is provided to access variables in context",
+      "configurations": {
+        "templatefilesdirectory": {
+            "description":"Directory containing template files. defaults to files folder of module",
+            "type":"string"
+        },
+        "processedfilesdirectory": {
+          "description":"Directory containing processed files. defaults to templates directory",
+          "type":"string"
+        }
+      }
+    },
     "filebundle_service": {
       "type":"service",
       "description":"This service serves named files from a storage component. Only disk files are supported",

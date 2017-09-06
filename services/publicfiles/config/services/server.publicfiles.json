@@ -1,6 +1,6 @@
 {
-  "name":"server.publicfiles[.instance]",
+  "name":"{server.publicfiles[.instance]}",
   "servicemethod":"named_files_service",
-  "files":":files",
-  "storage": "server.resourcedirectory[.instance]"
+  "files":"{[files]}",
+  "storage": "{server.resourcedirectory[.instance]}"
 }

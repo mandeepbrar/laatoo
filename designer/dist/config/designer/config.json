@@ -35,16 +35,14 @@
       "module":"shell",
       "logging": {
         "format":"happymaxcolor",
-        "level":"info"
+        "level":"trace"
       },
       "settings":{
+        "application":"designerui"
       }
     },
-    "laatooui":{
-      "module":"laatooui"
-    },
     "designerui":{
-      "module":"designerui"      
+      "module":"designerui"
     },
     "publicdirserver":{
       "module":"publicdirserver",

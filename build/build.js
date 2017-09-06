@@ -20,7 +20,7 @@ let uiFolder = path.join(pluginFolder, "ui")
 
 let filesFolder = path.join(pluginFolder, "files")
 
-//let modConfig = require(path.join(pluginFolder, "config", "config.json"));
+let modConfig = require(path.join(pluginFolder, "config", "config.json"));
 
 let deploymentFolder = "/deploy/"
 
@@ -28,9 +28,12 @@ let nodeModulesFolder = "/nodemodules"
 
 let buildFolder = "/build"
 
-function log(message) {
+let tmpFolder = "/tmp"
+
+function log() {
+  let args = Array.prototype.slice.call(arguments);
   if(argv.verbose) {
-    console.log(message);
+    console.log(args.join(' '));
   }
 }
 
@@ -46,7 +49,9 @@ function buildUI(nextTask) {
   }
 
   if (!argv.skipUIModules) {
-    getUIModules();
+    if (!modConfig.ui || !modConfig.ui.skipUIModules) {
+      getUIModules();
+    }
   }
 
   compileWebUI(function() {
@@ -63,9 +68,12 @@ function compileWebUI(nextTask) {
 
   let configFunc = require(path.join(buildFolder, 'cfg/webpack.lib'))
 
+  let externals = modConfig.ui? modConfig.ui.externals:null
+
   config = configFunc({
     library: name,
-    uifolder: uiFolder
+    uifolder: uiFolder,
+    externals: externals
   })
   if (fs.pathExistsSync(path.join(uiFolder, 'build.js'))) {
     let custom = require(path.join(uiFolder, 'build'))
@@ -80,6 +88,40 @@ function compileWebUI(nextTask) {
     log("UI Config", config)
   }
 
+  if(modConfig.dependencies!=null ) {
+    let verbose = argv.verbose?"-v":"";
+    log("Processing required laatoo modules")
+    Object.keys(modConfig.dependencies).forEach(function(pkg) {
+      let found = false
+      let laatooModulePath = path.join(deploymentFolder, pkg)
+      let modPath = laatooModulePath
+      if (fs.pathExistsSync(laatooModulePath)) {
+        found = true
+      }
+      if (!found && fs.pathExistsSync(laatooModulePath + '.tar.gz')) {
+        let command = sprintf("cd %s && tar %s -xf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
+        if (shell.exec(command).code !== 0) {
+          shell.echo('Package extraction failed');
+          shell.exit(1);
+        } else {
+          modPath = path.join(tmpFolder, pkg)
+          if (fs.pathExistsSync(modPath)) {
+            found = true
+          }
+        }
+      }
+      if(found) {
+        let uiSrc = path.join(modPath, "files", "webui.js")
+        if (fs.pathExistsSync(uiSrc)) {
+          log("Dependency " + pkg + " for ui found")
+          let dest = path.join(nodeModulesFolder, "node_modules", pkg)
+          fs.mkdirsSync(dest)
+          fs.copySync(uiSrc, path.join(dest, "index.js"))
+        }
+      }
+    });
+  }
+
   let compiler = webpack(config)
 
   fs.removeSync(path.join(uiFolder,'dist'))
@@ -88,7 +130,7 @@ function compileWebUI(nextTask) {
 
   fs.mkdirsSync(path.join(uiFolder,'dist/scripts'))
 
-  log("Starting compilation")
+  log("Starting compilation", __dirname)
   compiler.run(function(err, stats) {
     if(stats.compilation.errors.length != 0) {
       console.log("Errors: ", stats.compilation.errors);
@@ -101,7 +143,8 @@ function getUIModules() {
   let silent = argv.verbose?"":"-s";
   if (fs.pathExistsSync(path.join(nodeModulesFolder,'package.json'))) {
     log("Installing package json from nodemodules")
-    let command = sprintf('cd %s && npm i %s --prefix %s', nodeModulesFolder, silent, nodeModulesFolder)
+    var command = sprintf('cd %s && npm i %s --prefix %s', nodeModulesFolder, silent, nodeModulesFolder)
+    log("Command ", command)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
       shell.exit(1);
@@ -110,20 +153,24 @@ function getUIModules() {
     console.log("No package json in nodemodules")
   }
 
-  if (fs.pathExistsSync(path.join(uiFolder,'package.json'))) {
-    log("Installing package json from plugin")
-    let command = sprintf('cd %s && npm i %s --prefix %s', uiFolder, silent, nodeModulesFolder)
-    if (shell.exec(command).code !== 0) {
-      shell.echo('Get package failed');
-      shell.exit(1);
-    }
-  } else {
-    log("No package json file for plugin ui")
+  if(modConfig.ui!=null && modConfig.ui.packages !=null) {
+    log("Installing package json from plugin", modConfig.ui.packages)
+    Object.keys(modConfig.ui.packages).forEach(function(pkg) {
+      let ver = modConfig.ui.packages[pkg]
+      let command = sprintf('npm i %s --prefix %s %s@%s', silent, nodeModulesFolder, pkg, ver)
+      console.log(command)
+      if (shell.exec(command).code !== 0) {
+        shell.echo('Get package failed '+pkg);
+        shell.exit(1);
+      }
+    });
   }
 
   if (fs.pathExistsSync(path.join(buildFolder,'package.json'))) {
     log("Installing package json from build folder")
+    log(sprintf)
     let command = sprintf('cd %s && npm i %s --prefix %s', buildFolder, silent, nodeModulesFolder)
+    console.log(command)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
       shell.exit(1);
@@ -138,6 +185,7 @@ function createTempDirectory(removeDir) {
   if (removeDir) {
     fs.removeSync(tmpFolder)
   }
+  log("Ensuring temp folder ", tmpFolder)
   fs.mkdirsSync(tmpFolder)
 }
 
@@ -181,7 +229,7 @@ function buildObjects(nextTask) {
 
 function copyConfig(nextTask) {
   log("Copying config")
-  let configDestFolder = path.join("/plugins", "tmp", name, "config")
+  let configDestFolder = path.join("/plugins", "tmp", name)
   let configSrcFolder = path.join(pluginFolder, "config")
   log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
 
@@ -207,7 +255,8 @@ function copyFiles(nextTask) {
 
 function bundleModule(nextTask) {
   let verbose = argv.verbose? "-v":""
-  let command = sprintf('tar -czf %s %s -C %s %s', verbose, path.join("/plugins", "tmp", name+".tar.gz"), path.join("/plugins", "tmp"), name)
+  let command = sprintf('tar %s -czf %s -C %s %s', verbose, path.join("/plugins", "tmp", name+".tar.gz"), path.join("/plugins", "tmp"), name)
+  log("Bundle module: ", command)
   if (shell.exec(command).code !== 0) {
     shell.echo('Could not compress module failed');
     shell.exit(1);

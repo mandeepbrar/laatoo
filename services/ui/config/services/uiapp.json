@@ -1,6 +1,7 @@
 {
+  "name":"{uiapp[.application]}",
   "servicemethod":"ui",
   "ModuleManagerPlugin": true,
-  "uifile":":uifile",
-  "descriptor":":descriptor"
+  "uifile":"{[uifile]}",
+  "descriptor":"{[descriptor]}"
 }

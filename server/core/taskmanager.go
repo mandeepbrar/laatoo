@@ -52,9 +52,9 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.WrapError(tskmgrInitializeCtx, err)
 	}
 	if ok {
-		taskNames := taskMgrConf.AllConfigurations()
+		taskNames := taskMgrConf.AllConfigurations(tskmgrInitializeCtx)
 		for _, taskName := range taskNames {
-			taskConf, _ := taskMgrConf.GetSubConfig(taskName)
+			taskConf, _ := taskMgrConf.GetSubConfig(tskmgrInitializeCtx, taskName)
 			tskCtx := tskmgrInitializeCtx.SubContext(taskName)
 			if err := tskMgr.processTaskConf(tskCtx, taskConf, taskName); err != nil {
 				return errors.WrapError(tskCtx, err)
@@ -84,30 +84,27 @@ func (tskMgr *taskManager) loadTasksFromDirectory(ctx core.ServerContext, folder
 }
 
 func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
-	queueName, ok := conf.GetString(constants.CONF_TASKS_QUEUE)
+	queueName, ok := conf.GetString(ctx, constants.CONF_TASKS_QUEUE)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
 	}
 
-	consumer, ok := conf.GetString(constants.CONF_TASK_CONSUMER)
+	consumer, ok := conf.GetString(ctx, constants.CONF_TASK_CONSUMER)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
 	}
-	consumer = common.FillVariables(ctx, consumer)
 	tskMgr.taskConsumerNames[queueName] = consumer
 
-	processor, ok := conf.GetString(constants.CONF_TASK_PROCESSOR)
+	processor, ok := conf.GetString(ctx, constants.CONF_TASK_PROCESSOR)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_PROCESSOR, "Task Name", taskName)
 	}
-	processor = common.FillVariables(ctx, processor)
 	tskMgr.taskProcessorNames[queueName] = processor
 
-	publisher, ok := conf.GetString(constants.CONF_TASK_PUBLISHER)
+	publisher, ok := conf.GetString(ctx, constants.CONF_TASK_PUBLISHER)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
 	}
-	publisher = common.FillVariables(ctx, publisher)
 	tskMgr.taskPublishers[queueName] = publisher
 	return nil
 }

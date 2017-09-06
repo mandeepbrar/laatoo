@@ -24,12 +24,12 @@ func newServiceInfo(description string, reqInfo core.RequestInfo, streamedRespon
 		svcsToInject: make(map[string]string)}
 }
 
-func buildServiceInfo(conf config.Config) *serviceInfo {
-	comp, _ := conf.GetBool(SVCCOMP)
-	return &serviceInfo{configurableObject: buildConfigurableObject(conf),
+func buildServiceInfo(ctx core.ServerContext, conf config.Config) *serviceInfo {
+	comp, _ := conf.GetBool(ctx, SVCCOMP)
+	return &serviceInfo{configurableObject: buildConfigurableObject(ctx, conf),
 		component:    comp,
-		request:      buildRequestInfo(conf),
-		response:     buildResponseInfo(conf),
+		request:      buildRequestInfo(ctx, conf),
+		response:     buildResponseInfo(ctx, conf),
 		svcsToInject: make(map[string]string)}
 }
 
@@ -96,22 +96,22 @@ const (
 	SVCPARAMCOLLECTION = "collection"
 )
 
-func buildRequestInfo(conf config.Config) *requestInfo {
+func buildRequestInfo(ctx core.ServerContext, conf config.Config) *requestInfo {
 
-	req, ok := conf.GetSubConfig(SVCREQ)
+	req, ok := conf.GetSubConfig(ctx, SVCREQ)
 	if ok {
-		requesttype, _ := req.GetString(SVCDATATYPE)
-		collection, _ := req.GetBool(SVCCOLLECTION)
-		stream, _ := req.GetBool(SVCSTREAM)
-		paramsConf, ok := req.GetSubConfig(SVCPARAMS)
+		requesttype, _ := req.GetString(ctx, SVCDATATYPE)
+		collection, _ := req.GetBool(ctx, SVCCOLLECTION)
+		stream, _ := req.GetBool(ctx, SVCSTREAM)
+		paramsConf, ok := req.GetSubConfig(ctx, SVCPARAMS)
 		var params []core.Param
 		if ok {
-			paramNames := paramsConf.AllConfigurations()
+			paramNames := paramsConf.AllConfigurations(ctx)
 			params = make([]core.Param, len(paramNames))
 			for ind, paramName := range paramNames {
-				paramDesc, _ := paramsConf.GetSubConfig(paramName)
-				collection, _ := paramDesc.GetBool(SVCPARAMCOLLECTION)
-				paramtype, _ := paramDesc.GetString(SVCPARAMTYPE)
+				paramDesc, _ := paramsConf.GetSubConfig(ctx, paramName)
+				collection, _ := paramDesc.GetBool(ctx, SVCPARAMCOLLECTION)
+				paramtype, _ := paramDesc.GetString(ctx, SVCPARAMTYPE)
 				params[ind] = newParam(paramName, paramtype, collection)
 			}
 		}
@@ -145,10 +145,10 @@ type responseInfo struct {
 	streaming bool
 }
 
-func buildResponseInfo(conf config.Config) *responseInfo {
-	res, ok := conf.GetSubConfig(SVCRES)
+func buildResponseInfo(ctx core.ServerContext, conf config.Config) *responseInfo {
+	res, ok := conf.GetSubConfig(ctx, SVCRES)
 	if ok {
-		stream, _ := res.GetBool(SVCSTREAM)
+		stream, _ := res.GetBool(ctx, SVCSTREAM)
 		return newResponseInfo(stream)
 	}
 	return newResponseInfo(false)

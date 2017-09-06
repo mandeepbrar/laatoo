@@ -23,14 +23,14 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	contextFile := path.Join(as.baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
 	ok, _, _ := utils.FileExists(contextFile)
 	if ok {
-		contextVars, err := common.NewConfigFromFile(contextFile)
+		contextVars, err := config.NewConfigFromFile(ctx, contextFile)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		keys := contextVars.AllConfigurations()
+		keys := contextVars.AllConfigurations(ctx)
 		for _, key := range keys {
-			val, _ := contextVars.Get(key)
-			ctx.SetVariable(key, val.(string))
+			val, _ := contextVars.Get(ctx, key)
+			ctx.Set(key, val)
 		}
 	}
 
@@ -164,7 +164,7 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = common.NewConfigFromFile(confFile); err != nil {
+			if msgConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
@@ -244,7 +244,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = common.NewConfigFromFile(confFile); err != nil {
+			if secConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
 				return err
 			}
 		}
@@ -271,7 +271,7 @@ func (as *abstractserver) initializeCacheManager(ctx core.ServerContext, conf co
 		return errors.WrapError(cacheMgrInitCtx, err)
 	}
 
-	cacheToUse, ok := conf.GetString(constants.CONF_CACHE_NAME)
+	cacheToUse, ok := conf.GetString(cacheMgrInitCtx, constants.CONF_CACHE_NAME)
 	if ok {
 		ctx.Set("__cache", cacheToUse)
 		log.Debug(ctx, "Cache Set ", "Cache name", cacheToUse)

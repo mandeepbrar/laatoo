@@ -5,18 +5,16 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/server/constants"
-	"regexp"
-	"strings"
 )
 
 func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
-	cond, ok := conf.GetSubConfig(constants.CONF_CONDITION)
+	cond, ok := conf.GetSubConfig(ctx, constants.CONF_CONDITION)
 	if ok {
-		keys := cond.AllConfigurations()
+		keys := cond.AllConfigurations(ctx)
 		for _, key := range keys {
-			str, ok := cond.GetString(key)
+			str, ok := cond.GetString(ctx, key)
 			if ok {
-				contextVal, cok := ctx.GetVariable(key)
+				contextVal, cok := ctx.GetString(key)
 				if !cok || contextVal != str {
 					return false
 				}
@@ -28,7 +26,7 @@ func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 
 func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 	parentMw, pok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
-	middleware, ok := conf.GetStringArray(constants.CONF_MIDDLEWARE)
+	middleware, ok := conf.GetStringArray(ctx, constants.CONF_MIDDLEWARE)
 	if pok {
 		if !ok {
 			middleware = parentMw
@@ -40,56 +38,4 @@ func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 		ctx.Set(constants.CONF_MIDDLEWARE, middleware)
 	}
 	log.Trace(ctx, "Middleware setup", "middleware", middleware)
-}
-
-var varReplacer = regexp.MustCompile(`\[(.*?)\]`)
-
-func FillVariables(ctx core.ServerContext, name string) string {
-	if strings.HasPrefix(name, ":") {
-		newname, ok := LookupString(ctx, name)
-		if ok {
-			return newname
-		}
-	}
-	return varReplacer.ReplaceAllStringFunc(name, func(exp string) string {
-		removebrackets := exp[1 : len(exp)-1]
-		varname := strings.Replace(removebrackets, ".", "", -1)
-		val, ok := ctx.Get(varname)
-		if ok {
-			return strings.Replace(removebrackets, varname, val.(string), -1)
-		} else {
-			val, ok = ctx.GetVariable(varname)
-			if ok {
-				return strings.Replace(removebrackets, varname, val.(string), -1)
-			}
-			return exp
-		}
-	})
-}
-
-func LookupContext(ctx core.Context, name string) (interface{}, bool) {
-	val, found := ctx.Get(name)
-	if !found {
-		val, found = ctx.GetVariable(name)
-		if found {
-			return val, found
-		} else {
-			return nil, false
-		}
-	} else {
-		return val, found
-	}
-}
-
-func LookupString(ctx core.Context, str string) (string, bool) {
-	if strings.HasPrefix(str, ":") {
-		varValue, ok := LookupContext(ctx, str[1:])
-		if ok {
-			varstr, ok := varValue.(string)
-			if ok {
-				return varstr, true
-			}
-		}
-	}
-	return str, false
 }

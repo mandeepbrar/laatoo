@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"strings"
 	"time"
 )
@@ -16,7 +16,7 @@ func init() {
 	logFormats[CONF_FMT_HAPPYMAX] = printHappyMax
 }
 
-func printJSON(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printJSON(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -37,7 +37,7 @@ func printJSON(ctx core.Context, app string, strlevel string, wh WriteHandler, l
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printJSONMax(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printJSONMax(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -59,7 +59,7 @@ func printJSONMax(ctx core.Context, app string, strlevel string, wh WriteHandler
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappy(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printHappy(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -81,7 +81,7 @@ func printHappy(ctx core.Context, app string, strlevel string, wh WriteHandler, 
 	}
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
-func printHappyMax(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printHappyMax(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}

@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
@@ -22,7 +23,7 @@ type objectLoader struct {
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
 
-	objectsBaseFolder, ok := conf.GetString(constants.CONF_OBJECTS_BASE_DIR)
+	objectsBaseFolder, ok := conf.GetString(ctx, constants.CONF_OBJECTS_BASE_DIR)
 	if ok {
 		ctx.Set(constants.CONF_OBJECTS_BASE_DIR, objectsBaseFolder)
 		log.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
@@ -140,7 +141,7 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 }
 
 func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
-	pluginsFolder, ok := conf.GetString(constants.CONF_OBJECTLDR_OBJECTS)
+	pluginsFolder, ok := conf.GetString(ctx, constants.CONF_OBJECTLDR_OBJECTS)
 	if ok {
 		if err := objLoader.loadPluginsFolderIfExists(ctx, pluginsFolder); err != nil {
 			return errors.WrapError(ctx, err)
@@ -163,20 +164,20 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 	return nil
 }
 
-func (objLoader *objectLoader) setObjectInfo(ctx core.Context, objectName string, metadata core.Info) {
+func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string, metadata core.Info) {
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if ok {
 		factory.(*objectFactory).metadata = metadata
 	}
 }
 
-func (objLoader *objectLoader) register(ctx core.Context, objectName string, object interface{}, metadata core.Info) {
+func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) {
 	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object, metadata))
 }
-func (objLoader *objectLoader) registerObject(ctx core.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
+func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
 	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(objectCreator, objectCollectionCreator, metadata))
 }
-func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectName string, factory core.ObjectFactory) {
+func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		log.Info(ctx, "Registering object factory ", "Object Name", objectName)
@@ -185,7 +186,7 @@ func (objLoader *objectLoader) registerObjectFactory(ctx core.Context, objectNam
 }
 
 //returns a collection of the object type
-func (objLoader *objectLoader) createCollection(ctx core.Context, objectName string, length int) (interface{}, error) {
+func (objLoader *objectLoader) createCollection(ctx ctx.Context, objectName string, length int) (interface{}, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
@@ -196,7 +197,7 @@ func (objLoader *objectLoader) createCollection(ctx core.Context, objectName str
 }
 
 //Provides an object with a given name
-func (objLoader *objectLoader) createObject(ctx core.Context, objectName string) (interface{}, error) {
+func (objLoader *objectLoader) createObject(ctx ctx.Context, objectName string) (interface{}, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
@@ -206,7 +207,7 @@ func (objLoader *objectLoader) createObject(ctx core.Context, objectName string)
 	return factory.CreateObject(), nil
 }
 
-func (objLoader *objectLoader) getObjectCreator(ctx core.Context, objectName string) (core.ObjectCreator, error) {
+func (objLoader *objectLoader) getObjectCreator(ctx ctx.Context, objectName string) (core.ObjectCreator, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
@@ -216,7 +217,7 @@ func (objLoader *objectLoader) getObjectCreator(ctx core.Context, objectName str
 	return factory.CreateObject, nil
 }
 
-func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, objectName string) (core.ObjectCollectionCreator, error) {
+func (objLoader *objectLoader) getObjectCollectionCreator(ctx ctx.Context, objectName string) (core.ObjectCollectionCreator, error) {
 	//get the factory object from the register
 	factory, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
@@ -226,7 +227,7 @@ func (objLoader *objectLoader) getObjectCollectionCreator(ctx core.Context, obje
 	return factory.CreateObjectCollection, nil
 }
 
-func (objLoader *objectLoader) getMetaData(ctx core.Context, objectName string) (core.Info, error) {
+func (objLoader *objectLoader) getMetaData(ctx ctx.Context, objectName string) (core.Info, error) {
 	if objectName == "" {
 		return nil, nil
 	}

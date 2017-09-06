@@ -16,7 +16,7 @@ const (
 )
 
 func processLogging(ctx *serverContext, conf config.Config, name string) error {
-	_, ok := conf.GetSubConfig(constants.CONF_LOGGING)
+	_, ok := conf.GetSubConfig(ctx, constants.CONF_LOGGING)
 	if ok {
 		elem := ctx.GetServerElement(core.ServerElementLogger)
 		childLoggerHandle, childLogger := log.ChildLogger(ctx, name, elem)

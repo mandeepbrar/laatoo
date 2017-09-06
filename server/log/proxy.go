@@ -1,6 +1,9 @@
 package log
 
-import "laatoo/sdk/core"
+import (
+	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
+)
 
 type loggerProxy struct {
 	logger *logger
@@ -19,22 +22,22 @@ func (proxy *loggerProxy) GetType() core.ServerElementType {
 	return core.ServerElementLogger
 }
 
-func (lgr *loggerProxy) Trace(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Trace(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Trace(reqContext, msg, args...)
 }
-func (lgr *loggerProxy) Debug(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Debug(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Debug(reqContext, msg, args...)
 }
-func (lgr *loggerProxy) Info(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Info(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Info(reqContext, msg, args...)
 }
-func (lgr *loggerProxy) Warn(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Warn(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Warn(reqContext, msg, args...)
 }
-func (lgr *loggerProxy) Error(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Error(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Error(reqContext, msg, args...)
 }
-func (lgr *loggerProxy) Fatal(reqContext core.Context, msg string, args ...interface{}) {
+func (lgr *loggerProxy) Fatal(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Fatal(reqContext, msg, args...)
 }
 

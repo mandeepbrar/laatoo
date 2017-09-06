@@ -251,7 +251,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = common.NewConfigFromFile(confFile); err != nil {
+			if msgConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
@@ -259,7 +259,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 		}
 	}
 	if found {
-		msgSvcName, ok := msgConf.GetString(constants.CONF_MESSAGING_SVC)
+		msgSvcName, ok := msgConf.GetString(ctx, constants.CONF_MESSAGING_SVC)
 		if ok {
 			msgCtx := ctx.SubContext("Create Messaging Manager")
 			msgHandle, msgElem := newMessagingManager(msgCtx, as.name, msgSvcName)
@@ -292,7 +292,7 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = common.NewConfigFromFile(confFile); err != nil {
+			if secConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
 				return err
 			}
 		}
@@ -319,9 +319,9 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 
 func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Create Engines")
-	engines, ok := conf.GetSubConfig(constants.CONF_ENGINES)
+	engines, ok := conf.GetSubConfig(ctx, constants.CONF_ENGINES)
 	if ok {
-		engineNames := engines.AllConfigurations()
+		engineNames := engines.AllConfigurations(ctx)
 		for _, engName := range engineNames {
 			engConf, err, ok := common.ConfigFileAdapter(ctx, engines, engName)
 			if err != nil {
@@ -388,7 +388,7 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 }
 
 func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config, engName string) (server.ServerElementHandle, server.Engine, error) {
-	enginetype, ok := engConf.GetString(constants.CONF_ENGINE_TYPE)
+	enginetype, ok := engConf.GetString(ctx, constants.CONF_ENGINE_TYPE)
 	if !ok {
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
 	}

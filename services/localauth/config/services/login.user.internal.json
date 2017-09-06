@@ -1,6 +1,6 @@
 {
-  "factory":":dataservicefactory",
-  "object":":userobject",
+  "factory":"{[dataservicefactory]}",
+  "object":"{[userobject]}",
   "postload":false,
   "presave":false
 }

@@ -19,9 +19,9 @@ const (
 	DESCRIPTION = "description"
 )
 
-func buildObjectInfo(conf config.Config) *objectInfo {
-	desc, _ := conf.GetString(DESCRIPTION)
-	objtype, _ := conf.GetString(OBJECT_TYPE)
+func buildObjectInfo(ctx core.ServerContext, conf config.Config) *objectInfo {
+	desc, _ := conf.GetString(ctx, DESCRIPTION)
+	objtype, _ := conf.GetString(ctx, OBJECT_TYPE)
 	return newObjectInfo(desc, objtype)
 }
 

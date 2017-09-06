@@ -11,7 +11,7 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 	pendingModules map[string]config.Config) (bool, error) {
 
 	//get module to be used
-	moduleName, ok := instanceConf.GetString(constants.CONF_MODULE)
+	moduleName, ok := instanceConf.GetString(ctx, constants.CONF_MODULE)
 	if !ok {
 		moduleName = instance
 	}
@@ -31,13 +31,13 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 
 	ctx.Set(config.MODULEDIR, modMgr.getModuleDir(ctx, modulesDir, moduleName))
 
-	ctx.SetVariable(constants.CONF_MODULE, instance)
+	ctx.Set(constants.CONF_MODULE, instance)
 
 	if err := processLogging(ctx.(*serverContext), instanceConf, instance); err != nil {
 		return false, errors.WrapError(ctx, err)
 	}
 
-	disabled, _ := instanceConf.GetBool(constants.CONF_MODULE_DISABLED)
+	disabled, _ := instanceConf.GetBool(ctx, constants.CONF_MODULE_DISABLED)
 	if !disabled {
 		_, err := modMgr.loadModule(ctx, modulesDir, moduleName)
 		if err != nil {
@@ -51,15 +51,15 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
 
-	modSettings, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_SETTINGS)
+	modSettings, _ := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
 	modConf, _ := modMgr.moduleConf[moduleName]
 
 	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, pendingModules)
 
-	modu := newServerModule(ctx, moduleInstance, dirPath, instanceConf)
+	modu := newServerModule(ctx, moduleInstance, moduleName, dirPath, instanceConf)
 	ctx.(*serverContext).setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
 
-	objName, ok := modConf.GetString(constants.CONF_MODULE_OBJ)
+	objName, ok := modConf.GetString(ctx, constants.CONF_MODULE_OBJ)
 	if ok {
 		obj, err := ctx.CreateObject(objName)
 		if err != nil {
@@ -79,11 +79,11 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	}
 
 	if modSettings != nil {
-		moduleparams, _ := modConf.GetSubConfig(constants.CONF_MODULE_PARAMS)
+		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
 		if moduleparams != nil {
-			paramNames := moduleparams.AllConfigurations()
+			paramNames := moduleparams.AllConfigurations(ctx)
 			for _, paramName := range paramNames {
-				val, ok := modSettings.Get(paramName)
+				val, ok := modSettings.Get(ctx, paramName)
 				if ok {
 					ctx.Set(paramName, val)
 				}
@@ -92,7 +92,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	}
 
 	//get the environment in which module should operate
-	modenv, _ := instanceConf.GetSubConfig(constants.CONF_MODULE_ENV)
+	modenv, _ := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_ENV)
 
 	initCtx := ctx.SubContext("Initialize Module")
 	err := modu.initialize(initCtx, modSettings, modenv)
@@ -110,20 +110,20 @@ const (
 )
 
 func (modMgr *moduleManager) processModuleConfMetadata(ctx core.ServerContext, conf config.Config) error {
-	objsconf, ok := conf.GetSubConfig(OBJECTS)
+	objsconf, ok := conf.GetSubConfig(ctx, OBJECTS)
 	if ok {
-		objs := objsconf.AllConfigurations()
+		objs := objsconf.AllConfigurations(ctx)
 		for _, objname := range objs {
-			objconf, _ := objsconf.GetSubConfig(objname)
-			objtyp, _ := objconf.GetString(OBJECT_TYPE)
+			objconf, _ := objsconf.GetSubConfig(ctx, objname)
+			objtyp, _ := objconf.GetString(ctx, OBJECT_TYPE)
 			var inf core.Info
 			switch objtyp {
 			case "service":
-				inf = buildServiceInfo(objconf)
+				inf = buildServiceInfo(ctx, objconf)
 			case "module":
-				inf = buildModuleInfo(objconf)
+				inf = buildModuleInfo(ctx, objconf)
 			case "factory":
-				inf = buildFactoryInfo(objconf)
+				inf = buildFactoryInfo(ctx, objconf)
 			}
 			if inf != nil {
 				ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader

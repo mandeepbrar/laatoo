@@ -48,14 +48,14 @@ type localSecurityHandler struct {
 func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, anonRole string, roleCreator core.ObjectCreator, realmName string) (SecurityPlugin, error) {
 	lsh := &localSecurityHandler{adminRole: adminrole, anonRole: anonRole, roleCreator: roleCreator, realmName: realmName}
 
-	permissions, ok := conf.GetStringArray(CONF_SECURITY_PERMISSIONS)
+	permissions, ok := conf.GetStringArray(ctx, CONF_SECURITY_PERMISSIONS)
 	if ok {
 		lsh.allPermissions = permissions
 	} else {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURITY_PERMISSIONS)
 	}
 
-	supportedRealms, ok := conf.GetStringArray(CONF_SECURITY_SUPPORTEDREALMS)
+	supportedRealms, ok := conf.GetStringArray(ctx, CONF_SECURITY_SUPPORTEDREALMS)
 	if !ok {
 		supportedRealms = []string{realmName}
 	}
@@ -66,7 +66,7 @@ func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminro
 			rolePermissions: make(map[string]bool, 100)}
 	}
 
-	pvtKeyPath, ok := conf.GetString(config.CONF_PVTKEYPATH)
+	pvtKeyPath, ok := conf.GetString(ctx, config.CONF_PVTKEYPATH)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PVTKEYPATH)
 	}
@@ -76,12 +76,12 @@ func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminro
 	}
 	lsh.pvtKey = pvtKey
 
-	roleDataSvcName, ok := conf.GetString(CONF_SECURITY_ROLEDATASERVICE)
+	roleDataSvcName, ok := conf.GetString(ctx, CONF_SECURITY_ROLEDATASERVICE)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_ROLEDATASERVICE)
 	}
 	lsh.roleDataSvcName = roleDataSvcName
-	authServices, ok := conf.GetStringArray(CONF_SECURITY_AUTHSERVICES)
+	authServices, ok := conf.GetStringArray(ctx, CONF_SECURITY_AUTHSERVICES)
 	if ok {
 		lsh.authServices = authServices
 	}

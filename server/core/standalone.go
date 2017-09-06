@@ -26,7 +26,7 @@ func Main(configFile string) error {
 		pair := strings.Split(e, "=")
 		name := pair[0]
 		if strings.HasPrefix(name, "LAATOO_") {
-			rootctx.SetVariable(name[7:], pair[1])
+			rootctx.Set(name[7:], pair[1])
 		}
 	}
 	return main(rootctx, configFile)
@@ -34,7 +34,7 @@ func Main(configFile string) error {
 
 func startListening(ctx core.ServerContext, conf config.Config) error {
 	//find the address to bind from the server
-	address, ok := conf.GetString(constants.CONF_SERVER_ADDRESS)
+	address, ok := conf.GetString(ctx, constants.CONF_SERVER_ADDRESS)
 	if !ok {
 		panic("Host name not provided for standalone server")
 	}

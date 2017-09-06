@@ -1,5 +1,5 @@
 {
   "object":"Role",
   "id":"Role",
-  "factory":":roledatafactory"
+  "factory":"{[roledatafactory]}"
 }

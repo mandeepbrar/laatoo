@@ -3,7 +3,7 @@ const config = require('./webpack.disttpl');
 const path = require('path');
 
 module.exports = function(env) {
-  return merge(config, {
+  let conf = merge(config, {
     context: env.uifolder,
     output: {
       library: env.library,
@@ -13,4 +13,8 @@ module.exports = function(env) {
       publicPath: '/'
     }
   })
+  if (env.externals) {
+    conf = merge(conf, {externals: env.externals})
+  }
+  return conf
 };

@@ -14,7 +14,7 @@
     "beanstalktaskconsumer":{
       "description":"Beanstalk consumer service",
       "type":"service"
-    },
+    }
   },
   "params":{
     "beanstalkserver":"Address of beanstalk server"

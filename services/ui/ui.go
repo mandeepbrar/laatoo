@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"laatoo/sdk/config"
@@ -21,6 +22,8 @@ const (
 	FILES_DIR        = "files"
 	CONF_FILE_UI     = "uifile"
 	CONF_FILE_DESC   = "descriptor"
+	CONF_APPLICATION = "application"
+	DEPENDENCIES     = "dependencies"
 	MERGED_SVCS_FILE = "services.conf.js"
 	MERGED_UI_FILE   = "app.js"
 )
@@ -29,8 +32,11 @@ type UI struct {
 	core.Service
 	uifile          string
 	descfile        string
+	application     string
 	uiFiles         map[string][]byte
 	uiDeps          map[string][]string
+	insMods         map[string]string
+	insSettings     map[string]config.Config
 	descriptorFiles map[string][]byte
 }
 
@@ -47,37 +53,64 @@ func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uifile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_UI)
 	svc.descfile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_DESC)
+	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.uiFiles = make(map[string][]byte)
+	svc.insSettings = make(map[string]config.Config)
+	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
 	svc.uiDeps = make(map[string][]string)
 	return nil
 }
 
-func (svc *UI) Load(ctx core.ServerContext, name, dir string, mod core.Module, modConf config.Config, settings config.Config) error {
-	ui, ok := settings.GetBool(UI_SVC)
+func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod core.Module, modConf config.Config, settings config.Config) error {
+	ui, ok := settings.GetBool(ctx, UI_SVC)
 	if ok && !ui {
 		return nil
 	}
-	uifile := path.Join(dir, FILES_DIR, svc.uifile)
-	log.Error(ctx, " UI file", "*****************", svc.uifile)
-	ok, _, _ = utils.FileExists(uifile)
-	if ok {
-		cont, err := ioutil.ReadFile(uifile)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-		svc.uiFiles[name] = cont
+
+	app, ok := settings.GetString(ctx, CONF_APPLICATION)
+	if ok && svc.application != app {
+		return nil
 	}
 
-	descfile := path.Join(dir, FILES_DIR, svc.descfile)
-	ok, _, _ = utils.FileExists(descfile)
-	if ok {
-		cont, err := ioutil.ReadFile(descfile)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+	_, modRead := svc.uiFiles[modName]
+
+	if !modRead {
+		uifile := path.Join(dir, FILES_DIR, svc.uifile)
+		log.Error(ctx, " UI file", "*****************", svc.uifile)
+		ok, _, _ = utils.FileExists(uifile)
+		if ok {
+			cont, err := ioutil.ReadFile(uifile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+
+			uiDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
+			if ok {
+				svc.uiDeps[modName] = uiDeps.AllConfigurations(ctx)
+			}
+
+			svc.uiFiles[modName] = cont
+			modRead = true
 		}
-		svc.descriptorFiles[name] = cont
+
+		descfile := path.Join(dir, FILES_DIR, svc.descfile)
+		ok, _, _ = utils.FileExists(descfile)
+		if ok {
+			cont, err := ioutil.ReadFile(descfile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.descriptorFiles[modName] = cont
+		}
+
 	}
+
+	if modRead && (modName != insName) {
+		svc.insSettings[insName] = settings
+		svc.insMods[insName] = modName
+	}
+
 	return nil
 }
 
@@ -112,11 +145,17 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 		}
 	}
 
-	funcCont := new(bytes.Buffer)
-	for name, _ := range filesWritten {
-		funcCont.WriteString(fmt.Sprintf("try{console.log('Initializing %s');var m=require('%s'); m.Initialize();}catch(exc){};", name, name))
+	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { console.log('Initializing %s'); m.Initialize(%s, conf); } return m; })"
+
+	for insName, settings := range svc.insSettings {
+		settingsStr, err := json.Marshal(settings)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		descFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), insName, svc.application))
 	}
-	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Services:{}, Actions:{}};%s;if(window.StartApplication){window.StartApplication();}}", funcCont.String())
+
+	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Name: %s, Services:{}, Actions:{}}; var app=require('%s'); app.StartApplication();}", svc.application, svc.application)
 	descFileCont.WriteString(initFunc)
 
 	uifile := path.Join(baseDir, FILES_DIR, MERGED_UI_FILE)
@@ -135,6 +174,7 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 }
 
 func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buffer, writtenMods map[string]bool) error {
+	log.Info(ctx, "Appending module content ", "Name", name)
 	deps := svc.uiDeps[name]
 	for _, dep := range deps {
 		_, ok := writtenMods[dep]

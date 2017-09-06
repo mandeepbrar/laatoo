@@ -5,12 +5,17 @@
   "objects":{
     "ui":{
       "type":"service",
-      "description":"This service is a plugin for module manager ad provides aggregatio services",
+      "description":"This service is a plugin for module manager and provides aggregation services",
       "configurations": {
         "uifile": {
             "description":"Storage service from which files are to be served",
             "type":"string",
             "default":"webui.js"
+        },
+        "application": {
+            "description":"Name of the application being served",
+            "type":"string",
+            "default":"app"
         },
         "descriptor": {
             "description":"Operation to perform on a file",
@@ -22,6 +27,7 @@
   },
   "params":{
     "descriptor":"Name of the desciptor file",
-    "uifile":"Name of the ui file"
+    "uifile":"Name of the ui file",
+    "application":"Name of the application being served by this instance"
   }
 }

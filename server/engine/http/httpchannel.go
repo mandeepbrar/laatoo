@@ -50,13 +50,13 @@ type httpChannel struct {
 }
 
 func (channel *httpChannel) configure(ctx core.ServerContext) error {
-	skipAuth, ok := channel.config.GetBool(constants.CONF_HTTPENGINE_SKIPAUTH)
+	skipAuth, ok := channel.config.GetBool(ctx, constants.CONF_HTTPENGINE_SKIPAUTH)
 	if !ok && channel.parentChannel != nil {
 		skipAuth = channel.parentChannel.skipAuth
 	}
 	channel.skipAuth = skipAuth
 
-	allowedQParams, ok := channel.config.GetStringArray(constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
+	allowedQParams, ok := channel.config.GetStringArray(ctx, constants.CONF_HTTPENGINE_ALLOWEDQUERYPARAMS)
 	if ok {
 		if channel.parentChannel != nil && channel.parentChannel.allowedQParams != nil {
 			channel.allowedQParams = append(channel.parentChannel.allowedQParams, allowedQParams...)
@@ -69,12 +69,12 @@ func (channel *httpChannel) configure(ctx core.ServerContext) error {
 		}
 	}
 
-	usecors, _ := channel.config.GetBool(constants.CONF_HTTPENGINE_USECORS)
+	usecors, _ := channel.config.GetBool(ctx, constants.CONF_HTTPENGINE_USECORS)
 
 	if usecors {
-		allowedOrigins, ok := channel.config.GetStringArray(constants.CONF_HTTPENGINE_CORSHOSTS)
+		allowedOrigins, ok := channel.config.GetStringArray(ctx, constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
-			corsOptionsPath, _ := channel.config.GetString(constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
+			corsOptionsPath, _ := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
 			corsMw := cors.New(cors.Options{
 				AllowedOrigins:     allowedOrigins,
 				AllowedHeaders:     []string{"*"},
@@ -113,12 +113,11 @@ func (channel *httpChannel) configure(ctx core.ServerContext) error {
 
 func (channel *httpChannel) child(ctx core.ServerContext, name string, channelConfig config.Config) (*httpChannel, error) {
 	ctx = ctx.SubContext("Channel " + name)
-	log.Trace(ctx, "Creating child channel", "Parent", channel.name, "New channel", name)
-	path, ok := channelConfig.GetString(constants.CONF_HTTPENGINE_PATH)
+	path, ok := channelConfig.GetString(ctx, constants.CONF_HTTPENGINE_PATH)
 	if !ok {
 		errors.BadConf(ctx, constants.CONF_HTTPENGINE_PATH)
 	}
-	svc, found := channelConfig.GetString(constants.CONF_CHANNEL_SERVICE)
+	svc, found := channelConfig.GetString(ctx, constants.CONF_CHANNEL_SERVICE)
 
 	var routername string
 	var router net.Router
@@ -130,6 +129,7 @@ func (channel *httpChannel) child(ctx core.ServerContext, name string, channelCo
 		router = channel.Router.Group(path)
 	}
 
+	log.Trace(ctx, "Creating child channel ", "Parent", channel.name, "Name", name, "Service", svc, "Path", path)
 	childChannel := &httpChannel{name: routername, Router: router, config: channelConfig, engine: channel.engine, svcName: svc, path: path}
 	err := childChannel.configure(ctx)
 	if err != nil {

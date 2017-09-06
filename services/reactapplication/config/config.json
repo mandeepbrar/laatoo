@@ -1,0 +1,31 @@
+{
+  "version":"0.0.1",
+  "dependencies":{
+    "reactuibase":">=0.0.1"
+  },
+  "description":"Module provides base for react based applications of laatoo. ",
+  "objects":{
+  },
+  "ui":{
+    "skipUIModules":true,
+    "externals":{
+      "babel-runtime":"babel-runtime",
+      "babel-polyfill": "babel-polyfill",
+      "react": "react",
+      "react-redux":"react-redux",
+      "redux":"redux",
+      "redux-saga":"redux-saga"
+    },
+    "packages":{
+      "react": "^15.6.1",
+      "react-redux": "^5.0.6",
+      "redux": "^3.7.2",
+      "redux-saga": "^0.15.6"
+    }
+  },
+  "params": {
+    "uikit":"Uikit to be used by laatoo react application",
+    "theme":"Theme to be used by laatoo react application",
+    "router":"Router to be used by laatoo react application"
+  }
+}

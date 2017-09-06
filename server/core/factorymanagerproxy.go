@@ -4,7 +4,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
-	"laatoo/server/common"
 )
 
 type factoryManagerProxy struct {
@@ -12,7 +11,6 @@ type factoryManagerProxy struct {
 }
 
 func (fm *factoryManagerProxy) GetFactory(ctx core.ServerContext, factoryName string) (server.Factory, error) {
-	factoryName = common.FillVariables(ctx, factoryName)
 	elem, ok := fm.manager.serviceFactoryStore[factoryName]
 	if ok {
 		return elem, nil

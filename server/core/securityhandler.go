@@ -50,10 +50,10 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	initCtx := ctx.SubContext("Initialize Security Handler")
 	sh.securityConf = conf
 
-	realm, _ := conf.GetString(config.REALM)
+	realm, _ := conf.GetString(ctx, config.REALM)
 	sh.realm = realm
 
-	adminRole, ok := conf.GetString(config.ADMINROLE)
+	adminRole, ok := conf.GetString(ctx, config.ADMINROLE)
 	if !ok {
 		adminRole = config.DEFAULT_ADMIN
 	}
@@ -68,20 +68,20 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 	}
 	sh.anonRole = anonRole
 
-	roleobject, ok := conf.GetString(config.ROLE)
+	roleobject, ok := conf.GetString(ctx, config.ROLE)
 	if !ok {
 		roleobject = config.DEFAULT_ROLE
 	}
 	sh.roleObject = roleobject
 
-	userObject, ok := conf.GetString(config.USER)
+	userObject, ok := conf.GetString(ctx, config.USER)
 	if !ok {
 		userObject = config.DEFAULT_USER
 	}
 	sh.userObject = userObject
 
 	if !sh.skipSecurity {
-		publicKeyPath, ok := conf.GetString(config.CONF_PUBLICKEYPATH)
+		publicKeyPath, ok := conf.GetString(ctx, config.CONF_PUBLICKEYPATH)
 		if !ok {
 			return errors.ThrowError(initCtx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PUBLICKEYPATH)
 		}
@@ -92,12 +92,12 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		sh.publicKey = publicKey
 	}
 
-	authToken, ok := conf.GetString(config.AUTHHEADER)
+	authToken, ok := conf.GetString(ctx, config.AUTHHEADER)
 	if !ok {
 		authToken = config.DEFAULT_AUTHHEADER
 	}
 	sh.authHeader = authToken
-	mode, ok := conf.GetString(constants.CONF_SECURITY_MODE)
+	mode, ok := conf.GetString(ctx, constants.CONF_SECURITY_MODE)
 	if !ok {
 		mode = constants.CONF_SECURITY_LOCAL
 	}

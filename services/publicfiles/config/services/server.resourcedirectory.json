@@ -1,5 +1,5 @@
 {
-  "name":"server.resourcedirectory[.instance]",
+  "name":"{server.resourcedirectory[.instance]}",
   "servicemethod":"filesystem",
   "filestoragedir":":filestoragedir"
 }

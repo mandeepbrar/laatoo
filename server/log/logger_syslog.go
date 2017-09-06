@@ -5,7 +5,7 @@ package log
 import (
 	"io"
 	"laatoo/sdk/components"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"log/syslog"
 )
 
@@ -32,9 +32,9 @@ type SyslogWriteHandler struct {
 	writer io.Writer
 }
 
-func (jh *SyslogWriteHandler) Print(ctx core.Context, appname string, msg string, level int, strlevel string) {
+func (jh *SyslogWriteHandler) Print(ctx ctx.Context, appname string, msg string, level int, strlevel string) {
 	jh.writer.Write([]byte(msg))
 }
-func (jh *SyslogWriteHandler) PrintBytes(ctx core.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
+func (jh *SyslogWriteHandler) PrintBytes(ctx ctx.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
 	return jh.writer.Write(msg)
 }

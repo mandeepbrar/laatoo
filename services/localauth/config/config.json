@@ -12,14 +12,14 @@
       "module":"dataadapter",
       "settings":{
         "object":"Role",
-        "dataservicefactory":":dataservicefactory"
+        "dataservicefactory":"{[dataservicefactory]}"
       }
     },
     "users": {
       "module":"dataadapter",
       "settings":{
-        "object":":userobject",
-        "dataservicefactory":":dataservicefactory"
+        "object":"{[userobject]}",
+        "dataservicefactory":"{[dataservicefactory]}"
       }
     }
   },

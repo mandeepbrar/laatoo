@@ -73,7 +73,6 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 
 	for chanName, channel := range chanMgr.channelStore {
 		svcName := channel.GetServiceName()
-		svcName = common.FillVariables(ctx, svcName)
 		if svcName != "" {
 			svcProxy, err := svcMgr.GetService(ctx, svcName)
 			if err != nil {
@@ -136,9 +135,9 @@ func (chanMgr *channelManager) reviewMissingChannels(ctx core.ServerContext, cha
 }
 
 func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf config.Config) error {
-	channelsConf, ok := conf.GetSubConfig(constants.CONF_ENGINE_CHANNELS)
+	channelsConf, ok := conf.GetSubConfig(ctx, constants.CONF_ENGINE_CHANNELS)
 	if ok {
-		channelNames := channelsConf.AllConfigurations()
+		channelNames := channelsConf.AllConfigurations(ctx)
 		for _, channelName := range channelNames {
 			channelConf, err, _ := common.ConfigFileAdapter(ctx, channelsConf, channelName)
 			if err != nil {
@@ -153,10 +152,10 @@ func (chanMgr *channelManager) createChannels(ctx core.ServerContext, conf confi
 }
 
 func (chanMgr *channelManager) processChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
-	arr, ok := channelConf.GetConfigArray(constants.CONF_CHANNELS)
+	arr, ok := channelConf.GetConfigArray(ctx, constants.CONF_CHANNELS)
 	if ok {
 		for _, conf := range arr {
-			name, ok := conf.GetString(constants.CONF_OBJECT_NAME)
+			name, ok := conf.GetString(ctx, constants.CONF_OBJECT_NAME)
 			if !ok {
 				return errors.MissingConf(ctx, constants.CONF_OBJECT_NAME, "Channels", channelName)
 			}
@@ -172,7 +171,7 @@ func (chanMgr *channelManager) processChannel(ctx core.ServerContext, channelCon
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
 	createCtx := ctx.SubContext("Create Channel: " + channelName)
-	parentChannelName, ok := channelConf.GetString(constants.CONF_ENGINE_PARENTCHANNEL)
+	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
 		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
@@ -189,7 +188,7 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 		return errors.WrapError(createCtx, err)
 	}
 	chanMgr.channelStore[channelName] = channel
-	_, childChannels := channelConf.Get(constants.CONF_ENGINE_CHANNELS)
+	_, childChannels := channelConf.Get(createCtx, constants.CONF_ENGINE_CHANNELS)
 	if childChannels {
 		err := chanMgr.createChannels(createCtx, channelConf)
 		if err != nil {

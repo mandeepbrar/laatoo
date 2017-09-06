@@ -4,7 +4,7 @@ package log
 
 import (
 	"laatoo/sdk/components"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"os"
 )
 
@@ -25,9 +25,9 @@ func stdSimpleLogsHandler() WriteHandler {
 type stdSimpleWriteHandler struct {
 }
 
-func (jh *stdSimpleWriteHandler) Print(ctx core.Context, appname string, msg string, level int, strlevel string) {
+func (jh *stdSimpleWriteHandler) Print(ctx ctx.Context, appname string, msg string, level int, strlevel string) {
 	os.Stderr.WriteString(msg)
 }
-func (jh *stdSimpleWriteHandler) PrintBytes(ctx core.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
+func (jh *stdSimpleWriteHandler) PrintBytes(ctx ctx.Context, appname string, msg []byte, level int, strlevel string) (int, error) {
 	return os.Stderr.Write(msg)
 }

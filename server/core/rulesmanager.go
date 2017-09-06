@@ -31,11 +31,11 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 
 	if ok {
 		log.Debug(ruleMgrCtx, "Initializing rules manager")
-		ruleNames := rulesConf.AllConfigurations()
+		ruleNames := rulesConf.AllConfigurations(ruleMgrCtx)
 		for _, ruleName := range ruleNames {
 			ruleCtx := ruleMgrCtx.SubContext("Creating rule" + ruleName)
 			log.Debug(ruleCtx, "Creating rule", "Name", ruleName)
-			ruleConf, err, _ := common.ConfigFileAdapter(ctx, rulesConf, ruleName)
+			ruleConf, err, _ := common.ConfigFileAdapter(ruleCtx, rulesConf, ruleName)
 			if err != nil {
 				return errors.WrapError(ruleCtx, err)
 			}
@@ -70,11 +70,11 @@ func (rm *rulesManager) loadRulesFromDirectory(ctx core.ServerContext, folder st
 }
 
 func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf config.Config, ruleName string) error {
-	triggerType, ok := ruleConf.GetString(constants.CONF_RULE_TRIGGER)
+	triggerType, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_TRIGGER)
 	if !ok {
 		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_TRIGGER)
 	}
-	ruleobj, ok := ruleConf.GetString(constants.CONF_RULE_OBJECT)
+	ruleobj, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_OBJECT)
 	if !ok {
 		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_OBJECT)
 	}
@@ -93,7 +93,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 	}
 	switch triggerType {
 	case constants.CONF_RULE_TRIGGER_ASYNC:
-		msgType, ok := ruleConf.GetString(constants.CONF_RULE_MSGTYPE)
+		msgType, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_MSGTYPE)
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
@@ -114,7 +114,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 		}
 		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
 	case constants.CONF_RULE_TRIGGER_SYNC:
-		msgType, ok := ruleConf.GetString(constants.CONF_RULE_MSGTYPE)
+		msgType, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_MSGTYPE)
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}

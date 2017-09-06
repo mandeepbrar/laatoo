@@ -5,7 +5,7 @@ package log
 import (
 	"bytes"
 	"fmt"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	slog "laatoo/sdk/log"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ func init() {
 	logFormats[CONF_FMT_HAPPYMAXCOLOR] = printHappyMaxColor
 }
 
-func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printHappyMaxColor(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}
@@ -52,7 +52,7 @@ func printHappyMaxColor(ctx core.Context, app string, strlevel string, wh WriteH
 	wh.Print(ctx, app, buffer.String(), level, strlevel)
 }
 
-func printHappyColor(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
+func printHappyColor(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{}) {
 	if len(args)%2 > 0 {
 		panic("wrong logging")
 	}

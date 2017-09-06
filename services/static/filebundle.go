@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"net/http"
@@ -89,9 +90,9 @@ func (svc *BundledFileService) Start(ctx core.ServerContext) error {
 	c, ok := svc.GetConfiguration(ctx, CONF_STATIC_FILEBUNDLES)
 	if ok {
 		bundlesConf := c.(config.Config)
-		bundlenames := bundlesConf.AllConfigurations()
+		bundlenames := bundlesConf.AllConfigurations(ctx)
 		for _, bundlename := range bundlenames {
-			bundleconfig, _ := bundlesConf.GetSubConfig(bundlename)
+			bundleconfig, _ := bundlesConf.GetSubConfig(ctx, bundlename)
 			bundle, err := buildBundle(ctx, bundleconfig)
 			if err != nil {
 				return err
@@ -106,21 +107,21 @@ func (svc *BundledFileService) Start(ctx core.ServerContext) error {
 }
 
 func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, error) {
-	bundlefiles, ok := bundleconfig.GetSubConfig(CONF_STATIC_BUNDLEFILES)
+	bundlefiles, ok := bundleconfig.GetSubConfig(ctx, CONF_STATIC_BUNDLEFILES)
 	if !ok {
 		return nil, nil
 	}
-	minifyStr, _ := bundleconfig.GetString(CONF_STATIC_MINIFY)
+	minifyStr, _ := bundleconfig.GetString(ctx, CONF_STATIC_MINIFY)
 	minify := (minifyStr == "true")
-	cacheStr, _ := bundleconfig.GetString(CONF_STATIC_CACHE)
+	cacheStr, _ := bundleconfig.GetString(ctx, CONF_STATIC_CACHE)
 	cache := (cacheStr == "true")
 	var lastModified *time.Time
-	filenames := bundlefiles.AllConfigurations()
+	filenames := bundlefiles.AllConfigurations(ctx)
 	bundleFiles := make(map[string]*BundledFile, len(filenames))
 	for _, filename := range filenames {
 		log.Trace(ctx, "Reading file for bundle", "Name", filename)
-		fileconfig, _ := bundlefiles.GetSubConfig(filename)
-		path, ok := fileconfig.GetString(CONF_STATIC_FILE_PATH)
+		fileconfig, _ := bundlefiles.GetSubConfig(ctx, filename)
+		path, ok := fileconfig.GetString(ctx, CONF_STATIC_FILE_PATH)
 		if !ok {
 			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_STATIC_FILE_PATH)
 		}
@@ -136,7 +137,7 @@ func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, e
 				lastModified = &fileTime
 			}
 		}
-		info, _ := fileconfig.GetSubConfig(CONF_STATIC_FILE_INFO)
+		info, _ := fileconfig.GetSubConfig(ctx, CONF_STATIC_FILE_INFO)
 		bundledFile, err := buildBundledFile(ctx, path, info, cache, minify)
 		if err != nil {
 			return nil, err
@@ -146,7 +147,7 @@ func buildBundle(ctx core.ServerContext, bundleconfig config.Config) (*Bundle, e
 	return &Bundle{Files: bundleFiles, fullcontent: cache, lastModified: lastModified}, nil
 }
 
-func buildBundledFile(ctx core.Context, path string, info config.Config, readContent bool, minifyfiles bool) (*BundledFile, error) {
+func buildBundledFile(ctx ctx.Context, path string, info config.Config, readContent bool, minifyfiles bool) (*BundledFile, error) {
 	bundledFile := &BundledFile{filepath: path, Info: info}
 	if readContent {
 		content, err := ioutil.ReadFile(path)

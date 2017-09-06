@@ -5,8 +5,6 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
-	"laatoo/server/common"
-	"strings"
 )
 
 type configuration struct {
@@ -65,16 +63,16 @@ const (
 	CONFREQ          = "required"
 )
 
-func buildConfigurableObject(conf config.Config) *configurableObject {
-	co := &configurableObject{objectInfo: buildObjectInfo(conf), configurations: make(map[string]core.Configuration)}
-	confs, ok := conf.GetSubConfig(CONFIGURATIONS)
+func buildConfigurableObject(ctx core.ServerContext, conf config.Config) *configurableObject {
+	co := &configurableObject{objectInfo: buildObjectInfo(ctx, conf), configurations: make(map[string]core.Configuration)}
+	confs, ok := conf.GetSubConfig(ctx, CONFIGURATIONS)
 	if ok {
-		confNames := confs.AllConfigurations()
+		confNames := confs.AllConfigurations(ctx)
 		for _, confName := range confNames {
-			confDesc, _ := confs.GetSubConfig(confName)
-			required, _ := confDesc.GetBool(CONFREQ)
-			conftype, _ := confDesc.GetString(CONFTYPE)
-			defaultValue, _ := confDesc.Get(CONFDEFAULTVALUE)
+			confDesc, _ := confs.GetSubConfig(ctx, confName)
+			required, _ := confDesc.GetBool(ctx, CONFREQ)
+			conftype, _ := confDesc.GetString(ctx, CONFTYPE)
+			defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
 			co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
 		}
 	}
@@ -134,15 +132,11 @@ func (impl *configurableObject) GetConfiguration(ctx core.ServerContext, name st
 	var val interface{}
 	c, found := impl.configurations[name]
 	if !found {
-		val, found = common.LookupContext(ctx, name)
+		return nil, false
 	} else {
 		conf := c.(*configuration)
 		if conf.value != nil {
 			val = conf.value
-			valStr, ok := val.(string)
-			if ok && strings.HasPrefix(valStr, ":") {
-				val, found = common.LookupContext(ctx, valStr[1:])
-			}
 		} else {
 			val = conf.defaultValue
 			found = false
@@ -185,10 +179,11 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 }
 
 func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.Config) error {
+	log.Error(ctx, "Processing Configurations")
 	confs := impl.GetConfigurations()
 	for name, configObj := range confs {
 		configu := configObj.(*configuration)
-		val, ok := conf.Get(name)
+		val, ok := conf.Get(ctx, name)
 
 		if !ok && configu.required {
 			return errors.MissingConf(ctx, name)
@@ -196,42 +191,32 @@ func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.
 		if ok {
 			switch configu.conftype {
 			case "", config.OBJECTTYPE_STRING:
-				val, ok = conf.GetString(name)
+				val, ok = conf.GetString(ctx, name)
 				if ok {
 					configu.value = val
 				}
 			case config.OBJECTTYPE_STRINGMAP:
-				val, ok = conf.GetSubConfig(name)
+				val, ok = conf.GetSubConfig(ctx, name)
 				if ok {
 					configu.value = val
 				}
 			case config.OBJECTTYPE_STRINGARR:
-				val, ok = conf.GetStringArray(name)
+				val, ok = conf.GetStringArray(ctx, name)
 				if ok {
 					configu.value = val
 				}
 			case config.OBJECTTYPE_CONFIG:
-				val, ok = conf.GetSubConfig(name)
+				val, ok = conf.GetSubConfig(ctx, name)
 				if ok {
 					configu.value = val
 				}
 			case config.OBJECTTYPE_BOOL:
-				val, ok = conf.GetBool(name)
+				val, ok = conf.GetBool(ctx, name)
 				if ok {
 					configu.value = val
 				}
 			default:
 				configu.value = val
-			}
-
-			//check if value provided is a variable name..
-			//allow assignment if its a variable name
-			if !ok {
-				strval, _ := conf.GetString(name)
-				if strings.HasPrefix(strval, ":") {
-					configu.value = strval
-					ok = true
-				}
 			}
 
 			//configuration was there but wrong type

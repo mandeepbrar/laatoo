@@ -24,11 +24,11 @@ func (svc *ServiceAggregator) Start(ctx core.ServerContext) error {
 	c, _ := svc.GetConfiguration(ctx, constants.CONF_SERVICES)
 	svcConfig := c.(config.Config)
 	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
-	svcs := svcConfig.AllConfigurations()
+	svcs := svcConfig.AllConfigurations(ctx)
 	svc.serviceMap = make(map[string]server.Service)
 	for _, svcAlias := range svcs {
-		svcConf, _ := svcConfig.GetSubConfig(svcAlias)
-		name, _ := svcConf.GetString("Name")
+		svcConf, _ := svcConfig.GetSubConfig(ctx, svcAlias)
+		name, _ := svcConf.GetString(ctx, "Name")
 		namedsvc, err := svcMgr.GetService(ctx, name)
 		if err != nil {
 			return err

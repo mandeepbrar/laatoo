@@ -15,8 +15,8 @@ func newModuleInfo(description string, configurations []core.Configuration) *mod
 	return f
 }
 
-func buildModuleInfo(conf config.Config) *moduleInfo {
-	return &moduleInfo{buildConfigurableObject(conf)}
+func buildModuleInfo(ctx core.ServerContext, conf config.Config) *moduleInfo {
+	return &moduleInfo{buildConfigurableObject(ctx, conf)}
 }
 
 func (modInfo *moduleInfo) clone() *moduleInfo {

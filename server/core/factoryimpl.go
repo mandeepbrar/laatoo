@@ -15,8 +15,8 @@ func newFactoryInfo(description string, configurations []core.Configuration) *fa
 	return f
 }
 
-func buildFactoryInfo(conf config.Config) *factoryInfo {
-	return &factoryInfo{buildConfigurableObject(conf)}
+func buildFactoryInfo(ctx core.ServerContext, conf config.Config) *factoryInfo {
+	return &factoryInfo{buildConfigurableObject(ctx, conf)}
 }
 func (facInfo *factoryInfo) clone() *factoryInfo {
 	return &factoryInfo{facInfo.configurableObject.clone()}

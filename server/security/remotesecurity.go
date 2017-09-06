@@ -49,19 +49,19 @@ func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminr
 	//map containing roles and permissions
 	rsh.rolePermissions = make(map[string]bool, 50)
 
-	remoteAuthServer, ok := conf.GetString(CONF_SECURITY_REMOTEAUTHSERVER)
+	remoteAuthServer, ok := conf.GetString(ctx, CONF_SECURITY_REMOTEAUTHSERVER)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURITY_REMOTEAUTHSERVER)
 	}
 	rsh.remoteAuthServer = remoteAuthServer
 
-	rolesService, ok := conf.GetString(CONF_SECURITY_REMOTEROLESURL)
+	rolesService, ok := conf.GetString(ctx, CONF_SECURITY_REMOTEROLESURL)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_SECURITY_REMOTEROLESURL)
 	}
 	rsh.rolesService = rolesService
 
-	pvtKeyPath, ok := conf.GetString(config.CONF_PVTKEYPATH)
+	pvtKeyPath, ok := conf.GetString(ctx, config.CONF_PVTKEYPATH)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", config.CONF_PVTKEYPATH)
 	}
@@ -74,7 +74,7 @@ func NewRemoteSecurityHandler(ctx core.ServerContext, conf config.Config, adminr
 		return nil, errors.WrapError(ctx, err)
 	}*/
 
-	domainidentifier, ok := conf.GetString(CONF_SECURITY_DOMAINIDENTIFIER)
+	domainidentifier, ok := conf.GetString(ctx, CONF_SECURITY_DOMAINIDENTIFIER)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "conf", CONF_SECURITY_DOMAINIDENTIFIER)
 	}

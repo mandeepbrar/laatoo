@@ -16,6 +16,7 @@ type serverModule struct {
 	impl        *moduleImpl
 	dir         string
 	name        string
+	moduleName  string
 	objectName  string
 	svrContext  *serverContext
 	services    map[string]config.Config
@@ -27,8 +28,8 @@ type serverModule struct {
 	modSettings config.Config
 }
 
-func newServerModule(ctx core.ServerContext, name, dirpath string, modconf config.Config) *serverModule {
-	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, dir: dirpath, modConf: modconf}
+func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, modconf config.Config) *serverModule {
+	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, moduleName: moduleName, dir: dirpath, modConf: modconf}
 	mod.services = make(map[string]config.Config)
 	mod.factories = make(map[string]config.Config)
 	mod.channels = make(map[string]config.Config)
@@ -77,10 +78,10 @@ func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config, 
 	}
 
 	if env != nil {
-		envvars := env.AllConfigurations()
+		envvars := env.AllConfigurations(ctx)
 		for _, varname := range envvars {
-			varvalue, _ := env.GetString(varname)
-			ctx.SetVariable(varname, varvalue)
+			varvalue, _ := env.GetString(ctx, varname)
+			ctx.Set(varname, varvalue)
 		}
 	}
 
@@ -115,7 +116,7 @@ func (mod *serverModule) start(ctx core.ServerContext) error {
 }
 
 func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
-	factoriesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
+	factoriesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICEFACTORIES)
 
 	if !ok || factoriesEnabled {
 		factories, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICEFACTORIES, true)
@@ -125,7 +126,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
 		mod.factories = common.MergeConfigMaps(mod.factories, factories)
 	}
 
-	servicesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICES)
+	servicesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICES)
 
 	if !ok || servicesEnabled {
 		services, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_SERVICES, true)
@@ -135,7 +136,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
 		mod.services = common.MergeConfigMaps(mod.services, services)
 	}
 
-	channelsEnabled, ok := mod.modSettings.GetBool(constants.CONF_CHANNELS)
+	channelsEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_CHANNELS)
 
 	if !ok || channelsEnabled {
 		channels, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_CHANNELS, true)
@@ -145,7 +146,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
 		mod.channels = common.MergeConfigMaps(mod.channels, channels)
 	}
 
-	rulesEnabled, ok := mod.modSettings.GetBool(constants.CONF_RULES)
+	rulesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_RULES)
 
 	if !ok || rulesEnabled {
 		rules, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_RULES, true)
@@ -155,7 +156,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
 		mod.rules = common.MergeConfigMaps(mod.rules, rules)
 	}
 
-	tasksEnabled, ok := mod.modSettings.GetBool(constants.CONF_TASKS)
+	tasksEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_TASKS)
 	if !ok || tasksEnabled {
 		tasks, err := common.ProcessDirectoryFiles(ctx, mod.dir, constants.CONF_TASKS, true)
 		if err != nil {
@@ -168,35 +169,35 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
 
 func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext) error {
 
-	factoriesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICEFACTORIES)
+	factoriesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICEFACTORIES)
 
 	if !ok || factoriesEnabled {
 		factories := mod.userModule.Factories(ctx)
 		mod.factories = common.MergeConfigMaps(mod.factories, factories)
 	}
 
-	servicesEnabled, ok := mod.modSettings.GetBool(constants.CONF_SERVICES)
+	servicesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICES)
 
 	if !ok || servicesEnabled {
 		services := mod.userModule.Services(ctx)
 		mod.services = common.MergeConfigMaps(mod.services, services)
 	}
 
-	channelsEnabled, ok := mod.modSettings.GetBool(constants.CONF_CHANNELS)
+	channelsEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_CHANNELS)
 
 	if !ok || channelsEnabled {
 		channels := mod.userModule.Channels(ctx)
 		mod.channels = common.MergeConfigMaps(mod.channels, channels)
 	}
 
-	rulesEnabled, ok := mod.modSettings.GetBool(constants.CONF_RULES)
+	rulesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_RULES)
 
 	if !ok || rulesEnabled {
 		rules := mod.userModule.Rules(ctx)
 		mod.rules = common.MergeConfigMaps(mod.rules, rules)
 	}
 
-	tasksEnabled, ok := mod.modSettings.GetBool(constants.CONF_TASKS)
+	tasksEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_TASKS)
 	if !ok || tasksEnabled {
 		tasks := mod.userModule.Tasks(ctx)
 		mod.tasks = common.MergeConfigMaps(mod.tasks, tasks)
@@ -207,7 +208,7 @@ func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext) error {
 func (mod *serverModule) plugins(ctx core.ServerContext) map[string]config.Config {
 	retVal := make(map[string]config.Config)
 	for k, v := range mod.services {
-		isPlugin, _ := v.GetBool(constants.MODULEMGR_PLUGIN)
+		isPlugin, _ := v.GetBool(ctx, constants.MODULEMGR_PLUGIN)
 		if isPlugin {
 			retVal[k] = v
 		}

@@ -26,7 +26,7 @@ func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) e
 	}
 
 	if ok {
-		cacheNames := cacheManagerConf.AllConfigurations()
+		cacheNames := cacheManagerConf.AllConfigurations(ctx)
 		for _, cacheName := range cacheNames {
 			cacheConf, err, _ := common.ConfigFileAdapter(ctx, cacheManagerConf, cacheName)
 			if err != nil {
@@ -62,7 +62,7 @@ func (cm *cacheManager) loadCachesFromDirectory(ctx core.ServerContext, folder s
 }
 
 func (cm *cacheManager) processCache(ctx core.ServerContext, cacheConf config.Config, cacheName string) error {
-	cacheSvcName, ok := cacheConf.GetString(constants.CONF_CACHE_SVC)
+	cacheSvcName, ok := cacheConf.GetString(ctx, constants.CONF_CACHE_SVC)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_CACHE_SVC)
 	}

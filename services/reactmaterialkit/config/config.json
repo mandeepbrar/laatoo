@@ -1,0 +1,24 @@
+{
+  "version":"0.0.1",
+  "dependencies":{
+  },
+  "description":"Module provides material ui kit for laatoo applications",
+  "objects":{
+  },
+  "ui":{
+    "externals":{
+      "babel-runtime":"babel-runtime",
+      "babel-polyfill": "babel-polyfill",
+      "react": "react",      
+      "react-redux": "react-redux",
+      "material-ui":"material-ui",
+      "react-dom": "react-dom"
+    },
+    "packages":{
+      "react": "^15.6.1",
+      "react-redux": "^5.0.6",
+      "material-ui": "^0.16.4",
+      "react-dom":"^15.6.1"
+    }
+  }
+}

@@ -43,9 +43,9 @@ func (msgMgr *messagingManager) Start(ctx core.ServerContext) error {
 }
 
 func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config.Config) error {
-	topicsConf, ok := conf.GetSubConfig(constants.CONF_MESSAGE_TOPICS)
+	topicsConf, ok := conf.GetSubConfig(ctx, constants.CONF_MESSAGE_TOPICS)
 	if ok {
-		topicNames := topicsConf.AllConfigurations()
+		topicNames := topicsConf.AllConfigurations(ctx)
 		for _, topicName := range topicNames {
 			topicConf, err, _ := common.ConfigFileAdapter(ctx, topicsConf, topicName)
 			if err != nil {

@@ -1,21 +1,21 @@
 {
   "channels": [
     {
-      "name":"uiapp.app",
+      "name":"{uiapp.app[.application]}",
       "parent": "root",
       "method": "GET",
-      "service":"uiapp.files",
-      "path": "/app.js",
+      "service":"{uiapp.files[.application]}",
+      "path": "{/app[.application].js}",
       "staticvalues": {
         "file": "app.js"
       }
     },
     {
-      "name":"uiapp.services",
+      "name":"{uiapp.services[.application]}",
       "parent": "root",
       "method": "GET",
-      "service":"uiapp.files",
-      "path": "/services.conf.js",
+      "service":"{uiapp.files[.application]}",
+      "path": "{/services[.application].conf.js}",
       "staticvalues": {
         "file": "services.conf.js"
       }

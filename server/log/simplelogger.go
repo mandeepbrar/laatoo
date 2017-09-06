@@ -2,7 +2,7 @@ package log
 
 import (
 	"laatoo/sdk/components"
-	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	slog "laatoo/sdk/log"
 )
 
@@ -15,11 +15,11 @@ const (
 	STR_FATAL = "Fatal"
 )
 
-type logPrinter func(ctx core.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{})
+type logPrinter func(ctx ctx.Context, app string, strlevel string, wh WriteHandler, level int, msg string, args ...interface{})
 
 type WriteHandler interface {
-	Print(ctx core.Context, app string, msg string, level int, strlevel string)
-	PrintBytes(ctx core.Context, app string, msg []byte, level int, strlevel string) (int, error)
+	Print(ctx ctx.Context, app string, msg string, level int, strlevel string)
+	PrintBytes(ctx ctx.Context, app string, msg []byte, level int, strlevel string) (int, error)
 }
 
 var (
@@ -41,32 +41,32 @@ type SimpleLogger struct {
 	level   int
 }
 
-func (log *SimpleLogger) Trace(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Trace(ctx ctx.Context, msg string, args ...interface{}) {
 	if log.level > slog.DEBUG {
 		log.printer(ctx, log.app, STR_TRACE, log.wh, slog.TRACE, msg, args...)
 	}
 }
-func (log *SimpleLogger) Debug(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Debug(ctx ctx.Context, msg string, args ...interface{}) {
 	if log.level > slog.INFO {
 		log.printer(ctx, log.app, STR_DEBUG, log.wh, slog.DEBUG, msg, args...)
 	}
 }
-func (log *SimpleLogger) Info(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Info(ctx ctx.Context, msg string, args ...interface{}) {
 	if log.level > slog.WARN {
 		log.printer(ctx, log.app, STR_INFO, log.wh, slog.INFO, msg, args...)
 	}
 }
-func (log *SimpleLogger) Warn(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Warn(ctx ctx.Context, msg string, args ...interface{}) {
 	if log.level > slog.ERROR {
 		log.printer(ctx, log.app, STR_WARN, log.wh, slog.WARN, msg, args...)
 	}
 }
-func (log *SimpleLogger) Error(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Error(ctx ctx.Context, msg string, args ...interface{}) {
 	if log.level > slog.FATAL {
 		log.printer(ctx, log.app, STR_ERROR, log.wh, slog.ERROR, msg, args...)
 	}
 }
-func (log *SimpleLogger) Fatal(ctx core.Context, msg string, args ...interface{}) {
+func (log *SimpleLogger) Fatal(ctx ctx.Context, msg string, args ...interface{}) {
 	log.printer(ctx, log.app, STR_FATAL, log.wh, slog.FATAL, msg, args...)
 }
 

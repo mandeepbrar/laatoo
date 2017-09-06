@@ -1,3 +1,4 @@
 {
+  "name":"{uiapp.filesstorage[.application]}",
   "servicemethod":"filesystem"
 }

@@ -27,7 +27,7 @@ func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseD
 	}
 	env.abstractserver = abstractserver
 	svrCtx.Set(constants.RELATIVE_DIR, constants.CONF_ENVIRONMENTS)
-	svrCtx.SetVariable(constants.CONF_APP_ENVIRONMENT, name)
+	svrCtx.Set(constants.CONF_APP_ENVIRONMENT, name)
 	env.proxy = proxy
 	log.Debug(svrCtx, "Created environment", "Name", name)
 	return env, proxy, nil

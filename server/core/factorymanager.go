@@ -84,9 +84,9 @@ func (facMgr *factoryManager) loadFactoriesFromFolder(ctx core.ServerContext, fo
 
 func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, conf config.Config) error {
 	//get a map of all the services
-	allgroups, ok := conf.GetSubConfig(CONF_SERVICEFACTORYGROUPS)
+	allgroups, ok := conf.GetSubConfig(ctx, CONF_SERVICEFACTORYGROUPS)
 	if ok {
-		groups := allgroups.AllConfigurations()
+		groups := allgroups.AllConfigurations(ctx)
 		for _, groupname := range groups {
 			log.Trace(ctx, "Process Service Factory group", "groupname", groupname)
 			facgrpConfig, err, _ := common.ConfigFileAdapter(ctx, allgroups, groupname)
@@ -101,11 +101,11 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 		}
 	}
 	//get a map of all the services
-	factoriesConfig, ok := conf.GetSubConfig(constants.CONF_SERVICEFACTORIES)
+	factoriesConfig, ok := conf.GetSubConfig(ctx, constants.CONF_SERVICEFACTORIES)
 	if !ok {
 		return nil
 	}
-	factories := factoriesConfig.AllConfigurations()
+	factories := factoriesConfig.AllConfigurations(ctx)
 	for _, factoryName := range factories {
 		log.Trace(ctx, "Process Factory ", "Factory name", factoryName)
 		factoryConfig, err, _ := common.ConfigFileAdapter(ctx, factoriesConfig, factoryName)
@@ -123,8 +123,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
 	ctx = ctx.SubContext("Create Service Factory")
-	factoryAlias = common.FillVariables(ctx, factoryAlias)
-	factoryName, ok := factoryConfig.GetString(constants.CONF_SERVICEFACTORY)
+	factoryName, ok := factoryConfig.GetString(ctx, constants.CONF_SERVICEFACTORY)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)
 	}
@@ -181,7 +180,7 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 
 		common.SetupMiddleware(facCtx, factoryConfig)
 
-		cacheToUse, ok := factoryConfig.GetString(constants.CONF_CACHE_NAME)
+		cacheToUse, ok := factoryConfig.GetString(facCtx, constants.CONF_CACHE_NAME)
 		if ok {
 			facCtx.Set("__cache", cacheToUse)
 		}

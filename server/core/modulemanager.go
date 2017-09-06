@@ -44,11 +44,11 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	if ok && fi.IsDir() {
 
 		pendingModules := make(map[string]config.Config)
-		instances := modulesConfig.AllConfigurations()
+		instances := modulesConfig.AllConfigurations(ctx)
 
 		//loop through module instances
 		for _, instance := range instances {
-			instanceConf, _ := modulesConfig.GetSubConfig(instance)
+			instanceConf, _ := modulesConfig.GetSubConfig(ctx, instance)
 			log.Info(ctx, "Loading module instance", "Name", instance)
 
 			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir, pendingModules)
@@ -129,11 +129,11 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 
 func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModules map[string]config.Config) {
 	//retInstances := make(map[string]config.Config)
-	modInstances, ok := instanceConf.GetSubConfig(constants.CONF_MODULES)
+	modInstances, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULES)
 	if ok {
-		instanceNames := modInstances.AllConfigurations()
+		instanceNames := modInstances.AllConfigurations(ctx)
 		for _, subinstanceName := range instanceNames {
-			subInstanceConf, _ := modInstances.GetSubConfig(subinstanceName)
+			subInstanceConf, _ := modInstances.GetSubConfig(ctx, subinstanceName)
 			newInstanceName := fmt.Sprintf("%s->%s", instance, subinstanceName)
 			modMgr.parentModules[newInstanceName] = instance
 			log.Trace(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)
@@ -160,7 +160,7 @@ func (modMgr *moduleManager) getModuleDir(ctx core.ServerContext, modulesDir str
 }
 
 func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string) (config.Config, error) {
-	return common.NewConfigFromFile(path.Join(modDir, constants.CONF_CONFIG_FILE))
+	return config.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_FILE))
 }
 
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
@@ -187,7 +187,7 @@ func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
 		mod := modProxy.(*moduleProxy).mod
 		modPlugins := mod.plugins(ctx)
 		for svcName, pluginConf := range modPlugins {
-			pluginObj, err := svcMgr.getService(ctx, svcName)
+			pluginObj, err := svcMgr.getService(mod.svrContext, svcName)
 			if err != nil {
 				return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
 			}
@@ -202,7 +202,7 @@ func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
 				log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
 				passedMod := passedModProxy.(*moduleProxy).mod
 				passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
-				err := plugin.Load(passedModCtx, passedModName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings)
+				err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings)
 				if err != nil {
 					return errors.WrapError(passedModCtx, err)
 				}

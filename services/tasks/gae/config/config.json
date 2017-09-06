@@ -14,7 +14,7 @@
     "gaetaskconsumer":{
       "description":"Gae consumer service",
       "type":"service"
-    },
+    }
   },
   "params":{
   }

@@ -8,7 +8,6 @@ import (
 	slog "laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/sdk/utils"
-	"laatoo/server/common"
 	"laatoo/server/constants"
 	"path"
 )
@@ -35,7 +34,7 @@ type logger struct {
 }
 
 func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error {
-	logconf, ok := conf.GetSubConfig(constants.CONF_LOGGING)
+	logconf, ok := conf.GetSubConfig(ctx, constants.CONF_LOGGING)
 	if ok {
 		loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
 		lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
@@ -45,7 +44,7 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 		ok, _, _ = utils.FileExists(confFile)
 		var err error
 		if ok {
-			if logconf, err = common.NewConfigFromFile(confFile); err != nil {
+			if logconf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 			loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
@@ -59,15 +58,15 @@ func processConf(ctx core.ServerContext, logconf config.Config) (string, string,
 	loggerType := CONF_STDERR_LOGGER
 	loggingFormat := CONF_FMT_JSON
 	loggingLevel := slog.INFO
-	val, ok := logconf.GetString(CONF_LOGGER_TYPE)
+	val, ok := logconf.GetString(ctx, CONF_LOGGER_TYPE)
 	if ok {
 		loggerType = val
 	}
-	val, ok = logconf.GetString(CONF_LOGGING_FORMAT)
+	val, ok = logconf.GetString(ctx, CONF_LOGGING_FORMAT)
 	if ok {
 		loggingFormat = val
 	}
-	lLevel, ok := logconf.GetString(CONF_LOGGINGLEVEL)
+	lLevel, ok := logconf.GetString(ctx, CONF_LOGGINGLEVEL)
 	if ok {
 		loggingLevel = GetLevel(lLevel)
 	}

@@ -2,7 +2,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
-const autoprefixer = require('autoprefixer');
+//const autoprefixer = require('autoprefixer');
 
 module.exports = {
   resolve: {
@@ -23,8 +23,9 @@ module.exports = {
     loaders: [
       // JavaScript / ES6
       {
-        test: /\.(js|jsx)$/,
-        loader: 'babel-loader'
+        test: /\.(js|jsx)$/,         // Match both .js and .jsx files
+         exclude: /node_modules/,
+         loader: "babel-loader"
       },
       // Images
       // Inline base64 URLs for <=8k images, direct URLs for the rest

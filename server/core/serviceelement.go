@@ -8,7 +8,6 @@ import (
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/codecs"
-	"laatoo/server/common"
 	"laatoo/server/constants"
 	"reflect"
 )
@@ -99,7 +98,7 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 
 	reqInfo := svc.impl.info().GetRequestInfo()
 
-	datatype, _ := common.LookupString(ctx, reqInfo.GetDataType())
+	datatype := reqInfo.GetDataType()
 	switch datatype {
 	case "":
 		svc.dataObjectType = none
@@ -179,7 +178,7 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.
 		return nil
 	}
 	for confName, fieldName := range svcsToInject {
-		svcName, ok := svcconf.GetString(confName)
+		svcName, ok := svcconf.GetString(ctx, confName)
 		if !ok {
 			errors.MissingConf(ctx, confName)
 		}

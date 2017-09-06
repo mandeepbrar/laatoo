@@ -2,5 +2,5 @@
 	"servicemethod":"REGISTRATION",
   "dataobject":"stringmap",
   "user_data_svc":"dataadapter.dataservice.User",
-  "def_role":":defaultrole"
+  "def_role":"{[defaultrole]}"
 }

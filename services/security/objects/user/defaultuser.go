@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/ctx"
 	"laatoo/sdk/errors"
 	"laatoo/sdk/utils"
 	"strings"
@@ -64,7 +65,7 @@ type DefaultUser struct {
 }
 
 //Creates object
-func (usr *DefaultUser) Init(ctx core.Context, args core.MethodArgs) error {
+func (usr *DefaultUser) Init(ctx ctx.Context, args core.MethodArgs) error {
 	usr.SoftDeleteAuditable.Init(ctx, args)
 	if args != nil {
 		id, ok := args["Id"]

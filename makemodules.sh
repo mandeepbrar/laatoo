@@ -12,7 +12,7 @@ modFile=$1
 shift
 
 compile_module() {
-  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1  -e packageFolder=$2  laatoomodulebuilder
+  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e packageFolder=$2 -e skipUIModules=true  laatoomodulebuilder
 }
 
 readarray  modules < $modFile
