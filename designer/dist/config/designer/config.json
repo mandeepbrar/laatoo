@@ -38,7 +38,7 @@
         "level":"trace"
       },
       "settings":{
-        "application":"designerui"
+        "uiapplication":"designerui"
       }
     },
     "designerui":{

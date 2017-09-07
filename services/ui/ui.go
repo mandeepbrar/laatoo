@@ -24,20 +24,22 @@ const (
 	CONF_FILE_DESC   = "descriptor"
 	CONF_APPLICATION = "application"
 	DEPENDENCIES     = "dependencies"
-	MERGED_SVCS_FILE = "services.conf.js"
-	MERGED_UI_FILE   = "app.js"
+	MERGED_SVCS_FILE = "mergeduidescriptor"
+	MERGED_UI_FILE   = "mergeduifile"
 )
 
 type UI struct {
 	core.Service
-	uifile          string
-	descfile        string
-	application     string
-	uiFiles         map[string][]byte
-	uiDeps          map[string][]string
-	insMods         map[string]string
-	insSettings     map[string]config.Config
-	descriptorFiles map[string][]byte
+	uifile             string
+	descfile           string
+	mergeduifile       string
+	mergeduidescriptor string
+	application        string
+	uiFiles            map[string][]byte
+	uiDeps             map[string][]string
+	insMods            map[string]string
+	insSettings        map[string]config.Config
+	descriptorFiles    map[string][]byte
 }
 
 /*
@@ -53,6 +55,8 @@ func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uifile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_UI)
 	svc.descfile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_DESC)
+	svc.mergeduifile, _ = svc.GetStringConfiguration(ctx, MERGED_UI_FILE)
+	svc.mergeduidescriptor, _ = svc.GetStringConfiguration(ctx, MERGED_SVCS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.uiFiles = make(map[string][]byte)
 	svc.insSettings = make(map[string]config.Config)
@@ -69,7 +73,8 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 	}
 
 	app, ok := settings.GetString(ctx, CONF_APPLICATION)
-	if ok && svc.application != app {
+	if app != "" && svc.application != app {
+		log.Debug(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
 
@@ -77,7 +82,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 	if !modRead {
 		uifile := path.Join(dir, FILES_DIR, svc.uifile)
-		log.Error(ctx, " UI file", "*****************", svc.uifile)
 		ok, _, _ = utils.FileExists(uifile)
 		if ok {
 			cont, err := ioutil.ReadFile(uifile)
@@ -118,7 +122,6 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 	uiFileCont := new(bytes.Buffer)
 
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
-	log.Error(ctx, "base directory of module", "files", baseDir)
 	almondjsfile := path.Join(baseDir, FILES_DIR, "almond.js")
 	almondjs, err := ioutil.ReadFile(almondjsfile)
 	if err != nil {
@@ -155,16 +158,16 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 		descFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), insName, svc.application))
 	}
 
-	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Name: %s, Services:{}, Actions:{}}; var app=require('%s'); app.StartApplication();}", svc.application, svc.application)
+	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Name: '%s', Services:{}, Actions:{}}; var app=require('%s'); console.log(app); app.StartApplication();}", svc.application, svc.application)
 	descFileCont.WriteString(initFunc)
 
-	uifile := path.Join(baseDir, FILES_DIR, MERGED_UI_FILE)
+	uifile := path.Join(baseDir, FILES_DIR, svc.mergeduifile)
 	err = ioutil.WriteFile(uifile, uiFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	descfile := path.Join(baseDir, FILES_DIR, MERGED_SVCS_FILE)
+	descfile := path.Join(baseDir, FILES_DIR, svc.mergeduidescriptor)
 	err = ioutil.WriteFile(descfile, descFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)

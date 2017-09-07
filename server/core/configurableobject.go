@@ -179,7 +179,7 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 }
 
 func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.Config) error {
-	log.Error(ctx, "Processing Configurations")
+	log.Trace(ctx, "Processing Configurations")
 	confs := impl.GetConfigurations()
 	for name, configObj := range confs {
 		configu := configObj.(*configuration)

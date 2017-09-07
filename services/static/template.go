@@ -46,7 +46,7 @@ func (svc *TemplateFileService) Initialize(ctx core.ServerContext, conf config.C
 
 func (svc *TemplateFileService) Start(ctx core.ServerContext) error {
 	mymethod := func(variable string) string {
-		val, _ := svc.GetStringConfiguration(ctx, variable)
+		val, _ := ctx.GetString(variable)
 		return val
 	}
 	funcMap := template.FuncMap{"var": mymethod}

@@ -11,8 +11,8 @@
 <body>
   <div id="app">APPLICATION CONTENT</div>
 
-  <script type="text/javascript" src="/app.{{var "application"}}.js"></script>
-  <script type="text/javascript" src="/services.{{var "application"}}.conf.js"></script>
+  <script type="text/javascript" src="/app.{{var "uiapplication"}}.js"></script>
+  <script type="text/javascript" src="/services.{{var "uiapplication"}}.conf.js"></script>
   <script type="text/javascript">
   <!--
 

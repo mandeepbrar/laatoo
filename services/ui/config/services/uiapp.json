@@ -2,6 +2,7 @@
   "name":"{uiapp[.application]}",
   "servicemethod":"ui",
   "ModuleManagerPlugin": true,
-  "uifile":"{[uifile]}",
-  "descriptor":"{[descriptor]}"
+  "mergeduifile":"{app[.application].js}",
+  "mergeduidescriptor":"{services[.application].conf.js}",
+  "application":"{[application]}"
 }
