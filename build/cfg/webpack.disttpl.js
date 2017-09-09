@@ -13,11 +13,6 @@ const GLOBALS = {
 
 module.exports = merge(config, {
   devtool: 'cheap-module-source-map',
-  entry: {
-    index: [
-      'index'
-    ]
-  },
   plugins: [
     // Avoid publishing files when compilation fails
     new webpack.NoErrorsPlugin(),

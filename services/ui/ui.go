@@ -18,14 +18,15 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 }
 
 const (
-	UI_SVC           = "ui"
-	FILES_DIR        = "files"
-	CONF_FILE_UI     = "uifile"
-	CONF_FILE_DESC   = "descriptor"
-	CONF_APPLICATION = "application"
-	DEPENDENCIES     = "dependencies"
-	MERGED_SVCS_FILE = "mergeduidescriptor"
-	MERGED_UI_FILE   = "mergeduifile"
+	UI_SVC             = "ui"
+	FILES_DIR          = "files"
+	CONF_FILE_UI       = "uifile"
+	CONF_FILE_DESC     = "descriptor"
+	CONF_APPLICATION   = "application"
+	DEPENDENCIES       = "dependencies"
+	MERGED_SVCS_FILE   = "mergeduidescriptor"
+	MERGED_VENDOR_FILE = "mergedvendorfile"
+	MERGED_UI_FILE     = "mergeduifile"
 )
 
 type UI struct {
@@ -33,13 +34,16 @@ type UI struct {
 	uifile             string
 	descfile           string
 	mergeduifile       string
+	mergedvendorfile   string
 	mergeduidescriptor string
 	application        string
 	uiFiles            map[string][]byte
-	uiDeps             map[string][]string
+	vendorFiles        map[string][]byte
+	modDeps            map[string][]string
 	insMods            map[string]string
 	insSettings        map[string]config.Config
 	descriptorFiles    map[string][]byte
+	requiredUIPkgs     utils.StringSet
 }
 
 /*
@@ -56,13 +60,16 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uifile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_UI)
 	svc.descfile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_DESC)
 	svc.mergeduifile, _ = svc.GetStringConfiguration(ctx, MERGED_UI_FILE)
+	svc.mergedvendorfile, _ = svc.GetStringConfiguration(ctx, MERGED_VENDOR_FILE)
 	svc.mergeduidescriptor, _ = svc.GetStringConfiguration(ctx, MERGED_SVCS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.uiFiles = make(map[string][]byte)
+	svc.vendorFiles = make(map[string][]byte)
 	svc.insSettings = make(map[string]config.Config)
 	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
-	svc.uiDeps = make(map[string][]string)
+	svc.modDeps = make(map[string][]string)
+	svc.requiredUIPkgs = utils.NewStringSet([]string{})
 	return nil
 }
 
@@ -89,13 +96,32 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 				return errors.WrapError(ctx, err)
 			}
 
-			uiDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
+			modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
 			if ok {
-				svc.uiDeps[modName] = uiDeps.AllConfigurations(ctx)
+				svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
+			}
+
+			ui, ok := modConf.GetSubConfig(ctx, "ui")
+			if ok {
+				pkgs, ok := ui.GetSubConfig(ctx, "packages")
+				if ok {
+					pkgNames := pkgs.AllConfigurations(ctx)
+					svc.requiredUIPkgs.Append(pkgNames)
+				}
 			}
 
 			svc.uiFiles[modName] = cont
 			modRead = true
+		}
+
+		vendorfile := path.Join(dir, FILES_DIR, "vendor.js")
+		ok, _, _ = utils.FileExists(vendorfile)
+		if ok {
+			cont, err := ioutil.ReadFile(vendorfile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.vendorFiles[modName] = cont
 		}
 
 		descfile := path.Join(dir, FILES_DIR, svc.descfile)
@@ -120,46 +146,91 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
 	uiFileCont := new(bytes.Buffer)
+	descFileCont := new(bytes.Buffer)
+	vendorFileCont := new(bytes.Buffer)
+	_, err := vendorFileCont.WriteString(fmt.Sprintf("document.InitConfig={Name: '%s', Services:{}, Actions:{}};", svc.application))
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
+
 	almondjsfile := path.Join(baseDir, FILES_DIR, "almond.js")
 	almondjs, err := ioutil.ReadFile(almondjsfile)
 	if err != nil {
 		return errors.WrapError(ctx, err, "basedir", baseDir)
 	}
-	_, err = uiFileCont.Write(almondjs)
+	_, err = vendorFileCont.Write(almondjs)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	/*
+		err = svc.writeDependenciesSourceFile(ctx, baseDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	*/
+	for mod, cont := range svc.vendorFiles {
+		_, err = vendorFileCont.Write(cont)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		initStr := "var k=require('%s_vendor'); if(k && k.Initialize) {k.Initialize('%s',{},define);}"
+		_, err = vendorFileCont.WriteString(fmt.Sprintf(initStr, mod, svc.application))
+	}
+
+	/*
+		deps := svc.requiredUIPkgs.Values()
+		log.Info(ctx, "UI Packages required", "pkgs", deps)
+		vendorFileCont.WriteString("var k = require('designerdependencies'); console.log(k);")
+		for _, pkg := range deps {
+			defineStr := "define('%s',[],function(){console.log('defined %s');var l= window['%s'];console.log(l);return l});"
+			_, err = vendorFileCont.WriteString(fmt.Sprintf(defineStr, pkg, pkg, pkg))
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}*/
 
 	filesWritten := make(map[string]bool)
 	for name, _ := range svc.uiFiles {
 		err := svc.appendContent(ctx, name, uiFileCont, filesWritten)
 		if err != nil {
-			return err
+			return errors.WrapError(ctx, err)
 		}
 	}
 
-	descFileCont := new(bytes.Buffer)
-	for _, cont := range svc.descriptorFiles {
-		_, err := descFileCont.Write(cont)
+	for name, _ := range filesWritten {
+		_, err = uiFileCont.WriteString("var l=require('" + name + "'); console.log('" + name + "',l);")
 		if err != nil {
 			return err
 		}
 	}
 
-	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { console.log('Initializing %s'); m.Initialize(%s, conf); } return m; })"
+	for _, cont := range svc.descriptorFiles {
+		_, err := descFileCont.Write(cont)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
+	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; console.log('app module', m); if(m.Initialize) { console.log('Initializing %s'); m.Initialize('%s', conf, define, require); } return m; });"
 
 	for insName, settings := range svc.insSettings {
 		settingsStr, err := json.Marshal(settings)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		descFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), insName, svc.application))
+		uiFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), insName, svc.application))
 	}
 
-	initFunc := fmt.Sprintf("function InitializeApplication(){document.InitConfig={Name: '%s', Services:{}, Actions:{}}; var app=require('%s'); console.log(app); app.StartApplication();}", svc.application, svc.application)
+	initFunc := fmt.Sprintf("function InitializeApplication(){var app=require('%s'); console.log(app); app.StartApplication();};", svc.application)
 	descFileCont.WriteString(initFunc)
+
+	vendorfile := path.Join(baseDir, FILES_DIR, svc.mergedvendorfile)
+	err = ioutil.WriteFile(vendorfile, vendorFileCont.Bytes(), 0755)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	uifile := path.Join(baseDir, FILES_DIR, svc.mergeduifile)
 	err = ioutil.WriteFile(uifile, uiFileCont.Bytes(), 0755)
@@ -176,9 +247,33 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 	return nil
 }
 
+/*/
+func (svc *UI) writeDependenciesSourceFile(ctx core.ServerContext, baseDir string) error {
+	deps := svc.requiredUIPkgs.Values()
+	depsStr, err := json.Marshal(deps)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	srcFile := "var deps=%s;var retVal={}; deps.forEach(function(k){var m = require(k); retVal[k]=m;});module.exports=retVal;"
+
+	srcfile := path.Join(baseDir, "src", "index.js")
+	srcCont := fmt.Sprintf(srcFile, depsStr)
+	err = ioutil.WriteFile(srcfile, []byte(srcCont), 0755)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}*/
+
 func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buffer, writtenMods map[string]bool) error {
 	log.Info(ctx, "Appending module content ", "Name", name)
-	deps := svc.uiDeps[name]
+
+	cont, uiprs := svc.uiFiles[name]
+	if !uiprs {
+		return nil
+	}
+
+	deps := svc.modDeps[name]
 	for _, dep := range deps {
 		_, ok := writtenMods[dep]
 		if !ok {
@@ -188,10 +283,10 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
 			}
 		}
 	}
-	cont, ok := svc.uiFiles[name]
+	/*cont, ok := svc.uiFiles[name]
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module ", name)
-	}
+	}*/
 	_, err := buf.Write(cont)
 	if err == nil {
 		writtenMods[name] = true

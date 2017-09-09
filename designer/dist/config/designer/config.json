@@ -31,6 +31,27 @@
       "settings":{
       }
     },
+    "reactwebrouter": {
+      "module":"reactwebrouter"
+    },
+    "reactmaterialkit": {
+      "module":"reactmaterialkit"
+    },
+    "dependencies": {
+      "module":"designerdependencies"
+    },
+    "dashboard": {
+      "module":"dashboardtheme"
+    },
+    "designerapplication": {
+      "module":"reactapplication",
+      "settings":{
+        "application":"designerapplication",
+        "router":"reactwebrouter",
+        "uikit":"reactmaterialkit",
+        "theme":"dashboard"
+      }
+    },
     "shell": {
       "module":"shell",
       "logging": {
@@ -38,11 +59,11 @@
         "level":"trace"
       },
       "settings":{
-        "uiapplication":"designerui"
+        "uiapplication":"designerapplication",
+        "uidependencies":{
+          "react":""
+        }
       }
-    },
-    "designerui":{
-      "module":"designerui"
     },
     "publicdirserver":{
       "module":"publicdirserver",

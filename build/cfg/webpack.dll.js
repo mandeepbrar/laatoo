@@ -2,25 +2,45 @@
 
 const path = require('path');
 const webpack = require('webpack');
-//const autoprefixer = require('autoprefixer');
-const dependencies = require('./DependenciesPlugin');
+
+const config = require('/nodemodules/dll.json');
 
 module.exports = {
+  entry: {
+    vendor: config.packages
+  },
+  output: {
+      filename: 'vendor.js',
+      path: '/nodemodules/dll'
+  },
   resolve: {
      modules: [
-       './src',
        '/nodemodules/node_modules'
      ],
      alias: {
      },
      extensions: ['.js', '.jsx', '.json', '.scss', '.css', '.sass']
    },
-
   resolveLoader: {
     modules: [
       '/nodemodules/node_modules'
     ]
   },
+  plugins:[
+    new webpack.DllPlugin({
+        name: 'vendor',
+        path: '/nodemodules/dll/vendor-manifest.json',
+      }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      output: {
+        comments: false
+      },
+      sourceMap: false
+    })      
+  ],
   module: {
     loaders: [
       // JavaScript / ES6

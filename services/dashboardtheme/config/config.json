@@ -6,6 +6,7 @@
   "objects":{
   },
   "ui":{
+    "skipUIModules":true,
     "externals":{
       "babel-runtime":"babel-runtime",
       "babel-polyfill": "babel-polyfill",

@@ -57,24 +57,57 @@ function buildUI(nextTask) {
   compileWebUI(function() {
     log("Copying UI files")
     fs.mkdirsSync(filesFolder)
-    fs.copySync(path.join(uiFolder, "dist/scripts/index.js"), path.join(filesFolder, "webui.js"))
+    if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/index.js'))) {
+      fs.copySync(path.join(uiFolder, "dist/scripts/index.js"), path.join(filesFolder, "webui.js"))
+    }
+    if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/vendor.js'))) {
+      fs.copySync(path.join(uiFolder, "dist/scripts/vendor.js"), path.join(filesFolder, "vendor.js"))
+    }
     nextTask()
   });
 }
+/*
+function buildDll(nextTask) {
+  if (modConfig.ui && modConfig.ui.buildDll) {
+    let config = require(path.join(buildFolder, 'cfg/webpack.dll'))
 
+    let compiler = webpack(config)
+
+    fs.removeSync(path.join(nodeModulesFolder,'dll'))
+
+    log("Removed directory dll")
+
+    fs.mkdirsSync(path.join(nodeModulesFolder,'dll'))
+
+    compiler.run(function(err, stats) {
+      if(stats.compilation.errors.length != 0) {
+        console.log("Errors: ", stats.compilation.errors);
+      }
+      nextTask()
+    });
+
+  } else {
+    nextTask()
+  }
+}*/
 
 function compileWebUI(nextTask) {
-  let config = {}
 
   let configFunc = require(path.join(buildFolder, 'cfg/webpack.lib'))
 
   let externals = modConfig.ui? modConfig.ui.externals:null
 
-  config = configFunc({
+  let options = {
     library: name,
     uifolder: uiFolder,
     externals: externals
-  })
+  }
+
+  if(modConfig.ui && modConfig.ui.packages && modConfig.ui.buildDependencies ) {
+    options.dependencies = modConfig.ui.packages
+  }
+
+  let config = configFunc(options)
   if (fs.pathExistsSync(path.join(uiFolder, 'build.js'))) {
     let custom = require(path.join(uiFolder, 'build'))
     if (custom.config!=nil) {
@@ -132,9 +165,17 @@ function compileWebUI(nextTask) {
 
   log("Starting compilation", __dirname)
   compiler.run(function(err, stats) {
-    if(stats.compilation.errors.length != 0) {
+    if(stats && stats.compilation ) {
       console.log("Errors: ", stats.compilation.errors);
+      //console.log(stats.compilation)
+    } else {
+      if(stats.stats) {
+        stats.stats.forEach(function(stat) {
+          console.log("Errors: ", stat.compilation.errors);
+        })
+      }
     }
+
     nextTask()
   });
 }
@@ -282,6 +323,10 @@ function startTask(taskName) {
     func = buildObjects
     nextTask = "uicompile"
   }
+  /*if ( taskName === "builddll" ){
+    func = buildDll
+    nextTask = "uicompile"
+  }*/
   if (taskName === "uicompile" ){
     func = buildUI
     nextTask = "copyfiles"

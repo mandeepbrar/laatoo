@@ -3,10 +3,14 @@ import {Application, createAction, createStore, Sagas, history, Window} from 're
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
 
+function runSagas(sagaMiddleware, sagas) {
+  sagas.map((x,i)=> {
+    sagaMiddleware.run(x);
+  })
+}
 
-
-export default () => {
-  reducers = Application.Reducers
+function configureStore() {
+  let reducers = Application.Reducers
   if(!reducers) {
     reducers = {};
   }
@@ -20,12 +24,16 @@ export default () => {
 
 
   // mount it on the Store
-  const store = redux.createStore(redux.combineReducers(reducers), initialState, enhancers);
+  const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
 
   // then run the saga
   runSagas(sagaMiddleware, Application.Sagas);
   return store;
 }
+
+
+export default configureStore
+
 /*
 module.exports = function(reducers, initialState, middleware, sagas, enhancers) {
   const store = createStore(reducers, initialState, middleware, [Sagas.LoginSaga, Sagas.ViewSaga, Sagas.GroupLoadSaga, Sagas.EntitySaga, MehfilSaga, PostSaga, MediaSaga, CommentsSaga, ArticleSaga, MiscSaga, ...sagas], enhancers);

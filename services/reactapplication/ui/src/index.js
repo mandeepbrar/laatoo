@@ -1,11 +1,13 @@
 import React from 'react';
 import { Application, Window, Sagas, createAction, Storage } from 'reactuibase'
 import {Actions} from './actions'
-import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import configureStore from './stores';
 
-function Initialize(appname, settings) {
+this.appname = 'application';
+this.settings = {};
+
+function Initialize(app, s, def, req) {
   //anonymous permissions
   if(!Storage.permissions) {
     Storage.permissions= settings.defaultPermissions;
@@ -17,22 +19,42 @@ function Initialize(appname, settings) {
       "View Article"
     ]*/
   }
-  if(settings.application === appname) {
-    Window.StartApplication = function() {
-      const store = configureStore();
-      createMessageDialogs()
-      let router = require(settings.router)
-      router.connect(store);
-      let uikit = require(settings.uikit)
-      let theme = React.createElement(settings.theme)
-      uikit.render(
-        <Provider store={store}>
-          <uikit.Dialogs/>
-          <theme/>
-        </Provider>
-      );
-    }
+  if(s.application === app) {
+    this.appname = app;
+    this.settings = s;
   }
+  this.req = req
+}
+
+function StartApplication() {
+  console.log("Starting application ", this.appname, this.settings)
+  let {router, uikit, theme} = this.settings;
+  console.log("router", router, "uikit", uikit)
+  const store = configureStore();
+  console.log("store", store);
+
+  createMessageDialogs(store)
+  let Router = this.req(router)
+  if(Router.default) {
+    Router = Router.default
+  }
+  Router.connect(store);
+  let Uikit = this.req(uikit)
+  if(Uikit.default) {
+    Uikit = Uikit.default
+  }
+  let ThemeMod = this.req(theme)
+  if(ThemeMod.default) {
+    ThemeMod = ThemeMod.default
+  }
+  let Theme = ThemeMod.Theme
+  //let theme = React.createElement(settings.theme)
+//  <theme/>
+  Uikit.render(
+    <Provider store={store}>
+      <Theme uikit={Uikit}/>
+    </Provider>, document.getElementById('app')
+  );
 }
 
 function createMessageDialogs(store) {
@@ -60,6 +82,7 @@ function createMessageDialogs(store) {
 }
 
 
-export default {
-  Initialize
+export {
+  Initialize,
+  StartApplication
 }

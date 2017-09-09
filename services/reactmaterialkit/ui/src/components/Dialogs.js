@@ -57,6 +57,9 @@ class DialogHandler extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => {
+  if(!state.Dialogs ) {
+    return {}
+  }
   if(!state.Dialogs.Content) {
     return {
       time: state.Dialogs.Time

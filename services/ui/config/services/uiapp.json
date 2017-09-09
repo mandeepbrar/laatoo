@@ -4,5 +4,6 @@
   "ModuleManagerPlugin": true,
   "mergeduifile":"{app[.application].js}",
   "mergeduidescriptor":"{services[.application].conf.js}",
+  "mergedvendorfile":"{vendor[.application].js}",
   "application":"{[application]}"
 }

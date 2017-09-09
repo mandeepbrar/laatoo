@@ -16,12 +16,14 @@ import (
 const (
 	CONF_STATIC_TEMPFILEDIR       = "templatefilesdirectory"
 	CONF_STATIC_PROCESSEDFILESDIR = "processedfilesdirectory"
+	CONF_FILES                    = "files"
 )
 
 type TemplateFileService struct {
 	core.Service
 	tempFilesDir string
 	procFilesDir string
+	filesMap     config.Config
 }
 
 func (svc *TemplateFileService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -41,15 +43,32 @@ func (svc *TemplateFileService) Initialize(ctx core.ServerContext, conf config.C
 	} else {
 		svc.procFilesDir = svc.tempFilesDir
 	}
-	return nil
+	filesMap, ok := svc.GetMapConfiguration(ctx, CONF_FILES)
+	if ok {
+		svc.filesMap = filesMap
+	}
+
+	return svc.processTemplates(ctx)
 }
 
-func (svc *TemplateFileService) Start(ctx core.ServerContext) error {
-	mymethod := func(variable string) string {
+func (svc *TemplateFileService) processTemplates(ctx core.ServerContext) error {
+	contextVar := func(variable string) string {
 		val, _ := ctx.GetString(variable)
 		return val
 	}
-	funcMap := template.FuncMap{"var": mymethod}
+	fileContent := func(fileIdentifier string) string {
+		if svc.filesMap != nil {
+			depPath, _ := svc.filesMap.GetString(ctx, fileIdentifier)
+			depContent, err := ioutil.ReadFile(depPath)
+			if err != nil {
+				return "File Not found" + depPath
+			}
+			return string(depContent)
+		} else {
+			return "Files map not provided"
+		}
+	}
+	funcMap := template.FuncMap{"var": contextVar, "file": fileContent}
 	return filepath.Walk(svc.tempFilesDir, func(filepath string, f os.FileInfo, err error) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)

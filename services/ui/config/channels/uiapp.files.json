@@ -19,6 +19,16 @@
       "staticvalues": {
         "file": "services.conf.js"
       }
+    },
+    {
+      "name":"{uiapp.vendor[.application]}",
+      "parent": "root",
+      "method": "GET",
+      "service":"{uiapp.files[.application]}",
+      "path": "{/vendor[.application].js}",
+      "staticvalues": {
+        "file": "vendor.js"
+      }
     }
   ]
 }

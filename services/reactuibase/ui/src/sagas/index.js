@@ -9,9 +9,3 @@ export const Sagas = {
   GroupLoadSaga: groupLoadSaga,
   EntitySaga: entitySaga
 };
-
-export function runSagas(sagaMiddleware, sagas) {
-  sagas.map((x,i)=> {
-    sagaMiddleware.run(x);
-  })
-}

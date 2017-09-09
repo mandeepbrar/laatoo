@@ -9,6 +9,10 @@
     "services.conf.js": {
       "cache": "true",
       "path": "{services[.application].conf.js}"
+    },
+    "vendor.js": {
+      "cache": "true",
+      "path": "{vendor[.application].js}"
     }
   },
   "storage": "{uiapp.filesstorage[.application]}"

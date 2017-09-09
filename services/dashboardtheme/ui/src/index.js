@@ -7,6 +7,7 @@ function Initialize(appName, settings) {
 
 class DashboardTheme extends React.Component {
   render() {
+    console.log("props of dashboard theme", this.props)
     return (
       <div className="dashboard ">
         <div className="row">
