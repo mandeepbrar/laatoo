@@ -1,6 +1,7 @@
 {
   "version":"0.0.1",
   "dependencies":{
+    "reactwebcommon":">=0.0.1"
   },
   "description":"Module provides dashboard theme for laatoo applications",
   "objects":{
@@ -12,14 +13,18 @@
       "babel-polyfill": "babel-polyfill",
       "react": "react",
       "react-redux": "react-redux",
-      "react-bootstrap":"react-bootstrap",
-      "react-dom": "react-dom"
+      "react-dom": "react-dom",
+      "reactwebcommon": "reactwebcommon"
     },
     "packages":{
       "react": "^15.6.1",
       "react-redux": "^5.0.6",
-      "react-bootstrap": "^0.31.0",
       "react-dom":"^15.6.1"
+    },
+    "settings": {
+      "headerimage":"Image used for header",
+      "headertitle":"Title used in header",
+      "headerclass":"Style to be used in header"
     }
   }
 }

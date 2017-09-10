@@ -11,6 +11,15 @@ const GLOBALS = {
   __DEV__: JSON.stringify(JSON.parse(process.env.DEBUG || 'false'))
 };
 
+let cssaliases = {
+  "common": "/nodemodules/node_modules/reactwebcommon/files/app"
+}
+let cssoptions = {
+  includePaths: [
+    path.resolve("/nodemodules/node_modules/")
+  ],
+  alias: cssaliases
+}
 module.exports = merge(config, {
   devtool: 'cheap-module-source-map',
   plugins: [
@@ -31,7 +40,7 @@ module.exports = merge(config, {
       debug: false
     }),
     new ExtractTextPlugin({
-      filename: 'css/app.css',
+      filename: 'dist/css/app.css',
       allChunks: true
     })
   ],
@@ -44,8 +53,9 @@ module.exports = merge(config, {
         loader: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-            { loader: 'css-loader', query: { sourceMap: true } },
-            { loader: 'sass-loader', query: { outputStyle: 'compressed' } }
+            { loader: 'css-loader', options: merge({ sourceMap: true }, cssoptions) },
+            { loader: 'resolve-url-loader'},
+            { loader: 'sass-loader', options: merge({ outputStyle: 'compressed'}, cssoptions ) }
           ]
         })
       },
@@ -54,8 +64,9 @@ module.exports = merge(config, {
         loader: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-            { loader: 'css-loader', query: { sourceMap: true } },
-            { loader: 'sass-loader', query: { outputStyle: 'compressed' } }
+            { loader: 'css-loader', options: merge( { sourceMap: true }, cssoptions) },
+            { loader: 'resolve-url-loader'},
+            { loader: 'sass-loader', options: merge( { outputStyle: 'compressed' }, cssoptions) }
           ]
         })
       },
@@ -63,7 +74,10 @@ module.exports = merge(config, {
         test: /\.css$/,
         loader: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: ['css-loader']
+          use: [
+             { loader: 'css-loader', options: cssoptions },
+             { loader: 'resolve-url-loader'}
+          ]
         })
       }
     ]

@@ -63,6 +63,9 @@ function buildUI(nextTask) {
     if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/vendor.js'))) {
       fs.copySync(path.join(uiFolder, "dist/scripts/vendor.js"), path.join(filesFolder, "vendor.js"))
     }
+    if (fs.pathExistsSync(path.join(uiFolder, 'dist/css/app.css'))) {
+      fs.copySync(path.join(uiFolder, "dist/css/app.css"), path.join(filesFolder, "app.css"))
+    }
     nextTask()
   });
 }
@@ -151,6 +154,12 @@ function compileWebUI(nextTask) {
           fs.mkdirsSync(dest)
           fs.copySync(uiSrc, path.join(dest, "index.js"))
         }
+        let uicss = path.join(modPath, "files", "app.css")
+        if (fs.pathExistsSync(uicss)) {
+          let dest = path.join(nodeModulesFolder, "node_modules", pkg)
+          fs.mkdirsSync(dest)
+          fs.copySync(uicss, path.join(dest, "app.css"))
+        }
       }
     });
   }
@@ -184,7 +193,12 @@ function getUIModules() {
   let silent = argv.verbose?"":"-s";
   if (fs.pathExistsSync(path.join(nodeModulesFolder,'package.json'))) {
     log("Installing package json from nodemodules")
-    var command = sprintf('cd %s && npm i %s --prefix %s', nodeModulesFolder, silent, nodeModulesFolder)
+    try {
+      let wd = process.cwd();
+      process.chdir(nodeModulesFolder);
+      var command = sprintf('npm i %s', silent)
+      process.chdir(wd);
+    } catch(ex){}
     log("Command ", command)
     if (shell.exec(command).code !== 0) {
       shell.echo('Get package failed');
@@ -193,6 +207,18 @@ function getUIModules() {
   } else {
     console.log("No package json in nodemodules")
   }
+
+  try {
+    let wd = process.cwd();
+    process.chdir(nodeModulesFolder);
+    if (shell.exec("npm rebuild node-sass").code !== 0) {
+      shell.echo('npm rebuild failed');
+      shell.exit(1);
+    } else {
+      log("Npm rebuild sass successfull");
+    }
+    process.chdir(wd);
+  } catch(ex){}
 
   if(modConfig.ui!=null && modConfig.ui.packages !=null) {
     log("Installing package json from plugin", modConfig.ui.packages)

@@ -21,6 +21,16 @@
       }
     },
     {
+      "name":"{uiapp.style[.application]}",
+      "parent": "root",
+      "method": "GET",
+      "service":"{uiapp.files[.application]}",
+      "path": "{/app[.application].css}",
+      "staticvalues": {
+        "file": "app.css"
+      }
+    },
+    {
       "name":"{uiapp.vendor[.application]}",
       "parent": "root",
       "method": "GET",

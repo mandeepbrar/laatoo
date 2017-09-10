@@ -1,0 +1,11 @@
+@import 'reactwebcommon/app';
+
+.dashboard {
+  @extend .w100;
+  .header {
+    @extend .w100;
+    .title {
+      @extend .end-xs;
+    }
+  }
+}

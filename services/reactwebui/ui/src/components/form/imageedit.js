@@ -1,7 +1,7 @@
 import t from 'tcomb-form';
 import React from 'react';
 import Dropzone from 'react-dropzone';
-import {Image} from '../ui/Image'
+import {Image} from 'reactwebcommon'
 import {  Response,  DataSource,  RequestBuilder } from 'reactuibase';
 
 

@@ -9,9 +9,6 @@ import {ViewFilter} from './components/view/Filter';
 import {WebTableView} from './components/view/WebTableView';
 import {WebView} from './components/view/WebView';
 import {WebListView} from './components/view/WebListView';
-import {Image} from './components/ui/Image';
-import {Html} from './components/ui/Html';
-import {ScrollListener} from './components/ui/ScrollListener';
 import {Action} from './components/action/Action';
 import {Router} from 'redux-director'
 import './styles/App.css';
@@ -50,12 +47,9 @@ module.exports = {
     Action: Action,
     TextEdit: TextEdit,
     RichEdit: RichEdit,
-    ScrollListener: ScrollListener,
     WebView: WebView,
     WebListView: WebListView,
     ListView: WebListView,
-    Html : Html,
-    Image: Image,
     ImageChooser: ImageChooser,
     ImageEdit: ImageEdit,
     redirect: Router.redirect,

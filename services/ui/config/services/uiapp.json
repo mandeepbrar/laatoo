@@ -3,6 +3,7 @@
   "servicemethod":"ui",
   "ModuleManagerPlugin": true,
   "mergeduifile":"{app[.application].js}",
+  "mergedcssfile":"{app[.application].css}",
   "mergeduidescriptor":"{services[.application].conf.js}",
   "mergedvendorfile":"{vendor[.application].js}",
   "application":"{[application]}"

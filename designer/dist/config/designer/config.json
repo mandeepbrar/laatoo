@@ -37,11 +37,21 @@
     "reactmaterialkit": {
       "module":"reactmaterialkit"
     },
+    "reactwebcommon": {
+      "module":"reactwebcommon"
+    },
+    "reactuibase": {
+      "module":"reactuibase"
+    },
     "dependencies": {
       "module":"designerdependencies"
     },
     "dashboard": {
-      "module":"dashboardtheme"
+      "module":"dashboardtheme",
+      "settings":{
+        "application":"designerapplication",
+        "headertitle":"My Dashboard"
+      }
     },
     "designerapplication": {
       "module":"reactapplication",
@@ -54,10 +64,6 @@
     },
     "shell": {
       "module":"shell",
-      "logging": {
-        "format":"happymaxcolor",
-        "level":"trace"
-      },
       "settings":{
         "uiapplication":"designerapplication",
         "uidependencies":{

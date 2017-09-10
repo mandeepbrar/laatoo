@@ -3,9 +3,10 @@
 import React from 'react';
 import Paginator from 'react-pagify';
 import pagifyBootstrapPreset from 'react-pagify-preset-bootstrap';
-import segmentize from 'segmentize';
 import {View} from 'laatoocommon';
 import {ViewFilter} from './Filter';
+
+var segmentize=require('segmentize');
 
 class WebView extends React.Component {
   constructor(props) {

@@ -1,7 +1,6 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "reactuibase":">=0.0.1"
   },
   "description":"Module provides base for react based applications of laatoo. ",
   "objects":{

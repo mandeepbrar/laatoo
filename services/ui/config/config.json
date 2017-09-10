@@ -27,6 +27,11 @@
           "type":"string",
           "default":"app.js"
         },
+        "mergedcssfile": {
+          "description":"Name of the merged css file to be created",
+          "type":"string",
+          "default":"app.css"
+        },
         "mergedvendorfile": {
           "description":"Name of the merged vendor file to be created",
           "type":"string",

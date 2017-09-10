@@ -1,7 +1,8 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "reactuibase":">=0.0.1"
+    "reactuibase":">=0.0.1",
+    "reactwebcommon":">=0.0.1"
   },
   "description":"Module provides web ui base components. ",
   "objects":{
@@ -29,8 +30,6 @@
       "react-dropzone":"react-dropzone",
       "react-bootstrap":"react-bootstrap",
       "react-pagify-preset-bootstrap":"react-pagify-preset-bootstrap",
-      "segmentize":"segmentize",
-      "sanitize-html": "sanitize-html",
       "react-player": "react-player",
       "react-pagify":"react-pagify"
     },
@@ -49,7 +48,6 @@
       "redux": "^3.7.2",
       "redux-director": "^0.2.5",
       "redux-saga": "^0.15.6",
-      "sanitize-html": "^1.14.1",
       "segmentize": "^0.4.1",
       "tcomb-form": "^0.9.17"
     }

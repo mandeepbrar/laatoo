@@ -25,6 +25,7 @@ const (
 	CONF_APPLICATION   = "application"
 	DEPENDENCIES       = "dependencies"
 	MERGED_SVCS_FILE   = "mergeduidescriptor"
+	MERGED_CSS_FILE    = "mergedcssfile"
 	MERGED_VENDOR_FILE = "mergedvendorfile"
 	MERGED_UI_FILE     = "mergeduifile"
 )
@@ -36,9 +37,11 @@ type UI struct {
 	mergeduifile       string
 	mergedvendorfile   string
 	mergeduidescriptor string
+	mergedcssfile      string
 	application        string
 	uiFiles            map[string][]byte
 	vendorFiles        map[string][]byte
+	cssFiles           map[string][]byte
 	modDeps            map[string][]string
 	insMods            map[string]string
 	insSettings        map[string]config.Config
@@ -62,9 +65,11 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergeduifile, _ = svc.GetStringConfiguration(ctx, MERGED_UI_FILE)
 	svc.mergedvendorfile, _ = svc.GetStringConfiguration(ctx, MERGED_VENDOR_FILE)
 	svc.mergeduidescriptor, _ = svc.GetStringConfiguration(ctx, MERGED_SVCS_FILE)
+	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
+	svc.cssFiles = make(map[string][]byte)
 	svc.insSettings = make(map[string]config.Config)
 	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
@@ -124,6 +129,16 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 			svc.vendorFiles[modName] = cont
 		}
 
+		cssfile := path.Join(dir, FILES_DIR, "app.css")
+		ok, _, _ = utils.FileExists(cssfile)
+		if ok {
+			cont, err := ioutil.ReadFile(cssfile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.cssFiles[modName] = cont
+		}
+
 		descfile := path.Join(dir, FILES_DIR, svc.descfile)
 		ok, _, _ = utils.FileExists(descfile)
 		if ok {
@@ -146,6 +161,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
 	uiFileCont := new(bytes.Buffer)
+	cssFileCont := new(bytes.Buffer)
 	descFileCont := new(bytes.Buffer)
 	vendorFileCont := new(bytes.Buffer)
 	_, err := vendorFileCont.WriteString(fmt.Sprintf("document.InitConfig={Name: '%s', Services:{}, Actions:{}};", svc.application))
@@ -199,11 +215,26 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 		}
 	}
 
+	reqTemplate := "var l=require('%s');"
+
 	for name, _ := range filesWritten {
-		_, err = uiFileCont.WriteString("var l=require('" + name + "'); console.log('" + name + "',l);")
+		_, err = uiFileCont.WriteString(fmt.Sprintf(reqTemplate, name))
 		if err != nil {
 			return err
 		}
+	}
+
+	for _, cont := range svc.cssFiles {
+		_, err := cssFileCont.Write(cont)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
+	cssfile := path.Join(baseDir, FILES_DIR, svc.mergedcssfile)
+	err = ioutil.WriteFile(cssfile, cssFileCont.Bytes(), 0755)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	for _, cont := range svc.descriptorFiles {
@@ -213,17 +244,17 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 		}
 	}
 
-	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; console.log('app module', m); if(m.Initialize) { console.log('Initializing %s'); m.Initialize('%s', conf, define, require); } return m; });"
+	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { m.Initialize('%s', conf, define, require); } return m; });" + reqTemplate
 
 	for insName, settings := range svc.insSettings {
 		settingsStr, err := json.Marshal(settings)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		uiFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), insName, svc.application))
+		uiFileCont.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), svc.application, insName))
 	}
 
-	initFunc := fmt.Sprintf("function InitializeApplication(){var app=require('%s'); console.log(app); app.StartApplication();};", svc.application)
+	initFunc := fmt.Sprintf("function InitializeApplication(){var app=require('%s'); app.StartApplication();};", svc.application)
 	descFileCont.WriteString(initFunc)
 
 	vendorfile := path.Join(baseDir, FILES_DIR, svc.mergedvendorfile)

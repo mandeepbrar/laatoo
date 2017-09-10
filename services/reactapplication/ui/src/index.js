@@ -10,7 +10,7 @@ this.settings = {};
 function Initialize(app, s, def, req) {
   //anonymous permissions
   if(!Storage.permissions) {
-    Storage.permissions= settings.defaultPermissions;
+    Storage.permissions= this.settings.defaultPermissions;
     /*[
       "View Mehfil",
       "View Post",

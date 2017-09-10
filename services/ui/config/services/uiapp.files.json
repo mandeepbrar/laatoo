@@ -10,6 +10,10 @@
       "cache": "true",
       "path": "{services[.application].conf.js}"
     },
+    "app.css": {
+      "cache": "true",
+      "path": "{app[.application].css}"
+    },
     "vendor.js": {
       "cache": "true",
       "path": "{vendor[.application].js}"

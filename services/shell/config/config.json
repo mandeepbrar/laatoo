@@ -6,6 +6,9 @@
     "ui":">=0.0.1"
   },
   "description": "This module provides a simple web application shell with /index /images routes using the files provided in the files directory of the module. ",
+  "ui":{
+    "skipUIModules":true
+  },
   "modules": {
     "ui": {
       "module":"ui",

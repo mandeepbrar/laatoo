@@ -4,7 +4,7 @@ import React from 'react';
 import {ActionNames} from 'laatoouibase';
 import {Action} from '../action/Action';
 import {WebView} from './WebView'
-import {ScrollListener} from '../ui/ScrollListener';
+import {ScrollListener} from 'reactwebcommon';
 
 class WebListView extends React.Component {
   constructor(props) {
