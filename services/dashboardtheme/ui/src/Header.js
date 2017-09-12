@@ -1,16 +1,17 @@
 import React from 'react';
 import {Image} from 'reactwebcommon';
 
-const Header = (props) => (
-  <div className={props.headerclass?props.headerclass:'header'}>
-    <div className="logo">
-    {
-      props.image?
-      <Image src={props.image} />
-      :<div className="title">{props.title}</div>
-    }
+const Header = (props) => {
+  let hs = props.headerProps;
+  console.log("header properties", hs, props)
+  return (
+    <div className={hs.className?hs.className:'header'}>
+      <div className="logo">
+        {hs.image?<div className="image"><Image src={hs.image}/></div>:null}
+        {hs.title?<div className="title">{hs.title}</div>:null}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default Header

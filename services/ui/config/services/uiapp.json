@@ -6,5 +6,6 @@
   "mergedcssfile":"{app[.application].css}",
   "mergeduidescriptor":"{services[.application].conf.js}",
   "mergedvendorfile":"{vendor[.application].js}",
+  "properties_ext":"{[.application].json}",
   "application":"{[application]}"
 }

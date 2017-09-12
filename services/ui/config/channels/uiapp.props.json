@@ -1,0 +1,9 @@
+{
+  "parent": "root",
+  "service":"{uiapp.props[.application]}",
+  "method":"GET",
+  "path": "/properties/*",
+  "paramvalues": {
+    "file": "__0"
+  }
+}

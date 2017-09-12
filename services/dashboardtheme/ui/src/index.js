@@ -6,16 +6,18 @@ import './styles/app.scss'
 var module = this;
 
 function Initialize(appName, settings) {
-  module.settings = settings
-  console.log("Initializing dashboard theme with settings ","module", module.settings)
+  console.log(document.InitConfig);
+  let dashProps = document.InitConfig.Properties["dashboardtheme"]
+  module.properties = settings.propertiesOverrider ? Object.assign({}, dashProps, document.InitConfig.Properties[settings.propertiesOverrider]) : dashProps;
+  console.log("Initializing dashboard theme with settings ", module.properties)
 }
 
 class DashboardTheme extends React.Component {
   render() {
-    console.log("props of dashboard theme", this.props, module.settings)
+    console.log("props of dashboard theme", this.props, module.properties)
     return (
       <div className="dashboard ">
-        <Header image={module.settings.headerimage} title={module.settings.headertitle} headerclass={module.settings.headerclass}/>
+        <Header headerProps={module.properties.header} />
         <div className="body">
           <div className="col-sm-4">
             <View name="menu"  />

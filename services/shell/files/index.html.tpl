@@ -14,15 +14,6 @@
   <script type="text/javascript" src="/vendor.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/app.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/services.{{var "uiapplication"}}.conf.js"></script>
-  <script type="text/javascript">
-  <!--
-
-    if (window.InitializeApplication) {
-      console.log("Initializing app");
-      window.InitializeApplication();
-    }
-  -->
-  </script>
 
 </body>
 </html>

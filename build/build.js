@@ -3,6 +3,7 @@ var shell = require('shelljs');
 var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
+const merge = require('webpack-merge');
 
 var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
 
@@ -93,6 +94,29 @@ function buildDll(nextTask) {
     nextTask()
   }
 }*/
+
+function mergeUIProperties(nextTask) {
+  let propsSrcFolder = path.join(uiFolder, "src", "properties")
+  if (fs.pathExistsSync(propsSrcFolder)) {
+    let propsDstFolder = path.join(filesFolder, "properties")
+    fs.mkdirsSync(propsDstFolder)
+    let defaultProps={}
+    if(fs.pathExistsSync(path.join(propsSrcFolder, "default.json"))) {
+      defaultProps = require(path.join(propsSrcFolder, "default.json"))
+    }
+    let files = fs.readdirSync(propsSrcFolder)
+    for(var i=0;i<files.length; i++) {
+      if(files[i].endsWith('.json')) {
+        let fileCont = require(path.join(propsSrcFolder, files[i]))
+        fileCont = merge(defaultProps, fileCont)
+        let contToWrite = JSON.stringify(fileCont);
+        fs.writeFileSync(path.join(propsDstFolder, files[i]), contToWrite)
+      }
+    }
+  }
+  nextTask()
+}
+
 
 function compileWebUI(nextTask) {
 
@@ -347,12 +371,12 @@ function startTask(taskName) {
   }
   if ( taskName === "objcompile" ){
     func = buildObjects
+    nextTask = "mergeuiproperties"
+  }
+  if ( taskName === "mergeuiproperties" ){
+    func = mergeUIProperties
     nextTask = "uicompile"
   }
-  /*if ( taskName === "builddll" ){
-    func = buildDll
-    nextTask = "uicompile"
-  }*/
   if (taskName === "uicompile" ){
     func = buildUI
     nextTask = "copyfiles"

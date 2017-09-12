@@ -22,6 +22,11 @@
             "type":"string",
             "default":"webdescriptor.js"
         },
+        "properties_ext":{
+          "description":"Extension to use on properties",
+          "type":"string",
+          "default":".json"
+        },
         "mergeduifile": {
           "description":"Name of the merged ui file to be created",
           "type":"string",
