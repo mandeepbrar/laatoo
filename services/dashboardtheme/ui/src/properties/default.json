@@ -2,6 +2,6 @@
   "header":{
     "image":"",
     "title":"My Dashboard",
-    "className":"dashboard"
+    "className":"header"
   }
 }

@@ -21,7 +21,9 @@ mongodatabase laatoo/services/data/mongo
 gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
 ui laatoo/services/ui
-reactuibase laatoo/services/reactuibase
+uicommon laatoo/services/uicommon
+authui laatoo/services/authui
+reactlaatoobase laatoo/services/reactlaatoobase
 reactwebui laatoo/services/reactwebui
 reactapplication laatoo/services/reactapplication
 gurmukhi laatoo/services/gurmukhi

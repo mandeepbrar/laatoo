@@ -1,16 +1,19 @@
 const redux = require('redux');
-import {Application, createAction, createStore, Sagas, history, Window} from 'reactuibase'
+//import { createAction, createStore, Sagas} from 'uicommon'
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
 
 function runSagas(sagaMiddleware, sagas) {
-  sagas.map((x,i)=> {
-    sagaMiddleware.run(x);
-  })
+  if(sagas) {
+    Object.keys(sagas).forEach(function(sagaId){
+      let saga = sagas[sagaId];
+      sagaMiddleware.run(saga);
+    });
+  }
 }
 
 function configureStore() {
-  let reducers = Application.Reducers
+  let reducers = Application.Registry.Reducers
   if(!reducers) {
     reducers = {};
   }
@@ -27,7 +30,7 @@ function configureStore() {
   const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
 
   // then run the saga
-  runSagas(sagaMiddleware, Application.Sagas);
+  runSagas(sagaMiddleware, Application.Registry.Sagas);
   return store;
 }
 

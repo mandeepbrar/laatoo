@@ -14,6 +14,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/tdewolff/minify"
+	"github.com/tdewolff/minify/js"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -293,6 +296,19 @@ func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error 
 
 func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	uiFileCont := new(bytes.Buffer)
+
+	laatoocorejsfile := path.Join(baseDir, FILES_DIR, "laatoocore.js")
+	laatoocorejs, err := os.Open(laatoocorejsfile)
+	if err != nil {
+		return errors.WrapError(ctx, err, "basedir", baseDir)
+	}
+	m := minify.New()
+	m.AddFunc("text/javascript", js.Minify)
+	err = m.Minify("text/javascript", uiFileCont, laatoocorejs)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	filesWritten := make(map[string]bool)
 	for name, _ := range svc.uiFiles {
 		err := svc.appendContent(ctx, name, uiFileCont, filesWritten)
@@ -309,21 +325,44 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 			return err
 		}
 	}
+	/*
+		initMods := new(bytes.Buffer)
+		modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { m.Initialize('%s', conf, define, require); } return m; });" + reqTemplate
 
-	initMods := new(bytes.Buffer)
-	modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { m.Initialize('%s', conf, define, require); } return m; });" + reqTemplate
+		for insName, settings := range svc.insSettings {
+			settingsStr, err := json.Marshal(settings)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			initMods.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), svc.application, insName))
+		}
 
+		initapp := "if (window.InitializeApplication) {console.log('Initializing app');window.InitializeApplication();}"
+		propsLdr := fmt.Sprintf("var propsurl = window.location.origin+'/properties/default.%s.json'; fetch(propsurl).then(function(resp){resp.json().then(function(data){document.InitConfig.Properties=data;%s;%s;});});", svc.application, initMods.String(), initapp)
+		_, err = uiFileCont.WriteString(propsLdr)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	*/
+
+	modsList := new(bytes.Buffer)
 	for insName, settings := range svc.insSettings {
 		settingsStr, err := json.Marshal(settings)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		initMods.WriteString(fmt.Sprintf(modTemplate, insName, svc.insMods[insName], string(settingsStr), svc.application, insName))
+		_, err = modsList.WriteString(fmt.Sprintf("['%s','%s',%s],", insName, svc.insMods[insName], string(settingsStr)))
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 
-	initapp := "if (window.InitializeApplication) {console.log('Initializing app');window.InitializeApplication();}"
-	propsLdr := fmt.Sprintf("var propsurl = window.location.origin+'/properties/default.%s.json'; console.log(propsurl);fetch(propsurl).then(function(resp){resp.json().then(function(data){document.InitConfig.Properties=data;%s;%s;});});", svc.application, initMods.String(), initapp)
-	_, err := uiFileCont.WriteString(propsLdr)
+	/*settingsStr, err := json.Marshal(svc.insSettings)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}*/
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];appLoadingComplete('%s','%s',insSettings);", modsList.String(), svc.application, "/properties/default."+svc.application+".json")
+	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -346,7 +385,7 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 		}
 	}
 
-	initFunc := fmt.Sprintf("function InitializeApplication(){var app=require('%s'); app.StartApplication();};", svc.application)
+	initFunc := fmt.Sprintf("Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
 	descFileCont.WriteString(initFunc)
 
 	descfile := path.Join(baseDir, FILES_DIR, svc.mergeduidescriptor)

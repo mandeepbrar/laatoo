@@ -6,6 +6,7 @@
   "objects":{
   },
   "ui":{
+    "skipUIModules":true,
     "externals":{
       "react": "react",
       "director":"director",

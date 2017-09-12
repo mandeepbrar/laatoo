@@ -1,5 +1,4 @@
-import React from 'react';
-import { Application, Window, Sagas, createAction, Storage } from 'reactuibase'
+import { createAction} from 'uicommon'
 import {Actions} from './actions'
 import { Provider } from 'react-redux';
 import configureStore from './stores';
@@ -52,7 +51,7 @@ function StartApplication() {
 //  <theme/>
   Uikit.render(
     <Provider store={store}>
-      <Theme uikit={Uikit}/>
+      <App uikit={Uikit}/>
     </Provider>, document.getElementById('app')
   );
 }

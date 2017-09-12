@@ -53,6 +53,7 @@
     "director": "^1.2.8",
     "material-ui": "^0.16.7",
     "md5": "^2.2.1",
+    "prop-types": "^15.5.10",
     "react": "^15.6.1",
     "react-bootstrap": "^0.31.3",
     "react-dom": "^15.6.1",
