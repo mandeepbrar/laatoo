@@ -31,7 +31,7 @@
       "settings":{
       }
     },
-    "reactwebrouter": {
+    "router": {
       "module":"reactwebrouter"
     },
     "reactmaterialkit": {
@@ -57,7 +57,7 @@
       "module":"reactapplication",
       "settings":{
         "application":"designerapplication",
-        "router":"reactwebrouter",
+        "router":"router",
         "uikit":"reactmaterialkit",
         "theme":"dashboard"
       }

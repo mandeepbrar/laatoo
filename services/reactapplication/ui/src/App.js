@@ -7,7 +7,7 @@ class App extends React.Component {
   }
   render() {
     return (
-      <Theme uikit={this.props.uikit}/>
+      <this.props.theme uikit={this.props.uikit}/>
     )
   }
 }
@@ -15,3 +15,7 @@ class App extends React.Component {
 App.childContextTypes = {
   uikit: PropTypes.string
 };
+
+export {
+  App
+}

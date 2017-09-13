@@ -17,7 +17,7 @@ function configureStore() {
   if(!reducers) {
     reducers = {};
   }
-
+  console.log("reducers in store", reducers);
   let middleware = [];
   let enhancers = [];
 

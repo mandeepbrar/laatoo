@@ -1,6 +1,17 @@
-import {Router} from 'redux-director';
+import {Router, Reducer} from 'redux-director';
 
-export default {
-  connect: Router.connect,
-  setRoutes: Router.setRoutes
+function Initialize(appname, settings){
+  console.log("Initializing router")
+  Application.Register("Reducers",'router', Reducer)
 }
+
+function connect(store) {
+  Router.connect(store)
+  Router.setRoutes(Application.Registry.Routes, 'home');
+}
+
+export {
+  Initialize,
+  connect
+}
+import {} from 'redux-director';

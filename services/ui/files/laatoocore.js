@@ -1,6 +1,7 @@
 let n= (typeof(document)==='undefined');
 var Storage = n ? {} : localStorage;
-var Application = n ? { Native:n, Registry:r } : document.InitConfig;
+var Application = n ? { Native:n} : document.InitConfig;
+Application.Registry={};
 var Window = n ? {} : window;
 Application.Register = function(regName,id,data) {
   let reg=Application.Registry[regName];

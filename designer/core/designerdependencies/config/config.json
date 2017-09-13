@@ -19,6 +19,7 @@
       "director": "^1.2.8",
       "redux-director": "^0.2.5",
       "redux-saga": "^0.15.6",
+      "prop-types":"^15.5.10",
       "babel-polyfill": "^6.26.0"
     }
   }

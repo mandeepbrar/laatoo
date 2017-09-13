@@ -13,9 +13,9 @@ module.exports = {
      ],
      alias: {
      },
+     mainFields: ['browserify', 'browser', 'module', 'main'],
      extensions: ['.js', '.jsx', '.json', '.scss', '.css', '.sass']
-   },
-
+  },
   resolveLoader: {
     modules: [
       '/nodemodules/node_modules'
