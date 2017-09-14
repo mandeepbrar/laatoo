@@ -14,7 +14,7 @@ Application.Register = function(regName,id,data) {
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {
-      m.Initialize(appname, settings, define, require);
+      m.Initialize(appname, ins, mod,  settings, define, require);
     }
     return m;
   });

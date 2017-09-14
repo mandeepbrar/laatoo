@@ -50,6 +50,8 @@ type abstractserver struct {
 	engineConf    map[string]config.Config
 	engines       map[string]server.Engine
 
+	properties map[string]interface{}
+
 	logger       server.Logger
 	loggerHandle server.ServerElementHandle
 

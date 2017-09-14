@@ -3,5 +3,11 @@
     "image":"",
     "title":"My Dashboard",
     "className":"header"
+  },
+  "welcome":{
+    "text":"Welcome"
+  },
+  "menu":{
+    "homepagetitle":"Home"
   }
 }

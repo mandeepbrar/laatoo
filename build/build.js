@@ -95,7 +95,8 @@ function buildDll(nextTask) {
   }
 }*/
 
-function mergeUIProperties(nextTask) {
+function copyproperties(nextTask) {
+  /*
   let propsSrcFolder = path.join(uiFolder, "src", "properties")
   if (fs.pathExistsSync(propsSrcFolder)) {
     let propsDstFolder = path.join(filesFolder, "properties")
@@ -113,7 +114,18 @@ function mergeUIProperties(nextTask) {
         fs.writeFileSync(path.join(propsDstFolder, files[i]), contToWrite)
       }
     }
+  }*/
+  let propsSrcFolder = path.join(pluginFolder, "properties")
+  if (fs.pathExistsSync(propsSrcFolder)) {
+    let propsDestFolder = path.join("/plugins", "tmp", name, "properties")
+    fs.mkdirsSync(propsDestFolder)
+    log("Copying properties", "dest", propsDestFolder, "src", propsSrcFolder)
+
+    fs.removeSync(propsDestFolder)
+    fs.copySync(propsSrcFolder, propsDestFolder)
+
   }
+
   nextTask()
 }
 
@@ -371,10 +383,10 @@ function startTask(taskName) {
   }
   if ( taskName === "objcompile" ){
     func = buildObjects
-    nextTask = "mergeuiproperties"
+    nextTask = "copyproperties"
   }
-  if ( taskName === "mergeuiproperties" ){
-    func = mergeUIProperties
+  if ( taskName === "copyproperties" ){
+    func = copyproperties
     nextTask = "uicompile"
   }
   if (taskName === "uicompile" ){

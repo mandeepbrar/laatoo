@@ -23,3 +23,6 @@ func (mod *moduleProxy) GetType() core.ServerElementType {
 func (mod *moduleProxy) GetObject() core.Module {
 	return mod.mod.userModule
 }
+func (mod *moduleProxy) GetModuleProperties() map[string]interface{} {
+	return mod.mod.properties
+}

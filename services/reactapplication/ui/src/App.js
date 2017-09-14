@@ -3,17 +3,18 @@ const PropTypes = require('prop-types');
 
 class App extends React.Component {
   getChildContext() {
-   return {uikit: this.props.uikit};
+   return {uikit: this.props.uikit, router: this.props.router};
   }
   render() {
     return (
-      <this.props.theme uikit={this.props.uikit}/>
+      <this.props.theme router={this.props.router} uikit={this.props.uikit}/>
     )
   }
 }
 
 App.childContextTypes = {
-  uikit: PropTypes.string
+  uikit: PropTypes.object,
+  router: PropTypes.object
 };
 
 export {

@@ -70,6 +70,8 @@ type contextElements struct {
 	logger server.Logger
 	//factory for which operation is being done
 	factory server.Factory
+	//properties
+	properties map[string]interface{}
 	//service for which an operation/request is being executed
 	service        server.Service
 	channel        server.Channel
@@ -193,6 +195,7 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 
 	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: &contextElements{}, level: ctx.level + 1, childContexts: make([]*serverContext, 0)}
 	cmap := ctx.getElementsContextMap()
+	svrCtx.elements.properties = ctx.elements.properties
 	svrCtx.setElementReferences(cmap, true)
 	ctx.addChild(svrCtx)
 	return svrCtx
@@ -355,6 +358,14 @@ func (ctx *serverContext) setElementReferences(elements core.ContextMap, ref boo
 	for _, c := range ctx.childContexts {
 		c.setElements(elements)
 	}
+}
+
+func (ctx *serverContext) GetServerProperties() map[string]interface{} {
+	return ctx.elements.properties
+}
+
+func (ctx *serverContext) setServerProperties(props map[string]interface{}) {
+	ctx.elements.properties = props
 }
 
 //creates a new request with engine context

@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/server"
 	"laatoo/server/common"
 	"laatoo/server/constants"
+	"path"
 	"reflect"
 )
 
@@ -24,6 +25,7 @@ type serverModule struct {
 	channels    map[string]config.Config
 	tasks       map[string]config.Config
 	rules       map[string]config.Config
+	properties  map[string]interface{}
 	modConf     config.Config
 	modSettings config.Config
 }
@@ -115,7 +117,22 @@ func (mod *serverModule) start(ctx core.ServerContext) error {
 	return nil
 }
 
+func (mod *serverModule) readProperties(ctx core.ServerContext) error {
+	propsDir := path.Join(mod.dir, constants.PROPERTIES_DIR)
+
+	props, err := common.ReadProperties(ctx, propsDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	mod.properties = props
+	return nil
+}
+
 func (mod *serverModule) loadModuleDir(ctx core.ServerContext) error {
+	if err := mod.readProperties(ctx); err != nil {
+		return err
+	}
+
 	factoriesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICEFACTORIES)
 
 	if !ok || factoriesEnabled {

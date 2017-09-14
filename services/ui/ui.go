@@ -12,9 +12,8 @@ import (
 	"laatoo/sdk/utils"
 	"os"
 	"path"
-	"path/filepath"
-	"strings"
 
+	"github.com/imdario/mergo"
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/js"
 )
@@ -90,7 +89,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod core.Module, modConf config.Config, settings config.Config) error {
+func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod core.Module, modConf config.Config, settings config.Config, props map[string]interface{}) error {
 	ui, ok := settings.GetBool(ctx, UI_SVC)
 	if ok && !ui {
 		return nil
@@ -131,7 +130,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 			modRead = true
 		}
 
-		err := svc.readPropertyFiles(ctx, modName, path.Join(dir, FILES_DIR, PROPERTIES_DIR))
+		err := svc.appendPropertyFiles(ctx, modName, props)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -176,39 +175,17 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 	return nil
 }
 
-func (svc *UI) readPropertyFiles(ctx core.ServerContext, modName string, propsDir string) error {
+func (svc *UI) appendPropertyFiles(ctx core.ServerContext, modName string, props map[string]interface{}) error {
 	modprops := make(map[string]interface{})
-	ok, _, _ := utils.FileExists(propsDir)
-	if !ok {
-		return nil
-	}
-	err := filepath.Walk(propsDir, func(path string, info os.FileInfo, err error) error {
-		log.Error(ctx, "Reading properties file", "path", path)
-		if info.IsDir() {
-			return nil
+	if props != nil {
+		for locale, val := range props {
+			modprops[locale] = map[string]interface{}{modName: val}
 		}
-		if filepath.Ext(path) == ".json" {
-			cont, err := ioutil.ReadFile(path)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			log.Error(ctx, "Reading properties file", "cont", string(cont))
-			obj := make(map[string]interface{})
-			err = json.Unmarshal(cont, &obj)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			fileName := info.Name()
-			locale := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			modprops[locale] = obj
-		}
-		return nil
-	})
-	if err != nil {
-		return errors.WrapError(ctx, err)
 	}
 	if len(modprops) > 0 {
-		svc.propertyFiles[modName] = modprops
+		props := svc.propertyFiles
+		mergo.MergeWithOverwrite(&props, modprops)
+		svc.propertyFiles = props
 	}
 	return nil
 }
@@ -258,8 +235,13 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 
 func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error {
 	log.Error(ctx, "Writing property files", "map", svc.propertyFiles)
+	svrProps := ctx.GetServerProperties()
 	propsToWrite := make(map[string]interface{})
-	for mod, val := range svc.propertyFiles {
+	mergo.MergeWithOverwrite(&propsToWrite, svrProps)
+	mergo.MergeWithOverwrite(&propsToWrite, svc.propertyFiles)
+	log.Error(ctx, "Writing property files", "map", propsToWrite)
+
+	/*for mod, val := range svc.propertyFiles {
 		localeProps, _ := val.(map[string]interface{})
 		for locale, props := range localeProps {
 			val, ok := propsToWrite[locale]
@@ -273,7 +255,7 @@ func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error 
 			modProps[mod] = props
 			log.Error(ctx, "Writing property files", "mod", mod, "props", props, "locale", locale)
 		}
-	}
+	}*/
 	if len(propsToWrite) > 0 {
 		err := os.MkdirAll(path.Join(baseDir, FILES_DIR, "properties"), 0755)
 		if err != nil {
@@ -286,6 +268,7 @@ func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error 
 			return errors.WrapError(ctx, err)
 		}
 		localefile := path.Join(baseDir, FILES_DIR, "properties", locale+svc.propsExt)
+		log.Error(ctx, "Writing property files", "localefile", localefile, "data", string(data))
 		err = ioutil.WriteFile(localefile, data, 0755)
 		if err != nil {
 			return errors.WrapError(ctx, err)

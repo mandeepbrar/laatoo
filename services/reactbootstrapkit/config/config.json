@@ -1,6 +1,7 @@
 {
   "version":"0.0.1",
   "dependencies":{
+    "uicommon":">=0.0.1"
   },
   "description":"Module provides bootstrap ui kit for laatoo applications",
   "objects":{

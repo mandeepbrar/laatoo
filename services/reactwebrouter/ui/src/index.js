@@ -1,8 +1,9 @@
-import {Router, Reducer} from 'redux-director';
+import {Router, Reducer, View} from 'redux-director';
 
-function Initialize(appname, settings){
+function Initialize(appname, ins, mod, settings){
   console.log("Initializing router")
-  Application.Register("Reducers",'router', Reducer)
+  Application.Register("Reducers",'router', Reducer);
+  Window.redirect = Router.redirect;
 }
 
 function connect(store) {
@@ -12,6 +13,6 @@ function connect(store) {
 
 export {
   Initialize,
+  View,
   connect
 }
-import {} from 'redux-director';

@@ -34,6 +34,10 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		}
 	}
 
+	if err := as.readProperties(ctx); err != nil {
+		return err
+	}
+
 	createctx := ctx.subContext("Create Conf components")
 	if err := as.createConfBasedComponents(createctx, conf); err != nil {
 		return err
@@ -194,6 +198,23 @@ func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factor
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	return nil
+}
+
+func (as *abstractserver) readProperties(ctx core.ServerContext) error {
+	propsDir := path.Join(as.baseDir, constants.PROPERTIES_DIR)
+
+	props, err := common.ReadProperties(ctx, propsDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if as.parent != nil {
+		as.properties = common.MergeJson(as.parent.properties, props)
+	} else {
+		as.properties = props
+	}
+
+	ctx.(*serverContext).setServerProperties(as.properties)
 	return nil
 }
 

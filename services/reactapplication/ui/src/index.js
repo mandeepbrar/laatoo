@@ -8,7 +8,7 @@ import {App} from './App';
 this.appname = 'application';
 this.settings = {};
 
-function Initialize(app, s, def, req) {
+function Initialize(app, ins, mod, s, def, req) {
   //anonymous permissions
   if(!Storage.permissions) {
     Storage.permissions= this.settings.defaultPermissions;
@@ -51,7 +51,7 @@ function StartApplication() {
   Router.connect(store);
   Uikit.render(
     <Provider store={store}>
-      <App uikit={Uikit} theme={Theme}/>
+      <App uikit={Uikit} router={Router} theme={Theme}/>
     </Provider>, document.getElementById('app')
   );
 }

@@ -4,8 +4,7 @@ import React from 'react';
 import ActionButton from './ActionButton';
 import { connect } from 'react-redux';
 import ActionLink from './ActionLink';
-import {Router} from 'redux-director';
-import {Application, Storage, createAction, formatUrl, hasPermission } from 'reactuibase';
+import {createAction, formatUrl, hasPermission } from 'uicommon';
 
 class ActionComp extends React.Component {
   constructor(props) {
@@ -14,10 +13,12 @@ class ActionComp extends React.Component {
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
     this.hasPermission = false
-    let action = Application.Actions[props.name];
-    if(action) {
-      this.action = action;
-      this.hasPermission =  hasPermission(action.permission);
+    if(Application.Registry.Actions) {
+      let action = Application.Registry.Actions[props.name];
+      if(action) {
+        this.action = action;
+        this.hasPermission =  hasPermission(action.permission);
+      }
     }
   }
 
@@ -58,7 +59,7 @@ class ActionComp extends React.Component {
         let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
-        Router.redirect(formattedUrl);
+        Window.redirect(formattedUrl); //Router.redirect(formattedUrl);
       }
       return false;
     }
@@ -74,6 +75,11 @@ class ActionComp extends React.Component {
         return (
           <ActionButton className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={this.props.children}>
           </ActionButton>
+        )
+      }
+      case 'component':{
+        return (
+          <this.props.component actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={this.props.children}/>
         )
       }
       default: {

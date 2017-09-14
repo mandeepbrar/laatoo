@@ -11,8 +11,6 @@
     "externals":{
       "babel-runtime":"babel-runtime",
       "babel-polyfill": "babel-polyfill",
-      "director":"director",
-      "redux-director":"redux-director",
       "react": "react",
       "react-redux": "react-redux",
       "react-dom": "react-dom",
@@ -21,9 +19,7 @@
     "packages":{
       "react": "^15.6.1",
       "react-redux": "^5.0.6",
-      "react-dom":"^15.6.1",
-      "director": "^1.2.8",
-      "redux-director": "^0.2.5"
+      "react-dom":"^15.6.1"
     },
     "settings": {
       "headerimage":"Image used for header",

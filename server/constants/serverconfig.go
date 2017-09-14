@@ -26,6 +26,7 @@ const (
 	MODULEMGR_PLUGIN       = "ModuleManagerPlugin"
 	CONF_SERVICEFACTORIES  = "factories"
 	CONF_SERVICEFACTORY    = "factory"
+	PROPERTIES_DIR         = "properties"
 
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
