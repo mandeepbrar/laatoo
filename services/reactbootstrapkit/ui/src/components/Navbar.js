@@ -1,6 +1,6 @@
 import React from 'react';
 import {Nav, NavItem} from 'react-bootstrap'
-import {Action} from'uicommon';
+import {Action} from'reactwebcommon';
 
 const Navbutton=(props)=>(
   <NavItem onClick={props.actionFunc}>{props.actionchildren}</NavItem>
@@ -16,9 +16,9 @@ class Navbar extends React.Component {
         )
       });
     }
-    let stacked=this.props.vertical?"stacked":""
+    let stacked=this.props.vertical?["stacked"]:[""]
     return(
-      <Nav bsStyle="pills" {stacked}>
+      <Nav bsStyle="pills" {...stacked}>
         {items}
       </Nav>
     )

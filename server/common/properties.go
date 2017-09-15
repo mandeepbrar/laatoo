@@ -21,8 +21,8 @@ func MergeJson(obj1, obj2 map[string]interface{}) map[string]interface{} {
 		return obj1
 	}
 	res := make(map[string]interface{})
-	mergo.MergeWithOverwrite(&res, obj1)
-	mergo.MergeWithOverwrite(&res, obj2)
+	mergo.Merge(&res, obj1)
+	mergo.Merge(&res, obj2)
 	return res
 }
 

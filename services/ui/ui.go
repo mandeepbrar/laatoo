@@ -234,12 +234,15 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 }
 
 func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error {
-	log.Error(ctx, "Writing property files", "map", svc.propertyFiles)
+	log.Debug(ctx, "Writing property files")
 	svrProps := ctx.GetServerProperties()
+	log.Error(ctx, "writing server properties ================", "svrProps", svrProps)
+
 	propsToWrite := make(map[string]interface{})
-	mergo.MergeWithOverwrite(&propsToWrite, svrProps)
-	mergo.MergeWithOverwrite(&propsToWrite, svc.propertyFiles)
-	log.Error(ctx, "Writing property files", "map", propsToWrite)
+	mergo.Merge(&propsToWrite, svrProps)
+	log.Error(ctx, "written server properties ================", "propsToWrite", propsToWrite)
+	mergo.Merge(&propsToWrite, svc.propertyFiles)
+	log.Error(ctx, "written properties files ================", "propsToWrite", propsToWrite)
 
 	/*for mod, val := range svc.propertyFiles {
 		localeProps, _ := val.(map[string]interface{})
@@ -268,7 +271,6 @@ func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error 
 			return errors.WrapError(ctx, err)
 		}
 		localefile := path.Join(baseDir, FILES_DIR, "properties", locale+svc.propsExt)
-		log.Error(ctx, "Writing property files", "localefile", localefile, "data", string(data))
 		err = ioutil.WriteFile(localefile, data, 0755)
 		if err != nil {
 			return errors.WrapError(ctx, err)

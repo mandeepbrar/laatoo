@@ -1,0 +1,9 @@
+@import 'reactwebcommon/app';
+
+.navbar {
+  @extend .w100;
+  @extend .bg-grey;
+  .vertnavbutton {
+    @extend .w100;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "menu":{
+    "homepage":{
+      "title":"My Home",
+      "page":"home"
+    }
+  }
+}

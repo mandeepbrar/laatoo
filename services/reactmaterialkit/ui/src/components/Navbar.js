@@ -1,25 +1,30 @@
 import React from 'react';
-import {Action} from'uicommon';
+import {Action} from'reactwebcommon';
+import FlatButton from 'material-ui/FlatButton';
 
 const Navbutton=(props)=>(
-  <NavItem onClick={props.actionFunc}>{props.actionchildren}</NavItem>
-)
+    <FlatButton className={props.vertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</FlatButton>
+  )
+
 
 class Navbar extends React.Component {
   render() {
+    let isVertical = this.props.vertical
+    let className=isVertical?"vertnavitem":"horiznavitem"
     let items=[]
-    if(props.items) {
-      props.items.forEach(function(item){
+    if(this.props.items) {
+      this.props.items.forEach(function(item){
         items.push(
-          <Action widget="component" name={item.action} component={Navbutton}>{item.Title}</Action>
+          <div className={className}>
+            <Action widget="component" vertical={isVertical} name={item.action} component={Navbutton}>{item.title}</Action>
+          </div>
         )
       });
     }
-    let stacked=this.props.vertical?["stacked"]:[""]
     return(
-      <Nav bsStyle="pills" {...stacked}>
+      <div className='navbar'>
         {items}
-      </Nav>
+      </div>
     )
   }
 }

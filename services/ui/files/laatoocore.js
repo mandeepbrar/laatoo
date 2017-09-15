@@ -33,7 +33,7 @@ function appLoadingComplete(appname, propsurl, modsToInitialize) {
     propsurl = window.location.origin + propsurl;
     fetch(propsurl).then(function(resp) {
       resp.json().then(function(data) {
-        document.InitConfig.Properties=data;
+        Application.Properties=data;
         init();
       });
     });

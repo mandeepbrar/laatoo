@@ -66,9 +66,11 @@ class ActionComp extends React.Component {
   }
 
   renderView() {
+    console.log("checking permission", this.hasPermission)
     if (!this.hasPermission) {
       return null;
     }
+    console.log("checking permission")
     let actionF = this.actionFunc;
     switch(this.props.widget) {
       case 'button': {
@@ -78,6 +80,7 @@ class ActionComp extends React.Component {
         )
       }
       case 'component':{
+        console.log("component in ction", this.props)
         return (
           <this.props.component actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={this.props.children}/>
         )

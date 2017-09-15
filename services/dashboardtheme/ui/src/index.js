@@ -6,19 +6,16 @@ import './styles/app.scss'
 var module = this;
 
 function Initialize(appName, ins, mod, settings) {
-  console.log(document.InitConfig);
-  let dashProps = document.InitConfig.Properties["dashboardtheme"]
-
+  module.properties = Application.Properties["dashboardtheme"]
   module.settings = settings;
-  module.properties = settings.propertiesOverrider ? Object.assign({}, dashProps, document.InitConfig.Properties[settings.propertiesOverrider]) : dashProps;
 
-  console.log("Initializing dashboard theme with settings ", module.properties)
   if(!Application.Registry.Pages || !Application.Registry.Page['home']) {
     let homePage={id:"home", pattern:"", component: <Welcome modProps={module.properties}/>}
     Application.Register('Pages', "home", homePage);
     Application.Register('Actions','Page_home', {url:''})
   }
 }
+
 function processPage(menus, page, uikit){
   let pageRoute = {pattern: page.pattern, reducer: page.reducer}
   pageRoute.components = {
@@ -34,14 +31,22 @@ function processPage(menus, page, uikit){
       )
     }
   }
-  console.log("Registered route", pageRoute)
   Application.Register('Routes', page.id, pageRoute)
 }
 
 function Start(appName, uikit){
   let menus=[]
-  if(module.properties.menu) {
-    menus.push({title:'', action:''})
+  let menuConfig = {}
+  if(module.settings && module.settings.menu) {
+    menuConfig = module.settings.menu
+  } else {
+    menuConfig = Application.Properties.menu
+  }
+  if(menuConfig) {
+    Object.keys(menuConfig).forEach(function(key){
+      let menuItem=menuConfig[key]
+      menus.push({title:menuItem.title, action: "Page_" + menuItem.page})
+    })
   } else {
     menus.push({title:'Home', action:'Page_home'})
   }
@@ -55,21 +60,26 @@ function Start(appName, uikit){
   console.log("started app", Application.Registry.Routes)
 }
 
-const DashboardTheme = (props) => (
-  <div className={module.properties.className?module.properties.className:'dashboard'}>
-    <Header headerProps={module.properties.header} />
-    <div className="body">
-      <div className="menu">
-        <props.router.View name="menu"  />
+const DashboardTheme = (props) => {
+  console.log("uikit initializer", props.uikit, props.uikit.UIWrapper)
+  return (
+    <props.uikit.UIWrapper>
+      <div className={module.properties.className?module.properties.className:'dashboard'}>
+        <Header headerProps={module.properties.header} />
+        <div className="body">
+          <div className="menu">
+            <props.router.View name="menu"  />
+          </div>
+          <div className="page">
+            <props.router.View name="main"/>
+          </div>
+        </div>
+        <div className="footer">
+        </div>
       </div>
-      <div className="page">
-        <props.router.View name="main"/>
-      </div>
-    </div>
-    <div className="footer">
-    </div>
-  </div>
-)
+    </props.uikit.UIWrapper>
+  )
+}
 
 export {
   Initialize ,

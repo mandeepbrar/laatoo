@@ -1,7 +1,8 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "uicommon":">=0.0.1"
+    "uicommon":">=0.0.1",
+    "reactwebcommon":">=0.0.1"
   },
   "description":"Module provides material ui kit for laatoo applications",
   "objects":{
@@ -13,7 +14,6 @@
       "babel-polyfill": "babel-polyfill",
       "react": "react",
       "react-redux": "react-redux",
-      "material-ui":"material-ui",
       "react-dom": "react-dom"
     },
     "packages":{

@@ -9,8 +9,6 @@
     "packages":{
       "react": "^15.6.1",
       "react-redux": "^5.0.6",
-      "material-ui": "^0.16.4",
-      "react-bootstrap": "^0.31.0",
       "react-dom":"^15.6.1",
       "axios": "^0.16.2",
       "md5": "^2.2.1",
