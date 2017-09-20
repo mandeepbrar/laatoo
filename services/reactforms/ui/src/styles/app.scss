@@ -1,0 +1,26 @@
+@import 'reactwebcommon/app';
+
+
+.loginbox {
+  @extend .center-xs;
+  .logintext {
+    @extend .start-xs;
+  }
+  .separator {
+    @extend .ma20;
+  }
+  .userfield {
+    @extend .row;
+  }
+  .passwordfield {
+    @extend .row;
+  }
+  .actionbuttons {
+    @extend .row;
+    @extend .end-xs;
+  }
+  label {
+    @extend .col-xs-2;
+    min-width: 150px;
+  }
+}

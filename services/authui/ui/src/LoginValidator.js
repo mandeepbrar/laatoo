@@ -1,4 +1,4 @@
-import { Component} from 'react';
+import React from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import {ActionNames} from './actions';
@@ -6,7 +6,7 @@ import {createAction, DataSource, RequestBuilder } from 'uicommon';
 const PropTypes = require('prop-types');
 
 /* Populated by react-webpack-redux:reducer */
-class Login extends Component {
+class Login extends React.Component {
   constructor(props) {
     super(props)
     this.validatetoken = this.validatetoken.bind(this)

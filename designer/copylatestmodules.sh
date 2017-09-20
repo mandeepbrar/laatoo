@@ -5,4 +5,5 @@ cp $LAATOO_MODULES_DIR/filesystemstorage.tar.gz $LAATOO_MODULES_DIR/staticfilese
 cp $LAATOO_MODULES_DIR/user.tar.gz $LAATOO_MODULES_DIR/role.tar.gz $LAATOO_MODULES_DIR/localauth.tar.gz $LAATOO_MODULES_DIR/dblogin.tar.gz dist/config/designer/modules
 cp $LAATOO_MODULES_DIR/reactuibase.tar.gz $LAATOO_MODULES_DIR/reactwebrouter.tar.gz $LAATOO_MODULES_DIR/reactapplication.tar.gz $LAATOO_MODULES_DIR/reactmaterialkit.tar.gz \
   $LAATOO_MODULES_DIR/dashboardtheme.tar.gz $LAATOO_MODULES_DIR/reactwebcommon.tar.gz $LAATOO_MODULES_DIR/uicommon.tar.gz $LAATOO_MODULES_DIR/reactwebui.tar.gz dist/config/designer/modules
+cp $LAATOO_MODULES_DIR/reactforms.tar.gz $LAATOO_MODULES_DIR/authui.tar.gz dist/config/designer/modules
 cp $DESIGNER_MODULES_DIR/designerui.tar.gz $DESIGNER_MODULES_DIR/designerdependencies.tar.gz dist/config/designer/modules

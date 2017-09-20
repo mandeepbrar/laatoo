@@ -1,0 +1,12 @@
+{
+  "loginForm": {
+    "loginBtnText": "Login",
+    "google":"Google",
+    "separator":"Or",
+    "formtext":"Please Log In with ",
+    "userlabel":"Username or email",
+    "userplaceholder":"Email",
+    "passwordlabel":"Password",
+    "passwordplaceholder":"Password"
+  }
+}

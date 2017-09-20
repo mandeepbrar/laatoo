@@ -13,12 +13,14 @@ class ActionComp extends React.Component {
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
     this.hasPermission = false
-    if(Application.Registry.Actions) {
-      let action = Application.Registry.Actions[props.name];
-      if(action) {
-        this.action = action;
-        this.hasPermission =  hasPermission(action.permission);
-      }
+    //let action = null
+    if(props.action!=null) {
+      this.action = props.action
+    } else if(Application.Registry.Actions) {
+      this.action = Application.Registry.Actions[props.name];
+    }
+    if(this.action) {
+      this.hasPermission =  hasPermission(this.action.permission);
     }
   }
 

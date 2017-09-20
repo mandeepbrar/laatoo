@@ -6,7 +6,27 @@
     @extend .w100;
     @extend .ptb50;
     .title {
-      @extend .end-xs;
+      @extend .start-xs;
+    }
+  }
+  .dashlogin {
+    @extend .center-xs;
+    @extend .row;
+  }
+  .body {
+    @extend .row;
+    .vertmenu{
+      @extend .col-xs-2;
+      @extend .s20
+    }
+    .horizmenu{
+      @extend .w100;
+    }
+    .vertbody{
+      @extend .col-xs;
+    }
+    .horizbody{
+      @extend .w100;
     }
   }
 }

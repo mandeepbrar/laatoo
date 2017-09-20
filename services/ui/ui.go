@@ -12,6 +12,8 @@ import (
 	"laatoo/sdk/utils"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/imdario/mergo"
 	"github.com/tdewolff/minify"
@@ -30,7 +32,7 @@ const (
 	CONF_PROPS_EXTENSION = "properties_ext"
 	CONF_APPLICATION     = "application"
 	DEPENDENCIES         = "dependencies"
-	PROPERTIES_DIR       = "properties"
+	UI_DIR               = "ui"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
 	MERGED_CSS_FILE      = "mergedcssfile"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
@@ -56,6 +58,7 @@ type UI struct {
 	descriptorFiles    map[string][]byte
 	requiredUIPkgs     utils.StringSet
 	propertyFiles      map[string]interface{}
+	uiRegistry         map[string]interface{}
 }
 
 /*
@@ -86,6 +89,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.modDeps = make(map[string][]string)
 	svc.propertyFiles = make(map[string]interface{})
 	svc.requiredUIPkgs = utils.NewStringSet([]string{})
+	svc.uiRegistry = make(map[string]interface{})
 	return nil
 }
 
@@ -130,7 +134,13 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 			modRead = true
 		}
 
-		err := svc.appendPropertyFiles(ctx, modName, props)
+		uiRegDir := path.Join(dir, UI_DIR)
+		err := svc.readRegistry(ctx, modConf, uiRegDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		err = svc.appendPropertyFiles(ctx, insName, props)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -167,11 +177,72 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 	}
 
-	if modRead && (modName != insName) {
+	if modRead {
 		svc.insSettings[insName] = settings
 		svc.insMods[insName] = modName
 	}
 
+	return nil
+}
+
+func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDir string) error {
+
+	processItemType := func(conf string, items config.Config) {
+		var itemReg map[string]interface{}
+		reg, ok := svc.uiRegistry[conf]
+		if ok {
+			itemReg = reg.(map[string]interface{})
+		} else {
+			itemReg = make(map[string]interface{})
+		}
+		itemNames := items.AllConfigurations(ctx)
+		for _, item := range itemNames {
+			itemVal, _ := items.Get(ctx, item)
+			itemReg[item] = itemVal
+		}
+		svc.uiRegistry[conf] = itemReg
+	}
+
+	ui, ok := modConf.GetSubConfig(ctx, "ui")
+	if ok {
+		registry, ok := ui.GetSubConfig(ctx, "registry")
+		if ok {
+			confs := registry.AllConfigurations(ctx)
+			for _, itemType := range confs {
+				items, ok := registry.GetSubConfig(ctx, itemType)
+				if ok {
+					processItemType(itemType, items)
+				}
+			}
+		}
+	}
+
+	ok, _, _ = utils.FileExists(regDir)
+	if ok {
+		err := filepath.Walk(regDir, func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() {
+				return nil
+			}
+			if filepath.Ext(path) == ".json" {
+				cont, err := ioutil.ReadFile(path)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				obj := make(map[string]interface{})
+				err = json.Unmarshal(cont, &obj)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				fileName := info.Name()
+				itemType := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+				processItemType(itemType, config.GenericConfig(obj))
+			}
+			return nil
+		})
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
 	return nil
 }
 
@@ -184,7 +255,7 @@ func (svc *UI) appendPropertyFiles(ctx core.ServerContext, modName string, props
 	}
 	if len(modprops) > 0 {
 		props := svc.propertyFiles
-		mergo.MergeWithOverwrite(&props, modprops)
+		mergo.Merge(&props, modprops)
 		svc.propertyFiles = props
 	}
 	return nil
@@ -234,15 +305,11 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 }
 
 func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error {
-	log.Debug(ctx, "Writing property files")
 	svrProps := ctx.GetServerProperties()
-	log.Error(ctx, "writing server properties ================", "svrProps", svrProps)
 
 	propsToWrite := make(map[string]interface{})
 	mergo.Merge(&propsToWrite, svrProps)
-	log.Error(ctx, "written server properties ================", "propsToWrite", propsToWrite)
 	mergo.Merge(&propsToWrite, svc.propertyFiles)
-	log.Error(ctx, "written properties files ================", "propsToWrite", propsToWrite)
 
 	/*for mod, val := range svc.propertyFiles {
 		localeProps, _ := val.(map[string]interface{})
@@ -367,6 +434,21 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 		_, err := descFileCont.Write(cont)
 		if err != nil {
 			return errors.WrapError(ctx, err)
+		}
+	}
+
+	for itemType, val := range svc.uiRegistry {
+		itemMap := val.(map[string]interface{})
+		for item, itemVal := range itemMap {
+			itemStr, err := json.Marshal(itemVal)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			regCont := fmt.Sprintf("_r('%s', '%s', %s);", itemType, item, itemStr)
+			_, err = descFileCont.WriteString(regCont)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
 	}
 

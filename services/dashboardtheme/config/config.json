@@ -1,7 +1,8 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "reactwebcommon":">=0.0.1"
+    "reactwebcommon":">=0.0.1",
+    "authui":">=0.0.1"
   },
   "description":"Module provides dashboard theme for laatoo applications",
   "objects":{
@@ -14,6 +15,7 @@
       "react": "react",
       "react-redux": "react-redux",
       "react-dom": "react-dom",
+      "authui":"authui",
       "reactwebcommon": "reactwebcommon"
     },
     "packages":{

@@ -1,0 +1,10 @@
+{
+  "header":{
+    "image":"",
+    "title":"My Dashboard",
+    "className":"header"
+  },
+  "welcome":{
+    "text":"Welcome"
+  }  
+}

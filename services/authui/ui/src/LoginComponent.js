@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-import LoginUI from './LoginUI';
+import {LoginUI} from './LoginUI';
 import md5 from 'md5';
 import { connect } from 'react-redux';
 import {ActionNames} from './actions';
@@ -9,7 +9,7 @@ import {createAction} from 'uicommon';
 
 const mapStateToProps = (state, ownProps) => {
   return {
-    realm : ownProps.realm,
+    realm : Application.Security.realm,
     renderLogin: ownProps.renderLogin,
     signup: ownProps.signup
   }
@@ -18,13 +18,13 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   console.log("map dispatch of login compoent")
   let realm = "";
-  if(ownProps.realm) {
-	   realm = ownProps.realm
+  if(Application.Security.realm) {
+	   realm = Application.Security.realm
   }
   return {
     handleLogin: (email, password) => {
       let loginPayload = {"Username": email, "Password": md5(password), "Realm" : realm };
-      let loginMeta = {serviceName: ownProps.loginService};
+      let loginMeta = {serviceName: Application.Security.loginService};
       dispatch(createAction(ActionNames.LOGIN, loginPayload, loginMeta));
     },
     handleOauthLogin: (data) => {

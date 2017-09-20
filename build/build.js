@@ -129,6 +129,17 @@ function copyproperties(nextTask) {
   nextTask()
 }
 
+function copyUIRegistry(nextTask) {
+  let regSrcFolder = path.join(uiFolder, "registry")
+  if (fs.pathExistsSync(regSrcFolder)) {
+    let regDestFolder = path.join("/plugins", "tmp", name, "ui")
+    fs.mkdirsSync(regDestFolder)
+    log("Copying registered items", "dest", regDestFolder, "src", regSrcFolder)
+    fs.removeSync(regDestFolder)
+    fs.copySync(regSrcFolder, regDestFolder)
+  }
+  nextTask()
+}
 
 function compileWebUI(nextTask) {
 
@@ -387,8 +398,12 @@ function startTask(taskName) {
   }
   if ( taskName === "copyproperties" ){
     func = copyproperties
-    nextTask = "uicompile"
+    nextTask = "copyuiregistry"
   }
+  if ( taskName === "copyuiregistry" ){
+    func = copyUIRegistry
+    nextTask = "uicompile"
+  }  
   if (taskName === "uicompile" ){
     func = buildUI
     nextTask = "copyfiles"

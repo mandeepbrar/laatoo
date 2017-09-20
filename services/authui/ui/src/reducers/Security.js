@@ -50,7 +50,7 @@ const Account = (state, action) => {
   }
 }
 
-Application.Register('Reducers', "SecurityReducers", Account)
+Application.Register('Reducers', "Security", Account)
 /*
 export {
   Account as Account

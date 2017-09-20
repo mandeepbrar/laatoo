@@ -1,0 +1,28 @@
+@import 'reactwebcommon/app';
+
+.dashboard {
+  @extend .w100;
+  .header {
+    @extend .w100;
+    @extend .ptb50;
+    .title {
+      @extend .start-xs;
+    }
+  }
+  .body {
+    @extend .row;
+    .vertmenu{
+      @extend .col-xs-2;
+      @extend .s20
+    }
+    .horizmenu{
+      @extend .w100;
+    }
+    .vertbody{
+      @extend .col-xs;
+    }
+    .horizbody{
+      @extend .w100;
+    }
+  }
+}

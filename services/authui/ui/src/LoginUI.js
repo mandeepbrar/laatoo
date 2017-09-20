@@ -46,11 +46,12 @@ class LoginUI extends React.Component {
       this.props.handleLogin(this.state.email, this.state.password);
   }
   render() {
-    return this.props.renderLogin(this.state, this.handleChange, this.handleLogin, this.oauthLogin)
+    console.log("login ui", this.props);
+    return this.props.renderLogin(this.state, this.handleChange, this.handleLogin, this.oauthLogin, this.props)
   }
 }
 
-LoginUI.displayName = 'LoginComponent';
+//LoginUI.displayName = 'LoginComponent';
 
 // Uncomment properties you need
 LoginUI.propTypes = {
@@ -62,4 +63,4 @@ LoginUI.contextTypes = {
   uikit: PropTypes.object
 };
 
-export default LoginUI;
+export {LoginUI} ;

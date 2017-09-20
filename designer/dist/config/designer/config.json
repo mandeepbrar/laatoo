@@ -43,6 +43,12 @@
     "reactuibase": {
       "module":"reactuibase"
     },
+    "authui": {
+      "module":"authui"
+    },
+    "reactforms": {
+      "module":"reactforms"
+    },
     "dependencies": {
       "module":"designerdependencies"
     },
@@ -50,7 +56,9 @@
       "module":"dashboardtheme",
       "settings":{
         "application":"designerapplication",
-        "headertitle":"My Dashboard"
+        "headertitle":"My Dashboard",
+        "className":"customdashboard",
+        "vertical":true
       }
     },
     "designerapplication": {

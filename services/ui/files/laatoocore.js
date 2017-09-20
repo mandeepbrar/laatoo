@@ -11,6 +11,7 @@ Application.Register = function(regName,id,data) {
   }
   reg[id]=data;
 }
+var _r = Application.Register;
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {
@@ -24,7 +25,14 @@ function appLoadingComplete(appname, propsurl, modsToInitialize) {
     if(modsToInitialize!=null) {
       for(var i=0;i<modsToInitialize.length;i++) {
         var row = modsToInitialize[i];
-        modDef(appname, row[0], row[1], row[2]);
+        if(row[0]!=row[1]){
+          modDef(appname, row[0], row[1], row[2]);
+        } else {
+          let k = require(row[1]);
+          if(k.Initialize){
+            k.Initialize(appname,row[0], row[1], row[2], define, require);
+          }
+        }
       }
     }
     Window.InitializeApplication();
