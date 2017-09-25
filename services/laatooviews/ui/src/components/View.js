@@ -1,6 +1,7 @@
 import { connect } from 'react-redux';
 import {ActionNames} from '../Actions';
 import {createAction} from 'uicommon';
+import {ViewUI} from './ViewUI';
 
 function getSvc(ownProps) {
   return ownProps.dataservice? ownProps.dataservice: ownProps.name
@@ -23,7 +24,7 @@ const mapStateToProps = (state, ownProps) => {
     currentPage: ownProps.currentPage,
     className: ownProps.className,
     loader:ownProps.loader,
-    getPagination:{ownProps.incrementalLoad || ownProps.hidePaginationControl ? null : ownProps.getPagination},
+    getPagination: ownProps.incrementalLoad || ownProps.hidePaginationControl ? null : ownProps.getPagination,
     style: ownProps.style,
     totalPages: 1,
     load: false,
@@ -82,11 +83,31 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   }
 }
 
-const View = connect(
+const ViewComponent = connect(
   mapStateToProps,
   mapDispatchToProps
 )(ViewUI);
 
+const View = (props) => {
+  if(Application.Registry && Application.Registry.Views && props.id) {
+    let view = Application.Registry.Views[props.id]
+    let args = props.postArgs? props.postArgs: view.postArgs;
+    let params = props.urlparams? props.urlparams: view.urlparams;
+    let item = props.children;
+    switch(view.itemType) {
+      case 'entity':
+        return;
+    }
+    return <ViewComponent dataservice={view.dataservice} name={view.name} global={view.global} reducer={view.reducer}
+      className={"view_"+view.name} incrementalLoad={view.incrementalLoad} paginate={view.paginate}
+       urlparams={params} postArgs={args}>
+       {item}
+       </ViewComponent>
+  }
+  return null
+}
+
 export {
-  View
+  View,
+  ViewComponent
 }

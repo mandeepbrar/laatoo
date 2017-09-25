@@ -2,5 +2,8 @@
   "version":"0.0.1",
   "dependencies":{
   },
-  "description":"Module provides designer ui components"
+  "description":"Module provides designer ui components",
+  "ui":{
+    "skipUIModules": true
+  }
 }

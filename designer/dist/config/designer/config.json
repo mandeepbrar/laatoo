@@ -20,6 +20,10 @@
     },
     "localauth": {
       "module":"localauth",
+      "logging": {
+        "format":"happymaxcolor",
+        "level":"trace"
+      },
       "settings":{
         "userobject":"User",
         "dataservicefactory":"mongodatabase",
@@ -37,11 +41,20 @@
     "reactmaterialkit": {
       "module":"reactmaterialkit"
     },
+    "uicommon": {
+      "module":"uicommon"
+    },
+    "reactpages": {
+      "module":"reactpages"
+    },
     "reactwebcommon": {
       "module":"reactwebcommon"
     },
     "reactuibase": {
       "module":"reactuibase"
+    },
+    "laatooviews": {
+      "module":"laatooviews"
     },
     "authui": {
       "module":"authui"
@@ -60,6 +73,9 @@
         "className":"customdashboard",
         "vertical":true
       }
+    },
+    "designerui": {
+      "module":"designerui"
     },
     "designerapplication": {
       "module":"reactapplication",

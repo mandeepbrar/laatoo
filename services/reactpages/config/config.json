@@ -1,7 +1,6 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "reactwebcommon":">=0.0.1"
   },
   "description":"Module provides pages laatoo applications",
   "objects":{
@@ -12,14 +11,11 @@
       "babel-runtime":"babel-runtime",
       "babel-polyfill": "babel-polyfill",
       "react": "react",
-      "react-redux": "react-redux",
-      "react-dom": "react-dom",
-      "reactwebcommon": "reactwebcommon"
+      "react-redux": "react-redux"
     },
     "packages":{
       "react": "^15.6.1",
-      "react-redux": "^5.0.6",
-      "react-dom":"^15.6.1"
+      "react-redux": "^5.0.6"
     }
   }
 }

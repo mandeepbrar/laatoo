@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import configureStore from './stores';
 import React from 'react';
 import {App} from './App';
+import {ProcessPages} from 'reactpages';
 
 this.appname = 'application';
 this.settings = {};
@@ -23,6 +24,11 @@ function Initialize(app, ins, mod, s, def, req) {
   if(s.application === app) {
     this.appname = app;
     this.settings = s;
+    if(s.Backend) {
+      Application.Backend = s.Backend
+    } else {
+      Application.Backend = window.location.origin
+    }
   }
   this.req = req
 }
@@ -39,7 +45,10 @@ function StartApplication() {
   if(ThemeMod.default) {
     ThemeMod = ThemeMod.default
   }
-  ThemeMod.Start(this.appname, Uikit);
+  if(ThemeMod.Start) {
+    ThemeMod.Start(this.appname, Uikit);
+  }
+  ProcessPages(ThemeMod, Uikit);
   let Theme = ThemeMod.Theme
   //let theme = React.createElement(settings.theme)
 //  <theme/>

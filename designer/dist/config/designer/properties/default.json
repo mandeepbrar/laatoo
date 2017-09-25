@@ -3,6 +3,10 @@
     "homepage":{
       "title":"My Home",
       "page":"home"
+    },
+    "userspage":{
+      "title":"My Users",
+      "page":"users"
     }
   }
 }

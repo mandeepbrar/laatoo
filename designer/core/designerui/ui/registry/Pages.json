@@ -1,0 +1,9 @@
+{
+  "users":{
+    "route":"/users",
+    "component": {
+      "module":"designerui",
+      "component":"UsersView"
+    }
+  }
+}

@@ -1,7 +1,8 @@
 {
   "version":"0.0.1",
   "dependencies":{
-    "uicommon":">=0.0.1"
+    "uicommon":">=0.0.1",
+    "reactpages":">=0.0.1"
   },
   "description":"Module provides base for react based applications of laatoo. ",
   "objects":{
@@ -13,6 +14,7 @@
       "babel-polyfill": "babel-polyfill",
       "react": "react",
       "react-redux":"react-redux",
+      "reactpages":"reactpages",
       "redux":"redux",
       "redux-saga":"redux-saga",
       "prop-types":"prop-types"

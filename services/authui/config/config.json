@@ -17,7 +17,8 @@
       "babel-polyfill": "babel-polyfill",
       "babel-runtime": "babel-runtime",
       "prop-types":"prop-types",
-      "react": "react"
+      "react": "react",
+      "uicommon":"uicommon"
     }
   }
 }

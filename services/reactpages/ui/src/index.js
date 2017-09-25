@@ -1,86 +1,69 @@
 import React from 'react'
-import Header from './Header'
-import Welcome from './Welcome'
 import './styles/app.scss'
+import Block from './Block'
 import { combineReducers } from 'redux';
-import {ViewReducer, View} from 'laatooviews';
+//import {ViewReducer, View} from 'laatooviews';
 var module = this;
 
 function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins]
   module.settings = settings;
+  module.req = req;
+  let viewsMod = module.req("laatooviews")
+  if(viewsMod) {
+    module.view = viewsMod["View"]
+  }
+  Block.setModule(module)
+}
 
-  if(settings.pages) {
-    for(var pageId in settings.pages) {
-      console.log("processing page", pageId)
-      let page = settings.pages[pageId]
-      let reducers = processReducers(pageId, page, settings, req)
-      let components =  processComponents(pageId, page, settings, req)
-      Application.Register('Pages', pageId, {pattern: page.route, components: components, reducer: combineReducers(reducers)})
+function ProcessPages(theme, uikit) {
+  let pages = Application.Registry.Pages
+  if(pages) {
+    for(var pageId in pages) {
+      try {
+        let page = pages[pageId]
+        let reducers = GetPageReducers( page)
+        let components = page.components
+        if(page.component) {
+          components = {"main":page.component}
+        }
+        let pageComps={}
+        Object.keys(components).forEach(function(key){
+          pageComps[key] = function(comp, page) {
+            return (routerState) => {
+              return <Block key={page+key}  blockDescription={comp} />
+            }
+          }(components[key], pageId)
+        });
+        let route = {pattern: page.route, components: pageComps, reducer: combineReducers(reducers)}
+        let newRoute = route
+        if(theme && theme.ProcessRoute) {
+          newRoute = theme.ProcessRoute(route, uikit)
+        }
+        Application.Register('Routes', pageId, newRoute)
+        Application.Register('Actions','Page_'+pageId, {url: newRoute.pattern})
+      }catch(ex) {
+        console.log(ex)
+      }
       //processPage(settings.pages[pageId], req)
     }
   }
 }
 
-function processComponents(pageId, page, settings, req) {
-  let components = {}
-  let pagecomponents = page.components
-  if(page.component) {
-    pagecomponents = {"main":pagecomponents}
-  }
-  if(pagecomponents) {
-    for(var viewId in pagecomponents) {
-      let compdesc = pagecomponents[viewId]
-      try {
-        let obj= null
-        switch compdesc.type {
-          case "view":
-            let viewname = compdesc.name
-            obj = <View name={viewname} contentClass="row" paginate={false} getView={getLeaderRow}
-              defaultFilter={compdesc.filter} global={compdesc.global?compdesc.global:false}>
-              <ViewItem style={{padding:0}}/>
-            </View>
-            break;
-          /*case "entity":
-            obj = EntityReducer(datasourceId)
-            break;*/
-          default:
-            let mod = compdesc.module
-            if(mod) {
-              let module = req(mod);
-              if(module) {
-                obj=module[compdesc.component]
-              }
-            }
-        }
-        if(obj) {
-          components[viewId] = obj;
-        }
-      }catch(ex){}
-    }
-  }
-  return components
-}
 
-function processReducers(pageId, page, settings, req) {
+function GetPageReducers(page) {
   let reducers = {}
   for(var datasourceId in page.datasources) {
     try {
       let datasource = Application.Registry.Datasources[datasourceId]
       let obj= {}
-      switch datasource.type {
-        case "view":
-          obj = ViewReducer(datasourceId)
-          break;
-        /*case "entity":
-          obj = EntityReducer(datasourceId)
-          break;*/
+      switch(datasource.type) {
         default:
           let mod = datasource.module
           if(mod) {
-            let module = req(mod);
-            if(module) {
-              obj=module[datasource.processor]
+            let moduleObj = module.req(mod);
+            if(moduleObj) {
+              obj=moduleObj[datasource.processor]
             }
           }
       }
@@ -93,5 +76,7 @@ function processReducers(pageId, page, settings, req) {
 }
 
 export {
-  Initialize
+  Initialize,
+  Block,
+  ProcessPages
 }
