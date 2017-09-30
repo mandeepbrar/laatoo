@@ -102,6 +102,17 @@ func (modMgr *moduleManager) installModule(ctx core.ServerContext, modulesDir st
 	return mod_version, nil
 }
 
+func (modMgr *moduleManager) getDependentModules(ctx core.ServerContext, moduleName string) []string {
+	modConf, ok := modMgr.moduleConf[moduleName]
+	if ok {
+		deps, ok := modConf.GetSubConfig(ctx, constants.CONF_MODULE_DEP)
+		if ok {
+			return deps.AllConfigurations(ctx)
+		}
+	}
+	return nil
+}
+
 func (modMgr *moduleManager) processDependentModules(ctx core.ServerContext, modulesDir, modDir string, moduleName string) (*semver.Version, config.Config, error) {
 
 	modconf, err := modMgr.getModuleConf(ctx, modDir)

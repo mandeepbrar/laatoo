@@ -179,38 +179,61 @@ func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func
 processor func(core.ServerContext, config.Config, string) error
 */
 
+func (modMgr *moduleManager) processPlugins(ctx core.ServerContext, mod *serverModule, svcMgr *serviceManager, processedMods map[string]bool) error {
+	_, ok := processedMods[mod.name]
+	if ok {
+		return nil
+	}
+	deps := modMgr.getDependentModules(ctx, mod.name)
+	if deps != nil {
+		for _, depName := range deps {
+			modProxy, ok := modMgr.modules[depName]
+			if ok {
+				depmod := modProxy.(*moduleProxy).mod
+				modMgr.processPlugins(ctx, depmod, svcMgr, processedMods)
+			}
+		}
+	}
+	modPlugins := mod.plugins(ctx)
+	for svcName, pluginConf := range modPlugins {
+		pluginObj, err := svcMgr.getService(mod.svrContext, svcName)
+		if err != nil {
+			return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
+		}
+		pluginSvc := pluginObj.(*serviceProxy)
+
+		plugin, ok := pluginSvc.svc.service.(components.ModuleManagerPlugin)
+		if !ok {
+			return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
+		}
+
+		for passedModName, passedModProxy := range modMgr.modules {
+			log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
+			passedMod := passedModProxy.(*moduleProxy).mod
+			passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
+			err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
+			if err != nil {
+				return errors.WrapError(passedModCtx, err)
+			}
+		}
+		err = plugin.Loaded(pluginSvc.svc.svrContext)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	processedMods[mod.name] = true
+	return nil
+}
+
 func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
 
 	svcMgr := modMgr.svrref.serviceManagerHandle.(*serviceManager)
-
+	processedModules := make(map[string]bool)
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
-		modPlugins := mod.plugins(ctx)
-		for svcName, pluginConf := range modPlugins {
-			pluginObj, err := svcMgr.getService(mod.svrContext, svcName)
-			if err != nil {
-				return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
-			}
-			pluginSvc := pluginObj.(*serviceProxy)
-
-			plugin, ok := pluginSvc.svc.service.(components.ModuleManagerPlugin)
-			if !ok {
-				return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)
-			}
-
-			for passedModName, passedModProxy := range modMgr.modules {
-				log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
-				passedMod := passedModProxy.(*moduleProxy).mod
-				passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
-				err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
-				if err != nil {
-					return errors.WrapError(passedModCtx, err)
-				}
-			}
-			err = plugin.Loaded(pluginSvc.svc.svrContext)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
+		err := modMgr.processPlugins(ctx, mod, svcMgr, processedModules)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
 	}
 

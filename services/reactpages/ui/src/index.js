@@ -9,10 +9,6 @@ function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins]
   module.settings = settings;
   module.req = req;
-  let viewsMod = module.req("laatooviews")
-  if(viewsMod) {
-    module.view = viewsMod["View"]
-  }
   Block.setModule(module)
 }
 
@@ -31,7 +27,7 @@ function ProcessPages(theme, uikit) {
         Object.keys(components).forEach(function(key){
           pageComps[key] = function(comp, page) {
             return (routerState) => {
-              return <Block key={page+key}  blockDescription={comp} />
+              return <Block key={page+key} params={routerState.params}  blockDescription={comp} />
             }
           }(components[key], pageId)
         });

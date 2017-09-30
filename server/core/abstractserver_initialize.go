@@ -213,7 +213,6 @@ func (as *abstractserver) readProperties(ctx core.ServerContext) error {
 	} else {
 		as.properties = props
 	}
-	log.Error(ctx, "read properties ================", "props", as.properties)
 	ctx.(*serverContext).setServerProperties(as.properties)
 	return nil
 }

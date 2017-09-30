@@ -17,7 +17,8 @@
       "react-redux":"react-redux",
       "reactwebcommon":"reactwebcommon",
       "redux-saga":"redux-saga",
-      "react-pagify":"react-pagify"
+      "react-pagify":"react-pagify",
+      "uicommon":"uicommon"
     },
     "packages":{
       "react": "^15.6.1",

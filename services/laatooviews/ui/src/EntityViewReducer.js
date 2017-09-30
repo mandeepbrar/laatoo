@@ -1,5 +1,7 @@
 import  {ActionNames} from './Actions';
 
+let reducerName = "entityview"
+
 var initialState={
     entities:{}
 }
@@ -14,7 +16,7 @@ var initialEntityState = {
 
 function EntityViewReducer (state, action)  {
   //return state if this is not the correct copy of reducer
-  if(!action || !action.meta || !action.meta.entityId) {
+  if(!action || !action.meta || (action.meta.reducer != reducerName)) {
     if(!state) {
       return initialState;
     }
@@ -33,7 +35,7 @@ function EntityViewReducer (state, action)  {
     }
     return state;
   }
-  if (action.type && action.meta && action.meta.entityId) {
+  if (action.type && action.meta && (action.meta.reducer == reducerName)) {
     let id = action.meta.entityId
     let oldEntityState = state.entities[id]
     let newEntityState = {}
@@ -47,30 +49,35 @@ function EntityViewReducer (state, action)  {
           entityName: action.payload.entityName
         }
         if(oldEntityState) {
-          newEntityState = Object.assign({}, oldEntityState, stateChange)
+          newEntityState[id] = Object.assign({}, oldEntityState, stateChange)
         } else {
-          newEntityState = Object.assign({}, initialEntityState, stateChange)
+          newEntityState[id] = Object.assign({}, initialEntityState, stateChange)
         }
+        break;
       case ActionNames.ENTITY_VIEW_FETCH_SUCCESS:
-        newEntityState = Object.assign({}, oldEntityState, {
+        newEntityState[id] = Object.assign({}, oldEntityState, {
           status:"Loaded",
           data: action.payload.data,
           lastUpdateTime: (new Date()).getTime()
         });
+        break;
       case ActionNames.ENTITY_VIEW_FETCH_FAILED: {
-        newEntityState = Object.assign({}, initialEntityState, {
+        newEntityState[id] = Object.assign({}, initialEntityState, {
           status:"LoadingFailed"
         });
+        break;
       }
     }
-    state.entities = Object.assign({}, state.entities, {name: newEntityState});
-    return state
+    let newEntities = Object.assign({}, state.entities, newEntityState)
+    return Object.assign({}, state, {entities: newEntities});
+    /*console.log("new state of entity view reducer", state)
+    return state*/
   }
 }
 
 
 
-Application.Register('Reducers', "entityview", EntityViewReducer)
+Application.Register('Reducers', reducerName, EntityViewReducer)
 
 /*
 export {

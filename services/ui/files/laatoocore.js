@@ -12,6 +12,8 @@ Application.Register = function(regName,id,data) {
   reg[id]=data;
 }
 var _r = Application.Register;
+var _re=require('react');
+var _ce=_re.createElement;
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {

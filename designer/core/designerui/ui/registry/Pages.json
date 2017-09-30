@@ -5,5 +5,14 @@
       "module":"designerui",
       "component":"UsersView"
     }
+  },
+  "userentity":{
+    "route":"/userentity",
+    "component": {
+      "type":"entity",
+      "entityId":"a4d68288-b010-4df6-a8c8-5de64da1990f",
+      "entityName":"User",
+      "entityDisplay":"default"
+    }
   }
 }

@@ -7,6 +7,10 @@
     "userspage":{
       "title":"My Users",
       "page":"users"
+    },
+    "testpagee":{
+      "title":"Test Entity",
+      "page":"userentity"
     }
   }
 }

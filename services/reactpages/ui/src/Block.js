@@ -4,7 +4,7 @@ const PropTypes = require('prop-types');
 var module;
 
 class Block extends React.Component {
-  constructor(props) {
+  constructor(props, ctx) {
     super(props)
     let desc = props.blockDescription
     if(props.blockId) {
@@ -16,23 +16,47 @@ class Block extends React.Component {
         case "view":
           let viewname = desc.name
           let viewItem = desc.item
-          this.block = <module.view name={desc.name} id={desc.id}>
+          let view = this.getComponent("laatooviews", "View", module.req)
+          this.block = <view params={props.params} name={desc.name} id={desc.id}>
             <Block blockDescription={desc.item} />
-          </module.view>
+          </view>
           break;
         case "entity":
-          let displayMode = desc.entityDisplay
-          let display = Application.Registry.EntityDisplay[desc.entityName+"_"+displayMode]
-          if(!display) {
-            display = Application.Registry.EntityDisplay[desc.entityName+"_default"]
+          let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
+          let id = "", name = ""
+          if(props.params && props.params.id) {
+            id = props.params.id
+            name = props.params.name
+          } else {
+            id = desc.entityId
+            name = desc.entityName
           }
-          this.block = display(desc, uikit)
+          let entity = this.getComponent("laatooviews", "Entity", module.req)
+          var display;
+          if(Application.Registry.EntityDisplay) {
+            display = Application.Registry.EntityDisplay[desc.entityName+"_"+displayMode]
+            if(!display) {
+              display = Application.Registry.EntityDisplay[desc.entityName+"_default"]
+            }
+          }
+          if(!display) {
+            display=function(data, desc, uikit, time) {
+              console.log("rendering ", data, time)
+              if(data) {
+                return <uikit.Block>{JSON.stringify(data)}</uikit.Block>
+              }
+              return <uikit.Block></uikit.Block>
+            }
+          }
+          console.log("entity comp", entity, display)
+          this.block = React.createElement(entity, {id: id, name: name, entityDescription:desc, display: display, uikit:ctx.uikit})
           break;
         case "component":
           this.block = desc.component
           break;
         default:
-          this.block = this.getComponent(desc, module.req)
+          let comp = this.getComponent(desc.module, desc.component, module.req)
+          this.block = React.createElement(comp)
           break;
       }
     }
@@ -40,17 +64,17 @@ class Block extends React.Component {
   static setModule(mod) {
     module = mod;
   }
-  getComponent = (compdesc, req) => {
-    if(compdesc) {
-      let mod = compdesc.module
-      if(mod) {
-        let moduleObj = req(mod);
-        if(moduleObj && compdesc.component) {
-          return React.createElement(moduleObj[compdesc.component])
-        }
+  getComponent = (mod, comp, req) => {
+    let key = mod + comp
+    let retval = module[key]
+    if(!retval) {
+      let moduleObj = req(mod);
+      if(moduleObj && comp) {
+        retval = moduleObj[comp]
+        module[key] = retval
       }
     }
-    return null
+    return retval
   }
 
   render() {
@@ -61,7 +85,7 @@ class Block extends React.Component {
       }
       return <uikit.Block/>
     }*/
-    return this.block? this.block: <uikit.Block/>
+    return this.block? this.block: <this.context.uikit.Block/>
   }
 }
 

@@ -6,9 +6,11 @@ import './sagas/View';
 import './sagas/EntityView';
 import './sagas/GroupLoad';
 import './styles/app.scss';
+import {Entity} from './components/Entity';
 
 export {
     View,
     ViewComponent,
+    Entity,
     GroupLoad
 }

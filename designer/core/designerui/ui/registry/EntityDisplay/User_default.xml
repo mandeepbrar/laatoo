@@ -1,0 +1,3 @@
+<div class="myclass">
+  <h1>The id of user is {{entity "Id"}}</h1>
+</div>

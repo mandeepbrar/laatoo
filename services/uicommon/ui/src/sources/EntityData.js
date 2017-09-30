@@ -9,6 +9,10 @@ export class EntityDataService {
         this.DeleteEntity = this.DeleteEntity.bind(this);
         this.PutEntity = this.PutEntity.bind(this);
         this.UpdateEntity = this.UpdateEntity.bind(this);
+        this.EntityPrefix = "/"
+    }
+    SetPrefix = (pre) => {
+      this.EntityPrefix = pre
     }
     GetEntity(entityName, id, headers, svc) {
       if(svc) {
@@ -17,7 +21,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "GET";
-        service.url = Application.EntityPrefix + entityName.toLowerCase()+"/"+id;
+        service.url = this.EntityPrefix + entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, null, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -30,7 +34,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "POST";
-        service.url = Application.EntityPrefix+entityName.toLowerCase();
+        service.url = this.EntityPrefix+entityName.toLowerCase();
         return this.DataSource.ExecuteServiceObject(service, req);
       }
 		};
@@ -42,7 +46,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "DELETE";
-        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = this.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, null, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -55,7 +59,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "PUT";
-        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = this.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, data, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
@@ -68,7 +72,7 @@ export class EntityDataService {
       } else {
         var service = {};
   			service.method = "PUT";
-        service.url = Application.EntityPrefix+entityName.toLowerCase()+"/"+id;
+        service.url = this.EntityPrefix+entityName.toLowerCase()+"/"+id;
         var req = this.RequestBuilder.DefaultRequest(null, fieldmap, headers);
   			return this.DataSource.ExecuteServiceObject(service, req);
       }
