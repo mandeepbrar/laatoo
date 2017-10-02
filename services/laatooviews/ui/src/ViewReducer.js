@@ -57,6 +57,7 @@ function ViewReducer (state, action) {
         } else {
           newViewState = Object.assign({}, initialViewState, stateChange)
         }
+        break;
       case ActionNames.VIEW_FETCH_SUCCESS:
         let totalPages = 1
         if (action.meta.info && action.meta.info.totalrecords) {
@@ -84,13 +85,13 @@ function ViewReducer (state, action) {
           lastUpdateTime: (new Date()).getTime(),
           totalPages: totalPages
         });
-
+        break;
       case ActionNames.VIEW_FETCH_FAILED: {
         newViewState = Object.assign({}, initialViewState, {
           status:"LoadingFailed"
         });
       }
-
+      break;
       case ActionNames.VIEW_ITEM_RELOAD: {
         let index = action.meta.Index
         if (index==null) {
@@ -117,7 +118,7 @@ function ViewReducer (state, action) {
           lastUpdateTime: (new Date()).getTime(),
         });
       }
-
+      break;
       case ActionNames.VIEW_ITEM_REMOVE: {
         let index = action.payload.Index
         if (index==null) {
@@ -148,8 +149,10 @@ function ViewReducer (state, action) {
         });
       }
     }
-    state.views = Object.assign({}, state.views, {name: newViewState});
-    return state
+    let viewsChange = {}
+    viewsChange[name] = newViewState
+    let newViews = Object.assign({}, state.views, viewsChange);
+    return Object.assign({}, state, {views: newViews});
   }
 }
 

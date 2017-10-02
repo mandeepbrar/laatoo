@@ -48,34 +48,36 @@ func (impl *serviceImpl) InjectServices(ctx core.ServerContext, services map[str
 	impl.serviceInfo.svcsToInject = services
 }
 
-func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string) {
+func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string, required bool) {
 	for name, typ := range params {
-		impl.serviceInfo.request.params[name] = &param{name, typ, false, nil}
+		impl.serviceInfo.request.params[name] = &param{name, typ, false, required, nil}
 	}
 }
 
-func (impl *serviceImpl) AddParam(ctx core.ServerContext, name string, datatype string, collection bool) {
-	impl.serviceInfo.request.params[name] = &param{name, datatype, collection, nil}
+func (impl *serviceImpl) AddParam(ctx core.ServerContext, name string, datatype string, collection, required bool) {
+	impl.serviceInfo.request.params[name] = &param{name, datatype, collection, required, nil}
 }
 
 func (impl *serviceImpl) AddCollectionParams(ctx core.ServerContext, params map[string]string) {
 	for name, typ := range params {
-		impl.serviceInfo.request.params[name] = &param{name, typ, true, nil}
+		impl.serviceInfo.request.params[name] = &param{name, typ, true, true, nil}
 	}
 }
 
 func (impl *serviceImpl) AddStringParams(ctx core.ServerContext, params []string, defaultValues []string) {
+	required := true
 	for index, name := range params {
 		defaultValue := ""
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
+			required = false
 		}
-		impl.serviceInfo.request.params[name] = &param{name, "", true, defaultValue}
+		impl.serviceInfo.request.params[name] = &param{name, "", true, required, defaultValue}
 	}
 }
 
 func (impl *serviceImpl) AddStringParam(ctx core.ServerContext, name string) {
-	impl.AddParam(ctx, name, config.OBJECTTYPE_STRING, false)
+	impl.AddParam(ctx, name, config.OBJECTTYPE_STRING, true, false)
 }
 
 func (impl *serviceImpl) SetRequestType(ctx core.ServerContext, datatype string, collection bool, stream bool) {

@@ -21,6 +21,7 @@ type moduleManager struct {
 	svrref           *abstractserver
 	parent           core.ServerElement
 	proxy            server.ModuleManager
+	modulesRepo      string
 	modules          map[string]server.Module
 	installedModules map[string]*semver.Version
 	moduleConf       map[string]config.Config
@@ -35,11 +36,16 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 
 	baseDir, _ := ctx.GetString(config.BASEDIR)
 	modulesDir := path.Join(baseDir, constants.CONF_MODULES)
+	modulesRepository, ok := conf.GetString(ctx, constants.CONF_MODULES_REPO)
+	if !ok {
+		modulesRepository = modulesDir
+	}
+	modMgr.modulesRepo = modulesRepository
+
 	ok, fi, _ := utils.FileExists(modulesDir)
 	if ok && fi.IsDir() {
 

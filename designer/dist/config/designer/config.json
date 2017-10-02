@@ -1,4 +1,5 @@
 {
+  "modulesrepo":"/modules",
   "modules":{
     "filesystemstorage":{
       "module":"filesystemstorage",
@@ -20,7 +21,6 @@
     },
     "localauth": {
       "module":"localauth",
-
       "settings":{
         "userobject":"User",
         "dataservicefactory":"mongodatabase",

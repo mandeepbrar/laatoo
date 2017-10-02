@@ -7,60 +7,107 @@ class Block extends React.Component {
   constructor(props, ctx) {
     super(props)
     let desc = props.blockDescription
-    if(props.blockId) {
+    if(!desc && props.blockId) {
       desc = Application.Registry.Blocks[props.blockId]
     }
-    console.log("creating block", desc)
-    if(desc){
+    if(desc && (typeof(desc) == 'string')) {
+      this.processXMLComponent(desc, props)
+    } else if(desc){
       switch(desc.type) {
         case "view":
-          let viewname = desc.name
-          let viewItem = desc.item
-          let view = this.getComponent("laatooviews", "View", module.req)
-          this.block = <view params={props.params} name={desc.name} id={desc.id}>
-            <Block blockDescription={desc.item} />
-          </view>
+          this.processView(desc,  props)
           break;
         case "entity":
-          let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
-          let id = "", name = ""
-          if(props.params && props.params.id) {
-            id = props.params.id
-            name = props.params.name
-          } else {
-            id = desc.entityId
-            name = desc.entityName
-          }
-          let entity = this.getComponent("laatooviews", "Entity", module.req)
-          var display;
-          if(Application.Registry.EntityDisplay) {
-            display = Application.Registry.EntityDisplay[desc.entityName+"_"+displayMode]
-            if(!display) {
-              display = Application.Registry.EntityDisplay[desc.entityName+"_default"]
-            }
-          }
-          if(!display) {
-            display=function(data, desc, uikit, time) {
-              console.log("rendering ", data, time)
-              if(data) {
-                return <uikit.Block>{JSON.stringify(data)}</uikit.Block>
-              }
-              return <uikit.Block></uikit.Block>
-            }
-          }
-          console.log("entity comp", entity, display)
-          this.block = React.createElement(entity, {id: id, name: name, entityDescription:desc, display: display, uikit:ctx.uikit})
+          this.processEntity(desc, props)
+          break;
+        case "xmlcomponent":
+          this.processXMLComponent(desc, props)
           break;
         case "component":
-          this.block = desc.component
+          this.getBlock = function(props, context, state) {
+            return desc.component
+          }
           break;
         default:
           let comp = this.getComponent(desc.module, desc.component, module.req)
-          this.block = React.createElement(comp)
+          this.getBlock = function(props, context, state) {
+            return React.createElement(comp)
+          }
           break;
       }
     }
   }
+
+  processXMLComponent = (desc, props) => {
+    let display = this.getDisplayFunc(desc, props)
+    if(display) {
+      this.getBlock = function(props, ctx, state) {
+        let retval = display(props.data, desc, ctx.uikit)
+        return retval
+      }
+    } else {
+      this.getBlock = function(props, ctx, state) {
+        return <ctx.uikit.Block></ctx.uikit.Block>
+      }
+    }
+  }
+
+  getDisplayFunc(item, props) {
+    if(!item || !Application.Registry.XMLDisplay) {
+      return null
+    }
+    if (typeof(item) == "string") {
+      return Application.Registry.XMLDisplay[item]
+    } else {
+      let display = Application.Registry.XMLDisplay[item.xmlName]
+      if(!display) {
+        display = Application.Registry.XMLDisplay[item.defaultXML]
+      }
+      return display
+    }
+  }
+
+  processView = (desc, props) => {
+    let viewid = desc.viewid
+    let viewdesc = desc
+    if(viewid && Application.Registry.Views) {
+      viewdesc = Application.Registry.Views[viewid]
+    }
+    let viewItem = desc.item? desc.item: viewdesc.item
+    let viewHeader = viewdesc.header? <Block blockDescription={viewdesc.header}/> :null
+
+    if(!this.view) {
+      this.view = this.getComponent("laatooviews", "View", module.req)
+    }
+    this.getBlock = function(props, context, state) {
+      return <this.view params={props.params} header={viewHeader} id={viewid}>
+        <Block blockDescription={viewItem} />
+      </this.view>
+    }
+  }
+
+  processEntity = (desc, props) => {
+    let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
+    let id = "", name = ""
+    if(props.params && props.params.id) {
+      id = props.params.id
+      name = props.params.name
+    } else {
+      id = desc.entityId
+      name = desc.entityName
+    }
+    if(!this.entity) {
+      this.entity = this.getComponent("laatooviews", "Entity", module.req)
+    }
+
+    let entityDisplay={type:"xmlcomponent", xmlName: desc.entityName+"_" + displayMode, defaultXML: desc.entityName+"_default"}
+    this.getBlock = function(props, ctx, state) {
+      return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
+        <Block blockDescription={entityDisplay} ></Block>
+      </this.entity>
+    }
+  }
+
   static setModule(mod) {
     module = mod;
   }
@@ -85,7 +132,7 @@ class Block extends React.Component {
       }
       return <uikit.Block/>
     }*/
-    return this.block? this.block: <this.context.uikit.Block/>
+    return this.getBlock? this.getBlock(this.props, this.context, this.state): <this.context.uikit.Block/>
   }
 }
 

@@ -4,6 +4,8 @@ COPY dist/keys /keys
 
 VOLUME /config/environments/designer
 
+VOLUME /modules
+
 VOLUME /bin/publicdir
 
 VOLUME /bin/appfiles

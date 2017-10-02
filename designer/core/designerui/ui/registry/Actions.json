@@ -1,0 +1,5 @@
+{
+  "viewUser": {
+    "url": "/user/:id"
+  }
+}

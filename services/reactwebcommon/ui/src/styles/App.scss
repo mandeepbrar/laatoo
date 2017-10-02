@@ -297,6 +297,24 @@
 	display: inline-block;
 }
 
+.tableview {
+  display: table;
+}
+.tableheading
+{
+    display: table-row;
+    font-weight: bold;
+    text-align: center;
+}
+.tablerow
+{
+    display: table-row;
+}
+.tablecell
+{
+    display: table-cell;
+}
+
 .w960 {
   width: 960px !important;
 }

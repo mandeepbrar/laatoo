@@ -2,8 +2,8 @@
   "users":{
     "route":"/users",
     "component": {
-      "module":"designerui",
-      "component":"UsersView"
+      "type":"view",
+      "viewid":"users"
     }
   },
   "userentity":{

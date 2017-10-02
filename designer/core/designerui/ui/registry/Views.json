@@ -6,10 +6,13 @@
     "urlparams":{
 
     },
-    "dataservice":"",
-    "name":"",
+    "serviceName":"users",
+    "header":"usersviewheader",
+    "name":"users",
     "item":{
-
+      "type":"entity",
+      "entityName":"User",
+      "entityDisplay":"default"
     }
   }
 }

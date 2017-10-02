@@ -5,7 +5,7 @@ import {ViewData} from './ViewData'
 const PropTypes = require('prop-types');
 
 class ViewUI extends ViewData {
-  constructor(props) {
+  constructor(props, context) {
     super(props);
     this.getItemGroup = this.getItemGroup.bind(this);
     this.getView = this.getView.bind(this);
@@ -60,46 +60,32 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     let methods = this.methods();
     methods.loadMore();
   }
-  getView(view, header, groups, pagination, filter) {
+  getView(header, groups, pagination, filter) {
     if(this.props.editable) {
-      view.addMethod('onItemCheckboxChange', this.onItemCheckboxChange(view))
+      this.addMethod('onItemCheckboxChange', this.onItemCheckboxChange(view))
     }
     if(this.props.getView) {
         return this.props.getView(this, header, groups, pagination, filter, this.props)
     }
-    let viewComp = null
     if(this.props.incrementalLoad) {
-      viewComp = (
-        <this.scroll key={this.props.key} className="scroll" onScrollEnd={this.onScrollEnd}>
-          <this.div className="viewheader">
-            {header}
-          </this.div>
-          <this.div className="viewbody">
-            {groups}
-          </this.div>
-        </this.scroll>
+      return (
+        <this.uikit.scroll key={this.props.key} className={this.props.className} onScrollEnd={this.onScrollEnd}>
+          {filter}
+          {header}
+          {groups}
+          {pagination}
+        </this.uikit.scroll>
       )
     } else {
-      viewComp = (
-        <this.div key={this.props.key} >
-          <this.div className="viewheader">
-            {header}
-          </this.div>
-          <this.div className="viewcontent">
-            {groups}
-          </this.div>
-        </this.div>
+      return (
+        <this.uikit.Block key={this.props.key} className={this.props.className} style={this.props.style} >
+        {filter}
+        {header}
+        {groups}
+        {pagination}
+        </this.uikit.Block>
       )
     }
-
-    return (
-      <this.div key={this.props.key} className={this.props.className}
-       style={this.props.style}>
-        {filter}
-        {viewComp}
-        {pagination}
-      </this.div>
-    )
   }
 
   getFilter() {
@@ -112,17 +98,19 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     if(this.props.getItemGroup) {
       return this.props.getItemGroup(this, x)
     }
-    return null
+    return <this.uikit.Block className="group">x</this.uikit.Block>
   }
   getItem(x, i) {
     if(this.props.getItem) {
       return this.props.getItem(this, x, i)
     }
-    return React.Children.map(this.props.children, (child) => React.cloneElement(child, { item: x, index: i }) );
+    return React.Children.map(this.props.children, (child) => React.cloneElement(child, { data: x, index: i }) );
   }
   getHeader() {
     if(this.props.getHeader) {
       return this.props.getHeader(this)
+    } else if (this.props.header) {
+      return this.props.header
     }
     return null
   }
@@ -135,7 +123,7 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     return null
   }
   renderView(items, currentPage, totalPages) {
-    this.viewdata = viewdata
+    //this.viewdata = viewdata
     let groups=[]
     let groupsize = 1
     let group=[]
@@ -147,11 +135,15 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
         let x = items[keys[i]]
         if (x) {
           let item = this.getItem(x, keys[i])
-          group.push(item)
-          if((i % groupsize) == 0) {
-            let itemGrp = this.getItemGroup(group)
-            groups.push(itemGrp)
-            group = []
+          if(groupsize == 1) {
+            groups.push(item)
+          } else {
+            group.push(item)
+            if((i % groupsize) == 0) {
+              let itemGrp = this.getItemGroup(group)
+              groups.push(itemGrp)
+              group = []
+            }
           }
         }
       }

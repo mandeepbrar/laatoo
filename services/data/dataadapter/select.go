@@ -15,8 +15,8 @@ type selectSvc struct {
 
 func (gi *selectSvc) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Get multiple element by criteria. Criteria is specified in stringmap.")
-	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
+	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, []string{""})
+	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 func (svc *selectSvc) Start(ctx core.ServerContext) error {

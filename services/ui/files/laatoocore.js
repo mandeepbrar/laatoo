@@ -2,7 +2,11 @@ let n= (typeof(document)==='undefined');
 var Storage = n ? {} : localStorage;
 var Application = n ? { Native:n} : document.InitConfig;
 Application.Registry={};
+Application.Modules={};
 var Window = n ? {} : window;
+Application.RegisterModule = function(mod) {
+  Application.Modules[mod] = require(mod)
+}
 Application.Register = function(regName,id,data) {
   let reg=Application.Registry[regName];
   if(reg==null){
@@ -11,6 +15,8 @@ Application.Register = function(regName,id,data) {
   }
   reg[id]=data;
 }
+var _$=Application.Modules;
+var _rm = Application.RegisterModule;
 var _r = Application.Register;
 var _re=require('react');
 var _ce=_re.createElement;

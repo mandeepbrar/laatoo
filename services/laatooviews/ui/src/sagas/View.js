@@ -13,7 +13,7 @@ function* fetchViewData(action) {
     } else {
       resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
     }
-    yield put(createAction(ActionNames.VIEW_FETCH_SUCCESS, resp.data, {info: resp.info, incrementalLoad: action.meta.incrementalLoad, viewname: action.meta.viewname}));
+    yield put(createAction(ActionNames.VIEW_FETCH_SUCCESS, resp.data, {info: resp.info, incrementalLoad: action.meta.incrementalLoad, global: action.meta.global, viewname: action.meta.viewname}));
   } catch (e) {
     yield put(createAction(ActionNames.VIEW_FETCH_FAILED, e, action.meta));
     if(action.meta.failureCallback) {

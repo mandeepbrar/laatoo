@@ -61,6 +61,6 @@ func (provider *metadataProvider) CreateConfiguration(name, conftype string, req
 	return newConfiguration(name, conftype, required, defaultValue)
 }
 
-func (provider *metadataProvider) CreateParam(name, paramtype string, collection bool) core.Param {
-	return newParam(name, paramtype, collection)
+func (provider *metadataProvider) CreateParam(name, paramtype string, collection, required bool) core.Param {
+	return newParam(name, paramtype, collection, required)
 }

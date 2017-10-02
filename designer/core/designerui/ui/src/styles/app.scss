@@ -1,0 +1,14 @@
+@import 'reactwebcommon/app';
+
+.view_users {
+  @extend .tableview;
+  .user_header {
+    @extend .tableheading;
+  }
+  .user_default {
+    @extend .tablerow;
+  }
+  .field {
+    @extend .tablecell;
+  }
+}

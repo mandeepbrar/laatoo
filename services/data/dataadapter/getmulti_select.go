@@ -28,7 +28,7 @@ func (gi *getmulti_select) Describe(ctx core.ServerContext) {
 	gi.AddStringConfigurations(ctx, []string{CONF_SVC_LOOKUP_FIELD, CONF_SVC_LOOKUPSVC}, nil)
 	gi.AddOptionalConfigurations(ctx, map[string]string{HASHMAP_PARAM: config.OBJECTTYPE_BOOL}, map[string]interface{}{HASHMAP_PARAM: false})
 	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT})
+	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
 	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 func (es *getmulti_select) Start(ctx core.ServerContext) error {

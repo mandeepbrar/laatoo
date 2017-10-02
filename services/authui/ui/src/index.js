@@ -22,9 +22,9 @@ function Initialize(appName, ins, mod, settings, def, req) {
       validateService: "validate",
       realm: ""
     }
-    if((Application.Registry.Services==null) || (Application.Registry.Services["login"]==null)) {
-      Application.Register('Services', 'login', {url:"/login", method:'POST'})
-      Application.Register('Services', 'validate', {url:"/validate", method:'POST'})
+    if((Application.Registry.Service==null) || (Application.Registry.Service["login"]==null)) {
+      Application.Register('Service', 'login', {url:"/login", method:'POST'})
+      Application.Register('Service', 'validate', {url:"/validate", method:'POST'})
     }
   }
   if(settings.AuthToken) {

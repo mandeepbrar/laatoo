@@ -19,6 +19,7 @@ class ActionComp extends React.Component {
     } else if(Application.Registry.Actions) {
       this.action = Application.Registry.Actions[props.name];
     }
+    console.log("action......", props.name, this.action)
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
     }
@@ -68,7 +69,7 @@ class ActionComp extends React.Component {
   }
 
   renderView() {
-    console.log("checking permission", this.hasPermission)
+    console.log("checking permission", this.hasPermission, this.props)
     if (!this.hasPermission) {
       return null;
     }

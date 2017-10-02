@@ -38,7 +38,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
-	reqTemplate := "var l=require('%s');"
+	reqTemplate := "_rm('%s');"
 
 	for name, _ := range filesWritten {
 		_, err := uiFileCont.WriteString(fmt.Sprintf(reqTemplate, name))

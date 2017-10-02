@@ -94,6 +94,7 @@ const (
 	SVCPARAMNAME       = "name"
 	SVCPARAMTYPE       = "type"
 	SVCPARAMCOLLECTION = "collection"
+	SVCPARAMREQD       = "required"
 )
 
 func buildRequestInfo(ctx core.ServerContext, conf config.Config) *requestInfo {
@@ -112,7 +113,8 @@ func buildRequestInfo(ctx core.ServerContext, conf config.Config) *requestInfo {
 				paramDesc, _ := paramsConf.GetSubConfig(ctx, paramName)
 				collection, _ := paramDesc.GetBool(ctx, SVCPARAMCOLLECTION)
 				paramtype, _ := paramDesc.GetString(ctx, SVCPARAMTYPE)
-				params[ind] = newParam(paramName, paramtype, collection)
+				paramreqd, _ := paramDesc.GetBool(ctx, SVCPARAMREQD)
+				params[ind] = newParam(paramName, paramtype, collection, paramreqd)
 			}
 		}
 		return newRequestInfo(requesttype, collection, stream, params)
@@ -169,15 +171,16 @@ type param struct {
 	name       string
 	ptype      string
 	collection bool
+	required   bool
 	value      interface{}
 }
 
-func newParam(name, ptype string, collection bool) *param {
-	return &param{name, ptype, collection, nil}
+func newParam(name, ptype string, collection, required bool) *param {
+	return &param{name, ptype, collection, required, nil}
 }
 
 func (p *param) clone() *param {
-	return &param{p.name, p.ptype, p.collection, p.value}
+	return &param{p.name, p.ptype, p.collection, p.required, p.value}
 }
 
 func (p *param) GetName() string {
@@ -185,6 +188,9 @@ func (p *param) GetName() string {
 }
 func (p *param) IsCollection() bool {
 	return p.collection
+}
+func (p *param) IsRequired() bool {
+	return p.required
 }
 func (p *param) GetDataType() string {
 	return p.ptype

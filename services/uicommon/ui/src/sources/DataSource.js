@@ -22,7 +22,7 @@ class DefaultDataSource {
   }
   ExecuteService(serviceName, serviceRequest, config=null) {
     console.log("application services", Application)
-    var service = Application.Registry.Services[serviceName];
+    var service = Application.Registry.Service[serviceName];
     if (service != null && serviceRequest != null) {
       return this.ExecuteServiceObject(service, serviceRequest, config);
     } else {

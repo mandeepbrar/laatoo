@@ -58,7 +58,7 @@ func (modMgr *moduleManager) installModule(ctx core.ServerContext, modulesDir st
 	//check if module directory exists
 	modDir := modMgr.getModuleDir(ctx, modulesDir, moduleName)
 	modDirExists, modDirInf, _ := utils.FileExists(modDir)
-	modFile := path.Join(modulesDir, fmt.Sprint(moduleName, ".tar.gz"))
+	modFile := path.Join(modMgr.modulesRepo, fmt.Sprint(moduleName, ".tar.gz"))
 	modFileExist, modFileInf, _ := utils.FileExists(modFile)
 	log.Debug(ctx, "Processing module conf", "Module", moduleName, "Dir exists", modDirExists, "File exists", modFileExist)
 	if modFileExist {

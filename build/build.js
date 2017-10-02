@@ -175,12 +175,12 @@ function compileWebUI(nextTask) {
     let verbose = argv.verbose?"-v":"";
     log("Processing required laatoo modules")
     Object.keys(modConfig.dependencies).forEach(function(pkg) {
-      let found = false
+      let found = true
       let laatooModulePath = path.join(deploymentFolder, pkg)
       let modPath = laatooModulePath
-      if (fs.pathExistsSync(laatooModulePath)) {
+      /*if (fs.pathExistsSync(laatooModulePath)) {
         found = true
-      }
+      }*/
       if (!found && fs.pathExistsSync(laatooModulePath + '.tar.gz')) {
         let command = sprintf("cd %s && tar %s -xf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
         if (shell.exec(command).code !== 0) {
@@ -403,7 +403,7 @@ function startTask(taskName) {
   if ( taskName === "copyuiregistry" ){
     func = copyUIRegistry
     nextTask = "uicompile"
-  }  
+  }
   if (taskName === "uicompile" ){
     func = buildUI
     nextTask = "copyfiles"

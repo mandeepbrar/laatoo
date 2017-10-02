@@ -2,6 +2,7 @@ import { connect } from 'react-redux';
 import {ActionNames} from '../Actions';
 import {createAction} from 'uicommon';
 import {ViewUI} from './ViewUI';
+import React from 'react';
 
 function getSvc(ownProps) {
   return ownProps.dataservice? ownProps.dataservice: ownProps.name
@@ -9,12 +10,17 @@ function getSvc(ownProps) {
 
 const mapStateToProps = (state, ownProps) => {
   let svc = getSvc(ownProps);
+  let viewname = ownProps.name;
   let red = ownProps.reducer? ownProps.reducer: svc;
   let props = {
-    reducer: red,
+    name: viewname,
     global: ownProps.global,
     paginate: ownProps.paginate,
     pageSize: ownProps.pageSize,
+    header: ownProps.header,
+    getView: ownProps.getView,
+    getItem: ownProps.getItem,
+    getHeader: ownProps.getHeader,
     defaultFilter: ownProps.defaultFilter,
     externalLoad: ownProps.externalLoad,
     urlParams: ownProps.urlParams,
@@ -30,26 +36,22 @@ const mapStateToProps = (state, ownProps) => {
     load: false,
     items: null
   };
-  let view = null;
-  if(!ownProps.global) {
-    if(state.router && state.router.routeStore) {
-      view = state.router.routeStore[ownProps.reducer];
-    }
-  } else {
-    view = state[ownProps.reducer];
-  }
-  if(view) {
-    if(view.status == "Loaded") {
-        props.items = view.data
-        props.currentPage = view.currentPage
-        props.totalPages = view.totalPages
-        props.lastUpdateTime = view.lastUpdateTime
-        props.latestPageData = view.latestPageData
-        return props
-    }
-    if(view.status == "NotLoaded") {
-        props.load = true
-        return props
+  let viewReducer = state["views"];
+  if(viewReducer && viewname) {
+    let view = viewReducer.views[viewname]
+    if(view) {
+      if(view.status == "Loaded") {
+          props.items = view.data
+          props.currentPage = view.currentPage
+          props.totalPages = view.totalPages
+          props.lastUpdateTime = view.lastUpdateTime
+          props.latestPageData = view.latestPageData
+      }
+      if(view.status == "NotLoaded") {
+          props.load = true
+      }
+    } else {
+      props.load = true
     }
   }
   return props;
@@ -68,7 +70,7 @@ function loadData(dispatch, ownProps, pagenum, filter, incrementalLoad) {
   let serviceObject = ownProps.dataurl?{url: ownProps.dataurl, method: "POST"}:null
   let postArgs = Object.assign({}, ownProps.postArgs, filter);
   let payload = {queryParams, postArgs};
-  let meta = {serviceName: svc, reducer: svc, serviceObject: serviceObject, incrementalLoad: incrementalLoad};
+  let meta = {serviceName: svc, global: ownProps.global, viewname: ownProps.name, serviceObject: serviceObject, incrementalLoad: incrementalLoad};
   dispatch(createAction(ActionNames.VIEW_FETCH, payload, meta));
 }
 
@@ -93,14 +95,11 @@ const View = (props) => {
     let view = Application.Registry.Views[props.id]
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
+    let viewname = view.name? view.name : props.id
     let item = props.children;
-    switch(view.itemType) {
-      case 'entity':
-        return;
-    }
-    return <ViewComponent dataservice={view.dataservice} name={view.name} global={view.global} reducer={view.reducer}
-      className={"view_"+view.name} incrementalLoad={view.incrementalLoad} paginate={view.paginate}
-       urlparams={params} postArgs={args}>
+    return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global}
+      className={"view_"+viewname} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
+       getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args}>
        {item}
        </ViewComponent>
   }

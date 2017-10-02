@@ -302,7 +302,9 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 				return errors.BadArg(ctx, name)
 			}
 		} else {
-			return errors.MissingArg(ctx, name)
+			if reqParam.IsRequired() {
+				return errors.MissingArg(ctx, name)
+			}
 		}
 		reqParams[name] = reqParam
 	}

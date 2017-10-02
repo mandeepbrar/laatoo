@@ -17,11 +17,17 @@ const (
 	CONF_PARENT_CHANNEL      = "parent"
 	CHANNEL_SERVICE          = "service"
 	REST_METHOD              = "method"
+	REST_GET                 = "GET"
+	REST_POST                = "POST"
+	REST_DELETE              = "DELETE"
+	REST_PUT                 = "PUT"
 	REST_PATH                = "path"
 	REST_PARAMS              = "paramvalues"
-	REST_STATIC              = "staticvalues"
-	SERVICE_METHOD           = "servicemethod"
-	MIDDLEWARE               = "middleware"
+	CHANNEL_DATAOBJECT       = "dataobject"
+
+	REST_STATIC    = "staticvalues"
+	SERVICE_METHOD = "servicemethod"
+	MIDDLEWARE     = "middleware"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -99,6 +105,16 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 	getService[SERVICE_METHOD] = CONF_SVC_GET
 	svcs[getSvcName] = getService
 
+	selectSvcName := adapter.createName(ctx, "select")
+	selectService := make(config.GenericConfig)
+	selectService[CONF_DATAADAPTER_DATA_SVC] = adapter.adapterdataSvcName
+	selectService[CONF_SERVICEFACTORY] = adapter.adapterfacName
+	selectService[SERVICE_METHOD] = CONF_SVC_SELECT
+	selectService[CHANNEL_DATAOBJECT] = config.OBJECTTYPE_STRINGMAP
+	selectService["queryparams"] = []string{"pagesize", "pagenum"}
+
+	svcs[selectSvcName] = selectService
+
 	log.Error(ctx, "Returned services", "svcs", svcs)
 	return svcs
 }
@@ -128,16 +144,26 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	getRestChann := make(config.GenericConfig)
 	getRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "get")
 	getRestChann[CONF_PARENT_CHANNEL] = adapter.instance
-	getRestChann[CONF_SERVICEFACTORY] = adapter.adapterfacName
-	getRestChann[REST_METHOD] = CONF_SVC_GET
+	getRestChann[REST_METHOD] = REST_GET
 	getRestChann[REST_PATH] = "/:id"
-	params := make(config.GenericConfig)
-	params["id"] = "id"
-	getRestChann[REST_PARAMS] = params
-	staticvals := make(config.GenericConfig)
-	staticvals["permission"] = "View " + adapter.instance
-	getRestChann[REST_STATIC] = staticvals
+	getparams := make(config.GenericConfig)
+	getparams["id"] = "id"
+	getRestChann[REST_PARAMS] = getparams
+	getstaticvals := make(config.GenericConfig)
+	getstaticvals["permission"] = "View " + adapter.instance
+	getRestChann[REST_STATIC] = getstaticvals
 	chans[getRestChannName] = getRestChann
+
+	selectRestChannName := adapter.createName(ctx, "select")
+	selectRestChann := make(config.GenericConfig)
+	selectRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "select")
+	selectRestChann[CONF_PARENT_CHANNEL] = adapter.instance
+	selectRestChann[REST_METHOD] = REST_POST
+	selectRestChann[REST_PATH] = "/view"
+	selectstaticvals := make(config.GenericConfig)
+	selectstaticvals["permission"] = "View " + adapter.instance
+	selectRestChann[REST_STATIC] = selectstaticvals
+	chans[selectRestChannName] = selectRestChann
 
 	log.Error(ctx, "Returned channels", "chans", chans)
 	return chans
