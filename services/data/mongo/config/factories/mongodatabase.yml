@@ -1,0 +1,3 @@
+factory: mongo_services
+mongoconnectionstring: {{var "mongoconnectionstring"}}
+mongodatabase : {{var "mongodatabase"}}

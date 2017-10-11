@@ -172,7 +172,9 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 	}
 	m, mok := c.(map[string]interface{})
 	if mok {
-		return config.GenericConfig(m), true
+		conf := ctx.CreateConfig()
+		conf.SetVals(ctx, m)
+		return conf, true
 	} else {
 		return nil, false
 	}

@@ -55,7 +55,7 @@ func (env *environment) createApplications(ctx core.ServerContext, baseDir strin
 	appCreateCtx := ctx.SubContext("Create").(*serverContext)
 
 	if applicationConf == nil {
-		applicationConf = make(config.GenericConfig, 0)
+		applicationConf = ctx.CreateConfig()
 	}
 
 	log.Trace(appCreateCtx, "Creating Application", "Base Directory", baseDir)

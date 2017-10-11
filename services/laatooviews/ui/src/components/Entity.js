@@ -38,7 +38,7 @@ class ViewEntity extends React.Component {
       display = this.props.loader
     } else {
       if(this.props.children) {
-        display = React.cloneElement(React.Children.only(this.props.children), {data: this.props.data, description: this.props.desc})
+        display = React.cloneElement(React.Children.only(this.props.children), {data: this.props.data})
       } else if(this.props.data) {
         display = this.props.display(this.props.data, this.props.desc, this.props.uikit, this.props.lastUpdateTime)
       } else {

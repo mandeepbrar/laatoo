@@ -11,7 +11,7 @@ RUN NODE_VERSION='8.4.0' ARCH='x64' \
 
 RUN mkdir -p /build
 
-RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader
+RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars
 
 RUN npm i --unsafe-perm node-sass
 

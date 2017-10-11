@@ -1,30 +1,25 @@
 package common
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
+	"laatoo/sdk/config"
+	context "laatoo/sdk/ctx"
+	"laatoo/sdk/log"
+
+	"gopkg.in/yaml.v2"
 )
 
-var confVariables map[string]string
-
-func init() {
-	confVariables = make(map[string]string, 0)
-	fil := os.Getenv("LAATOO_CONF_VARS")
-	if len(fil) == 0 {
-		fil = "confvariables.json"
-	} else {
-		_, err := os.Stat(fil)
-		if err != nil {
-			fil = "confvariables.json"
-		}
+//creates a new config object from file provided to it
+//only works for json configs
+func NewConfigFromFile(ctx context.Context, file string) (config.Config, error) {
+	conf := make(GenericConfig, 50)
+	fileData, err := GetTemplateFileContent(ctx, file, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error opening config file %s. Error: %s", file, err.Error())
 	}
-	vardata, err := ioutil.ReadFile(fil)
-	if err == nil {
-		err = json.Unmarshal(vardata, &confVariables)
-		if err != nil {
-			fmt.Println("Could not read conf variables")
-		}
+	log.Info(ctx, "Config File", "file", file, "conf", string(fileData))
+	if err = yaml.Unmarshal(fileData, &conf); err != nil {
+		return nil, fmt.Errorf("Error parsing config file %s. Error: %s", file, err.Error())
 	}
+	return conf, nil
 }

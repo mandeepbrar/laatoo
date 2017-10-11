@@ -30,7 +30,9 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	err = facMgr.createServiceFactory(ctx, &config.GenericConfig{constants.CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME}, common.CONF_DEFAULTFACTORY_NAME)
+	c := ctx.CreateConfig()
+	c.SetVals(ctx, map[string]interface{}{constants.CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME})
+	err = facMgr.createServiceFactory(ctx, c, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -127,18 +129,6 @@ func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, facto
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)
 	}
-
-	/*svcfacConfig, err, ok := config.ConfigFileAdapter(factoryConfig, CONF_SERVICEFACTORYCONFIG)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	if !ok {
-		svcfacConfig = make(config.GenericConfig, 0)
-	}*/
-
-	//facmw := createMW(svcfacConfig, app.middleware)
-
-	//app.ServiceFactoryMiddleware[factoryName] = facmw
 
 	_, ok = facMgr.serviceFactoryStore[factoryAlias]
 	if ok {

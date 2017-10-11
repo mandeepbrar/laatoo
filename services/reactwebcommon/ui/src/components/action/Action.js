@@ -19,7 +19,6 @@ class ActionComp extends React.Component {
     } else if(Application.Registry.Actions) {
       this.action = Application.Registry.Actions[props.name];
     }
-    console.log("action......", props.name, this.action)
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
     }
@@ -39,7 +38,6 @@ class ActionComp extends React.Component {
         return false
       }
     }
-    console.log("exceuting action", this.action)
     switch(this.action.actiontype) {
       case "dispatchaction":
         this.dispatchAction();
@@ -69,11 +67,9 @@ class ActionComp extends React.Component {
   }
 
   renderView() {
-    console.log("checking permission", this.hasPermission, this.props)
     if (!this.hasPermission) {
       return null;
     }
-    console.log("checking permission")
     let actionF = this.actionFunc;
     switch(this.props.widget) {
       case 'button': {
@@ -83,7 +79,6 @@ class ActionComp extends React.Component {
         )
       }
       case 'component':{
-        console.log("component in ction", this.props)
         return (
           <this.props.component actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={this.props.children}/>
         )

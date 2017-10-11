@@ -1,6 +1,6 @@
 import React from 'react'
 import './styles/app.scss'
-import Block from './Block'
+import Panel from './Panel'
 import { combineReducers } from 'redux';
 //import {ViewReducer, View} from 'laatooviews';
 var module = this;
@@ -9,7 +9,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins]
   module.settings = settings;
   module.req = req;
-  Block.setModule(module)
+  Panel.setModule(module)
 }
 
 function ProcessPages(theme, uikit) {
@@ -27,7 +27,7 @@ function ProcessPages(theme, uikit) {
         Object.keys(components).forEach(function(key){
           pageComps[key] = function(comp, page) {
             return (routerState) => {
-              return <Block key={page+key} params={routerState.params}  blockDescription={comp} />
+              return <Panel key={page+key} params={routerState.params}  description={comp} />
             }
           }(components[key], pageId)
         });
@@ -73,6 +73,6 @@ function GetPageReducers(page) {
 
 export {
   Initialize,
-  Block,
+  Panel,
   ProcessPages
 }

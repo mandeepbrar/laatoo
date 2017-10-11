@@ -1,6 +1,7 @@
 package core
 
 import (
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
@@ -430,6 +431,14 @@ func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageList
 	}
 	return nil
 }
+
+func (ctx *serverContext) CreateConfig() config.Config {
+	return make(common.GenericConfig)
+}
+func (ctx *serverContext) ReadConfig(file string) (config.Config, error) {
+	return common.NewConfigFromFile(ctx, file)
+}
+
 func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {
 	if ctx.elements.logger != nil {
 		ctx.elements.logger.Trace(ctx, msg, args...)

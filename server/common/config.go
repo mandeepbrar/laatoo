@@ -59,7 +59,7 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 			if !info.IsDir() {
 				extension := filepath.Ext(elemfileName)
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
-				elemConf, err := config.NewConfigFromFile(ctx, file)
+				elemConf, err := NewConfigFromFile(ctx, file)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -112,7 +112,7 @@ func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config
 	var err error
 	confFileName, ok := conf.GetString(ctx, configName)
 	if ok {
-		configToRet, err = config.NewConfigFromFile(ctx, confFileName)
+		configToRet, err = NewConfigFromFile(ctx, confFileName)
 		if err != nil {
 			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
 		}
@@ -126,7 +126,7 @@ func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config
 }
 
 func Cast(conf interface{}) (config.Config, bool) {
-	var gc config.GenericConfig
+	var gc GenericConfig
 	cf, ok := conf.(map[string]interface{})
 	if ok {
 		gc = cf
@@ -147,7 +147,7 @@ func MergeConfigMaps(conf1 map[string]config.Config, conf2 map[string]config.Con
 }
 
 func Merge(ctx ctx.Context, conf1 config.Config, conf2 config.Config) config.Config {
-	mergedConf := make(config.GenericConfig)
+	mergedConf := make(GenericConfig)
 	copyConfs := func(conf config.Config) {
 		if conf == nil {
 			return

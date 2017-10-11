@@ -3,6 +3,7 @@ var shell = require('shelljs');
 var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
+var entity = require('./entity')
 const merge = require('webpack-merge');
 
 var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
@@ -353,6 +354,28 @@ function copyConfig(nextTask) {
   nextTask()
 }
 
+function autoGen(nextTask) {
+  let entities = []
+  if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
+    let entitiesFolder = path.join(pluginFolder, 'build', "entities")
+    if (fs.pathExistsSync(entitiesFolder)) {
+      let files = fs.readdirSync(entitiesFolder)
+      for(var i=0;i<files.length; i++) {
+        if(files[i].endsWith('.json')) {
+          let jsonF = path.join(entitiesFolder, files[i])
+          let jsonContent = require(jsonF)
+          entities.push(jsonContent["name"])
+          entity.createEntity(jsonContent, pluginFolder, files[i])
+        }
+      }
+    }
+  }
+  if(entities && entities.length >0) {
+    entity.createManifest(entities, pluginFolder)    
+  }
+  nextTask()
+}
+
 function copyFiles(nextTask) {
   let filesSrcFolder = path.join(pluginFolder, "files")
   if (!fs.pathExistsSync(filesSrcFolder)) {
@@ -390,6 +413,10 @@ function startTask(taskName) {
   var nextTask = ""
   if (taskName === "copyconfig") {
     func = copyConfig
+    nextTask = "autogen"
+  }
+  if (taskName === "autogen") {
+    func = autoGen
     nextTask = "objcompile"
   }
   if ( taskName === "objcompile" ){

@@ -82,7 +82,7 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	envCreate := ctx.SubContext("Create").(*serverContext)
 
 	if envConf == nil {
-		envConf = make(config.GenericConfig, 0)
+		envConf = ctx.CreateConfig()
 	}
 
 	log.Trace(envCreate, "Creating Environment")

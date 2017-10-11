@@ -76,7 +76,7 @@ func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config, 
 	if conf != nil {
 		mod.modSettings = conf
 	} else {
-		mod.modSettings = make(config.GenericConfig)
+		mod.modSettings = ctx.CreateConfig()
 	}
 
 	if env != nil {

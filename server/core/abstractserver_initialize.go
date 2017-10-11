@@ -23,7 +23,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	contextFile := path.Join(as.baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
 	ok, _, _ := utils.FileExists(contextFile)
 	if ok {
-		contextVars, err := config.NewConfigFromFile(ctx, contextFile)
+		contextVars, err := common.NewConfigFromFile(ctx, contextFile)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -148,7 +148,7 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 		return err
 	}
 	if !ok {
-		chmgrconf = make(config.GenericConfig, 0)
+		chmgrconf = ctx.CreateConfig()
 	}
 	err = channelManagerHandle.Initialize(ctx, chmgrconf)
 	if err != nil {
@@ -168,11 +168,11 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
+			if msgConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
-			msgConf = make(config.GenericConfig, 0)
+			msgConf = ctx.CreateConfig()
 		}
 	}
 	if as.messagingManagerHandle != nil {
@@ -192,7 +192,7 @@ func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factor
 		return err
 	}
 	if !ok {
-		facConf = make(config.GenericConfig, 0)
+		facConf = ctx.CreateConfig()
 	}
 	err = factoryManagerHandle.Initialize(ctx, facConf)
 	if err != nil {
@@ -223,7 +223,7 @@ func initializeServiceManager(ctx core.ServerContext, conf config.Config, servic
 		return err
 	}
 	if !ok {
-		svcConf = make(config.GenericConfig, 0)
+		svcConf = ctx.CreateConfig()
 	}
 	err = serviceManagerHandle.Initialize(ctx, svcConf)
 	if err != nil {
@@ -264,7 +264,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = config.NewConfigFromFile(ctx, confFile); err != nil {
+			if secConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
 				return err
 			}
 		}

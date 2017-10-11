@@ -1,0 +1,16 @@
+{
+  "name":"Comment",
+  "inherits":"",
+  "imports":[],
+  "fields":{
+    "Post": {
+        "type":"string"
+    },
+    "PostTitle": {
+        "type":"string"
+    },
+    "Blocked": {
+      "type":"bool"
+    }
+  }
+}

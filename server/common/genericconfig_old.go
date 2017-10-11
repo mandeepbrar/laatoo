@@ -1,11 +1,24 @@
-package config
+package common
 
 import (
+	"laatoo/sdk/config"
 	"laatoo/sdk/ctx"
 	"laatoo/sdk/utils"
 )
 
 type GenericConfig map[string]interface{}
+
+func fillVariables(ctx ctx.Context, val interface{}) interface{} {
+	expr, ok := val.(string)
+	if !ok {
+		return val
+	}
+	cont, err := ProcessTemplate(ctx, []byte(expr), nil)
+	if err != nil {
+		return val
+	}
+	return string(cont)
+}
 
 //Get string configuration value
 func (conf GenericConfig) GetString(ctx ctx.Context, configurationName string) (string, bool) {
@@ -66,14 +79,14 @@ func (conf GenericConfig) GetStringArray(ctx ctx.Context, configurationName stri
 	return nil, false
 }
 
-func (conf GenericConfig) GetConfigArray(ctx ctx.Context, configurationName string) ([]Config, bool) {
+func (conf GenericConfig) GetConfigArray(ctx ctx.Context, configurationName string) ([]config.Config, bool) {
 	val, found := conf[configurationName]
 	if found {
 		confArr, cok := val.([]interface{})
 		if !cok {
 			return nil, false
 		}
-		retVal := make([]Config, len(confArr))
+		retVal := make([]config.Config, len(confArr))
 		for index, val := range confArr {
 			var gc GenericConfig
 			gc, ok := val.(map[string]interface{})
@@ -91,23 +104,34 @@ func (conf GenericConfig) AllConfigurations(ctx ctx.Context) []string {
 	return utils.MapKeys(conf)
 }
 
-func (conf GenericConfig) checkConfig(ctx ctx.Context, val interface{}) (Config, bool) {
+func (conf GenericConfig) checkConfig(ctx ctx.Context, val interface{}) (config.Config, bool) {
 	var gc GenericConfig
 	cf, ok := val.(map[string]interface{})
 	if ok {
 		gc = cf
 		return gc, true
 	} else {
-		c, ok := val.(Config)
+		c, ok := val.(config.Config)
 		if ok {
 			return c, true
 		} else {
+			yc, ok := val.(map[interface{}]interface{})
+			if ok {
+				res := make(GenericConfig)
+				for k, v := range yc {
+					key, ok := k.(string)
+					if ok {
+						res[key] = v
+					}
+				}
+				return res, true
+			}
 			return nil, false
 		}
 	}
 }
 
-func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string) (Config, bool) {
+func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string) (config.Config, bool) {
 	val, found := conf[configurationName]
 	if found {
 		c, ok := conf.checkConfig(ctx, val)
@@ -128,5 +152,17 @@ func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string
 
 //Set string configuration value
 func (conf GenericConfig) SetString(ctx ctx.Context, configurationName string, configurationValue string) {
+	conf.Set(ctx, configurationName, configurationValue)
+}
+
+func (conf GenericConfig) Set(ctx ctx.Context, configurationName string, configurationValue interface{}) {
 	conf[configurationName] = configurationValue
+}
+
+func (conf GenericConfig) SetVals(ctx ctx.Context, vals map[string]interface{}) {
+	if vals != nil {
+		for k, v := range vals {
+			conf.Set(ctx, k, v)
+		}
+	}
 }

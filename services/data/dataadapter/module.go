@@ -74,10 +74,10 @@ func (adapter *DataAdapterModule) Factories(ctx core.ServerContext) map[string]c
 	ctx = ctx.SubContext("Getting factories for module ")
 	facs := make(map[string]config.Config)
 
-	factory := make(config.GenericConfig)
-	factory[CONF_SERVICEFACTORY] = CONF_DATAADAPTER_SERVICES
-	factory[CONF_DATAADAPTER_DATA_SVC] = adapter.adapterdataSvcName
-	factory[MIDDLEWARE] = adapter.middleware
+	factory := ctx.CreateConfig()
+	factory.Set(ctx, CONF_SERVICEFACTORY, CONF_DATAADAPTER_SERVICES)
+	factory.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
+	factory.Set(ctx, MIDDLEWARE, adapter.middleware)
 	facs[adapter.adapterfacName] = factory
 
 	log.Error(ctx, "Returned factories", "facs", facs)
@@ -88,30 +88,30 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 	ctx = ctx.SubContext("Getting services for module ")
 	svcs := make(map[string]config.Config)
 
-	dataService := make(config.GenericConfig)
-	dataService[CONF_SERVICEFACTORY] = adapter.factory
-	dataService[data.CONF_DATA_OBJECT] = adapter.object
+	dataService := ctx.CreateConfig()
+	dataService.Set(ctx, CONF_SERVICEFACTORY, adapter.factory)
+	dataService.Set(ctx, data.CONF_DATA_OBJECT, adapter.object)
 	svcs[adapter.adapterdataSvcName] = dataService
 
 	/*dataSvcName := adapter.createName(ctx, "dataservice")
-	dataService := make(config.GenericConfig)
+	dataService := ctx.CreateConfig()
 	dataService[CONF_SERVICEFACTORY] = adapter.factory
 	svcs[dataSvcName] = dataService*/
 
 	getSvcName := adapter.createName(ctx, "get")
-	getService := make(config.GenericConfig)
-	getService[CONF_DATAADAPTER_DATA_SVC] = adapter.adapterdataSvcName
-	getService[CONF_SERVICEFACTORY] = adapter.adapterfacName
-	getService[SERVICE_METHOD] = CONF_SVC_GET
+	getService := ctx.CreateConfig()
+	getService.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
+	getService.Set(ctx, CONF_SERVICEFACTORY, adapter.adapterfacName)
+	getService.Set(ctx, SERVICE_METHOD, CONF_SVC_GET)
 	svcs[getSvcName] = getService
 
 	selectSvcName := adapter.createName(ctx, "select")
-	selectService := make(config.GenericConfig)
-	selectService[CONF_DATAADAPTER_DATA_SVC] = adapter.adapterdataSvcName
-	selectService[CONF_SERVICEFACTORY] = adapter.adapterfacName
-	selectService[SERVICE_METHOD] = CONF_SVC_SELECT
-	selectService[CHANNEL_DATAOBJECT] = config.OBJECTTYPE_STRINGMAP
-	selectService["queryparams"] = []string{"pagesize", "pagenum"}
+	selectService := ctx.CreateConfig()
+	selectService.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
+	selectService.Set(ctx, CONF_SERVICEFACTORY, adapter.adapterfacName)
+	selectService.Set(ctx, SERVICE_METHOD, CONF_SVC_SELECT)
+	selectService.Set(ctx, CHANNEL_DATAOBJECT, config.OBJECTTYPE_STRINGMAP)
+	selectService.Set(ctx, "queryparams", []string{"pagesize", "pagenum"})
 
 	svcs[selectSvcName] = selectService
 
@@ -135,34 +135,34 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	ctx = ctx.SubContext("Getting channels for module ")
 	chans := make(map[string]config.Config)
 
-	objectChann := make(config.GenericConfig)
-	objectChann[CONF_PARENT_CHANNEL] = adapter.parentChannel
-	objectChann[REST_PATH] = fmt.Sprintf("/%s", strings.ToLower(adapter.instance))
+	objectChann := ctx.CreateConfig()
+	objectChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.parentChannel)
+	objectChann.Set(ctx, REST_PATH, fmt.Sprintf("/%s", strings.ToLower(adapter.instance)))
 	chans[adapter.instance] = objectChann
 
 	getRestChannName := adapter.createName(ctx, "get")
-	getRestChann := make(config.GenericConfig)
-	getRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "get")
-	getRestChann[CONF_PARENT_CHANNEL] = adapter.instance
-	getRestChann[REST_METHOD] = REST_GET
-	getRestChann[REST_PATH] = "/:id"
-	getparams := make(config.GenericConfig)
-	getparams["id"] = "id"
-	getRestChann[REST_PARAMS] = getparams
-	getstaticvals := make(config.GenericConfig)
-	getstaticvals["permission"] = "View " + adapter.instance
-	getRestChann[REST_STATIC] = getstaticvals
+	getRestChann := ctx.CreateConfig()
+	getRestChann.Set(ctx, CHANNEL_SERVICE, adapter.createName(ctx, "get"))
+	getRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
+	getRestChann.Set(ctx, REST_METHOD, REST_GET)
+	getRestChann.Set(ctx, REST_PATH, "/:id")
+	getparams := ctx.CreateConfig()
+	getparams.Set(ctx, "id", "id")
+	getRestChann.Set(ctx, REST_PARAMS, getparams)
+	getstaticvals := ctx.CreateConfig()
+	getstaticvals.Set(ctx, "permission", "View "+adapter.instance)
+	getRestChann.Set(ctx, REST_STATIC, getstaticvals)
 	chans[getRestChannName] = getRestChann
 
 	selectRestChannName := adapter.createName(ctx, "select")
-	selectRestChann := make(config.GenericConfig)
-	selectRestChann[CHANNEL_SERVICE] = adapter.createName(ctx, "select")
-	selectRestChann[CONF_PARENT_CHANNEL] = adapter.instance
-	selectRestChann[REST_METHOD] = REST_POST
-	selectRestChann[REST_PATH] = "/view"
-	selectstaticvals := make(config.GenericConfig)
-	selectstaticvals["permission"] = "View " + adapter.instance
-	selectRestChann[REST_STATIC] = selectstaticvals
+	selectRestChann := ctx.CreateConfig()
+	selectRestChann.Set(ctx, CHANNEL_SERVICE, adapter.createName(ctx, "select"))
+	selectRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
+	selectRestChann.Set(ctx, REST_METHOD, REST_POST)
+	selectRestChann.Set(ctx, REST_PATH, "/view")
+	selectstaticvals := ctx.CreateConfig()
+	selectstaticvals.Set(ctx, "permission", "View "+adapter.instance)
+	selectRestChann.Set(ctx, REST_STATIC, selectstaticvals)
 	chans[selectRestChannName] = selectRestChann
 
 	log.Error(ctx, "Returned channels", "chans", chans)
