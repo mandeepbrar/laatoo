@@ -166,7 +166,7 @@ func (modMgr *moduleManager) getModuleDir(ctx core.ServerContext, modulesDir str
 }
 
 func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string) (config.Config, error) {
-	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_FILE))
+	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_FILE), nil)
 }
 
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {

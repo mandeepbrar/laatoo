@@ -171,6 +171,7 @@ func (chanMgr *channelManager) processChannel(ctx core.ServerContext, channelCon
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
 	createCtx := ctx.SubContext("Create Channel: " + channelName)
+	log.Trace(createCtx, "Creating channel with conf ", "conf", channelConf)
 	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
 		return errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)

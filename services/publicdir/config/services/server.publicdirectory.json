@@ -1,5 +1,0 @@
-{
-  "name":"{server.publicdirectory[.instance]}",
-  "servicemethod":"static_files_service",
-  "storage": "{server.publicstoragedirectory[.instance]}"
-}

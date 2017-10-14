@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/server/common"
 	"laatoo/server/constants"
 )
 
@@ -51,8 +52,43 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
 	ctx = ctx.SubContext("Load Module " + moduleInstance)
 
-	modSettings, _ := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
-	modConf, _ := modMgr.moduleConf[moduleName]
+	modSettings, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
+	if ok {
+		ctx.SetVals(modSettings.(common.GenericConfig))
+	}
+
+	//get the environment in which module should operate
+	modenv, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_ENV)
+	if ok {
+		ctx.SetVals(modenv.(common.GenericConfig))
+	}
+	/*if env != nil {
+		envvars := env.AllConfigurations(ctx)
+		for _, varname := range envvars {
+			varvalue, _ := env.GetString(ctx, varname)
+			ctx.Set(varname, varvalue)
+		}
+	}*/
+	/*
+		if modSettings != nil {
+			moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
+			if moduleparams != nil {
+				paramNames := moduleparams.AllConfigurations(ctx)
+				for _, paramName := range paramNames {
+					val, ok := modSettings.Get(ctx, paramName)
+					if ok {
+						ctx.Set(paramName, val)
+					}
+				}
+			}
+		}
+	*/
+
+	//create a new mod conf with all variables set in the context so that they can be used by yml templates
+	modConf, err := modMgr.getModuleConf(ctx, dirPath)
+	if err != nil {
+		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleName)
+	}
 
 	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, pendingModules)
 
@@ -78,24 +114,8 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		return false, errors.WrapError(ctx, err)
 	}
 
-	if modSettings != nil {
-		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
-		if moduleparams != nil {
-			paramNames := moduleparams.AllConfigurations(ctx)
-			for _, paramName := range paramNames {
-				val, ok := modSettings.Get(ctx, paramName)
-				if ok {
-					ctx.Set(paramName, val)
-				}
-			}
-		}
-	}
-
-	//get the environment in which module should operate
-	modenv, _ := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_ENV)
-
 	initCtx := ctx.SubContext("Initialize Module")
-	err := modu.initialize(initCtx, modSettings, modenv)
+	err = modu.initialize(initCtx, modSettings)
 	if err != nil {
 		return false, errors.WrapError(initCtx, err)
 	}

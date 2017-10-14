@@ -1,0 +1,6 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+description: Module provides designer ui components
+ui:
+  skipUIModules: true

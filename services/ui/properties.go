@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"os"
 	"path"
 
@@ -54,6 +55,7 @@ func (svc *UI) writePropertyFiles(ctx core.ServerContext, baseDir string) error 
 			return errors.WrapError(ctx, err)
 		}
 	}
+	log.Trace(ctx, "Writing properties", "props", propsToWrite)
 	for locale, props := range propsToWrite {
 		data, err := json.Marshal(props)
 		if err != nil {

@@ -1,5 +1,0 @@
-{
-  "name":"{uiapp.propsstorage[.application]}",
-  "servicemethod":"filesystem",
-  "filestoragedir":"properties"
-}

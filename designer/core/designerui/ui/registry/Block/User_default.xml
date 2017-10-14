@@ -1,5 +1,5 @@
 <div className="user_default">
-  <div className="field">{{data "Username"}}</div>
-  <div className="field">this is {{data "Id" "insert"}}</div>
-  <div className="field"><Action module="reactwebcommon" params="`{id:{{data &quot;Id&quot;}}}" name="viewUser">View User</Action></div>
+  <div className="field">{{eval "data.Username"}}</div>
+  <div className="field">this is {{eval "data.Id" "insert"}}</div>
+  <div className="field"><Action module="reactwebcommon" params="`{id:{{eval &quot;data.Id&quot;}}}" name="viewUser">View User</Action></div>
 </div>

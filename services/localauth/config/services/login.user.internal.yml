@@ -1,0 +1,4 @@
+factory: {{var "dataservicefactory"}}
+object: {{var "userobject"}}
+postload: false
+presave: false

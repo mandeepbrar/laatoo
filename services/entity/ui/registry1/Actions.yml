@@ -1,0 +1,2 @@
+viewUser:
+  url: "/user/:id"

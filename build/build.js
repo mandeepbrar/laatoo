@@ -4,6 +4,7 @@ var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var entity = require('./entity')
+var yamlparser = require('js-yaml')
 const merge = require('webpack-merge');
 
 var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
@@ -22,7 +23,24 @@ let uiFolder = path.join(pluginFolder, "ui")
 
 let filesFolder = path.join(pluginFolder, "files")
 
-let modConfig = require(path.join(pluginFolder, "config", "config.json"));
+let jsonConfigName = path.join(pluginFolder, "config", "config.json")
+let yamlConfigName = path.join(pluginFolder, "config", "config.yml")
+
+let modConfig = null
+
+if (fs.pathExistsSync(jsonConfigName)) {
+  let modConfig = require(jsonConfigName);
+} else {
+  if (fs.pathExistsSync(yamlConfigName)) {
+    try {
+      modConfig = yamlparser.safeLoad(fs.readFileSync(yamlConfigName, 'utf8'));
+    } catch (e) {
+      console.log("Could not load module config ", e);
+      exit(1)
+    }
+  }
+}
+
 
 let deploymentFolder = "/deploy/"
 
@@ -371,7 +389,7 @@ function autoGen(nextTask) {
     }
   }
   if(entities && entities.length >0) {
-    entity.createManifest(entities, pluginFolder)    
+    entity.createManifest(entities, pluginFolder)
   }
   nextTask()
 }

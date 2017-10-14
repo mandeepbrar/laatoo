@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -28,10 +27,14 @@ func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName stri
 	itemReg[itemName] = fmt.Sprintf("_r('%s', '%s', %s);", itemType, itemName, itemStr)
 }
 
+/*
 func (svc *UI) processFile(ctx core.ServerContext, cont []byte, filetype string, itemName string, itemType string) error {
-	if filetype == ".json" {
+	ctx = ctx.SubContext(itemName)
+	log.Error(ctx, "processing file", "filetype", filetype, "itemName", itemName, " cont", string(cont))
+	if (filetype == ".json") || (filetype == ".yml") {
+processConfig
 		if itemType == "Block" {
-			err := svc.createJsonBlock(ctx, itemType, itemName, cont)
+			err := svc.createYmlBlock(ctx, itemType, itemName, cont)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -39,7 +42,7 @@ func (svc *UI) processFile(ctx core.ServerContext, cont []byte, filetype string,
 			svc.addRegItem(ctx, itemType, itemName, string(cont))
 		}
 	}
-	if itemType == ".xml" {
+	if filetype == ".xml" {
 		buf := bytes.NewBuffer(cont)
 		dec := xml.NewDecoder(buf)
 		var n Node
@@ -54,7 +57,7 @@ func (svc *UI) processFile(ctx core.ServerContext, cont []byte, filetype string,
 	}
 	return nil
 }
-
+*/
 func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType string) error {
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -62,24 +65,40 @@ func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType s
 		}
 		fileName := info.Name()
 		itemName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-		cont, err := ioutil.ReadFile(path)
+		ext := filepath.Ext(path)
+		var cont []byte
+		if ext == ".yml" || ext == ".json" {
+			conf, err := ctx.ReadConfig(path, nil)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			err = svc.processConfig(ctx, conf, itemName, itemType)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		} else {
+			if itemType == "Block" && ext == ".xml" {
+				cont, err = ioutil.ReadFile(path)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				buf := bytes.NewBuffer(cont)
+				dec := xml.NewDecoder(buf)
+				var n Node
+				err := dec.Decode(&n)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				err = svc.createXMLBlock(ctx, itemType, itemName, n)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+		/*err = svc.processFile(ctx, cont, ext, itemName, itemType)
 		if err != nil {
 			return errors.WrapError(ctx, err)
-		}
-		if filepath.Ext(path) == ".json" {
-			err = svc.processFile(ctx, cont, ".json", itemName, itemType)
-		}
-		if filepath.Ext(path) == ".tpl" {
-			fileName = strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			itemName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			err = svc.processTemplate(ctx, cont, filepath.Ext(fileName), itemName, itemType)
-		}
-		if filepath.Ext(path) == ".xml" {
-			err = svc.processFile(ctx, cont, ".xml", itemName, itemType)
-		}
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
+		}*/
 		return nil
 	})
 	if err != nil {
@@ -88,6 +107,7 @@ func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType s
 	return nil
 }
 
+/*
 func (svc *UI) processTemplate(ctx core.ServerContext, cont []byte, filetype string, itemName string, itemType string) error {
 	contextVar := func(variable string) string {
 		val, _ := ctx.GetString(variable)
@@ -105,7 +125,7 @@ func (svc *UI) processTemplate(ctx core.ServerContext, cont []byte, filetype str
 		return errors.WrapError(ctx, err)
 	}
 	return svc.processFile(ctx, result.Bytes(), filetype, itemName, itemType)
-}
+}*/
 
 func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDir string) error {
 
@@ -117,7 +137,7 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDi
 			for _, itemType := range confs {
 				items, ok := registry.GetSubConfig(ctx, itemType)
 				if ok {
-					err := svc.processConfig(ctx, items, itemType)
+					err := svc.processMutipleItems(ctx, items, itemType)
 					if err != nil {
 						return errors.WrapError(ctx, err)
 					}
@@ -135,12 +155,13 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDi
 			}
 			fileName := info.Name()
 			itemType := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			if filepath.Ext(path) == ".json" {
-				items, err := ctx.ReadConfig(path)
+			ext := filepath.Ext(path)
+			if ext == ".yml" || ext == ".json" {
+				items, err := ctx.ReadConfig(path, nil)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				err = svc.processConfig(ctx, items, itemType)
+				err = svc.processMutipleItems(ctx, items, itemType)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -154,15 +175,30 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDi
 	return nil
 }
 
-func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemType string) error {
+func (svc *UI) processMutipleItems(ctx core.ServerContext, conf config.Config, itemType string) error {
 	itemNames := conf.AllConfigurations(ctx)
 	for _, item := range itemNames {
-		itemVal, _ := conf.Get(ctx, item)
-		strVal, err := json.Marshal(itemVal)
+		itemVal, _ := conf.GetSubConfig(ctx, item)
+		err := svc.processConfig(ctx, itemVal, item, itemType)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		svc.addRegItem(ctx, itemType, item, string(strVal))
+	}
+	return nil
+}
+
+func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType string) error {
+	if itemType == "Block" {
+		err := svc.createConfBlock(ctx, itemType, itemName, conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	} else {
+		strVal, err := json.Marshal(conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		svc.addRegItem(ctx, itemType, itemName, string(strVal))
 	}
 	return nil
 }

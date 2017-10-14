@@ -251,7 +251,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
+			if msgConf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
@@ -292,7 +292,7 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
+			if secConf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return err
 			}
 		}

@@ -1,0 +1,18 @@
+version: 0.0.1
+dependencies:
+  uicommon: ">=0.0.1"
+  reactwebcommon: ">=0.0.1"
+description: Module provides bootstrap ui kit for laatoo applications
+ui:
+  skipUIModules: true
+  externals:
+    babel-runtime: babel-runtime
+    babel-polyfill: babel-polyfill
+    react: react
+    react-redux: react-redux
+    react-dom: react-dom
+  packages:
+    react: "^15.6.1"
+    react-redux: "^5.0.6"
+    react-bootstrap: "^0.31.0"
+    react-dom: "^15.6.1"

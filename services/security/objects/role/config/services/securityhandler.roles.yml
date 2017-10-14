@@ -1,0 +1,3 @@
+object: Role
+id: Role
+factory: {{var "roledatafactory"}}

@@ -1,0 +1,22 @@
+version: 0.0.1
+description: " Provides access to bleve search service. Complies with search sdk.
+  A default service laatoo.blevesearch is provided."
+objects:
+  blevesearch:
+    type: service
+    description: Bleve search service
+    request:
+      description: Words to be searched
+      type: string
+    configurations:
+      searchindex:
+        description: Index to be used
+        type: string
+        required: true
+      searchresults:
+        description: Number of results to be returned
+        type: string
+        default: '15'
+params:
+  searchindex: Index to be used for search service
+  searchresults: Number of results to be returned by search

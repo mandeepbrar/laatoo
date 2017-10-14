@@ -1,7 +1,6 @@
 package common
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -10,10 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/imdario/mergo"
 )
 
-func MergeJson(obj1, obj2 map[string]interface{}) map[string]interface{} {
+func MergeProps(obj1, obj2 map[string]interface{}) map[string]interface{} {
 	if obj1 == nil {
 		return obj2
 	}
@@ -36,16 +37,17 @@ func ReadProperties(ctx core.ServerContext, propsDir string) (map[string]interfa
 		if info.IsDir() {
 			return nil
 		}
-		if filepath.Ext(path) == ".json" {
+		if filepath.Ext(path) == ".yml" {
 			cont, err := ioutil.ReadFile(path)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 			obj := make(map[string]interface{})
-			err = json.Unmarshal(cont, &obj)
+			err = yaml.Unmarshal(cont, &obj)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
+			cleanMaps(ctx, obj)
 			fileName := info.Name()
 			locale := strings.TrimSuffix(fileName, filepath.Ext(fileName))
 			properties[locale] = obj
@@ -62,7 +64,7 @@ func ReadProperties(ctx core.ServerContext, propsDir string) (map[string]interfa
 			for k, v := range properties {
 				val, ok := v.(map[string]interface{})
 				if ok {
-					properties[k] = MergeJson(defMap, val)
+					properties[k] = MergeProps(defMap, val)
 				}
 			}
 		}

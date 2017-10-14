@@ -1,0 +1,6 @@
+servicemethod: named_files_service
+files:
+  index.html:
+    cache: 'true'
+    path: index.html
+storage: shell.filesstorage

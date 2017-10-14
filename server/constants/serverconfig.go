@@ -7,7 +7,7 @@ const (
 	CONF_OBJECTS_BASE_DIR   = "objectsbasedir"
 	RELATIVE_DIR            = "relativedir"
 	CONF_CONFIG_DIR         = "config"
-	CONF_CONFIG_FILE        = "config.json"
+	CONF_CONFIG_FILE        = "config.yml"
 	CONF_MODULES            = "modules"
 	CONF_OBJECTLDR_OBJECTS  = "objects"
 	CONF_OBJECTLDR_METHODS  = "methods"

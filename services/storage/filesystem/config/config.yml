@@ -1,0 +1,14 @@
+version: 0.0.1
+description: This module provides access to file storage.
+objects:
+  filesystem:
+    type: service
+    description: File system storage service
+    request:
+      type: stringmap
+    configurations:
+      filestoragedir:
+        description: Directory to be used by the storage component
+        type: string
+params:
+  filestoragedir: Directory to be used for storing files

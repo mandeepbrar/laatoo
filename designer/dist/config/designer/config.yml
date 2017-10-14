@@ -1,0 +1,80 @@
+modulesrepo: "/modules"
+modules:
+  filesystemstorage:
+    module: filesystemstorage
+  securityhandler.role:
+    module: role
+    settings:
+      roledatafactory: mongodatabase
+  mongodatabase:
+    module: mongodatabase
+    environment:
+      mongoconnectionstring: mongo
+      mongodatabase: PunjabiMehfil
+  localauth:
+    module: localauth
+    settings:
+      userobject: User
+      dataservicefactory: mongodatabase
+      defaultrole: Admin
+  staticfileserver:
+    module: staticfileserver
+  router:
+    module: reactwebrouter
+  reactmaterialkit:
+    module: reactmaterialkit
+  uicommon:
+    module: uicommon
+  reactpages:
+    module: reactpages
+  reactwebcommon:
+    module: reactwebcommon
+  laatooviews:
+    module: laatooviews
+  authui:
+    module: authui
+  reactforms:
+    module: reactforms
+  dependencies:
+    module: designerdependencies
+  dashboard:
+    module: dashboardtheme
+    settings:
+      application: designerapplication
+      headertitle: My Dashboard
+      className: customdashboard
+      vertical: true
+  designerui:
+    module: designerui
+  designerapplication:
+    module: reactapplication
+    settings:
+      application: designerapplication
+      router: router
+      uikit: reactmaterialkit
+      theme: dashboard
+  comment:
+    module: comment
+  shell:
+    module: shell
+    settings:
+      uiapplication: designerapplication
+      uidependencies:
+        react: ''
+  publicdirserver:
+    module: publicdirserver
+    settings:
+      publicfilesdir: "/bin/publicdir"
+      instance: publicdir
+  publicfilesserver:
+    module: publicfilesserver
+    settings:
+      filestoragedir: "/bin/appfiles"
+      instance: appfiles
+      files:
+        services.conf.js:
+          cache: 'true'
+          path: scripts/services.conf.js
+        index.html:
+          cache: 'true'
+          path: index.html

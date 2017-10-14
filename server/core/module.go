@@ -72,19 +72,11 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 	return nil
 }
 
-func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config, env config.Config) error {
+func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) error {
 	if conf != nil {
 		mod.modSettings = conf
 	} else {
 		mod.modSettings = ctx.CreateConfig()
-	}
-
-	if env != nil {
-		envvars := env.AllConfigurations(ctx)
-		for _, varname := range envvars {
-			varvalue, _ := env.GetString(ctx, varname)
-			ctx.Set(varname, varvalue)
-		}
 	}
 
 	if err := mod.impl.processInfo(ctx, conf); err != nil {

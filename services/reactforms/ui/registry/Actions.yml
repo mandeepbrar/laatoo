@@ -1,0 +1,4 @@
+loginAction:
+  actiontype: method
+googleAuth:
+  actiontype: method

@@ -1,0 +1,22 @@
+version: 0.0.1
+dependencies:
+  dataadapter: ">=0.0.1"
+  uicommon: ">=0.0.1"
+description: This module provides an entity object services, channels, forms, views
+  etc
+ui:
+  skipUIModules: true
+modules:
+  data:
+    module: dataadapter
+    settings:
+      object: {{var "object"}}
+      parent: {{var "parent"}}
+      instance: {{var "instance"}}
+      dataservicefactory: {{var "dataservicefactory"}}
+params:
+  object: Name of entity user object
+  parent: Parent channel to be used for entity APIs
+  instance: Name of the instance (e.g. myuser instead of user ) to be used for the
+    object. Defaults to object name
+  dataservicefactory: Data service factory to be used for entity storing

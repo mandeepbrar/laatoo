@@ -1,0 +1,6 @@
+parent: root
+method: GET
+service: shell.index
+path: "/index"
+staticvalues:
+  file: index.html

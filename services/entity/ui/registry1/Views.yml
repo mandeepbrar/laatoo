@@ -1,0 +1,10 @@
+users:
+  postArgs:
+  urlparams:
+  serviceName: users
+  header: usersviewheader
+  name: users
+  item:
+    type: entity
+    entityName: User
+    entityDisplay: table

@@ -80,7 +80,7 @@ func (adapter *DataAdapterModule) Factories(ctx core.ServerContext) map[string]c
 	factory.Set(ctx, MIDDLEWARE, adapter.middleware)
 	facs[adapter.adapterfacName] = factory
 
-	log.Error(ctx, "Returned factories", "facs", facs)
+	log.Trace(ctx, "Returned factories", "facs", facs)
 	return facs
 }
 
@@ -115,7 +115,7 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 
 	svcs[selectSvcName] = selectService
 
-	log.Error(ctx, "Returned services", "svcs", svcs)
+	log.Trace(ctx, "Returned services", "svcs", svcs)
 	return svcs
 }
 
@@ -165,7 +165,7 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	selectRestChann.Set(ctx, REST_STATIC, selectstaticvals)
 	chans[selectRestChannName] = selectRestChann
 
-	log.Error(ctx, "Returned channels", "chans", chans)
+	log.Trace(ctx, "Returned channels", "chans", chans)
 	return chans
 }
 func (adapter *DataAdapterModule) Tasks(ctx core.ServerContext) map[string]config.Config {

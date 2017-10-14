@@ -1,0 +1,10 @@
+version: 0.0.1
+description: Module provides gae datastore connection services. Component Service
+  created from this factory must be provided 'object' specifying the object to manage.
+  Optional service variables include 'collection', 'auditable', 'cacheable', 'presave',
+  'postupdate', 'postload', 'auditable'. Factory 'gaedatabase is created by default
+  when this module is enabled'
+objects:
+  gaedatastore_services:
+    type: factory
+    description: GAE Datastore database

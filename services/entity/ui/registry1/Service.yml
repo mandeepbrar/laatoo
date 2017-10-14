@@ -1,0 +1,3 @@
+users:
+  method: POST
+  url: "/user/view"

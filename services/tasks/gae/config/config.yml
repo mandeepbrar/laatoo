@@ -1,0 +1,15 @@
+version: 0.0.1
+description: 'This module provides access to gae task processing service. A factory
+  gaetasks is created by default. Consumer and publisher services can be created by
+  using ''publisher'' and ''consumer'' methods '
+objects:
+  gaetasksfactory:
+    description: Gae tasks factory. Can produce publisher and consumer using service
+      methods publisher and consumer
+    type: factory
+  gaetaskpublisher:
+    description: Gae publisher service
+    type: service
+  gaetaskconsumer:
+    description: Gae consumer service
+    type: service

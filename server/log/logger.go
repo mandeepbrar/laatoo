@@ -45,7 +45,7 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 		ok, _, _ = utils.FileExists(confFile)
 		var err error
 		if ok {
-			if logconf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
+			if logconf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 			loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)

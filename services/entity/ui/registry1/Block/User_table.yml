@@ -1,0 +1,18 @@
+div:
+  className: user_default
+  children:
+  - div:
+      className: field
+      body: '{{data "Username"}}'
+  - div:
+      className: field
+      body: this is {{data "Id" "insert"}}
+  - div:
+      className: field
+      children:
+      - Action:
+          module: reactwebcommon
+          name: viewUser
+          params:
+            id: '{{data "Id"}}'
+          body: View User

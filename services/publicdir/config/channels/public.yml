@@ -1,0 +1,7 @@
+name: public
+parent: root
+service: server.publicdirectory.publicdir
+method: GET
+path: "/public/*"
+paramvalues:
+  file: __0

@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
-	"regexp"
+	"laatoo/sdk/utils"
 	"strings"
-	"text/template"
 )
 
 type Node struct {
@@ -31,19 +31,37 @@ func (svc *UI) regItem(ctx core.ServerContext, itemType, itemName, cont string) 
 	svc.addRegItem(ctx, itemType, itemName, dispFunc)
 }
 
-func (svc *UI) createJsonBlock(ctx core.ServerContext, itemType string, itemName string, cont []byte) error {
-	obj := make(map[string]interface{})
-	err := json.Unmarshal(cont, &obj)
+func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName string, conf config.Config) error {
+	/*obj := make(map[string]interface{})
+	log.Error(ctx, "yaml block", "content", string(cont))
+	err := yaml.Unmarshal(cont, &obj)
 	if err != nil {
+		log.Error(ctx, "unmarshalling err", "err", err)
 		return errors.WrapError(ctx, err)
 	}
-	val, err := svc.processJson(ctx, obj)
+	log.Error(ctx, "unmarshalled", "content", obj)*/
+	val, err := svc.processConf(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	svc.regItem(ctx, itemType, itemName, val)
 	return nil
 }
+
+/*
+func (svc *UI) createJsonBlock(ctx core.ServerContext, itemType string, itemName string, cont []byte) error {
+	obj := make(map[string]interface{})
+	err := json.Unmarshal(cont, &obj)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	val, err := svc.processMap(ctx, obj)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	svc.regItem(ctx, itemType, itemName, val)
+	return nil
+}*/
 
 func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName string, node Node) error {
 	val, err := svc.processXMLNode(ctx, node)
@@ -54,6 +72,7 @@ func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName 
 	return nil
 }
 
+/*
 func (svc *UI) processText(ctx core.ServerContext, content string, forceInsert bool) (string, error) {
 	re := regexp.MustCompile(`\r?\n`)
 	content = re.ReplaceAllString(content, ` `)
@@ -97,7 +116,7 @@ func (svc *UI) processText(ctx core.ServerContext, content string, forceInsert b
 
 	return result.String(), nil
 }
-
+*/
 func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error) {
 	children := make([]string, 0)
 	for _, n := range node.Nodes {
@@ -119,7 +138,7 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 			if attrBuf.Len() != 0 {
 				attrBuf.WriteString(",")
 			}
-			val, err := svc.processText(ctx, attr.Value, false)
+			val, err := utils.ProcessTemplate(ctx, []byte(attr.Value), nil) //svc.processText(ctx, attr.Value, false)
 			if err != nil {
 				return "", errors.WrapError(ctx, err)
 			}
@@ -140,7 +159,7 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 	attrStr := fmt.Sprintf("{%s}", attrBuf.String())
 
 	if (len(children) == 0) && len(node.Content) > 0 {
-		val, err := svc.processText(ctx, string(node.Content), true)
+		val, err := utils.ProcessTemplate(ctx, node.Content, nil) //svc.processText(ctx, string(node.Content), true)
 		if err != nil {
 			return "", errors.WrapError(ctx, err)
 		}
@@ -156,7 +175,8 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 	return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, strings.Join(children, ",")), nil
 }
 
-func (svc *UI) processInMap(ctx core.ServerContext, obj map[string]interface{}) (map[string]interface{}, error) {
+/*
+func (svc *UI) processMapAttr(ctx core.ServerContext, obj map[string]interface{}) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	for k, v := range res {
 		strV, strok := v.(string)
@@ -169,7 +189,7 @@ func (svc *UI) processInMap(ctx core.ServerContext, obj map[string]interface{}) 
 		} else {
 			mapV, mapok := v.(map[string]interface{})
 			if mapok {
-				resmap, err := svc.processInMap(ctx, mapV)
+				resmap, err := svc.processMapAttr(ctx, mapV)
 				if err != nil {
 					return nil, err
 				}
@@ -180,84 +200,74 @@ func (svc *UI) processInMap(ctx core.ServerContext, obj map[string]interface{}) 
 		}
 	}
 	return res, nil
-}
+}*/
 
-func (svc *UI) processJson(ctx core.ServerContext, obj map[string]interface{}) (string, error) {
-	if len(obj) > 1 {
+func (svc *UI) processConf(ctx core.ServerContext, conf config.Config) (string, error) {
+	keys := conf.AllConfigurations(ctx)
+	if len(keys) > 1 {
 		return "", errors.BadArg(ctx, "Json", "Reason", "More than one roots of Json")
 	}
-	var ok bool
-	rootelem := ""
-	var root map[string]interface{}
-	for k, v := range obj {
-		root, ok = v.(map[string]interface{})
-		if ok {
-			rootelem = k
-		}
-	}
-	if rootelem != "" {
+	rootelem := keys[0]
+	root, ok := conf.GetSubConfig(ctx, rootelem)
+	if ok {
 		childStr := make([]string, 0)
-		children, ok := root["children"]
+		childrenArr, ok := root.GetConfigArray(ctx, "children")
 		if ok {
-			childrenArr, ok := children.([]interface{})
-			if ok {
-				for _, child := range childrenArr {
-					childNode, ok := child.(map[string]interface{})
-					if ok {
-						childTxt, err := svc.processJson(ctx, childNode)
-						if err != nil {
-							return "", errors.WrapError(ctx, err)
-						}
-						childStr = append(childStr, childTxt)
-					}
+			for _, child := range childrenArr {
+				childTxt, err := svc.processConf(ctx, child)
+				if err != nil {
+					return "", errors.WrapError(ctx, err)
 				}
+				childStr = append(childStr, childTxt)
 			}
 		}
 
 		mod := ""
 		attrBuf := new(bytes.Buffer)
 		content := ""
-
+		allAttributes := root.AllConfigurations(ctx)
 		//attrs := make(map[string]interface{})
-		for key, val := range root {
-			strVal, strok := val.(string)
+		for _, key := range allAttributes {
 			switch key {
 			case "body":
-				if strok {
-					strval, err := svc.processText(ctx, strVal, false)
-					if err != nil {
-						return "", errors.WrapError(ctx, err)
-					}
-					content = strval
+				content, _ = root.GetString(ctx, key)
+				/*strval, err := svc.processText(ctx, val, false)
+				if err != nil {
+					return "", errors.WrapError(ctx, err)
 				}
+				content = strval*/
 				break
 			case "children":
 				break
 			case "module":
-				if strok {
-					mod = strVal
-				}
+				mod, _ = root.GetString(ctx, key)
 				break
 			default:
 				if attrBuf.Len() != 0 {
 					attrBuf.WriteString(",")
 				}
-				mapval, ok := val.(map[string]interface{})
-				if ok {
-					mapres, err := svc.processInMap(ctx, mapval)
-					if err != nil {
-						return "", errors.WrapError(ctx, err)
-					}
-					mapstr, err := json.Marshal(mapres)
-					if err != nil {
-						return "", errors.WrapError(ctx, err)
-					}
-					attrBuf.WriteString(fmt.Sprintf("%s:%s", key, string(mapstr)))
-				} else {
-					if strok {
-						attrBuf.WriteString(fmt.Sprintf("%s:'%s'", key, strVal))
-					}
+				val, _ := root.Get(ctx, key)
+				strval, err := json.Marshal(val)
+				if err != nil {
+					return "", errors.WrapError(ctx, err)
 				}
+				attrBuf.WriteString(fmt.Sprintf("%s:%s", key, string(strval)))
+				/*				mapval, ok := val.(map[string]interface{})
+								if ok {
+									mapres, err := svc.processMapAttr(ctx, mapval)
+									if err != nil {
+										return "", errors.WrapError(ctx, err)
+									}
+									mapstr, err := json.Marshal(mapres)
+									if err != nil {
+										return "", errors.WrapError(ctx, err)
+									}
+									attrBuf.WriteString(fmt.Sprintf("%s:%s", key, string(mapstr)))
+								} else {
+									if strok {
+										attrBuf.WriteString(fmt.Sprintf("%s:'%s'", key, strVal))
+									}
+								}*/
 			}
 		}
 

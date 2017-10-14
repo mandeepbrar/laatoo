@@ -1,0 +1,25 @@
+version: 0.0.1
+description: Module provides oauth login services.
+objects:
+  OAUTH:
+    type: service
+    description: 'This service authenticates a user using oauth protocol  '
+    request:
+      type: stringmap
+      params:
+        callbackmode:
+          description: Determines if the service is working in callback mode. It is
+            invoked by the remote IdP in callback mode
+          type: bool
+    configurations:
+      user_data_svc:
+        description: Data service allowing user to fetch user records for oauth authentication
+        type: string
+        required: true
+      oauthsite:
+        description: Oauth site specifies the details of the remote idp with which
+          oauth has to be enabled. The config should contain {sitetype, clientid,
+          clientsecret, callbackurl, profileurl}. Presently only facebook and google
+          are supported for sitetype
+        type: config
+        required: true

@@ -135,6 +135,15 @@ func (ctx *Context) GetStringArray(key string) ([]string, bool) {
 func (ctx *Context) Set(key string, val interface{}) {
 	ctx.ParamsStore[key] = val
 }
+
+func (ctx *Context) SetVals(vals map[string]interface{}) {
+	if vals != nil {
+		for k, v := range vals {
+			ctx.Set(k, v)
+		}
+	}
+}
+
 func (ctx *Context) GetAppengineContext() glctx.Context {
 	return ctx.appengineCtx
 }

@@ -1,0 +1,14 @@
+name: root
+enginetype: http
+address: ":6060"
+framework: "::framework"
+ssl: false
+sslcert: keys/sslcert.pem
+sslkey: keys/sslkey.pem
+usecors: true
+queryparams:
+- pagesize
+- pagenum
+corshosts:
+- http://localhost:8000
+path: "/"

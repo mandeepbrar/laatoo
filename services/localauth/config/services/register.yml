@@ -1,0 +1,4 @@
+servicemethod: REGISTRATION
+dataobject: stringmap
+user_data_svc: dataadapter.dataservice.User
+def_role: {{var "defaultrole"}}

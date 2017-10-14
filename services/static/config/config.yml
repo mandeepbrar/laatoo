@@ -1,0 +1,83 @@
+version: 0.0.1
+description: 'Module provides static file services. '
+objects:
+  static_files_service:
+    type: service
+    description: This service serves static files from a storage component
+    configurations:
+      storage:
+        description: Storage service from which files are to be served
+        type: string
+        required: true
+      operation:
+        description: Operation to perform on a file
+        type: string
+      transformedstorage:
+        description: Storage to be used for keeping transformed files
+        type: string
+      default:
+        description: File to be used in case a file is not avilable
+        type: string
+      width:
+        description: Width of a transformed image file
+        type: string
+      height:
+        description: Height of a transformed image file
+        type: string
+    request:
+      params:
+        file:
+          description: File to be served by this service
+          type: string
+          required: true
+  named_files_service:
+    type: service
+    description: This service serves named files from a storage component. Only disk
+      files are supported
+    configurations:
+      storage:
+        description: Storage service from which files are to be served
+        type: string
+        required: true
+      files:
+        description: File and path mapping
+        type: config
+        required: true
+    request:
+      params:
+        file:
+          description: File to be served by this service
+          type: string
+          required: true
+  template_files_service:
+    type: service
+    description: This service converts files with name.tpl extension to name files
+      by applying golang text template package. Method var is provided to access variables
+      in context
+    configurations:
+      templatefilesdirectory:
+        description: Directory containing template files. defaults to files folder
+          of module
+        type: string
+      processedfilesdirectory:
+        description: Directory containing processed files. defaults to templates directory
+        type: string
+  filebundle_service:
+    type: service
+    description: This service serves named files from a storage component. Only disk
+      files are supported
+    configurations:
+      storage:
+        description: Storage service from which files are to be served
+        type: string
+        required: true
+      bundles:
+        description: File and path mapping
+        type: config
+        required: true
+    request:
+      params:
+        bundle:
+          description: Bundle to be served by this service
+          type: string
+          required: true

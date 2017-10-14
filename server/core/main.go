@@ -17,7 +17,7 @@ func main(rootctx *serverContext, configDir string) error {
 
 	configFile := path.Join(configDir, constants.CONF_CONFIG_FILE)
 	//read the config file
-	conf, err := common.NewConfigFromFile(rootctx, configFile)
+	conf, err := common.NewConfigFromFile(rootctx, configFile, nil)
 	if err != nil {
 		log.Info(rootctx, "Config file not found in dir: "+configDir)
 		return err
@@ -90,7 +90,7 @@ func createEnvironments(ctx core.ServerContext, confDir string, svr *serverObjec
 				configFile := path.Join(baseEnvDir, constants.CONF_CONFIG_FILE)
 				if _, err := os.Stat(configFile); err == nil {
 					//read the config file
-					envConfig, err = common.NewConfigFromFile(envCtx, configFile)
+					envConfig, err = common.NewConfigFromFile(envCtx, configFile, nil)
 					if err != nil {
 						return envs, errors.WrapError(envCtx, err, "Environment config file", configFile)
 					}
@@ -159,7 +159,7 @@ func createApplications(ctx core.ServerContext, envs map[string]string, conf con
 					configFile := path.Join(baseAppDir, constants.CONF_CONFIG_FILE)
 					if _, err := os.Stat(configFile); err == nil {
 						//read the config file
-						appConfig, err = common.NewConfigFromFile(appCtx, configFile)
+						appConfig, err = common.NewConfigFromFile(appCtx, configFile, nil)
 						if err != nil {
 							return errors.WrapError(appCtx, err, "Application config file", configFile)
 						}

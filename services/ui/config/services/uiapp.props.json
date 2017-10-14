@@ -1,5 +1,0 @@
-{
-  "name":"{uiapp.props[.application]}",
-  "servicemethod":"static_files_service",
-  "storage": "{uiapp.propsstorage[.application]}"
-}

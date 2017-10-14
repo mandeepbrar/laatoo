@@ -23,7 +23,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	contextFile := path.Join(as.baseDir, constants.CONF_CONTEXT, constants.CONF_CONFIG_FILE)
 	ok, _, _ := utils.FileExists(contextFile)
 	if ok {
-		contextVars, err := common.NewConfigFromFile(ctx, contextFile)
+		contextVars, err := common.NewConfigFromFile(ctx, contextFile, nil)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -168,7 +168,7 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 		found, _, _ = utils.FileExists(confFile)
 		if found {
 			var err error
-			if msgConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
+			if msgConf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
@@ -209,7 +209,7 @@ func (as *abstractserver) readProperties(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 	if as.parent != nil {
-		as.properties = common.MergeJson(as.parent.properties, props)
+		as.properties = common.MergeProps(as.parent.properties, props)
 	} else {
 		as.properties = props
 	}
@@ -264,7 +264,7 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 		ok, _, _ = utils.FileExists(confFile)
 		if ok {
 			var err error
-			if secConf, err = common.NewConfigFromFile(ctx, confFile); err != nil {
+			if secConf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return err
 			}
 		}

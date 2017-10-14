@@ -1,0 +1,27 @@
+version: 0.0.1
+description: 'Module provides database login and registration services. '
+objects:
+  DB_LOGIN:
+    type: service
+    description: This service allows logins for users in the database.
+    request:
+      type: string
+    configurations:
+      user_data_svc:
+        type: string
+        required: true
+        description: User data service for login service
+  REGISTRATION:
+    type: service
+    description: This service allows registration of users in the database.
+    request:
+      type: stringmap
+    configurations:
+      user_data_svc:
+        type: string
+        required: true
+        description: User data service for registration service
+      def_role:
+        type: string
+        required: true
+        description: Default role to be assigned to a new user

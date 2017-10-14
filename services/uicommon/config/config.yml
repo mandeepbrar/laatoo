@@ -1,0 +1,15 @@
+version: "0.0.1"
+dependencies:
+description: "Module provides ui base components. "
+objects:
+ui:
+ skipUIModules: true
+ packages:
+  axios: "^0.16.2"
+  "babel-polyfill": "^6.26.0"
+  "babel-runtime": "^6.26.0"
+ externals:
+  axios: axios
+  "babel-polyfill": "babel-polyfill"
+  "babel-runtime": "babel-runtime"
+  react: react

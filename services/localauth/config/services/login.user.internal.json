@@ -1,6 +1,0 @@
-{
-  "factory":"{[dataservicefactory]}",
-  "object":"{[userobject]}",
-  "postload":false,
-  "presave":false
-}

@@ -59,7 +59,7 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 			if !info.IsDir() {
 				extension := filepath.Ext(elemfileName)
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
-				elemConf, err := NewConfigFromFile(ctx, file)
+				elemConf, err := NewConfigFromFile(ctx, file, nil)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -112,7 +112,7 @@ func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config
 	var err error
 	confFileName, ok := conf.GetString(ctx, configName)
 	if ok {
-		configToRet, err = NewConfigFromFile(ctx, confFileName)
+		configToRet, err = NewConfigFromFile(ctx, confFileName, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
 		}

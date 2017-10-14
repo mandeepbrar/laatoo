@@ -1,0 +1,2 @@
+servicemethod: DB_LOGIN
+user_data_svc: login.user.internal

@@ -435,8 +435,9 @@ func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageList
 func (ctx *serverContext) CreateConfig() config.Config {
 	return make(common.GenericConfig)
 }
-func (ctx *serverContext) ReadConfig(file string) (config.Config, error) {
-	return common.NewConfigFromFile(ctx, file)
+
+func (ctx *serverContext) ReadConfig(file string, funcs map[string]interface{}) (config.Config, error) {
+	return common.NewConfigFromFile(ctx, file, funcs)
 }
 
 func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {

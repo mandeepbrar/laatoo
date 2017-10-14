@@ -1,0 +1,4 @@
+name: server.publicfiles{{var "instance" "."}}
+servicemethod: named_files_service
+files: {{var "files"}}
+storage: server.resourcedirectory{{var "instance" "."}}

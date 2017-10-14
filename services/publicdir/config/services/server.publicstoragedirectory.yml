@@ -1,0 +1,3 @@
+name: server.publicstoragedirectory{{var "instance" "."}}
+servicemethod: filesystem
+filestoragedir: {{var "publicfilesdir"}}

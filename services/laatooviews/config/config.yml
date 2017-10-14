@@ -1,0 +1,23 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
+description: 'Module provides laatoo view components. '
+ui:
+  skipUIModules: true
+  externals:
+    babel-runtime: babel-runtime
+    babel-polyfill: babel-polyfill
+    react: react
+    redux-actions: redux-actions
+    react-redux: react-redux
+    reactwebcommon: reactwebcommon
+    redux-saga: redux-saga
+    react-pagify: react-pagify
+    uicommon: uicommon
+  packages:
+    react: "^15.6.1"
+    react-pagify: "^2.3.0"
+    react-redux: "^5.0.6"
+    redux: "^3.7.2"
+    redux-saga: "^0.15.6"
