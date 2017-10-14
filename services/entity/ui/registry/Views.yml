@@ -1,0 +1,10 @@
+{{var "object"}}_view:
+  postArgs: {}
+  urlparams: {}
+  serviceName: {{var "object"}}_view_service
+  header: {{var "object"}}_view_header
+  name: {{var "object"}}_view
+  item:
+    type: entity
+    entityName: {{var "object"}}
+    entityDisplay: table

@@ -1,0 +1,3 @@
+{{var "object"}}_view_service:
+  method: POST
+  url: /{{var "object" |lower}}/view

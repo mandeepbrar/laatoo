@@ -1,6 +1,6 @@
 users:
-  postArgs:
-  urlparams:
+  postArgs: {}
+  urlparams: {}
   serviceName: users
   header: usersviewheader
   name: users

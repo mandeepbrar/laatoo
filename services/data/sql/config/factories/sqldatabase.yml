@@ -1,2 +1,2 @@
 factory: sql_services
-sqlconnectionstring: "{[sqlconnectionstring]}"
+sqlconnectionstring: {{var "sqlconnectionstring"}}

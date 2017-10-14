@@ -1,0 +1,7 @@
+_view{{var "object"}}:
+  route: /{{var "object" | lower}}/:id
+  component:
+    type: entity
+    entityId: a4d68288-b010-4df6-a8c8-5de64da1990f
+    entityName: {{var "object"}}
+    entityDisplay: default

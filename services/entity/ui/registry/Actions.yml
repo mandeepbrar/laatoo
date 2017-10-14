@@ -1,0 +1,2 @@
+view{{var "object"}}:
+  url: /{{var "object" | lower}}/:id
