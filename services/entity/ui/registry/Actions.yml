@@ -1,2 +1,4 @@
-view{{var "object"}}:
-  url: /{{var "object" | lower}}/:id
+view_page_{{default "instance" "object" | lower}}:
+  url: /{{default "instance" "object" | lower}}/:id
+list_page_{{default "instance" "object" | lower}}:
+  url: /list_{{default "instance" "object" | lower}}

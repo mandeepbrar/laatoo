@@ -33,6 +33,20 @@ func (conf GenericConfig) GetString(ctx ctx.Context, configurationName string) (
 	return "", false
 }
 
+func (conf GenericConfig) Clone() config.Config {
+	res := make(GenericConfig, len(conf))
+	for k, v := range conf {
+		mapV, ok := v.(GenericConfig)
+		if ok {
+			res[k] = mapV.Clone().(GenericConfig)
+		} else {
+			res[k] = v
+		}
+
+	}
+	return res
+}
+
 //Get string configuration value
 func (conf GenericConfig) GetBool(ctx ctx.Context, configurationName string) (bool, bool) {
 	val, found := conf[configurationName]

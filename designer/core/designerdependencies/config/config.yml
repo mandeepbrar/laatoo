@@ -8,6 +8,7 @@ ui:
   packages:
     react: "^15.6.1"
     react-redux: "^5.0.6"
+    redux-form: "^7.1.1"
     react-dom: "^15.6.1"
     axios: "^0.16.2"
     md5: "^2.2.1"

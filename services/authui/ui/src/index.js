@@ -1,5 +1,8 @@
+import React from 'react';
 import {LoginComponent} from './LoginComponent';
 import {LoginValidator} from './LoginValidator';
+import {renderWebLogin} from './WebLoginForm';
+const PropTypes = require('prop-types');
 import './reducers/Security';
 import './sagas/Security';
 
@@ -34,8 +37,24 @@ function Initialize(appName, ins, mod, settings, def, req) {
   }
 }
 
+
+
+const WebLoginForm = (props, context) => {
+  console.log("render logiform", LoginComponent)
+  return (
+    <LoginComponent className={props.className} renderLogin={renderWebLogin(context.uikit, module.settings, module.properties)} realm={props.realm} loginService={props.loginService}
+      loginServiceURL={props.loginServiceURL} googleAuthUrl={props.googleAuthUrl}/>
+  )
+}
+
+WebLoginForm.contextTypes = {
+  uikit: PropTypes.object
+};
+
 export {
   Initialize,
   LoginComponent,
+  renderWebLogin,
+  WebLoginForm,
   LoginValidator
 }

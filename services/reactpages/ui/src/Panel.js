@@ -37,6 +37,10 @@ class Panel extends React.Component {
           className = className + " entity "
           this.processEntity(desc, props, className)
           break;
+        case "form":
+          className = className + " form "
+          this.processForm(desc, props, className)
+          break;
         case "block":
           className = className + " block "
           this.processBlock(desc, props, className)
@@ -64,7 +68,7 @@ class Panel extends React.Component {
             this.getView = function(props, context, state) {
               return processor.getComponent(desc, props, context, state)
             }
-            break;            
+            break;
           }
       }
     }
@@ -156,6 +160,32 @@ class Panel extends React.Component {
     }
   }
 
+  processForm = (desc, props) => {
+    console.log("processing form", desc)
+    let formdesc = desc
+    if(Application.Registry.Form && desc.id) {
+      formdesc = Application.Registry.Form[desc.id]
+    }
+
+    if(!formdesc) {
+      return
+    }
+
+    if(!this.form) {
+      this.form = this.getComponent("reactforms", "Form", module.req)
+    }
+
+    if(this.form) {
+      this.getView = function(props, ctx, state) {
+        return <this.form description={formdesc} id={desc.id}></this.form>
+      }
+    } else {
+      this.getView = function(props, ctx, state) {
+        return <ctx.uikit.Block></ctx.uikit.Block>
+      }
+    }
+  }
+
   getDisplayFunc(item, props) {
     let reg = Application.Registry.Block
     if(!item || !reg) {
@@ -178,15 +208,15 @@ class Panel extends React.Component {
     if(viewid && Application.Registry.Views) {
       viewdesc = Application.Registry.Views[viewid]
     }
-    let viewItem = desc.item? desc.item: viewdesc.item
-    let viewHeader = viewdesc.header? <Panel description={viewdesc.header}/> :null
+    let description = Object.assign({}, viewdesc, desc)
+    let viewHeader = description.header? <Panel description={description.header}/> :null
 
     if(!this.view) {
       this.view = this.getComponent("laatooviews", "View", module.req)
     }
     this.getView = function(props, context, state) {
       return <this.view params={props.params} header={viewHeader} id={viewid}>
-        <Panel description={viewItem} />
+        <Panel description={description.item} />
       </this.view>
     }
   }
@@ -196,11 +226,10 @@ class Panel extends React.Component {
     let id = "", name = ""
     if(props.params && props.params.id) {
       id = props.params.id
-      name = props.params.name
     } else {
       id = desc.entityId
-      name = desc.entityName
     }
+    name = desc.entityName
     if(!this.entity) {
       this.entity = this.getComponent("laatooviews", "Entity", module.req)
     }

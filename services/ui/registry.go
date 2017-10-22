@@ -187,9 +187,29 @@ func (svc *UI) processMutipleItems(ctx core.ServerContext, conf config.Config, i
 	return nil
 }
 
+func (svc *UI) getRegistryItemName(ctx core.ServerContext, conf config.Config, itemName string) string {
+	if conf != nil {
+		name, ok := conf.GetString(ctx, "name")
+		if ok {
+			return name
+		}
+		name, ok = conf.GetString(ctx, "Name")
+		if ok {
+			return name
+		}
+	}
+	return itemName
+}
+
 func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType string) error {
+	ctx = ctx.SubContext("Registry Item: " + itemName)
 	if itemType == "Block" {
 		err := svc.createConfBlock(ctx, itemType, itemName, conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	} else if itemType == "Form" {
+		err := svc.createForm(ctx, itemType, itemName, conf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -198,7 +218,7 @@ func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemNam
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		svc.addRegItem(ctx, itemType, itemName, string(strVal))
+		svc.addRegItem(ctx, itemType, svc.getRegistryItemName(ctx, conf, itemName), string(strVal))
 	}
 	return nil
 }

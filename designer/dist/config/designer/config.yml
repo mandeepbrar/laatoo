@@ -55,6 +55,8 @@ modules:
       theme: dashboard
   comment:
     module: comment
+    settings:
+      list_page_route: /mycomments
   shell:
     module: shell
     settings:

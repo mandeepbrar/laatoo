@@ -1,7 +1,8 @@
 import {Action} from 'reactwebcommon';
 import React from 'react';
+import './styles/app.scss'
 
-function renderLogin(uikit, settings, properties) {
+function renderWebLogin(uikit, settings, properties) {
   return function (state, handleChange, handleLogin, oauthLogin, props) {
     let openGoogleauthWindow = function() {
       oauthLogin(Application.Security.googleAuthUrl)
@@ -45,4 +46,7 @@ function renderLogin(uikit, settings, properties) {
   }
 }
 
-export {renderLogin}
+
+export {
+  renderWebLogin
+}

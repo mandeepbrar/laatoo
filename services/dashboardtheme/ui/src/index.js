@@ -15,8 +15,8 @@ function Initialize(appName, ins, mod, settings, def, req) {
     Application.Register('Pages', "home", homePage);
     Application.Register('Actions','Page_home', {url:'/'})
   }
-  let loginModule = "reactforms"
-  let loginComp = "LoginForm"
+  let loginModule = "authui"
+  let loginComp = "WebLoginForm"
   if(settings && !settings.skipAuth && settings.loginModule) {
       loginModule = settings.loginModule
       loginComp = settings.loginComp
@@ -53,6 +53,7 @@ function processMenu(){
   if(menuConfig) {
     Object.keys(menuConfig).forEach(function(key){
       let menuItem=menuConfig[key]
+      console.log("found menu", key, menuItem)
       menu.push({title:menuItem.title, action: "Page_" + menuItem.page})
     })
   } else {

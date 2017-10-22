@@ -1,0 +1,156 @@
+'use strict';
+
+import React from 'react';
+import t from 'tcomb-form';
+import { connect } from 'react-redux';
+import {ActionNames} from './Actions';
+import {createAction} from 'uicommon';
+
+class TCombWebForm extends React.Component {
+  constructor(props) {
+    super(props);
+    let desc = this.props.description
+    this.submitForm = this.submitForm.bind(this);
+    this.setValue = this.setValue.bind(this);
+    this.submit = this.submit.bind(this);
+    this.getValue = this.getValue.bind(this);
+    this.onChange = this.onChange.bind(this);
+    if(this.props.actionButtons) {
+      this.actionButtons = this.props.actionButtons
+    } else {
+
+    }
+    this.lookupSchemaOptions = desc.lookupSchemaOptions
+    let so = desc.lookupSchemaOptions? desc.lookupSchemaOptions(this) : desc.schemaOptions
+
+    this.state = {formValue: props.entityData, so : so, key: "entityform" + (new Date())}
+    if(props.refCallback) {
+      props.refCallback(this)
+    }
+  }
+
+  setValue(val) {
+    this.setState(Object.assign(this.state,{formValue: val}))
+  }
+
+  getValue() {
+    return this.refs.form.getValue()
+  }
+
+  componentWillReceiveProps(nextprops) {
+    let ed = nextprops.data? nextprops.data: this.state.formValue
+    let so = this.lookupSchemaOptions? this.lookupSchemaOptions(this, ed, {}, "", this.state.so): this.state.so
+    if(so) {
+      this.setState( {formValue: nextprops.data, so: so, key: "entityform" + (new Date())})
+    }
+    if(this.props.refCallback) {
+      this.props.refCallback(this)
+    }
+  }
+
+  submitForm(evt) {
+    evt.preventDefault();
+    let validationRes = this.refs.form.validate()
+    let data = this.refs.form.getValue()
+    if (!data) {
+      if(this.props.failureCallback) {
+        this.props.failureCallback(validationRes)
+      }
+      console.log(validationRes);
+      return;
+    }
+    data = Object.assign({}, data);
+    if(this.props.preSave) {
+      data = this.props.preSave(data);
+    }
+    console.log("data to submit", data)
+    if (!data) {
+      return;
+    }
+    if(!this.props.onSubmit) {
+      this.props.onSubmit(data);
+    }
+  }
+
+  onChange (val, path) {
+    if(this.props.onChange) {
+      this.props.onChange(val, path)
+    }
+
+    console.log("value of the form ", val, this.state)
+    let fv = Object.assign({}, this.state.formValue, val)
+    let st = Object.assign({}, this.state, {formValue:fv})
+    if(this.lookupSchemaOptions) {
+      let so = this.lookupSchemaOptions(this, fv, val, path, this.state.so)
+      if(so) {
+        st.so = so
+        st.key = "entityform" + (new Date())
+      }
+    }
+    this.setState(st)
+  }
+
+  render() {
+    let state = this.state
+    return (
+      <form onSubmit={this.submitForm} className="webform">
+        <t.form.Form ref="form" key={state.key} type={state.schema} value={state.formValue} options={state.so} onChange={this.onChange}/>
+        {this.actionButtons}
+      </form>
+    )
+  }
+}
+
+const mapStateToProps = (state, ownProps) => {
+  return {
+    id: ownProps.id,
+    description: ownProps.description,
+    refCallback: ownProps.refCallback,
+    actionButtons: ownProps.actionButtons,
+    onChange: ownProps.onChange,
+    onSubmit: ownProps.onSubmit,
+    children: ownProps.children
+  }
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  let onSubmit = null
+  if(ownProps.onSubmit) {
+      onSubmit = ownProps.onSubmit
+  }
+  else {
+    let formDesc = ownProps.description
+    if(formDesc.entityName) {
+      switch(formDesc.formType) {
+        case "Create":
+          onSubmit = (data) => {
+            dispatch(createAction(ActionNames.ENTITY_SAVE, {data:data, entityName: ownProps.name}, {reducer: ownProps.reducer, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
+          }
+          break;
+        case "Put":
+          onSubmit = (data) => {
+            dispatch(createAction(ActionNames.ENTITY_PUT, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
+          }
+          break;
+        case "Update":
+          onSubmit = (data) => {
+            dispatch(createAction(ActionNames.ENTITY_UPDATE, {data:data, entityId: ownProps.id, entityName: ownProps.name}, {reducer: ownProps.reducer, reload: ownProps.reloadOnUpdate, successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
+          }
+          break;
+      }
+    } else {
+      let svc = formDesc.serviceName
+      onSubmit = (data) => {
+        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
+      }
+    }
+  }
+  return { onSubmit }
+}
+
+const Form = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TCombWebForm);
+
+export {Form} ;

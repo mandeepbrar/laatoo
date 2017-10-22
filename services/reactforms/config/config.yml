@@ -8,6 +8,7 @@ ui:
   externals:
     babel-runtime: babel-runtime
     babel-polyfill: babel-polyfill
+    redux-form: redux-form
     react: react
     react-redux: react-redux
     react-dom: react-dom
@@ -15,3 +16,4 @@ ui:
     reactwebcommon: reactwebcommon
   packages:
     react: "^15.6.1"
+    redux-form: "^7.1.1"

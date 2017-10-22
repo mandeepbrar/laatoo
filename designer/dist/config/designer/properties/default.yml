@@ -8,3 +8,6 @@ menu:
   testpagee:
     title: Test Entity
     page: userentity
+  form:
+    title: Test Form
+    page: testform

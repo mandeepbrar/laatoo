@@ -40,11 +40,11 @@ func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName
 		return errors.WrapError(ctx, err)
 	}
 	log.Error(ctx, "unmarshalled", "content", obj)*/
-	val, err := svc.processConf(ctx, conf)
+	val, err := svc.processBlockConf(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	svc.regItem(ctx, itemType, itemName, val)
+	svc.regItem(ctx, itemType, svc.getRegistryItemName(ctx, conf, itemName), val)
 	return nil
 }
 
@@ -142,7 +142,7 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 			if err != nil {
 				return "", errors.WrapError(ctx, err)
 			}
-			attrVal, err := json.Marshal(val)
+			attrVal, err := json.Marshal(string(val))
 			if err != nil {
 				return "", errors.WrapError(ctx, err)
 			}
@@ -202,7 +202,7 @@ func (svc *UI) processMapAttr(ctx core.ServerContext, obj map[string]interface{}
 	return res, nil
 }*/
 
-func (svc *UI) processConf(ctx core.ServerContext, conf config.Config) (string, error) {
+func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (string, error) {
 	keys := conf.AllConfigurations(ctx)
 	if len(keys) > 1 {
 		return "", errors.BadArg(ctx, "Json", "Reason", "More than one roots of Json")
@@ -214,7 +214,7 @@ func (svc *UI) processConf(ctx core.ServerContext, conf config.Config) (string, 
 		childrenArr, ok := root.GetConfigArray(ctx, "children")
 		if ok {
 			for _, child := range childrenArr {
-				childTxt, err := svc.processConf(ctx, child)
+				childTxt, err := svc.processBlockConf(ctx, child)
 				if err != nil {
 					return "", errors.WrapError(ctx, err)
 				}

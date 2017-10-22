@@ -18,3 +18,8 @@ userentity:
     entityId: a4d68288-b010-4df6-a8c8-5de64da1990f
     entityName: User
     entityDisplay: default
+testform:
+  route: "/testform"
+  component:
+    type: form
+    id: test
