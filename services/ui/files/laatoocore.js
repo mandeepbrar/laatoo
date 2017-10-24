@@ -15,9 +15,22 @@ Application.Register = function(regName,id,data) {
   }
   reg[id]=data;
 }
+Application.AllRegItems = function(regName) {
+  return Application.Registry[regName];
+}
+Application.GetRegistry = function(regName, id) {
+  if(id) {
+    let reg = Application.Registry[regName];
+    if(reg) {
+      return reg[id];
+    }
+  }
+  return null;
+}
 var _$=Application.Modules;
 var _rm = Application.RegisterModule;
 var _r = Application.Register;
+var _reg= Application.GetRegistry;
 var _re=require('react');
 var _ce=_re.createElement;
 function modDef(appname, ins, mod, settings) {

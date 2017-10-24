@@ -16,8 +16,8 @@ class ActionComp extends React.Component {
     //let action = null
     if(props.action!=null) {
       this.action = props.action
-    } else if(Application.Registry.Actions) {
-      this.action = Application.Registry.Actions[props.name];
+    } else {
+      this.action = _reg('Actions', props.name)
     }
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);

@@ -8,7 +8,7 @@ function Initialize(appname, ins, mod, settings){
 
 function connect(store) {
   Router.connect(store)
-  Router.setRoutes(Application.Registry.Routes, 'home');
+  Router.setRoutes(Application.AllRegItems("Routes"), 'home');
 }
 
 export {

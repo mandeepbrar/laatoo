@@ -91,8 +91,8 @@ const ViewComponent = connect(
 )(ViewUI);
 
 const View = (props) => {
-  if(Application.Registry && Application.Registry.Views && props.id) {
-    let view = Application.Registry.Views[props.id]
+  if(props.id) {
+    let view = _reg("Views", props.id)
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
     let viewname = view.name? view.name : props.id

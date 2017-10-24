@@ -11,6 +11,7 @@ ui:
     react: react
     react-redux: react-redux
     reactpages: reactpages
+    uicommon: uicommon
     redux: redux
     redux-saga: redux-saga
     prop-types: prop-types

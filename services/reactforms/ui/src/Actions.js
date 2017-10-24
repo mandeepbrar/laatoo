@@ -1,7 +1,10 @@
 /* Populated by react-webpack-redux:action */
-export const ActionNames = {
+const ActionNames = {
 
   SUBMIT_FORM:"SUBMIT_FORM",
+  SUBMITTING_FORM:"SUBMITTING_FORM",
+  SUBMIT_SUCCESS:"SUBMIT_SUCCESS",
+  SUBMIT_FAILURE:"SUBMIT_FAILURE",
 
   ENTITY_GET:"ENTITY_GET",
   ENTITY_GETTING:"ENTITY_GETTING",
@@ -28,4 +31,8 @@ export const ActionNames = {
 
   PAGE_CHANGE: "@@reduxdirector/LOCATION_CHANGE",
 
+}
+
+export {
+  ActionNames
 }

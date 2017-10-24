@@ -15,6 +15,7 @@ const (
 	CONF_FIELDS      = "fields"
 	CONF_FORM_LAYOUT = "layout"
 	CONF_WIDGET      = "widget"
+	CONF_FORMCONFIG  = "config"
 	CONF_WIDGET_MOD  = "widgetMod"
 	CONF_WIDGET_CONF = "widgetConf"
 	CONF_FIELDTYPE   = "type"
@@ -81,11 +82,12 @@ func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType s
 		case config.OBJECTTYPE_DATETIME:
 			fieldAttrs.Set(ctx, "widget", "DatePicker")
 			break
-		case "Image":
+		case "image":
 			fieldAttrs.Set(ctx, "widget", "ImagePicker")
 			break
 		}
 	}
+	fieldAttrs.Set(ctx, "name", fieldName)
 	fieldsStr, _ := json.Marshal(fieldAttrs)
 	fieldMap.WriteString(fmt.Sprintf("%s:%s", fieldName, fieldsStr))
 	return nil
@@ -120,13 +122,22 @@ func (svc *UI) buildFormSchema(ctx core.ServerContext, itemType string, itemName
 			svc.createField(ctx, fieldName, fieldType, required, widget, widgetMod, fieldConf, fieldMap)
 		}
 	}
-	layout, ok := conf.GetString(ctx, CONF_FORM_LAYOUT)
+	/*layout, ok := conf.GetString(ctx, CONF_FORM_LAYOUT)
 	layoutStr := ""
 	if ok {
 		layoutStr = fmt.Sprintf(",template: templateLayout('%s')", layout)
 		//optionsMap.Set(ctx, "template", fmt.Sprintf("<Panel id=\"%s\" />", layout))
+	}*/
+	formCfgStr := ""
+	formConfig, ok := conf.GetSubConfig(ctx, CONF_FORMCONFIG)
+	if ok {
+		cfg, err := json.Marshal(formConfig)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		formCfgStr = fmt.Sprintf(",config: %s", string(cfg))
 	}
-	formStr.WriteString(fmt.Sprintf("{fields:{%s} %s}", fieldMap.String(), layoutStr))
+	formStr.WriteString(fmt.Sprintf("{fields:{%s} %s}", fieldMap.String(), formCfgStr))
 
 	return nil
 }

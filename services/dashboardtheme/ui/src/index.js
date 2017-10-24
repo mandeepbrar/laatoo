@@ -10,7 +10,8 @@ function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins];
   module.settings = settings;
   module.skipAuth = settings.skipAuth
-  if(!Application.Registry.Pages || !Application.Registry.Pages['home']) {
+  let homePage = _reg('Pages', 'home')
+  if(!homePage) {
     let homePage={id:"home", route:"/", components: {"main": {type:"component", component: <Welcome modProps={module.properties}/>}}}
     Application.Register('Pages', "home", homePage);
     Application.Register('Actions','Page_home', {url:'/'})

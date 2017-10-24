@@ -1,4 +1,0 @@
-fields:
-  name:
-    type: string
-    label: Name

@@ -1,10 +1,13 @@
 version: 0.0.1
+dependencies:
+  uicommon: ">=0.0.1"
 description: 'Module provides web common components. '
 ui:
   skipUIModules: true
   externals:
     react: react
     sanitize-html: sanitize-html
+    uicommon: uicommon
   packages:
     react: "^15.6.1"
     sanitize-html: "^1.14.1"

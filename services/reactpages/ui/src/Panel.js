@@ -9,7 +9,7 @@ class Panel extends React.Component {
     this.uikit = ctx.uikit
     let desc = props.description
     if(!desc && props.id) {
-      desc = Application.Registry.Panel[props.id]
+      desc = _reg('Panels', props.id)
     }
     //console.log("print id ", desc.id)
     if(!desc) {
@@ -62,14 +62,12 @@ class Panel extends React.Component {
           }
           break;
         default:
-          if(Application.Registry.PanelType) {
-            let processor = Application.Registry.PanelType[desc.type]
-            let comp = processor.getComponent(desc)
-            this.getView = function(props, context, state) {
-              return processor.getComponent(desc, props, context, state)
-            }
-            break;
+          let processor = _reg("PanelTypes", desc.type)
+          //let comp = processor.getComponent(desc)
+          this.getView = function(props, context, state) {
+            return processor.getComponent(desc, props, context, state)
           }
+          break;
       }
     }
   }
@@ -91,8 +89,8 @@ class Panel extends React.Component {
 
   processLayout = (desc, props, className) => {
     let panelDesc = desc
-    if(Application.Registry.Panel && desc.id) {
-      panelDesc = Application.Registry.Panel[desc.id]
+    if(desc.id) {
+      panelDesc = _reg("Panels", desc.id)
     }
     if(!panelDesc.layout) {
       return
@@ -146,7 +144,7 @@ class Panel extends React.Component {
 
   processBlock = (desc, props) => {
     console.log("processing block", desc)
-    let display = this.getDisplayFunc(desc, props)
+    var display = this.getDisplayFunc(desc, props)
     console.log("processing block", desc, display, props)
     if(display) {
       this.getView = function(props, ctx, state) {
@@ -163,8 +161,8 @@ class Panel extends React.Component {
   processForm = (desc, props) => {
     console.log("processing form", desc)
     let formdesc = desc
-    if(Application.Registry.Form && desc.id) {
-      formdesc = Application.Registry.Form[desc.id]
+    if( desc.id) {
+      formdesc = _reg("Forms", desc.id)
     }
 
     if(!formdesc) {
@@ -187,16 +185,15 @@ class Panel extends React.Component {
   }
 
   getDisplayFunc(item, props) {
-    let reg = Application.Registry.Block
-    if(!item || !reg) {
+    if(!item) {
       return null
     }
     if (typeof(item) == "string") {
-      return reg[item]
+      return _reg('Blocks', item)
     } else {
-      let display = reg[item.block]
+      let display = _reg('Blocks', item.block)
       if(!display) {
-        display = reg[item.defaultBlock]
+        display = _reg('Blocks', item.defaultBlock)
       }
       return display
     }
@@ -205,8 +202,8 @@ class Panel extends React.Component {
   processView = (desc, props) => {
     let viewid = desc.viewid
     let viewdesc = desc
-    if(viewid && Application.Registry.Views) {
-      viewdesc = Application.Registry.Views[viewid]
+    if(viewid) {
+      viewdesc = _reg('Views', viewid)
     }
     let description = Object.assign({}, viewdesc, desc)
     let viewHeader = description.header? <Panel description={description.header}/> :null

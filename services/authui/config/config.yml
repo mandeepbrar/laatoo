@@ -13,6 +13,6 @@ ui:
     axios: axios
     babel-polyfill: babel-polyfill
     babel-runtime: babel-runtime
-    prop-types: prop-types
+    prop-types: prop-types    
     react: react
     uicommon: uicommon

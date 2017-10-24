@@ -1,6 +1,7 @@
 version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
   authui: ">=0.0.1"
 description: Module provides laatoo forms for applications
 ui:
@@ -14,6 +15,7 @@ ui:
     react-dom: react-dom
     authui: authui
     reactwebcommon: reactwebcommon
+    uicommon: uicommon
   packages:
     react: "^15.6.1"
     redux-form: "^7.1.1"

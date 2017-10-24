@@ -11,8 +11,10 @@ class WebFormUI extends React.Component {
   constructor(props, context) {
     super(props);
     this.uikit = context.uikit
-    console.log("web form ui constructor", this.props, context)
     let desc = this.props.description
+    if(desc) {
+      this.config = desc.config
+    }
     ///const { handleSubmit } = props
   /*  this.submitForm = this.submitForm.bind(this);
     this.setValue = this.setValue.bind(this);
@@ -37,10 +39,35 @@ class WebFormUI extends React.Component {
     this.setState(Object.assign(this.state,{formValue: val}))
   }
 
+  successCallback = (data) => {
+    let cfg = this.config
+    if(cfg.successRedirect) {
+      successCallback = function() { Window.redirect(cfg.successRedirect); }
+    }
+  }
+
+  failureCallback = (e, payload) => {
+
+  }
+
+  onSubmit = (data) => {
+    let cfg = this.config
+    let preSubmit = _reg('Method', cfg.preSubmit)
+    if(preSubmit) {
+      data = preSubmit(data)
+    }
+    let successCallback = _reg('Method', cfg.submitSuccess)
+    successCallback = successCallback? successCallback : this.successCallback
+    let failureCallback = _reg('Method', cfg.submitFailure)
+    failureCallback = failureCallback? failureCallback : this.failureCallback
+    console.log(this.props)
+    this.props.dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: cfg.serviceName, successCallback: successCallback, failureCallback: failureCallback}));
+  }
+
   getValue() {
     return this.refs.form.getValue()
   }
-
+/*
   componentWillReceiveProps(nextprops) {
     let ed = nextprops.data? nextprops.data: this.state.formValue
     let so = this.lookupSchemaOptions? this.lookupSchemaOptions(this, ed, {}, "", this.state.so): this.state.so
@@ -51,9 +78,20 @@ class WebFormUI extends React.Component {
       this.props.refCallback(this)
     }
   }
+*/
+/*
+  onSubmit = (data) => {
+    let svc = formDesc.serviceName
+    let comp = this
+    onSubmit = (data) => {
+      dispatch(createAction(ActionNames.SUBMIT_FORM, data, {successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
+    }
+    console.log("my vals", data)
+  }*/
 
-  submitForm(evt) {
-    evt.preventDefault();
+  submitForm = (evt, a1) => {
+    console.log("event for submit", evt, a1)
+  /*  evt.preventDefault();
     let validationRes = this.refs.form.validate()
     let data = this.refs.form.getValue()
     if (!data) {
@@ -73,9 +111,9 @@ class WebFormUI extends React.Component {
     }
     if(!this.props.onSubmit) {
       this.props.onSubmit(data);
-    }
+    }*/
   }
-
+/*
   onChange (val, path) {
     if(this.props.onChange) {
       this.props.onChange(val, path)
@@ -92,20 +130,17 @@ class WebFormUI extends React.Component {
       }
     }
     this.setState(st)
-  }
+  }*/
   fields = () => {
     let fieldsArr = new Array()
     let f = this.props.description.fields
     let uikit = this.uikit
-    if(f) {
+    if(uikit.Forms.FieldWidget && f) {
       Object.keys(f).forEach(function(k) {
         let fd = f[k]
-        console.log("field found", fd)
+        //let component = uikit.Forms.GetFieldWidget(fd)
         fieldsArr.push(
-          <uikit.Block>
-             <label htmlFor="firstName">{fd.label}</label>
-             <Field name={fd.name} component="input" type="text" />
-         </uikit.Block>
+         <Field name={fd.name} field={fd} component={uikit.Forms.FieldWidget}/>
         )
       })
     }
@@ -113,12 +148,18 @@ class WebFormUI extends React.Component {
     return fieldsArr
   }
   render() {
-    console.log("rendering web form")
-    return (
-      <form onSubmit={this.submitForm} className="webform">
-      {this.fields()}
-      </form>
-    )
+    let {handleSubmit, formSubmit} = this.props
+    let cfg = this.config? this.config :{}
+    if(this.uikit.Form) {
+      return (
+        <this.uikit.Form onSubmit={handleSubmit(this.onSubmit)} className={"webform " + ((cfg && cfg.className)? cfg.className :"")}>
+        {this.fields()}
+        <button type="submit">{cfg.submit? cfg.submit: "Submit"}</button>
+        </this.uikit.Form>
+      )
+    } else {
+      return <this.uikit.Block/>
+    }
   }
 }
 
@@ -129,30 +170,31 @@ WebFormUI.contextTypes = {
   <t.form.Form ref="form" key={state.key} type={state.schema} value={state.formValue} options={state.so} onChange={this.onChange}/>
   {this.actionButtons}*/
 
-const ReduxForm = props => {
-  console.log("redux form ", props, reduxForm, WebFormUI)
-  let val = reduxForm({
+const ReduxForm = reduxForm({
     // a unique name for the form
-    form: props.description.id
+    form: 'myform',
+    getFormState: function(state) {
+      return state.form
+    }
   })(WebFormUI)
-  return React.createElement(val, {description: props.description});
-}
-
+/*
 const mapStateToProps = (state, ownProps) => {
   return {
     id: ownProps.id,
+    formSubmit: function(vals) {
+      console.log("values on rdddddddddd ", vals, state)
+    },
     description: ownProps.description,
     refCallback: ownProps.refCallback,
     actionButtons: ownProps.actionButtons,
     onChange: ownProps.onChange,
-    onSubmit: ownProps.onSubmit,
     children: ownProps.children
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-  let onSubmit = null
-  if(ownProps.onSubmit) {
+  //var
+  /*if(ownProps.onSubmit) {
       onSubmit = ownProps.onSubmit
   }
   else {
@@ -181,15 +223,16 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         dispatch(createAction(ActionNames.SUBMIT_FORM, data, {successCallback: ownProps.postSave, failureCallback: ownProps.failureCallback}));
       }
     }
-  }
-  return { onSubmit }
+  }*/
+  /*return {}
 }
+
 
 const Form = connect(
   mapStateToProps,
   mapDispatchToProps
 )(ReduxForm);
+*/
 
 
-
-export {Form} ;
+export {ReduxForm as Form } ;

@@ -1,7 +1,7 @@
 import { takeEvery, takeLatest } from 'redux-saga'
 import { call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../Actions';
-import {  createAction, Response,  EntityData } from 'uicommon';
+import {  createAction, Response, RequestBuilder, DataSource, EntityData } from 'uicommon';
 
 function* getEntityData(action) {
   try {
@@ -26,12 +26,16 @@ function* getEntityData(action) {
 
 function *submitForm(action) {
   try {
+    console.log("submit form", action)
+    yield put(createAction(ActionNames.SUBMITTING_FORM, action.payload, action.meta));
     let req = RequestBuilder.DefaultRequest(null, action.payload);
     const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
+    yield put(createAction(ActionNames.SUBMIT_SUCCESS, resp, action.meta));
     if(action.meta.successCallback) {
       action.meta.successCallback({resp: resp, payload: action.payload})
     }
   } catch (e) {
+    yield put(createAction(ActionNames.SUBMIT_FAILURE, e, action.meta));
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e, action.payload)
     } else {
@@ -128,7 +132,7 @@ function* updateEntityData(action) {
   }
 }
 
-
+//console.log("Action names ", ActionNames)
 function* formsSaga() {
   yield [
     takeEvery(ActionNames.SUBMIT_FORM, submitForm),
@@ -136,9 +140,9 @@ function* formsSaga() {
     takeEvery(ActionNames.ENTITY_SAVE, saveEntityData),
     takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData),
     takeEvery(ActionNames.ENTITY_PUT, putEntityData),
-    takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
   ]
 }
+//takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
 
 //export {entitySaga as entitySaga};
 Application.Register('Sagas', "formsSaga", formsSaga)

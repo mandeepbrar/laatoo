@@ -10,6 +10,7 @@ ui:
     babel-polyfill: babel-polyfill
     react: react
     react-redux: react-redux
+    uicommon: uicommon
     react-dom: react-dom
   packages:
     react: "^15.6.1"

@@ -13,7 +13,7 @@ function runSagas(sagaMiddleware, sagas) {
 }
 
 function configureStore() {
-  let reducers = Application.Registry.Reducers
+  let reducers = Application.AllRegItems("Reducers")
   if(!reducers) {
     reducers = {};
   }
@@ -30,7 +30,7 @@ function configureStore() {
   const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
 
   // then run the saga
-  runSagas(sagaMiddleware, Application.Registry.Sagas);
+  runSagas(sagaMiddleware, Application.AllRegItems("Sagas"));
   return store;
 }
 

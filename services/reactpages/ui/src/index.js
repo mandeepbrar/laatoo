@@ -13,7 +13,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
 }
 
 function ProcessPages(theme, uikit) {
-  let pages = Application.Registry.Pages
+  let pages = Application.AllRegItems("Pages")
   if(pages) {
     for(var pageId in pages) {
       try {
@@ -51,7 +51,7 @@ function GetPageReducers(page) {
   let reducers = {}
   for(var datasourceId in page.datasources) {
     try {
-      let datasource = Application.Registry.Datasources[datasourceId]
+      let datasource = _reg("Datasources", datasourceId)
       let obj= {}
       switch(datasource.type) {
         default:

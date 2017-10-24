@@ -1,0 +1,13 @@
+config:
+  className: w100
+  submit: MySubmit
+  serviceName: test
+fields:
+  name:
+    type: string
+    label: Name
+    className: w100
+  comment:
+    type: string
+    label: Comment
+    className: w100

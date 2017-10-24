@@ -9,11 +9,15 @@ ui:
   externals:
     babel-runtime: babel-runtime
     babel-polyfill: babel-polyfill
+    redux-form: redux-form
     react: react
     react-redux: react-redux
     react-dom: react-dom
+    uicommon: uicommon
   packages:
     react: "^15.6.1"
     react-redux: "^5.0.6"
     material-ui: "^0.16.4"
     react-dom: "^15.6.1"
+    redux-form: "^7.1.1"
+    redux-form-material-ui: "*"

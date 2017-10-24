@@ -7,6 +7,9 @@ import {TextField} from './components/TextField';
 import {ScrollListener} from 'reactwebcommon';
 import React from 'react';
 import './styles/app.scss';
+import Forms from './forms';
+
+console.log("react material kit... forms", Forms)
 
 const Block=(props) => (
   <div style={props.style} className={props.className}>{props.children}</div>
@@ -18,7 +21,7 @@ const ActionButton=(props)=> (
 )
 
 const Form=(props)=> (
-  <form>{props.children}</form>
+  <form {...props}></form>
 )
 
 const UIWrapper=(props)=>(
@@ -28,6 +31,7 @@ const UIWrapper=(props)=>(
 export {
   render,
   ActionButton,
+  Forms,
   Dialogs,
   Block,
   TextField,

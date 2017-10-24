@@ -16,6 +16,7 @@ ui:
     babel-polyfill: babel-polyfill
     babel-runtime: babel-runtime
     react-redux: react-redux
+    uicommon: uicommon
     react: react
     redux: redux
     redux-saga: redux-saga
