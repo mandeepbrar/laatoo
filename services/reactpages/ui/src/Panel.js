@@ -12,12 +12,7 @@ class Panel extends React.Component {
       desc = _reg('Panels', props.id)
     }
     //console.log("print id ", desc.id)
-    if(!desc) {
-      console.trace()
-      console.log("returning without description", props, desc)
-      return
-    }
-    console.log("creating panel", desc, props)
+    console.log("creating panel", desc, props, ctx, this.context)
     let className = "panel "
     if(desc.id) {
       className = className + " " +desc.id
@@ -31,23 +26,27 @@ class Panel extends React.Component {
       switch(desc.type) {
         case "view":
           className = className + " view "
-          this.processView(desc,  props, className)
+          this.processView(desc,  props, ctx, className)
           break;
         case "entity":
           className = className + " entity "
-          this.processEntity(desc, props, className)
+          this.processEntity(desc, props,  ctx, className)
           break;
         case "form":
           className = className + " form "
-          this.processForm(desc, props, className)
+          this.processForm(desc, props, ctx,  className)
+          break;
+        case "html":
+          className = className + " html "
+          this.processHtml(desc, props, ctx,  className)
           break;
         case "block":
           className = className + " block "
-          this.processBlock(desc, props, className)
+          this.processBlock(desc, props,  ctx, className)
           break;
         case "layout":
           className = className + " panel "
-          this.processLayout(desc, props, className)
+          this.processLayout(desc, props,  ctx, className)
           break;
         case "component":
           if(desc.component) {
@@ -55,10 +54,16 @@ class Panel extends React.Component {
               return desc.component
             }
           } else {
-            let comp = this.getComponent(desc.module, desc.component, module.req)
-            this.getView = function(props, context, state) {
-              return React.createElement(comp, {className: className})
-            }
+            var comp = this.getComponent(desc.module, desc.componentName, module.req)
+            console.log("rendering component", desc, comp)
+            let cl = { className: className}
+            var compProps = desc.props? Object.assign({}, desc.props, cl): cl
+            this.getView = function(compProps, comp) {
+              return function(props, context, state) {
+                console.log("rendering comp", comp, compProps)
+                return React.createElement(comp, compProps)
+              }
+            }(compProps, comp)
           }
           break;
         default:
@@ -87,7 +92,7 @@ class Panel extends React.Component {
     return null
   }
 
-  processLayout = (desc, props, className) => {
+  processLayout = (desc, props,  ctx, className) => {
     let panelDesc = desc
     if(desc.id) {
       panelDesc = _reg("Panels", desc.id)
@@ -142,8 +147,7 @@ class Panel extends React.Component {
     }
   }
 
-  processBlock = (desc, props) => {
-    console.log("processing block", desc)
+  processBlock = (desc, props, ctx, className) => {
     var display = this.getDisplayFunc(desc, props)
     console.log("processing block", desc, display, props)
     if(display) {
@@ -158,7 +162,21 @@ class Panel extends React.Component {
     }
   }
 
-  processForm = (desc, props) => {
+  createMarkup = (text) => { return {__html: text}; };
+  processHtml = (desc, props, ctx, className) => {
+    if(desc.html) {
+      this.getView = function(props, ctx, state) {
+        console.log("rendering html", desc.html)
+        return <div className={className} dangerouslySetInnerHTML={this.createMarkup(desc.html)} />
+      }
+    } else {
+      this.getView = function(props, ctx, state) {
+        return <ctx.uikit.Block></ctx.uikit.Block>
+      }
+    }
+  }
+
+  processForm = (desc, props,  ctx, className) => {
     console.log("processing form", desc)
     let formdesc = desc
     if( desc.id) {
@@ -169,13 +187,16 @@ class Panel extends React.Component {
       return
     }
 
+    var cfg = formdesc.config
     if(!this.form) {
       this.form = this.getComponent("reactforms", "Form", module.req)
     }
 
     if(this.form) {
       this.getView = function(props, ctx, state) {
-        return <this.form description={formdesc} id={desc.id}></this.form>
+        let formCfg = Object.assign({}, cfg, ctx.routeParams)
+        console.log("form cfg", formCfg, cfg)
+        return <this.form form={desc.id} config={formCfg} description={formdesc} id={desc.id}></this.form>
       }
     } else {
       this.getView = function(props, ctx, state) {
@@ -199,7 +220,7 @@ class Panel extends React.Component {
     }
   }
 
-  processView = (desc, props) => {
+  processView = (desc, props, ctx, className) => {
     let viewid = desc.viewid
     let viewdesc = desc
     if(viewid) {
@@ -218,11 +239,11 @@ class Panel extends React.Component {
     }
   }
 
-  processEntity = (desc, props) => {
+  processEntity = (desc, props, ctx, className) => {
     let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
     let id = "", name = ""
-    if(props.params && props.params.id) {
-      id = props.params.id
+    if(ctx.routeParams && ctx.routeParams.entityId) {
+      id = ctx.routeParams.entityId
     } else {
       id = desc.entityId
     }
@@ -261,6 +282,7 @@ class Panel extends React.Component {
 }
 
 Panel.contextTypes = {
-  uikit: PropTypes.object
+  uikit: PropTypes.object,
+  routeParams: PropTypes.object
 };
 export default Panel

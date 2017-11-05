@@ -3,10 +3,10 @@ div:
   children:
   - div:
       className: field
-      body: {{eval "data.Username"}}
+      body: {{js "data.Username"}}
   - div:
       className: field
-      body: this is {{eval "data.Id" "insert"}}
+      body: this is {{js "data.Id" "insert"}}
   - div:
       className: field
       children:
@@ -14,5 +14,5 @@ div:
           module: reactwebcommon
           name: viewUser
           params:
-            id: {{eval "data.Id"}}
+            id: {{js "data.Id"}}
           body: View User

@@ -2,8 +2,8 @@ name: list_{{default "instance" "object" | lower}}
 postArgs: {}
 urlparams: {}
 serviceName: {{default "instance" "object"}}_view_service
-header: {{default "instance" "object" | lower}}_view_header
+header: {{default "instance" "object" | lower}}_viewheader
 item:
   type: entity
   entityName: {{var "object"}}
-  entityDisplay: default
+  entityDisplay: listtablerow

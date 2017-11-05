@@ -18,20 +18,20 @@ type updateStorable struct {
 
 func (gi *updateStorable) Describe(ctx core.ServerContext) {
 	gi.SetDescription(ctx, "Update object using underlying data component. Expects an entity id. Value should be storable object")
-	gi.SetRequestType(ctx, gi.DataStore.GetObject(), false, false)
 	gi.AddConfigurations(ctx, map[string]string{CONF_SVC_UPDATE_FIELDS: config.OBJECTTYPE_STRINGARR})
 	gi.AddStringParam(ctx, CONF_DATA_ID)
 
 }
 
-func (es *updateStorable) Start(ctx core.ServerContext) error {
-	es.DataStore = es.fac.DataStore
-	v, _ := es.GetConfiguration(ctx, CONF_SVC_UPDATE_FIELDS)
+func (svc *updateStorable) Start(ctx core.ServerContext) error {
+	svc.DataStore = svc.fac.DataStore
+	svc.SetRequestType(ctx, svc.DataStore.GetObject(), false, false)
+	v, _ := svc.GetConfiguration(ctx, CONF_SVC_UPDATE_FIELDS)
 	uf, ok := v.([]string)
 	if !ok {
 		return errors.BadConf(ctx, CONF_SVC_UPDATE_FIELDS)
 	}
-	es.updateFields = uf
+	svc.updateFields = uf
 	return nil
 }
 

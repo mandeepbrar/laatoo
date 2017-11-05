@@ -1,4 +1,6 @@
 view_page_{{default "instance" "object" | lower}}:
-  url: /{{default "instance" "object" | lower}}/:id
+  url: {{if exists "view_page_route"}} {{var "view_page_route"}} {{else}} /{{default "instance" "object" | lower}}/:entityId {{end}}
 list_page_{{default "instance" "object" | lower}}:
-  url: /list_{{default "instance" "object" | lower}}
+  url:{{if exists "list_page_route"}} {{var "list_page_route"}} {{else}} /list_{{default "instance" "object" | lower}} {{end}}
+form_new_{{default "instance" "object" | lower}}:
+  url: {{if exists "new_form_route"}} {{var "new_form_route"}} {{else}} /new_form_{{default "instance" "object" | lower}} {{end}}

@@ -95,33 +95,33 @@ func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType s
 
 func (svc *UI) buildFormSchema(ctx core.ServerContext, itemType string, itemName string, conf config.Config, formStr *bytes.Buffer) error {
 	fieldMap := new(bytes.Buffer)
-	entity, ok := conf.GetString(ctx, CONF_ENTITY)
+	/*entity, ok := conf.GetString(ctx, CONF_ENTITY)
 	if ok {
 		err := svc.buildEntitySchema(ctx, entity, conf, fieldMap)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-	} else {
-		fields, ok := conf.GetSubConfig(ctx, CONF_FIELDS)
-		if !ok {
-			return errors.MissingConf(ctx, CONF_FIELDS)
-		}
-		fieldNames := fields.AllConfigurations(ctx)
-		for _, fieldName := range fieldNames {
-			if fieldMap.Len() > 0 {
-				fieldMap.WriteString(",")
-			}
-			fieldConf, _ := fields.GetSubConfig(ctx, fieldName)
-			fieldType, ok := fieldConf.GetString(ctx, CONF_FIELDTYPE)
-			if !ok {
-				fieldType = config.OBJECTTYPE_STRING
-			}
-			required, ok := fieldConf.GetBool(ctx, CONF_FIELDREQD)
-			widget, ok := fieldConf.GetString(ctx, CONF_WIDGET)
-			widgetMod, ok := fieldConf.GetString(ctx, CONF_WIDGET_MOD)
-			svc.createField(ctx, fieldName, fieldType, required, widget, widgetMod, fieldConf, fieldMap)
-		}
+	} else {*/
+	fields, ok := conf.GetSubConfig(ctx, CONF_FIELDS)
+	if !ok {
+		return errors.MissingConf(ctx, CONF_FIELDS)
 	}
+	fieldNames := fields.AllConfigurations(ctx)
+	for _, fieldName := range fieldNames {
+		if fieldMap.Len() > 0 {
+			fieldMap.WriteString(",")
+		}
+		fieldConf, _ := fields.GetSubConfig(ctx, fieldName)
+		fieldType, ok := fieldConf.GetString(ctx, CONF_FIELDTYPE)
+		if !ok {
+			fieldType = config.OBJECTTYPE_STRING
+		}
+		required, ok := fieldConf.GetBool(ctx, CONF_FIELDREQD)
+		widget, ok := fieldConf.GetString(ctx, CONF_WIDGET)
+		widgetMod, ok := fieldConf.GetString(ctx, CONF_WIDGET_MOD)
+		svc.createField(ctx, fieldName, fieldType, required, widget, widgetMod, fieldConf, fieldMap)
+	}
+	//}
 	/*layout, ok := conf.GetString(ctx, CONF_FORM_LAYOUT)
 	layoutStr := ""
 	if ok {

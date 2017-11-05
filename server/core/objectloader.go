@@ -105,9 +105,9 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 						if comp.ObjectFactory != nil {
 							objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
 						} else if comp.ObjectCreator != nil {
-							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.MetaData)
+							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
 						} else if comp.Object != nil {
-							objLoader.register(ctx, comp.Name, comp.Object, comp.MetaData)
+							objLoader.register(ctx, comp.Name, comp.Object, comp.Metadata)
 						} else {
 							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
 						}

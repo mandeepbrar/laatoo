@@ -1,0 +1,7 @@
+postArgs: {}
+urlparams: {}
+serviceName: solutionsview
+item:
+  type: entity
+  entityName: Solution
+  entityDisplay: table

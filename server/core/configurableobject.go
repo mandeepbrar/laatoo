@@ -40,15 +40,15 @@ func (conf *configuration) GetType() string {
 }
 
 type configurableObject struct {
-	*objectInfo
+	core.Info
 	configurations map[string]core.Configuration
 }
 
 func newConfigurableObject(description, objectType string) *configurableObject {
-	return &configurableObject{objectInfo: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
+	return &configurableObject{Info: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
 }
 func (impl *configurableObject) clone() *configurableObject {
-	inf := &configurableObject{objectInfo: impl.objectInfo.clone()}
+	inf := &configurableObject{Info: impl.Info}
 	inf.configurations = make(map[string]core.Configuration, len(impl.configurations))
 	for k, v := range impl.configurations {
 		inf.configurations[k] = v.(*configuration).clone()
@@ -64,7 +64,7 @@ const (
 )
 
 func buildConfigurableObject(ctx core.ServerContext, conf config.Config) *configurableObject {
-	co := &configurableObject{objectInfo: buildObjectInfo(ctx, conf), configurations: make(map[string]core.Configuration)}
+	co := &configurableObject{Info: buildObjectInfo(ctx, conf), configurations: make(map[string]core.Configuration)}
 	confs, ok := conf.GetSubConfig(ctx, CONFIGURATIONS)
 	if ok {
 		confNames := confs.AllConfigurations(ctx)

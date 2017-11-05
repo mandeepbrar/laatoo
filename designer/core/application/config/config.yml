@@ -1,0 +1,14 @@
+version: 0.0.1
+dependencies:
+  entity: ">=0.0.1"
+description: Module provides application entity
+modules:
+  default:
+    module: entity
+    settings:
+      object: Application
+      parent: root
+      instance: Application
+      dataservicefactory: mongodatabase
+ui:
+  skipUIModules: true

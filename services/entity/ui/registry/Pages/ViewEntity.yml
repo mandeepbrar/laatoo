@@ -1,5 +1,5 @@
 name: view_{{default "instance" "object" | lower}}
-route: {{if exists "view_page_route"}} {{var "view_page_route"}} {{else}} /{{default "instance" "object" | lower}}/:id {{end}}
+route: {{if exists "view_page_route"}} {{var "view_page_route"}} {{else}} /{{default "instance" "object" | lower}}/:entityId {{end}}
 component:
   type: entity
   entityName: {{var "object"}}

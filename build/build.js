@@ -373,7 +373,7 @@ function copyConfig(nextTask) {
 }
 
 function autoGen(nextTask) {
-  let entities = []
+  let entities = {}
   if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
     if (fs.pathExistsSync(entitiesFolder)) {
@@ -382,13 +382,13 @@ function autoGen(nextTask) {
         if(files[i].endsWith('.json')) {
           let jsonF = path.join(entitiesFolder, files[i])
           let jsonContent = require(jsonF)
-          entities.push(jsonContent["name"])
+          entities[jsonContent["name"]] = jsonContent
           entity.createEntity(jsonContent, pluginFolder, files[i])
         }
       }
     }
   }
-  if(entities && entities.length >0) {
+  if(entities && Object.keys(entities).length >0) {
     entity.createManifest(entities, pluginFolder)
   }
   nextTask()

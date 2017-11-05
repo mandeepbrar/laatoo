@@ -20,7 +20,6 @@ import {
 class FieldWidget extends React.Component {
   constructor(props) {
     super(props)
-    console.log("props", props)
     let field = props.field
     if (field) {
       switch(field.widget) {
@@ -58,13 +57,17 @@ class FieldWidget extends React.Component {
   }
   renderTextField = (fld, props) => {
     let {input, meta} = props
-    return (
+    /*return (
       <TextField name={fld.name}  hintText={fld.label} errorText={meta.touched && meta.error} onChange={input.onChange} onBlur={input.onBlur}
         onFocus={input.onFocus} floatingLabelText={fld.label} className={fld.name + " textfield " + (fld.className?fld.className:"")}/>
+    )*/
+    return (
+      <TextField name={fld.name} name={fld.name} errorText={meta.touched && meta.error} onChange={input.onChange} onBlur={input.onBlur}
+        onFocus={input.onFocus} floatingLabelText={fld.label}
+         hintText={fld.label} {...props} className={fld.name + " textfield " + (fld.className?fld.className:"")}/>
     )
   }
   render() {
-    console.log("rendering field", this.props)
     if(this.renderer) {
       return this.renderer(this.props.field, this.props)
     } else {

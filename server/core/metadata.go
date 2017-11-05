@@ -5,27 +5,32 @@ import (
 	"laatoo/sdk/core"
 )
 
-type objectInfo struct {
+/*type objectInfo struct {
 	description string
 	objtype     string
+	properties  map[string]interface{}
 }
 
 func newObjectInfo(description, objtype string) *objectInfo {
-	return &objectInfo{description, objtype}
+	return &objectInfo{description, objtype, make(map[string]interface{})}
 }
-
+*/
 const (
 	OBJECT_TYPE = "type"
 	DESCRIPTION = "description"
 )
 
-func buildObjectInfo(ctx core.ServerContext, conf config.Config) *objectInfo {
+func newObjectInfo(description, objtype string) core.Info {
+	return core.NewInfo(description, objtype, make(map[string]interface{}))
+}
+
+func buildObjectInfo(ctx core.ServerContext, conf config.Config) core.Info {
 	desc, _ := conf.GetString(ctx, DESCRIPTION)
 	objtype, _ := conf.GetString(ctx, OBJECT_TYPE)
 	return newObjectInfo(desc, objtype)
 }
 
-func (inf *objectInfo) clone() *objectInfo {
+/*func (inf *objectInfo) clone() *objectInfo {
 	return newObjectInfo(inf.description, inf.objtype)
 }
 
@@ -35,9 +40,16 @@ func (inf *objectInfo) GetDescription() string {
 func (inf *objectInfo) GetType() string {
 	return inf.objtype
 }
+
+func (inf *objectInfo) GetProperty(prop string) interface{} {
+	return inf.properties[prop]
+}
+func (inf *objectInfo) setProperty(prop string, val interface{}) {
+	inf.properties[prop] = val
+}
 func (inf *objectInfo) setDescription(desc string) {
 	inf.description = desc
-}
+}*/
 
 type metadataProvider struct {
 }

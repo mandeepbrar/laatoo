@@ -5,7 +5,7 @@ import {  createAction, Response, RequestBuilder, DataSource, EntityData } from 
 
 function* getEntityData(action) {
   try {
-    yield put(createAction(ActionNames.ENTITY_GETTING, action.payload, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_GETTING, action.payload, {}));
     const resp = yield call(EntityData.GetEntity, action.payload.entityName, action.payload.entityId, action.payload.headers, action.payload.svc);
     resp.data.isOwner = (resp.data.CreatedBy === Storage.user);
     yield put(createAction(ActionNames.ENTITY_GET_SUCCESS, resp, action.meta));
@@ -17,8 +17,8 @@ function* getEntityData(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -39,8 +39,8 @@ function *submitForm(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e, action.payload)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -59,8 +59,8 @@ function* deleteEntityData(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -79,8 +79,8 @@ function* saveEntityData(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -88,7 +88,7 @@ function* saveEntityData(action) {
 
 function* putEntityData(action) {
   try {
-    yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_PUTTING, action.payload, {}));
     const resp = yield call(EntityData.PutEntity, action.payload.entityName, action.payload.entityId, action.payload.data, action.payload.headers, action.payload.svc);
     yield put(createAction(ActionNames.ENTITY_PUT_SUCCESS, resp, action.meta));
     if(action.meta.reload) {
@@ -102,8 +102,8 @@ function* putEntityData(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -111,7 +111,7 @@ function* putEntityData(action) {
 
 function* updateEntityData(action) {
   try {
-    yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {reducer: action.meta.reducer}));
+    yield put(createAction(ActionNames.ENTITY_UPDATING, action.payload, {}));
     const resp = yield call(EntityData.UpdateEntity, action.payload.entityName, action.payload.entityId, action.payload.data, action.payload.headers, action.payload.svc);
     yield put(createAction(ActionNames.ENTITY_UPDATE_SUCCESS, resp, action.meta));
     if(action.meta.reload) {
@@ -125,8 +125,30 @@ function* updateEntityData(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
+      }
+    }
+  }
+}
+
+function* loadData(action) {
+  try {
+    console.log("loading data ", action)
+    yield put(createAction(ActionNames.LOADING_DATA, action.payload, action.meta));
+    let req = RequestBuilder.DefaultRequest(null, action.payload);
+    const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
+    yield put(createAction(ActionNames.LOAD_DATA_SUCCESS, resp, action.meta));
+    if(action.meta.successCallback) {
+      action.meta.successCallback({resp: resp, payload: action.payload})
+    }
+  } catch (e) {
+    yield put(createAction(ActionNames.LOAD_DATA_FAILED, e, action.meta));
+    if(action.meta.failureCallback) {
+      action.meta.failureCallback(e, action.payload)
+    } else {
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }
@@ -135,6 +157,7 @@ function* updateEntityData(action) {
 //console.log("Action names ", ActionNames)
 function* formsSaga() {
   yield [
+    takeEvery(ActionNames.LOAD_DATA, loadData),
     takeEvery(ActionNames.SUBMIT_FORM, submitForm),
     takeEvery(ActionNames.ENTITY_GET, getEntityData),
     takeEvery(ActionNames.ENTITY_SAVE, saveEntityData),

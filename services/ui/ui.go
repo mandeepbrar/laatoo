@@ -98,7 +98,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 	}
 
 	_, modRead := svc.uiFiles[modName]
-
 	if !modRead {
 		uifile := path.Join(dir, FILES_DIR, svc.uifile)
 		ok, _, _ = utils.FileExists(uifile)
@@ -124,17 +123,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 			svc.uiFiles[modName] = cont
 			modRead = true
-		}
-
-		uiRegDir := path.Join(dir, UI_DIR)
-		err := svc.readRegistry(ctx, modConf, uiRegDir)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-
-		err = svc.appendPropertyFiles(ctx, insName, props)
-		if err != nil {
-			return errors.WrapError(ctx, err)
 		}
 
 		vendorfile := path.Join(dir, FILES_DIR, "vendor.js")
@@ -173,6 +161,18 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 		svc.insSettings[insName] = settings
 		svc.insMods[insName] = modName
 	}
+
+	uiRegDir := path.Join(dir, UI_DIR)
+	err := svc.readRegistry(ctx, mod, modConf, uiRegDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	err = svc.appendPropertyFiles(ctx, insName, props)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	return nil
 }
 

@@ -110,10 +110,26 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 	selectService.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
 	selectService.Set(ctx, CONF_SERVICEFACTORY, adapter.adapterfacName)
 	selectService.Set(ctx, SERVICE_METHOD, CONF_SVC_SELECT)
-	selectService.Set(ctx, CHANNEL_DATAOBJECT, config.OBJECTTYPE_STRINGMAP)
 	selectService.Set(ctx, "queryparams", []string{"pagesize", "pagenum"})
+	selectService.Set(ctx, CHANNEL_DATAOBJECT, config.OBJECTTYPE_STRINGMAP)
 
 	svcs[selectSvcName] = selectService
+
+	saveSvcName := adapter.createName(ctx, "save")
+	saveService := ctx.CreateConfig()
+	saveService.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
+	saveService.Set(ctx, CONF_SERVICEFACTORY, adapter.adapterfacName)
+	saveService.Set(ctx, SERVICE_METHOD, CONF_SVC_SAVE)
+	saveService.Set(ctx, CHANNEL_DATAOBJECT, adapter.object)
+	svcs[saveSvcName] = saveService
+
+	updateSvcName := adapter.createName(ctx, "update")
+	updateService := ctx.CreateConfig()
+	updateService.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
+	updateService.Set(ctx, CONF_SERVICEFACTORY, adapter.adapterfacName)
+	updateService.Set(ctx, SERVICE_METHOD, CONF_SVC_UPDATE)
+	updateService.Set(ctx, CHANNEL_DATAOBJECT, adapter.object)
+	svcs[updateSvcName] = updateService
 
 	log.Trace(ctx, "Returned services", "svcs", svcs)
 	return svcs
@@ -164,6 +180,25 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	selectstaticvals.Set(ctx, "permission", "View "+adapter.instance)
 	selectRestChann.Set(ctx, REST_STATIC, selectstaticvals)
 	chans[selectRestChannName] = selectRestChann
+
+	saveRestChannName := adapter.createName(ctx, "save")
+	saveRestChann := ctx.CreateConfig()
+	saveRestChann.Set(ctx, CHANNEL_SERVICE, adapter.createName(ctx, "save"))
+	saveRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
+	saveRestChann.Set(ctx, REST_METHOD, REST_POST)
+	saveRestChann.Set(ctx, REST_PATH, "")
+	chans[saveRestChannName] = saveRestChann
+
+	updateRestChannName := adapter.createName(ctx, "update")
+	updateRestChann := ctx.CreateConfig()
+	updateRestChann.Set(ctx, CHANNEL_SERVICE, adapter.createName(ctx, "update"))
+	updateRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
+	updateRestChann.Set(ctx, REST_METHOD, REST_PUT)
+	updateRestChann.Set(ctx, REST_PATH, "/:id")
+	updateparams := ctx.CreateConfig()
+	updateparams.Set(ctx, "id", "id")
+	updateRestChann.Set(ctx, REST_PARAMS, updateparams)
+	chans[updateRestChannName] = updateRestChann
 
 	log.Trace(ctx, "Returned channels", "chans", chans)
 	return chans

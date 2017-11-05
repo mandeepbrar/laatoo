@@ -5,7 +5,7 @@ import {ViewUI} from './ViewUI';
 import React from 'react';
 
 function getSvc(ownProps) {
-  return ownProps.dataservice? ownProps.dataservice: ownProps.name
+  return ownProps.serviceName? ownProps.serviceName: ownProps.name
 }
 
 const mapStateToProps = (state, ownProps) => {
@@ -59,6 +59,7 @@ const mapStateToProps = (state, ownProps) => {
 
 function loadData(dispatch, ownProps, pagenum, filter, incrementalLoad) {
   let svc = getSvc(ownProps);
+  console.log("service.....", svc, ownProps)
   if(!pagenum) {
     pagenum = 1
   }
@@ -75,6 +76,7 @@ function loadData(dispatch, ownProps, pagenum, filter, incrementalLoad) {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
+  console.log("view comp properties", ownProps);
   return {
     loadView: (pagenum, filter) => {
       loadData(dispatch, ownProps, pagenum, filter, false)
@@ -93,6 +95,7 @@ const ViewComponent = connect(
 const View = (props) => {
   if(props.id) {
     let view = _reg("Views", props.id)
+    console.log("view.....", view)
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
     let viewname = view.name? view.name : props.id

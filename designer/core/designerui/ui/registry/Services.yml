@@ -1,6 +1,9 @@
 users:
   method: POST
   url: "/user/view"
-test:
+solutionsview:
   method: POST
-  url: "/user"
+  url: "/solution/view"
+applicationsview:
+  method: POST
+  url: "/application/view"

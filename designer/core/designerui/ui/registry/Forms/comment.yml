@@ -1,0 +1,13 @@
+config:
+  entity: comment
+  entityId: 30e98013-d8ec-4689-a9d3-21a942d777dd
+  className: w100
+fields:
+  Post:
+    type: string
+    label: Post
+    className: w100
+  PostTitle:
+    type: string
+    label: Title
+    className: w100

@@ -24,7 +24,6 @@ ui laatoo/services/ui
 uicommon laatoo/services/uicommon
 authui laatoo/services/authui
 reactlaatoobase laatoo/services/reactlaatoobase
-reactwebui laatoo/services/reactwebui
 reactapplication laatoo/services/reactapplication
 gurmukhi laatoo/services/gurmukhi
 reactmaterialkit laatoo/services/reactmaterialkit

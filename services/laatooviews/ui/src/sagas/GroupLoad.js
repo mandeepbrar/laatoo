@@ -80,8 +80,8 @@ function* loadGroup(action) {
     if(action.meta.failureCallback) {
       action.meta.failureCallback(e)
     } else {
-      if(window.handleError) {
-        window.handleError(e)
+      if(Window.handleError) {
+        Window.handleError(e)
       }
     }
   }

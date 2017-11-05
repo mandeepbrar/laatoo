@@ -8,7 +8,9 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+	"regexp"
 	"strings"
 )
 
@@ -18,6 +20,10 @@ type Node struct {
 	Content []byte     `xml:",innerxml"`
 	Nodes   []Node     `xml:",any"`
 }
+
+var (
+	jsReplaceRegex *regexp.Regexp
+)
 
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	n.Attrs = start.Attr
@@ -117,6 +123,7 @@ func (svc *UI) processText(ctx core.ServerContext, content string, forceInsert b
 	return result.String(), nil
 }
 */
+
 func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error) {
 	children := make([]string, 0)
 	for _, n := range node.Nodes {
@@ -142,17 +149,20 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 			if err != nil {
 				return "", errors.WrapError(ctx, err)
 			}
-			attrVal, err := json.Marshal(string(val))
+			/*attrVal, err := json.Marshal(string(val))
 			if err != nil {
 				return "", errors.WrapError(ctx, err)
-			}
-			attrValStr := string(attrVal)
+			}*/
+			attrValStr := string(val)
 			format := "%s:%s"
-			if strings.HasPrefix(attrValStr, "\"`") {
+			if strings.HasPrefix(attrValStr, "`") {
 				format = "%s:%s"
-				attrValStr = strings.TrimPrefix(attrValStr, "\"`")
-				attrValStr = strings.TrimSuffix(attrValStr, "\"")
+				attrValStr = strings.TrimPrefix(attrValStr, "`")
+				//attrValStr = strings.TrimSuffix(attrValStr, "\"")
 			}
+			log.Error(ctx, "about to process js", "attrValStr", attrValStr)
+			attrValStr = processJS(ctx, attrValStr)
+			log.Error(ctx, "processed js", "attrValStr", attrValStr)
 			attrBuf.WriteString(fmt.Sprintf(format, attr.Name.Local, attrValStr))
 		}
 	}
@@ -163,7 +173,7 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 		if err != nil {
 			return "", errors.WrapError(ctx, err)
 		}
-		children = append(children, fmt.Sprintf("'%s'", val))
+		children = append(children, fmt.Sprintf("%s", processJS(ctx, string(val))))
 	}
 	elem := ""
 	if mod == "" {
@@ -202,7 +212,79 @@ func (svc *UI) processMapAttr(ctx core.ServerContext, obj map[string]interface{}
 	return res, nil
 }*/
 
+/*func (svc *UI) processJS(ctx core.ServerContext, inputConf config.Config) {
+	if jsReplaceRegex == nil {
+		jsReplaceRegex, _ = regexp.Compile("javascript`" + `\[\[([a-zA-Z0-9_\.\(\)\[\]\{\}]+)\]\]` + "`")
+	}
+	allAttributes := inputConf.AllConfigurations(ctx)
+	//attrs := make(map[string]interface{})
+	for _, key := range allAttributes {
+		strVal, ok := inputConf.GetString(ctx, key)
+		if ok {
+			res := jsReplaceRegex.ReplaceAllString(strVal, `"+$1+"`)
+			if res != strVal {
+				log.Error(ctx, "Replacing...........", "res", res, "orig", strVal)
+				if strings.HasPrefix(res, "\"") {
+					res = strings.TrimSuffix(strings.TrimPrefix(res, "\""), "\"")
+				}
+				inputConf.Set(ctx, key, fmt.Sprintf(`"%s"`, res))
+			}
+		}
+		confVal, ok := inputConf.GetSubConfig(ctx, key)
+		if ok {
+			svc.processJS(ctx, confVal)
+		}
+	}
+}*/
+func processJS(ctx core.ServerContext, input string) string {
+	if jsReplaceRegex == nil {
+		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\.\(\)\[\]\{\}]+)#@#`)
+	}
+	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
+	if len(arr) == 0 {
+		val, e := json.Marshal(input)
+		if e != nil {
+			log.Error(ctx, "Error in marshalling string", "string", input, "error", e)
+		}
+		return string(val)
+	}
+	val := `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
+	return val
+}
+func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string {
+	attrBuf := new(bytes.Buffer)
+	attrNames := conf.AllConfigurations(ctx)
+	for _, attrName := range attrNames {
+		if attrBuf.Len() != 0 {
+			attrBuf.WriteString(",")
+		}
+		strToWrite := ""
+		strVal, ok := conf.GetString(ctx, attrName)
+		if ok {
+			strToWrite = processJS(ctx, strVal)
+		}
+		confVal, ok := conf.GetSubConfig(ctx, attrName)
+		if ok {
+			strToWrite = processHierarchicalAttr(ctx, confVal)
+		}
+		if strToWrite == "" {
+			val, _ := conf.GetSubConfig(ctx, attrName)
+			strval, err := json.Marshal(val)
+			if err != nil {
+				log.Error(ctx, "Error in marshalling", "err", err)
+			} else {
+				strToWrite = string(strval)
+			}
+		}
+		attrBuf.WriteString(fmt.Sprintf("%s:%s", attrName, strToWrite))
+	}
+	return fmt.Sprintf("{%s}", attrBuf.String())
+}
+
 func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (string, error) {
+
+	//svc.processJS(ctx, conf)
+
 	keys := conf.AllConfigurations(ctx)
 	if len(keys) > 1 {
 		return "", errors.BadArg(ctx, "Json", "Reason", "More than one roots of Json")
@@ -246,12 +328,30 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 				if attrBuf.Len() != 0 {
 					attrBuf.WriteString(",")
 				}
-				val, _ := root.Get(ctx, key)
-				strval, err := json.Marshal(val)
-				if err != nil {
-					return "", errors.WrapError(ctx, err)
+				attrStr := ""
+				str, ok := root.GetString(ctx, key)
+				if ok {
+					attrStr = processJS(ctx, str)
+				} else {
+					attrconf, ok := root.GetSubConfig(ctx, key)
+					if ok {
+						attrStr = processHierarchicalAttr(ctx, attrconf)
+					} else {
+						val, _ := root.Get(ctx, key)
+						strval, err := json.Marshal(val)
+						if err != nil {
+							return "", errors.WrapError(ctx, err)
+						}
+						attrStr = string(strval)
+					}
+					/*//"' javascript values not supported .. remove..
+					// bad fix for  code generated for javascript tag replacement
+					if strings.HasPrefix(attrStr, `"'`) {
+						attrStr = strings.TrimSuffix(strings.TrimPrefix(attrStr, `"'`), `"`)
+					}*/
 				}
-				attrBuf.WriteString(fmt.Sprintf("%s:%s", key, string(strval)))
+
+				attrBuf.WriteString(fmt.Sprintf("%s:%s", key, attrStr))
 				/*				mapval, ok := val.(map[string]interface{})
 								if ok {
 									mapres, err := svc.processMapAttr(ctx, mapval)
@@ -282,7 +382,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 
 		//n.Attrs
 		if content != "" {
-			return fmt.Sprintf("_ce(%s, %s, ['%s'])", elem, attrStr, content), nil
+			return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, processJS(ctx, content)), nil
 		}
 		return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, strings.Join(childStr, ",")), nil
 

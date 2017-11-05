@@ -418,6 +418,10 @@ func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreato
 	return ctx.elements.objectLoader.GetObjectCreator(ctx, objectName)
 }
 
+func (ctx *serverContext) GetObjectMetadata(objectName string) (core.Info, error) {
+	return ctx.elements.objectLoader.GetMetaData(ctx, objectName)
+}
+
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	reqCtx := ctx.createNewRequest(name, nil)
 	reqCtx.user = nil
@@ -438,6 +442,10 @@ func (ctx *serverContext) CreateConfig() config.Config {
 
 func (ctx *serverContext) ReadConfig(file string, funcs map[string]interface{}) (config.Config, error) {
 	return common.NewConfigFromFile(ctx, file, funcs)
+}
+
+func (ctx *serverContext) ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error) {
+	return common.NewConfig(ctx, data, funcs)
 }
 
 func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {

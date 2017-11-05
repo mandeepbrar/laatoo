@@ -1,0 +1,13 @@
+{
+  "name":"Application",
+  "inherits":"",
+  "imports":[],
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    }
+  }
+}

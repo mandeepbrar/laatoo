@@ -1,13 +1,18 @@
 config:
   className: w100
   submit: MySubmit
-  serviceName: test
+  loaderService: formload
+  submissionService: test
 fields:
-  name:
+  Name:
     type: string
     label: Name
     className: w100
-  comment:
+  Email:
     type: string
-    label: Comment
+    label: Email
+    className: w100
+  Username:
+    type: string
+    label: User Name
     className: w100

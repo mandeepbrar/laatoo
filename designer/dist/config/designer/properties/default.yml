@@ -2,12 +2,15 @@ menu:
   homepage:
     title: My Home
     page: home
-  userspage:
-    title: My Users
-    page: users
-  testpagee:
-    title: Test Entity
-    page: userentity
-  form:
-    title: Test Form
-    page: testform
+  solutions:
+    title: My Solutions
+    page: list_solution
+  servers:
+    title: My Servers
+    page: list_server
+  environments:
+    title: My Environments
+    page: list_environment
+  applications:
+    title: My Applications
+    page: list_application

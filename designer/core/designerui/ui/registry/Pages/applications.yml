@@ -1,0 +1,4 @@
+route: "/applications"
+component:
+  type: view
+  viewid: applications

@@ -96,6 +96,11 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 func (svc *serverService) start(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Service Start")
 
+	err := svc.service.Start(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	reqInfo := svc.impl.info().GetRequestInfo()
 
 	datatype := reqInfo.GetDataType()
@@ -151,10 +156,7 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 	}
 	middleware = append(middleware, svc)
 	svc.middleware = middleware
-	err := svc.service.Start(ctx)
-	if err == nil {
-		svc.impl.state = Started
-	}
+	svc.impl.state = Started
 	return err
 }
 

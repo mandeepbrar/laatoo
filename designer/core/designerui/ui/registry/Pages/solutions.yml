@@ -1,0 +1,4 @@
+route: "/solutions"
+component:
+  type: view
+  viewid: solutions

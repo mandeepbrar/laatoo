@@ -9,7 +9,7 @@ import (
 type GenericConfig map[string]interface{}
 
 func fillVariables(ctx ctx.Context, val interface{}) interface{} {
-	expr, ok := val.(string)
+	/*expr, ok := val.(string)
 	if !ok {
 		return val
 	}
@@ -17,7 +17,8 @@ func fillVariables(ctx ctx.Context, val interface{}) interface{} {
 	if err != nil {
 		return val
 	}
-	return string(cont)
+	return string(cont)*/
+	return val
 }
 
 //Get string configuration value
@@ -149,13 +150,13 @@ func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string
 		if ok {
 			return c, true
 		} else {
-			lookupVal := fillVariables(ctx, val)
-			if lookupVal != val {
-				c, ok := conf.checkConfig(ctx, lookupVal)
-				if ok {
-					return c, true
-				}
-			}
+			/*			lookupVal := fillVariables(ctx, val)
+						if lookupVal != val {
+							c, ok := conf.checkConfig(ctx, lookupVal)
+							if ok {
+								return c, true
+							}
+						}*/
 		}
 	}
 	return nil, false

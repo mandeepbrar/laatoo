@@ -171,21 +171,40 @@ func (svc *UI) processTemplate(ctx core.ServerContext, cont []byte, filetype str
 	return svc.processFile(ctx, result.Bytes(), filetype, itemName, itemType)
 }*/
 
-func (svc *UI) readRegistry(ctx core.ServerContext, modConf config.Config, regDir string) error {
+func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf config.Config, regDir string) error {
+
+	processRegistryConfig := func(ctx core.ServerContext, registry config.Config) error {
+		confs := registry.AllConfigurations(ctx)
+		for _, itemType := range confs {
+			items, ok := registry.GetSubConfig(ctx, itemType)
+			if ok {
+				err := svc.processMutipleItems(ctx, items, itemType)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+		return nil
+	}
 
 	ui, ok := modConf.GetSubConfig(ctx, "ui")
 	if ok {
 		registry, ok := ui.GetSubConfig(ctx, "registry")
 		if ok {
-			confs := registry.AllConfigurations(ctx)
-			for _, itemType := range confs {
-				items, ok := registry.GetSubConfig(ctx, itemType)
-				if ok {
-					err := svc.processMutipleItems(ctx, items, itemType)
-					if err != nil {
-						return errors.WrapError(ctx, err)
-					}
-				}
+			err := processRegistryConfig(ctx, registry)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+	}
+
+	uiplugin, ok := mod.(UIPlugin)
+	if ok {
+		registry := uiplugin.GetRegistry(ctx)
+		if registry != nil {
+			err := processRegistryConfig(ctx, registry)
+			if err != nil {
+				return errors.WrapError(ctx, err)
 			}
 		}
 	}

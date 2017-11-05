@@ -9,6 +9,7 @@ import {createAction, formatUrl, hasPermission } from 'uicommon';
 class ActionComp extends React.Component {
   constructor(props) {
     super(props);
+    console.log("action comp creation", props)
     this.renderView = this.renderView.bind(this);
     this.dispatchAction = this.dispatchAction.bind(this);
     this.actionFunc = this.actionFunc.bind(this);
@@ -18,6 +19,7 @@ class ActionComp extends React.Component {
       this.action = props.action
     } else {
       this.action = _reg('Actions', props.name)
+      console.log("actions eval", props.name, this.action)
     }
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
@@ -70,22 +72,23 @@ class ActionComp extends React.Component {
     if (!this.hasPermission) {
       return null;
     }
+    let children= this.props.children? this.props.children: this.props.label
     let actionF = this.actionFunc;
     switch(this.props.widget) {
       case 'button': {
         return (
-          <ActionButton className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={this.props.children}>
+          <ActionButton className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={children}>
           </ActionButton>
         )
       }
       case 'component':{
         return (
-          <this.props.component actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={this.props.children}/>
+          <this.props.component actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={children}/>
         )
       }
       default: {
         return (
-          <ActionLink  className={this.props.className} actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={this.props.children}>
+          <ActionLink  className={this.props.className} actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={children}>
           </ActionLink>
         )
       }

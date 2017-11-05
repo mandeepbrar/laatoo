@@ -1,0 +1,7 @@
+postArgs: {}
+urlparams: {}
+serviceName: applicationsview
+item:
+  type: entity
+  entityName: Application
+  entityDisplay: table

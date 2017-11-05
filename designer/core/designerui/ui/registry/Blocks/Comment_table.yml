@@ -1,0 +1,9 @@
+div:
+  className: comment_default
+  children:
+  - div:
+      className: field
+      body: some {{js "data.Post" "insert"}}
+  - div:
+      className: field
+      body: this is {{js "data.PostTitle" "insert"}}

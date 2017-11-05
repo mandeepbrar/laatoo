@@ -1,5 +1,16 @@
 name: list_{{default "instance" "object" | lower}}
 route: {{if exists "list_page_route"}} {{var "list_page_route"}} {{else}} /list_{{default "instance" "object" | lower}} {{end}}
 component:
-  type: view
-  viewid: list_{{default "instance" "object" | lower}}
+  type: layout
+  layout: 1col
+  items:
+    - type: html
+      html: <h1>hello</h1>
+    - type: component
+      componentName: Action
+      module: reactwebcommon
+      props:
+        name: form_new_{{default "instance" "object" | lower}}
+        label: New
+    - type: view
+      viewid: list_{{default "instance" "object" | lower}}

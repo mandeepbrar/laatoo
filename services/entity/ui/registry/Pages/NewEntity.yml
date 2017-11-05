@@ -1,0 +1,5 @@
+name: new_form_{{default "instance" "object" | lower}}
+route: {{if exists "new_form_route"}} {{var "new_form_route"}} {{else}} /new_form_{{default "instance" "object" | lower}} {{end}}
+component:
+  type: form
+  id: New{{var "object"}}

@@ -2,6 +2,7 @@ import React from 'react'
 import './styles/app.scss'
 import Panel from './Panel'
 import { combineReducers } from 'redux';
+const PropTypes = require('prop-types');
 //import {ViewReducer, View} from 'laatooviews';
 var module = this;
 
@@ -27,7 +28,7 @@ function ProcessPages(theme, uikit) {
         Object.keys(components).forEach(function(key){
           pageComps[key] = function(comp, page) {
             return (routerState) => {
-              return <Panel key={page+key} params={routerState.params}  description={comp} />
+              return <PageComponent pageId={page} placeholder={key} routerState={routerState} description={comp} />
             }
           }(components[key], pageId)
         });
@@ -70,6 +71,20 @@ function GetPageReducers(page) {
   }
   return reducers
 }
+
+class PageComponent extends React.Component {
+  getChildContext() {
+    return {routeParams: this.props.routerState.params};
+  }
+  render() {
+    let compKey = this.props.pageId + this.props.placeholder
+    return <Panel key={compKey}  description={this.props.description} />
+  }
+}
+
+PageComponent.childContextTypes = {
+  routeParams: PropTypes.object
+};
 
 export {
   Initialize,

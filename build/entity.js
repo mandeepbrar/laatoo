@@ -61,8 +61,10 @@ function createEntity(entityJson, pluginFolder, filename) {
 
 function plugins(entities) {
   let str = ""
-  entities.forEach(function(entity) {
-      str = str + sprintf("core.PluginComponent{Name: \"%s\", Object: %s{}},", entity, entity)
+  Object.keys(entities).forEach(function(entity) {
+      let entityJson = entities[entity]
+      let entityDesc = JSON.stringify(entityJson).replace(/\"/g,'\\"')
+      str = str + sprintf("core.PluginComponent{Name: \"%s\", Object: %s{}, Metadata: core.NewInfo(\"\",\"%s\", map[string]interface{}{\"descriptor\":\"%s\"})},", entity, entity, entity, entityDesc)
   });
   return str
 }

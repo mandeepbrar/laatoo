@@ -53,10 +53,14 @@ modules:
       router: router
       uikit: reactmaterialkit
       theme: dashboard
-  comment:
-    module: comment
-    settings:
-      list_page_route: /mycomments
+  application:
+    module: application
+  environment:
+    module: environment
+  server:
+    module: server
+  solution:
+    module: solution
   shell:
     module: shell
     settings:

@@ -14,20 +14,24 @@ import (
 //creates a new config object from file provided to it
 //only works for json configs
 func NewConfigFromFile(ctx context.Context, file string, funcs map[string]interface{}) (config.Config, error) {
-	conf := make(GenericConfig, 50)
 	fileData, err := utils.GetTemplateFileContent(ctx, file, funcs)
 	if err != nil {
 		return nil, fmt.Errorf("Error opening config file %s. Error: %s", file, err.Error())
 	}
-	if err = yaml.Unmarshal(fileData, &conf); err != nil {
-		return nil, fmt.Errorf("Error parsing config file %s. Error: %s", file, err.Error())
+	return NewConfig(ctx, fileData, funcs)
+}
+
+func NewConfig(ctx context.Context, data []byte, funcs map[string]interface{}) (config.Config, error) {
+	conf := make(GenericConfig, 50)
+	if err := yaml.Unmarshal(data, &conf); err != nil {
+		return nil, fmt.Errorf("Error parsing config %s. Error: %s", string(data), err.Error())
 	}
 	cleanMaps(ctx, conf)
-	_, err = json.Marshal(conf)
+	_, err := json.Marshal(conf)
 	if err != nil {
 		log.Error(ctx, "marshal error", "err", err)
 	}
-	log.Trace(ctx, "Conf loaded ", "file", file, "conf", conf)
+	log.Trace(ctx, "Conf loaded ", "conf", conf)
 	return conf, nil
 }
 

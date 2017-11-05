@@ -1,0 +1,13 @@
+{
+  "name":"Environment",
+  "inherits":"",
+  "imports":[],
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    }
+  }
+}
