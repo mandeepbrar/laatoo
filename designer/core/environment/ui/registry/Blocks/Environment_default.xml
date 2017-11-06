@@ -1,5 +1,5 @@
 <div className="environment_default">
   <div className="field">{{js "data.Name"}}</div>
   <div className="field">{{js "data.Description" "insert"}}</div>
-  <div className="field"><Action module="reactwebcommon" params="`{id: {{js &quot;data.Id&quot;}}}" name="view_page_environment">Edit Environment</Action></div>
+  <div className="field"><Action module="reactwebcommon" params="`{entityId: {{js &quot;data.Id&quot;}}}" name="view_page_environment">Edit Environment</Action></div>
 </div>

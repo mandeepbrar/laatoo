@@ -19,7 +19,6 @@ class ActionComp extends React.Component {
       this.action = props.action
     } else {
       this.action = _reg('Actions', props.name)
-      console.log("actions eval", props.name, this.action)
     }
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
@@ -34,6 +33,7 @@ class ActionComp extends React.Component {
     this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback, failureCallback: this.props.failureCallback}));
   }
   actionFunc(evt) {
+    console.log("action executed", this.props.name, this.props)
     evt.preventDefault();
     if(this.props.confirm) {
       if(!this.props.confirm(this.props)) {

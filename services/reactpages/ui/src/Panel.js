@@ -241,6 +241,7 @@ class Panel extends React.Component {
 
   processEntity = (desc, props, ctx, className) => {
     let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
+    console.log("view entity description", desc, displayMode)
     let id = "", name = ""
     if(ctx.routeParams && ctx.routeParams.entityId) {
       id = ctx.routeParams.entityId
@@ -251,9 +252,11 @@ class Panel extends React.Component {
     if(!this.entity) {
       this.entity = this.getComponent("laatooviews", "Entity", module.req)
     }
-    console.log("processing entity", props, " entity id ", id, "data",props.data)
+    console.log("processing entity", props, " entity id ", id, "data", props.data)
     let entityDisplay={type:"block", block: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
+    console.log("entity display", entityDisplay)
     this.getView = function(props, ctx, state) {
+      console.log("entity display in get view", entityDisplay)
       return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
         <Panel description={entityDisplay} />
       </this.entity>

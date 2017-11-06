@@ -158,11 +158,15 @@ func (svc *UI) processXMLNode(ctx core.ServerContext, node Node) (string, error)
 			if strings.HasPrefix(attrValStr, "`") {
 				format = "%s:%s"
 				attrValStr = strings.TrimPrefix(attrValStr, "`")
-				//attrValStr = strings.TrimSuffix(attrValStr, "\"")
+				conf, err := ctx.ReadConfigData([]byte(attrValStr), nil)
+				if err != nil {
+					log.Error(ctx, "error i reading config", "conf", conf)
+					return "", errors.WrapError(ctx, err)
+				}
+				attrValStr = processHierarchicalAttr(ctx, conf)
+			} else {
+				attrValStr = processJS(ctx, attrValStr)
 			}
-			log.Error(ctx, "about to process js", "attrValStr", attrValStr)
-			attrValStr = processJS(ctx, attrValStr)
-			log.Error(ctx, "processed js", "attrValStr", attrValStr)
 			attrBuf.WriteString(fmt.Sprintf(format, attr.Name.Local, attrValStr))
 		}
 	}

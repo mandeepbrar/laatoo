@@ -158,7 +158,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 					{
 						div: {
 							className: "tablecell field",
-							body: "javascript%s"
+							body: "some javascript%s"
 						}
 					},
 					{
