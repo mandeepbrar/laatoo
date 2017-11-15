@@ -7,7 +7,7 @@ var entity = require('./entity')
 var yamlparser = require('js-yaml')
 const merge = require('webpack-merge');
 
-var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig"]});
+var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig", "getBuildPackages"]});
 
 //, default: {skipObjects: false, skipUI: false, skipUIModules: false, printUIConfig: false}
 
@@ -73,6 +73,7 @@ function buildUI(nextTask) {
       getUIModules();
     }
   }
+  //getUIModules();
 
   compileWebUI(function() {
     log("Copying UI files")
@@ -194,21 +195,25 @@ function compileWebUI(nextTask) {
     let verbose = argv.verbose?"-v":"";
     log("Processing required laatoo modules")
     Object.keys(modConfig.dependencies).forEach(function(pkg) {
-      let found = true
+      let found = false
       let laatooModulePath = path.join(deploymentFolder, pkg)
       let modPath = laatooModulePath
       /*if (fs.pathExistsSync(laatooModulePath)) {
         found = true
       }*/
       if (!found && fs.pathExistsSync(laatooModulePath + '.tar.gz')) {
-        let command = sprintf("cd %s && tar %s -xf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
+        let command = sprintf("cd %s && tar %s -xzf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
+        log("Extracting pkg", command)
         if (shell.exec(command).code !== 0) {
           shell.echo('Package extraction failed');
           shell.exit(1);
         } else {
           modPath = path.join(tmpFolder, pkg)
           if (fs.pathExistsSync(modPath)) {
+            log("Mod found: ", pkg)
             found = true
+          } else {
+            console.log("Mod path not found: ", modPath)
           }
         }
       }
@@ -225,11 +230,13 @@ function compileWebUI(nextTask) {
           let dest = path.join(nodeModulesFolder, "node_modules", pkg)
           fs.mkdirsSync(dest)
           fs.copySync(uicss, path.join(dest, "app.css"))
+          log("Css being copied for pkg", pkg)
         }
+      } else {
+        log("No ui found for Dependency ", pkg)
       }
     });
   }
-
   let compiler = webpack(config)
 
   fs.removeSync(path.join(uiFolder,'dist'))
@@ -255,14 +262,14 @@ function compileWebUI(nextTask) {
   });
 }
 
-function getUIModules() {
+function processPackageJson() {
   let silent = argv.verbose?"":"-s";
   if (fs.pathExistsSync(path.join(nodeModulesFolder,'package.json'))) {
     log("Installing package json from nodemodules")
+    var command = sprintf('npm i %s', silent)
     try {
       let wd = process.cwd();
       process.chdir(nodeModulesFolder);
-      var command = sprintf('npm i %s', silent)
       process.chdir(wd);
     } catch(ex){}
     log("Command ", command)
@@ -270,8 +277,18 @@ function getUIModules() {
       shell.echo('Get package failed');
       shell.exit(1);
     }
-  } else {
-    console.log("No package json in nodemodules")
+  }
+}
+
+function getUIModules() {
+  let silent = argv.verbose?"":"-s";
+  if (argv.getBuildPackages) {
+    let wd = process.cwd();
+    process.chdir(nodeModulesFolder);
+    let pkgsrc = path.join(buildFolder,'package.json')
+    fs.copySync(pkgsrc, path.join(nodeModulesFolder,'package.json'))
+    processPackageJson()
+    process.chdir(wd);
   }
 
   try {

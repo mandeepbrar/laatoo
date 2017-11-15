@@ -5,7 +5,8 @@ Application.Registry={};
 Application.Modules={};
 var Window = n ? {} : window;
 Application.RegisterModule = function(mod) {
-  Application.Modules[mod] = require(mod)
+  let m = Application.Modules[mod] = require(mod);
+  return m;
 }
 Application.Register = function(regName,id,data) {
   let reg=Application.Registry[regName];
@@ -31,8 +32,8 @@ var _$=Application.Modules;
 var _rm = Application.RegisterModule;
 var _r = Application.Register;
 var _reg= Application.GetRegistry;
-var _re=require('react');
-var _ce=_re.createElement;
+var _re= null;
+var _ce= null;
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {
@@ -43,19 +44,26 @@ function modDef(appname, ins, mod, settings) {
 }
 function appLoadingComplete(appname, propsurl, modsToInitialize) {
   var init = function() {
+    console.log("Initializing application", modsToInitialize);
+    _re=require('react');
+    _ce=_re.createElement;
     if(modsToInitialize!=null) {
       for(var i=0;i<modsToInitialize.length;i++) {
         var row = modsToInitialize[i];
         if(row[0]!=row[1]){
           modDef(appname, row[0], row[1], row[2]);
+        }
+        let k = _rm(row[1]);
+        if(!k){
+          console.log("Could not Initialize module ", row[0]);
         } else {
-          let k = require(row[1]);
           if(k.Initialize){
             k.Initialize(appname,row[0], row[1], row[2], define, require);
           }
         }
       }
     }
+    console.log("Initialized modules", _$);
     Window.InitializeApplication();
   }
   if(propsurl) {

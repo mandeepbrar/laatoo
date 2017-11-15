@@ -1,0 +1,24 @@
+{
+  "name":"Environment",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "fields":["Name", "Description", "SolutionId"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "SolutionId": {
+      "type":"string"
+    },
+    "Solution": {
+        "type":"Solution",
+        "ref": true
+    }
+  }
+}

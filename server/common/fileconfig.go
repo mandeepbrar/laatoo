@@ -62,9 +62,17 @@ func convArr(ctx context.Context, arr []interface{}) interface{} {
 			resarr[i] = GenericConfig(convMap(ctx, imap))
 		}
 		return resarr
-	} else {
-		return arr
 	}
+	_, ok = arr[0].(string)
+	if ok {
+		resarr := make([]string, len(arr))
+		for i, item := range arr {
+			str := item.(string)
+			resarr[i] = str
+		}
+		return resarr
+	}
+	return arr
 }
 
 func convMap(ctx context.Context, imap map[interface{}]interface{}) map[string]interface{} {

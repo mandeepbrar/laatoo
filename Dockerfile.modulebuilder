@@ -11,7 +11,7 @@ RUN NODE_VERSION='8.4.0' ARCH='x64' \
 
 RUN mkdir -p /build
 
-RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml
+RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader
 
 RUN npm i --unsafe-perm node-sass
 
@@ -21,7 +21,7 @@ VOLUME /plugins
 
 VOLUME /deploy
 
-ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin verbose=false packageFolder=.
+ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin verbose=false packageFolder=. getBuildPackages=true
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 
@@ -41,7 +41,7 @@ WORKDIR /build
 
 COPY /build/.babelrc /
 
-ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --skipObjects $skipObjects
+ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects
 
 #ENTRYPOINT /bin/bash
 

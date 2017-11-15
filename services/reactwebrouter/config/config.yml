@@ -7,6 +7,6 @@ ui:
     director: director
     redux-director: redux-director
   packages:
-    react: "^15.6.1"
+    react: "^15.6.0"
     director: "^1.2.8"
-    redux-director: "^0.2.5"
+    redux-director: "^0.2.6"

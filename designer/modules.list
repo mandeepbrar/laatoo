@@ -1,6 +1,3 @@
 designerui laatoo/designer/core/designerui
 designerdependencies laatoo/designer/core/designerdependencies
-server laatoo/designer/core/server
-solution laatoo/designer/core/solution
-application laatoo/designer/core/application
-environment laatoo/designer/core/environment
+comment laatoo/designer/core/comment

@@ -26,16 +26,21 @@ function type(name) {
   return name? name: "entity"
 }
 
+function titleField(titleField) {
+  return titleField? titleField: "Title"
+}
+
 function fields(fields) {
   var fieldsStr = ""
   Object.keys(fields).forEach(function(fieldName) {
     let field = fields[fieldName]
     let jsonF = field.json?field.json:fieldName
     let bsonF = field.bson?field.bson:fieldName
+    let ptrF = field.ref?"*":""
     let datastoreF = field.datastore? "datastore:\""+field.datastore+"\"": ""
     switch (field.type) {
       default:
-      fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\"  %s`", fieldName, field.type, jsonF, bsonF, datastoreF)
+      fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s%s `json:\"%s\" bson:\"%s\"  %s`", fieldName, ptrF, field.type, jsonF, bsonF, datastoreF)
     }
   });
   return fieldsStr
@@ -43,12 +48,13 @@ function fields(fields) {
 
 function createEntity(entityJson, pluginFolder, filename) {
   let name = entityJson["name"]
-  name = name? name +" .go": filename.substring(0, filename.length-5)+".go"
+  name = name? name +".go": filename.substring(0, filename.length-5)+".go"
   let filepath = path.join(pluginFolder, name)
   var buf = fs.readFileSync('./tpl/entitygocode.go.tpl');
   Handlebars.registerHelper('cacheable', cacheable);
   Handlebars.registerHelper('imports', imports);
   Handlebars.registerHelper('type', type);
+  Handlebars.registerHelper('titleField', titleField);
   Handlebars.registerHelper('fields', fields);
   Handlebars.registerHelper('collection', collection);
   var template = Handlebars.compile(buf.toString());

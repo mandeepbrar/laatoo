@@ -38,14 +38,15 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
-	reqTemplate := "_rm('%s');"
+	//reqTemplate := "_rm('%s');"
 
-	for name, _ := range filesWritten {
+	/*for name, _ := range filesWritten {
 		_, err := uiFileCont.WriteString(fmt.Sprintf(reqTemplate, name))
 		if err != nil {
 			return err
 		}
-	}
+	}*/
+
 	/*
 		initMods := new(bytes.Buffer)
 		modTemplate := "define('%s', ['%s'], function (m) { var conf=%s; if(m.Initialize) { m.Initialize('%s', conf, define, require); } return m; });" + reqTemplate
@@ -123,7 +124,7 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 			}
 		}
 	*/
-	initFunc := fmt.Sprintf("Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
+	initFunc := fmt.Sprintf("console.log('initializing application js');Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
 	descFileCont.WriteString(initFunc)
 
 	descfile := path.Join(baseDir, FILES_DIR, svc.mergeduidescriptor)
@@ -137,7 +138,7 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 
 func (svc *UI) writeVendorFile(ctx core.ServerContext, baseDir string) error {
 	vendorFileCont := new(bytes.Buffer)
-	_, err := vendorFileCont.WriteString(fmt.Sprintf("document.InitConfig={Name: '%s', Services:{}, Actions:{}};", svc.application))
+	_, err := vendorFileCont.WriteString(fmt.Sprintf("console.log('loading vendor file');document.InitConfig={Name: '%s', Services:{}, Actions:{}};", svc.application))
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -157,15 +158,17 @@ func (svc *UI) writeVendorFile(ctx core.ServerContext, baseDir string) error {
 			return errors.WrapError(ctx, err)
 		}
 	*/
-	for mod, cont := range svc.vendorFiles {
+	for _, cont := range svc.vendorFiles {
 		_, err = vendorFileCont.Write(cont)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		initStr := "var k=require('%s_vendor'); if(k && k.Initialize) {k.Initialize('%s',{},define);}"
-		_, err = vendorFileCont.WriteString(fmt.Sprintf(initStr, mod, svc.application))
 	}
-
+	for mod, _ := range svc.vendorFiles {
+		initStr := "var k=require('%s'); console.log(\"module found %s\", k); if(k && k.Initialize) {k.Initialize('%s',{},define);};"
+		_, err = vendorFileCont.WriteString(fmt.Sprintf(initStr, mod, mod, svc.application))
+	}
+	vendorFileCont.WriteString("console.log('loaded vendor file');")
 	vendorfile := path.Join(baseDir, FILES_DIR, svc.mergedvendorfile)
 	err = ioutil.WriteFile(vendorfile, vendorFileCont.Bytes(), 0755)
 	if err != nil {

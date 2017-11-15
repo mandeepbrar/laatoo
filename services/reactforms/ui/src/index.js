@@ -2,6 +2,8 @@ import React from 'react'
 import {Form} from './Form'
 import './FormReducer'
 import './sagas/Entity'
+import {Field} from './Field';
+
 //import './styles/app.scss'
 
 const PropTypes = require('prop-types');
@@ -18,5 +20,6 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 export {
   Initialize,
-  Form
+  Form,
+  Field
 }

@@ -23,7 +23,6 @@ sqldatabase laatoo/services/data/sql
 ui laatoo/services/ui
 uicommon laatoo/services/uicommon
 authui laatoo/services/authui
-reactlaatoobase laatoo/services/reactlaatoobase
 reactapplication laatoo/services/reactapplication
 gurmukhi laatoo/services/gurmukhi
 reactmaterialkit laatoo/services/reactmaterialkit

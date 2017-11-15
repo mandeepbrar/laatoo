@@ -8,6 +8,10 @@ ui:
     react: react
     sanitize-html: sanitize-html
     uicommon: uicommon
+    redux: redux
+    react-redux: react-redux
   packages:
-    react: "^15.6.1"
+    react: "^15.6.0"
     sanitize-html: "^1.14.1"
+    redux: "^3.7.2"
+    react-redux: "^5.0.6"

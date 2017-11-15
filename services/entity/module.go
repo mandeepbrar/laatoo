@@ -81,11 +81,11 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	forms := ctx.CreateConfig()
 
 	newEntityForm := ctx.CreateConfig()
-	newEntityFormConfig := ctx.CreateConfig()
-	newEntityFormConfig.Set(ctx, "entity", entity.object)
-	newEntityFormConfig.Set(ctx, "className", entity.object+"_form")
-	newEntityForm.Set(ctx, "config", newEntityFormConfig)
-	newEntityFormFields := ctx.CreateConfig()
+	entityFormInfo := ctx.CreateConfig()
+	entityFormInfo.Set(ctx, "entity", entity.object)
+	entityFormInfo.Set(ctx, "className", strings.ToLower(entity.instance+"_form"))
+	newEntityForm.Set(ctx, "info", entityFormInfo)
+	entityFormFields := ctx.CreateConfig()
 
 	fields, ok := entity.entityConf.GetSubConfig(ctx, "fields")
 	if ok {
@@ -103,14 +103,23 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 				fieldToBeAdded.Set(ctx, "label", fLabel)
 			}
 			fieldToBeAdded.Set(ctx, "className", " entityformfield "+field)
-			newEntityFormFields.Set(ctx, field, fieldToBeAdded)
+			entityFormFields.Set(ctx, field, fieldToBeAdded)
 
 		}
 	}
 
-	newEntityForm.Set(ctx, "fields", newEntityFormFields)
+	newEntityForm.Set(ctx, "fields", entityFormFields)
 
-	forms.Set(ctx, "New"+entity.object, newEntityForm)
+	forms.Set(ctx, "new_form_"+strings.ToLower(entity.instance), newEntityForm)
+
+	updateEntityForm := ctx.CreateConfig()
+	updateFormInfo := entityFormInfo.Clone()
+	updateFormInfo.Set(ctx, "successRedirect", "/list_"+strings.ToLower(entity.instance))
+	updateEntityForm.Set(ctx, "info", updateFormInfo)
+	updateEntityForm.Set(ctx, "fields", entityFormFields)
+
+	forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
+
 	return forms
 }
 
@@ -152,6 +161,9 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 	}
 
 	tableRowStr := `{
+			config: {
+				skip: false
+			},
 			div: {
 				className: "%s_default",
 			  children: [
@@ -174,7 +186,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 								{
 									Action: {
 											module: "reactwebcommon",
-											name: "view_page_%s",
+											name: "update_page_%s",
 											params: {
 												entityId: "javascript%s"
 											},

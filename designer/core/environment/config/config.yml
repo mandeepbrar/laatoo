@@ -10,5 +10,7 @@ modules:
       parent: root
       instance: Environment
       dataservicefactory: mongodatabase
+      skipItems:
+        - list_page
 ui:
   skipUIModules: true

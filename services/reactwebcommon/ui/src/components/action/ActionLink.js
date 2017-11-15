@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const ActionLink = (props) =>(
   <a className={props.className +" actionlink"} href="javascript:void(0)" onClick={props.actionFunc}>
@@ -10,10 +11,10 @@ const ActionLink = (props) =>(
 
 // Uncomment properties you need
 ActionLink.propTypes = {
-  actionFunc:  React.PropTypes.func.isRequired,
-  actionchildren: React.PropTypes.oneOfType([
-    React.PropTypes.array,
-    React.PropTypes.string
+  actionFunc:  PropTypes.func.isRequired,
+  actionchildren: PropTypes.oneOfType([
+    PropTypes.array,
+    PropTypes.string
   ])
 };
 // View.defaultProps = {};

@@ -1,9 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import FlatButton from 'material-ui/FlatButton';
+import Button from 'material-ui/Button';
 import Snackbar from 'material-ui/Snackbar';
 import Dialog from 'material-ui/Dialog';
-import RaisedButton from 'material-ui/RaisedButton';
 
 class DialogHandler extends React.Component {
   constructor(props) {
@@ -36,7 +35,7 @@ class DialogHandler extends React.Component {
 
     switch (this.state.type) {
       case "Error":
-        return  <Dialog actions={<RaisedButton label="Close" onTouchTap={this.handleClose}/>} title="Error" titleClassName="errorTitle" modal={true}
+        return  <Dialog actions={<Button raised label="Close" onTouchTap={this.handleClose}/>} title="Error" titleClassName="errorTitle" modal={true}
             contentStyle={{minWidth:300, maxWidth: 350}}open={this.state.open} onRequestClose={this.handleClose} >
             <div className="errorMessage">{this.state.message}</div>
           </Dialog>
@@ -45,7 +44,7 @@ class DialogHandler extends React.Component {
         return <Snackbar open={this.state.open} message={this.state.message} autoHideDuration={4000}/>
       break
       default:
-        return <Dialog actions={this.props.actions} title={<div className="dialogTitle">{this.props.title}<FlatButton className="closeButton" style={{minWidth:25}} label="x" onTouchTap={this.handleClose}/></div>}
+        return <Dialog actions={this.props.actions} title={<div className="dialogTitle">{this.props.title}<Button className="closeButton" style={{minWidth:25}} label="x" onTouchTap={this.handleClose}/></div>}
            modal={true} contentStyle={contentStyle} open={this.state.open} onRequestClose={this.handleClose} >
           <div className="dialogComponent">
             {this.props.component}

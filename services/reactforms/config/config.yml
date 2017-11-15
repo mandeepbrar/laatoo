@@ -14,8 +14,10 @@ ui:
     react-redux: react-redux
     react-dom: react-dom
     authui: authui
+    redux-saga: redux-saga
     reactwebcommon: reactwebcommon
     uicommon: uicommon
   packages:
-    react: "^15.6.1"
+    react: "^15.6.0"
     redux-form: "^7.1.1"
+    redux-saga: "^0.16.0"

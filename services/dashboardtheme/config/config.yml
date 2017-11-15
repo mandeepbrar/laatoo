@@ -15,9 +15,9 @@ ui:
     authui: authui
     reactwebcommon: reactwebcommon
   packages:
-    react: "^15.6.1"
+    react: "^15.6.0"
     react-redux: "^5.0.6"
-    react-dom: "^15.6.1"
+    react-dom: "^15.6.0"
   settings:
     headerimage: Image used for header
     headertitle: Title used in header

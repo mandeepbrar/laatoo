@@ -1,0 +1,7 @@
+name: update_form_{{default "instance" "object" | lower}}
+config:
+  skip: {{contains "skipItems" "update_form" }}
+route: {{if exists "update_form_route"}} {{var "update_form_route"}} {{else}} /update_form_{{default "instance" "object" | lower}}/:entityId {{end}}
+component:
+  type: form
+  id: update_form_{{default "instance" "object" | lower}}

@@ -1,9 +1,9 @@
 import React from 'react';
 import {Action} from'reactwebcommon';
-import FlatButton from 'material-ui/FlatButton';
+import Button from 'material-ui/Button';
 
 const Navbutton=(props)=>(
-    <FlatButton className={props.vertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</FlatButton>
+    <Button className={props.vertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</Button>
   )
 
 

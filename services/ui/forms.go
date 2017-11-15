@@ -15,7 +15,7 @@ const (
 	CONF_FIELDS      = "fields"
 	CONF_FORM_LAYOUT = "layout"
 	CONF_WIDGET      = "widget"
-	CONF_FORMCONFIG  = "config"
+	CONF_FORMINFO    = "info"
 	CONF_WIDGET_MOD  = "widgetMod"
 	CONF_WIDGET_CONF = "widgetConf"
 	CONF_FIELDTYPE   = "type"
@@ -55,6 +55,78 @@ func (svc *UI) createForm(ctx core.ServerContext, itemType string, itemName stri
 	return nil
 }
 
+func (svc *UI) createXMLForm(ctx core.ServerContext, itemType string, itemName string, node Node) error {
+	conf := ctx.CreateConfig()
+	formConfig, err := svc.buildXMLFormConfig(ctx, node)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if len(node.Nodes) > 0 {
+		layoutName := fmt.Sprintf("%s_FormLayout", itemName)
+		svc.createXMLBlock(ctx, "Blocks", layoutName, node)
+		formConfig.Set(ctx, "layout", layoutName)
+	}
+	conf.Set(ctx, "info", formConfig)
+	formFields := ctx.CreateConfig()
+	svc.getFields(ctx, node, formFields)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	conf.Set(ctx, "fields", formFields)
+	svc.createForm(ctx, itemType, itemName, conf)
+	return nil
+}
+
+func (svc *UI) processXMLFieldChildItems(ctx core.ServerContext, node Node, name, widget string, conf config.Config) {
+	if widget == "SelectField" {
+		if len(node.Nodes) > 0 {
+			items := make([]config.Config, 0)
+			for _, childNode := range node.Nodes {
+				if childNode.XMLName.Local == "Item" {
+					item := ctx.CreateConfig()
+					for _, attr := range childNode.Attrs {
+						item.Set(ctx, attr.Name.Local, attr.Value)
+					}
+					items = append(items, item)
+				}
+			}
+			conf.Set(ctx, "items", items)
+		}
+	}
+}
+
+func (svc *UI) getFields(ctx core.ServerContext, node Node, conf config.Config) {
+	for _, childNode := range node.Nodes {
+		if childNode.XMLName.Local == "Field" {
+			fieldName := ""
+			widget := ""
+			fieldConf := ctx.CreateConfig()
+			for _, attr := range childNode.Attrs {
+				if attr.Name.Local == "name" {
+					fieldName = attr.Value
+				} else {
+					if attr.Name.Local == "widget" {
+						widget = attr.Value
+					}
+					fieldConf.Set(ctx, attr.Name.Local, attr.Value)
+				}
+			}
+			svc.processXMLFieldChildItems(ctx, childNode, fieldName, widget, fieldConf)
+			conf.Set(ctx, fieldName, fieldConf)
+		} else {
+			svc.getFields(ctx, childNode, conf)
+		}
+	}
+}
+
+func (svc *UI) buildXMLFormConfig(ctx core.ServerContext, node Node) (config.Config, error) {
+	conf := ctx.CreateConfig()
+	for _, attr := range node.Attrs {
+		conf.Set(ctx, attr.Name.Local, attr.Value)
+	}
+	return conf, nil
+}
+
 func (svc *UI) buildEntitySchema(ctx core.ServerContext, entityName string, formconf config.Config, fieldMap *bytes.Buffer) error {
 	return nil
 }
@@ -72,7 +144,7 @@ func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType s
 			widgetMod = ""
 			break
 		case config.OBJECTTYPE_BOOL:
-			fieldAttrs.Set(ctx, "widget", "Radio")
+			fieldAttrs.Set(ctx, "widget", "Toggle")
 			widgetMod = ""
 			break
 		case config.OBJECTTYPE_STRINGARR:
@@ -128,16 +200,16 @@ func (svc *UI) buildFormSchema(ctx core.ServerContext, itemType string, itemName
 		layoutStr = fmt.Sprintf(",template: templateLayout('%s')", layout)
 		//optionsMap.Set(ctx, "template", fmt.Sprintf("<Panel id=\"%s\" />", layout))
 	}*/
-	formCfgStr := ""
-	formConfig, ok := conf.GetSubConfig(ctx, CONF_FORMCONFIG)
+	formInfoStr := ""
+	formInfo, ok := conf.GetSubConfig(ctx, CONF_FORMINFO)
 	if ok {
-		cfg, err := json.Marshal(formConfig)
+		info, err := json.Marshal(formInfo)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		formCfgStr = fmt.Sprintf(",config: %s", string(cfg))
+		formInfoStr = fmt.Sprintf(",info: %s", string(info))
 	}
-	formStr.WriteString(fmt.Sprintf("{fields:{%s} %s}", fieldMap.String(), formCfgStr))
+	formStr.WriteString(fmt.Sprintf("{fields:{%s} %s}", fieldMap.String(), formInfoStr))
 
 	return nil
 }

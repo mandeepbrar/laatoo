@@ -1,5 +1,6 @@
 import React from 'react'
-const PropTypes = require('prop-types');
+import PropTypes from 'prop-types';
+
 
 var module;
 
@@ -186,8 +187,9 @@ class Panel extends React.Component {
     if(!formdesc) {
       return
     }
+    console.log("processing form", desc,formdesc)
 
-    var cfg = formdesc.config
+    var cfg = formdesc.info
     if(!this.form) {
       this.form = this.getComponent("reactforms", "Form", module.req)
     }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
@@ -132,7 +133,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			svc.vendorFiles[modName] = cont
+			svc.vendorFiles[fmt.Sprintf("%s_vendor", modName)] = cont
 		}
 
 		cssfile := path.Join(dir, FILES_DIR, "app.css")
@@ -163,7 +164,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 	}
 
 	uiRegDir := path.Join(dir, UI_DIR)
-	err := svc.readRegistry(ctx, mod, modConf, uiRegDir)
+	err := svc.readRegistry(ctx, mod, modConf, dir, uiRegDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

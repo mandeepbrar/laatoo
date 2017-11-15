@@ -1,6 +1,8 @@
 name: list_{{default "instance" "object" | lower}}
-postArgs: {}
-urlparams: {}
+config:
+  skip: {{contains "skipItems" "list_view" }}
+postArgs: {{if exists "list_view_args"}} {{var "list_view_args"}} {{else}} {} {{end}}
+urlparams: {{if exists "list_view_params"}} {{var "list_view_params"}} {{else}} {} {{end}}
 serviceName: {{default "instance" "object"}}_view_service
 header: {{default "instance" "object" | lower}}_viewheader
 item:

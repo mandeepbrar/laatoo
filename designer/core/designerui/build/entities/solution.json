@@ -1,7 +1,8 @@
 {
-  "name":"Server",
+  "name":"Solution",
   "inherits":"",
   "imports":[],
+  "titleField": "Name",
   "fields":{
     "Name": {
         "type":"string"

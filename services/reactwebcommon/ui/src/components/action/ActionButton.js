@@ -1,7 +1,7 @@
 'use strict';
 
 import React from 'react';
-const PropTypes = require('prop-types');
+import PropTypes from 'prop-types';
 
 const ActionButton = (props, context) => {
   if(context.uikit && context.uikit.ActionButton) {
@@ -24,10 +24,10 @@ ActionButton.contextTypes = {
 };
 // Uncomment properties you need
 ActionButton.propTypes = {
-  actionFunc:  React.PropTypes.func.isRequired,
-  actionchildren: React.PropTypes.oneOfType([
-    React.PropTypes.array,
-    React.PropTypes.string
+  actionFunc:  PropTypes.func.isRequired,
+  actionchildren: PropTypes.oneOfType([
+    PropTypes.array,
+    PropTypes.string
   ])
 
 };

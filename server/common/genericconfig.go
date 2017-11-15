@@ -77,6 +77,11 @@ func (conf GenericConfig) Get(ctx ctx.Context, configurationName string) (interf
 func (conf GenericConfig) GetStringArray(ctx ctx.Context, configurationName string) ([]string, bool) {
 	val, found := conf[configurationName]
 	if found {
+		strarr, sok := val.([]string)
+		if sok {
+			return strarr, true
+		}
+
 		arr, cok := val.([]interface{})
 		if !cok {
 			return nil, false

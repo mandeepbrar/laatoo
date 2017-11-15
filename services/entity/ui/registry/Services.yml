@@ -1,3 +1,5 @@
 {{default "instance" "object"}}_view_service:
+  config:
+    skip: false
   method: POST
   url: /{{default "instance" "object" |lower}}/view

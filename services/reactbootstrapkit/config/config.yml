@@ -8,12 +8,13 @@ ui:
   externals:
     babel-runtime: babel-runtime
     babel-polyfill: babel-polyfill
+    reactwebcommon: reactwebcommon
     react: react
     react-redux: react-redux
     uicommon: uicommon
     react-dom: react-dom
   packages:
-    react: "^15.6.1"
+    react: "^15.6.0"
     react-redux: "^5.0.6"
     react-bootstrap: "^0.31.0"
-    react-dom: "^15.6.1"
+    react-dom: "^15.6.0"

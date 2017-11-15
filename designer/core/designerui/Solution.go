@@ -5,26 +5,16 @@ import (
   "laatoo/sdk/components/data"
 )
 
-var (
-	entityConf = &data.StorableConfig{
-		IdField:         "Id",
-		Type:            "Comment",
-		SoftDeleteField: "Deleted",
-		PreSave:         false,
-		PostSave:        false,
-		PostLoad:        false,
-		Auditable:       true,
-		Collection:      "Comment",
-		Cacheable:       false,
-	}
-)
+type Solution_Ref struct {
+  Id    string
+  Name string
+}
 
-type Comment struct {
+type Solution struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Post	string `json:"Post" bson:"Post"  `
-	PostTitle	string `json:"PostTitle" bson:"PostTitle"  `
-	Blocked	bool `json:"Blocked" bson:"Blocked"  `
+	Name	string `json:"Name" bson:"Name"  `
+	Description	string `json:"Description" bson:"Description"  `
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string
@@ -37,6 +27,17 @@ type Comment struct {
 	Blocked                  bool   `json:"Blocked" bson:"Blocked"`*/
 }
 
-func (ent *Comment) Config() *data.StorableConfig {
-	return entityConf
+func (ent *Solution) Config() *data.StorableConfig {
+	return &data.StorableConfig{
+		IdField:         "Id",
+    LabelField:      "Name",
+		Type:            "Solution",
+		SoftDeleteField: "Deleted",
+		PreSave:         false,
+		PostSave:        false,
+		PostLoad:        false,
+		Auditable:       true,
+		Collection:      "Solution",
+		Cacheable:       false,
+	}
 }

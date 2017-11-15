@@ -9,14 +9,18 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
 	"path/filepath"
 	"strings"
 )
 
 const (
-	BLOCK_REG = "Blocks"
-	FORM_REG  = "Forms"
+	ITEM_CONFIG      = "config"
+	ITEM_SKIP        = "skip"
+	BLOCK_REG        = "Blocks"
+	FORM_REG         = "Forms"
+	DEPENDENCIES_REG = "Dependencies"
 )
 
 func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName string, itemStr string) {
@@ -62,7 +66,7 @@ processConfig
 	return nil
 }
 */
-func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType string) error {
+func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType string, modDir string) error {
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -81,12 +85,12 @@ func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType s
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			err = svc.processConfig(ctx, conf, itemName, itemType)
+			err = svc.processConfig(ctx, conf, itemName, itemType, modDir)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		} else {
-			if itemType == BLOCK_REG && ext == ".xml" {
+			if ((itemType == BLOCK_REG) || (itemType == FORM_REG)) && ext == ".xml" {
 				cont, err = ioutil.ReadFile(path)
 				if err != nil {
 					return errors.WrapError(ctx, err)
@@ -98,9 +102,16 @@ func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType s
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				err = svc.createXMLBlock(ctx, itemType, itemName, n)
-				if err != nil {
-					return errors.WrapError(ctx, err)
+				if itemType == BLOCK_REG {
+					err = svc.createXMLBlock(ctx, itemType, itemName, n)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
+				} else {
+					err = svc.createXMLForm(ctx, itemType, itemName, n)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
 				}
 			}
 		}
@@ -171,14 +182,14 @@ func (svc *UI) processTemplate(ctx core.ServerContext, cont []byte, filetype str
 	return svc.processFile(ctx, result.Bytes(), filetype, itemName, itemType)
 }*/
 
-func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf config.Config, regDir string) error {
+func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf config.Config, dir, regDir string) error {
 
 	processRegistryConfig := func(ctx core.ServerContext, registry config.Config) error {
 		confs := registry.AllConfigurations(ctx)
 		for _, itemType := range confs {
 			items, ok := registry.GetSubConfig(ctx, itemType)
 			if ok {
-				err := svc.processMutipleItems(ctx, items, itemType)
+				err := svc.processMutipleItems(ctx, items, itemType, dir)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -218,7 +229,7 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 		for _, info := range files {
 			path := filepath.Join(regDir, info.Name())
 			if info.IsDir() {
-				svc.processItemDir(ctx, path, info.Name())
+				svc.processItemDir(ctx, path, info.Name(), dir)
 				continue
 			}
 			fileName := info.Name()
@@ -229,7 +240,7 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				err = svc.processMutipleItems(ctx, items, itemType)
+				err = svc.processMutipleItems(ctx, items, itemType, dir)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -267,13 +278,17 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 	return nil
 }
 
-func (svc *UI) processMutipleItems(ctx core.ServerContext, conf config.Config, itemType string) error {
+func (svc *UI) processMutipleItems(ctx core.ServerContext, conf config.Config, itemType string, modDir string) error {
 	itemNames := conf.AllConfigurations(ctx)
 	for _, item := range itemNames {
-		itemVal, _ := conf.GetSubConfig(ctx, item)
-		err := svc.processConfig(ctx, itemVal, item, itemType)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+		itemVal, ok := conf.GetSubConfig(ctx, item)
+		if ok {
+			err := svc.processConfig(ctx, itemVal, item, itemType, modDir)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		} else {
+			log.Error(ctx, "Invalid registry item", "item", item)
 		}
 	}
 	return nil
@@ -293,24 +308,46 @@ func (svc *UI) getRegistryItemName(ctx core.ServerContext, conf config.Config, i
 	return itemName
 }
 
-func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType string) error {
+func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType, modDir string) error {
 	ctx = ctx.SubContext("Registry Item: " + itemName)
-	if itemType == BLOCK_REG {
-		err := svc.createConfBlock(ctx, itemType, itemName, conf)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+	itemCfg, ok := conf.GetSubConfig(ctx, ITEM_CONFIG)
+	if ok {
+		skipItem, _ := itemCfg.GetBool(ctx, ITEM_SKIP)
+		if skipItem {
+			return nil
 		}
-	} else if itemType == FORM_REG {
-		err := svc.createForm(ctx, itemType, itemName, conf)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+	}
+	log.Trace(ctx, "Processing config", "itemType", itemType)
+	switch itemType {
+	case BLOCK_REG:
+		{
+			err := svc.createConfBlock(ctx, itemType, itemName, conf)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
-	} else {
-		strVal, err := json.Marshal(conf)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+	case FORM_REG:
+		{
+			err := svc.createForm(ctx, itemType, itemName, conf)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
-		svc.addRegItem(ctx, itemType, svc.getRegistryItemName(ctx, conf, itemName), string(strVal))
+	case DEPENDENCIES_REG:
+		{
+			err := svc.processDependencies(ctx, itemType, itemName, conf, modDir)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+	default:
+		{
+			strVal, err := json.Marshal(conf)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.addRegItem(ctx, itemType, svc.getRegistryItemName(ctx, conf, itemName), string(strVal))
+		}
 	}
 	return nil
 }

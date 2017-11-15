@@ -1,0 +1,43 @@
+{
+  "name":"Deployment",
+  "inherits":"",
+  "imports":[],
+  "formFields":["Name", "Description", "SolutionId", "ServerId", "EnvironmentId", "ApplicationId"],
+  "titleField": "Name",
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "SolutionId": {
+      "type":"string"
+    },
+    "Solution": {
+        "type":"Solution",
+        "ref": true
+    },
+    "EnvironmentId": {
+      "type":"string"
+    },
+    "Environment": {
+        "type":"Environment",
+        "ref": true
+    },
+    "ServerId": {
+      "type":"string"
+    },
+    "Server": {
+        "type":"Server",
+        "ref": true
+    },
+    "ApplicationId": {
+      "type":"string"
+    },
+    "Application": {
+        "type":"Application",
+        "ref": true
+    }
+  }
+}

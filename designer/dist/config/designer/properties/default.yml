@@ -14,3 +14,6 @@ menu:
   applications:
     title: My Applications
     page: list_application
+  test:
+    title: My test
+    page: testpage

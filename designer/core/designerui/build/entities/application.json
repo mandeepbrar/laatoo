@@ -1,0 +1,27 @@
+{
+  "name":"Application",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "fields":["Name", "Description", "SolutionId"]
+  },
+  "titleField": "Name",
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "SolutionId": {
+      "type":"string",
+      "form": {
+        "widget": "checkbox"        
+      }
+    },
+    "Solution": {
+        "type":"Solution",
+        "ref": true
+    }
+  }
+}

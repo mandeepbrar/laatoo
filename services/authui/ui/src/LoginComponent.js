@@ -6,6 +6,7 @@ import md5 from 'md5';
 import { connect } from 'react-redux';
 import {ActionNames} from './actions';
 import {createAction} from 'uicommon';
+import PropTypes from 'prop-types';
 
 const mapStateToProps = (state, ownProps) => {
   return {
@@ -40,10 +41,10 @@ const LoginComponent = connect(
 
 // Uncomment properties you need
 LoginComponent.propTypes = {
-  loginService: React.PropTypes.string.isRequired,
-  successpage: React.PropTypes.string,
-  realm: React.PropTypes.string,
-  signup: React.PropTypes.string
+  loginService: PropTypes.string.isRequired,
+  successpage: PropTypes.string,
+  realm: PropTypes.string,
+  signup: PropTypes.string
 };
 // LoginComponent.defaultProps = {};
 

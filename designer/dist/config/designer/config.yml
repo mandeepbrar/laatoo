@@ -53,14 +53,8 @@ modules:
       router: router
       uikit: reactmaterialkit
       theme: dashboard
-  application:
-    module: application
-  environment:
-    module: environment
-  server:
-    module: server
-  solution:
-    module: solution
+  comment:
+    module: comment
   shell:
     module: shell
     settings:

@@ -5,6 +5,7 @@ import ActionButton from './ActionButton';
 import { connect } from 'react-redux';
 import ActionLink from './ActionLink';
 import {createAction, formatUrl, hasPermission } from 'uicommon';
+import PropTypes from 'prop-types';
 
 class ActionComp extends React.Component {
   constructor(props) {
@@ -100,9 +101,10 @@ class ActionComp extends React.Component {
 }
 // Uncomment properties you need
 ActionComp.propTypes = {
-  name:  React.PropTypes.string.isRequired
+  name:  PropTypes.string.isRequired
 };
 // View.defaultProps = {};
+console.log("react-redux connect in reactwebcommon", require('react-redux'));
 
 const Action = connect()(ActionComp);
 export {Action as Action} ;
