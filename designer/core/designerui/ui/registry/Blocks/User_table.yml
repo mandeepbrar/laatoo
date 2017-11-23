@@ -3,10 +3,10 @@ div:
   children:
   - div:
       className: field
-      body: {{js "data.Username"}}
+      body: {{js "ctx.data.Username"}}
   - div:
       className: field
-      body: this is {{js "data.Id" "insert"}}
+      body: this is {{js "ctx.data.Id" "insert"}}
   - div:
       className: field
       children:
@@ -14,5 +14,5 @@ div:
           module: reactwebcommon
           name: viewUser
           params:
-            id: {{js "data.Id"}}
+            id: {{js "ctx.data.Id"}}
           body: View User

@@ -34,6 +34,27 @@ var _r = Application.Register;
 var _reg= Application.GetRegistry;
 var _re= null;
 var _ce= null;
+var _val = function() {
+  var obj;
+  var arr = arguments;
+  for(var i=0; i< arr.length; i++) {
+    if(i==0) {
+      obj=arguments[i]
+    } else {
+      let ind = arr[i];
+      if(!obj[ind]) {
+        return "";
+      } else {
+        if(i<arr.length -1) {
+          obj = obj[ind]
+        } else {
+          return obj[ind]
+        }
+      }
+    }
+  }
+  return "";
+}
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {

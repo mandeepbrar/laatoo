@@ -93,15 +93,22 @@ const ViewComponent = connect(
 )(ViewUI);
 
 const View = (props) => {
-  if(props.id) {
-    let view = _reg("Views", props.id)
+  let view = props.description;
+  if(!view && props.id) {
+    view = _reg("Views", props.id)
+  }
+  if(view) {
     console.log("view.....", view)
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
-    let viewname = view.name? view.name : props.id
+    let viewname = view.name? view.name : props.id;
+    let className = props.className+ " view_"+viewname + " ";
+    if(view.className) {
+      className = className + view.className;
+    }
     let item = props.children;
     return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global}
-      className={"view_"+viewname} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
+      className={className} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
        getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args}>
        {item}
        </ViewComponent>

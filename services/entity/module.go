@@ -81,9 +81,16 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	forms := ctx.CreateConfig()
 
 	newEntityForm := ctx.CreateConfig()
-	entityFormInfo := ctx.CreateConfig()
+	var entityFormInfo config.Config
+	formInfo, ok := entity.entityConf.GetSubConfig(ctx, "form")
+	if ok {
+		entityFormInfo = formInfo.Clone()
+	} else {
+		entityFormInfo = ctx.CreateConfig()
+	}
 	entityFormInfo.Set(ctx, "entity", entity.object)
-	entityFormInfo.Set(ctx, "className", strings.ToLower(entity.instance+"_form"))
+	entityFormInfo.Set(ctx, "className", fmt.Sprint(" entityform ", strings.ToLower(entity.instance+"_form")))
+	entityFormInfo.Set(ctx, "successRedirectPage", fmt.Sprint("list_", strings.ToLower(entity.instance)))
 	newEntityForm.Set(ctx, "info", entityFormInfo)
 	entityFormFields := ctx.CreateConfig()
 
@@ -114,7 +121,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 
 	updateEntityForm := ctx.CreateConfig()
 	updateFormInfo := entityFormInfo.Clone()
-	updateFormInfo.Set(ctx, "successRedirect", "/list_"+strings.ToLower(entity.instance))
+	//updateFormInfo.Set(ctx, "successRedirect", "/list_"+strings.ToLower(entity.instance))
 	updateEntityForm.Set(ctx, "info", updateFormInfo)
 	updateEntityForm.Set(ctx, "fields", entityFormFields)
 
@@ -128,7 +135,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 
 	tableHeaderStr := `{
 			div: {
-				className: "%s_list_header",
+				className: "%s_list_header tableheading ",
 				children: [
 					{
 						div:	{
@@ -165,12 +172,12 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 				skip: false
 			},
 			div: {
-				className: "%s_default",
+				className: "%s_default tablerow javascript%s ",
 			  children: [
 					{
 						div: {
 							className: "tablecell field",
-							body: "some javascript%s"
+							body: "javascript%s"
 						}
 					},
 					{
@@ -200,7 +207,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 			}
 		}	`
 	labelField := "Name"
-	tableRowStr = fmt.Sprintf(tableRowStr, entity.object, fmt.Sprintf("#@#data.%s#@#", labelField), "#@#data.UpdatedAt#@#", strings.ToLower(entity.object), "#@#data.Id#@#", entity.object)
+	tableRowStr = fmt.Sprintf(tableRowStr, entity.object, "#@#ctx.className#@#", fmt.Sprintf("#@#ctx.data.%s#@#", labelField), "#@#ctx.data.UpdatedAt#@#", strings.ToLower(entity.object), "#@#ctx.data.Id#@#", entity.object)
 	tableRow, err := ctx.ReadConfigData([]byte(tableRowStr), nil)
 	if err == nil {
 		blocks.Set(ctx, entity.object+"_listtablerow", tableRow)

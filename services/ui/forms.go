@@ -78,7 +78,7 @@ func (svc *UI) createXMLForm(ctx core.ServerContext, itemType string, itemName s
 }
 
 func (svc *UI) processXMLFieldChildItems(ctx core.ServerContext, node Node, name, widget string, conf config.Config) {
-	if widget == "SelectField" {
+	if widget == "Select" {
 		if len(node.Nodes) > 0 {
 			items := make([]config.Config, 0)
 			for _, childNode := range node.Nodes {
@@ -144,7 +144,7 @@ func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType s
 			widgetMod = ""
 			break
 		case config.OBJECTTYPE_BOOL:
-			fieldAttrs.Set(ctx, "widget", "Toggle")
+			fieldAttrs.Set(ctx, "widget", "Switch")
 			widgetMod = ""
 			break
 		case config.OBJECTTYPE_STRINGARR:

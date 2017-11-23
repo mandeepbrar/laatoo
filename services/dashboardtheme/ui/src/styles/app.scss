@@ -4,29 +4,38 @@
   @extend .w100;
   .header {
     @extend .w100;
-    @extend .ptb50;
+    @extend .p50;
     .title {
       @extend .start-xs;
     }
+    .logo {
+      img {
+        max-width: 120px;
+      }
+    }
   }
   .dashlogin {
-    @extend .center-xs;
-    @extend .row;
+    @extend .center-xs, .row, .p20;
+  }
+  .entityform {
+    @extend .p50;
   }
   .body {
     @extend .row;
     .vertmenu{
       @extend .col-xs-2;
-      @extend .s20
+      @extend .bg-lgrey;
+      @extend .ma20;
     }
     .horizmenu{
       @extend .w100;
+      @extend .bg-lgrey;
     }
     .vertbody{
-      @extend .col-xs;
+      @extend .col-xs,.p10;
     }
     .horizbody{
-      @extend .w100;
+      @extend .w100, .p10;
     }
   }
 }

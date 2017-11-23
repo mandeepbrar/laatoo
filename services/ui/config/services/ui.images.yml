@@ -1,2 +1,2 @@
 servicemethod: static_files_service
-storage: shell.imagesstorage
+storage: ui.imagesstorage

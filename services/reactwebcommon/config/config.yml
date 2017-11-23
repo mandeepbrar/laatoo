@@ -11,7 +11,7 @@ ui:
     redux: redux
     react-redux: react-redux
   packages:
-    react: "^15.6.0"
+    react: "^16.1.0"
     sanitize-html: "^1.14.1"
     redux: "^3.7.2"
     react-redux: "^5.0.6"

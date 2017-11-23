@@ -10,9 +10,10 @@ function* login(action) {
     const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
     let authToken = Application.Security.AuthToken.toLowerCase();
     let token = resp.info[authToken];
+    let user = resp.data;
     let userId = resp.data.Id;
     let permissions = resp.data.Permissions;
-    let loginaction = createAction(ActionNames.LOGIN_SUCCESS, {userId, token, permissions});
+    let loginaction = createAction(ActionNames.LOGIN_SUCCESS, {userId, token, permissions, user});
     yield put(loginaction);
     console.log("dispatched login action &&&&")
   } catch (e) {

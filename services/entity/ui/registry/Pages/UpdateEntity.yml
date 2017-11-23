@@ -5,3 +5,12 @@ route: {{if exists "update_form_route"}} {{var "update_form_route"}} {{else}} /u
 component:
   type: form
   id: update_form_{{default "instance" "object" | lower}}
+component:
+  type: layout
+  layout: 1col
+  items:
+  items:
+    - type: html
+      html: <h1>Update {{default "instance" "object" }}</h1>
+    - type: form
+      id: update_form_{{default "instance" "object" | lower}}

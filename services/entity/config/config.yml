@@ -3,10 +3,15 @@ object: EntityModule
 dependencies:
   dataadapter: ">=0.0.1"
   uicommon: ">=0.0.1"
+  reactwebcommon: ">=0.0.1"
 description: This module provides an entity object services, channels, forms, views
   etc
 ui:
   skipUIModules: true
+  externals:
+    dataadapter: dataadapter
+    uicommon: uicommon
+    reactwebcommon: reactwebcommon
 objects:
   EntityModule:
     type: module

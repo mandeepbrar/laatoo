@@ -7,6 +7,7 @@ import {LoginValidator, LoginForm} from 'authui';
 var module = this;
 
 function Initialize(appName, ins, mod, settings, def, req) {
+  console.log("appname", appName, "ins ", ins, "mod", mod, "settings", settings)
   module.properties = Application.Properties[ins];
   module.settings = settings;
   module.skipAuth = settings.skipAuth
@@ -44,23 +45,30 @@ function Initialize(appName, ins, mod, settings, def, req) {
 }*/
 
 function processMenu(){
-  let menu=[]
-  let menuConfig = {}
+  var menuItems=[]
+  let menu = []
   if(module.settings && module.settings.menu) {
-    menuConfig = module.settings.menu
+    menu = module.settings.menu
   } else {
-    menuConfig = Application.Properties.menu
+    menu = Application.Properties.menu
   }
-  if(menuConfig) {
-    Object.keys(menuConfig).forEach(function(key){
-      let menuItem=menuConfig[key]
-      console.log("found menu", key, menuItem)
-      menu.push({title:menuItem.title, action: "Page_" + menuItem.page})
+  console.log("dashboard menu", menu)
+  if(menu) {
+    menu.forEach(function(menuItem){
+      console.log("found menu item", menuItem)
+      //let menuItem=menuConfig[menuItem]
+      console.log("found menu", menuItem.title)
+      if(menuItem.page) {
+        menuItems.push({title:menuItem.title, action: "Page_" + menuItem.page})
+      } else {
+        menuItems.push({title:menuItem.title, action: menuItem.action})
+      }
     })
   } else {
-    menu.push({title:'Home', action:'Page_home'})
+    menuItems.push({title:'Home', action:'Page_home'})
   }
-  module.menu = menu
+  console.log("menu items", menuItems)
+  module.menu = menuItems
 }
 
 function ProcessRoute(route, uikit) {

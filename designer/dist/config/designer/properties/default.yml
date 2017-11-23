@@ -1,19 +1,25 @@
 menu:
-  homepage:
+  - homepage:
     title: My Home
     page: home
-  solutions:
+  - solutions:
     title: My Solutions
     page: list_solution
-  servers:
+  - servers:
     title: My Servers
     page: list_server
-  environments:
+  - environments:
     title: My Environments
     page: list_environment
-  applications:
+  - applications:
     title: My Applications
     page: list_application
-  test:
+  - test:
     title: My test
     page: testpage
+dashboard:
+  header:
+    image: '/images/designerui/laatoo.jpg'
+    title: Laatoo
+  welcome:
+    text: Welcome buddy

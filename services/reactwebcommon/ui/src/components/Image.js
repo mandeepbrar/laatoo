@@ -15,7 +15,7 @@ class Image extends React.Component {
       }
       return null
     }
-    if (!this.props.skipPrefix && !this.props.src.startsWith("http")) {
+    if (this.props.prefix && !this.props.skipPrefix && !this.props.src.startsWith("http")) {
       source = this.props.prefix + source
     }
     let i = <img src={source} {...this.props.modifier} className={this.props.className} style={this.props.style}/>

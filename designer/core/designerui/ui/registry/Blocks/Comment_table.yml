@@ -3,7 +3,7 @@ div:
   children:
   - div:
       className: field
-      body: some {{js "data.Post" "insert"}}
+      body: some {{js "ctx.data.Post" "insert"}}
   - div:
       className: field
-      body: this is {{js "data.PostTitle" "insert"}}
+      body: this is {{js "ctx.data.PostTitle" "insert"}}

@@ -217,7 +217,8 @@ func (modMgr *moduleManager) processPlugins(ctx core.ServerContext, mod *serverM
 			log.Info(ctx, "Processing module with module manager plugin", "Module", passedModName, "Service name", svcName)
 			passedMod := passedModProxy.(*moduleProxy).mod
 			passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
-			err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
+			parentIns := modMgr.parentModules[passedModName]
+			err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, parentIns, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
 			if err != nil {
 				return errors.WrapError(passedModCtx, err)
 			}

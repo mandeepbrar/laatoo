@@ -3,7 +3,7 @@
   "inherits":"",
   "imports":[],
   "form": {
-    "fields":["Name", "Description", "SolutionId"]
+    "fieldsLayout":["Name", "Description", "SolutionId"]
   },
   "titleField": "Name",
   "fields":{
@@ -15,9 +15,7 @@
     },
     "SolutionId": {
       "type":"string",
-      "form": {
-        "widget": "checkbox"        
-      }
+      "widget": "checkbox"
     },
     "Solution": {
         "type":"Solution",

@@ -9,6 +9,6 @@ ui:
     react-redux: react-redux
     redux: redux
   packages:
-    react: "^15.6.0"
+    react: "^16.1.0"
     react-redux: "^5.0.6"
     redux: "^3.7.2"

@@ -41,9 +41,8 @@ modules:
     module: dashboardtheme
     settings:
       application: designerapplication
-      headertitle: My Dashboard
-      className: customdashboard
       vertical: true
+      className: laatoodashboard
   designerui:
     module: designerui
   designerapplication:
@@ -53,8 +52,6 @@ modules:
       router: router
       uikit: reactmaterialkit
       theme: dashboard
-  comment:
-    module: comment
   shell:
     module: shell
     settings:

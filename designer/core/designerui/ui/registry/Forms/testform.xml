@@ -1,8 +1,8 @@
 <Form module="uikit" entity="comment" className="w100">
   <h1>my form</h1>
   <Field name="post" type="string" label="Post" module="reactforms"  className="w100"/>
-  <Field name="review" type="bool" label="Review" module="reactforms"  className="w100"/>
-  <Field name="tester" type="string" label="Choice" module="reactforms"  className="w100" widget="SelectField">
+  <Field name="review" type="bool" label="Review" module="reactforms" />
+  <Field name="tester" type="string" label="Choice" module="reactforms"  className="w100" widget="Select">
     <Item text="myval1" value="myval1"/>
     <Item text="myval2" value="myval2"/>
   </Field>

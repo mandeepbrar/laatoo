@@ -46,7 +46,8 @@ class Login extends React.Component {
 }
 
 Login.childContextTypes = {
-  loggedIn: PropTypes.bool
+  loggedIn: PropTypes.bool,
+  user: PropTypes.object
 };
 
 const mapStateToProps = (state, ownProps) => {
@@ -70,7 +71,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     login: (userId, permissions) => {
-      dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: userId, token: Storage.auth, permissions: permissions}));
+      dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: userId, token: Storage.auth, user: Storage.user, permissions: permissions}));
     },
     logout: () => {
       dispatch(createAction(ActionNames.LOGOUT, null, null));

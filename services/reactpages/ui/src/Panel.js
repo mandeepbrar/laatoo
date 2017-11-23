@@ -14,12 +14,15 @@ class Panel extends React.Component {
     }
     //console.log("print id ", desc.id)
     console.log("creating panel", desc, props, ctx, this.context)
-    let className = "panel "
+    let className = props.className? props.className + " panel " : " panel "
     if(desc.id) {
       className = className + " " +desc.id
     }
     if(desc.name) {
       className = className + " " +desc.name
+    }
+    if(desc.className) {
+      className = className + " " +desc.className
     }
     if(desc && (typeof(desc) == 'string')) {
       this.processBlock(desc, props, className)
@@ -46,7 +49,7 @@ class Panel extends React.Component {
           this.processBlock(desc, props,  ctx, className)
           break;
         case "layout":
-          className = className + " panel "
+          className = className + " layout "
           this.processLayout(desc, props,  ctx, className)
           break;
         case "component":
@@ -57,7 +60,7 @@ class Panel extends React.Component {
           } else {
             var comp = this.getComponent(desc.module, desc.componentName, module.req)
             console.log("rendering component", desc, comp)
-            let cl = { className: className}
+            let cl = { description: desc, className: className};
             var compProps = desc.props? Object.assign({}, desc.props, cl): cl
             this.getView = function(compProps, comp) {
               return function(props, context, state) {
@@ -153,7 +156,8 @@ class Panel extends React.Component {
     console.log("processing block", desc, display, props)
     if(display) {
       this.getView = function(props, ctx, state) {
-        let retval = display(props.data, desc, ctx.uikit)
+        console.log("calling block func", props, ctx)
+        let retval = display({data: props.data, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
         return retval
       }
     } else {
@@ -198,7 +202,7 @@ class Panel extends React.Component {
       this.getView = function(props, ctx, state) {
         let formCfg = Object.assign({}, cfg, ctx.routeParams)
         console.log("form cfg", formCfg, cfg)
-        return <this.form form={desc.id} config={formCfg} description={formdesc} id={desc.id}></this.form>
+        return <this.form form={desc.id} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} description={formdesc} id={desc.id}></this.form>
       }
     } else {
       this.getView = function(props, ctx, state) {
@@ -224,7 +228,7 @@ class Panel extends React.Component {
 
   processView = (desc, props, ctx, className) => {
     let viewid = desc.viewid
-    let viewdesc = desc
+    var viewdesc = desc
     if(viewid) {
       viewdesc = _reg('Views', viewid)
     }
@@ -234,8 +238,9 @@ class Panel extends React.Component {
     if(!this.view) {
       this.view = this.getComponent("laatooviews", "View", module.req)
     }
+
     this.getView = function(props, context, state) {
-      return <this.view params={props.params} header={viewHeader} id={viewid}>
+      return <this.view params={props.params} description={viewdesc} className={className} header={viewHeader} id={viewid}>
         <Panel description={description.item} />
       </this.view>
     }
@@ -243,7 +248,7 @@ class Panel extends React.Component {
 
   processEntity = (desc, props, ctx, className) => {
     let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
-    console.log("view entity description", desc, displayMode)
+    console.log("view entity description", desc, displayMode, props)
     let id = "", name = ""
     if(ctx.routeParams && ctx.routeParams.entityId) {
       id = ctx.routeParams.entityId
@@ -254,13 +259,14 @@ class Panel extends React.Component {
     if(!this.entity) {
       this.entity = this.getComponent("laatooviews", "Entity", module.req)
     }
-    console.log("processing entity", props, " entity id ", id, "data", props.data)
-    let entityDisplay={type:"block", block: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
-    console.log("entity display", entityDisplay)
+    var itemClass = ""
+    if(props.index) {
+      itemClass = props.index%2 ? "oddindex": "evenindex"
+    }
+    var entityDisplay={type:"block", block: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
     this.getView = function(props, ctx, state) {
-      console.log("entity display in get view", entityDisplay)
       return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
-        <Panel description={entityDisplay} />
+        <Panel description={entityDisplay} className={itemClass} />
       </this.entity>
     }
   }
@@ -282,6 +288,7 @@ class Panel extends React.Component {
   }
 
   render() {
+    console.log("rendering panel", this.props);
     return this.getView? this.getView(this.props, this.context, this.state): <this.context.uikit.Block/>
   }
 }

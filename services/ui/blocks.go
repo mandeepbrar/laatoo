@@ -32,7 +32,7 @@ func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 func (svc *UI) regItem(ctx core.ServerContext, itemType, itemName, cont string) {
-	dispFunc := fmt.Sprintf("function(data, desc, uikit) { if(!data){data={};}if(!desc){desc={};}if(!uikit){uikit={};} return %s}", cont)
+	dispFunc := fmt.Sprintf("function(ctx, desc, uikit) { if(!ctx){ctx={};}if(!desc){desc={};}if(!uikit){uikit={};} console.log('ctx', ctx);return %s}", cont)
 	//dispType := "EntityDisplay"
 	svc.addRegItem(ctx, itemType, itemName, dispFunc)
 }
@@ -48,6 +48,7 @@ func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName
 }
 
 func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName string, node Node) error {
+	ctx = ctx.SubContext(fmt.Sprintf("%s_%s", itemType, itemName))
 	val, err := svc.processXMLBlockNode(ctx, node)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -58,56 +59,94 @@ func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName 
 
 func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, error) {
 	children := make([]string, 0)
-	for _, n := range node.Nodes {
-		childTxt, err := svc.processXMLBlockNode(ctx, n)
-		if err != nil {
-			return "", errors.WrapError(ctx, err)
-		}
-		children = append(children, childTxt)
-	}
-
 	var mod = ""
 	attrBuf := new(bytes.Buffer)
+	content := node.Content
 
-	//attrs := make(map[string]interface{})
-	for _, attr := range node.Attrs {
-		if attr.Name.Local == "module" {
-			mod = attr.Value
+	processAttr := func(attrName, attrVal string, obj bool) error {
+		if attrName == "module" {
+			mod = attrVal
 		} else {
 			if attrBuf.Len() != 0 {
 				attrBuf.WriteString(",")
 			}
-			val, err := utils.ProcessTemplate(ctx, []byte(attr.Value), nil) //svc.processText(ctx, attr.Value, false)
+			val, err := utils.ProcessTemplate(ctx, []byte(attrVal), nil) //svc.processText(ctx, attr.Value, false)
 			if err != nil {
-				return "", errors.WrapError(ctx, err)
+				return errors.WrapError(ctx, err)
 			}
 
 			attrValStr := string(val)
 			format := "%s:%s"
-			if strings.HasPrefix(attrValStr, "`") {
-				format = "%s:%s"
-				attrValStr = strings.TrimPrefix(attrValStr, "`")
+			if obj {
 				conf, err := ctx.ReadConfigData([]byte(attrValStr), nil)
 				if err != nil {
-					log.Error(ctx, "error i reading config", "conf", conf)
-					return "", errors.WrapError(ctx, err)
+					log.Error(ctx, "error in reading config", "conf", conf, "str", attrValStr)
+					return errors.WrapError(ctx, err)
 				}
 				attrValStr = processHierarchicalAttr(ctx, conf)
 			} else {
 				attrValStr = processJS(ctx, attrValStr)
 			}
-			attrBuf.WriteString(fmt.Sprintf(format, attr.Name.Local, attrValStr))
+			attrBuf.WriteString(fmt.Sprintf(format, attrName, attrValStr))
+		}
+		return nil
+	}
+
+	for _, n := range node.Nodes {
+		switch n.XMLName.Local {
+		case "Attr":
+			{
+				name := ""
+				obj := false
+				for _, attr := range n.Attrs {
+					if attr.Name.Local == "name" {
+						name = n.Attrs[0].Value
+					}
+					if attr.Name.Local == "obj" {
+						obj = true
+					}
+				}
+				err := processAttr(name, string(n.Content), obj)
+				if err != nil {
+					return "", errors.WrapError(ctx, err)
+				}
+			}
+		case "Content":
+			{
+				content = n.Content
+			}
+		default:
+			{
+				childTxt, err := svc.processXMLBlockNode(ctx, n)
+				if err != nil {
+					return "", errors.WrapError(ctx, err)
+				}
+				children = append(children, childTxt)
+			}
+		}
+	}
+	//attrs := make(map[string]interface{})
+	for _, attr := range node.Attrs {
+		val := attr.Value
+		obj := strings.HasPrefix(val, "`")
+		if obj {
+			val = strings.TrimPrefix(val, "`")
+		}
+		err := processAttr(attr.Name.Local, val, obj)
+		if err != nil {
+			return "", err
 		}
 	}
 	attrStr := fmt.Sprintf("{%s}", attrBuf.String())
 
-	if (len(children) == 0) && len(node.Content) > 0 {
-		val, err := utils.ProcessTemplate(ctx, node.Content, nil) //svc.processText(ctx, string(node.Content), true)
+	if (len(children) == 0) && len(content) > 0 {
+		val, err := utils.ProcessTemplate(ctx, content, nil) //svc.processText(ctx, string(node.Content), true)
 		if err != nil {
 			return "", errors.WrapError(ctx, err)
 		}
 		children = append(children, fmt.Sprintf("%s", processJS(ctx, string(val))))
 	}
+
 	elem := ""
 	switch mod {
 	case "":
@@ -123,7 +162,7 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, e
 
 func processJS(ctx core.ServerContext, input string) string {
 	if jsReplaceRegex == nil {
-		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\.\(\)\[\]\{\}]+)#@#`)
+		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)#@#`)
 	}
 	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
 	if len(arr) == 0 {
@@ -136,6 +175,7 @@ func processJS(ctx core.ServerContext, input string) string {
 	val := `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
 	return val
 }
+
 func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string {
 	attrBuf := new(bytes.Buffer)
 	attrNames := conf.AllConfigurations(ctx)
@@ -174,9 +214,10 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 	rootelem := ""
 	for _, key := range keys {
 		if key != "config" {
-			rootelem = keys[0]
+			rootelem = key
 		}
 	}
+
 	if rootelem == "" {
 		return "", errors.BadArg(ctx, "Json", "Reason", "Root element not provided for block")
 	}

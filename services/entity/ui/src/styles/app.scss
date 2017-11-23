@@ -1,0 +1,27 @@
+@import 'reactwebcommon/app';
+
+.entityform {
+  .entityformfield {
+    @extend .w100;
+  }
+  .submitBtn {
+    @extend .ps10;
+  }
+}
+.entitylist {
+  .actionbar {
+    @extend .right, .p20;
+  }
+  .tablecell {
+    @extend .right, .p10;
+  }
+  .tableheading {
+    @extend  .bg-grey;
+  }
+  .oddindex {
+    @extend  .bg-lgrey;
+  }
+  .evenindex {
+    @extend  .bg-white;    
+  }
+}

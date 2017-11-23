@@ -19,32 +19,8 @@ function Initialize(appName, ins, mod, settings, def, req) {
   //injectTapEventPlugin();
 }
 
-class SelectFieldExampleSimple extends React.Component {
-  state = {
-    value: 1,
-  };
-
-  handleChange = (event, index, value) => {console.log("on change called", event); this.setState({value});} ;
-
-  render() {
-    return (
-        <Select
-          floatingLabelText="Frequency"
-          value={this.state.value}
-          onChange={this.handleChange} >
-          <MenuItem key={"ssss1"} value={1} primaryText="Never" />
-          <MenuItem key={"ssss2"} value={2} primaryText="Every Night" />
-          <MenuItem key={"ssss3"} value={3} primaryText="Weeknights" />
-          <MenuItem key={"ssss4"} value={4} primaryText="Weekends" />
-          <MenuItem key={"ssss5"} value={5} primaryText="Weekly" />
-        </Select>
-      )
-  }
-}
-
 const Block=(props) => (
   <div style={props.style} className={props.className}>
-    <SelectFieldExampleSimple/>
    {props.children}</div>
 )
 

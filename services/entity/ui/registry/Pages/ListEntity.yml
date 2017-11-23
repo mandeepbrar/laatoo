@@ -4,15 +4,16 @@ config:
 route: {{if exists "list_page_route"}} {{var "list_page_route"}} {{else}} /list_{{default "instance" "object" | lower}} {{end}}
 component:
   type: layout
+  className: entitylist
   layout: 1col
   items:
     - type: html
       html: <h1>{{default "instance" "object" }} List</h1>
     - type: component
-      componentName: Action
+      componentName: ActionBar
+      actions:
+        - name: form_new_{{default "instance" "object" | lower}}
+          label: New
       module: reactwebcommon
-      props:
-        name: form_new_{{default "instance" "object" | lower}}
-        label: New
     - type: view
       viewid: list_{{default "instance" "object" | lower}}

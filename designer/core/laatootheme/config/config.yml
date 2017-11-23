@@ -1,0 +1,13 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+description: Module provides laatoo theme
+modules:
+  def:
+    module: dashboardtheme
+    settings:
+      headertitle: Laatoo
+      className: laatoodashboard
+      vertical: true
+ui:
+  skipUIModules: true

@@ -16,7 +16,7 @@ ui:
     redux-saga: redux-saga
     prop-types: prop-types
   packages:
-    react: "^15.6.0"
+    react: "^16.1.0"
     react-redux: "^5.0.6"
     redux: "^3.7.2"
     redux-saga: "^0.16.0"

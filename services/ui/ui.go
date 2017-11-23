@@ -8,7 +8,9 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
+	"os"
 	"path"
+	"path/filepath"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -86,7 +88,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod core.Module, modConf config.Config, settings config.Config, props map[string]interface{}) error {
+func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns string, mod core.Module, modConf config.Config, settings config.Config, props map[string]interface{}) error {
 	ui, ok := settings.GetBool(ctx, UI_SVC_ENABLED)
 	if ok && !ui {
 		return nil
@@ -158,9 +160,14 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 
 	}
 
+	instance := insName
+	if parentIns != "" {
+		instance = parentIns
+	}
+
 	if modRead {
-		svc.insSettings[insName] = settings
-		svc.insMods[insName] = modName
+		svc.insSettings[instance] = settings
+		svc.insMods[instance] = modName
 	}
 
 	uiRegDir := path.Join(dir, UI_DIR)
@@ -169,9 +176,20 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir string, mod co
 		return errors.WrapError(ctx, err)
 	}
 
-	err = svc.appendPropertyFiles(ctx, insName, props)
+	err = svc.appendPropertyFiles(ctx, modName, props)
 	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+
+	publicImgs := path.Join(dir, FILES_DIR, "publicimages")
+	ok, _, _ = utils.FileExists(publicImgs)
+	if ok {
+		log.Debug(ctx, "Processing images ", "dir", publicImgs)
+		err = svc.copyImages(ctx, modName, publicImgs)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
 	}
 
 	return nil
@@ -218,4 +236,33 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 			}
 		}*/
 
+}
+
+func (svc *UI) copyImages(ctx core.ServerContext, mod, dirPath string) error {
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	basedir, _ := ctx.GetString(config.BASEDIR)
+
+	err = os.MkdirAll(filepath.Join(basedir, "images", mod), 0700)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	for _, info := range files {
+		if info.IsDir() {
+			continue
+		}
+		path := filepath.Join(dirPath, info.Name())
+
+		dest := filepath.Join(basedir, "images", mod, info.Name())
+		log.Trace(ctx, "Copying file", "src", path, "dest", dest)
+		err = utils.CopyFile(path, dest)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	return nil
 }

@@ -12,3 +12,11 @@
     @extend .tablecell;
   }
 }
+
+.laatoodashboard .header {
+  @extend .bg-lgrey;
+}
+
+body {
+  margin: 0;
+}

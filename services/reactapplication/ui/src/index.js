@@ -41,7 +41,9 @@ function StartApplication() {
   if(Uikit.default) {
     Uikit = Uikit.default
   }
+  console.log("theme for application", theme);
   let ThemeMod = this.req(theme)
+  console.log("Theme mod", ThemeMod);
   if(ThemeMod.default) {
     ThemeMod = ThemeMod.default
   }

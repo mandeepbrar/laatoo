@@ -35,10 +35,14 @@ class WebFormUI extends React.Component {
 
   submitSuccessCallback = (data) => {
     let cfg = this.props.config
-    var redirect = cfg && cfg.successRedirect ? cfg.successRedirect: null
-    console.log("redirect", redirect)
-    if(redirect) {
-      Window.redirect(redirect);
+    if(cfg) {
+      console.log("submit callback", cfg);
+      if(cfg.successRedirect) {
+        Window.redirect(cfg.successRedirect);
+      }
+      if(cfg.successRedirectPage) {
+        Window.redirect(cfg.successRedirectPage);
+      }
     }
   }
 
@@ -55,11 +59,18 @@ class WebFormUI extends React.Component {
 
   fields = () => {
     let fieldsArr = new Array()
-    if(this.props.description.fields) {
-      Object.keys(f).forEach(function(k) {
-        let fd = f[k]
-        fieldsArr.push(  <Field name={fd.name}/>      )
-      })
+    let desc = this.props.description
+    console.log("desc of form ", desc)
+    if(desc && desc.fields) {
+      let flds = desc.fields
+      let fldToDisp = desc.info && desc.info.fieldsLayout? desc.info.fieldsLayout: Object.keys(flds)
+      console.log("fldToDisp", fldToDisp)
+      if(flds) {
+        fldToDisp.forEach(function(k) {
+          let fd = flds[k]
+          fieldsArr.push(  <Field name={fd.name}/>      )
+        })
+      }
     }
     return fieldsArr
   }
@@ -80,14 +91,17 @@ class WebFormUI extends React.Component {
       if(cfg.layout) {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
-          let root = display({}, this.props.description, this.uikit)
+          console.log("form context", this.props.formContext);
+          let root = display(this.props.formContext, this.props.description, this.uikit)
           return React.cloneElement(root, {onSubmit: handleSubmit(f), className: this.className})
         }
       } else {
         return (
           <this.uikit.Form onSubmit={handleSubmit(f)} className={this.className}>
             {this.fields()}
-            <button type="submit">{cfg.submit? cfg.submit: "Submit"}</button>
+            <this.uikit.Block className="actionbar">
+              <button type="submit" className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</button>
+            </this.uikit.Block>
           </this.uikit.Form>
         )
       }
