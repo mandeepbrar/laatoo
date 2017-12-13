@@ -2,7 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Button from 'material-ui/Button';
 import Snackbar from 'material-ui/Snackbar';
-import Dialog from 'material-ui/Dialog';
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from 'material-ui/Dialog';
 
 class DialogHandler extends React.Component {
   constructor(props) {
@@ -27,7 +32,7 @@ class DialogHandler extends React.Component {
   render() {
     let contentStyle = this.props.contentStyle
     if(!contentStyle) {
-      contentStyle = {minWidth:400, maxWidth: 450}
+      contentStyle = {minWidth:400, maxWidth: 450, backgroundColor: 'white'}
     }
     if(!this.state.open) {
       return <div></div>
@@ -36,7 +41,7 @@ class DialogHandler extends React.Component {
     switch (this.state.type) {
       case "Error":
         return  <Dialog actions={<Button raised label="Close" onTouchTap={this.handleClose}/>} title="Error" titleClassName="errorTitle" modal={true}
-            contentStyle={{minWidth:300, maxWidth: 350}}open={this.state.open} onRequestClose={this.handleClose} >
+            contentStyle={{minWidth:300, maxWidth: 350}} open={this.state.open} onRequestClose={this.handleClose} >
             <div className="errorMessage">{this.state.message}</div>
           </Dialog>
       break;
@@ -44,18 +49,25 @@ class DialogHandler extends React.Component {
         return <Snackbar open={this.state.open} message={this.state.message} autoHideDuration={4000}/>
       break
       default:
-        return <Dialog actions={this.props.actions} title={<div className="dialogTitle">{this.props.title}<Button className="closeButton" style={{minWidth:25}} label="x" onTouchTap={this.handleClose}/></div>}
-           modal={true} contentStyle={contentStyle} open={this.state.open} onRequestClose={this.handleClose} >
-          <div className="dialogComponent">
-            {this.props.component}
-          </div>
-        </Dialog>
+        console.log("rendering dialog...........", this.props)
+        return (
+         <Dialog open={this.state.open} modal={true} onRequestClose={this.handleClose}>
+           <DialogTitle style={this.props.titleStyle}>{this.props.title}</DialogTitle>
+           <DialogContent style={contentStyle}>
+           {this.props.component}
+           </DialogContent>
+           <DialogActions>
+            {this.props.actions}
+           </DialogActions>
+         </Dialog>  
+        )
     }
   }
 
 }
 
 const mapStateToProps = (state, ownProps) => {
+  console.log("state dialog", state, state.Dialogs, ownProps)
   if(!state.Dialogs ) {
     return {}
   }

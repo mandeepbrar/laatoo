@@ -1,0 +1,17 @@
+{
+  "name":"ModuleInstance",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "fieldsLayout": ["Name", "Description"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    }
+  }
+}

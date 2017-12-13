@@ -23,6 +23,8 @@ modules:
     module: reactwebrouter
   reactmaterialkit:
     module: reactmaterialkit
+  entitylistfield:
+    module: entitylistfield
   uicommon:
     module: uicommon
   reactpages:
@@ -43,6 +45,7 @@ modules:
       application: designerapplication
       vertical: true
       className: laatoodashboard
+      infoBlock: InfoBlock
   designerui:
     module: designerui
   designerapplication:

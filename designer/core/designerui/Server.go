@@ -13,10 +13,10 @@ type Server_Ref struct {
 type Server struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Name	string `json:"Name" bson:"Name"  `
-	Description	string `json:"Description" bson:"Description"  `
-	SolutionId	string `json:"SolutionId" bson:"SolutionId"  `
-	Solution	*Solution `json:"Solution" bson:"Solution"  `
+	Name	string `json:"Name" bson:"Name" datastore:"Name"`
+	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
+	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

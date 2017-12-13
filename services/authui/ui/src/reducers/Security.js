@@ -22,8 +22,9 @@ const Account = (state, action) => {
         Storage.auth = action.payload.token;
         Storage.permissions = action.payload.permissions;
         Storage.userId = action.payload.userId;
-        Storage.userName = action.payload.user.Name;
-        Storage.email = action.payload.user.email;
+        Storage.userFullName = action.payload.user.Name;
+        Storage.userName = action.payload.user.Username;
+        Storage.email = action.payload.user.Email;
         Storage.user = action.payload.user;
         return Object.assign({}, state, {
           status: "LoggedIn",
@@ -37,15 +38,17 @@ const Account = (state, action) => {
         Storage.permissions = [];
         Storage.userId = "";
         Storage.userName = "";
+        Storage.userFullName = "";
         Storage.email = "";
         Storage.user = null;
         return initialSecState;
 
-      case ActionNames.LOGOUT:
+      case ActionNames.LOGOUT_SUCCESS:
         Storage.auth = "";
         Storage.permissions = [];
         Storage.userId = "";
         Storage.userName = "";
+        Storage.userFullName = "";
         Storage.email = "";
         Storage.user = null;
         return initialSecState;

@@ -98,7 +98,6 @@ class FieldWidget extends React.Component {
       })
     }
 
-    console.log("select field items", items, props)
     return (
       <FormControl className={fld.name + " formcontrol "+ (fld.className?fld.className:"")}>
         <InputLabel htmlFor={fld.name}>{fld.label}</InputLabel>

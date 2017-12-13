@@ -13,16 +13,16 @@ type Deployment_Ref struct {
 type Deployment struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Name	string `json:"Name" bson:"Name"  `
-	Description	string `json:"Description" bson:"Description"  `
-	SolutionId	string `json:"SolutionId" bson:"SolutionId"  `
-	Solution	*Solution `json:"Solution" bson:"Solution"  `
-	EnvironmentId	string `json:"EnvironmentId" bson:"EnvironmentId"  `
-	Environment	*Environment `json:"Environment" bson:"Environment"  `
-	ServerId	string `json:"ServerId" bson:"ServerId"  `
-	Server	*Server `json:"Server" bson:"Server"  `
-	ApplicationId	string `json:"ApplicationId" bson:"ApplicationId"  `
-	Application	*Application `json:"Application" bson:"Application"  `
+	Name	string `json:"Name" bson:"Name" datastore:"Name"`
+	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
+	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
+	EnvironmentRef	*Environment `json:"EnvironmentRef" bson:"EnvironmentRef" datastore:"EnvironmentRef"`
+	Environment	string `json:"Environment" bson:"Environment" datastore: "Environment"`
+	ServerRef	*Server `json:"ServerRef" bson:"ServerRef" datastore:"ServerRef"`
+	Server	string `json:"Server" bson:"Server" datastore: "Server"`
+	ApplicationRef	*Application `json:"ApplicationRef" bson:"ApplicationRef" datastore:"ApplicationRef"`
+	Application	string `json:"Application" bson:"Application" datastore: "Application"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

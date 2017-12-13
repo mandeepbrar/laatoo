@@ -9,8 +9,13 @@ class Panel extends React.Component {
     super(props)
     this.uikit = ctx.uikit
     let desc = props.description
+
     if(!desc && props.id) {
       desc = _reg('Panels', props.id)
+    }
+    if(!desc && props.id) {
+      let type = props.type? props.type: "block";
+      desc = Object.assign({type: type}, props)
     }
     //console.log("print id ", desc.id)
     console.log("creating panel", desc, props, ctx, this.context)
@@ -202,7 +207,8 @@ class Panel extends React.Component {
       this.getView = function(props, ctx, state) {
         let formCfg = Object.assign({}, cfg, ctx.routeParams)
         console.log("form cfg", formCfg, cfg)
-        return <this.form form={desc.id} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} description={formdesc} id={desc.id}></this.form>
+        return <this.form form={desc.id} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg}
+          onSubmit={props.onSubmit} actions={props.actions} description={formdesc} id={desc.id}></this.form>
       }
     } else {
       this.getView = function(props, ctx, state) {
@@ -212,13 +218,15 @@ class Panel extends React.Component {
   }
 
   getDisplayFunc(item, props) {
+    console.log("getting block", item)
     if(!item) {
       return null
     }
     if (typeof(item) == "string") {
       return _reg('Blocks', item)
     } else {
-      let display = _reg('Blocks', item.block)
+      let bid = item.block? item.block: item.id;
+      let display = _reg('Blocks', bid)
       if(!display) {
         display = _reg('Blocks', item.defaultBlock)
       }
@@ -227,7 +235,7 @@ class Panel extends React.Component {
   }
 
   processView = (desc, props, ctx, className) => {
-    let viewid = desc.viewid
+    let viewid = desc.viewid? desc.viewid: desc.id
     var viewdesc = desc
     if(viewid) {
       viewdesc = _reg('Views', viewid)
@@ -292,6 +300,7 @@ class Panel extends React.Component {
     return this.getView? this.getView(this.props, this.context, this.state): <this.context.uikit.Block/>
   }
 }
+
 
 Panel.contextTypes = {
   uikit: PropTypes.object,

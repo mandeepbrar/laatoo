@@ -36,11 +36,14 @@ function fields(fields) {
     let field = fields[fieldName]
     let jsonF = field.json?field.json:fieldName
     let bsonF = field.bson?field.bson:fieldName
-    let ptrF = field.ref?"*":""
-    let datastoreF = field.datastore? "datastore:\""+field.datastore+"\"": ""
+    let datastoreF = field.datastore? field.datastore : fieldName
     switch (field.type) {
+      case "entity":
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+        break;
       default:
-      fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s%s `json:\"%s\" bson:\"%s\"  %s`", fieldName, ptrF, field.type, jsonF, bsonF, datastoreF)
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)
     }
   });
   return fieldsStr

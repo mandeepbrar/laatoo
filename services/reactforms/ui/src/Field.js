@@ -2,27 +2,45 @@
 
 import React from 'react';
 import { Field } from 'redux-form'
+import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 const PropTypes = require('prop-types');
+
+var modrequire = null;
+
+function Initialize(appName, ins, mod, settings, def, req) {
+  modrequire = req;
+}
 
 class FieldWrapper extends React.Component {
   constructor(props, context) {
     super(props)
-    console.log("fields created", props, this.field)
     this.field = context.fields[props.name]
+    console.log("fields created", props, this.field, context)
     if(!this.field.label && !this.field.skipLabel) {
       this.field.label = props.name
     }
     this.state = { additionalProperties:{} }
-    if (this.field.widget == "Select") {
-      if(this.field.items){
-        this.state.additionalProperties.items = this.field.items
-      } else if(this.field.dataService) {
-        let errorMethod = function (resp) {
-          console.log("could not load data", resp)
-        };
-        let req = RequestBuilder.DefaultRequest(null, this.field.dataServiceParams);
-        DataSource.ExecuteService(this.field.dataService, req).then(this.selectOptionsLoaded, errorMethod);
-      }
+    let errorMethod = function (resp) {
+      console.log("could not load data", resp)
+    };
+    if(this.field.module) {
+      let mod = modrequire(this.field.module);
+      console.log("mod..", mod)
+      this.fldWidget = mod[this.field.widget];
+      console.log("mod..", this.fldWidget)
+    } else {
+      if (this.field.widget == "Select") {
+        if(this.field.items){
+          this.state.additionalProperties.items = this.field.items
+        }
+        if(this.field.dataService) {
+          let req = RequestBuilder.DefaultRequest(null, this.field.dataServiceParams);
+          DataSource.ExecuteService(this.field.dataService, req).then(this.selectOptionsLoaded, errorMethod);
+        }
+        if(this.field.type == "entity") {
+          EntityData.ListEntities(this.field.name).then(this.selectOptionsLoaded, errorMethod);
+        }
+     }
     }
   }
 
@@ -31,10 +49,13 @@ class FieldWrapper extends React.Component {
       this.loadedData = resp.data
       let data = {}
       let items=[]
-      let textField = this.field.textField? this.field.textField: "Title"
+      let textField = this.field.textField? this.field.textField: "Name"
       let valueField = this.field.valueField? this.field.valueField: "Id"
       resp.data.forEach(function(item) {
-        items.push({text: item[textField], value: item[valueField]})
+        let text = item[textField];
+        text = text? text: item["Title"]
+        text = text? text: item[valueField]
+        items.push({text: text, value: item[valueField]})
       })
       /*let imgField = this.props.config? this.props.config.imgField: null
       resp.data.forEach((item)=> {
@@ -56,9 +77,16 @@ class FieldWrapper extends React.Component {
     }
   }
   render() {
-    return (
-      <Field name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={this.context.uikit.Forms.FieldWidget}/>
-    )
+    console.log("rendering field+", this.props, this.props.name, this.field, this.fldWidget);
+    if(this.fldWidget) {
+      return (
+        <this.fldWidget key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field}/>
+      )
+    } else {
+      return (
+        <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={this.context.uikit.Forms.FieldWidget}/>
+      )
+    }
   }
 
 }
@@ -68,4 +96,4 @@ FieldWrapper.contextTypes = {
   uikit:  PropTypes.object
 };
 
-export { FieldWrapper as Field}
+export { FieldWrapper as Field, Initialize}

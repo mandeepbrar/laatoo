@@ -65,6 +65,19 @@ export class EntityDataService {
       }
 		};
 
+    ListEntities(entityName, criteria, headers, svc) {
+      if(svc) {
+        var req = this.RequestBuilder.URLParamsRequest(criteria, null, headers);
+  			return this.DataSource.ExecuteService(svc, req);
+      } else {
+        var service = {};
+  			service.method = "POST";
+        service.url = this.EntityPrefix+entityName.toLowerCase()+"/view";
+        var req = this.RequestBuilder.DefaultRequest(criteria, null, headers);
+  			return this.DataSource.ExecuteServiceObject(service, req);
+      }
+    };
+
 		UpdateEntity(entityName, id, fieldmap, headers, svc) {
       if(svc) {
         var req = this.RequestBuilder.URLParamsRequest({":id": id}, null, headers);

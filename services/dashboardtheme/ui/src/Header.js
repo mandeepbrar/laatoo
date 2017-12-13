@@ -1,17 +1,41 @@
 import React from 'react';
 import {Image} from 'reactwebcommon';
+import {Panel} from 'reactpages';
+import {connect} from 'react-redux';
 
-const Header = (props) => {
-  let hs = props.headerProps;
-  console.log("header properties", hs, props)
-  return (
-    <div className={hs.className?hs.className:'header'}>
-      <div className="logo">
-        {hs.image?<div className="image"><Image src={hs.image}/></div>:null}
-        {hs.title?<div className="title">{hs.title}</div>:null}
-      </div>
-    </div>
-  )
+class HeaderUI extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    let props = this.props;
+    let module = props.module;
+    let hs = module.properties.header;
+    let settings = module.settings;
+    let infoBlock = settings.infoBlock ? settings.infoBlock: "userBlock";
+    console.log("header properties", hs, props)
+    return (
+      <props.uikit.Block className={hs.className?hs.className:'header'}>
+        <props.uikit.Block className="logo">
+          {hs.image?<props.uikit.Block className="image"><Image src={hs.image}/></props.uikit.Block>:null}
+          {hs.title?<props.uikit.Block className="title">{hs.title}</props.uikit.Block>:null}
+        </props.uikit.Block>
+        {
+        props.loggedIn?
+        <Panel id={infoBlock} className="infoBlock"/>
+        :null
+        }
+      </props.uikit.Block>
+    )
+  }
 }
+
+const mapStateToProps = (state, ownProps) => {
+  return {
+    loggedIn: state.Security.status == "LoggedIn"
+  }
+}
+
+const Header = connect(mapStateToProps)(HeaderUI);
 
 export default Header

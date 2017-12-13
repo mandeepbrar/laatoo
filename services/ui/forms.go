@@ -134,6 +134,7 @@ func (svc *UI) buildEntitySchema(ctx core.ServerContext, entityName string, form
 func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType string, required bool, widget, widgetMod string, conf config.Config, fieldMap *bytes.Buffer) error {
 
 	fieldAttrs := conf.Clone()
+	fieldAttrs.Set(ctx, "name", fieldName)
 	if widget == "" {
 		switch fieldType {
 		case config.OBJECTTYPE_STRING:
@@ -154,12 +155,14 @@ func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType s
 		case config.OBJECTTYPE_DATETIME:
 			fieldAttrs.Set(ctx, "widget", "DatePicker")
 			break
+		case "entity":
+			fieldAttrs.Set(ctx, "widget", "Select")
+			break
 		case "image":
 			fieldAttrs.Set(ctx, "widget", "ImagePicker")
 			break
 		}
 	}
-	fieldAttrs.Set(ctx, "name", fieldName)
 	fieldsStr, _ := json.Marshal(fieldAttrs)
 	fieldMap.WriteString(fmt.Sprintf("%s:%s", fieldName, fieldsStr))
 	return nil

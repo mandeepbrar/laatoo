@@ -55,9 +55,7 @@ function processMenu(){
   console.log("dashboard menu", menu)
   if(menu) {
     menu.forEach(function(menuItem){
-      console.log("found menu item", menuItem)
       //let menuItem=menuConfig[menuItem]
-      console.log("found menu", menuItem.title)
       if(menuItem.page) {
         menuItems.push({title:menuItem.title, action: "Page_" + menuItem.page})
       } else {
@@ -67,7 +65,6 @@ function processMenu(){
   } else {
     menuItems.push({title:'Home', action:'Page_home'})
   }
-  console.log("menu items", menuItems)
   module.menu = menuItems
 }
 
@@ -84,16 +81,16 @@ const MainView = (props) => {
   let vertical = module.settings.vertical?true:false
   let logInComp = module.logInComp
   let loggedInComp = (
-    <div className="body">
-      <div className={vertical?"vertmenu":"horizmenu"}>
+    <props.uikit.Block className="body">
+      <props.uikit.Block className={vertical?"vertmenu":"horizmenu"}>
         <props.router.View name="menu"  />
-      </div>
-      <div className={vertical?"vertbody":"horizbody"}>
+      </props.uikit.Block>
+      <props.uikit.Block className={vertical?"vertbody":"horizbody"}>
         <props.router.View name="main"/>
-      </div>
-    </div>
+      </props.uikit.Block>
+    </props.uikit.Block>
   )
-  let retval= (props.loggedIn || module.skipAuth)?loggedInComp:<div className="dashlogin"><module.logInComp/></div>;
+  let retval= (props.loggedIn || module.skipAuth)?loggedInComp:<props.uikit.Block className="dashlogin"><module.logInComp/></props.uikit.Block>;
   return retval
 }
 
@@ -101,14 +98,15 @@ const DashboardTheme = (props) => {
   let loggedIn = false
   return (
     <props.uikit.UIWrapper>
-      <div className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
-        <Header headerProps={module.properties.header} />
+      <props.uikit.Block className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
+        <Header uikit={props.uikit} module={module} />
         <LoginValidator  validateService="validate">
-          <MainView router={props.router}/>
+          <MainView uikit={props.uikit} router={props.router}/>
         </LoginValidator>
-        <div className="footer">
-        </div>
-      </div>
+        <props.uikit.Block className="footer">
+        {props.children}
+        </props.uikit.Block>
+      </props.uikit.Block>
     </props.uikit.UIWrapper>
   )
 }

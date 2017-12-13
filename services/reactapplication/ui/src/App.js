@@ -12,6 +12,14 @@ class App extends React.Component {
   }
 }
 
+
+/*
+
+<Dialogs uikit={this.props.uikit} />
+<Messages uikit={this.props.uikit} />
+*/
+
+
 App.childContextTypes = {
   uikit: PropTypes.object,
   router: PropTypes.object

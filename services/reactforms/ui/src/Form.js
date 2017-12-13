@@ -16,13 +16,23 @@ class WebFormUI extends React.Component {
       props.loader(context.routeParams, this.dataLoaded, this.failureCallback)
     }
     this.className = "webform " + ((props.config && props.config.className)? props.config.className :"")
-
+    this.config = this.props.config? this.props.config :{}
+    this.actions = props.actions
+    let desc = props.description
+    if(!this.actions && desc.actions) {
+      this.actions = _reg('Method', desc.actions)
+    }
+    console.log("webform ", props)
     let layoutFunc = null
-    if(props.description.layout) {
+    if(desc.layout) {
 
     } else {
 
     }
+  }
+
+  reset = () => {
+    this.props.reset()
   }
 
   getChildContext() {
@@ -48,31 +58,54 @@ class WebFormUI extends React.Component {
 
   dataLoaded = (data) => {
     let formData = data
-    let cfg = this.props.config
-    if(cfg & cfg.dataMapper) {
-      let mapper = _reg('Method', cfg.dataMapper)
+    if(this.config.dataMapper) {
+      let mapper = _reg('Method', this.config.dataMapper)
       formData = mapper(data)
     }
     let x = this.props.initialize(data.resp.data, 'myform')
     this.props.dispatch(x)
   }
 
-  fields = () => {
+  layoutFields = (fldToDisp, flds) => {
     let fieldsArr = new Array()
+    fldToDisp.forEach(function(k) {
+      let fd = flds[k]
+      console.log("adding field ", k, fd)
+      fieldsArr.push(  <Field key={fd.name} name={fd.name}/>      )
+    })
+    return fieldsArr
+  }
+
+  fields = () => {
     let desc = this.props.description
     console.log("desc of form ", desc)
+    let comp = this
     if(desc && desc.fields) {
       let flds = desc.fields
       let fldToDisp = desc.info && desc.info.fieldsLayout? desc.info.fieldsLayout: Object.keys(flds)
-      console.log("fldToDisp", fldToDisp)
       if(flds) {
-        fldToDisp.forEach(function(k) {
-          let fd = flds[k]
-          fieldsArr.push(  <Field name={fd.name}/>      )
-        })
+        if(fldToDisp instanceof Array) {
+          return this.layoutFields(fldToDisp, flds)
+        } else {
+          let tabs = new Array()
+          Object.keys(fldToDisp).forEach(function(k) {
+            let tabFlds = fldToDisp[k];
+            let tabArr = comp.layoutFields(tabFlds, flds)
+            tabs.push(
+              <comp.uikit.Tab label={k} value={k}>
+                {tabArr}
+              </comp.uikit.Tab>
+            )
+          })
+          return (
+            <this.uikit.Tabset >
+              {tabs}
+            </this.uikit.Tabset>
+          )
+        }
       }
     }
-    return fieldsArr
+    return null
   }
 
   uiformSubmit = (success, failure) => {
@@ -83,24 +116,28 @@ class WebFormUI extends React.Component {
   }
 
   render() {
-    let {handleSubmit} = this.props
+    let {handleSubmit, actions} = this.props
     let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
-    let cfg = this.props.config? this.props.config :{}
-    console.log('render form', this.props)
+    let submitFunc = handleSubmit(f)
+    let cfg = this.config
     if(this.uikit.Form) {
       if(cfg.layout) {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(this.props.formContext, this.props.description, this.uikit)
-          return React.cloneElement(root, {onSubmit: handleSubmit(f), className: this.className})
+          return React.cloneElement(root, { onSubmit: submitFunc, className: this.className})
         }
       } else {
         return (
-          <this.uikit.Form onSubmit={handleSubmit(f)} className={this.className}>
+          <this.uikit.Form onSubmit={submitFunc} className={this.className}>
             {this.fields()}
             <this.uikit.Block className="actionbar">
-              <button type="submit" className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</button>
+              {
+                this.actions?
+                this.actions(this, submitFunc, this.reset):
+                <button type="submit" className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</button>
+              }
             </this.uikit.Block>
           </this.uikit.Form>
         )
@@ -135,8 +172,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
   var config = null
   var loader = null
   var formSubmit = null
-
-
+  console.log("ownprops ", ownProps)
   if(desc) {
     config = ownProps.config? ownProps.config: desc.config
     if(config) {
@@ -150,20 +186,26 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             dispatch(createAction(ActionNames.ENTITY_GET, { entityId, entityName}, {successCallback:  dataLoaded, failureCallback: failureCallback}));
           }
         }
-
-        if(entityId) {
-          if(config.put) {
-            formSubmit = (data, successCallback, failureCallback) => {
-              dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+        if(ownProps.onSubmit) {
+          formSubmit = (data, successCallback, failureCallback) => {
+            console.log("form submit")
+            ownProps.onSubmit({data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback});
+          }
+        } else {
+          if(entityId) {
+            if(config.put) {
+              formSubmit = (data, successCallback, failureCallback) => {
+                dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+              }
+            } else {
+              formSubmit = (data, successCallback, failureCallback) => {
+                dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+              }
             }
           } else {
             formSubmit = (data, successCallback, failureCallback) => {
-              dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+              dispatch(createAction(ActionNames.ENTITY_SAVE, {data, entityName}, {successCallback, failureCallback}));
             }
-          }
-        } else {
-          formSubmit = (data, successCallback, failureCallback) => {
-            dispatch(createAction(ActionNames.ENTITY_SAVE, {data, entityName}, {successCallback, failureCallback}));
           }
         }
       } else {
@@ -182,17 +224,22 @@ const mapDispatchToProps = (dispatch, ownProps) => {
             }
           }
         }
-
-        formSubmit = (data, successCallback, failureCallback) => {
-          if(config) {
-            let preSubmit = _reg('Method', config.preSubmit)
-            if(preSubmit) {
-              data = preSubmit(data)
-            }
-            successCallback = config.submitSuccess? _reg('Method', config.submitSuccess) : successCallback
-            failureCallback = config.submitFailure? _reg('Method', config.submitFailure) : failureCallback
+        if(ownProps.onSubmit) {
+          formSubmit = (data, successCallback, failureCallback) => {
+            ownProps.onSubmit({data}, {successCallback, failureCallback});
           }
-          dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+        } else {
+          formSubmit = (data, successCallback, failureCallback) => {
+            if(config) {
+              let preSubmit = _reg('Method', config.preSubmit)
+              if(preSubmit) {
+                data = preSubmit(data)
+              }
+              successCallback = config.submitSuccess? _reg('Method', config.submitSuccess) : successCallback
+              failureCallback = config.submitFailure? _reg('Method', config.submitFailure) : failureCallback
+            }
+            dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+          }
         }
       }
     }

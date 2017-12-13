@@ -3,7 +3,7 @@
   "inherits":"",
   "imports":[],
   "form": {
-    "fieldsLayout":["Name", "Description", "SolutionId"]
+    "fieldsLayout":["Name", "Description", "Modules"]
   },
   "titleField": "Name",
   "fields":{
@@ -13,12 +13,12 @@
     "Description": {
         "type":"string"
     },
-    "SolutionId": {
-      "type":"string",
-      "widget": "checkbox"
-    },
-    "Solution": {
-        "type":"Solution",
+    "Modules": {
+        "type":"entity",
+        "form":"new_form_moduleinstance",
+        "entity": "ModuleInstance",
+        "widget": "EntityList",
+        "module": "entitylistfield",
         "ref": true
     }
   }

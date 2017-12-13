@@ -1,10 +1,11 @@
 import { createAction} from 'uicommon'
-import {Actions} from './actions'
+import Actions from './actions'
 import { Provider } from 'react-redux';
 import configureStore from './stores';
 import React from 'react';
 import {App} from './App';
 import {ProcessPages} from 'reactpages';
+
 
 this.appname = 'application';
 this.settings = {};
@@ -36,7 +37,6 @@ function Initialize(app, ins, mod, s, def, req) {
 function StartApplication() {
   console.log("Starting application ", this.appname);
   let {router, uikit, theme} = this.settings;
-  createMessageDialogs(store)
   let Uikit = this.req(uikit)
   if(Uikit.default) {
     Uikit = Uikit.default
@@ -59,6 +59,7 @@ function StartApplication() {
     Router = Router.default
   }
   const store = configureStore();
+  createMessageDialogs(store)
   Router.connect(store);
   Uikit.render(
     <Provider store={store}>

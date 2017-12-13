@@ -1,0 +1,11 @@
+<Form module="uikit" className="w100">
+  <Tabset module="uikit">
+    <Tab label="Tab 1" value="tab1" module="uikit">
+      <h1>my form1</h1>
+    </Tab>
+    <Tab label="Tab 2" value="tab2" module="uikit">
+      <h1>my form2</h1>
+    </Tab>
+  </Tabset>
+  <h1>my form</h1>
+</Form>

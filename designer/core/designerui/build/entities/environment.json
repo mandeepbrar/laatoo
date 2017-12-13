@@ -4,7 +4,7 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "fieldsLayout":["Name", "Description", "SolutionId"]
+    "fieldsLayout":["Name", "Description", "Solution"]
   },
   "fields":{
     "Name": {
@@ -13,11 +13,9 @@
     "Description": {
         "type":"string"
     },
-    "SolutionId": {
-      "type":"string"
-    },
     "Solution": {
-        "type":"Solution",
+        "type":"entity",
+        "entity": "Solution",
         "ref": true
     }
   }

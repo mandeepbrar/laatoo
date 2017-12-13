@@ -21,8 +21,15 @@ function* login(action) {
   }
 }
 
+function* logout(action) {
+  yield put(createAction(ActionNames.LOGOUT_SUCCESS, {}));
+}
+
 function* loginSaga() {
-  yield* takeLatest(ActionNames.LOGIN, login);
+  yield [
+    takeLatest(ActionNames.LOGIN, login),
+    takeLatest(ActionNames.LOGOUT, logout)
+  ];
 }
 
 //export {loginSaga as loginSaga};

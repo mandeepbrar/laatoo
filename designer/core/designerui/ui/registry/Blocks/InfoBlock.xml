@@ -1,0 +1,4 @@
+<div className="infoBlock">
+  <h2>Welcome</h2>
+  <Panel className="userBlock" module="reactpages" type="block" id="userBlock"></Panel>
+</div>

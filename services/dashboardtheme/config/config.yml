@@ -2,6 +2,7 @@ version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
   authui: ">=0.0.1"
+  reactpages: ">=0.0.1"
 description: Module provides dashboard theme for laatoo applications
 objects: {}
 ui:
@@ -14,6 +15,7 @@ ui:
     react-dom: react-dom
     authui: authui
     reactwebcommon: reactwebcommon
+    reactpages: reactpages
   packages:
     react: "^16.1.0"
     react-dom: "^16.1.0"

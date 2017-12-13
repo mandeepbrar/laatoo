@@ -17,6 +17,13 @@ modules:
       parent: root
       instance: Application
       dataservicefactory: mongodatabase
+  moduleinstance:
+    module: entity
+    settings:
+      object: ModuleInstance
+      parent: root
+      instance: ModuleInstance
+      dataservicefactory: mongodatabase
   solution:
     module: entity
     settings:

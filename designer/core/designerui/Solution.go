@@ -13,8 +13,8 @@ type Solution_Ref struct {
 type Solution struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Name	string `json:"Name" bson:"Name"  `
-	Description	string `json:"Description" bson:"Description"  `
+	Name	string `json:"Name" bson:"Name" datastore:"Name"`
+	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

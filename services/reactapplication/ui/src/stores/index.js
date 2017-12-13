@@ -2,6 +2,8 @@ const redux = require('redux');
 //import { createAction, createStore, Sagas} from 'uicommon'
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
+import '../reducers/Dialogs'
+import '../reducers/Messages'
 
 function runSagas(sagaMiddleware, sagas) {
   if(sagas) {

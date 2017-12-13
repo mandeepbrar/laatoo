@@ -3,3 +3,5 @@ ui
 debian
 designer
 services
+dist/bin
+dist/lib

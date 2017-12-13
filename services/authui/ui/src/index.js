@@ -5,6 +5,7 @@ import {renderWebLogin} from './WebLoginForm';
 const PropTypes = require('prop-types');
 import './reducers/Security';
 import './sagas/Security';
+import {UserBlock} from './UserBlock';
 
 var module = this;
 
@@ -51,6 +52,15 @@ const WebLoginForm = (props, context) => {
 WebLoginForm.contextTypes = {
   uikit: PropTypes.object
 };
+
+
+function userBlockDisplay(ctx, desc, uikit, className) {
+  return (
+    <UserBlock className={ctx.className} uikit={uikit} module={module}/>
+  )
+}
+
+Application.Register('Blocks', "userBlock", userBlockDisplay)
 
 export {
   Initialize,

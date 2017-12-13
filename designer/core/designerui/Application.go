@@ -13,10 +13,10 @@ type Application_Ref struct {
 type Application struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Name	string `json:"Name" bson:"Name"  `
-	Description	string `json:"Description" bson:"Description"  `
-	SolutionId	string `json:"SolutionId" bson:"SolutionId"  `
-	Solution	*Solution `json:"Solution" bson:"Solution"  `
+	Name	string `json:"Name" bson:"Name" datastore:"Name"`
+	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	ModulesRef	*ModuleInstance `json:"ModulesRef" bson:"ModulesRef" datastore:"ModulesRef"`
+	Modules	string `json:"Modules" bson:"Modules" datastore: "Modules"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

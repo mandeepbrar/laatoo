@@ -2,7 +2,7 @@
   "name":"Deployment",
   "inherits":"",
   "imports":[],
-  "fieldsLayout":["Name", "Description", "SolutionId", "ServerId", "EnvironmentId", "ApplicationId"],
+  "fieldsLayout":["Name", "Description", "Solution", "Server", "Environment", "Application"],
   "titleField": "Name",
   "fields":{
     "Name": {
@@ -11,33 +11,25 @@
     "Description": {
         "type":"string"
     },
-    "SolutionId": {
-      "type":"string"
-    },
     "Solution": {
-        "type":"Solution",
-        "ref": true
-    },
-    "EnvironmentId": {
-      "type":"string"
+      "type":"entity",
+      "entity": "Solution",
+      "ref": true
     },
     "Environment": {
-        "type":"Environment",
-        "ref": true
-    },
-    "ServerId": {
-      "type":"string"
+      "type":"entity",
+      "entity":"Environment",
+      "ref": true
     },
     "Server": {
-        "type":"Server",
-        "ref": true
-    },
-    "ApplicationId": {
-      "type":"string"
+      "type":"entity",
+      "entity":"Server",
+      "ref": true
     },
     "Application": {
-        "type":"Application",
-        "ref": true
+      "type":"entity",
+      "entity":"Application",
+      "ref": true
     }
   }
 }

@@ -1,7 +1,7 @@
 import {render } from 'react-dom'
 import Dialogs from './components/Dialogs'
 import Navbar from './components/Navbar'
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import {Button} from 'material-ui';
 import {TextField} from './components/TextField';
 import {ScrollListener} from 'reactwebcommon';
@@ -11,6 +11,7 @@ import Forms from './forms';
 import { FormControl } from 'material-ui/Form';
 import Select from 'material-ui/Select';
 import { MenuItem } from 'material-ui/Menu';
+import {Tabset, Tab} from './components/Tabs';
 //import injectTapEventPlugin from "react-tap-event-plugin";
 
 console.log("react material kit... forms", Forms)
@@ -30,6 +31,10 @@ const ActionButton=(props)=> (
 )
 
 class UIWrapper extends React.Component {
+  constructor(props) {
+    super(props)
+    this.theme = createMuiTheme()
+  }
   componentDidMount() {
     var injectTapEventPlugin = require("react-tap-event-plugin");
     console.log("injectd.........", injectTapEventPlugin)
@@ -38,19 +43,30 @@ class UIWrapper extends React.Component {
   }
   render() {
     return (
-      <MuiThemeProvider>{this.props.children}</MuiThemeProvider>
+      <MuiThemeProvider><Dialogs/>{this.props.children}</MuiThemeProvider>
     )
   }
 }
 
-const Form=(props)=>(
-  <form {...props}></form>
-)
+class Form extends React.Component {
+  constructor(props) {
+    super(props)
+    this.reset = this.reset.bind(this)
+  }
+  reset() {
+    this.form.reset();
+  }
+  render() {
+    return <form ref={(form) => this.form = form } {...this.props}></form>
+  }
+}
 
 export {
   Initialize,
   render,
   ActionButton,
+  Tabset,
+  Tab,
   Forms,
   Dialogs,
   Block,

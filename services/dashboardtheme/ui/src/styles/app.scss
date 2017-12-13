@@ -3,8 +3,7 @@
 .dashboard {
   @extend .w100;
   .header {
-    @extend .w100;
-    @extend .p50;
+    @extend .row, .m0, .p20, .between-xs;
     .title {
       @extend .start-xs;
     }
@@ -13,19 +12,19 @@
         max-width: 120px;
       }
     }
+    .infoBlock {
+    }
   }
   .dashlogin {
     @extend .center-xs, .row, .p20;
   }
   .entityform {
-    @extend .p50;
+    @extend .ps20, .m20;
   }
   .body {
     @extend .row;
     .vertmenu{
-      @extend .col-xs-2;
-      @extend .bg-lgrey;
-      @extend .ma20;
+      @extend .col-xs-2, .bg-lgrey, .ma20;
     }
     .horizmenu{
       @extend .w100;
