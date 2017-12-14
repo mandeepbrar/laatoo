@@ -14,12 +14,11 @@
         "type":"string"
     },
     "Modules": {
-        "type":"entity",
+        "type":"subentitylist",
         "form":"new_form_moduleinstance",
         "entity": "ModuleInstance",
         "widget": "EntityList",
-        "module": "entitylistfield",
-        "ref": true
+        "module": "entitylistfield"
     }
   }
 }

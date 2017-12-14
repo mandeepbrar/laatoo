@@ -132,7 +132,7 @@ func (svc *UI) buildEntitySchema(ctx core.ServerContext, entityName string, form
 }
 
 func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType string, required bool, widget, widgetMod string, conf config.Config, fieldMap *bytes.Buffer) error {
-
+	ctx = ctx.SubContext("Create Field: " + fieldName)
 	fieldAttrs := conf.Clone()
 	fieldAttrs.Set(ctx, "name", fieldName)
 	if widget == "" {

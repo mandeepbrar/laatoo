@@ -6,12 +6,20 @@ const PropTypes = require('prop-types');
 class EntityListField extends React.Component {
   constructor(props, ctx) {
     super(props)
-    let items = props.items? props.items: []
+    let items = props.input.value? props.input.value: []
     console.log("props...i entity list", props)
-    this.formDesc = {type: "form", id: "new_form_"+props.name.toLowerCase()}
+    let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
+    this.formDesc = {type: "form", id: formName}
     this.uikit = ctx.uikit;
     this.state = {items}
   }
+
+  componentWillReceiveProps(nextProps) {
+    console.log("componentWillReceiveProps(nextProps).", nextProps)
+    let items = nextProps.input.value? nextProps.input.value: []
+    this.setState({items})
+  }
+
   actions = (f, submit, reset)=> {
     console.log("actios returned", f, submit, reset)
     return (
@@ -27,8 +35,9 @@ class EntityListField extends React.Component {
   }
 
   submit = (data, success, failure) => {
-      console.log("my submit", data)
-      this.addItem(data.data)
+      let items = this.addItem(data.data)
+      console.log(" items", items)
+      this.props.input.onChange(items)
   }
 
   openForm = () => {
@@ -37,17 +46,29 @@ class EntityListField extends React.Component {
   }
 
   addItem = (item) => {
-    let items = this.state.items
+    let items = this.state.items.slice();
     items.push(item)
-    console.log("items set to ", items, item)
-    this.setState(Object.assign({}, {items: items}))
+    return items
+    //console.log("items set to ", items, item)
+    //this.setState(Object.assign({}, {items: items}))
+  }
+
+  removeItem = (item, index) => {
+    let items = this.state.items.slice();
+    if (index > -1) {
+      items.splice(index, 1);
+    }
+    this.props.input.onChange(items)
   }
 
   render() {
     let items = []
     console.log("rendering items in entity list", this.props, this.state)
     let comp = this
-    this.state.items.forEach(function(k) {
+    this.state.items.forEach(function(k, index) {
+      var removeItem = () => {
+        comp.removeItem(k, index)
+      }
       let textField = comp.props.entityText? comp.props.entityText: "Name"
       let text = k[textField];
       text = text? text: k["Title"]
@@ -56,8 +77,9 @@ class EntityListField extends React.Component {
           <comp.uikit.Block>
           {text}
           </comp.uikit.Block>
-          <comp.uikit.Block>
-          </comp.uikit.Block>
+          <comp.uikit.ActionButton className="removeButton" onClick={removeItem}>
+          X
+          </comp.uikit.ActionButton>
         </comp.uikit.Block>
       )
     })

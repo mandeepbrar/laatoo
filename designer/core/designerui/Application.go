@@ -15,8 +15,7 @@ type Application struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	ModulesRef	*ModuleInstance `json:"ModulesRef" bson:"ModulesRef" datastore:"ModulesRef"`
-	Modules	string `json:"Modules" bson:"Modules" datastore: "Modules"`
+	Modules	[]ModuleInstance `json:"Modules" bson:"Modules" datastore: "Modules"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

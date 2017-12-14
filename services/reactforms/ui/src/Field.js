@@ -40,7 +40,7 @@ class FieldWrapper extends React.Component {
         if(this.field.type == "entity") {
           EntityData.ListEntities(this.field.name).then(this.selectOptionsLoaded, errorMethod);
         }
-     }
+      }
     }
   }
 
@@ -76,17 +76,19 @@ class FieldWrapper extends React.Component {
       this.setState(Object.assign({}, this.state, {additionalProperties: {items: items} }))
     }
   }
+  change = (name, val) => {
+    console.log("field changed", name, val)
+  }
   render() {
     console.log("rendering field+", this.props, this.props.name, this.field, this.fldWidget);
+    let comp = this.context.uikit.Forms.FieldWidget
     if(this.fldWidget) {
-      return (
-        <this.fldWidget key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field}/>
-      )
-    } else {
-      return (
-        <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={this.context.uikit.Forms.FieldWidget}/>
-      )
+      comp = this.fldWidget
     }
+    return (
+      <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={comp}/>
+    )
+
   }
 
 }

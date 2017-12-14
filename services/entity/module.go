@@ -98,24 +98,9 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	if ok {
 		fieldNames := fields.AllConfigurations(ctx)
 		for _, field := range fieldNames {
-			fieldToBeAdded := ctx.CreateConfig()
+			//fieldToBeAdded := ctx.CreateConfig()
 			fieldConf, _ := fields.GetSubConfig(ctx, field)
-			fType, ok := fieldConf.GetString(ctx, "type")
-			if ok {
-				fieldToBeAdded.Set(ctx, "type", fType)
-			}
-			fLabel, ok := fieldConf.GetString(ctx, "label")
-			if ok {
-				fieldToBeAdded.Set(ctx, "label", fLabel)
-			}
-			fWidget, ok := fieldConf.GetString(ctx, "widget")
-			if ok {
-				fieldToBeAdded.Set(ctx, "widget", fWidget)
-			}
-			fMod, ok := fieldConf.GetString(ctx, "module")
-			if ok {
-				fieldToBeAdded.Set(ctx, "module", fMod)
-			}
+			fieldToBeAdded := fieldConf.Clone()
 			fieldToBeAdded.Set(ctx, "className", " entityformfield "+field)
 			entityFormFields.Set(ctx, field, fieldToBeAdded)
 
