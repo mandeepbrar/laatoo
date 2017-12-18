@@ -89,7 +89,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	uifile := path.Join(baseDir, FILES_DIR, svc.mergeduifile)
+	uifile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.mergeduifile)
 	err = ioutil.WriteFile(uifile, uiFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -127,7 +127,7 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 	initFunc := fmt.Sprintf("console.log('initializing application js');Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
 	descFileCont.WriteString(initFunc)
 
-	descfile := path.Join(baseDir, FILES_DIR, svc.mergeduidescriptor)
+	descfile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.mergeduidescriptor)
 	err := ioutil.WriteFile(descfile, descFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -169,7 +169,8 @@ func (svc *UI) writeVendorFile(ctx core.ServerContext, baseDir string) error {
 		_, err = vendorFileCont.WriteString(fmt.Sprintf(initStr, mod, mod, svc.application))
 	}
 	vendorFileCont.WriteString("console.log('loaded vendor file');")
-	vendorfile := path.Join(baseDir, FILES_DIR, svc.mergedvendorfile)
+	vendorfile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.mergedvendorfile)
+	log.Info(ctx, "Writing vendor file", "file", vendorfile)
 	err = ioutil.WriteFile(vendorfile, vendorFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)

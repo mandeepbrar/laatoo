@@ -4,6 +4,7 @@ import {ScrollListener} from './components/ScrollListener';
 import {Action} from './components/action/Action';
 import {ActionBar} from './components/action/ActionBar';
 import './styles/App.scss';
+import './styles/typebase.scss';
 import './styles/flexboxgrid.css';
 
 

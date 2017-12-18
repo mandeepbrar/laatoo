@@ -2,7 +2,7 @@ import {render } from 'react-dom'
 import Dialogs from './components/Dialogs'
 import Navbar from './components/Navbar'
 import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-import {Button} from 'material-ui';
+import {Button, FontIcon} from 'material-ui';
 import {TextField} from './components/TextField';
 import {ScrollListener} from 'reactwebcommon';
 import React from 'react';
@@ -13,6 +13,7 @@ import Select from 'material-ui/Select';
 import { MenuItem } from 'material-ui/Menu';
 import {Tabset, Tab} from './components/Tabs';
 //import injectTapEventPlugin from "react-tap-event-plugin";
+import MUIcon from 'material-ui/Icon';
 
 console.log("react material kit... forms", Forms)
 
@@ -29,6 +30,12 @@ const Block=(props) => (
 const ActionButton=(props)=> (
   <Button raised onClick={props.onClick} {...props.btnProps} className={props.className} style={props.style}>{props.children}</Button>
 )
+
+const Icons = {
+  CloseIcon: (props)=>(<MUIcon className="fa fa-close"/>),
+  NewIcon: (props)=>(<MUIcon className="fa fa-plus-circle"/>),
+  DeleteIcon:  (props)=>(<MUIcon className="fa fa-trash"/>)
+}
 
 class UIWrapper extends React.Component {
   constructor(props) {
@@ -64,6 +71,8 @@ class Form extends React.Component {
 export {
   Initialize,
   render,
+  Icon,
+  Icons,
   ActionButton,
   Tabset,
   Tab,

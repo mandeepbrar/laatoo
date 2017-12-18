@@ -1,0 +1,6 @@
+parent: root
+service: ui.fonts
+method: GET
+path: "/fonts/*"
+paramvalues:
+  file: __0

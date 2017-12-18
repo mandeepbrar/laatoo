@@ -2,7 +2,9 @@
   "name":"Deployment",
   "inherits":"",
   "imports":[],
-  "fieldsLayout":["Name", "Description", "Solution", "Server", "Environment", "Application"],
+  "form": {
+    "layout":["Name", "Description", "Solution", "Server", "Environment", "Application"]
+  },
   "titleField": "Name",
   "fields":{
     "Name": {

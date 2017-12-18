@@ -19,7 +19,7 @@ menu:
     page: testpage
 dashboard:
   header:
-    image: '/images/designerui/laatoo.jpg'
+    image: '/images/laatoo.jpg'
     title: Laatoo
   welcome:
     text: Welcome buddy

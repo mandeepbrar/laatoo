@@ -66,12 +66,11 @@ class WebFormUI extends React.Component {
     this.props.dispatch(x)
   }
 
-  layoutFields = (fldToDisp, flds) => {
+  layoutFields = (fldToDisp, flds, className) => {
     let fieldsArr = new Array()
     fldToDisp.forEach(function(k) {
       let fd = flds[k]
-      console.log("adding field ", k, fd)
-      fieldsArr.push(  <Field key={fd.name} name={fd.name}/>      )
+      fieldsArr.push(  <Field key={fd.name} name={fd.name} className={className}/>      )
     })
     return fieldsArr
   }
@@ -82,26 +81,30 @@ class WebFormUI extends React.Component {
     let comp = this
     if(desc && desc.fields) {
       let flds = desc.fields
-      let fldToDisp = desc.info && desc.info.fieldsLayout? desc.info.fieldsLayout: Object.keys(flds)
       if(flds) {
-        if(fldToDisp instanceof Array) {
-          return this.layoutFields(fldToDisp, flds)
-        } else {
+        if(desc.info && desc.info.tabs) {
           let tabs = new Array()
-          Object.keys(fldToDisp).forEach(function(k) {
-            let tabFlds = fldToDisp[k];
-            let tabArr = comp.layoutFields(tabFlds, flds)
-            tabs.push(
-              <comp.uikit.Tab label={k} value={k}>
-                {tabArr}
-              </comp.uikit.Tab>
-            )
+          let tabsToDisp = desc.info && desc.info.tabs? desc.info.layout: Object.keys(desc.info.tabs)
+          tabsToDisp.forEach(function(k) {
+            let tabFlds = desc.info.tabs[k];
+            if(tabFlds) {
+              let tabArr = comp.layoutFields(tabFlds, flds, "tabfield")
+              tabs.push(
+                <comp.uikit.Tab label={k} value={k}>
+                  {tabArr}
+                </comp.uikit.Tab>
+              )
+            }
           })
           return (
             <this.uikit.Tabset >
               {tabs}
             </this.uikit.Tabset>
           )
+        } else {
+          let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
+          let className=comp.props.inline?"inlineformfield":"formfield"
+          return this.layoutFields(fldToDisp, flds, className)
         }
       }
     }
@@ -121,7 +124,7 @@ class WebFormUI extends React.Component {
     let submitFunc = handleSubmit(f)
     let cfg = this.config
     if(this.uikit.Form) {
-      if(cfg.layout) {
+      if(cfg.layout && (typeof(cfg.layout) == "string") ) {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
           console.log("form context", this.props.formContext);
@@ -132,7 +135,7 @@ class WebFormUI extends React.Component {
         return (
           <this.uikit.Form onSubmit={submitFunc} className={this.className}>
             {this.fields()}
-            <this.uikit.Block className="actionbar">
+            <this.uikit.Block className="actionbar p20 right">
               {
                 this.actions?
                 this.actions(this, submitFunc, this.reset):

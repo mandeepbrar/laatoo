@@ -1,0 +1,17 @@
+{
+  "name":"Param",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name", "Value"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Value": {
+        "type":"string"
+    }
+  }
+}

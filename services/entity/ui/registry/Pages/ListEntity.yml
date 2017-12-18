@@ -8,7 +8,7 @@ component:
   layout: 1col
   items:
     - type: html
-      html: <h1>{{default "instance" "object" }} List</h1>
+      html: <h3>{{default "instance" "object" }} List</h3>
     - type: component
       componentName: ActionBar
       actions:

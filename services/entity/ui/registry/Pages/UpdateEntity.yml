@@ -11,6 +11,6 @@ component:
   items:
   items:
     - type: html
-      html: <h1>Update {{default "instance" "object" }}</h1>
+      html: <h3>Update {{default "instance" "object" }}</h3>
     - type: form
       id: update_form_{{default "instance" "object" | lower}}

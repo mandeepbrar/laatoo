@@ -101,6 +101,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 			//fieldToBeAdded := ctx.CreateConfig()
 			fieldConf, _ := fields.GetSubConfig(ctx, field)
 			fieldToBeAdded := fieldConf.Clone()
+
 			fieldToBeAdded.Set(ctx, "className", " entityformfield "+field)
 			entityFormFields.Set(ctx, field, fieldToBeAdded)
 

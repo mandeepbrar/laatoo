@@ -17,7 +17,7 @@ func (svc *UI) writeCssFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
-	cssfile := path.Join(baseDir, FILES_DIR, svc.mergedcssfile)
+	cssfile := path.Join(baseDir, FILES_DIR, CSS_DIR, svc.mergedcssfile)
 	err := ioutil.WriteFile(cssfile, cssFileCont.Bytes(), 0755)
 	if err != nil {
 		return errors.WrapError(ctx, err)

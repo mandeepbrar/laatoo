@@ -1,0 +1,36 @@
+{
+  "name":"Service",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Factory", "ServiceMethod"],
+      "Params": [ "Params"]
+    },
+    "layout": ["General", "Params"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Factory": {
+        "type":"string"
+    },
+    "ServiceMethod": {
+        "type":"string",
+        "label": "Service Method"
+    },
+    "Params": {
+        "type":"subentitylist",
+        "entity": "Param",
+        "mode": "dialog",
+        "skipLabel": true,
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    }
+  }
+}

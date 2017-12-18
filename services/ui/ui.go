@@ -21,6 +21,8 @@ const (
 	UI_SVC               = "ui"
 	UI_SVC_ENABLED       = "ui"
 	FILES_DIR            = "files"
+	SCRIPTS_DIR          = "scripts"
+	CSS_DIR              = "css"
 	CONF_FILE_UI         = "uifile"
 	CONF_FILE_DESC       = "descriptor"
 	CONF_PROPS_EXTENSION = "properties_ext"
@@ -102,7 +104,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 
 	_, modRead := svc.uiFiles[modName]
 	if !modRead {
-		uifile := path.Join(dir, FILES_DIR, svc.uifile)
+		uifile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, svc.uifile)
 		ok, _, _ = utils.FileExists(uifile)
 		if ok {
 			cont, err := ioutil.ReadFile(uifile)
@@ -128,9 +130,10 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			modRead = true
 		}
 
-		vendorfile := path.Join(dir, FILES_DIR, "vendor.js")
+		vendorfile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, "vendor.js")
 		ok, _, _ = utils.FileExists(vendorfile)
 		if ok {
+			log.Trace(ctx, "Reading vendor file", "file", vendorfile)
 			cont, err := ioutil.ReadFile(vendorfile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
@@ -138,7 +141,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			svc.vendorFiles[fmt.Sprintf("%s_vendor", modName)] = cont
 		}
 
-		cssfile := path.Join(dir, FILES_DIR, "app.css")
+		cssfile := path.Join(dir, FILES_DIR, CSS_DIR, "app.css")
 		ok, _, _ = utils.FileExists(cssfile)
 		if ok {
 			cont, err := ioutil.ReadFile(cssfile)
@@ -148,7 +151,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			svc.cssFiles[modName] = cont
 		}
 
-		descfile := path.Join(dir, FILES_DIR, svc.descfile)
+		descfile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, svc.descfile)
 		ok, _, _ = utils.FileExists(descfile)
 		if ok {
 			cont, err := ioutil.ReadFile(descfile)
@@ -181,15 +184,25 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		return errors.WrapError(ctx, err)
 	}
 
-	publicImgs := path.Join(dir, FILES_DIR, "publicimages")
+	publicImgs := path.Join(dir, FILES_DIR, "images")
 	ok, _, _ = utils.FileExists(publicImgs)
 	if ok {
-		log.Debug(ctx, "Processing images ", "dir", publicImgs)
+		log.Debug(ctx, "Processing images", "dir", publicImgs)
 		err = svc.copyImages(ctx, modName, publicImgs)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 
+	}
+
+	fontsDir := path.Join(dir, FILES_DIR, "fonts")
+	ok, _, _ = utils.FileExists(fontsDir)
+	if ok {
+		log.Debug(ctx, "Copying fonts ", "fonts", fontsDir)
+		err = svc.copyFonts(ctx, modName, fontsDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 
 	return nil
@@ -198,7 +211,18 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 func (svc *UI) Loaded(ctx core.ServerContext) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
 
-	err := svc.writeVendorFile(ctx, baseDir)
+	scriptsdir := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR)
+	err := os.MkdirAll(scriptsdir, 0700)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	cssdir := path.Join(baseDir, FILES_DIR, CSS_DIR)
+	err = os.MkdirAll(cssdir, 0700)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	err = svc.writeVendorFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -238,31 +262,75 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 
 }
 
-func (svc *UI) copyImages(ctx core.ServerContext, mod, dirPath string) error {
-	files, err := ioutil.ReadDir(dirPath)
+func (svc *UI) copyFonts(ctx core.ServerContext, mod, dirPath string) error {
+	/*files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
 		return errors.WrapError(ctx, err)
-	}
+	}*/
 
 	basedir, _ := ctx.GetString(config.BASEDIR)
+	/*
+		err = os.MkdirAll(filepath.Join(basedir, "images", mod), 0700)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}*/
+	dest := filepath.Join(basedir, "fonts")
+	log.Debug(ctx, "Copying fonts", "src", dirPath, "dest", dest)
 
-	err = os.MkdirAll(filepath.Join(basedir, "images", mod), 0700)
+	err := utils.CopyDir(dirPath, filepath.Join(basedir, "fonts"), "")
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
-	for _, info := range files {
-		if info.IsDir() {
-			continue
-		}
-		path := filepath.Join(dirPath, info.Name())
+	/*
+		for _, info := range files {
+			if info.IsDir() {
+				continue
+			}
+			path := filepath.Join(dirPath, info.Name())
 
-		dest := filepath.Join(basedir, "images", mod, info.Name())
-		log.Trace(ctx, "Copying file", "src", path, "dest", dest)
-		err = utils.CopyFile(path, dest)
+			dest := filepath.Join(basedir, "images", info.Name())
+			log.Trace(ctx, "Copying file", "src", path, "dest", dest)
+			err = utils.CopyFile(path, dest)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}*/
+	return nil
+}
+
+func (svc *UI) copyImages(ctx core.ServerContext, mod, dirPath string) error {
+	/*files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}*/
+
+	basedir, _ := ctx.GetString(config.BASEDIR)
+	/*
+		err = os.MkdirAll(filepath.Join(basedir, "images", mod), 0700)
 		if err != nil {
 			return errors.WrapError(ctx, err)
-		}
+		}*/
+	dest := filepath.Join(basedir, "images")
+	log.Debug(ctx, "Copying images ", "src", dirPath, "dest", dest)
+	err := utils.CopyDir(dirPath, dest, "")
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
+
+	/*
+		for _, info := range files {
+			if info.IsDir() {
+				continue
+			}
+			path := filepath.Join(dirPath, info.Name())
+
+			dest := filepath.Join(basedir, "images", info.Name())
+			log.Trace(ctx, "Copying file", "src", path, "dest", dest)
+			err = utils.CopyFile(path, dest)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}*/
 	return nil
 }

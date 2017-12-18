@@ -25,6 +25,8 @@ modules:
     module: reactmaterialkit
   entitylistfield:
     module: entitylistfield
+  fontawesome:
+    module: fontawesome
   uicommon:
     module: uicommon
   reactpages:

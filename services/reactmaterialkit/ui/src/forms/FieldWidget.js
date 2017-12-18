@@ -78,16 +78,16 @@ class FieldWidget extends React.Component {
   }
 
   renderCheckbox = (fld, props) =>  {
-    let {input, meta} = props
+    let {input, meta, className} = props
     return (
-      <FormControlLabel className={fld.name + " checkbox "+ (fld.className?fld.className:"")}  label={fld.label}
+      <FormControlLabel className={(className?className + " ":"") + fld.name + " checkbox "+ (fld.className?fld.className:"")}  label={fld.label}
           control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={props.onChange}
               className={fld.name + " " + (fld.controlClassName?fld.controlClassName:"")}/> }/>
     )
   }
 
   renderSelect = (fld, props) =>  {
-    let {input, meta} = props
+    let {input, meta, className} = props
     let items=[]
     if(props.items) {
       props.items.forEach(function(item) {
@@ -99,7 +99,7 @@ class FieldWidget extends React.Component {
     }
 
     return (
-      <FormControl className={fld.name + " formcontrol "+ (fld.className?fld.className:"")}>
+      <FormControl className={(className?className + " ":"") + fld.name + " formcontrol "+ (fld.className?fld.className:"")}>
         <InputLabel htmlFor={fld.name}>{fld.label}</InputLabel>
         <Select name={fld.name} floatingLabelText={fld.label} label={fld.label} errorText={meta.touched && meta.error}
           onChange={(event, index, value) => {input.onChange(event.target.value)}} value={input.value}
@@ -111,23 +111,23 @@ class FieldWidget extends React.Component {
   }
 
   renderSwitch = (fld, props) =>  {
-    let {input, meta} = props
+    let {input, meta, className} = props
     console.log("switch props", props)
     return (
       <FormControlLabel control={
             <Switch name={fld.name} onChange={input.onChange} checked={input.value}
               className={fld.name + " toggle " + (fld.controlClassName?fld.controlClassName:"")}/>
-          } label={fld.label} className={fld.name + " " + (fld.className?fld.className:"")}  />
+          } label={fld.label} className={(className?className + " ":"") + fld.name + " " + (fld.className?fld.className:"")}  />
     )
   }
 
 
   renderTextField = (fld, props) => {
-    let {input, meta} = props
+    let {input, meta, className} = props
     return (
       <TextField name={fld.name} errorText={meta.touched && meta.error} onChange={input.onChange} onBlur={input.onBlur}
         onFocus={input.onFocus} floatingLabelText={fld.label} label={fld.label} value={input.value}
-        hintText={fld.label} {...props} className={fld.name + " textfield " + (fld.className?fld.className:"")}/>
+        hintText={fld.label} {...props} className={(className?className + " ":"") + fld.name + " textfield " + (fld.className?fld.className:"")}/>
     )
   }
   render() {

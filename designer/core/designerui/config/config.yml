@@ -24,6 +24,34 @@ modules:
       parent: root
       instance: ModuleInstance
       dataservicefactory: mongodatabase
+  factory:
+    module: entity
+    settings:
+      object: Factory
+      parent: root
+      instance: Factory
+      dataservicefactory: mongodatabase
+  service:
+    module: entity
+    settings:
+      object: Service
+      parent: root
+      instance: Service
+      dataservicefactory: mongodatabase
+  param:
+    module: entity
+    settings:
+      object: Param
+      parent: root
+      instance: Param
+      dataservicefactory: mongodatabase
+  channel:
+    module: entity
+    settings:
+      object: Channel
+      parent: root
+      instance: Channel
+      dataservicefactory: mongodatabase
   solution:
     module: entity
     settings:

@@ -36,7 +36,7 @@ module.exports = {
         loader: 'url-loader',
         query: {
           limit: 8192,
-          name: 'images/[name].[ext]?[hash]'
+          name: 'dist/images/[name].[ext]?[hash]'
         }
       },
       // Fonts
@@ -45,7 +45,7 @@ module.exports = {
         loader: 'url-loader',
         query: {
           limit: 8192,
-          name: 'fonts/[name].[ext]?[hash]'
+          name: 'dist/fonts/[name].[ext]?[hash]'
         }
       }
     ]

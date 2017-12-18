@@ -12,6 +12,15 @@
   .header, .footer {
     @extend .row;
   }
+  .titlebar {
+    @extend  .row, .between-xs, .middle-xs, .bg-lgrey, .ma10;
+    .title {
+      @extend h3, .p10, .middle-xs;
+    }
+    .close {
+      @extend .middle-xs, .nodecoration, .f1, .p10;
+    }
+  }
 }
 
 .threecol {

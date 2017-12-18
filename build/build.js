@@ -78,7 +78,10 @@ function buildUI(nextTask) {
   compileWebUI(function() {
     log("Copying UI files")
     fs.mkdirsSync(filesFolder)
-    if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/index.js'))) {
+    if (fs.pathExistsSync(path.join(uiFolder, 'dist'))) {
+      fs.copySync(path.join(uiFolder, "dist"), filesFolder)
+    }
+    /*if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/index.js'))) {
       fs.copySync(path.join(uiFolder, "dist/scripts/index.js"), path.join(filesFolder, "webui.js"))
     }
     if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/vendor.js'))) {
@@ -86,7 +89,7 @@ function buildUI(nextTask) {
     }
     if (fs.pathExistsSync(path.join(uiFolder, 'dist/css/app.css'))) {
       fs.copySync(path.join(uiFolder, "dist/css/app.css"), path.join(filesFolder, "app.css"))
-    }
+    }*/
     nextTask()
   });
 }

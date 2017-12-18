@@ -4,7 +4,7 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "fieldsLayout": ["Name", "Description"]
+    "layout": ["Name", "Description"]
   },
   "fields":{
     "Name": {

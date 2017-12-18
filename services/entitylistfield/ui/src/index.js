@@ -8,25 +8,45 @@ class EntityListField extends React.Component {
     super(props)
     let items = props.input.value? props.input.value: []
     console.log("props...i entity list", props)
+    this.label = props.field.label? props.field.label : props.field.entity
     let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
     this.formDesc = {type: "form", id: formName}
     this.uikit = ctx.uikit;
-    this.state = {items}
+    let formOpen = false
+    this.state = {items, formOpen}
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log("componentWillReceiveProps(nextProps).", nextProps)
     let items = nextProps.input.value? nextProps.input.value: []
-    this.setState({items})
+    this.setState(Object.assign({}, this.state, {items}))
+  }
+
+  closeForm = () => {
+    console.log("closing form")
+    switch(this.props.field.mode) {
+      case "inline":
+        this.inlineRow = null
+        break;
+      case "dialog":
+        break;
+      case "overlay":
+      default:
+        if(this.context.overlayComponent) {
+          this.context.overlayComponent(null)
+        }
+    }
+    this.setState(Object.assign({}, this.state, {formOpen: false}))
   }
 
   actions = (f, submit, reset)=> {
     console.log("actios returned", f, submit, reset)
     return (
       <this.uikit.Block className="right p20">
+        {!this.props.field.inline?
         <this.uikit.ActionButton onClick={reset}>
         Reset
         </this.uikit.ActionButton>
+        :null}
         <this.uikit.ActionButton onClick={submit}>
         Add
         </this.uikit.ActionButton>
@@ -38,11 +58,26 @@ class EntityListField extends React.Component {
       let items = this.addItem(data.data)
       console.log(" items", items)
       this.props.input.onChange(items)
+      this.props.closeForm()
   }
 
   openForm = () => {
-    console.log("opened form", this.props)
-    Window.showDialog(<h1>Add entity</h1>, <Panel actions={this.actions} onSubmit={this.submit} description={this.formDesc} />) //, actions, contentStyle)
+    console.log("opened form", this.props, this.context)
+    let comp = <Panel actions={this.actions} inline={true} title={"Add "+this.label} closePanel={this.closeForm} onSubmit={this.submit} description={this.formDesc} /> //, actions, contentStyle)
+    switch(this.props.field.mode) {
+      case "inline":
+        this.inlineRow = comp
+        break;
+      case "dialog":
+        Window.showDialog(<h1>Add {this.label}</h1>, comp)
+        break;
+      case "overlay":
+      default:
+        if(this.context.overlayComponent) {
+          this.context.overlayComponent(comp)
+        }
+    }
+    this.setState(Object.assign({}, this.state, {formOpen: true}))
   }
 
   addItem = (item) => {
@@ -73,20 +108,34 @@ class EntityListField extends React.Component {
       let text = k[textField];
       text = text? text: k["Title"]
       items.push(
-        <comp.uikit.Block>
-          <comp.uikit.Block>
+        <comp.uikit.Block  className="row between-xs">
+          <comp.uikit.Block className="left" >
           {text}
           </comp.uikit.Block>
-          <comp.uikit.ActionButton className="removeButton" onClick={removeItem}>
-          X
+          <comp.uikit.ActionButton className="removeButton right" onClick={removeItem}>
+            <this.uikit.Icons.DeleteIcon />
           </comp.uikit.ActionButton>
         </comp.uikit.Block>
       )
     })
+    let inlinerow = null
+    if(this.state.formOpen && this.inlineRow) {
+      items.push(this.inlineRow)
+    }
+    if(items.length == 0) {
+      items.push("No data")
+    }
     return (
-      <this.uikit.Block>
-        <this.uikit.Block className="right">
-          <Action name="listfield_new_entity" method={this.openForm}>+</Action>
+      <this.uikit.Block className={"entitylistfield "+this.label}>
+        {this.props.field.skipLabel? null:
+          <this.uikit.Block className="title">
+            {this.label}
+          </this.uikit.Block>
+        }
+        <this.uikit.Block className="right tb10">
+          <Action name="listfield_new_entity" method={this.openForm}>
+            <this.uikit.Icons.NewIcon />
+          </Action>
         </this.uikit.Block>
         {items}
       </this.uikit.Block>
@@ -95,7 +144,8 @@ class EntityListField extends React.Component {
 }
 
 EntityListField.contextTypes = {
-  uikit: PropTypes.object
+  uikit: PropTypes.object,
+  overlayComponent: PropTypes.func
 };
 
 export {

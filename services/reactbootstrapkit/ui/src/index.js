@@ -21,6 +21,11 @@ const Form=(props)=> (
   <form>{props.children}</form>
 )
 
+/*const Icon=(props)=> (
+    <Icon className={props.className} style={props.style}/>
+)*/
+
+
 export {
   render,
   ActionButton,

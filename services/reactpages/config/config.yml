@@ -1,4 +1,6 @@
 version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
 description: Module provides pages laatoo applications
 ui:
   skipUIModules: true
@@ -8,6 +10,7 @@ ui:
     react: react
     react-redux: react-redux
     redux: redux
+    reactwebcommon: reactwebcommon
   packages:
     react: "^16.1.0"
     react-redux: "^5.0.6"

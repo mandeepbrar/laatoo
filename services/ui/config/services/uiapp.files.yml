@@ -3,14 +3,14 @@ servicemethod: named_files_service
 files:
   app.js:
     cache: 'true'
-    path: app{{var "application" "."}}.js
+    path: /scripts/app{{var "application" "."}}.js
   services.conf.js:
     cache: 'true'
-    path: services{{var "application" "."}}.conf.js
+    path: /scripts/services{{var "application" "."}}.conf.js
   app.css:
     cache: 'true'
-    path: app{{var "application" "."}}.css
+    path: /css/app{{var "application" "."}}.css
   vendor.js:
     cache: 'true'
-    path:  vendor{{var "application" "."}}.js
+    path:  /scripts/vendor{{var "application" "."}}.js
 storage: uiapp.filesstorage{{var "application" "."}}

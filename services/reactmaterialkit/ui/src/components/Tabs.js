@@ -6,12 +6,16 @@ import PropTypes from 'prop-types';
 class Tabset extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {selectedTab: null, value: null}
+    console.log("tabset props", props.children[0])
+    let value = null
+    if(props.children.length>0) {
+      value = props.children[0].props.value? props.children[0].props.value: props.children[0].props.label
+    }
+    this.state = {selectedTab: null, value}
     this.childTabs = {}
   }
   addTab = (value, tab) => {
-    console.log("adding tab++++++++++=", tab)
-    if(!this.state.value) {
+    if(this.state.value == value) {
       this.setState({ selectedTab: tab, value: value});
     }
     this.childTabs[value] = tab;
@@ -56,7 +60,7 @@ class Tab extends React.Component {
   render() {
     console.log("rendering tab", this, this.props, this.context)
     return (
-      <MUITab label={this.props.label} value={this.value}  {...this.props} icon={this.props.icon} />
+      <MUITab label={this.props.label} className={"tab " + this.props.className? this.props.className: ""} value={this.value}  {...this.props} icon={this.props.icon} />
     )
   }
 }

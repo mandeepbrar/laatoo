@@ -3,7 +3,15 @@
   "inherits":"",
   "imports":[],
   "form": {
-    "fieldsLayout":["Name", "Description", "Modules"]
+    "overlay": true,
+    "tabs": {
+      "General": ["Name", "Description", "Solution"],
+      "Modules": ["Modules"],
+      "Services": ["Services"],
+      "Channels": ["Channels"],
+      "Factories": ["Factories"]
+    },
+    "layout": ["General", "Modules", "Services", "Channels", "Factories"]
   },
   "titleField": "Name",
   "fields":{
@@ -13,10 +21,37 @@
     "Description": {
         "type":"string"
     },
+    "Solution": {
+      "type":"entity",
+      "entity": "Solution",
+      "ref": true
+    },
     "Modules": {
         "type":"subentitylist",
         "form":"new_form_moduleinstance",
         "entity": "ModuleInstance",
+        "skipLabel": true,
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
+    "Services": {
+        "type":"subentitylist",
+        "entity": "Service",
+        "widget": "EntityList",
+        "skipLabel": true,
+        "module": "entitylistfield"
+    },
+    "Factories": {
+        "type":"subentitylist",
+        "entity": "Factory",
+        "widget": "EntityList",
+        "skipLabel": true,
+        "module": "entitylistfield"
+    },
+    "Channels": {
+        "type":"subentitylist",
+        "entity": "Channel",
+        "skipLabel": true,
         "widget": "EntityList",
         "module": "entitylistfield"
     }
