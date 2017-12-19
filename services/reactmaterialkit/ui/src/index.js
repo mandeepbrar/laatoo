@@ -1,3 +1,4 @@
+import React from 'react';
 import {render } from 'react-dom'
 import Dialogs from './components/Dialogs'
 import Navbar from './components/Navbar'
@@ -5,37 +6,26 @@ import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import {Button, FontIcon} from 'material-ui';
 import {TextField} from './components/TextField';
 import {ScrollListener} from 'reactwebcommon';
-import React from 'react';
 import './styles/app.scss';
 import Forms from './forms';
 import { FormControl } from 'material-ui/Form';
 import Select from 'material-ui/Select';
 import { MenuItem } from 'material-ui/Menu';
 import {Tabset, Tab} from './components/Tabs';
+import {Block} from './components/Block';
+import {Icons} from './components/Icons';
 //import injectTapEventPlugin from "react-tap-event-plugin";
-import MUIcon from 'material-ui/Icon';
 
-console.log("react material kit... forms", Forms)
 
 function Initialize(appName, ins, mod, settings, def, req) {
   //injectTapEventPlugin();
 }
-
-const Block=(props) => (
-  <div style={props.style} className={props.className}>
-   {props.children}</div>
-)
 
 
 const ActionButton=(props)=> (
   <Button raised onClick={props.onClick} {...props.btnProps} className={props.className} style={props.style}>{props.children}</Button>
 )
 
-const Icons = {
-  CloseIcon: (props)=>(<MUIcon className="fa fa-close"/>),
-  NewIcon: (props)=>(<MUIcon className="fa fa-plus-circle"/>),
-  DeleteIcon:  (props)=>(<MUIcon className="fa fa-trash"/>)
-}
 
 class UIWrapper extends React.Component {
   constructor(props) {

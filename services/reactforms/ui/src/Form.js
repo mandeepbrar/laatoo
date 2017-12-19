@@ -29,12 +29,15 @@ class WebFormUI extends React.Component {
     } else {
 
     }
+    if(props.formData) {
+      this.setData(props.formData)
+    }
   }
 
   reset = () => {
     this.props.reset()
   }
-
+  
   getChildContext() {
     return {fields: this.props.description.fields};
   }
@@ -56,14 +59,18 @@ class WebFormUI extends React.Component {
     }
   }
 
+  setData = (formData) => {
+    let x = this.props.initialize(formData, 'myform')
+    this.props.dispatch(x)
+  }
+
   dataLoaded = (data) => {
     let formData = data
     if(this.config.dataMapper) {
       let mapper = _reg('Method', this.config.dataMapper)
       formData = mapper(data)
     }
-    let x = this.props.initialize(data.resp.data, 'myform')
-    this.props.dispatch(x)
+    this.setData(data.resp.data)
   }
 
   layoutFields = (fldToDisp, flds, className) => {

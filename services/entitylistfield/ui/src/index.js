@@ -28,6 +28,7 @@ class EntityListField extends React.Component {
         this.inlineRow = null
         break;
       case "dialog":
+        Window.closeDialog()
         break;
       case "overlay":
       default:
@@ -54,22 +55,34 @@ class EntityListField extends React.Component {
     )
   }
 
-  submit = (data, success, failure) => {
+  edit = (data, index, success, failure) => {
+    let items = this.state.items
+    if(items && items.length > index) {
+      items[index] = data.data
+      console.log(" items", items)
+      this.props.input.onChange(items)
+      this.closeForm()
+    }
+  }
+
+  add = (data, success, failure) => {
       let items = this.addItem(data.data)
       console.log(" items", items)
       this.props.input.onChange(items)
-      this.props.closeForm()
+      this.closeForm()
   }
 
-  openForm = () => {
+  openForm = (formData, index) => {
     console.log("opened form", this.props, this.context)
-    let comp = <Panel actions={this.actions} inline={true} title={"Add "+this.label} closePanel={this.closeForm} onSubmit={this.submit} description={this.formDesc} /> //, actions, contentStyle)
+    let cl = this;
+    let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
+    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.label} closePanel={this.closeForm} onSubmit={submit} description={this.formDesc} /> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
         break;
       case "dialog":
-        Window.showDialog(<h1>Add {this.label}</h1>, comp)
+        Window.showDialog(null, comp, this.closeForm)
         break;
       case "overlay":
       default:
@@ -88,6 +101,10 @@ class EntityListField extends React.Component {
     //this.setState(Object.assign({}, {items: items}))
   }
 
+  editItem = (item, index) => {
+    this.openForm(item, index)
+  }
+
   removeItem = (item, index) => {
     let items = this.state.items.slice();
     if (index > -1) {
@@ -104,6 +121,9 @@ class EntityListField extends React.Component {
       var removeItem = () => {
         comp.removeItem(k, index)
       }
+      var editItem = () => {
+        comp.editItem(k, index)
+      }
       let textField = comp.props.entityText? comp.props.entityText: "Name"
       let text = k[textField];
       text = text? text: k["Title"]
@@ -112,9 +132,14 @@ class EntityListField extends React.Component {
           <comp.uikit.Block className="left" >
           {text}
           </comp.uikit.Block>
-          <comp.uikit.ActionButton className="removeButton right" onClick={removeItem}>
-            <this.uikit.Icons.DeleteIcon />
-          </comp.uikit.ActionButton>
+          <comp.uikit.Block className="right">
+            <Action action={{actiontype:"method"}} className="edit p10" method={editItem}>
+              <comp.uikit.Icons.EditIcon />
+            </Action>
+            <Action action={{actiontype:"method"}} className="remove p10" method={removeItem}>
+              <comp.uikit.Icons.DeleteIcon />
+            </Action>
+          </comp.uikit.Block>
         </comp.uikit.Block>
       )
     })
@@ -133,7 +158,7 @@ class EntityListField extends React.Component {
           </this.uikit.Block>
         }
         <this.uikit.Block className="right tb10">
-          <Action name="listfield_new_entity" method={this.openForm}>
+          <Action name="listfield_new_entity" className="p10" method={this.openForm}>
             <this.uikit.Icons.NewIcon />
           </Action>
         </this.uikit.Block>

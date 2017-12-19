@@ -84,8 +84,8 @@ function createMessageDialogs(store) {
       console.log(Ex)
     }
   }
-  Window.showDialog = function(title, component, actions, contentStyle) {
-    store.dispatch(createAction(Actions.SHOW_DIALOG, {Title: title, Component: component, Actions: actions, ContentStyle: contentStyle}, null))
+  Window.showDialog = function(title, component, onClose, actions, contentStyle, titleStyle) {
+    store.dispatch(createAction(Actions.SHOW_DIALOG, {Title: title, Component: component, OnClose: onClose, Actions: actions, ContentStyle: contentStyle, TitleStyle: titleStyle}, null))
   }
   Window.closeDialog = function() {
     store.dispatch(createAction(Actions.CLOSE_DIALOG, {}, null))

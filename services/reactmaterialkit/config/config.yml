@@ -5,7 +5,6 @@ dependencies:
 description: Module provides material ui kit for laatoo applications
 objects: {}
 ui:
-  skipUIModules: true
   externals:
     babel-runtime: babel-runtime
     babel-polyfill: babel-polyfill

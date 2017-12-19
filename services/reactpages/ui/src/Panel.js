@@ -55,7 +55,7 @@ class Panel extends React.Component {
           this.processHtml(desc, props, ctx)
           break;
         case "block":
-          className = className + " block "
+          className = className + " panelblock "
           this.processBlock(desc, props,  ctx)
           break;
         case "layout":
@@ -226,7 +226,7 @@ class Panel extends React.Component {
         let formCfg = Object.assign({}, cfg, ctx.routeParams)
         console.log("form cfg", formCfg, cfg)
         return <this.form form={desc.id} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
-          onSubmit={props.onSubmit} actions={props.actions} description={formdesc} className={className} id={desc.id}></this.form>
+          formData={props.formData} onSubmit={props.onSubmit} actions={props.actions} description={formdesc} className={className} id={desc.id}></this.form>
       }
     } else {
       this.getView = function(props, ctx, state, className) {
@@ -336,33 +336,14 @@ class Panel extends React.Component {
 
   render() {
     console.log("rendering panel", this.props);
-    let comp = null
-    if(this.overlay && this.state && this.state.overlayComponent) {
-      comp = this.state.overlayComponent
-    } else {
-      comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
-    }
-    if(this.title) {
-        return <this.uikit.Block className={this.className}>
-          <this.uikit.Block className="titlebar">
-            <this.uikit.Block className="title left">
-            {this.title}
-            </this.uikit.Block>
-            {
-              this.closePanel?
-              <Action className="right close action" action={{actiontype: "method"}} method={this.closePanel}>
-              <this.uikit.Icons.CloseIcon />
-              </Action>
-              : null
-            }
-          </this.uikit.Block>
-          <this.uikit.Block>
-          {comp}
-          </this.uikit.Block>
-        </this.uikit.Block>
-    } else {
-      return comp
-    }
+    let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
+
+    return <this.uikit.Block className={this.className} title={this.title} closeBlock={this.closePanel}>
+      <this.uikit.Block style={{display:( showOverlay?"none":"block")}}>
+      {this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>}
+      </this.uikit.Block>
+      {showOverlay?this.state.overlayComponent:null}
+    </this.uikit.Block>
   }
 }
 

@@ -7,6 +7,21 @@
   }
 }
 
-.tab {
-  @extend .p10;
+.tab, .dialog {
+  @extend .p10, .col-xs-12;
+}
+
+.block {
+  .titlebar {
+    @extend  .row, .ma0, .between-xs, .middle-xs, .bg-lgrey;
+    .title {
+      @extend  h3, .p10, .middle-xs;
+    }
+    .close {
+      @extend .middle-xs, .nodecoration, .f1, .p10;
+    }
+  }
+  .blockcontent {
+    @extend .p10;
+  }
 }

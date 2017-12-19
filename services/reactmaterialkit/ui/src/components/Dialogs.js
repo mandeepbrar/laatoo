@@ -8,6 +8,8 @@ import Dialog, {
   DialogContentText,
   DialogTitle,
 } from 'material-ui/Dialog';
+import {Block} from './Block';
+
 
 class DialogHandler extends React.Component {
   constructor(props) {
@@ -17,6 +19,9 @@ class DialogHandler extends React.Component {
   }
   handleClose() {
     this.setState({message: "", open:false})
+    if(this.props.onClose) {
+      this.props.onClose()
+    }
   }
   componentWillReceiveProps(nextprops) {
     if(nextprops.time != this.state.time) {
@@ -32,7 +37,7 @@ class DialogHandler extends React.Component {
   render() {
     let contentStyle = this.props.contentStyle
     if(!contentStyle) {
-      contentStyle = {minWidth:400, maxWidth: 450, backgroundColor: 'white'}
+      contentStyle = {minWidth:400, backgroundColor: 'white'}
     }
     if(!this.state.open) {
       return <div></div>
@@ -52,14 +57,13 @@ class DialogHandler extends React.Component {
         console.log("rendering dialog...........", this.props)
         return (
          <Dialog open={this.state.open} modal={true} onRequestClose={this.handleClose}>
-           <DialogTitle style={this.props.titleStyle}>{this.props.title}</DialogTitle>
-           <DialogContent style={contentStyle}>
+           <Block title={this.props.title} className="dialog" closeBlock={this.handleClose} contentStyle={contentStyle}>
            {this.props.component}
-           </DialogContent>
+           </Block>
            <DialogActions>
             {this.props.actions}
            </DialogActions>
-         </Dialog>  
+         </Dialog>
         )
     }
   }
@@ -78,6 +82,7 @@ const mapStateToProps = (state, ownProps) => {
   }
   return {
     component: state.Dialogs.Content.Component,
+    onClose: state.Dialogs.Content.OnClose,
     actions: state.Dialogs.Content.Actions,
     contentStyle: state.Dialogs.Content.ContentStyle,
     message: state.Dialogs.Content.Message,
