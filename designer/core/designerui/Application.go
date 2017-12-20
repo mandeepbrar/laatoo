@@ -7,7 +7,7 @@ import (
 
 type Application_Ref struct {
   Id    string
-  Name string
+  Title string
 }
 
 type Application struct {
@@ -17,7 +17,8 @@ type Application struct {
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
 	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
-	Modules	[]ModuleInstance `json:"Modules" bson:"Modules" datastore: "Modules"`
+	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
+	Instances	[]ModuleInstance `json:"Instances" bson:"Instances" datastore: "Instances"`
 	Services	[]Service `json:"Services" bson:"Services" datastore: "Services"`
 	Factories	[]Factory `json:"Factories" bson:"Factories" datastore: "Factories"`
 	Channels	[]Channel `json:"Channels" bson:"Channels" datastore: "Channels"`
@@ -36,7 +37,7 @@ type Application struct {
 func (ent *Application) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
-    LabelField:      "Name",
+    LabelField:      "Title",
 		Type:            "Application",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,

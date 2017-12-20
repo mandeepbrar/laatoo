@@ -5,15 +5,16 @@
   "titleField": "Name",
   "form": {
     "tabs": {
-      "General": ["Name", "Description", "Solution"],
-      "Modules": ["Modules"],
+      "General": ["Name", "Description", "Solution", "Modules"],
+      "Module Instances": ["Instances"],
       "Services": ["Services"],
       "Channels": ["Channels"],
       "Factories": ["Factories"]
     },
-    "layout": ["General", "Modules", "Services", "Channels", "Factories"]
+    "overlay": true,
+    "submit": "Save",
+    "layout": ["General", "Module Instances", "Services", "Channels", "Factories"]
   },
-  "titleField": "Name",
   "fields":{
     "Name": {
         "type":"string"
@@ -28,9 +29,14 @@
     },
     "Modules": {
         "type":"subentitylist",
+        "entity": "Module",
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
+    "Instances": {
+        "type":"subentitylist",
         "form":"new_form_moduleinstance",
         "entity": "ModuleInstance",
-        "skipLabel": true,
         "widget": "EntityList",
         "module": "entitylistfield"
     },
@@ -38,20 +44,17 @@
         "type":"subentitylist",
         "entity": "Service",
         "widget": "EntityList",
-        "skipLabel": true,
         "module": "entitylistfield"
     },
     "Factories": {
         "type":"subentitylist",
         "entity": "Factory",
         "widget": "EntityList",
-        "skipLabel": true,
         "module": "entitylistfield"
     },
     "Channels": {
         "type":"subentitylist",
         "entity": "Channel",
-        "skipLabel": true,
         "widget": "EntityList",
         "module": "entitylistfield"
     }

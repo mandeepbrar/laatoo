@@ -28,7 +28,6 @@
         "type":"subentitylist",
         "entity": "Param",
         "mode": "dialog",
-        "skipLabel": true,
         "widget": "EntityList",
         "module": "entitylistfield"
     }

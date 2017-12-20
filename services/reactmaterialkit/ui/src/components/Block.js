@@ -5,7 +5,7 @@ import IconButton from 'material-ui/IconButton';
 const Block=(props) =>  {
   let cl = props.className? props.className:""
   let contentClass = props.contentClass?props.contentClass:""
-  if(props.title) {
+  if(props.title || props.titleBarActions || props.closeBlock) {
     return (
       <div style={props.style} className={"block "+cl}>
         <div className="titlebar">
@@ -13,7 +13,7 @@ const Block=(props) =>  {
           {props.title}
           </div>
           {
-            props.closeBlock?  <IconButton className="right close fa fa-close" onClick={props.closeBlock}/>  : null
+            props.titleBarActions? <div className="right">{props.titleBarActions}</div>: (props.closeBlock?  <IconButton className="right close fa fa-close" onClick={props.closeBlock}/>  : null)
           }
         </div>
         <div style={props.contentStyle} className={"blockcontent "+contentClass}>

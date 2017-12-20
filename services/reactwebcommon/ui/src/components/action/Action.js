@@ -88,7 +88,6 @@ class ActionComp extends React.Component {
         )
       }
       default: {
-        console.log("ffffffffffff")
         return (
           <ActionLink  className={this.props.className} actionFunc={actionF}  key={this.props.name +"_comp"} actionchildren={children}>
           </ActionLink>
@@ -105,7 +104,6 @@ ActionComp.propTypes = {
   name:  PropTypes.string.isRequired
 };
 // View.defaultProps = {};
-console.log("react-redux connect in reactwebcommon", require('react-redux'));
 
 const Action = connect()(ActionComp);
 export {Action as Action} ;

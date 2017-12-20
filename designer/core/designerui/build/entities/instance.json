@@ -4,14 +4,29 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "layout": ["Name", "Description"]
+    "tabs": {
+      "General": ["Name", "Module", "Description"],
+      "Settings": ["Settings"]
+    },
+    "layout": ["General", "Settings"]
   },
   "fields":{
     "Name": {
         "type":"string"
     },
+    "Module": {
+        "type":"string",
+        "transformer":"Form_Instance_Transform_Modules"
+    },
     "Description": {
         "type":"string"
+    },
+    "Settings": {
+      "type":"subentitylist",
+      "entity": "Param",
+      "mode": "dialog",
+      "widget": "EntityList",
+      "module": "entitylistfield"
     }
   }
 }

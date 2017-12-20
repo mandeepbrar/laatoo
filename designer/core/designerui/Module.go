@@ -5,23 +5,16 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type Environment_Ref struct {
+type Module_Ref struct {
   Id    string
   Name string
 }
 
-type Environment struct {
+type Module struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
-	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
-	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
-	Instances	[]ModuleInstance `json:"Instances" bson:"Instances" datastore: "Instances"`
-	Services	[]Service `json:"Services" bson:"Services" datastore: "Services"`
-	Factories	[]Factory `json:"Factories" bson:"Factories" datastore: "Factories"`
-	Channels	[]Channel `json:"Channels" bson:"Channels" datastore: "Channels"`
+	Instance	bool `json:"Instance" bson:"Instance" datastore:"Instance"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string
@@ -34,17 +27,17 @@ type Environment struct {
 	Blocked                  bool   `json:"Blocked" bson:"Blocked"`*/
 }
 
-func (ent *Environment) Config() *data.StorableConfig {
+func (ent *Module) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Environment",
+		Type:            "Module",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Environment",
+		Collection:      "Module",
 		Cacheable:       false,
 	}
 }

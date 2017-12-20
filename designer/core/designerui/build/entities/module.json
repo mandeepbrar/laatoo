@@ -1,0 +1,17 @@
+{
+  "name":"Module",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name", "Instance"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Instance": {
+        "type":"bool"
+    }
+  }
+}

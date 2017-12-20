@@ -7,7 +7,6 @@ class EntityListField extends React.Component {
   constructor(props, ctx) {
     super(props)
     let items = props.input.value? props.input.value: []
-    console.log("props...i entity list", props)
     this.label = props.field.label? props.field.label : props.field.entity
     let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
     this.formDesc = {type: "form", id: formName}
@@ -22,7 +21,6 @@ class EntityListField extends React.Component {
   }
 
   closeForm = () => {
-    console.log("closing form")
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = null
@@ -49,7 +47,7 @@ class EntityListField extends React.Component {
         </this.uikit.ActionButton>
         :null}
         <this.uikit.ActionButton onClick={submit}>
-        Add
+        Save
         </this.uikit.ActionButton>
       </this.uikit.Block>
     )
@@ -65,11 +63,23 @@ class EntityListField extends React.Component {
     }
   }
 
+  editItem = (item, index) => {
+    this.openForm(item, index)
+  }
+
   add = (data, success, failure) => {
       let items = this.addItem(data.data)
       console.log(" items", items)
       this.props.input.onChange(items)
       this.closeForm()
+  }
+
+  addItem = (item) => {
+    let items = this.state.items.slice();
+    items.push(item)
+    return items
+    //console.log("items set to ", items, item)
+    //this.setState(Object.assign({}, {items: items}))
   }
 
   openForm = (formData, index) => {
@@ -93,17 +103,6 @@ class EntityListField extends React.Component {
     this.setState(Object.assign({}, this.state, {formOpen: true}))
   }
 
-  addItem = (item) => {
-    let items = this.state.items.slice();
-    items.push(item)
-    return items
-    //console.log("items set to ", items, item)
-    //this.setState(Object.assign({}, {items: items}))
-  }
-
-  editItem = (item, index) => {
-    this.openForm(item, index)
-  }
 
   removeItem = (item, index) => {
     let items = this.state.items.slice();
@@ -150,18 +149,10 @@ class EntityListField extends React.Component {
     if(items.length == 0) {
       items.push("No data")
     }
+    let title = this.props.field.skipLabel? null: this.label
+    let actions = [  <Action name="listfield_new_entity" className="p10" method={this.openForm}> <this.uikit.Icons.NewIcon /> </Action>]
     return (
-      <this.uikit.Block className={"entitylistfield "+this.label}>
-        {this.props.field.skipLabel? null:
-          <this.uikit.Block className="title">
-            {this.label}
-          </this.uikit.Block>
-        }
-        <this.uikit.Block className="right tb10">
-          <Action name="listfield_new_entity" className="p10" method={this.openForm}>
-            <this.uikit.Icons.NewIcon />
-          </Action>
-        </this.uikit.Block>
+      <this.uikit.Block className={"entitylistfield "+this.label} title={title} titleBarActions={actions}>
         {items}
       </this.uikit.Block>
     )

@@ -4,17 +4,24 @@ import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
 
-func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, instance string, instanceConf config.Config, modulesDir string,
-	pendingModules map[string]config.Config) (bool, error) {
+func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
+	ctx = ctx.SubContext("Process Instance Conf " + instance)
 
 	//get module to be used
 	moduleName, ok := instanceConf.GetString(ctx, constants.CONF_MODULE)
 	if !ok {
 		moduleName = instance
+	}
+
+	_, moduleInstalled := modMgr.installedModules[moduleName]
+	modDir, modAvailable := modMgr.availableModules[moduleName]
+	if !moduleInstalled {
+		return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Name", moduleName, "Module Installed", moduleInstalled, "Module Available", modAvailable)
 	}
 
 	parentModuleName, pok := modMgr.parentModules[instance]
@@ -30,7 +37,7 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 		ctx = modMgr.svrref.svrContext.newContext("Module: " + instance)
 	}
 
-	ctx.Set(config.MODULEDIR, modMgr.getModuleDir(ctx, modulesDir, moduleName))
+	ctx.Set(config.MODULEDIR, modDir)
 
 	ctx.Set(constants.CONF_MODULE, instance)
 
@@ -40,17 +47,15 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 
 	disabled, _ := instanceConf.GetBool(ctx, constants.CONF_MODULE_DISABLED)
 	if !disabled {
-		_, err := modMgr.loadModule(ctx, modulesDir, moduleName)
-		if err != nil {
-			return false, errors.RethrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, err, "Module", moduleName)
-		}
-		return modMgr.createModuleInstance(ctx, instance, moduleName, modMgr.getModuleDir(ctx, modulesDir, moduleName), instanceConf, pendingModules)
+		return modMgr.createModuleInstance(ctx, instance, moduleName, modDir, instanceConf, pendingModules)
+	} else {
+		log.Debug(ctx, "Instance has been disabled")
 	}
 	return true, nil
 }
 
 func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
-	ctx = ctx.SubContext("Load Module " + moduleInstance)
+	ctx = ctx.SubContext("Create Instance " + moduleInstance)
 
 	modSettings, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
 	if ok {
@@ -128,28 +133,3 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 const (
 	OBJECTS = "objects"
 )
-
-func (modMgr *moduleManager) processModuleConfMetadata(ctx core.ServerContext, conf config.Config) error {
-	objsconf, ok := conf.GetSubConfig(ctx, OBJECTS)
-	if ok {
-		objs := objsconf.AllConfigurations(ctx)
-		for _, objname := range objs {
-			objconf, _ := objsconf.GetSubConfig(ctx, objname)
-			objtyp, _ := objconf.GetString(ctx, OBJECT_TYPE)
-			var inf core.Info
-			switch objtyp {
-			case "service":
-				inf = buildServiceInfo(ctx, objconf)
-			case "module":
-				inf = buildModuleInfo(ctx, objconf)
-			case "factory":
-				inf = buildFactoryInfo(ctx, objconf)
-			}
-			if inf != nil {
-				ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader
-				ldr.setObjectInfo(ctx, objname, inf)
-			}
-		}
-	}
-	return nil
-}

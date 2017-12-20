@@ -1,6 +1,7 @@
 version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
+  entity: ">=0.0.1"
 description: Module provides designer ui components
 modules:
   environment:
@@ -16,6 +17,13 @@ modules:
       object: Application
       parent: root
       instance: Application
+      dataservicefactory: mongodatabase
+  module:
+    module: entity
+    settings:
+      object: Module
+      parent: root
+      instance: Module
       dataservicefactory: mongodatabase
   moduleinstance:
     module: entity

@@ -91,6 +91,8 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 }
 
 func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns string, mod core.Module, modConf config.Config, settings config.Config, props map[string]interface{}) error {
+	ctx = ctx.SubContext("Load UI module " + insName)
+
 	ui, ok := settings.GetBool(ctx, UI_SVC_ENABLED)
 	if ok && !ui {
 		return nil
@@ -162,15 +164,15 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		}
 
 	}
-
-	instance := insName
-	if parentIns != "" {
-		instance = parentIns
-	}
-
+	/*
+		instance := insName
+		if parentIns != "" {
+			instance = parentIns
+		}
+	*/
 	if modRead {
-		svc.insSettings[instance] = settings
-		svc.insMods[instance] = modName
+		svc.insSettings[insName] = settings
+		svc.insMods[insName] = modName
 	}
 
 	uiRegDir := path.Join(dir, UI_DIR)

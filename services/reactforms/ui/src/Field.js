@@ -23,11 +23,13 @@ class FieldWrapper extends React.Component {
     let errorMethod = function (resp) {
       console.log("could not load data", resp)
     };
+    if(this.field.transformer) {
+      let method = _reg("Methods", this.field.transformer)
+      this.transformer = method;
+    }
     if(this.field.module) {
       let mod = modrequire(this.field.module);
-      console.log("mod..", mod)
       this.fldWidget = mod[this.field.widget];
-      console.log("mod..", this.fldWidget)
     } else {
       if (this.field.widget == "Select") {
         if(this.field.items){
@@ -79,16 +81,24 @@ class FieldWrapper extends React.Component {
   change = (name, val) => {
     console.log("field changed", name, val)
   }
+
+  component = (props) => {
+    if(this.transformer) {
+      props = this.transformer(props)
+    }
+    console.log("Wrapped form field", props, this.transformer)
+    if(this.fldWidget) {
+      return <this.fldWidget {...props}/>
+    } else {
+      return <this.context.uikit.Forms.FieldWidget {...props}/>
+    }
+  }
+
   render() {
     console.log("rendering field+", this.props, this.props.name, this.field, this.fldWidget);
-    let comp = this.context.uikit.Forms.FieldWidget
-    if(this.fldWidget) {
-      comp = this.fldWidget
-    }
     return (
-      <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={comp}/>
+      <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={this.component}/>
     )
-
   }
 
 }

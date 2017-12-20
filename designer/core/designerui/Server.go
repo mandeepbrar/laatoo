@@ -17,7 +17,8 @@ type Server struct {
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
 	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
-	Modules	[]ModuleInstance `json:"Modules" bson:"Modules" datastore: "Modules"`
+	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
+	Instances	[]ModuleInstance `json:"Instances" bson:"Instances" datastore: "Instances"`
 	Services	[]Service `json:"Services" bson:"Services" datastore: "Services"`
 	Factories	[]Factory `json:"Factories" bson:"Factories" datastore: "Factories"`
 	Channels	[]Channel `json:"Channels" bson:"Channels" datastore: "Channels"`

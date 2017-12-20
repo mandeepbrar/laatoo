@@ -4,7 +4,7 @@ import './FormReducer'
 import './sagas/Entity'
 import {Field, Initialize as InitializeFieldMod} from './Field';
 
-//import './styles/app.scss'
+import './styles/app.scss'
 
 const PropTypes = require('prop-types');
 

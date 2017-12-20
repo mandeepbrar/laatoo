@@ -1,5 +1,34 @@
 modulesrepo: "/modules"
 modules:
+  - filesystemstorage
+  - mongodatabase
+  - localauth
+  - role
+  - staticfileserver
+  - reactwebrouter
+  - reactmaterialkit
+  - entitylistfield
+  - fontawesome
+  - uicommon
+  - reactpages
+  - reactwebcommon
+  - laatooviews
+  - uicommon
+  - authui
+  - reactforms
+  - designerdependencies
+  - dashboardtheme
+  - designerui
+  - reactapplication
+  - shell
+  - publicdirserver
+  - publicfilesserver
+  - dataadapter
+  - dblogin
+  - entity
+  - user
+  - ui
+moduleinstances:
   filesystemstorage:
     module: filesystemstorage
   securityhandler.role:
@@ -48,8 +77,6 @@ modules:
       vertical: true
       className: laatoodashboard
       infoBlock: InfoBlock
-  designerui:
-    module: designerui
   designerapplication:
     module: reactapplication
     settings:
@@ -63,6 +90,8 @@ modules:
       uiapplication: designerapplication
       uidependencies:
         react: ''
+  designerui:
+    module: designerui
   publicdirserver:
     module: publicdirserver
     settings:

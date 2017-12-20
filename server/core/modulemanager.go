@@ -22,6 +22,7 @@ type moduleManager struct {
 	parent           core.ServerElement
 	proxy            server.ModuleManager
 	modulesRepo      string
+	availableModules map[string]string
 	modules          map[string]server.Module
 	installedModules map[string]*semver.Version
 	moduleConf       map[string]config.Config
@@ -32,10 +33,13 @@ type moduleManager struct {
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Module manager initialized ")
-	modulesConfig, err, _ := common.ConfigFileAdapter(ctx, conf, constants.CONF_MODULES)
+	moduleInstancesConfig, err, _ := common.ConfigFileAdapter(ctx, conf, constants.CONF_MODULE_INSTANCES)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	availableModules, _ := conf.GetStringArray(ctx, constants.CONF_MODULES)
+
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 
 	baseDir, _ := ctx.GetString(config.BASEDIR)
@@ -46,18 +50,26 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	}
 	modMgr.modulesRepo = modulesRepository
 
+	repoExists, _, _ := utils.FileExists(modulesRepository)
+	if repoExists && (availableModules != nil) {
+		err = modMgr.loadAvailableModules(ctx, modulesRepository, modulesDir, availableModules)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
 	ok, fi, _ := utils.FileExists(modulesDir)
 	if ok && fi.IsDir() {
 
 		pendingModules := make(map[string]config.Config)
-		instances := modulesConfig.AllConfigurations(ctx)
+		instances := moduleInstancesConfig.AllConfigurations(ctx)
 
 		//loop through module instances
 		for _, instance := range instances {
-			instanceConf, _ := modulesConfig.GetSubConfig(ctx, instance)
+			instanceConf, _ := moduleInstancesConfig.GetSubConfig(ctx, instance)
 			log.Info(ctx, "Loading module instance", "Name", instance)
 
-			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir, pendingModules)
+			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, pendingModules)
 			if err != nil {
 				return err
 			}
@@ -70,7 +82,7 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 		//load pending modules
 		if len(pendingModules) > 0 {
-			err = modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir)
+			err = modMgr.iterateAndLoadPendingModules(ctx, pendingModules)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
@@ -89,13 +101,13 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	return nil
 }
 
-func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext, mods map[string]config.Config, modulesDir string) error {
+func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext, mods map[string]config.Config) error {
 	//create pending modules from this iteration
 	pendingModules := make(map[string]config.Config)
 
 	//loop through provided modules
 	for instance, instanceConf := range mods {
-		loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, modulesDir, pendingModules)
+		loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, pendingModules)
 		if err != nil {
 			return err
 		}
@@ -122,7 +134,7 @@ func (modMgr *moduleManager) iterateAndLoadPendingModules(ctx core.ServerContext
 	//if no new modules have been loaded in this iteration
 	// and there are still modules pending... error out
 	if continueRecursion {
-		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules, modulesDir); err != nil {
+		if err := modMgr.iterateAndLoadPendingModules(ctx, pendingModules); err != nil {
 			return err
 		}
 	} else {
@@ -218,6 +230,7 @@ func (modMgr *moduleManager) processPlugins(ctx core.ServerContext, mod *serverM
 			passedMod := passedModProxy.(*moduleProxy).mod
 			passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
 			parentIns := modMgr.parentModules[passedModName]
+			log.Debug(ctx, "Loading module with settings", "Instance", passedModName, "Module name", passedMod.moduleName, "Settings", passedMod.modSettings)
 			err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, parentIns, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
 			if err != nil {
 				return errors.WrapError(passedModCtx, err)
