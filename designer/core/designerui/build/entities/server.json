@@ -2,18 +2,22 @@
   "name":"Server",
   "inherits":"",
   "imports":[],
-  "titleField": "Name",
   "form": {
     "tabs": {
-      "General": ["Name", "Description", "Solution", "Modules"],
+      "General": ["Name", "Description", "Solution", "LoggingLevel", "LoggingFormat"],
+      "Modules": [ "Modules"],
       "Module Instances": ["Instances"],
       "Services": ["Services"],
       "Channels": ["Channels"],
-      "Factories": ["Factories"]
+      "Engines": ["Engines"],
+      "Factories": ["Factories"],
+      "Rules": ["Rules"],
+      "Tasks": ["Tasks"],
+      "Entities": ["Entities"]
     },
     "overlay": true,
     "submit": "Save",
-    "layout": ["General", "Module Instances", "Services", "Channels", "Factories"]
+    "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks"]
   },
   "fields":{
     "Name": {
@@ -26,6 +30,27 @@
       "type":"entity",
       "entity": "Solution",
       "ref": true
+    },
+    "LoggingLevel": {
+        "type":"string",
+        "widget": "Select",
+        "items": [
+          {"text": "Error", "value":"error"},
+          {"text": "Warn", "value":"warn"},
+          {"text": "Info", "value":"info"},
+          {"text": "Debug", "value":"debug"},
+          {"text": "Trace", "value":"trace"}
+        ]
+    },
+    "LoggingFormat": {
+        "type":"string",
+        "widget": "Select",
+        "options": [
+          {"text": "Json ", "value":"json"},
+          {"text": "Json Full", "value":"jsonmax"},
+          {"text": "Formatted", "value":"happy"},
+          {"text": "Formatted Full", "value":"happymax"}
+        ]
     },
     "Modules": {
         "type":"subentitylist",
@@ -46,6 +71,12 @@
         "widget": "EntityList",
         "module": "entitylistfield"
     },
+    "Entities": {
+        "type":"subentitylist",
+        "entity": "Entity",
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
     "Factories": {
         "type":"subentitylist",
         "entity": "Factory",
@@ -55,6 +86,24 @@
     "Channels": {
         "type":"subentitylist",
         "entity": "Channel",
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
+    "Engines": {
+        "type":"subentitylist",
+        "entity": "Engine",
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
+    "Rules": {
+        "type": "subentitylist",
+        "entity": "Rule",
+        "widget": "EntityList",
+        "module": "entitylistfield"
+    },
+    "Tasks": {
+        "type": "subentitylist",
+        "entity": "Task",
         "widget": "EntityList",
         "module": "entitylistfield"
     }

@@ -1,0 +1,47 @@
+{
+  "name":"Engine",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "EngineType", "Address", "SSL" ],
+      "HTML": ["Path", "CORS", "CORSHosts", "Framework", "QueryParams"]
+    },
+    "layout": ["General", "HTML"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "EngineType": {
+        "type":"string"
+    },
+    "Address": {
+        "type":"string"
+    },
+    "Framework": {
+        "type":"string"
+    },
+    "SSL": {
+        "type":"bool"
+    },
+    "CORS": {
+        "type":"bool"
+    },
+    "Path": {
+        "type":"string"
+    },
+    "CORSHosts": {
+      "type":"string",
+      "list": true
+    },
+    "QueryParams": {
+      "type":"string",
+      "list": true
+    }
+  }
+}

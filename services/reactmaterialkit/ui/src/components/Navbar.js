@@ -11,6 +11,7 @@ class Navbar extends React.Component {
   render() {
     let isVertical = this.props.vertical
     let className=isVertical?"vertnavitem":"horiznavitem"
+    let navClass=isVertical?"vertnavbar":"horiznavbar"
     let items=[]
     if(this.props.items) {
       this.props.items.forEach(function(item){
@@ -22,7 +23,7 @@ class Navbar extends React.Component {
       });
     }
     return(
-      <div className='navbar'>
+      <div className={navClass}>
         {items}
       </div>
     )

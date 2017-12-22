@@ -24,3 +24,4 @@ ui:
     headerimage: Image used for header
     headertitle: Title used in header
     headerclass: Style to be used in header
+    vertical: Vertical/Horizontal menus

@@ -1,0 +1,28 @@
+{
+  "name":"Entity",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description"],
+      "Fields": ["Fields"]
+    },
+    "layout": ["General", "Fields"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Fields": {
+      "type":"subentitylist",
+      "entity": "Field",
+      "mode": "dialog",
+      "widget": "EntityList",
+      "module": "entitylistfield"
+    }
+  }
+}

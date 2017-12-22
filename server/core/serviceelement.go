@@ -59,7 +59,7 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 		return errors.TypeMismatch(ctx, "Service does not inherit from core.Service", svc.name)
 	}
 
-	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
+	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "fastjson": codecs.NewFastJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
 
 	ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
 	md, _ := ldr.GetMetaData(ctx, svc.objectName)

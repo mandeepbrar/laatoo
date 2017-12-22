@@ -5,21 +5,16 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type Service_Ref struct {
+type Field_Ref struct {
   Id    string
   Name string
 }
 
-type Service struct {
+type Field struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Factory	string `json:"Factory" bson:"Factory" datastore:"Factory"`
-	ServiceMethod	string `json:"ServiceMethod" bson:"ServiceMethod" datastore:"ServiceMethod"`
-	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
-	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
-	Params	[]Param `json:"Params" bson:"Params" datastore: "Params"`
+	Type	string `json:"Type" bson:"Type" datastore:"Type"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string
@@ -32,17 +27,17 @@ type Service struct {
 	Blocked                  bool   `json:"Blocked" bson:"Blocked"`*/
 }
 
-func (ent *Service) Config() *data.StorableConfig {
+func (ent *Field) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Service",
+		Type:            "Field",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Service",
+		Collection:      "Field",
 		Cacheable:       false,
 	}
 }

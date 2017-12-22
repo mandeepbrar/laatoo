@@ -5,21 +5,24 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type Service_Ref struct {
+type Engine_Ref struct {
   Id    string
   Name string
 }
 
-type Service struct {
+type Engine struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Factory	string `json:"Factory" bson:"Factory" datastore:"Factory"`
-	ServiceMethod	string `json:"ServiceMethod" bson:"ServiceMethod" datastore:"ServiceMethod"`
-	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
-	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
-	Params	[]Param `json:"Params" bson:"Params" datastore: "Params"`
+	EngineType	string `json:"EngineType" bson:"EngineType" datastore:"EngineType"`
+	Address	string `json:"Address" bson:"Address" datastore:"Address"`
+	Framework	string `json:"Framework" bson:"Framework" datastore:"Framework"`
+	SSL	bool `json:"SSL" bson:"SSL" datastore:"SSL"`
+	CORS	bool `json:"CORS" bson:"CORS" datastore:"CORS"`
+	Path	string `json:"Path" bson:"Path" datastore:"Path"`
+	CORSHosts	string `json:"CORSHosts" bson:"CORSHosts" datastore:"CORSHosts"`
+	QueryParams	string `json:"QueryParams" bson:"QueryParams" datastore:"QueryParams"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string
@@ -32,17 +35,17 @@ type Service struct {
 	Blocked                  bool   `json:"Blocked" bson:"Blocked"`*/
 }
 
-func (ent *Service) Config() *data.StorableConfig {
+func (ent *Engine) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Service",
+		Type:            "Engine",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Service",
+		Collection:      "Engine",
 		Cacheable:       false,
 	}
 }

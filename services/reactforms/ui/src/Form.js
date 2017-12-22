@@ -24,14 +24,25 @@ class WebFormUI extends React.Component {
       this.actions = _reg('Method', desc.actions)
     }
     console.log("webform ", props)
+    this.state={formValue: this.getFormValue(props), time: Date.now()}
     let layoutFunc = null
-    if(desc.layout) {
-
-    } else {
-
-    }
     if(props.formData) {
       this.setData(props.formData)
+    }
+    this.parentFormProps = {}
+    if(props.subform || desc.subform) {
+      let parentFormValue = props.parent.getFormValue()
+      console.log("received parent form value", parentFormValue)
+      this.parentFormProps = {parentFormValue}
+    }
+  }
+
+  componentWillReceiveProps(nextProps, nextState) {
+    if(this.config.dynamicFields) {
+      let formValue = this.getFormValue(nextProps)
+      if(formValue != this.state.formValue) {
+        this.setState(Object.assign({}, this.state, {formValue, time: Date.now()}))
+      }
     }
   }
 
@@ -40,7 +51,7 @@ class WebFormUI extends React.Component {
   }
 
   getChildContext() {
-    return {fields: this.props.description.fields};
+    return {fields: this.props.description.fields, getFormValue: this.getFormValue};
   }
 
   failureCallback = () => {
@@ -73,12 +84,21 @@ class WebFormUI extends React.Component {
     this.setData(data.resp.data)
   }
 
+  getFormValue = (props) => {
+    if(!props) {
+      props = this.props
+    }
+    let formVal  = props.state.form[props.form]
+    return formVal? formVal.values: {}
+  }
+
   layoutFields = (fldToDisp, flds, className) => {
     let fieldsArr = new Array()
+    let comp = this
     fldToDisp.forEach(function(k) {
       let fd = flds[k]
       let cl = className? className + " m10": "m10"
-      fieldsArr.push(  <Field key={fd.name} name={fd.name} className={cl}/>      )
+      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
     })
     return fieldsArr
   }
@@ -98,14 +118,15 @@ class WebFormUI extends React.Component {
             if(tabFlds) {
               let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield")
               tabs.push(
-                <comp.uikit.Tab label={k} value={k}>
+                <comp.uikit.Tab label={k} time={comp.state.time} value={k}>
                   {tabArr}
                 </comp.uikit.Tab>
               )
             }
           })
+          let vertical = desc.info.verticaltabs? true: false
           return (
-            <this.uikit.Tabset >
+            <this.uikit.Tabset vertical={vertical} time={comp.state.time}>
               {tabs}
             </this.uikit.Tabset>
           )
@@ -137,11 +158,11 @@ class WebFormUI extends React.Component {
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(this.props.formContext, this.props.description, this.uikit)
-          return React.cloneElement(root, { onSubmit: submitFunc, className: this.className})
+          return React.cloneElement(root, { time: this.state.time, onSubmit: submitFunc, className: this.className})
         }
       } else {
         return (
-          <this.uikit.Form onSubmit={submitFunc} className={this.className}>
+          <this.uikit.Form time={this.state.time} onSubmit={submitFunc} className={this.className}>
             {this.fields()}
             <this.uikit.Block className="actionbar p20 right">
               {
@@ -160,7 +181,8 @@ class WebFormUI extends React.Component {
 }
 
 WebFormUI.childContextTypes = {
-  fields: PropTypes.object
+  fields: PropTypes.object,
+  getFormValue: PropTypes.func
 };
 
 WebFormUI.contextTypes = {
@@ -175,7 +197,7 @@ const ReduxForm = reduxForm({})(WebFormUI)
 
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
-  return {  }
+  return { state }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {

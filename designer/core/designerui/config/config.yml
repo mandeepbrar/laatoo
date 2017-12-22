@@ -60,6 +60,41 @@ modules:
       parent: root
       instance: Channel
       dataservicefactory: mongodatabase
+  rule:
+    module: entity
+    settings:
+      object: Rule
+      parent: root
+      instance: Rule
+      dataservicefactory: mongodatabase
+  task:
+    module: entity
+    settings:
+      object: Task
+      parent: root
+      instance: Task
+      dataservicefactory: mongodatabase
+  entity:
+    module: entity
+    settings:
+      object: Entity
+      parent: root
+      instance: Entity
+      dataservicefactory: mongodatabase
+  field:
+    module: entity
+    settings:
+      object: Field
+      parent: root
+      instance: Field
+      dataservicefactory: mongodatabase
+  engine:
+    module: entity
+    settings:
+      object: Engine
+      parent: root
+      instance: Engine
+      dataservicefactory: mongodatabase
   solution:
     module: entity
     settings:

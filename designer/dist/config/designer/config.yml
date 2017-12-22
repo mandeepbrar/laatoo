@@ -74,7 +74,6 @@ moduleinstances:
     module: dashboardtheme
     settings:
       application: designerapplication
-      vertical: true
       className: laatoodashboard
       infoBlock: InfoBlock
   designerapplication:

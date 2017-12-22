@@ -178,7 +178,7 @@ class Panel extends React.Component {
     if(display) {
       this.getView = function(props, ctx, state, className) {
         console.log("calling block func", props, ctx)
-        let retval = display({data: props.data, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
+        let retval = display({data: props.data, parent: props.parent, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
         return retval
       }
     } else {
@@ -225,8 +225,8 @@ class Panel extends React.Component {
       this.getView = function(props, ctx, state, className) {
         let formCfg = Object.assign({}, cfg, ctx.routeParams)
         console.log("form cfg", formCfg, cfg)
-        return <this.form form={desc.id} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
-          formData={props.formData} onSubmit={props.onSubmit} actions={props.actions} description={formdesc} className={className} id={desc.id}></this.form>
+        return <this.form form={desc.id} parent={props.parent} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
+          formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} actions={props.actions} description={formdesc} className={className} id={desc.id}></this.form>
       }
     } else {
       this.getView = function(props, ctx, state, className) {
@@ -268,7 +268,7 @@ class Panel extends React.Component {
 
     this.getView = function(props, context, state, className) {
       return <this.view params={props.params} description={viewdesc} className={className} header={viewHeader} id={viewid}>
-        <Panel description={description.item} />
+        <Panel parent={props.parent} description={description.item} />
       </this.view>
     }
   }
@@ -294,7 +294,7 @@ class Panel extends React.Component {
     var entityDisplay={type:"block", block: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
     this.getView = function(props, ctx, state, className) {
       return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
-        <Panel description={entityDisplay} className={itemClass} />
+        <Panel description={entityDisplay} parent={props.parent} className={itemClass} />
       </this.entity>
     }
   }

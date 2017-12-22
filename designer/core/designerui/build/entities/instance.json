@@ -15,8 +15,10 @@
         "type":"string"
     },
     "Module": {
-        "type":"string",
-        "transformer":"Form_Instance_Transform_Modules"
+      "type":"entity",
+      "entity": "Module",
+      "skipDataLoad": true,
+      "transformer":"Form_Instance_Transform_Modules"
     },
     "Description": {
         "type":"string"

@@ -82,11 +82,17 @@ class EntityListField extends React.Component {
     //this.setState(Object.assign({}, {items: items}))
   }
 
+  getFormValue = () => {
+    let parentFormValue = this.context.getFormValue();
+    console.log("parent form value", parentFormValue);
+    return parentFormValue;
+  }
+
   openForm = (formData, index) => {
     console.log("opened form", this.props, this.context)
     let cl = this;
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
-    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.label} closePanel={this.closeForm} onSubmit={submit} description={this.formDesc} /> //, actions, contentStyle)
+    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.formDesc} /> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
@@ -161,6 +167,7 @@ class EntityListField extends React.Component {
 
 EntityListField.contextTypes = {
   uikit: PropTypes.object,
+  getFormValue: PropTypes.func,
   overlayComponent: PropTypes.func
 };
 

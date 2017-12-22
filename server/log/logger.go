@@ -58,7 +58,7 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 func processConf(ctx core.ServerContext, logconf config.Config) (string, string, int) {
 	loggerType := CONF_STDERR_LOGGER
 	loggingFormat := CONF_FMT_JSON
-	loggingLevel := slog.INFO
+	loggingLevel := slog.TRACE
 	val, ok := logconf.GetString(ctx, CONF_LOGGER_TYPE)
 	if ok {
 		loggerType = val

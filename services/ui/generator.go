@@ -68,7 +68,6 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	*/
 
 	modsList := new(bytes.Buffer)
-	log.Error(ctx, "Insssss***************************", "settings", svc.insSettings)
 	for insName, settings := range svc.insSettings {
 		settingsStr, err := json.Marshal(settings)
 		if err != nil {

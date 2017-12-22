@@ -2,23 +2,33 @@ import Tabs, { Tab as MUITab} from 'material-ui/Tabs';
 import React from 'react';
 import AppBar from 'material-ui/AppBar';
 import PropTypes from 'prop-types';
+import Button from 'material-ui/Button';
 
 class Tabset extends React.Component {
   constructor(props) {
     super(props)
-    console.log("tabset props", props.children[0])
     let value = null
     if(props.children.length>0) {
       value = props.children[0].props.value? props.children[0].props.value: props.children[0].props.label
     }
     this.state = {selectedTab: null, value}
     this.childTabs = {}
+    console.log("processing tabset", props)
+  }
+  isVertical = () => {
+    return this.props.vertical? true : false
   }
   addTab = (value, tab) => {
     if(this.state.value == value) {
       this.setState({ selectedTab: tab, value: value});
     }
     this.childTabs[value] = tab;
+  }
+  tabChanged = (value, tab) => {
+    this.childTabs[value] = tab;
+    if(this.state.value == value) {
+      this.setState({ selectedTab: tab, value: value});
+    }
   }
   getChildContext() {
     return {tabset: this};
@@ -30,13 +40,24 @@ class Tabset extends React.Component {
     }
   };
   render() {
+    console.log("rendering tabset")
     return (
-      <this.context.uikit.Block className={this.props.className}>
-        <Tabs value={this.state.value} onChange={this.handleChange}>
-        {this.props.children}
-        </Tabs>
-        {this.state.selectedTab}
-      </this.context.uikit.Block>
+        this.isVertical()?
+        <this.context.uikit.Block className="row">
+          <this.context.uikit.Block className="col-xs-3">
+          {this.props.children}
+          </this.context.uikit.Block>
+          <this.context.uikit.Block  className="col-xs-9">
+          {this.state.selectedTab}
+          </this.context.uikit.Block>
+        </this.context.uikit.Block>
+        :
+        <this.context.uikit.Block className={this.props.className}>
+          <Tabs value={this.state.value} scrollable onChange={this.handleChange}>
+          {this.props.children}
+          </Tabs>
+          {this.state.selectedTab}
+        </this.context.uikit.Block>
     )
   }
 }
@@ -52,20 +73,40 @@ Tabset.childContextTypes = {
 class Tab extends React.Component {
   constructor(props, ctx) {
     super(props)
+    console.log("processing tab", props, ctx)
     this.value = props.value? props.value : props.label
+    this.children = props.children
     if(ctx.tabset) {
+      this.vertical = ctx.tabset.isVertical()
       ctx.tabset.addTab(this.value, props.children)
     }
   }
+  componentWillReceiveProps(nextProps, nextState) {
+    if(this.children != nextProps.children) {
+      this.children = nextProps.children
+      if(this.context.tabset) {
+        this.context.tabset.tabChanged(this.value, nextProps.children)
+      }
+    }
+  }
+  tabClick = () => {
+    this.context.tabset.handleChange(null, this.value)
+  }
   render() {
-    console.log("rendering tab", this, this.props, this.context)
+    console.log("rendering tab", this.context, this.props, this.vertical)
     return (
-      <MUITab label={this.props.label} className={"tab " + this.props.className? this.props.className: ""} value={this.value}  {...this.props} icon={this.props.icon} />
+        this.vertical?
+        <this.context.uikit.Block className="tab w100">
+          <Button onClick={this.tabClick}>{this.props.label}</Button>
+        </this.context.uikit.Block>
+        :
+        <MUITab label={this.props.label} className={this.props.className? this.props.className + " tab " : "tab"} value={this.value}  {...this.props} icon={this.props.icon} />
     )
   }
 }
 
 Tab.contextTypes = {
+  uikit: PropTypes.object,
   tabset: PropTypes.object
 };
 

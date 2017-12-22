@@ -4,6 +4,7 @@ import React from 'react';
 import { Field } from 'redux-form'
 import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 const PropTypes = require('prop-types');
+import {Stringlist} from './Stringlist';
 
 var modrequire = null;
 
@@ -19,7 +20,7 @@ class FieldWrapper extends React.Component {
     if(!this.field.label && !this.field.skipLabel) {
       this.field.label = props.name
     }
-    this.state = { additionalProperties:{} }
+    this.state = {time: props.time? props.time: Date.now(), additionalProperties:{}}
     let errorMethod = function (resp) {
       console.log("could not load data", resp)
     };
@@ -39,7 +40,7 @@ class FieldWrapper extends React.Component {
           let req = RequestBuilder.DefaultRequest(null, this.field.dataServiceParams);
           DataSource.ExecuteService(this.field.dataService, req).then(this.selectOptionsLoaded, errorMethod);
         }
-        if(this.field.type == "entity") {
+        if(!this.field.skipDataLoad && this.field.type == "entity") {
           EntityData.ListEntities(this.field.name).then(this.selectOptionsLoaded, errorMethod);
         }
       }
@@ -74,30 +75,43 @@ class FieldWrapper extends React.Component {
         }
       })
       let options = this.getItems(this.props, data)*/
-
-      this.setState(Object.assign({}, this.state, {additionalProperties: {items: items} }))
+      console.log(" setting items", items)
+      this.setState(Object.assign({}, this.state, {time: Date.now(), additionalProperties: {items: items} }))
     }
   }
-  change = (name, val) => {
-    console.log("field changed", name, val)
+
+  componentWillReceiveProps(nextProps, nextState) {
+    if(nextProps.time > this.state.time) {
+      this.setState(Object.assign({}, this.state, {time: nextProps.time}))
+    }
   }
 
-  component = (props) => {
+  component = (fieldProps) => {
+    console.log("component", this.state)
+    let newProps = fieldProps
     if(this.transformer) {
-      props = this.transformer(props)
+      newProps = this.transformer(fieldProps, this.props.formValue, this.field, this.context.fields, this.props, this.state,  this)
     }
-    console.log("Wrapped form field", props, this.transformer)
+    let comp = null
+    let baseComp = null
     if(this.fldWidget) {
-      return <this.fldWidget {...props}/>
+      comp = <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
+      baseComp = this.fldWidget
     } else {
-      return <this.context.uikit.Forms.FieldWidget {...props}/>
+      comp = <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
+      baseComp = this.context.uikit.Forms.FieldWidget
+    }
+    if(this.field.list && this.field.type=="string") {
+      return <Stringlist name={this.props.name} baseComponent={baseComp} className={this.props.className} ap={this.state.additionalProperties} time={this.state.time} field={this.field} baseProps={newProps}/>
+    } else {
+      return comp
     }
   }
 
   render() {
-    console.log("rendering field+", this.props, this.props.name, this.field, this.fldWidget);
+    console.log("changing state", this.state)
     return (
-      <Field key={this.props.name} name={this.props.name} className={this.props.className} {...this.state.additionalProperties} field={this.field} component={this.component}/>
+      <Field key={this.props.name} name={this.props.name} time={this.state.time} component={this.component}/>
     )
   }
 

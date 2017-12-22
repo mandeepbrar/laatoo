@@ -1,14 +1,10 @@
 {
-  "name":"Service",
+  "name":"Rule",
   "inherits":"",
   "imports":[],
   "titleField": "Name",
   "form": {
-    "tabs": {
-      "General": ["Name", "Description", "Factory", "ServiceMethod", "LoggingLevel", "LoggingFormat"],
-      "Params": [ "Params"]
-    },
-    "layout": ["General", "Params"]
+    "layout": ["Name", "Description", "Trigger", "MessageType", "Rule", "LoggingLevel", "LoggingFormat", "Params"]
   },
   "fields":{
     "Name": {
@@ -17,12 +13,15 @@
     "Description": {
         "type":"string"
     },
-    "Factory": {
+    "Trigger": {
         "type":"string"
     },
-    "ServiceMethod": {
+    "MessageType": {
         "type":"string",
-        "label": "Service Method"
+        "label": "Message"
+    },
+    "Rule": {
+        "type":"string"
     },
     "LoggingLevel": {
         "type":"string",
