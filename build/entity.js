@@ -39,21 +39,23 @@ function fields(fields) {
     let datastoreF = field.datastore? field.datastore : fieldName
     switch (field.type) {
       case "entity":
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
-        break;
-      case "entitylist":
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+        if(field.list) {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+        } else {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+        }
         break;
       case "subentity":
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
-        break;
-      case "subentitylist":
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
+        if(field.list) {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
+        } else {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
+        }
         break;
       default:
-        if(field.array) {
+        if(field.list) {
           fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)
         } else {
           fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)

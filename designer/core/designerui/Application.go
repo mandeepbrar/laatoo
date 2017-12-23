@@ -28,6 +28,7 @@ type Application struct {
 	Engines	[]Engine `json:"Engines" bson:"Engines" datastore: "Engines"`
 	Rules	[]Rule `json:"Rules" bson:"Rules" datastore: "Rules"`
 	Tasks	[]Task `json:"Tasks" bson:"Tasks" datastore: "Tasks"`
+	Security	Security `json:"Security" bson:"Security" datastore: "Security"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

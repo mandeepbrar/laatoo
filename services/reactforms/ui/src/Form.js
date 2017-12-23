@@ -29,6 +29,7 @@ class WebFormUI extends React.Component {
     if(props.formData) {
       this.setData(props.formData)
     }
+    this.trackChanges = this.config.trackChanges || props.trackChanges
     this.parentFormProps = {}
     if(props.subform || desc.subform) {
       let parentFormValue = props.parent.getFormValue()
@@ -38,10 +39,14 @@ class WebFormUI extends React.Component {
   }
 
   componentWillReceiveProps(nextProps, nextState) {
-    if(this.config.dynamicFields) {
+    if(this.trackChanges) {
       let formValue = this.getFormValue(nextProps)
       if(formValue != this.state.formValue) {
         this.setState(Object.assign({}, this.state, {formValue, time: Date.now()}))
+        if(this.props.onChange) {
+          console.log("on change of form", formValue)
+          this.props.onChange(formValue)
+        }
       }
     }
   }

@@ -1,0 +1,48 @@
+{
+  "name":"Security",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Mode", "RoleSvc", "Publickey", "Privatekey", "Realm", "supportedrealms", "authservices", "permissions"]
+  },
+  "fields":{
+    "Mode": {
+        "type":"string",
+        "widget": "Select",
+        "items": [
+          {"text": "Local", "value":"local"},
+          {"text": "Remote", "value":"remote"}
+        ]
+    },
+    "RoleSvc": {
+      "label": "Role Data Service",
+      "type":"string"
+    },
+    "Publickey": {
+        "type":"string"
+    },
+    "Privatekey": {
+        "type":"string"
+    },
+    "Realm": {
+        "type":"string",
+        "label": "Message"
+    },
+    "supportedrealms": {
+        "type":"string",
+        "label": "Supported Realms",
+        "list": true
+    },
+    "authservices": {
+        "label": "Authentication Services",
+        "type":"string",
+        "list": true
+    },
+    "permissions": {
+        "label": "Permissions",
+        "type":"string",
+        "list": true
+    }
+  }
+}

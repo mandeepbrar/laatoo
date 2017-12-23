@@ -102,6 +102,13 @@ modules:
       parent: root
       instance: Solution
       dataservicefactory: mongodatabase
+  security:
+    module: entity
+    settings:
+      object: Security
+      parent: root
+      instance: Security
+      dataservicefactory: mongodatabase
   server:
     module: entity
     settings:

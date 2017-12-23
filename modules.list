@@ -34,5 +34,5 @@ laatooviews laatoo/services/laatooviews
 reactpages laatoo/services/reactpages
 reactforms laatoo/services/reactforms
 entity laatoo/services/entity
-entitylistfield laatoo/services/entitylistfield
+subentity laatoo/services/subentity
 fontawesome laatoo/services/fontawesome

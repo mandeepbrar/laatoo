@@ -7,7 +7,7 @@ modules:
   - staticfileserver
   - reactwebrouter
   - reactmaterialkit
-  - entitylistfield
+  - subentity
   - fontawesome
   - uicommon
   - reactpages
@@ -52,8 +52,8 @@ moduleinstances:
     module: reactwebrouter
   reactmaterialkit:
     module: reactmaterialkit
-  entitylistfield:
-    module: entitylistfield
+  subentity:
+    module: subentity
   fontawesome:
     module: fontawesome
   uicommon:

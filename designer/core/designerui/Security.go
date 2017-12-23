@@ -5,24 +5,22 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type Engine_Ref struct {
+type Security_Ref struct {
   Id    string
   Name string
 }
 
-type Engine struct {
+type Security struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
-	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	EngineType	string `json:"EngineType" bson:"EngineType" datastore:"EngineType"`
-	Address	string `json:"Address" bson:"Address" datastore:"Address"`
-	Framework	string `json:"Framework" bson:"Framework" datastore:"Framework"`
-	SSL	bool `json:"SSL" bson:"SSL" datastore:"SSL"`
-	CORS	bool `json:"CORS" bson:"CORS" datastore:"CORS"`
-	Path	string `json:"Path" bson:"Path" datastore:"Path"`
-	CORSHosts	[]string `json:"CORSHosts" bson:"CORSHosts" datastore:"CORSHosts"`
-	QueryParams	[]string `json:"QueryParams" bson:"QueryParams" datastore:"QueryParams"`
+	Mode	string `json:"Mode" bson:"Mode" datastore:"Mode"`
+	RoleSvc	string `json:"RoleSvc" bson:"RoleSvc" datastore:"RoleSvc"`
+	Publickey	string `json:"Publickey" bson:"Publickey" datastore:"Publickey"`
+	Privatekey	string `json:"Privatekey" bson:"Privatekey" datastore:"Privatekey"`
+	Realm	string `json:"Realm" bson:"Realm" datastore:"Realm"`
+	supportedrealms	[]string `json:"supportedrealms" bson:"supportedrealms" datastore:"supportedrealms"`
+	authservices	[]string `json:"authservices" bson:"authservices" datastore:"authservices"`
+	permissions	[]string `json:"permissions" bson:"permissions" datastore:"permissions"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string
@@ -35,17 +33,17 @@ type Engine struct {
 	Blocked                  bool   `json:"Blocked" bson:"Blocked"`*/
 }
 
-func (ent *Engine) Config() *data.StorableConfig {
+func (ent *Security) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Engine",
+		Type:            "Security",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Engine",
+		Collection:      "Security",
 		Cacheable:       false,
 	}
 }

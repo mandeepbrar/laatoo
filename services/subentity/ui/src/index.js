@@ -6,18 +6,12 @@ const PropTypes = require('prop-types');
 class EntityListField extends React.Component {
   constructor(props, ctx) {
     super(props)
-    let items = props.input.value? props.input.value: []
-    this.label = props.field.label? props.field.label : props.field.entity
-    let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
-    this.formDesc = {type: "form", id: formName}
-    this.uikit = ctx.uikit;
-    let formOpen = false
-    this.state = {items, formOpen}
+    this.state = {value: props.value, formOpen:false}
+    this.uikit = props.uikit
   }
 
   componentWillReceiveProps(nextProps) {
-    let items = nextProps.input.value? nextProps.input.value: []
-    this.setState(Object.assign({}, this.state, {items}))
+    this.setState(Object.assign({}, this.state, {value: nextProps.value}))
   }
 
   closeForm = () => {
@@ -30,8 +24,8 @@ class EntityListField extends React.Component {
         break;
       case "overlay":
       default:
-        if(this.context.overlayComponent) {
-          this.context.overlayComponent(null)
+        if(this.props.overlayComponent) {
+          this.props.overlayComponent(null)
         }
     }
     this.setState(Object.assign({}, this.state, {formOpen: false}))
@@ -54,36 +48,33 @@ class EntityListField extends React.Component {
   }
 
   edit = (data, index, success, failure) => {
-    let items = this.state.items
+    let items = this.state.value
     if(items && items.length > index) {
       items[index] = data.data
       console.log(" items", items)
-      this.props.input.onChange(items)
+      this.props.onChange(items)
       this.closeForm()
     }
   }
 
-  editItem = (item, index) => {
-    this.openForm(item, index)
-  }
-
   add = (data, success, failure) => {
-      let items = this.addItem(data.data)
+      let items = this.state.value.slice();
+      items.push(data.data)
       console.log(" items", items)
-      this.props.input.onChange(items)
+      this.props.onChange(items)
       this.closeForm()
   }
 
-  addItem = (item) => {
-    let items = this.state.items.slice();
-    items.push(item)
-    return items
-    //console.log("items set to ", items, item)
-    //this.setState(Object.assign({}, {items: items}))
+  removeItem = (item, index) => {
+    let items = this.state.value.slice();
+    if (index > -1) {
+      items.splice(index, 1);
+    }
+    this.props.onChange(items)
   }
 
   getFormValue = () => {
-    let parentFormValue = this.context.getFormValue();
+    let parentFormValue = this.props.getFormValue();
     console.log("parent form value", parentFormValue);
     return parentFormValue;
   }
@@ -92,7 +83,7 @@ class EntityListField extends React.Component {
     console.log("opened form", this.props, this.context)
     let cl = this;
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
-    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.formDesc} /> //, actions, contentStyle)
+    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} /> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
@@ -102,32 +93,23 @@ class EntityListField extends React.Component {
         break;
       case "overlay":
       default:
-        if(this.context.overlayComponent) {
-          this.context.overlayComponent(comp)
+        if(this.props.overlayComponent) {
+          this.props.overlayComponent(comp)
         }
     }
     this.setState(Object.assign({}, this.state, {formOpen: true}))
-  }
-
-
-  removeItem = (item, index) => {
-    let items = this.state.items.slice();
-    if (index > -1) {
-      items.splice(index, 1);
-    }
-    this.props.input.onChange(items)
   }
 
   render() {
     let items = []
     console.log("rendering items in entity list", this.props, this.state)
     let comp = this
-    this.state.items.forEach(function(k, index) {
+    this.state.value.forEach(function(k, index) {
       var removeItem = () => {
         comp.removeItem(k, index)
       }
       var editItem = () => {
-        comp.editItem(k, index)
+        comp.openForm(k, index)
       }
       let textField = comp.props.entityText? comp.props.entityText: "Name"
       let text = k[textField];
@@ -155,22 +137,57 @@ class EntityListField extends React.Component {
     if(items.length == 0) {
       items.push("No data")
     }
-    let title = this.props.field.skipLabel? null: this.label
-    let actions = [  <Action name="listfield_new_entity" className="p10" method={this.openForm}> <this.uikit.Icons.NewIcon /> </Action>]
+    let actions = [  <Action action={{actiontype: "method"}} className="p10" method={this.openForm}> <this.uikit.Icons.NewIcon /> </Action>]
     return (
-      <this.uikit.Block className={"entitylistfield "+this.label} title={title} titleBarActions={actions}>
+      <this.uikit.Block className={"entitylistfield "} titleBarActions={actions}>
         {items}
       </this.uikit.Block>
     )
   }
 }
 
-EntityListField.contextTypes = {
+class SubEntity extends React.Component {
+  constructor(props, ctx) {
+    super(props)
+    this.list = props.field.list? true: false
+    this.label = props.field.label? props.field.label : props.field.entity
+    let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
+    this.formDesc = {type: "form", id: formName}
+    this.uikit = ctx.uikit;
+    let value = props.input.value? props.input.value: (this.list? [] : {})
+    this.state = {value}
+  }
+
+  componentWillReceiveProps(nextProps) {
+    let value = nextProps.input.value? nextProps.input.value: (this.list? [] : {})
+    this.setState(Object.assign({}, this.state, {value}))
+  }
+
+  change = (value) => {
+    console.log("charnging subentity", value)
+    this.props.input.onChange(value)
+  }
+
+  render() {
+    let title = this.props.field.skipLabel? null: this.label
+    return (
+      <this.uikit.Block className={"subentity "+this.label} title={title}>
+        {this.list?
+          <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label}
+          overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} value={this.state.value}/>
+        : <Panel actions={()=>{}} formData={this.state.value} onChange={this.change} trackChanges={true} description={this.formDesc} />
+        }
+      </this.uikit.Block>
+    )
+  }
+}
+
+SubEntity.contextTypes = {
   uikit: PropTypes.object,
   getFormValue: PropTypes.func,
   overlayComponent: PropTypes.func
 };
 
 export {
-  EntityListField as EntityList
+  SubEntity as SubEntity
 }

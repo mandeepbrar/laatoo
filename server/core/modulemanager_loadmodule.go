@@ -70,15 +70,15 @@ func (modMgr *moduleManager) extractArchives(ctx core.ServerContext, modulesRepo
 				} else {
 					extractFile = false
 				}
-				if extractFile {
-					if err := archiver.TarGz.Open(modFile, modulesDir); err != nil {
-						return errors.WrapError(ctx, err)
-					}
-					log.Info(ctx, "Extracted module ", "Module", modToExtract, "Module file", modFile, "Repo", modulesRepo, "Destination", modulesDir, "Module directory", modDir)
+			}
+			if extractFile {
+				if err := archiver.TarGz.Open(modFile, modulesDir); err != nil {
+					return errors.WrapError(ctx, err)
 				}
+				log.Info(ctx, "Extracted module ", "Module", modToExtract, "Module file", modFile, "Repo", modulesRepo, "Destination", modulesDir, "Module directory", modDir)
 			}
 		} else {
-			log.Trace(ctx, "Archive not found for module", "Module", modToExtract)
+			log.Error(ctx, "Archive not found for module", "Module", modToExtract)
 		}
 	}
 

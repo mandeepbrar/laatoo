@@ -18,11 +18,12 @@
         "type":"string"
     },
     "Fields": {
-      "type":"subentitylist",
+      "type":"subentity",
+      "list": true,
       "entity": "Field",
       "mode": "dialog",
-      "widget": "EntityList",
-      "module": "entitylistfield"
+      "widget": "SubEntity",
+      "module": "subentity"
     }
   }
 }

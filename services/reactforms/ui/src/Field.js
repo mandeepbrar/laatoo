@@ -95,16 +95,13 @@ class FieldWrapper extends React.Component {
     let comp = null
     let baseComp = null
     if(this.fldWidget) {
-      comp = <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
-      baseComp = this.fldWidget
+      return <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
     } else {
-      comp = <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
-      baseComp = this.context.uikit.Forms.FieldWidget
-    }
-    if(this.field.list && this.field.type=="string") {
-      return <Stringlist name={this.props.name} baseComponent={baseComp} className={this.props.className} ap={this.state.additionalProperties} time={this.state.time} field={this.field} baseProps={newProps}/>
-    } else {
-      return comp
+      if(this.field.list && (this.field.type=="entity" || this.field.type=="string")) {
+        return <Stringlist name={this.props.name} baseComponent={this.context.uikit.Forms.FieldWidget} className={this.props.className} ap={this.state.additionalProperties} time={this.state.time} field={this.field} baseProps={newProps}/>
+      } else {
+        return <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
+      }
     }
   }
 

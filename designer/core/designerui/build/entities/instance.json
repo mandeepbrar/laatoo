@@ -24,11 +24,12 @@
         "type":"string"
     },
     "Settings": {
-      "type":"subentitylist",
+      "type":"subentity",
+      "list": true,
       "entity": "Param",
       "mode": "dialog",
-      "widget": "EntityList",
-      "module": "entitylistfield"
+      "widget": "SubEntity",
+      "module": "subentity"
     }
   }
 }

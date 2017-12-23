@@ -13,12 +13,13 @@
       "Factories": ["Factories"],
       "Rules": ["Rules"],
       "Tasks": ["Tasks"],
-      "Entities": ["Entities"]
+      "Entities": ["Entities"],
+      "Security": ["Security"]
     },
     "verticaltabs": true,
     "overlay": true,
     "submit": "Save",
-    "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks"]
+    "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Security"]
   },
   "fields":{
     "Name": {
@@ -54,59 +55,73 @@
         ]
     },
     "Modules": {
-        "type":"subentitylist",
-        "entity": "Module",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Module"
     },
     "Instances": {
-        "type":"subentitylist",
-        "form":"new_form_moduleinstance",
-        "entity": "ModuleInstance",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "ModuleInstance"
     },
     "Services": {
-        "type":"subentitylist",
-        "entity": "Service",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Service"
     },
     "Entities": {
-        "type":"subentitylist",
-        "entity": "Entity",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Entity"
     },
     "Factories": {
-        "type":"subentitylist",
-        "entity": "Factory",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Factory"
     },
     "Channels": {
-        "type":"subentitylist",
-        "entity": "Channel",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Channel"
     },
     "Engines": {
-        "type":"subentitylist",
-        "entity": "Engine",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Engine"
     },
     "Rules": {
-        "type": "subentitylist",
-        "entity": "Rule",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Rule"
     },
     "Tasks": {
-        "type": "subentitylist",
-        "entity": "Task",
-        "widget": "EntityList",
-        "module": "entitylistfield"
+        "type":"subentity",
+        "list": true,
+        "widget": "SubEntity",
+        "module": "subentity",
+        "entity": "Task"
+    },
+    "Security": {
+        "type":"subentity",
+        "entity": "Security",
+        "widget": "SubEntity",
+        "module": "subentity"
     }
   }
 }
