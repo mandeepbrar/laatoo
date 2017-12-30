@@ -18,6 +18,7 @@
     },
     "verticaltabs": true,
     "overlay": true,
+    "actions":"AbstractServer_Actions",
     "submit": "Save",
     "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Security"]
   },

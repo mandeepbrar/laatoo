@@ -95,15 +95,22 @@ function plugins(entities) {
 }
 
 function createManifest(entities, pluginFolder) {
-  let filepath = path.join(pluginFolder, "manifest__.go")
-  if (!fs.pathExistsSync(filepath)) {
-    fs.removeSync(filepath)
+  let manifestpath = path.join(pluginFolder, "manifest.go")
+  if (!fs.pathExistsSync(manifestpath)) {
+    var buf = fs.readFileSync('./tpl/manifest.go.tpl');
+    var template = Handlebars.compile(buf.toString());
+    let gofile = template({})
+    fs.writeFileSync(manifestpath, gofile)
   }
-  var buf = fs.readFileSync('./tpl/manifest.go.tpl');
+  let objectspath = path.join(pluginFolder, "objectsmanifest__.go")
+  if (!fs.pathExistsSync(objectspath)) {
+    fs.removeSync(objectspath)
+  }
+  var buf = fs.readFileSync('./tpl/objects.go.tpl');
   Handlebars.registerHelper('plugins', plugins);
   var template = Handlebars.compile(buf.toString());
   let gofile = template({"entities": entities})
-  fs.writeFileSync(filepath, gofile)
+  fs.writeFileSync(objectspath, gofile)
 }
 
 module.exports = {

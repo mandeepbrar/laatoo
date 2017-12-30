@@ -17,6 +17,10 @@ type Application struct {
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
 	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
+	ServerTempRef	*Server `json:"ServerTempRef" bson:"ServerTempRef" datastore:"ServerTempRef"`
+	ServerTemp	string `json:"ServerTemp" bson:"ServerTemp" datastore: "ServerTemp"`
+	EnvironmentTempRef	*Environment `json:"EnvironmentTempRef" bson:"EnvironmentTempRef" datastore:"EnvironmentTempRef"`
+	EnvironmentTemp	string `json:"EnvironmentTemp" bson:"EnvironmentTemp" datastore: "EnvironmentTemp"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`

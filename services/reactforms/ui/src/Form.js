@@ -20,8 +20,8 @@ class WebFormUI extends React.Component {
     this.config = this.props.config? this.props.config :{}
     this.actions = props.actions
     let desc = props.description
-    if(!this.actions && desc.actions) {
-      this.actions = _reg('Method', desc.actions)
+    if(!this.actions && desc.info.actions) {
+      this.actions = _reg('Methods', desc.info.actions)
     }
     console.log("webform ", props)
     this.state={formValue: this.getFormValue(props), time: Date.now()}
@@ -41,11 +41,12 @@ class WebFormUI extends React.Component {
   componentWillReceiveProps(nextProps, nextState) {
     if(this.trackChanges) {
       let formValue = this.getFormValue(nextProps)
-      if(formValue != this.state.formValue) {
+      let oldFormValue = this.state.formValue
+      if(formValue != oldFormValue) {
         this.setState(Object.assign({}, this.state, {formValue, time: Date.now()}))
         if(this.props.onChange) {
           console.log("on change of form", formValue)
-          this.props.onChange(formValue)
+          this.props.onChange(formValue, oldFormValue)
         }
       }
     }
@@ -155,7 +156,7 @@ class WebFormUI extends React.Component {
   render() {
     let {handleSubmit, actions} = this.props
     let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
-    let submitFunc = handleSubmit(f)
+    var submitFunc = (customFunc) => { return customFunc? handleSubmit(customFunc): handleSubmit(f) }
     let cfg = this.config
     if(this.uikit.Form) {
       if(cfg.layout && (typeof(cfg.layout) == "string") ) {
@@ -172,8 +173,8 @@ class WebFormUI extends React.Component {
             <this.uikit.Block className="actionbar p20 right">
               {
                 this.actions?
-                this.actions(this, submitFunc, this.reset):
-                <this.uikit.ActionButton onClick={() => submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</this.uikit.ActionButton>
+                this.actions(this, submitFunc, this.reset, this.uikit, this.setData, this.props.dispatch):
+                <this.uikit.ActionButton onClick={submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</this.uikit.ActionButton>
               }
             </this.uikit.Block>
           </this.uikit.Form>

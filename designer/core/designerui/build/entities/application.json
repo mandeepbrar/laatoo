@@ -4,7 +4,7 @@
   "imports":[],
   "form": {
     "tabs": {
-      "General": ["Name", "Description", "Solution", "LoggingLevel", "LoggingFormat"],
+      "General": ["Name", "Description", "Solution", "ServerTemp", "EnvironmentTemp", "LoggingLevel", "LoggingFormat"],
       "Modules": [ "Modules"],
       "Module Instances": ["Instances"],
       "Services": ["Services"],
@@ -18,6 +18,7 @@
     },
     "verticaltabs": true,
     "overlay": true,
+    "actions":"AbstractServer_Actions",
     "submit": "Save",
     "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Security"]
   },
@@ -31,6 +32,18 @@
     "Solution": {
       "type":"entity",
       "entity": "Solution",
+      "ref": true
+    },
+    "ServerTemp": {
+      "type":"entity",
+      "entity": "Server",
+      "label": "Server Template",
+      "ref": true
+    },
+    "EnvironmentTemp": {
+      "type":"entity",
+      "entity": "Environment",
+      "label": "Environment Template",
       "ref": true
     },
     "LoggingLevel": {

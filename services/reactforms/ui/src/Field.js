@@ -41,7 +41,7 @@ class FieldWrapper extends React.Component {
           DataSource.ExecuteService(this.field.dataService, req).then(this.selectOptionsLoaded, errorMethod);
         }
         if(!this.field.skipDataLoad && this.field.type == "entity") {
-          EntityData.ListEntities(this.field.name).then(this.selectOptionsLoaded, errorMethod);
+          EntityData.ListEntities(this.field.entity).then(this.selectOptionsLoaded, errorMethod);
         }
       }
     }

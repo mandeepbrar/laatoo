@@ -2,6 +2,7 @@ version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
   entity: ">=0.0.1"
+  uicommon: ">=0.0.1"
 description: Module provides designer ui components
 modules:
   environment:
@@ -120,5 +121,8 @@ ui:
   skipUIModules: true
   externals:
     react: react
+    uicommon: uicommon
+    redux-saga: redux-saga
   packages:
     react: "^16.1.0"
+    redux-saga: "^0.16.0"

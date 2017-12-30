@@ -139,7 +139,7 @@ class EntityListField extends React.Component {
     }
     let actions = [  <Action action={{actiontype: "method"}} className="p10" method={this.openForm}> <this.uikit.Icons.NewIcon /> </Action>]
     return (
-      <this.uikit.Block className={"entitylistfield "} titleBarActions={actions}>
+      <this.uikit.Block className={"entitylistfield "} title={this.props.title} titleBarActions={actions}>
         {items}
       </this.uikit.Block>
     )
@@ -171,11 +171,11 @@ class SubEntity extends React.Component {
   render() {
     let title = this.props.field.skipLabel? null: this.label
     return (
-      <this.uikit.Block className={"subentity "+this.label} title={title}>
+      <this.uikit.Block className={"subentity "+this.label}>
         {this.list?
           <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label}
-          overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} value={this.state.value}/>
-        : <Panel actions={()=>{}} formData={this.state.value} onChange={this.change} trackChanges={true} description={this.formDesc} />
+          overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} title={title} value={this.state.value}/> 
+        : <Panel actions={()=>{}} formData={this.state.value} title={title} onChange={this.change} trackChanges={true} description={this.formDesc} />
         }
       </this.uikit.Block>
     )
