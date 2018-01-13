@@ -5,7 +5,6 @@ dependencies:
   authui: ">=0.0.1"
 description: Module provides laatoo forms for applications
 ui:
-  skipUIModules: true
   externals:
     babel-runtime: babel-runtime
     babel-polyfill: babel-polyfill

@@ -1,0 +1,18 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  entity: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides repository
+objects: {}
+modules: {}
+ui:
+  skipUIModules: true
+  externals:
+    react: react
+    reactwebcommon: reactwebcommon
+    uicommon: uicommon
+    reactpages: reactpages
+  packages:
+    react: "^16.1.0"

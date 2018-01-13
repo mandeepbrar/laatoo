@@ -94,6 +94,10 @@ func (svc *FileSystemSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser
 	return fileName, nil
 }
 
+func (svc *FileSystemSvc) ListFiles(ctx core.RequestContext, pattern string) ([]string, error) {
+	return filepath.Glob(path.Join(svc.filesDir, pattern))
+}
+
 func (svc *FileSystemSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
 	/*svc.SetDescription(ctx, "File system storage service")
 	svc.SetRequestType(ctx, config.CONF_OBJECT_STRINGMAP, false, false)

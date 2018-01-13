@@ -1,0 +1,16 @@
+{
+  "name":"ModuleParam",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "layout": []
+  },
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    }
+  }
+}

@@ -7,3 +7,12 @@ solutionsview:
 applicationsview:
   method: POST
   url: "/application/view"
+applicationresolver:
+  method: POST
+  url: "/resolve/application"
+environmentresolver:
+  method: POST
+  url: "/resolve/environment"
+serverresolver:
+  method: POST
+  url: "/resolve/server"

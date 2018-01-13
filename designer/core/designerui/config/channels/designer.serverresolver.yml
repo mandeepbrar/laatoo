@@ -1,0 +1,4 @@
+parent: root
+method: POST
+service: designer.serverresolver
+path: "/resolve/server"

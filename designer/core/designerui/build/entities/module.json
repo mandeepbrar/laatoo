@@ -12,6 +12,34 @@
     },
     "Instance": {
         "type":"bool"
+    },
+    "Objects": {
+      "type":"string",
+      "list": true
+    },
+    "Services": {
+      "type":"string",
+      "list": true
+    },
+    "Factories": {
+      "type":"string",
+      "list": true
+    },
+    "Channels": {
+      "type":"string",
+      "list": true
+    },
+    "Engines": {
+      "type":"string",
+      "list": true
+    },
+    "Rules": {
+      "type":"string",
+      "list": true
+    },
+    "Tasks": {
+      "type":"string",
+      "list": true
     }
   }
 }

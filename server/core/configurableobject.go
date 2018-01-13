@@ -69,11 +69,13 @@ func buildConfigurableObject(ctx core.ServerContext, conf config.Config) *config
 	if ok {
 		confNames := confs.AllConfigurations(ctx)
 		for _, confName := range confNames {
-			confDesc, _ := confs.GetSubConfig(ctx, confName)
-			required, _ := confDesc.GetBool(ctx, CONFREQ)
-			conftype, _ := confDesc.GetString(ctx, CONFTYPE)
-			defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
-			co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
+			confDesc, ok := confs.GetSubConfig(ctx, confName)
+			if ok {
+				required, _ := confDesc.GetBool(ctx, CONFREQ)
+				conftype, _ := confDesc.GetString(ctx, CONFTYPE)
+				defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
+				co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
+			}
 		}
 	}
 	return co

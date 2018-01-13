@@ -15,6 +15,13 @@ type Module struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Instance	bool `json:"Instance" bson:"Instance" datastore:"Instance"`
+	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
+	Services	[]string `json:"Services" bson:"Services" datastore:"Services"`
+	Factories	[]string `json:"Factories" bson:"Factories" datastore:"Factories"`
+	Channels	[]string `json:"Channels" bson:"Channels" datastore:"Channels"`
+	Engines	[]string `json:"Engines" bson:"Engines" datastore:"Engines"`
+	Rules	[]string `json:"Rules" bson:"Rules" datastore:"Rules"`
+	Tasks	[]string `json:"Tasks" bson:"Tasks" datastore:"Tasks"`
 /*	Post                     string `json:"Post" bson:"Post"`
 	PostTitle                string
 	PostTitleEng             string

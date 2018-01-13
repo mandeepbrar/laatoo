@@ -61,11 +61,17 @@
           {"text": "Formatted Full", "value":"happymax"}
         ]
     },
+    "Objects": {
+      "type":"string",
+      "list": true
+    },
     "Modules": {
         "type":"subentity",
         "list": true,
         "widget": "SubEntity",
         "module": "subentity",
+        "addwidget": "ModuleSelect",
+        "addwidgetmodule": "modulesrepository",
         "entity": "Module"
     },
     "Instances": {

@@ -4,6 +4,15 @@ dependencies:
   entity: ">=0.0.1"
   uicommon: ">=0.0.1"
 description: Module provides designer ui components
+objects:
+  objectsresolver:
+    type: service
+    description: Service for resolving module objects factories and dependencies
+    configurations:
+      objecttype:
+        type: string
+        required: true
+        description: Type of the object being resolved
 modules:
   environment:
     module: entity

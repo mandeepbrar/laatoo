@@ -2,6 +2,7 @@ import React from 'react';
 import {UsersView} from './pages/UsersView'
 import './styles/app'
 import Actions from './actions';
+import './sagas'
 import {  createAction } from 'uicommon';
 
 function Form_Instance_Transform_Modules(fieldProps, formValue, field, allfields, props, state,  form) {
@@ -19,9 +20,12 @@ function Form_Instance_Transform_Modules(fieldProps, formValue, field, allfields
   return fieldProps
 }
 
-function Form_SyncModules(submit, setData, dispatch) {
+function Form_SyncModules(form, submit, setData, dispatch) {
+  let type=  form.config.entity.toLowerCase()
+  console.log("form sync", type)
   return (data) => {
-    dispatch(createAction(Actions.SYNC_OBJECTS, { data}));
+    console.log("data", data)
+    dispatch(createAction(Actions.SYNC_OBJECTS, data, {type, setData}));
   }
 }
 
@@ -30,7 +34,7 @@ function AbstractServer_Actions(form, submit, reset, uikit, setData, dispatch) {
   return (
     <uikit.Block>
       <uikit.ActionButton onClick={submit()} className="submitBtn">Save</uikit.ActionButton>
-      <uikit.ActionButton onClick={Form_SyncModules(submit, setData, dispatch)} className="">Sync Modules</uikit.ActionButton>
+      <uikit.ActionButton onClick={submit(Form_SyncModules(form, submit, setData, dispatch))} className="">Sync Modules</uikit.ActionButton>
     </uikit.Block>
   )
 }

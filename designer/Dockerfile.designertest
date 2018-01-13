@@ -10,4 +10,6 @@ VOLUME /bin/publicdir
 
 VOLUME /bin/appfiles
 
+VOLUME /modulesrepo
+
 EXPOSE 6060

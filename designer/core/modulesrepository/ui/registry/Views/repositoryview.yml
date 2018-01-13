@@ -1,0 +1,7 @@
+postArgs: {}
+urlparams: {}
+serviceName: repositoryview
+item:
+  type: entity
+  entityName: RepositoryModule
+  entityDisplay: table

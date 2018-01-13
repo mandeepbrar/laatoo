@@ -18,6 +18,7 @@ modules:
   - reactforms
   - designerdependencies
   - dashboardtheme
+  - modulesrepository
   - designerui
   - reactapplication
   - shell
@@ -83,6 +84,10 @@ moduleinstances:
       router: router
       uikit: reactmaterialkit
       theme: dashboard
+  modulesrepository:
+    module: modulesrepository
+    settings:
+      dataservicefactory: mongodatabase
   shell:
     module: shell
     settings:

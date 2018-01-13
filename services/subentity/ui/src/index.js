@@ -82,8 +82,11 @@ class EntityListField extends React.Component {
   openForm = (formData, index) => {
     console.log("opened form", this.props, this.context)
     let cl = this;
+    let fld = this.props.field
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
-    let comp = <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} /> //, actions, contentStyle)
+    let comp = fld.addwidget?
+      <Panel description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} closePanel={this.closeForm} />
+    : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} /> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
@@ -174,7 +177,7 @@ class SubEntity extends React.Component {
       <this.uikit.Block className={"subentity "+this.label}>
         {this.list?
           <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label}
-          overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} title={title} value={this.state.value}/> 
+          overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} title={title} value={this.state.value}/>
         : <Panel actions={()=>{}} formData={this.state.value} title={title} onChange={this.change} trackChanges={true} description={this.formDesc} />
         }
       </this.uikit.Block>

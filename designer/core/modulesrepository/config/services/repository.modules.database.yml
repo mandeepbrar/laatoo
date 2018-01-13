@@ -1,0 +1,3 @@
+servicemethod: dummy
+factory:  {{var "dataservicefactory"}}
+object: ModuleDefinition

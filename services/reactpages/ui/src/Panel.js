@@ -268,7 +268,8 @@ class Panel extends React.Component {
     }
 
     this.getView = function(props, context, state, className) {
-      return <this.view params={props.params} description={viewdesc} className={className} header={viewHeader} id={viewid}>
+      return <this.view params={props.params} description={viewdesc} getItem={props.getItem} className={className} header={viewHeader} 
+        id={viewid}>
         <Panel parent={props.parent} description={description.item} />
       </this.view>
     }

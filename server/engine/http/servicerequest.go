@@ -13,7 +13,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 	svc server.Service, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool) (ServiceInvoker, error) {
 	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
 		engineContext := webctx.EngineRequestContext().(net.WebContext)
-		log.Trace(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
+		log.Error(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
 		reqctx := webctx.SubContext(svc.GetName())
 		defer reqctx.CompleteRequest()
 

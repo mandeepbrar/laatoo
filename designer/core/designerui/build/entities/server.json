@@ -55,6 +55,10 @@
           {"text": "Formatted Full", "value":"happymax"}
         ]
     },
+    "Objects": {
+      "type":"string",
+      "list": true
+    },
     "Modules": {
         "type":"subentity",
         "list": true,

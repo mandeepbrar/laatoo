@@ -1,0 +1,55 @@
+{
+  "name":"ModuleDefinition",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name"]
+  },
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Version": {
+      "type":"string"
+    },
+    "Dependencies": {
+      "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    },
+    "UIDependencies": {
+      "type":"string",
+      "list": true
+    },
+    "Objects": {
+      "type":"string",
+      "list": true
+    },
+    "Services": {
+      "type":"string",
+      "list": true
+    },
+    "Factories": {
+      "type":"string",
+      "list": true
+    },
+    "Channels": {
+      "type":"string",
+      "list": true
+    },
+    "Engines": {
+      "type":"string",
+      "list": true
+    },
+    "Rules": {
+      "type":"string",
+      "list": true
+    },
+    "Tasks": {
+      "type":"string",
+      "list": true
+    }
+  }
+}

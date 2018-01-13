@@ -10,6 +10,7 @@ services:
     - /home/mandeep/goprogs/src/laatoo/designer/dist/appfiles:/bin/appfiles
     - /home/mandeep/goprogs/src/laatoo/designer/dist/publicdir:/bin/publicdir
     - /home/mandeep/goprogs/src/laatoo/designer/modules:/modules
+    - /home/mandeep/goprogs/src/laatoo/designer/modulesrepo:/modulesrepo
     ports:
      - "6060:6060"
     depends_on:

@@ -119,6 +119,25 @@ func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName strin
 	return fmt.Sprintf("https://storage.cloud.google.com/%s/%s", svc.bucket, fileName)
 }
 
+func (svc *GoogleStorageSvc) ListFiles(ctx core.RequestContext, pattern string) ([]string, error) {
+	log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+
+	appengineCtx := ctx.GetAppengineContext()
+	client, err := storage.NewClient(appengineCtx)
+	if err != nil {
+		log.Debug(ctx, "Error while creating file", "err", err)
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
+	if contentType != "" {
+		dst.ContentType = contentType
+	}
+	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+	return dst, nil
+	return nil, nil
+}
+
 func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
 	log.Debug(ctx, "Saving file", "name", fileName)
 	// Destination file

@@ -205,7 +205,6 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 	if svc.dataObjectType == none {
 		return svc.handleRequest(ctx, vals, nil)
 	}
-
 	codecname := "json"
 	co, ok := vals["encoding"]
 	if ok {
@@ -219,6 +218,9 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 	var reqData interface{}
 
 	reqInfo := svc.impl.GetRequestInfo()
+
+	log.Error(ctx, "Handle Request", "Info", reqInfo, "Object type", reqInfo.GetDataType())
+
 	if !reqInfo.IsStream() {
 		switch svc.dataObjectType {
 		case stringmap:
