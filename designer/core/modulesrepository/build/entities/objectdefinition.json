@@ -1,0 +1,25 @@
+{
+  "name":"ObjectDefinition",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name"]
+  },
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    },
+    "Type": {
+      "type":"string"
+    },
+    "Configurations": {
+      "type":"subentity",
+      "entity": "ConfigurationDefinition",
+      "list": true
+    }
+  }
+}

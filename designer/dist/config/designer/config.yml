@@ -39,7 +39,6 @@ moduleinstances:
   mongodatabase:
     module: mongodatabase
     environment:
-      mongoconnectionstring: mongo
       mongodatabase: PunjabiMehfil
   localauth:
     module: localauth

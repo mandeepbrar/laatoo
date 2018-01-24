@@ -13,18 +13,21 @@
     "Version": {
       "type":"string"
     },
+    "Params": {
+      "type": "stringmap"
+    },
     "Dependencies": {
-      "type":"string"
+      "type":"stringmap"
     },
     "Description": {
       "type":"string"
     },
     "UIDependencies": {
-      "type":"string",
-      "list": true
+      "type":"stringmap"
     },
     "Objects": {
-      "type":"string",
+      "type":"subentity",
+      "entity": "ObjectDefinition",      
       "list": true
     },
     "Services": {

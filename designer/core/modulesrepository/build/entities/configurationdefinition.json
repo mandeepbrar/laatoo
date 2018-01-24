@@ -1,0 +1,26 @@
+{
+  "name":"ConfigurationDefinition",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name"]
+  },
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    },
+    "Type": {
+      "type":"string"
+    },
+    "Default": {
+      "type":"string"
+    },
+    "Required": {
+      "type":"bool"
+    }
+  }
+}
