@@ -32,6 +32,9 @@ func (adapter *DataAdapterModule) Describe(ctx core.ServerContext) {
 	adapter.AddStringConfiguration(ctx, data.CONF_DATA_OBJECT)
 	adapter.AddStringConfigurations(ctx, []string{DATA_ADAPTER_INSTANCE, MIDDLEWARE, CONF_PARENT_CHANNEL}, []string{"", "", "root"})
 }*/
+func (entity *EntityModule) MetaInfo(ctx core.ServerContext) map[string]interface{} {
+	return map[string]interface{}{}
+}
 
 func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Initializing entity module")

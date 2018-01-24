@@ -4,4 +4,4 @@ VOLUME /go/src/laatoo
 
 WORKDIR /go/src/laatoo
 
-ENTRYPOINT ["./build.sh"]
+ENTRYPOINT ["sh", "/go/src/laatoo/build.sh"]

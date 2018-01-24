@@ -221,18 +221,18 @@ function compileWebUI(nextTask) {
         }
       }
       if(found) {
-        let uiSrc = path.join(modPath, "files", "webui.js")
+        let uiSrc = path.join(modPath, "files", "scripts", "index.js")
         if (fs.pathExistsSync(uiSrc)) {
           log("Dependency " + pkg + " for ui found")
           let dest = path.join(nodeModulesFolder, "node_modules", pkg)
           fs.mkdirsSync(dest)
           fs.copySync(uiSrc, path.join(dest, "index.js"))
         }
-        let uicss = path.join(modPath, "files", "app.css")
+        let uicss = path.join(modPath, "files", "css", "app.css")
         if (fs.pathExistsSync(uicss)) {
           let dest = path.join(nodeModulesFolder, "node_modules", pkg)
           fs.mkdirsSync(dest)
-          fs.copySync(uicss, path.join(dest, "app.css"))
+          fs.copySync(uicss, path.join(dest, "css", "app.css"))
           log("Css being copied for pkg", pkg)
         }
       } else {
@@ -376,6 +376,7 @@ function buildObjects(nextTask) {
     shell.echo('Golang build failed');
     shell.exit(1);
   } else {
+    shell.echo('Golang compilation successfull');
     nextTask()
   }
 }
@@ -430,9 +431,10 @@ function copyFiles(nextTask) {
 
 function bundleModule(nextTask) {
   let verbose = argv.verbose? "-v":""
-  let command = sprintf('tar %s -czf %s -C %s %s', verbose, path.join("/plugins", "tmp", name+".tar.gz"), path.join("/plugins", "tmp"), name)
+  let tarfilepath = path.join("/plugins", "tmp", name+".tar.gz")
+  let command = sprintf('tar %s -czf %s -C %s %s', verbose, tarfilepath, path.join("/plugins", "tmp"), name)
   log("Bundle module: ", command)
-  if (shell.exec(command).code !== 0) {
+  if (shell.exec(command).code > 1) { //ignore the exit code for file changed
     shell.echo('Could not compress module failed');
     shell.exit(1);
   } else {

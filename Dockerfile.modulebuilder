@@ -11,9 +11,9 @@ RUN NODE_VERSION='8.4.0' ARCH='x64' \
 
 RUN mkdir -p /build
 
-RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader
+RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader object-assign babel-cli babel-core babel-eslint babel-loader babel-plugin-transform-react-constant-elements babel-plugin-transform-react-remove-prop-types babel-plugin-transform-runtime babel-preset-env babel-preset-react babel-preset-stage-0 copy-webpack-plugin cross-env css-loader eslint resolve-url-loader extract-text-webpack-plugin flow-bin html-webpack-plugin path postcss-loader rimraf sass-loader style-loader expose-loader url-loader webpack webpack-dev-middleware webpack-hot-middleware react-hot-loader webpack-merge
 
-RUN npm i --unsafe-perm node-sass
+RUN npm i -g --unsafe-perm node-sass
 
 VOLUME /nodemodules
 
@@ -40,6 +40,12 @@ COPY build/ /build
 WORKDIR /build
 
 COPY /build/.babelrc /
+
+#COPY list /
+
+#RUN chmod u+x /list
+
+#CMD ["list","/plugins"]
 
 ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects
 

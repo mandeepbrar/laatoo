@@ -1,4 +1,4 @@
-@import 'reactwebcommon/app';
+@import 'reactwebcommon/css/app';
 
 .entityform {
   .entityformfield {
@@ -22,6 +22,6 @@
     @extend  .bg-lgrey;
   }
   .evenindex {
-    @extend  .bg-white;    
+    @extend  .bg-white;
   }
 }

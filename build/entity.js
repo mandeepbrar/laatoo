@@ -54,6 +54,9 @@ function fields(fields) {
           fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
         }
         break;
+      case "stringmap":
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]string `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, jsonF, bsonF, datastoreF)
+        break;
       default:
         if(field.list) {
           fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)
