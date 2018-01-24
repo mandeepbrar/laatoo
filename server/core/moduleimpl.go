@@ -47,6 +47,10 @@ func (impl *moduleImpl) Start(ctx core.ServerContext) error {
 func (impl *moduleImpl) Describe(ctx core.ServerContext) {
 }
 
+func (impl *moduleImpl) MetaInfo(ctx core.ServerContext) map[string]interface{} {
+	return map[string]interface{}{}
+}
+
 func (impl *moduleImpl) Factories(ctx core.ServerContext) map[string]config.Config {
 	return nil
 }
