@@ -1,0 +1,7 @@
+postArgs: {}
+urlparams: {}
+serviceName: modulesrepoview
+item:
+  type: entity
+  entityName: ModuleDefinition
+  entityDisplay: icon

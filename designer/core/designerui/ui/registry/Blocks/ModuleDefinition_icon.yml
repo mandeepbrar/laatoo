@@ -1,0 +1,15 @@
+div:
+  className: moduledefinition_icon
+  children:
+  - div:
+      className: field
+      body: {{js "ctx.data.Name"}}
+  - div:
+      className: link
+      children:
+      - Action:
+          module: reactwebcommon
+          name: viewModule
+          params:
+            id: {{js "ctx.data.Id"}}
+          body: {{js "ctx.data.Name"}}

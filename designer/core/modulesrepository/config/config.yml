@@ -6,7 +6,14 @@ dependencies:
   reactpages: ">=0.0.1"
 description: Module provides repository
 objects: {}
-modules: {}
+modules:
+  moduledefinition:
+    module: entity
+    settings:
+      object: ModuleDefinition
+      parent: root
+      instance: ModuleDefinition
+      dataservicefactory: mongodatabase
 ui:
   skipUIModules: true
   externals:

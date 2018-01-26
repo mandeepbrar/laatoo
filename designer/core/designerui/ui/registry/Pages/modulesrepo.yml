@@ -1,0 +1,4 @@
+route: "/modulesrepo"
+component:
+  type: view
+  viewid: modulesrepo

@@ -56,37 +56,40 @@ func (svc *RepositoryUpdate) Invoke(ctx core.RequestContext) error {
 	mod, ok := ctx.GetStringParam(PARAM_MOD)
 	log.Error(ctx, "Update Module", "Module", mod)
 	if ok {
-		return svc.processModule(ctx, mod)
+		_, err := svc.processModule(ctx, mod)
+		return err
 	}
 	return nil
 }
 
-func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) error {
+func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string)  (*ModuleDefinition, error) {
 	files, err := svc.repositoryFiles.ListFiles(ctx, fmt.Sprintf("%s.tar.gz", mod))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Error(ctx, "Update Module", "files", files)
-	for _, file := range files {
-		_, fileName := filepath.Split(file)
+	if len(files) > 0 {
+		_, fileName := filepath.Split(files[0])
 		log.Error(ctx, "Process archive", "fileName", fileName)
-		err = svc.processArchive(ctx, mod, fileName)
+		modDef, err := svc.processArchive(ctx, mod, fileName)
 		if err != nil {
-			return err
+			return nil, errors.WrapError(ctx, err)
 		}
+		err = svc.dataStore.Put(ctx, mod, modDef)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		return modDef, nil
 	}
+	return nil, nil
 }
 
-func (svc *RepositoryUpdate) processArchive(ctx core.RequestContext, mod, file string) error {
+func (svc *RepositoryUpdate) processArchive(ctx core.RequestContext, mod, file string) (*ModuleDefinition, error) {
 	err := svc.extractArchive(ctx, mod, file)
 	if err != nil {
-		return err
+		return nil, errors.WrapError(ctx, err)
 	}
-	_, err = svc.readMod(ctx, mod)
-	if err != nil {
-		return err
-	}
-	return nil
+	return svc.readMod(ctx, mod)
 }
 
 func (svc *RepositoryUpdate) extractArchive(ctx core.RequestContext, mod, file string) error {
@@ -337,7 +340,7 @@ func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *Module
 				subModName = name
 			}
 			log.Error(ctx, "SubMod found", "submod", subModName, "conf", subModConf)
-			subModDef, err := svc.processMod(ctx, subModName)
+			subModDef, err := svc.processModule(ctx, subModName)
 			if(err!=nil) {
 				return errors.WrapError(ctx, err)
 			}

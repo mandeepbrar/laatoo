@@ -14,6 +14,6 @@ services:
     ports:
      - "6060:6060"
     environment:
-     - LAATOO_mongoconnectionstring=192.168.25.131
+     - LAATOO_mongoconnectionstring=10.200.82.69
 volumes:
   logvolume01: {}

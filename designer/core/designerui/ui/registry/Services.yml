@@ -7,6 +7,9 @@ solutionsview:
 applicationsview:
   method: POST
   url: "/application/view"
+modulesrepoview:
+  method: POST
+  url: "/moduledefinition/view"
 applicationresolver:
   method: POST
   url: "/resolve/application"
