@@ -1,4 +1,4 @@
 route: "/modulesrepo"
 component:
-  type: view
-  viewid: modulesrepo
+  type: block
+  id: Modules

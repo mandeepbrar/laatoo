@@ -39,10 +39,16 @@ function AbstractServer_Actions(form, submit, reset, uikit, setData, dispatch) {
   )
 }
 
+function ModulesRepo_ViewModule(params) {
+  console.log("Params******** modulesrepo", params)
+  params.ctx.panel.overlayComponent(<h2>my module</h2>)
+}
+
 function Initialize(appName, ins, mod, settings, def, req) {
   console.log("Initializing ui");
   _r("Methods", "Form_Instance_Transform_Modules",Form_Instance_Transform_Modules);
   _r("Methods", "AbstractServer_Actions", AbstractServer_Actions);
+  _r("Actions", "ModulesRepo_viewModule", {actiontype: "method", method: ModulesRepo_ViewModule})
   console.log("registering method",Application);
 }
 

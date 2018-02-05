@@ -16,4 +16,4 @@ component:
           label: New
       module: reactwebcommon
     - type: view
-      viewid: list_{{default "instance" "object" | lower}}
+      id: list_{{default "instance" "object" | lower}}

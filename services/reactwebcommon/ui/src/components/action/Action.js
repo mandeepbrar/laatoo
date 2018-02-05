@@ -21,6 +21,7 @@ class ActionComp extends React.Component {
     } else {
       this.action = _reg('Actions', props.name)
     }
+    console.log("action", this.action)
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
     }
@@ -46,8 +47,8 @@ class ActionComp extends React.Component {
         this.dispatchAction();
       return false;
       case "method":
-        let params = this.props.params
-        let method = this.props.method
+        let params = this.props.params? this.props.params: this.action.params
+        let method = this.props.method? this.props.method: this.action.method
         method(params);
       return false;
       case "newwindow":
@@ -73,7 +74,8 @@ class ActionComp extends React.Component {
     if (!this.hasPermission) {
       return null;
     }
-    let children= this.props.children? this.props.children: this.props.label
+    let children= this.props.children && (this.props.children.length > 0)? this.props.children: this.props.label
+    console.log("children of render view", children, this.props);
     let actionF = this.actionFunc;
     switch(this.props.widget) {
       case 'button': {

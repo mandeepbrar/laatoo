@@ -13,6 +13,14 @@
   }
 }
 
+.view_modulesrepo {
+  @extend .row;
+  .moduledefinition_icon {
+    @extend .center-xs, .valigncenter, .col-xs-3;
+    height: 80px;
+  }
+}
+
 .laatoodashboard .header {
   @extend .bg-lgrey;
 }

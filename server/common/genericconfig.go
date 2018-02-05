@@ -102,9 +102,13 @@ func (conf GenericConfig) GetStringArray(ctx ctx.Context, configurationName stri
 func (conf GenericConfig) GetConfigArray(ctx ctx.Context, configurationName string) ([]config.Config, bool) {
 	val, found := conf[configurationName]
 	if found {
+		retVal, cok := val.([]config.Config)
+		if cok {
+			return retVal, true
+		}
 		confArr, cok := val.([]GenericConfig)
 		if cok {
-			retVal := make([]config.Config, len(confArr))
+			retVal = make([]config.Config, len(confArr))
 			for index, val := range confArr {
 				retVal[index] = val
 			}
@@ -114,7 +118,7 @@ func (conf GenericConfig) GetConfigArray(ctx ctx.Context, configurationName stri
 		if !cok {
 			return nil, false
 		}
-		retVal := make([]config.Config, len(cArr))
+		retVal = make([]config.Config, len(cArr))
 		for index, val := range cArr {
 			var gc GenericConfig
 			gc, ok := val.(map[string]interface{})

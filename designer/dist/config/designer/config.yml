@@ -24,6 +24,7 @@ modules:
   - shell
   - publicdirserver
   - publicfilesserver
+  - itemdetailview
   - dataadapter
   - dblogin
   - entity
@@ -64,6 +65,8 @@ moduleinstances:
     module: reactwebcommon
   laatooviews:
     module: laatooviews
+  itemdetailview:
+    module: itemdetailview
   authui:
     module: authui
   reactforms:

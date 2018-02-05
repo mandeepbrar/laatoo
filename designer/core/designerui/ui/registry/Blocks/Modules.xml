@@ -1,0 +1,8 @@
+<Tabset module="uikit">
+  <Tab label="Solution Modules" value="solution" module="uikit">
+    <Panel className="solutionModules" module="reactpages" type="view" id="modulesrepo"></Panel>
+  </Tab>
+  <Tab label="All Modules" value="all" module="uikit">
+    <ItemDetailView module="itemdetailview" id="modulesrepo" entityName="ModuleDefinition"></ItemDetailView>
+  </Tab>
+</Tabset>

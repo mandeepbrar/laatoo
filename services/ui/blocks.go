@@ -22,7 +22,8 @@ type Node struct {
 }
 
 var (
-	jsReplaceRegex *regexp.Regexp
+	jsReplaceRegex    *regexp.Regexp
+	jsVarReplaceRegex *regexp.Regexp
 )
 
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
@@ -43,6 +44,7 @@ func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	log.Error(ctx, "Processing conf", "itemName", itemName, "conf", conf, "val", val)
 	svc.regItem(ctx, itemType, svc.getRegistryItemName(ctx, conf, itemName), val)
 	return nil
 }
@@ -164,16 +166,25 @@ func processJS(ctx core.ServerContext, input string) string {
 	if jsReplaceRegex == nil {
 		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)#@#`)
 	}
+	if jsVarReplaceRegex == nil {
+		jsVarReplaceRegex, _ = regexp.Compile(`javascript###([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)###`)
+	}
+
 	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
+	if len(arr) != 0 {
+		return `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
+	}
+
+	arr = jsVarReplaceRegex.FindAllStringIndex(input, -1)
 	if len(arr) == 0 {
 		val, e := json.Marshal(input)
 		if e != nil {
 			log.Error(ctx, "Error in marshalling string", "string", input, "error", e)
 		}
 		return string(val)
+	} else {
+		return jsVarReplaceRegex.ReplaceAllString(input, `$1`)
 	}
-	val := `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
-	return val
 }
 
 func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string {
@@ -209,7 +220,6 @@ func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string 
 func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (string, error) {
 
 	//svc.processJS(ctx, conf)
-
 	keys := conf.AllConfigurations(ctx)
 	rootelem := ""
 	for _, key := range keys {

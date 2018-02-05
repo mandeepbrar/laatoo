@@ -15,9 +15,11 @@ ui:
     redux-saga: redux-saga
     react-pagify: react-pagify
     uicommon: uicommon
+    prop-types: prop-types
   packages:
     react: "^16.1.0"
     react-pagify: "^2.3.0"
     react-redux: "^5.0.6"
     redux: "^3.7.2"
     redux-saga: "^0.16.0"
+    prop-types: "^15.6.0"

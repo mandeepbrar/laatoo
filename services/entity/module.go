@@ -168,7 +168,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 				skip: false
 			},
 			div: {
-				className: "%s_default tablerow javascript%s ",
+				className: "%s_tablerow tablerow javascript%s ",
 			  children: [
 					{
 						div: {
@@ -211,6 +211,67 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 		log.Error(ctx, "Error writing entity block", "Err", err)
 		return blocks
 	}
+	/*defaultStr := `{
+		config: {
+			skip: false
+		},
+		div: {
+			className: "%s_default javascript%s ",
+		  children: [
+				{
+					div: {
+						className: "tablecell field",
+						body: "javascript%s"
+					}
+				},
+				{
+					div: {
+						className: "tablecell field",
+						body: "javascript%s"
+					}
+				},
+				{
+					div: {
+						className: "tablecell field",
+						children: [
+							{
+								Action: {
+										module: "reactwebcommon",
+										name: "update_page_%s",
+										params: {
+											entityId: "javascript%s"
+										},
+										body: "View %s"
+								}
+							}
+						]
+					}
+				}
+			]
+		}
+	}	`*/
+	defaultBlk := ctx.CreateConfig()
+	blkDiv := ctx.CreateConfig()
+	fields := make([]config.Config, 0)
+	fieldsConf, ok := entity.entityConf.GetSubConfig(ctx, "fields")
+	if ok {
+		fieldNames := fieldsConf.AllConfigurations(ctx)
+		for _, field := range fieldNames {
+			//fieldConf, _ := fieldsConf.GetSubConfig(ctx, field)
+			fieldDiv := ctx.CreateConfig()
+			fieldDivElems := ctx.CreateConfig()
+			fieldDivElems.Set(ctx, "className", field)
+			fieldDivElems.Set(ctx, "body", fmt.Sprintf("javascript#@#ctx.data.%s#@#", field))
+			fieldDiv.Set(ctx, "div", fieldDivElems)
+			//fldChildren := ctx.CreateConfig()
+			fields = append(fields, fieldDiv)
+			//fieldToBeAdded := ctx.CreateConfig()
+			//fieldConf, _ := fields.GetSubConfig(ctx, field)
+		}
+	}
+	blkDiv.Set(ctx, "children", fields)
+	defaultBlk.Set(ctx, "div", blkDiv)
+	blocks.Set(ctx, entity.object+"_default", defaultBlk)
 
 	/*fields, ok := entity.entityConf.GetSubConfig(ctx, "fields")
 	if ok {
@@ -232,6 +293,56 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 
 		}
 	}*/
+
+	/*
+
+	  layoutFields = (fldToDisp, flds, className) => {
+	    let fieldsArr = new Array()
+	    let comp = this
+	    fldToDisp.forEach(function(k) {
+	      let fd = flds[k]
+	      let cl = className? className + " m10": "m10"
+	      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
+	    })
+	    return fieldsArr
+	  }
+
+	  fields = () => {
+	    let desc = this.props.description
+	    console.log("desc of form ", desc)
+	    let comp = this
+	    if(desc && desc.fields) {
+	      let flds = desc.fields
+	      if(flds) {
+	        if(desc.info && desc.info.tabs) {
+	          let tabs = new Array()
+	          let tabsToDisp = desc.info && desc.info.tabs? desc.info.layout: Object.keys(desc.info.tabs)
+	          tabsToDisp.forEach(function(k) {
+	            let tabFlds = desc.info.tabs[k];
+	            if(tabFlds) {
+	              let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield")
+	              tabs.push(
+	                <comp.uikit.Tab label={k} time={comp.state.time} value={k}>
+	                  {tabArr}
+	                </comp.uikit.Tab>
+	              )
+	            }
+	          })
+	          let vertical = desc.info.verticaltabs? true: false
+	          return (
+	            <this.uikit.Tabset vertical={vertical} time={comp.state.time}>
+	              {tabs}
+	            </this.uikit.Tabset>
+	          )
+	        } else {
+	          let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
+	          let className=comp.props.inline?"inline formfield":"formfield"
+	          return this.layoutFields(fldToDisp, flds, className)
+	        }
+	      }
+	    }
+	    return null
+	  }*/
 
 	return blocks
 }

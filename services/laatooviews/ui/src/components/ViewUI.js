@@ -100,11 +100,15 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     }
     return <this.uikit.Block className="group">x</this.uikit.Block>
   }
+  getRenderedItem = (x, i) => {
+    console.log("get rendered item", this.props.children, this.props)
+    return React.Children.map(this.props.children, (child) => React.cloneElement(child, { data: x, index: i }) )
+  }
   getItem(x, i) {
     if(this.props.getItem) {
       return this.props.getItem(this, x, i)
     }
-    return React.Children.map(this.props.children, (child) => React.cloneElement(child, { data: x, index: i }) );
+    return this.getRenderedItem(x, i);
   }
   getHeader() {
     if(this.props.getHeader) {

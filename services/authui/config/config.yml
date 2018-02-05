@@ -4,7 +4,6 @@ dependencies:
   reactwebcommon: ">=0.0.1"
 description: This module provides authentication ui components
 ui:
-  skipUIModules: true
   packages:
     axios: "^0.16.2"
     babel-polyfill: "^6.26.0"

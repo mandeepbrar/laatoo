@@ -10,15 +10,30 @@ class Panel extends React.Component {
     this.uikit = ctx.uikit
     let desc = props.description
 
-    if(!desc && props.id) {
+    /*if(!desc && props.id) {
       desc = _reg('Panels', props.id)
-    }
-    if(!desc && props.id) {
-      let type = props.type? props.type: "block";
-      desc = Object.assign({type: type}, props)
+    }*/
+    let id = props.id? props.id : ((desc && desc.id)? desc.id: null);
+    let type = props.type? props.type: ((desc && desc.type)? desc.type: "layout");
+    if(id) {
+      switch(type) {
+        case "view":
+          desc = _reg('Views', id)
+          break;
+        case "form":
+          desc = _reg('Forms', id)
+          break;
+        case "block":
+          desc = _reg('Blocks', id)
+          break;
+        default:
+          desc = _reg('Panels', id)
+      }
+      console.log("desc before assig", desc, props)
+      desc = Object.assign({type: type, id: id}, desc, props)
     }
 
-    this.title = props.title? props.title: (desc.title? desc.title:null)
+    this.title = props.title? props.title: (desc && desc.title? desc.title:null)
     this.closePanel = props.closePanel? props.closePanel: null
 
     //console.log("print id ", desc.id)
@@ -116,26 +131,22 @@ class Panel extends React.Component {
   }
 
   processLayout = (desc, props,  ctx) => {
-    let panelDesc = desc
-    if(desc.id) {
-      panelDesc = _reg("Panels", desc.id)
-    }
-    if(!panelDesc.layout) {
+    if(!desc || !desc.layout) {
       return
     }
-    this.cfgPanel(panelDesc.title, panelDesc.overlay)
+    this.cfgPanel(desc.title, desc.overlay)
     var block = this
     var layout = null
     var panelComp = (id)=> {
-      return panelDesc[id]?
+      return desc[id]?
       <block.uikit.Block className={id}>
-        {block.getPanelItems(panelDesc[id])}
+        {block.getPanelItems(desc[id])}
       </block.uikit.Block>
       :null
     }
 
     this.getView = function (props, ctx, state, className) {
-      switch(panelDesc.layout) {
+      switch(desc.layout) {
         case "2col": {
           layout=( <this.uikit.Block className={className + " twocol"}>
               {panelComp("header")}
@@ -175,10 +186,11 @@ class Panel extends React.Component {
     var display = this.getDisplayFunc(desc, props)
     this.cfgPanel(desc.title, desc.overlay)
     console.log("processing block", desc, display, props)
+    let panel=this
     if(display) {
       this.getView = function(props, ctx, state, className) {
         console.log("calling block func", props, ctx)
-        let retval = display({data: props.data, parent: props.parent, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
+        let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
         return retval
       }
     } else {
@@ -205,18 +217,13 @@ class Panel extends React.Component {
 
   processForm = (desc, props,  ctx) => {
     console.log("processing form", desc)
-    let formdesc = desc
-    if( desc.id) {
-      formdesc = _reg("Forms", desc.id)
-    }
-
-    if(!formdesc) {
+    if(!desc || !desc.info) {
       return
     }
     console.log("processing form", desc)
-    this.cfgPanel(formdesc.info.title, formdesc.info.overlay)
+    this.cfgPanel(desc.info.title, desc.info.overlay)
 
-    var cfg = formdesc.info
+    var cfg = desc.info
     if(!this.form) {
       this.form = this.getComponent("reactforms", "Form", module.req)
     }
@@ -227,7 +234,7 @@ class Panel extends React.Component {
         console.log("form cfg", formCfg, cfg)
         return <this.form form={desc.id} parent={props.parent} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
           onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}
-          actions={props.actions} description={formdesc} className={className} id={desc.id}/>
+          actions={props.actions} description={desc} className={className} id={desc.id}/>
       }
     } else {
       this.getView = function(props, ctx, state, className) {
@@ -244,7 +251,7 @@ class Panel extends React.Component {
     if (typeof(item) == "string") {
       return _reg('Blocks', item)
     } else {
-      let bid = item.block? item.block: item.id;
+      let bid =  item.id;
       let display = _reg('Blocks', bid)
       if(!display) {
         display = _reg('Blocks', item.defaultBlock)
@@ -254,23 +261,20 @@ class Panel extends React.Component {
   }
 
   processView = (desc, props, ctx) => {
-    let viewid = desc.viewid? desc.viewid: desc.id
-    var viewdesc = desc
-    if(viewid) {
-      viewdesc = _reg('Views', viewid)
-    }
-    this.cfgPanel(viewdesc.title, viewdesc.overlay)
-    let description = Object.assign({}, viewdesc, desc)
-    let viewHeader = description.header? <Panel description={description.header}/> :null
+    console.log("processing my view", desc, props, module)
+    this.cfgPanel(desc.title, desc.overlay)
+    let viewHeader = desc.header? <Panel description={desc.header}/> :null
 
     if(!this.view) {
       this.view = this.getComponent("laatooviews", "View", module.req)
     }
+    console.log("processing view", this.view)
 
     this.getView = function(props, context, state, className) {
-      return <this.view params={props.params} description={viewdesc} getItem={props.getItem} className={className} header={viewHeader} 
-        id={viewid}>
-        <Panel parent={props.parent} description={description.item} />
+      console.log("rendering view", this.view, props, desc)
+      return <this.view params={props.params} description={desc} getItem={props.getItem} className={className} header={viewHeader}
+        id={desc.id}>
+        <Panel parent={props.parent} description={desc.item} />
       </this.view>
     }
   }
@@ -293,7 +297,7 @@ class Panel extends React.Component {
     if(props.index) {
       itemClass = props.index%2 ? "oddindex": "evenindex"
     }
-    var entityDisplay={type:"block", block: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
+    var entityDisplay={type:"block", id: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
     this.getView = function(props, ctx, state, className) {
       return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
         <Panel description={entityDisplay} parent={props.parent} className={itemClass} />
@@ -316,11 +320,23 @@ class Panel extends React.Component {
 
   overlayComponent = (comp) => {
     console.log("overlaying component")
-    this.setState(Object.assign({}, {overlayComponent: comp}))
+    if(this.overlay) {
+      this.setState(Object.assign({}, {overlayComponent: comp}))
+    } else {
+      if(this.context && this.context.overlayComponent) {
+        this.context.overlayComponent(comp)
+      }
+    }
   }
 
   closeOverlay = () => {
-    this.setState({})
+    if(this.overlay) {
+      this.setState({})
+    } else {
+      if(this.context && this.context.closeOverlay) {
+        this.context.closeOverlay()
+      }
+    }
   }
 
   getComponent = (mod, comp, req) => {
@@ -337,7 +353,7 @@ class Panel extends React.Component {
   }
 
   render() {
-    console.log("rendering panel", this.props);
+    console.log("rendering panel", this.props, this.getView);
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
     let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
     if(this.overlay || this.title) {

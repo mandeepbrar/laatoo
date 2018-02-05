@@ -62,9 +62,11 @@ func ReadProperties(ctx core.ServerContext, propsDir string) (map[string]interfa
 		defMap, ok := defaultProps.(map[string]interface{})
 		if ok {
 			for k, v := range properties {
-				val, ok := v.(map[string]interface{})
-				if ok {
-					properties[k] = MergeProps(defMap, val)
+				if k != "default" {
+					val, ok := v.(map[string]interface{})
+					if ok {
+						properties[k] = MergeProps(defMap, val)
+					}
 				}
 			}
 		}

@@ -12,6 +12,13 @@ ui:
     dataadapter: dataadapter
     uicommon: uicommon
     reactwebcommon: reactwebcommon
+    babel-runtime: babel-runtime
+    babel-polyfill: babel-polyfill
+    react: react
+    prop-types: prop-types
+  packages:
+    react: "^16.1.0"
+    prop-types: "^15.6.0"
 objects:
   EntityModule:
     type: module
