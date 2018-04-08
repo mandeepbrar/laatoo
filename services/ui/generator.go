@@ -36,6 +36,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
+		uiFileCont.Write([]byte(fmt.Sprintln("console.log('file written ", name, "');")))
 	}
 
 	//reqTemplate := "_rm('%s');"
@@ -83,7 +84,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}*/
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];appLoadingComplete('%s','%s',insSettings);", modsList.String(), svc.application, "/properties/default."+svc.application+".json")
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings);", modsList.String(), svc.application, "/properties/default."+svc.application+".json")
 	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -158,11 +159,14 @@ func (svc *UI) writeVendorFile(ctx core.ServerContext, baseDir string) error {
 			return errors.WrapError(ctx, err)
 		}
 	*/
+	nl := []byte(fmt.Sprintln(""))
 	for _, cont := range svc.vendorFiles {
+		vendorFileCont.Write(nl)
 		_, err = vendorFileCont.Write(cont)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
+		vendorFileCont.Write(nl)
 	}
 	for mod, _ := range svc.vendorFiles {
 		initStr := "var k=require('%s'); console.log(\"module found %s\", k); if(k && k.Initialize) {k.Initialize('%s',{},define);};"
@@ -198,6 +202,7 @@ func (svc *UI) writeDependenciesSourceFile(ctx core.ServerContext, baseDir strin
 
 func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buffer, writtenMods map[string]bool) error {
 	log.Info(ctx, "Appending module content ", "Name", name)
+	nl := []byte(fmt.Sprintln(""))
 
 	cont, uiprs := svc.uiFiles[name]
 	if !uiprs {
@@ -218,7 +223,9 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module ", name)
 	}*/
+	buf.Write(nl)
 	_, err := buf.Write(cont)
+	buf.Write(nl)
 	if err == nil {
 		writtenMods[name] = true
 	}

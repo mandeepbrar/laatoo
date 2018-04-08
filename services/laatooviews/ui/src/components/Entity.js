@@ -32,6 +32,7 @@ class ViewEntity extends React.Component {
     return true;
   }
   render() {
+    console.log("laatoo views ", this.props)
     let display = null
     this.lastRenderTime = this.props.lastUpdateTime
     if(this.props.display && this.props.status && this.props.status == "Loading") {
@@ -91,6 +92,7 @@ const mapStateToProps = (state, ownProps) => {
       }
     }
   }
+  console.log("entity....", ownProps, props)
   return props;
 }
 

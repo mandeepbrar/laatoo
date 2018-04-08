@@ -3,6 +3,7 @@ import {Panel} from 'reactpages';
 import {View} from 'laatooviews';
 import {Action} from 'reactwebcommon';
 const PropTypes = require('prop-types');
+import './styles/app.scss'
 
 class ItemDetailView extends React.Component {
   constructor(props) {
@@ -11,7 +12,9 @@ class ItemDetailView extends React.Component {
   }
   openDetail = (item) => {
     console.log("open detail", item)
-    this.setState(Object.assign({}, this.state, {open: true, item: item}))
+    let entity = item.data
+    Window.showDialog(entity.Id, <Panel className="detail" description={{type:"entity", entityName: this.props.entityName, data: entity}}/>);
+    //this.setState(Object.assign({}, this.state, {open: true, item: item.data}))
   }
   closeDetail = () => {
     this.setState(Object.assign({}, this.state, {open: false}))

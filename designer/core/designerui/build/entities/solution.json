@@ -2,6 +2,9 @@
   "name":"Solution",
   "inherits":"",
   "imports":[],
+  "form": {
+    "overlay": true
+  },
   "titleField": "Name",
   "fields":{
     "Name": {
@@ -9,6 +12,16 @@
     },
     "Description": {
         "type":"string"
+    },
+    "Modules": {
+      "type":"subentity",
+      "label": "Solution Modules",
+      "addwidget": "ModuleSelect",
+      "addwidgetmodule": "modulesrepository",
+      "list": true,
+      "widget": "SubEntity",
+      "module": "subentity",
+      "entity": "Module"
     }
   }
 }

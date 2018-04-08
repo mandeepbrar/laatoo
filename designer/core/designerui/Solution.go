@@ -15,6 +15,7 @@ type Solution struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
 }
 
 func (ent *Solution) Config() *data.StorableConfig {

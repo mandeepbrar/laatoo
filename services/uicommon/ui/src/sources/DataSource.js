@@ -11,7 +11,7 @@ const Response = {
   BadRequest: "BadRequest",
   Failure: "Failure"
 };
-console.log("application services", Application)
+console.log("uicommon - application services", Application)
 
 class DefaultDataSource {
   constructor() {
@@ -21,7 +21,7 @@ class DefaultDataSource {
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this);
   }
   ExecuteService(serviceName, serviceRequest, config=null) {
-    console.log("application services", Application)
+    console.log("Execute services", Application)
     var service = _reg('Services', serviceName);
     if (service != null && serviceRequest != null) {
       return this.ExecuteServiceObject(service, serviceRequest, config);

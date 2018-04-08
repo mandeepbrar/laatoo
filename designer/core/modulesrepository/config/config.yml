@@ -4,6 +4,7 @@ dependencies:
   entity: ">=0.0.1"
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
+  itemdetailview: ">=0.0.1"
 description: Module provides repository
 objects: {}
 modules:

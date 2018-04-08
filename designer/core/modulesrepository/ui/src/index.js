@@ -3,6 +3,8 @@ import {  createAction } from 'uicommon';
 const PropTypes = require('prop-types');
 import {Action} from 'reactwebcommon';
 import {Panel} from 'reactpages';
+import {ItemDetailView} from 'itemdetailview';
+import 'styles/app.scss'
 
 function Initialize(appName, ins, mod, settings, def, req) {
 }
@@ -14,10 +16,13 @@ class ModuleSelect extends React.Component {
   }
   render() {
     return (
-      <Panel getItem={this.getItem} description={{type:"view", id: "repositoryview"}} />
+      <ItemDetailView id="repositoryview" entityName="ModuleDefinition"></ItemDetailView>
     )
   }
 }
+
+/**<ItemDetailView module="itemdetailview" id="modulesrepo" entityName="ModuleDefinition"></ItemDetailView>*/
+
 
 ModuleSelect.contextTypes = {
   uikit: PropTypes.object

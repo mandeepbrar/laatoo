@@ -1,0 +1,9 @@
+@import 'reactwebcommon/css/app';
+
+.repositoryview {
+  @extend .row;
+  .moduledefinition_icon {
+    @extend .center-xs, .valigncenter, .col-xs-3;
+    height: 80px;
+  }
+}

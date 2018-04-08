@@ -1,4 +1,7 @@
 modulesrepo: "/modules"
+logging:
+  level: error
+  format: happymax
 modules:
   - filesystemstorage
   - mongodatabase

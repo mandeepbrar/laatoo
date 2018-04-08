@@ -24,17 +24,8 @@ module.exports = merge(config, {
   devtool: 'cheap-module-source-map',
   plugins: [
     // Avoid publishing files when compilation fails
-    new webpack.NoErrorsPlugin(),
+    new webpack.NoEmitOnErrorsPlugin(),
     new webpack.DefinePlugin(GLOBALS),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
-      },
-      output: {
-        comments: false
-      },
-      sourceMap: false
-    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
@@ -46,7 +37,7 @@ module.exports = merge(config, {
   ],
   module: {
     noParse: /\.min\.js$/,
-    loaders: [
+    rules: [
       // Sass
       {
         test: /\.scss$/,
@@ -54,7 +45,6 @@ module.exports = merge(config, {
           fallback: 'style-loader',
           use: [
             { loader: 'css-loader', options: merge({ sourceMap: true }, cssoptions) },
-            { loader: 'resolve-url-loader'},
             { loader: 'sass-loader', options: merge({ outputStyle: 'compressed'}, cssoptions ) }
           ]
         })
@@ -65,7 +55,6 @@ module.exports = merge(config, {
           fallback: 'style-loader',
           use: [
             { loader: 'css-loader', options: merge( { sourceMap: true }, cssoptions) },
-            { loader: 'resolve-url-loader'},
             { loader: 'sass-loader', options: merge( { outputStyle: 'compressed' }, cssoptions) }
           ]
         })
@@ -75,8 +64,7 @@ module.exports = merge(config, {
         loader: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-             { loader: 'css-loader', options: cssoptions },
-             { loader: 'resolve-url-loader'}
+             { loader: 'css-loader', options: cssoptions }
           ]
         })
       }

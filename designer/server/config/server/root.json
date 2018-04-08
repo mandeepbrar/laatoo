@@ -2,6 +2,7 @@
 	"enginetype":"http",
 	"address":":11000",
 	"framework":"::framework",
+	"skipAuth": true,
 	"ssl":false,
 	"sslcert":"keys/sslcert.pem",
 	"sslkey":"keys/sslkey.pem",

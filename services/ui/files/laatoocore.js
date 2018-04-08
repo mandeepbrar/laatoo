@@ -5,7 +5,9 @@ Application.Registry={};
 Application.Modules={};
 var Window = n ? {} : window;
 Application.RegisterModule = function(mod) {
+  console.log("register module", mod)
   let m = Application.Modules[mod] = require(mod);
+  console.log("returned module", mod, m)
   return m;
 }
 Application.Register = function(regName,id,data) {
@@ -34,6 +36,7 @@ var _r = Application.Register;
 var _reg= Application.GetRegistry;
 var _re= null;
 var _ce= null;
+console.log("Application", Application);
 var _val = function() {
   var obj;
   var arr = arguments;
@@ -64,6 +67,7 @@ function modDef(appname, ins, mod, settings) {
   });
 }
 function appLoadingComplete(appname, propsurl, modsToInitialize) {
+  console.log("appLoadingComplete");
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
@@ -71,6 +75,7 @@ function appLoadingComplete(appname, propsurl, modsToInitialize) {
     if(modsToInitialize!=null) {
       for(var i=0;i<modsToInitialize.length;i++) {
         var row = modsToInitialize[i];
+        console.log("Initializing module", row);
         if(row[0]!=row[1]){
           modDef(appname, row[0], row[1], row[2]);
         }
@@ -91,6 +96,7 @@ function appLoadingComplete(appname, propsurl, modsToInitialize) {
     propsurl = window.location.origin + propsurl;
     fetch(propsurl).then(function(resp) {
       resp.json().then(function(data) {
+        console.log("props fetched", propsurl, data);
         Application.Properties=data;
         init();
       });

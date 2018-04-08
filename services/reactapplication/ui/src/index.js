@@ -6,11 +6,12 @@ import React from 'react';
 import {App} from './App';
 import {ProcessPages} from 'reactpages';
 
-
-this.appname = 'application';
-this.settings = {};
+var module;
 
 function Initialize(app, ins, mod, s, def, req) {
+  module = this;
+  module.appname = 'application';
+  module.settings = {};
   //anonymous permissions
   if(!Storage.permissions) {
     Storage.permissions= this.settings.defaultPermissions;
@@ -35,8 +36,8 @@ function Initialize(app, ins, mod, s, def, req) {
 }
 
 function StartApplication() {
-  console.log("Starting application ", this.appname);
-  let {router, uikit, theme} = this.settings;
+  console.log("Starting application ", module.appname, module);
+  let {router, uikit, theme} = module.settings;
   let Uikit = this.req(uikit)
   if(Uikit.default) {
     Uikit = Uikit.default
@@ -48,7 +49,7 @@ function StartApplication() {
     ThemeMod = ThemeMod.default
   }
   if(ThemeMod.Start) {
-    ThemeMod.Start(this.appname, Uikit);
+    ThemeMod.Start(module.appname, Uikit);
   }
   ProcessPages(ThemeMod, Uikit);
   let Theme = ThemeMod.Theme

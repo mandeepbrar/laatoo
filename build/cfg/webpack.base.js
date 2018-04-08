@@ -22,7 +22,7 @@ module.exports = {
     ]
   },
   module: {
-    loaders: [
+    rules: [
       // JavaScript / ES6
       {
         test: /\.(js|jsx)$/,         // Match both .js and .jsx files

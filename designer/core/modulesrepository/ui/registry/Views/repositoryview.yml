@@ -1,7 +1,8 @@
 postArgs: {}
 urlparams: {}
 serviceName: repositoryview
+overlay: true
 item:
   type: entity
-  entityName: RepositoryModule
-  entityDisplay: table
+  entityName: ModuleDefinition
+  entityDisplay: icon

@@ -1,0 +1,12 @@
+FROM laatoobase:latest
+
+RUN groupadd --gid 1000 node \
+  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
+
+RUN NODE_VERSION='8.4.0' ARCH='x64' \
+  && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.gz" \
+  && tar -xzf "node-v$NODE_VERSION-linux-$ARCH.tar.gz" -C /usr/local --strip-components=1 \
+  && rm "node-v$NODE_VERSION-linux-$ARCH.tar.gz" \
+  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
+
+RUN npm i -g --unsafe-perm node-sass

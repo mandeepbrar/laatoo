@@ -8,11 +8,12 @@ import './styles/app.scss'
 
 const PropTypes = require('prop-types');
 
-var module = this;
+var reactforms;
 
 function Initialize(appName, ins, mod, settings, def, req) {
-  module.properties = Application.Properties[ins]
-  module.settings = settings;
+  reactforms = this;
+  reactforms.properties = Application.Properties[ins];
+  reactforms.settings = settings;
   InitializeFieldMod(appName, ins, mod, settings, def, req)
   //Application.Register('Actions', 'loginAction', {actiontype: "method"})
   //Application.Register('Actions', 'googleAuth', {actiontype: "method"})

@@ -7,9 +7,9 @@ import './reducers/Security';
 import './sagas/Security';
 import {UserBlock} from './UserBlock';
 
-var module = this;
-
+var module;
 function Initialize(appName, ins, mod, settings, def, req) {
+  module=this;
   module.properties = Application.Properties[ins]
   module.settings = settings;
   if(Object.keys(settings).length != 0 ) {

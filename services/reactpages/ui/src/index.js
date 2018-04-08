@@ -4,9 +4,10 @@ import Panel from './Panel'
 import { combineReducers } from 'redux';
 const PropTypes = require('prop-types');
 //import {ViewReducer, View} from 'laatooviews';
-var module = this;
 
+var module;
 function Initialize(appName, ins, mod, settings, def, req) {
+  module=this;
   module.properties = Application.Properties[ins]
   module.settings = settings;
   module.req = req;

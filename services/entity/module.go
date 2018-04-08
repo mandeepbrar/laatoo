@@ -252,24 +252,46 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 	}	`*/
 	defaultBlk := ctx.CreateConfig()
 	blkDiv := ctx.CreateConfig()
-	fields := make([]config.Config, 0)
+	/*fields := make([]config.Config, 0)
 	fieldsConf, ok := entity.entityConf.GetSubConfig(ctx, "fields")
 	if ok {
 		fieldNames := fieldsConf.AllConfigurations(ctx)
 		for _, field := range fieldNames {
 			//fieldConf, _ := fieldsConf.GetSubConfig(ctx, field)
+			fieldConf := ctx.CreateConfig()
+
 			fieldDiv := ctx.CreateConfig()
-			fieldDivElems := ctx.CreateConfig()
-			fieldDivElems.Set(ctx, "className", field)
-			fieldDivElems.Set(ctx, "body", fmt.Sprintf("javascript#@#ctx.data.%s#@#", field))
-			fieldDiv.Set(ctx, "div", fieldDivElems)
+
+			fieldElems := make([]config.Config, 0)
+
+			fieldNameDiv := ctx.CreateConfig()
+			fieldNameElems := ctx.CreateConfig()
+			fieldNameElems.Set(ctx, "className", "name " + field)
+			fieldNameElems.Set(ctx, "body", field)
+			fieldNameDiv.Set(ctx, "div", fieldNameElems)
+			fieldElems = append(fieldElems, fieldNameDiv)
+
+			fieldValDiv := ctx.CreateConfig()
+			fieldValElems := ctx.CreateConfig()
+			fieldValElems.Set(ctx, "className", "value " + field)
+			fieldValElems.Set(ctx, "body", fmt.Sprintf("javascript#@#ctx.data.%s#@#", field))
+			fieldValDiv.Set(ctx, "div", fieldValElems)
+			fieldElems = append(fieldElems, fieldValDiv)
+
+			fieldDiv.Set(ctx, "children", fieldElems)
+			fieldDiv.Set(ctx, "className", "field " + field)
+
+			fieldConf.Set(ctx, "div", fieldDiv)
 			//fldChildren := ctx.CreateConfig()
-			fields = append(fields, fieldDiv)
+			fields = append(fields, fieldConf)
 			//fieldToBeAdded := ctx.CreateConfig()
 			//fieldConf, _ := fields.GetSubConfig(ctx, field)
 		}
 	}
-	blkDiv.Set(ctx, "children", fields)
+	log.Error(ctx, "fields conf ", "entity", entity.object, "fields", fields)*/
+	//blkDiv.Set(ctx, "children", fields)
+	blkDiv.Set(ctx, "body", "javascript###Window.displayDefaultEntity(ctx, desc, uikit)###")
+	blkDiv.Set(ctx, "className", "entity default "+entity.object)
 	defaultBlk.Set(ctx, "div", blkDiv)
 	blocks.Set(ctx, entity.object+"_default", defaultBlk)
 

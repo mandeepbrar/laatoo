@@ -280,26 +280,30 @@ class Panel extends React.Component {
   }
 
   processEntity = (desc, props, ctx) => {
-    let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
-    console.log("view entity description", desc, displayMode, props)
-    let id = "", name = ""
-    if(ctx.routeParams && ctx.routeParams.entityId) {
-      id = ctx.routeParams.entityId
-    } else {
-      id = desc.entityId
-    }
-    name = desc.entityName
-    this.cfgPanel(desc.title, desc.overlay)
     if(!this.entity) {
       this.entity = this.getComponent("laatooviews", "Entity", module.req)
     }
-    var itemClass = ""
-    if(props.index) {
-      itemClass = props.index%2 ? "oddindex": "evenindex"
-    }
-    var entityDisplay={type:"block", id: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
     this.getView = function(props, ctx, state, className) {
-      return <this.entity id={id} name={name} entityDescription={desc} data={props.data} index={props.index} uikit={ctx.uikit}>
+      var desc = props.description
+      let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
+      console.log("view entity description", desc, displayMode, props)
+      this.cfgPanel(desc.title, desc.overlay)
+      var entityDisplay={type:"block", id: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
+      let id = "", name = ""
+      if(ctx.routeParams && ctx.routeParams.entityId) {
+        id = ctx.routeParams.entityId
+      } else {
+        id = desc.entityId
+      }
+      name = desc.entityName
+      var entityData = props.data? props.data: desc.data
+      var entityIndex = props.index
+      var itemClass = ""
+      if(props.index) {
+        itemClass = props.index%2 ? "oddindex": "evenindex"
+      }
+      console.log("my entity data111", entityData, entityIndex, desc, props)
+      return <this.entity id={id} name={name} entityDescription={desc} data={entityData} index={entityIndex} uikit={ctx.uikit}>
         <Panel description={entityDisplay} parent={props.parent} className={itemClass} />
       </this.entity>
     }

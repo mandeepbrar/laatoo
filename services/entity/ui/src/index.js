@@ -11,12 +11,63 @@ function Initialize(appName, ins, mod, settings, def, req) {
     let defDisp = settings.object + "_default"
     let disp = _reg("Blocks", defDisp)
     if(!disp) {
-      console.log("registering default display", defDisp)
       _r('Blocks', defDisp, function(ctx, desc, uikit) {
         console.log("rendering default display", defDisp, ctx, desc, uikit)
         return <h1>default display</h1>
       })
     }
+  }
+}
+
+Window.displayDefaultEntity = function(ctx, desc, uikit) {
+  return <DefaultEntityDisplay desc={desc} uikit={uikit} ctx={ctx} />
+}
+
+class DefaultEntityDisplay extends React.Component {
+  createField = (fieldVal, field,  level, ctx, desc, uikit) => {
+    let fldDisp = this.createObjFields(fieldVal, level+1, ctx, desc, uikit)
+    return (<div className={"field " + field}>
+       <div className="name">
+       {field}
+       </div>
+       <div className="value">
+       {fldDisp}
+       </div>
+     </div>)
+  }
+  createObjFields = (obj, level, ctx, desc, uikit) => {
+    if(obj==null) return null;
+    if(obj instanceof Array) {
+      let fields = new Array()
+      for(var i=0;i<obj.length;i++) {
+        fields.push(<div className="entityarrayitem">{this.createObjFields(obj[i], level+1, ctx, desc, uikit)}</div>)
+      }
+      return fields
+    } else if(typeof(obj) == "object") {
+      let fields = new Array()
+      let tabs = new Array()
+      let dispobj = this
+      Object.keys(obj).forEach(function(field) {
+        let fieldVal = obj[field]
+        let dispElems = dispobj.createField(fieldVal, field, level, ctx, desc, uikit)
+        console.log("field", field, "fieldVal", fieldVal," level ", level)
+        if ((fieldVal instanceof Array) && (level == 0)) {
+          tabs.push(<uikit.Tab label={field}>{dispElems}</uikit.Tab>)
+        } else {
+          fields.push(dispElems)
+        }
+      })
+      return level!=0?fields:<uikit.Tabset><uikit.Tab label="General">{fields}</uikit.Tab>{tabs}</uikit.Tabset>
+    } else {
+      return obj
+    }
+  }
+  render() {
+    let {ctx, desc, uikit} = this.props
+    console.log(ctx, desc, uikit)
+    return <div className="entity ">
+      {this.createObjFields(ctx.data, 0, ctx, desc, uikit)}
+    </div>
   }
 }
 /*

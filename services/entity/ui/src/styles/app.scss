@@ -8,6 +8,20 @@
     @extend .ps10;
   }
 }
+
+.entity {
+  @extend .ps10;
+  .entityarrayitem {
+    @extend .ma10;
+  }
+  .field {
+    @extend .row;
+    .name {
+      @extend .col-xs-4;
+    }
+  }
+}
+
 .entitylist {
   .actionbar {
     @extend .right, .p20;

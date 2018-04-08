@@ -4,10 +4,11 @@ import Welcome from './Welcome'
 import './styles/app.scss'
 import {LoginValidator, LoginForm} from 'authui';
 
-var module = this;
+var module;
 
 function Initialize(appName, ins, mod, settings, def, req) {
-  console.log("appname", appName, "ins ", ins, "mod", mod, "settings", settings)
+  console.log("appname = ", appName, "ins ", ins, "mod", mod, "settings", settings)
+  module =  this;
   module.properties = Application.Properties[ins];
   module.settings = settings;
   module.skipAuth = settings.skipAuth

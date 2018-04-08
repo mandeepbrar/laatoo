@@ -172,17 +172,20 @@ func processJS(ctx core.ServerContext, input string) string {
 
 	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
 	if len(arr) != 0 {
+		log.Error(ctx, "replacing stri111112ng", "input", input, "arr", arr)
 		return `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
 	}
 
 	arr = jsVarReplaceRegex.FindAllStringIndex(input, -1)
 	if len(arr) == 0 {
+		log.Error(ctx, "replacing strin22222g", "input", input, "arr", arr)
 		val, e := json.Marshal(input)
 		if e != nil {
 			log.Error(ctx, "Error in marshalling string", "string", input, "error", e)
 		}
 		return string(val)
 	} else {
+		log.Error(ctx, "replacing strin3333g", "input", input, "arr", arr)
 		return jsVarReplaceRegex.ReplaceAllString(input, `$1`)
 	}
 }
@@ -267,6 +270,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 				}
 				attrStr := ""
 				str, ok := root.GetString(ctx, key)
+				log.Error(ctx, "string in process block", "str", str, "ok", ok)
 				if ok {
 					attrStr = processJS(ctx, str)
 				} else {
