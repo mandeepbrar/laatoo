@@ -36,7 +36,9 @@ module.exports = {
         loader: 'url-loader',
         query: {
           limit: 8192,
-          name: 'dist/images/[name].[ext]?[hash]'
+          name: '[name].[ext]?[hash]',
+          outputPath: '/dist/images',
+          publicPath: 'images'
         }
       },
       // Fonts
@@ -45,7 +47,9 @@ module.exports = {
         loader: 'url-loader',
         query: {
           limit: 8192,
-          name: 'dist/fonts/[name].[ext]?[hash]'
+          name: '[name].[ext]?[hash]',
+          outputPath: '/dist/fonts',
+          publicPath: 'fonts'
         }
       }
     ]

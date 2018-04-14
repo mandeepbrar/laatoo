@@ -54,7 +54,7 @@
     "LoggingFormat": {
         "type":"string",
         "widget": "Select",
-        "options": [
+        "items": [
           {"text": "Json ", "value":"json"},
           {"text": "Json Full", "value":"jsonmax"},
           {"text": "Formatted", "value":"happy"},

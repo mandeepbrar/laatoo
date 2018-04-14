@@ -133,5 +133,5 @@ ui:
     uicommon: uicommon
     redux-saga: redux-saga
   packages:
-    react: "^16.1.0"
+    react: "^16.3.0"
     redux-saga: "^0.16.0"

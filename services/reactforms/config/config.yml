@@ -18,7 +18,7 @@ ui:
     uicommon: uicommon
     prop-types: prop-types
   packages:
-    react: "^16.1.0"
+    react: "^16.3.0"
     redux-form: "^7.1.1"
     redux-saga: "^0.16.0"
     prop-types: "^15.6.0"

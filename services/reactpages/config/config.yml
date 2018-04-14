@@ -13,7 +13,7 @@ ui:
     reactwebcommon: reactwebcommon
     prop-types: prop-types
   packages:
-    react: "^16.1.0"
+    react: "^16.3.0"
     react-redux: "^5.0.6"
     redux: "^3.7.2"
     prop-types: "^15.6.0"

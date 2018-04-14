@@ -29,6 +29,7 @@ const mapStateToProps = (state, ownProps) => {
     incrementalLoad: ownProps.incrementalLoad,
     currentPage: ownProps.currentPage,
     className: ownProps.className,
+    ref: ownProps.viewRef,
     loader:ownProps.loader,
     getPagination: ownProps.incrementalLoad || ownProps.hidePaginationControl ? null : ownProps.getPagination,
     style: ownProps.style,
@@ -93,6 +94,7 @@ const ViewComponent = connect(
 )(ViewUI);
 
 const View = (props) => {
+  console.log("props of the view...", props)
   let view = props.description;
   if(!view && props.id) {
     view = _reg("Views", props.id)
@@ -109,7 +111,7 @@ const View = (props) => {
     let item = props.children;
     return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global}
       className={className} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
-       getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args}>
+       editable={props.editable} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
        {item}
        </ViewComponent>
   }

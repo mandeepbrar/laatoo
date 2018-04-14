@@ -20,7 +20,8 @@ type Server struct {
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
-	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
+	ModulesRef	[]*Module `json:"ModulesRef" bson:"ModulesRef" datastore:"ModulesRef"`
+	Modules	[]string `json:"Modules" bson:"Modules" datastore: "Modules"`
 	Instances	[]ModuleInstance `json:"Instances" bson:"Instances" datastore: "Instances"`
 	Services	[]Service `json:"Services" bson:"Services" datastore: "Services"`
 	Entities	[]Entity `json:"Entities" bson:"Entities" datastore: "Entities"`

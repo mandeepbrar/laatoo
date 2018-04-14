@@ -30,7 +30,6 @@ class FieldWidget extends React.Component {
   constructor(props) {
     super(props)
     //injectTapEventPlugin()
-    console.log("react material kit fieldwidget", props)
     let field = props.field
     if (field) {
       switch(field.widget) {
@@ -91,7 +90,6 @@ class FieldWidget extends React.Component {
     let items=[]
     if(props.items) {
       props.items.forEach(function(item) {
-        console.log("menu item", MenuItem, item)
         items.push(
           <MenuItem className={fld.itemClass} value={item.value}>{item.text}</MenuItem>
         )
@@ -112,7 +110,6 @@ class FieldWidget extends React.Component {
 
   renderSwitch = (fld, props) =>  {
     let {input, meta, className} = props
-    console.log("switch props", props)
     return (
       <FormControlLabel control={
             <Switch name={fld.name} onChange={input.onChange} checked={input.value}
@@ -132,7 +129,6 @@ class FieldWidget extends React.Component {
   }
   render() {
     if(this.renderer) {
-      console.log("rendering material ui field", this.props)
       return this.renderer(this.props.field, this.props)
     } else {
       return(

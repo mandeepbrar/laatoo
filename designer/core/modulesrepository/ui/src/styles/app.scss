@@ -3,7 +3,7 @@
 .repositoryview {
   @extend .row;
   .moduledefinition_icon {
-    @extend .center-xs, .valigncenter, .col-xs-3;
+    @extend .center-xs, .valigncenter, .ma10, .ps10;
     height: 80px;
   }
 }

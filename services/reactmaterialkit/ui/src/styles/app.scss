@@ -16,7 +16,7 @@
 
 .block {
   .titlebar {
-    @extend  .row, .ma0, .between-xs, .middle-xs, .bg-lgrey;
+    @extend  .w100, .row, .ma0, .between-xs, .middle-xs, .bg-lgrey;
     .title {
       @extend  h3, .p10, .middle-xs;
     }

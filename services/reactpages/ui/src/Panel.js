@@ -271,9 +271,9 @@ class Panel extends React.Component {
     console.log("processing view", this.view)
 
     this.getView = function(props, context, state, className) {
-      console.log("rendering view", this.view, props, desc)
-      return <this.view params={props.params} description={desc} getItem={props.getItem} className={className} header={viewHeader}
-        id={desc.id}>
+      console.log("rendering view", this.view, props, desc, className)
+      return <this.view params={props.params} description={desc} getItem={props.getItem} editable={props.editable} className={className} header={viewHeader}
+        viewRef={props.viewRef} id={desc.id}>
         <Panel parent={props.parent} description={desc.item} />
       </this.view>
     }
@@ -357,11 +357,11 @@ class Panel extends React.Component {
   }
 
   render() {
-    console.log("rendering panel", this.props, this.getView);
+    console.log("rendering panel", this.props, this.getView, this.className);
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
     let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
-    if(this.overlay || this.title) {
-      return <this.uikit.Block className={this.className} title={this.title} closeBlock={this.closePanel}>
+    if(this.overlay || this.title || this.closePanel) {
+      return <this.uikit.Block className="overlaywrapper" title={this.title} closeBlock={this.closePanel}>
         <this.uikit.Block style={{display:( showOverlay?"none":"block")}}>
         {comp}
         </this.uikit.Block>

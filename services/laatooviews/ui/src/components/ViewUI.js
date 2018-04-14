@@ -1,7 +1,5 @@
-'use strict';
-
 import React from 'react';
-import {ViewData} from './ViewData'
+import {ViewData, ViewItem} from './ViewData'
 const PropTypes = require('prop-types');
 
 class ViewUI extends ViewData {
@@ -18,20 +16,21 @@ class ViewUI extends ViewData {
     this.div = this.uikit.Block;
     this.scroll = this.uikit.Scroll;
     this.onScrollEnd = this.onScrollEnd.bind(this);
-    this.numItems = 0
   }
 
-  onItemCheckboxChange(view){
-    return (evt)=> {
-      let cb = evt.target
-      let item = view.refs[cb.value]
-      if (cb.checked) {
-        item.selected = true
+  /*onItemSelectionChange(){
+    var view = this
+    console.log('view of item checkbox', view)
+    return (item)=> {
+      if (item.selected) {
+        view.setSelectedItem(item, true)
       } else {
-        item.selected = false
+        view.setSelectedItem(item, false)
       }
     }
-  }
+  }*/
+
+
 
 /*
 getFilter(view, filterTitle, filterForm, filterGo, filter) {
@@ -61,9 +60,7 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     methods.loadMore();
   }
   getView(header, groups, pagination, filter) {
-    if(this.props.editable) {
-      this.addMethod('onItemCheckboxChange', this.onItemCheckboxChange(view))
-    }
+
     if(this.props.getView) {
         return this.props.getView(this, header, groups, pagination, filter, this.props)
     }
@@ -105,10 +102,19 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     return React.Children.map(this.props.children, (child) => React.cloneElement(child, { data: x, index: i }) )
   }
   getItem(x, i) {
+    let renderedComp = null;
     if(this.props.getItem) {
-      return this.props.getItem(this, x, i)
+      renderedComp = this.props.getItem(this, x, i);
+    } else {
+      renderedComp = this.getRenderedItem(x, i);
     }
-    return this.getRenderedItem(x, i);
+    let viewItem = new ViewItem()
+    viewItem.index = i;
+    viewItem.data = x;
+    viewItem.renderedItem = renderedComp;
+    console.log("pushing item", viewItem)
+    super.pushItem(viewItem)
+    return renderedComp
   }
   getHeader() {
     if(this.props.getHeader) {
@@ -134,7 +140,7 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
 
     if(items) {
       let keys = Object.keys(items);
-      this.numItems = keys.length
+      //super.setNumItems(keys.length);
       for (var i in keys) {
         let x = items[keys[i]]
         if (x) {

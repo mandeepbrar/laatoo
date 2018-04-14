@@ -20,7 +20,8 @@ ui:
   externals:
     react: react
     reactwebcommon: reactwebcommon
+    itemdetailview: itemdetailview
     uicommon: uicommon
     reactpages: reactpages
   packages:
-    react: "^16.1.0"
+    react: "^16.3.0"

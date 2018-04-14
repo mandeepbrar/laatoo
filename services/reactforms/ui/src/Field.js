@@ -4,7 +4,7 @@ import React from 'react';
 import { Field } from 'redux-form'
 import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 const PropTypes = require('prop-types');
-import {Stringlist} from './Stringlist';
+import {FldList} from './FldList';
 
 var modrequire = null;
 
@@ -97,8 +97,8 @@ class FieldWrapper extends React.Component {
     if(this.fldWidget) {
       return <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
     } else {
-      if(this.field.list && (this.field.type=="entity" || this.field.type=="string")) {
-        return <Stringlist name={this.props.name} baseComponent={this.context.uikit.Forms.FieldWidget} className={this.props.className} ap={this.state.additionalProperties} time={this.state.time} field={this.field} baseProps={newProps}/>
+      if(this.field.list) {
+        return <FldList name={this.props.name} baseComponent={this.context.uikit.Forms.FieldWidget} className={this.props.className} ap={this.state.additionalProperties} time={this.state.time} field={this.field} baseProps={newProps}/>
       } else {
         return <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time} field={this.field} {...newProps}/>
       }

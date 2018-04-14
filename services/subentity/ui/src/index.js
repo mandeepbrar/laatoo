@@ -6,11 +6,13 @@ const PropTypes = require('prop-types');
 class EntityListField extends React.Component {
   constructor(props, ctx) {
     super(props)
+    console.log("entity list field ", props)
     this.state = {value: props.value, formOpen:false}
     this.uikit = props.uikit
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log("entity list field : componentWillReceiveProps", nextProps)
     this.setState(Object.assign({}, this.state, {value: nextProps.value}))
   }
 
@@ -51,16 +53,23 @@ class EntityListField extends React.Component {
     let items = this.state.value
     if(items && items.length > index) {
       items[index] = data.data
-      console.log(" items", items)
+      console.log(" items", items, data, this.state)
       this.props.onChange(items)
       this.closeForm()
     }
   }
 
-  add = (data, success, failure) => {
+  add = (data, success, failure, multipleItems) => {
+      console.log("adding subentity ", data)
       let items = this.state.value.slice();
-      items.push(data.data)
-      console.log(" items", items)
+      if(multipleItems && data && Array.isArray(data)) {
+        data.forEach(function(k) {
+          items.push(k)
+        })
+      } else {
+        items.push(data)
+      }
+      console.log(" items", items, data, this.state)
       this.props.onChange(items)
       this.closeForm()
   }
@@ -85,7 +94,7 @@ class EntityListField extends React.Component {
     let fld = this.props.field
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
     let comp = fld.addwidget?
-      <Panel description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} closePanel={this.closeForm} />
+      <Panel title={"Add "+this.props.label} description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} closePanel={this.closeForm} />
     : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} /> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
@@ -108,15 +117,18 @@ class EntityListField extends React.Component {
     console.log("rendering items in entity list", this.props, this.state)
     let comp = this
     this.state.value.forEach(function(k, index) {
+      if(!k) { return; }
       var removeItem = () => {
         comp.removeItem(k, index)
       }
       var editItem = () => {
         comp.openForm(k, index)
       }
+      console.log("entity list ", k)
       let textField = comp.props.entityText? comp.props.entityText: "Name"
       let text = k[textField];
       text = text? text: k["Title"]
+      console.log("entity text ", text)
       items.push(
         <comp.uikit.Block  className="row between-xs">
           <comp.uikit.Block className="left" >
@@ -140,6 +152,7 @@ class EntityListField extends React.Component {
     if(items.length == 0) {
       items.push("No data")
     }
+    console.log("subentity items ", items)
     let actions = [  <Action action={{actiontype: "method"}} className="p10" method={this.openForm}> <this.uikit.Icons.NewIcon /> </Action>]
     return (
       <this.uikit.Block className={"entitylistfield "} title={this.props.title} titleBarActions={actions}>
@@ -172,6 +185,7 @@ class SubEntity extends React.Component {
   }
 
   render() {
+    console.log("subentity ", this.state, this.props)
     let title = this.props.field.skipLabel? null: this.label
     return (
       <this.uikit.Block className={"subentity "+this.label}>

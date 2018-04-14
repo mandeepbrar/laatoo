@@ -1,14 +1,18 @@
-'use strict';
-
 import React from 'react';
+
+class ViewItem {
+  constructor() {
+    this.index = -1;
+    this.data = null;
+    this.renderedItem = null;
+  }
+}
 
 class ViewData extends React.Component {
   constructor(props) {
     super(props);
     this.setPage = this.setPage.bind(this);
     this.selectedItems = this.selectedItems.bind(this);
-    this.itemStatus = this.itemStatus.bind(this);
-    this.viewrefs = this.viewrefs.bind(this);
     this.itemCount = this.itemCount.bind(this);
     this.reload = this.reload.bind(this);
     this.setFilter = this.setFilter.bind(this);
@@ -16,11 +20,13 @@ class ViewData extends React.Component {
     this.canLoadMore = this.canLoadMore.bind(this);
     //this.getView = this.getView.bind(this);
     this.methods = {reload: this.reload, canLoadMore: this.canLoadMore, loadMore: this.loadMore, setFilter:this.setFilter,
-        itemCount: this.itemCount, viewrefs: this.viewrefs, itemStatus: this.itemStatus,
-        selectedItems: this.selectedItems, setPage: this.setPage}
+        itemCount: this.itemCount, itemSelectionChange: this.itemSelectionChange, selectedItems: this.selectedItems, setPage: this.setPage}
     this.addMethod = this.addMethod.bind(this);
     this.state = {lastLoadTime: -1}
-    this.numItems = 0
+  //  this.numItems = 0
+    this.pushItem = this.pushItem.bind(this)
+    this.viewitems = new Array()
+    console.log("this items", this.viewitems)
   }
   componentWillMount() {
     this.filter = this.props.defaultFilter
@@ -56,24 +62,39 @@ class ViewData extends React.Component {
   canLoadMore() {
     return this.props.currentPage < this.props.totalPages
   }
-  viewrefs() {
-    return this.refs
+  pushItem(item) {
+    console.log("pushing item", this.viewitems, this)
+    this.viewitems.push(item)
   }
   itemCount() {
-    return this.numItems
+    return this.viewitems.length
+  }
+  itemSelectionChange = (i, val) => {
+    let viewItem = this.viewitems[i]
+    if(viewItem) {
+      let renderedItem = viewItem.renderedItem
+      if(renderedItem.setSelected) {
+        renderedItem.setSelected(val)
+      } else {
+        renderedItem.selected = true
+      }
+    }
   }
   selectedItems() {
     let selectedItems = []
-    for(var i=0; i<this.numItems;i++) {
-      let refName = "item"+i
-      let item = this.refs[refName]
-      if(item.selected) {
-        selectedItems.push(item.id)
+    let numItems = this.itemCount()
+    console.log("num items ", numItems)
+    for(var i=0; i<numItems;i++) {
+      let vitem = this.viewitems[i]
+      console.log("vitem", vitem, i)
+      let renderedItem = vitem.renderedItem
+      if((renderedItem.getSelected && renderedItem.getSelected()) || renderedItem.selected) {
+        selectedItems.push(vitem.data)
       }
     }
     return selectedItems
   }
-  itemStatus() {
+  /*itemStatus() {
     let items = {}
     for(var i=0; i<this.numItems;i++) {
       let refName = "item"+i
@@ -81,7 +102,7 @@ class ViewData extends React.Component {
       items[item.id] = item.selected
     }
     return items
-  }
+  }*/
   setPage(newPage) {
     this.props.loadView(newPage, this.filter)
   }
@@ -114,4 +135,4 @@ class ViewData extends React.Component {
 }
 
 
-export {ViewData }
+export {ViewData, ViewItem }

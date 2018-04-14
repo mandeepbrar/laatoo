@@ -265,7 +265,8 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         }
         if(ownProps.onSubmit) {
           formSubmit = (data, successCallback, failureCallback) => {
-            ownProps.onSubmit({data}, {successCallback, failureCallback});
+            console.log("data ", data, ownProps)
+            ownProps.onSubmit(data, {successCallback, failureCallback});
           }
         } else {
           formSubmit = (data, successCallback, failureCallback) => {
