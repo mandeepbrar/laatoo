@@ -7,12 +7,12 @@ import {
   Toggle,
   DatePicker,
   Switch,
-  Select,
   TimePicker
 } from 'material-ui';
 import { MenuItem } from 'material-ui/Menu';
 import { FormControl, FormControlLabel, FormGroup } from 'material-ui/Form';
 import { InputLabel } from 'material-ui/Input';
+import {Select} from '../components/Select';
 import PropTypes from 'prop-types';
 
 //import {MenuItem, SelectField} from 'material-ui';
@@ -80,32 +80,28 @@ class FieldWidget extends React.Component {
     let {input, meta, className} = props
     return (
       <FormControlLabel className={(className?className + " ":"") + fld.name + " checkbox "+ (fld.className?fld.className:"")}  label={fld.label}
-          control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={props.onChange}
+          control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={(evt, checked)=>props.onChange(checked, evt.target.name, evt)}
               className={fld.name + " " + (fld.controlClassName?fld.controlClassName:"")}/> }/>
     )
   }
 
   renderSelect = (fld, props) =>  {
+    console.log("render select ", fld, props)
     let {input, meta, className} = props
-    let items=[]
-    if(props.items) {
-      props.items.forEach(function(item) {
-        items.push(
-          <MenuItem className={fld.itemClass} value={item.value}>{item.text}</MenuItem>
-        )
-      })
-    }
+    let onChange = props.onChange? props.onChange: (input? input.onChange: null)
+    let value = props.value? props.value: (input? input.value: null)
+    let et = meta? meta.touched && meta.error: null
+    className= (className?className + " ":"") + " "+ (fld.className?fld.className:"")
+    let isEntity = fld.type=="entity"
+    let entity= isEntity ? fld.entity: null
+    let items = props.items? props.items: fld.items
+    let textField = fld.textField? fld.textField:isEntity? "Name": "text"
+    let valueField = fld.valueField? fld.valueField: isEntity? "Id" : "value"
 
-    return (
-      <FormControl className={(className?className + " ":"") + fld.name + " formcontrol "+ (fld.className?fld.className:"")}>
-        <InputLabel htmlFor={fld.name}>{fld.label}</InputLabel>
-        <Select name={fld.name} floatingLabelText={fld.label} label={fld.label} errorText={meta.touched && meta.error}
-          onChange={(event, index, value) => {input.onChange(event.target.value)}} value={input.value}
-          className={fld.name + " select " + (fld.controlClassName?fld.controlClassName:"")}>
-        {items}
-        </Select>
-      </FormControl>
-    )
+
+    return <Select items={items} itemClass={fld.itemClass} className={className} onChange={onChange} value={value} dataServiceParams={fld.dataServiceParams}
+        label={fld.label} name={fld.name} errorText={et} loader={fld.loader} skipDataLoad={fld.skipDataLoad} dataService={fld.dataService} selectItem={fld.selectItem}
+        isEntity={isEntity} textField={textField} valueField={valueField} entity={entity} controlClassName={fld.name + " select " + (fld.controlClassName?fld.controlClassName:"")} />
   }
 
   renderSwitch = (fld, props) =>  {
@@ -122,7 +118,7 @@ class FieldWidget extends React.Component {
   renderTextField = (fld, props) => {
     let {input, meta, className} = props
     return (
-      <TextField name={fld.name} errorText={meta.touched && meta.error} onChange={input.onChange} onBlur={input.onBlur}
+      <TextField name={fld.name} errorText={meta.touched && meta.error} onChange={(evt)=>input.onChange(evt.target.value, evt.target.name, evt)} onBlur={input.onBlur}
         onFocus={input.onFocus} floatingLabelText={fld.label} label={fld.label} value={input.value}
         hintText={fld.label} {...props} className={(className?className + " ":"") + fld.name + " textfield " + (fld.className?fld.className:"")}/>
     )

@@ -14,8 +14,7 @@ type ModuleInstance struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	ModuleRef	*Module `json:"ModuleRef" bson:"ModuleRef" datastore:"ModuleRef"`
-	Module	string `json:"Module" bson:"Module" datastore: "Module"`
+	Module	Module `json:"Module" bson:"Module" datastore: "Module"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	Settings	[]Param `json:"Settings" bson:"Settings" datastore: "Settings"`
 }

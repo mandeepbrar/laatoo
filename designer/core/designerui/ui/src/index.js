@@ -4,20 +4,22 @@ import './styles/app'
 import Actions from './actions';
 import './sagas'
 import {  createAction } from 'uicommon';
+import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 
-function Form_Instance_Transform_Modules(fieldProps, formValue, field, allfields, props, state,  form) {
-  console.log("transformer called", props, state, fieldProps, field, allfields)
-  console.log("parent value", props.parentFormValue)
-  let modules = props.parentFormValue.Modules
-  let items = []
+
+function Form_Instance_Modules(props, context, callback) {
+  console.log("Form_Instance_Modules  called", props, context, callback)
+  let modules = context.parentFormValue.Modules
+  /*let items = []
   if(modules) {
     modules.forEach((module)=>{
       console.log("module.....", module)
-      items.push({text: module.Name, value: module.Name})
+      items.push({Name: module.Name, Id: module.Id})
     })
-  }
-  state.additionalProperties["items"] = items
-  return fieldProps
+  }*/
+  //state.additionalProperties["items"] = modules
+  //return fieldProps
+  callback(modules)
 }
 
 function Form_SyncModules(form, submit, setData, dispatch) {
@@ -26,6 +28,23 @@ function Form_SyncModules(form, submit, setData, dispatch) {
   return (data) => {
     console.log("data", data)
     dispatch(createAction(Actions.SYNC_OBJECTS, data, {type, setData}));
+  }
+}
+
+function AbstractServer_Available_Modules(callback) {
+  return (resp) => {
+    console.log("received entity data", resp);
+    if(resp.data && resp.data.Modules) {
+      callback(resp.data.Modules)
+    }
+  }
+}
+
+function AbstractServer_Solution_Modules(props, context, callback) {
+  console.log("abstract server solution modules--------", props, context)
+  let solution = context.formValue.Solution
+  if(solution) {
+    EntityData.GetEntity("Solution", solution).then(AbstractServer_Available_Modules(callback), (err)=>{console.log("Error in fetching solution modules", err)});
   }
 }
 
@@ -46,8 +65,9 @@ function ModulesRepo_ViewModule(params) {
 
 function Initialize(appName, ins, mod, settings, def, req) {
   console.log("Initializing ui");
-  _r("Methods", "Form_Instance_Transform_Modules",Form_Instance_Transform_Modules);
+  _r("Methods", "Form_Instance_Modules",Form_Instance_Modules);
   _r("Methods", "AbstractServer_Actions", AbstractServer_Actions);
+  _r("Methods", "AbstractServer_Solution_Modules", AbstractServer_Solution_Modules);
   _r("Actions", "ModulesRepo_viewModule", {actiontype: "method", method: ModulesRepo_ViewModule})
   console.log("registering method",Application);
 }

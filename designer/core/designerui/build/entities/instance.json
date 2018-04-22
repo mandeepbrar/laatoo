@@ -15,10 +15,13 @@
         "type":"string"
     },
     "Module": {
-      "type":"entity",
+      "type":"subentity",
       "entity": "Module",
+      "widget": "SubEntity",
+      "module": "subentity",
+      "mode": "select",
       "skipDataLoad": true,
-      "transformer":"Form_Instance_Transform_Modules"
+      "loader":"Form_Instance_Modules"
     },
     "Description": {
         "type":"string"

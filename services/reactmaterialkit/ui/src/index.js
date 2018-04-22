@@ -9,11 +9,12 @@ import {ScrollListener} from 'reactwebcommon';
 import './styles/app.scss';
 import Forms from './forms';
 import { FormControl } from 'material-ui/Form';
-import Select from 'material-ui/Select';
 import { MenuItem } from 'material-ui/Menu';
 import {Tabset, Tab} from './components/Tabs';
 import {Block} from './components/Block';
 import {Icons} from './components/Icons';
+import { Select} from './components/Select';
+
 //import injectTapEventPlugin from "react-tap-event-plugin";
 
 

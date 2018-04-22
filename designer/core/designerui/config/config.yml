@@ -127,7 +127,6 @@ modules:
       instance: Server
       dataservicefactory: mongodatabase
 ui:
-  skipUIModules: true
   externals:
     react: react
     uicommon: uicommon

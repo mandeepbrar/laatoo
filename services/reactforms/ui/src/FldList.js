@@ -9,6 +9,7 @@ class ListEditor extends React.Component {
   }
   componentWillReceiveProps(nextProps) {
     let values = nextProps.values
+    console.log("componentWillReceiveProps list editor fldlist", values)
     this.setState(Object.assign({}, this.state, {values}))
   }
   addItem=()=> {
@@ -20,6 +21,7 @@ class ListEditor extends React.Component {
     return this.state.values
   }
   changeValue = (value, index) => {
+    console.log("value change triggered ", value, index)
     if(this.state.values.length > index) {
       let items = this.state.values.slice();
       items[index] = value
@@ -27,6 +29,7 @@ class ListEditor extends React.Component {
     }
   }
   onChange = (values) => {
+    console.log("value onchange triggered ", values)
     if(this.props.onChange) {
       this.props.onChange(values)
     } else {
@@ -38,9 +41,10 @@ class ListEditor extends React.Component {
     let props = this.props
     let comps = []
     this.state.values.forEach(function(str, index) {
-      let editText = (evt)=> {console.log("edit text", evt); editor.changeValue(evt.target.value, index)}
+      let editText = (value, name, evt)=> {console.log("edit text", evt, value); editor.changeValue(value, index)}
       let newProps = Object.assign({}, props.baseProps, {input:{value: str}})
       if(props.field.widget == "Select") {
+        console.log("creating select val", str)
         comps.push(<props.uikit.Forms.FieldWidget className={props.className + " w100"} value={str} onChange={editText} field={props.field} {...props.baseProps} {...props.ap} time={editor.state.time}/>)
       }else {
         comps.push(<props.uikit.TextField className={props.className + " w100"} value={str} onChange={editText} time={editor.state.time} />)
@@ -59,6 +63,7 @@ class FldList extends React.Component {
   }
   componentWillReceiveProps(nextProps) {
     let values = nextProps.baseProps.input.value? nextProps.baseProps.input.value: []
+    console.log("componentWillReceiveProps fldlist", nextProps)
     this.setState(Object.assign({}, this.state, {values}))
   }
   editingComplete = () => {
@@ -68,6 +73,7 @@ class FldList extends React.Component {
     this.onChange(values)
   }
   onChange = (values) => {
+    console.log("onchange fldlist", values)
     this.props.baseProps.input.onChange(values)
   }
   editList = () => {

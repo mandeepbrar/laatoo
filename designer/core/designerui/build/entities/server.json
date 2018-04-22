@@ -60,14 +60,12 @@
       "list": true
     },
     "Modules": {
-        "type":"entity",
+        "type":"subentity",
         "list": true,
-        "ref": true,
-        "inplace": true,
-        "items": [
-          {"text": "Json ", "value":"json"},
-          {"text": "Json Full", "value":"jsonmax"}
-        ],
+        "widget": "SubEntity",
+        "module": "subentity",
+        "mode": "select",
+        "loader": "AbstractServer_Solution_Modules",
         "entity": "Module"
     },
     "Instances": {

@@ -23,7 +23,7 @@ class WebFormUI extends React.Component {
     if(!this.actions && desc.info.actions) {
       this.actions = _reg('Methods', desc.info.actions)
     }
-    console.log("webform ", props)
+    console.log("webform ", props, context)
     this.state={formValue: this.getFormValue(props), time: Date.now()}
     let layoutFunc = null
     if(props.formData) {
@@ -32,14 +32,16 @@ class WebFormUI extends React.Component {
     this.trackChanges = this.config.trackChanges || props.trackChanges
     this.parentFormProps = {}
     if(props.subform || desc.subform) {
-      let parentFormValue = props.parent.getFormValue()
-      console.log("received parent form value", parentFormValue)
-      this.parentFormProps = {parentFormValue}
+      this.parentFormValue = props.parent.getFormValue()
+      console.log("received parent form value", this.parentFormValue)
+      this.parentFormProps = {parentFormValue: this.parentFormValue}
     }
   }
 
   componentWillReceiveProps(nextProps, nextState) {
-    if(this.trackChanges) {
+    console.log("next props of componentWillReceiveProps", nextProps)
+    if(this.trackChanges || this.dataLoading) {
+      this.dataLoading = false
       let formValue = this.getFormValue(nextProps)
       let oldFormValue = this.state.formValue
       if(formValue != oldFormValue) {
@@ -57,7 +59,7 @@ class WebFormUI extends React.Component {
   }
 
   getChildContext() {
-    return {fields: this.props.description.fields, getFormValue: this.getFormValue};
+    return {fields: this.props.description.fields, getFormValue: this.getFormValue, getParentFormValue: this.getParentFormValue};
   }
 
   failureCallback = () => {
@@ -77,20 +79,27 @@ class WebFormUI extends React.Component {
   }
 
   setData = (formData) => {
+
     let x = this.props.initialize( formData)
     this.props.dispatch(x)
   }
 
   dataLoaded = (data) => {
-    let formData = data
+    this.dataLoading = true
+    let formData = Object.assign({}, data.resp.data)
     if(this.config.dataMapper) {
       let mapper = _reg('Method', this.config.dataMapper)
-      formData = mapper(data)
+      formData = mapper(formData)
     }
-    this.setData(data.resp.data)
+    this.setData(formData)
+  }
+
+  getParentFormValue = () => {
+    return this.parentFormValue
   }
 
   getFormValue = (props) => {
+    console.log("get form value", this.props)
     if(!props) {
       props = this.props
     }
@@ -188,11 +197,13 @@ class WebFormUI extends React.Component {
 
 WebFormUI.childContextTypes = {
   fields: PropTypes.object,
+  getParentFormValue: PropTypes.func,
   getFormValue: PropTypes.func
 };
 
 WebFormUI.contextTypes = {
   uikit: PropTypes.object,
+  getFormValue: PropTypes.func,
   routeParams: PropTypes.object
 };
 /*
@@ -203,6 +214,7 @@ const ReduxForm = reduxForm({})(WebFormUI)
 
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
+  console.log("redux form state...........=======", state, ownProps)
   return { state }
 }
 
