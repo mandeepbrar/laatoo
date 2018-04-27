@@ -231,10 +231,10 @@ class Panel extends React.Component {
     if(this.form) {
       this.getView = function(props, ctx, state, className) {
         let formCfg = Object.assign({}, cfg, ctx.routeParams)
-        console.log("form cfg", formCfg, cfg)
-        return <this.form form={desc.id} parent={props.parent} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
+        console.log("form cfg", formCfg, cfg, props)
+        return <this.form form={desc.id} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
           onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}
-          actions={props.actions} description={desc} className={className} id={desc.id}/>
+          autoSubmitOnChange={props.autoSubmitOnChange} actions={props.actions} description={desc} className={className} id={desc.id}/>
       }
     } else {
       this.getView = function(props, ctx, state, className) {

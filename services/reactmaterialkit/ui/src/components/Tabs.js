@@ -40,7 +40,6 @@ class Tabset extends React.Component {
     }
   };
   render() {
-    console.log("rendering tabset")
     return (
         this.isVertical()?
         <this.context.uikit.Block className="row">
@@ -93,7 +92,6 @@ class Tab extends React.Component {
     this.context.tabset.handleChange(null, this.value)
   }
   render() {
-    console.log("rendering tab", this.context, this.props, this.vertical)
     return (
         this.vertical?
         <this.context.uikit.Block className="tab w100">

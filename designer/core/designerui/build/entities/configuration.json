@@ -1,0 +1,22 @@
+{
+  "name":"Configuration",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name", "Values"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Values": {
+      "type":"subentity",
+      "entity": "KeyValue",
+      "widget": "SubEntity",
+      "mode": "dialog",
+      "list": true,
+      "module": "subentity"
+    }
+  }
+}

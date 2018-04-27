@@ -4,7 +4,7 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "layout": ["Name", "Description", "Trigger", "MessageType", "Rule", "LoggingLevel", "LoggingFormat", "Params"]
+    "layout": ["Name", "Description", "Trigger", "MessageType", "Rule", "LoggingLevel", "LoggingFormat", "Configuration"]
   },
   "fields":{
     "Name": {
@@ -44,10 +44,9 @@
           {"text": "Formatted Full", "value":"happymax"}
         ]
     },
-    "Params": {
+    "Configuration": {
         "type":"subentity",
-        "list": true,
-        "entity": "Param",
+        "entity": "Configuration",
         "mode": "dialog",
         "widget": "SubEntity",
         "module": "subentity"

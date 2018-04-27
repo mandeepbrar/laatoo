@@ -28,9 +28,7 @@
     },
     "Settings": {
       "type":"subentity",
-      "list": true,
-      "entity": "Param",
-      "mode": "dialog",
+      "entity": "Configuration",
       "widget": "SubEntity",
       "module": "subentity"
     }

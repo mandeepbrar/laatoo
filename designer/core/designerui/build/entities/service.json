@@ -6,9 +6,9 @@
   "form": {
     "tabs": {
       "General": ["Name", "Description", "Factory", "ServiceMethod", "LoggingLevel", "LoggingFormat"],
-      "Params": [ "Params"]
+      "Configuration": [ "Configuration"]
     },
-    "layout": ["General", "Params"]
+    "layout": ["General", "Configuration"]
   },
   "fields":{
     "Name": {
@@ -45,10 +45,9 @@
           {"text": "Formatted Full", "value":"happymax"}
         ]
     },
-    "Params": {
+    "Configuration": {
         "type":"subentity",
-        "list": true,
-        "entity": "Param",
+        "entity": "Configuration",
         "mode": "dialog",
         "widget": "SubEntity",
         "module": "subentity"

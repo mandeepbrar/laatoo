@@ -20,7 +20,7 @@ type Rule struct {
 	Rule	string `json:"Rule" bson:"Rule" datastore:"Rule"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
-	Params	[]Param `json:"Params" bson:"Params" datastore: "Params"`
+	Configuration	Configuration `json:"Configuration" bson:"Configuration" datastore: "Configuration"`
 }
 
 func (ent *Rule) Config() *data.StorableConfig {

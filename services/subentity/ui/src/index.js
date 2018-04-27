@@ -55,7 +55,9 @@ class EntityListField extends React.Component {
     if(this.state.selectOptions != nextProps.selectOptions) {
       st.selectOptions = nextProps.selectOptions
     }
-    this.setState(Object.assign({}, this.state, st))
+    if(Object.keys(st).length >0) {
+      this.setState(Object.assign({}, this.state, st))
+    }
   }
 
   closeForm = () => {
@@ -139,8 +141,8 @@ class EntityListField extends React.Component {
     let fld = this.props.field
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
     let comp = fld.addwidget?
-      <Panel title={"Add "+this.props.label} description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} closePanel={this.closeForm} />
-    : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parent={this} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} /> //, actions, contentStyle)
+      <Panel title={"Add "+this.props.label} description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} parentFormRef={this} subform={true} closePanel={this.closeForm} autoSubmitOnChange={this.props.autoSubmitOnChange}/>
+    : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parentFormRef={this}  subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} autoSubmitOnChange={this.props.autoSubmitOnChange}/> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
@@ -149,6 +151,7 @@ class EntityListField extends React.Component {
         this.inlineRow = <SelectEntity fld={fld} uikit={this.uikit} submit={submit} items={this.state.selectOptions} entity={formData} index={index} close={this.closeForm}/>
         break;
       case "dialog":
+        console.log("show subentity dialog", comp)
         Window.showDialog(null, comp, this.closeForm)
         break;
       case "overlay":
@@ -221,11 +224,15 @@ class SubEntity extends LoadableComponent {
     this.uikit = ctx.uikit;
     let value = props.input.value? props.input.value: (this.list? [] : {})
     this.state = {value}
+    console.log("show subentity", this.formDesc, props, ctx)
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log("componentWillReceiveProps  for SubEntity", nextProps)
     let value = nextProps.input.value? nextProps.input.value: (this.list? [] : {})
-    this.setState(Object.assign({}, this.state, {value}))
+    if(this.state.value != value) {
+      this.setState(Object.assign({}, this.state, {value}))
+    }
   }
 
   dataLoaded = (data) => {
@@ -251,23 +258,25 @@ class SubEntity extends LoadableComponent {
   }
 
   change = (value) => {
-    console.log("charnging subentity", value)
-    this.props.input.onChange(value)
+    console.log("charnging subentity", value, this.props)
+    this.props.fieldChange(value, this.props.name)
+    this.setState(Object.assign({}, this.state, {value}))
   }
 
   render() {
     console.log("subentity ", this.state, this.props)
     let field = this.props.field
     let title = field.skipLabel? null: this.label
+    let autoSubmit = null
     return (
       <this.uikit.Block className={"subentity "+this.label}>
         {this.list?
-        <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label}
-          selectOptions= {this.state.selectOptions} overlayComponent={this.context.overlayComponent} formDesc={this.formDesc} title={title} value={this.state.value}/>
+        <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label} form={this.props.form} formRef={this.props.formRef} autoSubmitOnChange={this.props.autoSubmitOnChange}
+          selectOptions= {this.state.selectOptions} overlayComponent={this.context.overlayComponent}  parentFormRef={this.props.parentFormRef} formDesc={this.formDesc} title={title} value={this.state.value}/>
         : ((field.mode=="select")?
         this.selectSubEntity()
         :
-        <Panel actions={()=>{}} formData={this.state.value} title={title} onChange={this.change} trackChanges={true} description={this.formDesc} />)
+        <Panel actions={()=>{}} formData={this.state.value} title={title}  autoSubmitOnChange={true} onChange={this.change} trackChanges={true} subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} description={this.formDesc} />)
         }
       </this.uikit.Block>
     )

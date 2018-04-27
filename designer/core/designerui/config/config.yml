@@ -56,12 +56,19 @@ modules:
       parent: root
       instance: Service
       dataservicefactory: mongodatabase
-  param:
+  keyvalue:
     module: entity
     settings:
-      object: Param
+      object: KeyValue
       parent: root
-      instance: Param
+      instance: KeyValue
+      dataservicefactory: mongodatabase
+  configuration:
+    module: entity
+    settings:
+      object: Configuration
+      parent: root
+      instance: Configuration
       dataservicefactory: mongodatabase
   channel:
     module: entity
@@ -127,6 +134,7 @@ modules:
       instance: Server
       dataservicefactory: mongodatabase
 ui:
+  skipUIModules: true
   externals:
     react: react
     uicommon: uicommon

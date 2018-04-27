@@ -5,31 +5,29 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type ModuleInstance_Ref struct {
+type KeyValue_Ref struct {
   Id    string
   Name string
 }
 
-type ModuleInstance struct {
+type KeyValue struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Module	Module `json:"Module" bson:"Module" datastore: "Module"`
-	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Settings	Configuration `json:"Settings" bson:"Settings" datastore: "Settings"`
+	Value	string `json:"Value" bson:"Value" datastore:"Value"`
 }
 
-func (ent *ModuleInstance) Config() *data.StorableConfig {
+func (ent *KeyValue) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "ModuleInstance",
+		Type:            "KeyValue",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "ModuleInstance",
+		Collection:      "KeyValue",
 		Cacheable:       false,
 	}
 }

@@ -29,9 +29,9 @@ class ListEditor extends React.Component {
     }
   }
   onChange = (values) => {
-    console.log("value onchange triggered ", values)
-    if(this.props.onChange) {
-      this.props.onChange(values)
+    console.log("value onchange triggered ", values, this.props)
+    if(this.props.fieldChange) {
+      this.props.fieldChange(values, this.props.name, null)
     } else {
       this.setState({values: values})
     }

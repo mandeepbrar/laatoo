@@ -11,13 +11,14 @@ const PropTypes = require('prop-types');
 class WebFormUI extends React.Component {
   constructor(props, context) {
     super(props);
+    let p = this.configureForm(props.dispatch, props)
     this.uikit = context.uikit
-    if(props.loader) {
-      props.loader(context.routeParams, this.dataLoaded, this.failureCallback)
+    if(p.loader) {
+      p.loader(context.routeParams, this.dataLoaded, this.failureCallback)
     }
-    this.className = "webform " + ((props.config && props.config.className)? props.config.className :"")
+    this.className = "webform " + ((p.config && p.config.className)? p.config.className :"")
     this.formName="myform"
-    this.config = this.props.config? this.props.config :{}
+    this.config = p.config? p.config :{}
     this.actions = props.actions
     let desc = props.description
     if(!this.actions && desc.info.actions) {
@@ -32,30 +33,125 @@ class WebFormUI extends React.Component {
     this.trackChanges = this.config.trackChanges || props.trackChanges
     this.parentFormProps = {}
     if(props.subform || desc.subform) {
-      this.parentFormValue = props.parent.getFormValue()
+      this.parentFormValue = props.parentFormRef.getFormValue()
       console.log("received parent form value", this.parentFormValue)
       this.parentFormProps = {parentFormValue: this.parentFormValue}
     }
+    let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
+    this.submitFunc = (customFunc) => { return customFunc? props.handleSubmit(customFunc): props.handleSubmit(f) }
   }
 
-  componentWillReceiveProps(nextProps, nextState) {
-    console.log("next props of componentWillReceiveProps", nextProps)
-    if(this.trackChanges || this.dataLoading) {
-      this.dataLoading = false
-      let formValue = this.getFormValue(nextProps)
-      let oldFormValue = this.state.formValue
-      if(formValue != oldFormValue) {
-        this.setState(Object.assign({}, this.state, {formValue, time: Date.now()}))
-        if(this.props.onChange) {
-          console.log("on change of form", formValue)
-          this.props.onChange(formValue, oldFormValue)
+  configureForm(dispatch, ownProps) {
+    var desc = ownProps.description
+    var config = null
+    var loader = null
+    var formSubmit = null
+    console.log("ownprops ", ownProps)
+    if(desc) {
+      config = ownProps.config? ownProps.config: desc.config
+      if(config) {
+        if(config.entity) {
+          let entityId = config.entityId
+          let entityName = config.entity
+          let svc = config.entityService
+          //console.log("desc....", entityId, "name", entityName, entityFormCfg)
+          loader = (routeParams, dataLoaded, failureCallback) => {
+            if(entityId) {
+              dispatch(createAction(ActionNames.ENTITY_GET, { entityId, entityName}, {successCallback:  dataLoaded, failureCallback: failureCallback}));
+            }
+          }
+          if(ownProps.onSubmit) {
+            formSubmit = (data, successCallback, failureCallback) => {
+              console.log("form submit", data)
+              ownProps.onSubmit({data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback});
+            }
+          } else {
+            if(entityId) {
+              if(config.put) {
+                formSubmit = (data, successCallback, failureCallback) => {
+                  console.log("form submit put", data)
+                  dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+                }
+              } else {
+                formSubmit = (data, successCallback, failureCallback) => {
+                  console.log("form submit update", data)
+                  dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
+                }
+              }
+            } else {
+              formSubmit = (data, successCallback, failureCallback) => {
+                console.log("form submit save", data)
+                dispatch(createAction(ActionNames.ENTITY_SAVE, {data, entityName}, {successCallback, failureCallback}));
+              }
+            }
+          }
+        } else {
+          if(config.loaderService) {
+            let loaderServiceParams = {}
+            let loaderService = ""
+            if(typeof(config.loaderService) == "string") {
+              loaderService = config.loaderService
+            } else {
+              loaderService = config.loaderService.name
+              loaderServiceParams = config.loaderService.params
+            }
+            if(loaderService) {
+              loader = (routeParams, dataLoaded, failureCallback) => {
+                dispatch(createAction(ActionNames.LOAD_DATA, Object.assign({}, loaderServiceParams, routeParams), {serviceName: loaderService, successCallback:  dataLoaded, failureCallback: failureCallback}));
+              }
+            }
+          }
+          if(ownProps.onSubmit) {
+            formSubmit = (data, successCallback, failureCallback) => {
+              console.log("data ", data, ownProps)
+              ownProps.onSubmit(data, {successCallback, failureCallback});
+            }
+          } else {
+            formSubmit = (data, successCallback, failureCallback) => {
+              console.log("form submit submit form", data)
+              if(config) {
+                let preSubmit = _reg('Method', config.preSubmit)
+                if(preSubmit) {
+                  data = preSubmit(data)
+                }
+                successCallback = config.submitSuccess? _reg('Method', config.submitSuccess) : successCallback
+                failureCallback = config.submitFailure? _reg('Method', config.submitFailure) : failureCallback
+              }
+              dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+            }
+          }
         }
+      }
+    }
+
+    return {loader, config, formSubmit }
+  }
+
+
+
+  componentWillReceiveProps(nextProps, nextState) {
+    console.log("webform: next props of componentWillReceiveProps", this.props.form, nextProps, nextState)
+    this.dataLoading = false
+    let formValue = this.getFormValue(nextProps)
+    let oldFormValue = this.state.formValue
+    console.log("on change of form", formValue, oldFormValue)
+    if(formValue != oldFormValue) {
+      this.setState(Object.assign({}, this.state, {formValue, time: Date.now()}))
+      if(this.props.onChange) {
+        console.log("on change of form", formValue)
+        this.props.onChange(formValue, oldFormValue)
       }
     }
   }
 
   reset = () => {
     this.props.reset()
+  }
+
+  subFormChange = (field, data) => {
+    if(this.props.subform) {
+      console.log("subform has changed ", field, data)
+    }
   }
 
   getChildContext() {
@@ -99,21 +195,27 @@ class WebFormUI extends React.Component {
   }
 
   getFormValue = (props) => {
-    console.log("get form value", this.props)
+    if(!props) {
+      props = this.props
+    }
+    /*console.log("get form value", this.props)
     if(!props) {
       props = this.props
     }
     let formVal  = props.state.form[props.form]
-    return formVal? formVal.values: {}
+    return formVal? formVal.values: {}*/
+    return props.formVal
   }
 
   layoutFields = (fldToDisp, flds, className) => {
     let fieldsArr = new Array()
     let comp = this
+    console.log("layout fields =========", this.state, this.props)
     fldToDisp.forEach(function(k) {
       let fd = flds[k]
       let cl = className? className + " m10": "m10"
-      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
+      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} formRef={comp} subFormChange={comp.subFormChange} subform={comp.props.subform}
+        autoSubmitOnChange={comp.props.autoSubmitOnChange} parentFormRef={comp.props.parentFormRef} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
     })
     return fieldsArr
   }
@@ -163,9 +265,7 @@ class WebFormUI extends React.Component {
   }
 
   render() {
-    let {handleSubmit, actions} = this.props
-    let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
-    var submitFunc = (customFunc) => { return customFunc? handleSubmit(customFunc): handleSubmit(f) }
+    console.log("**********************rendering web form****************", this.props.form, this.props)
     let cfg = this.config
     if(this.uikit.Form) {
       if(cfg.layout && (typeof(cfg.layout) == "string") ) {
@@ -173,17 +273,17 @@ class WebFormUI extends React.Component {
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(this.props.formContext, this.props.description, this.uikit)
-          return React.cloneElement(root, { time: this.state.time, onSubmit: submitFunc, className: this.className})
+          return React.cloneElement(root, { time: this.state.time, onSubmit: this.submitFunc, className: this.className})
         }
       } else {
         return (
-          <this.uikit.Form time={this.state.time} onSubmit={submitFunc} className={this.className}>
+          <this.uikit.Form time={this.state.time} onSubmit={this.submitFunc} className={this.className}>
             {this.fields()}
             <this.uikit.Block className="actionbar p20 right">
               {
                 this.actions?
-                this.actions(this, submitFunc, this.reset, this.uikit, this.setData, this.props.dispatch):
-                <this.uikit.ActionButton onClick={submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</this.uikit.ActionButton>
+                this.actions(this, this.submitFunc, this.reset, this.uikit, this.setData, this.props.dispatch):
+                <this.uikit.ActionButton onClick={this.submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</this.uikit.ActionButton>
               }
             </this.uikit.Block>
           </this.uikit.Form>
@@ -211,93 +311,18 @@ WebFormUI.contextTypes = {
   {this.actionButtons}*/
 
 const ReduxForm = reduxForm({})(WebFormUI)
-
+const empty = {}
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
   console.log("redux form state...........=======", state, ownProps)
-  return { state }
+  let formVal  = state.form[ownProps.form]
+  formVal = formVal? formVal.values: empty
+
+  return { formVal }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-  var desc = ownProps.description
-  var config = null
-  var loader = null
-  var formSubmit = null
-  console.log("ownprops ", ownProps)
-  if(desc) {
-    config = ownProps.config? ownProps.config: desc.config
-    if(config) {
-      if(config.entity) {
-        let entityId = config.entityId
-        let entityName = config.entity
-        let svc = config.entityService
-        //console.log("desc....", entityId, "name", entityName, entityFormCfg)
-        loader = (routeParams, dataLoaded, failureCallback) => {
-          if(entityId) {
-            dispatch(createAction(ActionNames.ENTITY_GET, { entityId, entityName}, {successCallback:  dataLoaded, failureCallback: failureCallback}));
-          }
-        }
-        if(ownProps.onSubmit) {
-          formSubmit = (data, successCallback, failureCallback) => {
-            console.log("form submit")
-            ownProps.onSubmit({data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback});
-          }
-        } else {
-          if(entityId) {
-            if(config.put) {
-              formSubmit = (data, successCallback, failureCallback) => {
-                dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
-              }
-            } else {
-              formSubmit = (data, successCallback, failureCallback) => {
-                dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: config.reloadOnUpdate, successCallback, failureCallback}));
-              }
-            }
-          } else {
-            formSubmit = (data, successCallback, failureCallback) => {
-              dispatch(createAction(ActionNames.ENTITY_SAVE, {data, entityName}, {successCallback, failureCallback}));
-            }
-          }
-        }
-      } else {
-        if(config.loaderService) {
-          let loaderServiceParams = {}
-          let loaderService = ""
-          if(typeof(config.loaderService) == "string") {
-            loaderService = config.loaderService
-          } else {
-            loaderService = config.loaderService.name
-            loaderServiceParams = config.loaderService.params
-          }
-          if(loaderService) {
-            loader = (routeParams, dataLoaded, failureCallback) => {
-              dispatch(createAction(ActionNames.LOAD_DATA, Object.assign({}, loaderServiceParams, routeParams), {serviceName: loaderService, successCallback:  dataLoaded, failureCallback: failureCallback}));
-            }
-          }
-        }
-        if(ownProps.onSubmit) {
-          formSubmit = (data, successCallback, failureCallback) => {
-            console.log("data ", data, ownProps)
-            ownProps.onSubmit(data, {successCallback, failureCallback});
-          }
-        } else {
-          formSubmit = (data, successCallback, failureCallback) => {
-            if(config) {
-              let preSubmit = _reg('Method', config.preSubmit)
-              if(preSubmit) {
-                data = preSubmit(data)
-              }
-              successCallback = config.submitSuccess? _reg('Method', config.submitSuccess) : successCallback
-              failureCallback = config.submitFailure? _reg('Method', config.submitFailure) : failureCallback
-            }
-            dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
-          }
-        }
-      }
-    }
-  }
-
-  return {loader, config, formSubmit }
+  return { dispatch }
 }
 
 

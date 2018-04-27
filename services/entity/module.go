@@ -40,10 +40,12 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	ctx = ctx.SubContext("Initializing entity module")
 	entity.object, _ = entity.GetStringConfiguration(ctx, ENTITY_OBJECT)
 	entity.instance, _ = entity.GetStringConfiguration(ctx, ENTITY_INSTANCE)
-
 	md, err := ctx.GetObjectMetadata(entity.object)
 	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+	if(md==nil) {
+		log.Error(ctx, "Object metadata not found", "object", entity.object)
 	}
 	desc := md.GetProperty("descriptor")
 	if desc != nil {

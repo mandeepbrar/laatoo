@@ -5,29 +5,29 @@ import (
   "laatoo/sdk/components/data"
 )
 
-type Param_Ref struct {
+type Configuration_Ref struct {
   Id    string
   Name string
 }
 
-type Param struct {
+type Configuration struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Value	string `json:"Value" bson:"Value" datastore:"Value"`
+	Values	[]KeyValue `json:"Values" bson:"Values" datastore: "Values"`
 }
 
-func (ent *Param) Config() *data.StorableConfig {
+func (ent *Configuration) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Param",
+		Type:            "Configuration",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Param",
+		Collection:      "Configuration",
 		Cacheable:       false,
 	}
 }
