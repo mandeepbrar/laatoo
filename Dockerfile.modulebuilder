@@ -10,7 +10,7 @@ VOLUME /plugins
 
 VOLUME /deploy
 
-ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin verbose=false packageFolder=. getBuildPackages=true
+ENV skipObjects=false skipUIModules=false skipUI=false printUIConfig=false name=plugin verbose=false packageFolder=. getBuildPackages=true forceUIModules=false
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 
@@ -36,7 +36,7 @@ COPY /build/.babelrc /
 
 #CMD ["list","/plugins"]
 
-ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects
+ENTRYPOINT node /build/build.js --skipUIModules $skipUIModules --forceUIModules $forceUIModules --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects
 
 #ENTRYPOINT /bin/bash
 

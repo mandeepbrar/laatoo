@@ -45,7 +45,7 @@ class SelectComp extends LoadableComponent {
   }
 
   optionChanged = (evt) => {
-    console.log("evt", evt, evt.target.value)
+    console.log("evt", evt, evt.target.value, this.state, this.props)
     let p = this.props
     this.setState(Object.assign({}, this.state, {value: evt.target.value}))
     if(p.onChange) {
@@ -83,6 +83,7 @@ class SelectComp extends LoadableComponent {
     })
     let options = this.getItems(this.props, data)*/
     let indexedItems = this.setItems(data)
+    console.log("indexedItems ", indexedItems)
     this.setState(Object.assign({}, this.state, {items: indexedItems}))
   }
 
@@ -94,16 +95,18 @@ class SelectComp extends LoadableComponent {
     let indexedItems = {}
     if(items) {
       items.forEach(function(item) {
-        let val = item[comp.valueField]
-        let text = item[comp.textField]
-        console.log("setting new items val===============================", props.selectItem, val, text, item, comp.textField, comp.valueField)
-        if(props.selectItem) {
+        if(item) {
+          let val = item[comp.valueField]
+          let text = item[comp.textField]
+          console.log("setting new items val===============================", props.selectItem, val, text, item, comp.textField, comp.valueField)
+          if(props.selectItem) {
 
-          indexedItems[val] = item
+            indexedItems[val] = item
+          }
+          comp.items.push(
+            <MenuItem className={props.itemClass} value={val}>{text}</MenuItem>
+          )
         }
-        comp.items.push(
-          <MenuItem className={props.itemClass} value={val}>{text}</MenuItem>
-        )
       })
     }
     return indexedItems

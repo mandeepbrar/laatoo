@@ -9,9 +9,11 @@ class SelectEntity extends React.Component {
     this.state={value: props.value, items: props.items}
   }
   componentWillReceiveProps(nextProps) {
+    console.log("on change of select entity--", this.state, nextProps)
     this.setState(Object.assign({}, this.state, {value: nextProps.value, items: nextProps.items}))
   }
   onChange=(value)=> {
+    console.log("on change of select entity--", value)
     this.setState(Object.assign({}, this.state, {value}))
   }
   saveValue=()=> {
@@ -24,7 +26,7 @@ class SelectEntity extends React.Component {
     let fldDesc = {label: fld.label, name: fld.name, widget: "Select", selectItem: true, type: "entity", items: this.state.items}
     return <uikit.Block  className="row between-xs">
       <uikit.Block className="left col-xs-10" >
-        <uikit.Forms.FieldWidget className="w100" field={fldDesc} onChange={this.onChange} value={this.state.value}/>
+        <uikit.Forms.FieldWidget className="w100" field={fldDesc} fieldChange={this.onChange} value={this.state.value}/>
       </uikit.Block>
       <uikit.Block className="right">
         <Action action={{actiontype:"method"}} className="edit p10" method={this.saveValue}>

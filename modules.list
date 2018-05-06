@@ -22,13 +22,14 @@ gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
 ui laatoo/services/ui
 uicommon laatoo/services/uicommon
+reactwebcommon laatoo/services/reactwebcommon
 authui laatoo/services/authui
 reactapplication laatoo/services/reactapplication
 gurmukhi laatoo/services/gurmukhi
 reactmaterialkit laatoo/services/reactmaterialkit
 reactbootstrapkit laatoo/services/reactbootstrapkit
 reactwebrouter laatoo/services/reactwebrouter
-reactwebcommon laatoo/services/reactwebcommon
+
 dashboardtheme laatoo/services/dashboardtheme
 laatooviews laatoo/services/laatooviews
 reactpages laatoo/services/reactpages

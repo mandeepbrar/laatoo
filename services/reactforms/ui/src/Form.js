@@ -12,6 +12,7 @@ class WebFormUI extends React.Component {
   constructor(props, context) {
     super(props);
     let p = this.configureForm(props.dispatch, props)
+    this.formSubmit = p.formSubmit
     this.uikit = context.uikit
     if(p.loader) {
       p.loader(context.routeParams, this.dataLoaded, this.failureCallback)
@@ -258,7 +259,7 @@ class WebFormUI extends React.Component {
   }
 
   uiformSubmit = (success, failure) => {
-      var formSubmit = this.props.formSubmit
+      var formSubmit = this.formSubmit
       return (data) => {
         formSubmit(data, success, failure)
       }

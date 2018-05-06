@@ -7,7 +7,7 @@ var entity = require('./entity')
 var yamlparser = require('js-yaml')
 const merge = require('webpack-merge');
 
-var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "printUIConfig", "getBuildPackages"]});
+var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "forceUIModules", "printUIConfig", "getBuildPackages"]});
 
 //, default: {skipObjects: false, skipUI: false, skipUIModules: false, printUIConfig: false}
 
@@ -69,7 +69,7 @@ function buildUI(nextTask) {
   }
 
   if (!argv.skipUIModules) {
-    if (!modConfig.ui || !modConfig.ui.skipUIModules) {
+    if (argv.forceUIModules || !modConfig.ui || !modConfig.ui.skipUIModules) {
       getUIModules();
     }
   }
