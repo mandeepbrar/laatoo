@@ -101,8 +101,8 @@ class EntityListField extends React.Component {
   edit = (data, index, success, failure) => {
     let items = this.state.value
     if(items && items.length > index) {
-      items[index] = data.data
-      console.log(" items", items[index], data, this.state)
+      items[index] = data
+      console.log(" items in edit", items[index], index, data, this.state)
       this.props.onChange(items)
       this.closeForm()
     }
@@ -256,7 +256,7 @@ class SubEntity extends LoadableComponent {
   selectSubEntity = () => {
     let fld = this.props.field
     let fldDesc = {label: fld.label, name: fld.name, widget: "Select", selectItem: true, type: "entity"}
-    return <this.uikit.Forms.FieldWidget className="w100" field={fldDesc} onChange={this.change} items={this.state.selectOptions} value={this.state.value}/>
+    return <this.uikit.Forms.FieldWidget className="w100" field={fldDesc} fieldChange={this.change} items={this.state.selectOptions} value={this.state.value}/>
   }
 
   change = (value) => {

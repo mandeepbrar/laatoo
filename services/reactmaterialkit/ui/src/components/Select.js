@@ -48,6 +48,7 @@ class SelectComp extends LoadableComponent {
     console.log("evt", evt, evt.target.value, this.state, this.props)
     let p = this.props
     this.setState(Object.assign({}, this.state, {value: evt.target.value}))
+    console.log("on change handler for select", p, p.onChange)
     if(p.onChange) {
       let val = p.selectItem? this.state.items[evt.target.value]: evt.target.value
       console.log("sendin value*********", p.selectItem, val, event.target.value, this.state)

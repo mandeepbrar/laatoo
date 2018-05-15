@@ -3,7 +3,8 @@
   "inherits":"",
   "imports":[],
   "form": {
-    "overlay": true
+    "overlay": true,
+    "layout": ["Name", "Description", "Modules"]
   },
   "titleField": "Name",
   "fields":{

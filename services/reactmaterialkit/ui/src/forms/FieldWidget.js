@@ -96,7 +96,7 @@ class FieldWidget extends React.Component {
     let items = props.items? props.items: fld.items
     let textField = fld.textField? fld.textField:isEntity? "Name": "text"
     let valueField = fld.valueField? fld.valueField: isEntity? "Id" : "value"
-
+    console.log("field change for select==", fieldChange)
 
     return <Select items={items} itemClass={fld.itemClass} className={className} onChange={fieldChange} value={value} dataServiceParams={fld.dataServiceParams}
         label={fld.label} name={fld.name} errorText={et} loader={fld.loader} skipDataLoad={fld.skipDataLoad} dataService={fld.dataService} selectItem={fld.selectItem}
