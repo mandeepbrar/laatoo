@@ -19,5 +19,9 @@ objects:
         type: string
         default: binary
 params:
-  redispubsubserver: Address of redis server
-  redispubsubdb: Redis db to be used for pubsub
+  redispubsubserver: 
+    description: Address of redis server
+    type: string
+  redispubsubdb: 
+    description: Redis db to be used for pubsub
+    type: string

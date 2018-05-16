@@ -8,8 +8,14 @@ description: This module provides two services by default server.publicfiles[.in
   parameter can be used to create multiple copies of the module
 objects: {}
 params:
-  files: Config providing mapping of filename, internal path relative to storage directory,
-    caching to be used for serving public files
-  filestoragedir: Directory where files to be served are stored
-  instance: Discriminator to distinguish multiple services created by multiple instances
-    of the module
+  files:
+    type: string 
+    description: Config providing mapping of filename, internal path relative to storage directory, 
+      caching to be used for serving public files
+  filestoragedir: 
+    type: string
+    description: Directory where files to be served are stored
+  instance: 
+    type: string
+    description: Discriminator to distinguish multiple services created by multiple instances
+      of the module

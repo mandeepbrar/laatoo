@@ -39,4 +39,6 @@ objects:
     type: string
     default: "services.conf.js"
 params:
- application: "Name of the application being served by this instance"
+ application: 
+    type: string
+    description: "Name of the application being served by this instance"

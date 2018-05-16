@@ -11,7 +11,7 @@ import (
 
 func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.Storable, error) {
 	ctx = ctx.SubContext("GetById")
-	log.Trace(ctx, "Getting object by id ", "id", id, "object", ms.Object)
+	log.Info(ctx, "Getting object by id ", "id", id, "object", ms.Object)
 
 	object := ms.ObjectCreator()
 
@@ -30,6 +30,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	if stor.IsDeleted() {
 		return nil, nil
 	}
+	log.Trace(ctx, "Result", "id", id, "stor", stor)
 	if ms.PostLoad {
 		stor.PostLoad(ctx)
 	}

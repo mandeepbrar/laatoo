@@ -1,5 +1,6 @@
 import React from 'react';
 import {UsersView} from './pages/UsersView'
+import {ModuleSettings} from './components/ModuleSettings'
 import './styles/app'
 import Actions from './actions';
 import './sagas'
@@ -75,5 +76,6 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 export {
   Initialize,
+  ModuleSettings,
   UsersView
 }

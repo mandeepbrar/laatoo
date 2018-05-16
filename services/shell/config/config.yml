@@ -13,4 +13,6 @@ modules:
     settings:
       application: {{var "uiapplication"}}
 params:
-  uiapplication: application to be started by the shell
+  uiapplication: 
+    type: string
+    description: application to be started by the shell

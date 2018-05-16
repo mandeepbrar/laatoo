@@ -19,6 +19,12 @@ modules:
       object: {{var "userobject"}}
       dataservicefactory: {{var "dataservicefactory"}}
 params:
-  userobject: User object to be used for local authentication
-  dataservicefactory: Data service factory to be used for auth purposes
-  defaultrole: Default role for the registered user
+  userobject: 
+    type: string
+    description: User object to be used for local authentication
+  dataservicefactory: 
+    type: string
+    description: Data service factory to be used for auth purposes
+  defaultrole: 
+    type: string
+    description: Default role for the registered user

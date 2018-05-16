@@ -14,4 +14,6 @@ objects:
     description: Beanstalk consumer service
     type: service
 params:
-  beanstalkserver: Address of beanstalk server
+  beanstalkserver: 
+    type: string
+    description: Address of beanstalk server

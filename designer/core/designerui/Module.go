@@ -16,6 +16,7 @@ type Module struct {
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Instance	bool `json:"Instance" bson:"Instance" datastore:"Instance"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
+	Params	map[string]string `json:"Params" bson:"Params" datastore:"Params"`
 	Services	[]string `json:"Services" bson:"Services" datastore:"Services"`
 	Factories	[]string `json:"Factories" bson:"Factories" datastore:"Factories"`
 	Channels	[]string `json:"Channels" bson:"Channels" datastore:"Channels"`

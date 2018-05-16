@@ -57,16 +57,30 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModules map[string]config.Config) (bool, error) {
 	ctx = ctx.SubContext("Create Instance " + moduleInstance)
 
-	modSettings, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
-	if ok {
-		ctx.SetVals(modSettings.(common.GenericConfig))
-	}
-
 	//get the environment in which module should operate
 	modenv, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_ENV)
 	if ok {
 		ctx.SetVals(modenv.(common.GenericConfig))
 	}
+
+	modConf, confFound := modMgr.moduleConf[moduleName]
+	modSettings, settingsFound := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
+	log.Error(ctx, "Creating module instance", "Conf", modConf, "Settings", modSettings)
+	if confFound && settingsFound {
+		//		ctx.SetVals(modSettings.(common.GenericConfig))
+		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
+		log.Error(ctx, "Creating module instance ", "Params", moduleparams)
+		if moduleparams != nil {
+			paramNames := moduleparams.AllConfigurations(ctx)
+			for _, paramName := range paramNames {
+				val, ok := modSettings.Get(ctx, paramName)
+				if ok {
+					ctx.Set(paramName, val)
+				}
+			}
+		}
+	}
+
 	/*if env != nil {
 		envvars := env.AllConfigurations(ctx)
 		for _, varname := range envvars {

@@ -40,14 +40,34 @@ modules:
       instance: {{var "instance"}}
       dataservicefactory: {{var "dataservicefactory"}}
 params:
-  object: Name of entity user object
-  parent: Parent channel to be used for entity APIs
-  instance: Name of the instance (e.g. myuser instead of user ) to be used for the
-    object. Defaults to object name
-  dataservicefactory: Data service factory to be used for entity storing
-  list_page_route: Route for the list page on spa ui. Default route /list_instance
-  new_form_route: Route for the new entity page on application ui. Default route /new_form_instance
-  update_form_route: Route for the update entity page on application ui. Default route /update_form_instance/:entityId
-  view_page_route: Route for the view page route on application ui. Default route /instance/:entityId
-  list_view_args: Filter args for list view
-  skipItems: Items to be skipped for an entity. list_page, new_form, update_form, view_page, list_view
+  object: 
+    type: string
+    description: Name of entity user object
+  parent: 
+    type: string
+    description: Parent channel to be used for entity APIs
+  instance: 
+    type: string
+    description: Name of the instance (e.g. myuser instead of user ) to be used for the
+      object. Defaults to object name
+  dataservicefactory: 
+    type: string
+    description: Data service factory to be used for entity storing
+  list_page_route: 
+    type: string
+    description: Route for the list page on spa ui. Default route /list_instance
+  new_form_route: 
+    type: string
+    description: Route for the new entity page on application ui. Default route /new_form_instance
+  update_form_route: 
+    type: string
+    description: Route for the update entity page on application ui. Default route /update_form_instance/:entityId
+  view_page_route: 
+    type: string
+    description: Route for the view page route on application ui. Default route /instance/:entityId
+  list_view_args: 
+    type: string
+    description: Filter args for list view
+  skipItems: 
+    type: string
+    description: Items to be skipped for an entity. list_page, new_form, update_form, view_page, list_view

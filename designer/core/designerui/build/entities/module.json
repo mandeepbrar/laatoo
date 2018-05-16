@@ -17,6 +17,12 @@
       "type":"string",
       "list": true
     },
+    "Params": {
+      "type": "stringmap"
+    },    
+    "Dependencies": {
+      "type": "stringmap"
+    },    
     "Services": {
       "type":"string",
       "list": true

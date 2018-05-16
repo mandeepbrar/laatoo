@@ -8,6 +8,10 @@ description: This module provides two services by default server.publicdirectory
   parameter can be used to create multiple copies of the module. An http channel public
   is also provided with path of /public/
 params:
-  publicfilesdir: Directory to be used for serving public files
-  instance: Discriminator to distinguish multiple services created by multiple instances
-    of the module
+  publicfilesdir: 
+    type: string
+    description: Directory to be used for serving public files
+  instance: 
+    type: string
+    description: Discriminator to distinguish multiple services created by multiple instances
+      of the module

@@ -18,5 +18,9 @@ objects:
         type: string
         default: '15'
 params:
-  searchindex: Index to be used for search service
-  searchresults: Number of results to be returned by search
+  searchindex: 
+    type: string
+    description: Index to be used for search service
+  searchresults: 
+    type: string
+    description: Number of results to be returned by search

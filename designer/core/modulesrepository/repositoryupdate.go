@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"laatoo/sdk/components"
 	"laatoo/sdk/components/data"
 	"laatoo/sdk/config"
@@ -9,7 +10,6 @@ import (
 	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/utils"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -62,7 +62,7 @@ func (svc *RepositoryUpdate) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string)  (*ModuleDefinition, error) {
+func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*ModuleDefinition, error) {
 	files, err := svc.repositoryFiles.ListFiles(ctx, fmt.Sprintf("%s.tar.gz", mod))
 	if err != nil {
 		return nil, err
@@ -169,11 +169,11 @@ func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*
 
 func (svc *RepositoryUpdate) readConf(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
 	desc, ok := conf.GetString(ctx, "description")
-	if (ok) {
+	if ok {
 		mod.Description = desc
 	}
 	ver, ok := conf.GetString(ctx, "version")
-	if (ok) {
+	if ok {
 		mod.Version = ver
 	}
 	err := svc.readDependencies(ctx, mod, conf)
@@ -194,10 +194,10 @@ func (svc *RepositoryUpdate) readConf(ctx core.RequestContext, mod *ModuleDefini
 func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
 	depVals := make(map[string]string)
 	deps, ok := conf.GetSubConfig(ctx, "dependencies")
-	if(ok) {
+	if ok {
 		depNames := deps.AllConfigurations(ctx)
 		for _, dep := range depNames {
-			ver,_  := deps.GetString(ctx, dep)
+			ver, _ := deps.GetString(ctx, dep)
 			depVals[dep] = ver
 		}
 	}
@@ -207,31 +207,32 @@ func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *Modu
 
 func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
 	paramVals := make(map[string]string)
+	log.Error(ctx, "Reading params", "conf", conf)
 	params, ok := conf.GetSubConfig(ctx, "params")
-	if(ok) {
+	if ok {
 		paramNames := params.AllConfigurations(ctx)
 		for _, param := range paramNames {
-			desc,_  := params.GetString(ctx, param)
+			desc, _ := params.GetString(ctx, param)
 			paramVals[param] = desc
 		}
 	}
+	log.Error(ctx, "Reading params", "params", params, "paramVals", paramVals)
 	mod.Params = paramVals
 	return nil
 }
 
-
 func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
 	objects := make([]ObjectDefinition, 0)
 	objsConf, ok := conf.GetSubConfig(ctx, "objects")
-	if(ok) {
+	if ok {
 		objNames := objsConf.AllConfigurations(ctx)
 		for _, objName := range objNames {
 			objDef := ObjectDefinition{Name: objName}
 			objConf, _ := objsConf.GetSubConfig(ctx, objName)
 			objType, _ := objConf.GetString(ctx, "type")
-			if(objType == "module") {
+			if objType == "module" {
 				err := svc.readModObj(ctx, objName, mod, conf)
-				if(err!=nil) {
+				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
 			}
@@ -244,11 +245,11 @@ func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDef
 					confDef := ConfigurationDefinition{Name: confName}
 					confConf, _ := objConfs.GetSubConfig(ctx, confName)
 					confType, ok := confConf.GetString(ctx, "type")
-					if(ok) {
+					if ok {
 						confDef.Type = confType
 					}
 					confDesc, ok := confConf.GetString(ctx, "description")
-					if(ok) {
+					if ok {
 						confDef.Description = confDesc
 					}
 					confDef.Required, _ = confConf.GetBool(ctx, "required")
@@ -268,28 +269,28 @@ func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDef
 func (svc *RepositoryUpdate) readModObj(ctx core.RequestContext, objName string, mod *ModuleDefinition, conf config.Config) error {
 	log.Error(ctx, "Creating obj", "objName", objName)
 	obj, err := ctx.ServerContext().CreateObject(objName)
-	if(err!=nil) {
+	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	modObj := obj.(core.Module)
 	log.Error(ctx, "module obj", "modObj", modObj)
-	if modObj!=nil {
+	if modObj != nil {
 		inf := modObj.MetaInfo(ctx.ServerContext())
 		log.Error(ctx, "Meta Info", "inf", inf)
-		if(inf!=nil) {
+		if inf != nil {
 			svcs := inf["services"]
 			svcsArr, ok := svcs.([]string)
-			if(ok) {
+			if ok {
 				mod.Services = svcsArr
 			}
 			facs := inf["factories"]
 			facsArr, ok := facs.([]string)
-			if(ok) {
+			if ok {
 				mod.Factories = facsArr
 			}
 			chns := inf["channels"]
 			chnsArr, ok := chns.([]string)
-			if(ok) {
+			if ok {
 				mod.Channels = chnsArr
 			}
 		}
@@ -341,7 +342,7 @@ func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *Module
 			}
 			log.Error(ctx, "SubMod found", "submod", subModName, "conf", subModConf)
 			subModDef, err := svc.processModule(ctx, subModName)
-			if(err!=nil) {
+			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 			log.Error(ctx, "SubMod def", "subModDef", subModDef)

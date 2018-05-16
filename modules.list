@@ -20,6 +20,7 @@ dataadapter laatoo/services/data/dataadapter
 mongodatabase laatoo/services/data/mongo
 gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
+entity laatoo/services/entity
 ui laatoo/services/ui
 uicommon laatoo/services/uicommon
 reactwebcommon laatoo/services/reactwebcommon
@@ -34,7 +35,6 @@ dashboardtheme laatoo/services/dashboardtheme
 laatooviews laatoo/services/laatooviews
 reactpages laatoo/services/reactpages
 reactforms laatoo/services/reactforms
-entity laatoo/services/entity
 subentity laatoo/services/subentity
 fontawesome laatoo/services/fontawesome
 itemdetailview laatoo/services/itemdetailview

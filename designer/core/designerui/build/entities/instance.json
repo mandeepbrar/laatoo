@@ -29,8 +29,8 @@
     "Settings": {
       "type":"subentity",
       "entity": "Configuration",
-      "widget": "SubEntity",
-      "module": "subentity"
+      "widget": "ModuleSettings",
+      "module": "designerui"
     }
   }
 }

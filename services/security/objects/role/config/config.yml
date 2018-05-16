@@ -1,4 +1,6 @@
 version: 0.0.1
 description: Default role object
 params:
-  roledatafactory: Data factory that creates service to use for fetching roles
+  roledatafactory: 
+    description: Data factory that creates service to use for fetching roles
+    type: string

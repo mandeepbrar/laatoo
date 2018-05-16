@@ -11,4 +11,6 @@ objects:
         description: Directory to be used by the storage component
         type: string
 params:
-  filestoragedir: Directory to be used for storing files
+  filestoragedir: 
+    type: string
+    description: Directory to be used for storing files
