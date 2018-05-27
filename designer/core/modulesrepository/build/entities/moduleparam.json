@@ -1,0 +1,18 @@
+{
+    "name":"ModuleParam",
+    "inherits":"",
+    "imports":[],
+    "titleField": "Name",
+    "fields":{
+      "Name": {
+          "type":"string"
+      },
+      "Type": {
+        "type":"string"
+      },
+      "Description": {
+        "type":"string"
+      }
+    }
+  }
+  

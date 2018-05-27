@@ -250,6 +250,7 @@ class SubEntity extends LoadableComponent {
     if(this.context.getParentFormValue) {
       context.parentFormValue = this.context.getParentFormValue()
     }
+    console.log("get load context called", context)
     return context
   }
 

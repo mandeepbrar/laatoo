@@ -440,6 +440,11 @@ func (ctx *serverContext) CreateConfig() config.Config {
 	return make(common.GenericConfig)
 }
 
+func (ctx *serverContext) ReadConfigMap(cfg map[string]interface{}) (config.Config, error) {
+	res, _ := common.CastToConfig(cfg)
+	return res, nil
+}
+
 func (ctx *serverContext) ReadConfig(file string, funcs map[string]interface{}) (config.Config, error) {
 	return common.NewConfigFromFile(ctx, file, funcs)
 }

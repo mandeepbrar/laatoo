@@ -54,6 +54,13 @@ function fields(fields) {
           fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
         }
         break;
+      case "map":
+        if(field.mappedElement) {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.mappedElement, jsonF, bsonF, datastoreF)
+        } else {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]interface{} `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, jsonF, bsonF, datastoreF)
+        }
+        break;
       case "stringmap":
         fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]string `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, jsonF, bsonF, datastoreF)
         break;

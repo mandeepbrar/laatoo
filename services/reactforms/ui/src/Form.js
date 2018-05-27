@@ -4,8 +4,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import {ActionNames} from './Actions';
 import {createAction} from 'uicommon';
-import { reduxForm } from 'redux-form'
-import {Field} from './Field';
+import { reduxForm } from 'redux-form';
+import {FieldsPanel} from './FieldsPanel';
+
 const PropTypes = require('prop-types');
 
 class WebFormUI extends React.Component {
@@ -36,7 +37,6 @@ class WebFormUI extends React.Component {
     if(props.subform || desc.subform) {
       this.parentFormValue = props.parentFormRef.getFormValue()
       console.log("received parent form value", this.parentFormValue)
-      this.parentFormProps = {parentFormValue: this.parentFormValue}
     }
     let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
     this.submitFunc = (customFunc) => { return customFunc? props.handleSubmit(customFunc): props.handleSubmit(f) }
@@ -199,63 +199,7 @@ class WebFormUI extends React.Component {
     if(!props) {
       props = this.props
     }
-    /*console.log("get form value", this.props)
-    if(!props) {
-      props = this.props
-    }
-    let formVal  = props.state.form[props.form]
-    return formVal? formVal.values: {}*/
     return props.formVal
-  }
-
-  layoutFields = (fldToDisp, flds, className) => {
-    let fieldsArr = new Array()
-    let comp = this
-    console.log("layout fields =========", this.state, this.props)
-    fldToDisp.forEach(function(k) {
-      let fd = flds[k]
-      let cl = className? className + " m10": "m10"
-      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} formRef={comp} subFormChange={comp.subFormChange} subform={comp.props.subform}
-        autoSubmitOnChange={comp.props.autoSubmitOnChange} parentFormRef={comp.props.parentFormRef} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
-    })
-    return fieldsArr
-  }
-
-  fields = () => {
-    let desc = this.props.description
-    console.log("desc of form ", desc)
-    let comp = this
-    if(desc && desc.fields) {
-      let flds = desc.fields
-      if(flds) {
-        if(desc.info && desc.info.tabs) {
-          let tabs = new Array()
-          let tabsToDisp = desc.info && desc.info.tabs? desc.info.layout: Object.keys(desc.info.tabs)
-          tabsToDisp.forEach(function(k) {
-            let tabFlds = desc.info.tabs[k];
-            if(tabFlds) {
-              let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield")
-              tabs.push(
-                <comp.uikit.Tab label={k} time={comp.state.time} value={k}>
-                  {tabArr}
-                </comp.uikit.Tab>
-              )
-            }
-          })
-          let vertical = desc.info.verticaltabs? true: false
-          return (
-            <this.uikit.Tabset vertical={vertical} time={comp.state.time}>
-              {tabs}
-            </this.uikit.Tabset>
-          )
-        } else {
-          let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
-          let className=comp.props.inline?"inline formfield":"formfield"
-          return this.layoutFields(fldToDisp, flds, className)
-        }
-      }
-    }
-    return null
   }
 
   uiformSubmit = (success, failure) => {
@@ -266,6 +210,7 @@ class WebFormUI extends React.Component {
   }
 
   render() {
+    let props = this.props
     console.log("**********************rendering web form****************", this.props.form, this.props)
     let cfg = this.config
     if(this.uikit.Form) {
@@ -273,13 +218,14 @@ class WebFormUI extends React.Component {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
           console.log("form context", this.props.formContext);
-          let root = display(this.props.formContext, this.props.description, this.uikit)
+          let root = display(props.formContext, props.description, this.uikit)
           return React.cloneElement(root, { time: this.state.time, onSubmit: this.submitFunc, className: this.className})
         }
       } else {
         return (
           <this.uikit.Form time={this.state.time} onSubmit={this.submitFunc} className={this.className}>
-            {this.fields()}
+            <FieldsPanel description={props.description} formValue={this.state.formValue} formRef={this} subform={props.subform}
+              autoSubmitOnChange={props.autoSubmitOnChange} parentFormRef={props.parentFormRef} time={this.state.time} parentFormValue={this.parentFormValue}/>
             <this.uikit.Block className="actionbar p20 right">
               {
                 this.actions?

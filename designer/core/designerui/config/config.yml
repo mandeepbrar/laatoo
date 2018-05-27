@@ -3,6 +3,7 @@ dependencies:
   reactwebcommon: ">=0.0.1"
   entity: ">=0.0.1"
   uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
 description: Module provides designer ui components
 objects:
   objectsresolver:
@@ -134,11 +135,15 @@ modules:
       instance: Server
       dataservicefactory: mongodatabase
 ui:
-  skipUIModules: false
+  skipUIModules: true
   externals:
     react: react
     uicommon: uicommon
     redux-saga: redux-saga
+    redux: redux
+    react-redux: react-redux
+    reactpages: reactpages
+    sanitize-html: sanitize-html
   packages:
     react: "^16.3.0"
     redux-saga: "^0.16.0"

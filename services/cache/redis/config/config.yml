@@ -22,9 +22,9 @@ objects:
         type: string
         default: binary
 params:
-  rediscacheserver: 
+  rediscacheserver:
     type: string
     description: Address of redis server
-  rediscachedb: 
+  rediscachedb:
     type: string
     description: Redis db to be used for caching

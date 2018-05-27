@@ -14,8 +14,9 @@
       "type":"string"
     },
     "Params": {
-      "type": "stringmap"
-    },
+      "type": "map",
+      "mappedElement": "ModuleParam"
+    },    
     "Dependencies": {
       "type":"stringmap"
     },
@@ -30,6 +31,9 @@
       "entity": "ObjectDefinition",      
       "list": true
     },
+    "ParamsForm" : {
+      "type":"map"
+    }, 
     "Services": {
       "type":"string",
       "list": true

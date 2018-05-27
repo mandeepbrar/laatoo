@@ -1,6 +1,5 @@
 import React from 'react';
 import {UsersView} from './pages/UsersView'
-import {ModuleSettings} from './components/ModuleSettings'
 import './styles/app'
 import Actions from './actions';
 import './sagas'
@@ -10,7 +9,7 @@ import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 
 function Form_Instance_Modules(props, context, callback) {
   console.log("Form_Instance_Modules  called", props, context, callback)
-  let modules = context.parentFormValue.Modules
+  let modules = context.parentFormValue && context.parentFormValue.Modules? context.parentFormValue.Modules: []
   /*let items = []
   if(modules) {
     modules.forEach((module)=>{
@@ -76,6 +75,5 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 export {
   Initialize,
-  ModuleSettings,
   UsersView
 }

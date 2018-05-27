@@ -48,6 +48,16 @@ func (conf GenericConfig) Clone() config.Config {
 	return res
 }
 
+func (conf GenericConfig) GetRoot(ctx ctx.Context) (string, config.Config, bool) {
+	confNames := conf.AllConfigurations(ctx)
+	if len(confNames) == 1 {
+		rootElem := confNames[0]
+		rootConf, _ := conf.GetSubConfig(ctx, rootElem)
+		return rootElem, rootConf, true
+	}
+	return "", nil, false
+}
+
 //Get string configuration value
 func (conf GenericConfig) GetBool(ctx ctx.Context, configurationName string) (bool, bool) {
 	val, found := conf[configurationName]

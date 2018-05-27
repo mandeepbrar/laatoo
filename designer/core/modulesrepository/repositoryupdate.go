@@ -163,6 +163,10 @@ func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+	err = svc.writeParamsForm(ctx, mod)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
 	log.Error(ctx, "Module Conf", "mod", modName, "conf", conf, "mod", mod)
 	return mod, nil
 }
@@ -206,18 +210,21 @@ func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *Modu
 }
 
 func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	paramVals := make(map[string]string)
+	params := make(map[string]ModuleParam)
 	log.Error(ctx, "Reading params", "conf", conf)
-	params, ok := conf.GetSubConfig(ctx, "params")
+	paramsConf, ok := conf.GetSubConfig(ctx, "params")
 	if ok {
-		paramNames := params.AllConfigurations(ctx)
-		for _, param := range paramNames {
-			desc, _ := params.GetString(ctx, param)
-			paramVals[param] = desc
+		paramNames := paramsConf.AllConfigurations(ctx)
+		for _, paramName := range paramNames {
+			paramConf, _ := paramsConf.GetSubConfig(ctx, paramName)
+			ptype, _ := paramConf.GetString(ctx, "type")
+			desc, _ := paramConf.GetString(ctx, "description")
+			modParam := ModuleParam{Name: paramName, Type: ptype, Description: desc}
+			params[paramName] = modParam
 		}
 	}
-	log.Error(ctx, "Reading params", "params", params, "paramVals", paramVals)
-	mod.Params = paramVals
+	log.Error(ctx, "Reading params", "params", params)
+	mod.Params = params
 	return nil
 }
 
@@ -348,5 +355,21 @@ func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *Module
 			log.Error(ctx, "SubMod def", "subModDef", subModDef)
 		}
 	}
+	return nil
+}
+
+func (svc *RepositoryUpdate) writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) error {
+	formConf := make(map[string]interface{})
+	formFields := make(map[string]interface{})
+
+	for pname, pConf := range mod.Params {
+		formParam := make(map[string]interface{})
+		formParam["name"] = pname
+		formParam["type"] = pConf.Type
+		formFields[pname] = formParam
+	}
+	formConf["fields"] = formFields
+
+	mod.ParamsForm = formConf
 	return nil
 }

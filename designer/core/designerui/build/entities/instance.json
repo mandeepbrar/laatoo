@@ -30,7 +30,7 @@
       "type":"subentity",
       "entity": "Configuration",
       "widget": "ModuleSettings",
-      "module": "designerui"
+      "module": "modulesrepository"
     }
   }
 }

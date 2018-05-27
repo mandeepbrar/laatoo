@@ -15,11 +15,12 @@ type ModuleDefinition struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Version	string `json:"Version" bson:"Version" datastore:"Version"`
-	Params	map[string]string `json:"Params" bson:"Params" datastore:"Params"`
+	Params	map[string]ModuleParam `json:"Params" bson:"Params" datastore:"Params"`
 	Dependencies	map[string]string `json:"Dependencies" bson:"Dependencies" datastore:"Dependencies"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	UIDependencies	map[string]string `json:"UIDependencies" bson:"UIDependencies" datastore:"UIDependencies"`
 	Objects	[]ObjectDefinition `json:"Objects" bson:"Objects" datastore: "Objects"`
+	ParamsForm	map[string]interface{} `json:"ParamsForm" bson:"ParamsForm" datastore:"ParamsForm"`
 	Services	[]string `json:"Services" bson:"Services" datastore:"Services"`
 	Factories	[]string `json:"Factories" bson:"Factories" datastore:"Factories"`
 	Channels	[]string `json:"Channels" bson:"Channels" datastore:"Channels"`

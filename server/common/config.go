@@ -125,7 +125,7 @@ func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config
 	return configToRet, nil, true
 }
 
-func Cast(conf interface{}) (config.Config, bool) {
+func CastToConfig(conf interface{}) (config.Config, bool) {
 	var gc GenericConfig
 	cf, ok := conf.(map[string]interface{})
 	if ok {

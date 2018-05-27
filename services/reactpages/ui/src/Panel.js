@@ -216,16 +216,18 @@ class Panel extends React.Component {
   }
 
   processForm = (desc, props,  ctx) => {
-    console.log("processing form", desc)
+    console.log("processing form=", desc)
     if(!desc || !desc.info) {
       return
     }
-    console.log("processing form", desc)
+    console.log("processing form+++", desc, module)
     this.cfgPanel(desc.info.title, desc.info.overlay)
 
     var cfg = desc.info
     if(!this.form) {
+      console.log("getting form",  module)
       this.form = this.getComponent("reactforms", "Form", module.req)
+      console.log("got form",  module)
     }
 
     if(this.form) {
