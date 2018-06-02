@@ -27,6 +27,7 @@ const (
 	CONF_FILE_DESC       = "descriptor"
 	CONF_PROPS_EXTENSION = "properties_ext"
 	CONF_APPLICATION     = "application"
+	CONF_HOT_MODULES     = "hotmodules"
 	DEPENDENCIES         = "dependencies"
 	UI_DIR               = "ui"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
@@ -50,6 +51,7 @@ type UI struct {
 	cssFiles           map[string][]byte
 	modDeps            map[string][]string
 	insMods            map[string]string
+	hotloadMods        map[string]string
 	insSettings        map[string]config.Config
 	descriptorFiles    map[string][]byte
 	requiredUIPkgs     utils.StringSet
@@ -76,6 +78,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
+	svc.hotloadMods, _ = svc.GetStringMapConfiguration(ctx, CONF_HOT_MODULES)
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
@@ -104,8 +107,10 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		return nil
 	}
 
+	_, hot := svc.hotloadMods[modName]
+
 	_, modRead := svc.uiFiles[modName]
-	if !modRead {
+	if !modRead && !hot {
 		uifile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, svc.uifile)
 		ok, _, _ = utils.FileExists(uifile)
 		if ok {

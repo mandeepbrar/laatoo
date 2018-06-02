@@ -155,10 +155,34 @@ func (impl *configurableObject) GetStringConfiguration(ctx core.ServerContext, n
 	return c.(string), ok
 }
 
+func (impl *configurableObject) GetStringArrayConfiguration(ctx core.ServerContext, name string) ([]string, bool) {
+	c, ok := impl.GetConfiguration(ctx, name)
+	if !ok && c == nil {
+		return nil, false
+	}
+	val, ok := c.([]string)
+	if !ok {
+		return nil, false
+	}
+	return val, true
+}
+
+func (impl *configurableObject) GetStringMapConfiguration(ctx core.ServerContext, name string) (map[string]string, bool) {
+	c, ok := impl.GetConfiguration(ctx, name)
+	if !ok && c == nil {
+		return nil, false
+	}
+	val, ok := c.(map[string]string)
+	if !ok {
+		return nil, false
+	}
+	return val, true
+}
+
 func (impl *configurableObject) GetBoolConfiguration(ctx core.ServerContext, name string) (bool, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok && c == nil {
-		return false, ok
+		return false, false
 	}
 	return c.(bool), ok
 }
@@ -166,7 +190,7 @@ func (impl *configurableObject) GetBoolConfiguration(ctx core.ServerContext, nam
 func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name string) (config.Config, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok && c == nil {
-		return nil, ok
+		return nil, false
 	}
 	conf, cok := c.(config.Config)
 	if cok {
