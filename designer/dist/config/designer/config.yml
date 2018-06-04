@@ -8,6 +8,7 @@ modules:
   - localauth
   - role
   - staticfileserver
+  - designerdependencies
   - reactwebrouter
   - reactmaterialkit
   - subentity
@@ -19,7 +20,6 @@ modules:
   - uicommon
   - authui
   - reactforms
-  - designerdependencies
   - dashboardtheme
   - modulesrepository
   - designerui
@@ -95,8 +95,13 @@ moduleinstances:
       dataservicefactory: mongodatabase
   shell:
     module: shell
+    logging:
+      level: error
+      format: happymax
     settings:
       uiapplication: designerapplication
+      hotmodules: 
+        reactpages: services/reactpages
       uidependencies:
         react: ''
   designerui:

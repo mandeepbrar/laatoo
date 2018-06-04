@@ -207,12 +207,11 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 }
 
 func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.Config) error {
-	log.Trace(ctx, "Processing Configurations")
+	log.Trace(ctx, "Processing Configurations", "conf", conf)
 	confs := impl.GetConfigurations()
 	for name, configObj := range confs {
 		configu := configObj.(*configuration)
 		val, ok := conf.Get(ctx, name)
-
 		if !ok && configu.required {
 			return errors.MissingConf(ctx, name)
 		}
@@ -224,7 +223,7 @@ func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.
 					configu.value = val
 				}
 			case config.OBJECTTYPE_STRINGMAP:
-				val, ok = conf.GetSubConfig(ctx, name)
+				val, ok = conf.GetStringMap(ctx, name)
 				if ok {
 					configu.value = val
 				}

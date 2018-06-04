@@ -12,7 +12,11 @@ modules:
     module: ui
     settings:
       application: {{var "uiapplication"}}
+      hotmodules: {{var "hotmodules"}}
 params:
   uiapplication: 
     type: string
-    description: application to be started by the shell
+    description: Application to be started by the shell
+  hotmodules: 
+    type: stringmap
+    description: Hot modules for development

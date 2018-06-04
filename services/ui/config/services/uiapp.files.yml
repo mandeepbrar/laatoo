@@ -2,7 +2,7 @@ name: uiapp.files{{var "application" "."}}
 servicemethod: named_files_service
 files:
   app.js:
-    cache: 'true'
+    cache: 'false'
     path: /scripts/app{{var "application" "."}}.js
   services.conf.js:
     cache: 'true'

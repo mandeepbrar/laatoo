@@ -34,6 +34,7 @@ const (
 	MERGED_CSS_FILE      = "mergedcssfile"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
+	HOT_MODULES_REPO     = "hotmodulesrepo"
 )
 
 type UI struct {
@@ -46,6 +47,7 @@ type UI struct {
 	mergedcssfile      string
 	application        string
 	propsExt           string
+	hotModulesRepo     string
 	uiFiles            map[string][]byte
 	vendorFiles        map[string][]byte
 	cssFiles           map[string][]byte
@@ -79,6 +81,8 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
 	svc.hotloadMods, _ = svc.GetStringMapConfiguration(ctx, CONF_HOT_MODULES)
+	log.Error(ctx, "*************hot modules directory being used**********", "hotloadMods", svc.hotloadMods)
+	svc.hotModulesRepo, _ = ctx.GetString(HOT_MODULES_REPO)
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
@@ -107,18 +111,27 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		return nil
 	}
 
-	_, hot := svc.hotloadMods[modName]
+	modDevDir, hot := svc.hotloadMods[modName]
 
+	modFilesDir := ""
+	if hot {
+		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
+	} else {
+		modFilesDir = path.Join(dir, FILES_DIR)
+	}
 	_, modRead := svc.uiFiles[modName]
-	if !modRead && !hot {
-		uifile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, svc.uifile)
+	if !modRead {
+		uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
 		ok, _, _ = utils.FileExists(uifile)
 		if ok {
 			cont, err := ioutil.ReadFile(uifile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-
+			if hot {
+				log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
+				svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
+			}
 			modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
 			if ok {
 				svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
@@ -137,9 +150,12 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			modRead = true
 		}
 
-		vendorfile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, "vendor.js")
+		vendorfile := path.Join(modFilesDir, SCRIPTS_DIR, "vendor.js")
 		ok, _, _ = utils.FileExists(vendorfile)
 		if ok {
+			if hot {
+				svc.addWatch(ctx, modName, vendorfile, modFilesDir, svc.reloadVendorFile)
+			}
 			log.Trace(ctx, "Reading vendor file", "file", vendorfile)
 			cont, err := ioutil.ReadFile(vendorfile)
 			if err != nil {
@@ -148,7 +164,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			svc.vendorFiles[fmt.Sprintf("%s_vendor", modName)] = cont
 		}
 
-		cssfile := path.Join(dir, FILES_DIR, CSS_DIR, "app.css")
+		cssfile := path.Join(modFilesDir, CSS_DIR, "app.css")
 		ok, _, _ = utils.FileExists(cssfile)
 		if ok {
 			cont, err := ioutil.ReadFile(cssfile)
@@ -158,7 +174,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			svc.cssFiles[modName] = cont
 		}
 
-		descfile := path.Join(dir, FILES_DIR, SCRIPTS_DIR, svc.descfile)
+		descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)
 		ok, _, _ = utils.FileExists(descfile)
 		if ok {
 			cont, err := ioutil.ReadFile(descfile)
@@ -191,7 +207,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		return errors.WrapError(ctx, err)
 	}
 
-	publicImgs := path.Join(dir, FILES_DIR, "images")
+	publicImgs := path.Join(modFilesDir, "images")
 	ok, _, _ = utils.FileExists(publicImgs)
 	if ok {
 		log.Debug(ctx, "Processing images", "dir", publicImgs)
@@ -202,7 +218,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 
 	}
 
-	fontsDir := path.Join(dir, FILES_DIR, "fonts")
+	fontsDir := path.Join(modFilesDir, "fonts")
 	ok, _, _ = utils.FileExists(fontsDir)
 	if ok {
 		log.Debug(ctx, "Copying fonts ", "fonts", fontsDir)

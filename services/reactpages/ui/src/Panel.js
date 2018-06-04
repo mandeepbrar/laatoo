@@ -37,7 +37,7 @@ class Panel extends React.Component {
     this.closePanel = props.closePanel? props.closePanel: null
 
     //console.log("print id ", desc.id)
-    console.log("creating panel", desc, props, ctx, this.context)
+    console.log("creating my panel test================", desc, props, ctx, this.context)
     let className = props.className? props.className + " panel " : " panel "
     if(desc.id) {
       className = className + " " +desc.id

@@ -6,9 +6,13 @@ Application.Modules={};
 var Window = n ? {} : window;
 Application.RegisterModule = function(mod) {
   console.log("register module", mod)
-  let m = Application.Modules[mod] = require(mod);
-  console.log("returned module", mod, m)
-  return m;
+  try {
+    let m = Application.Modules[mod] = require(mod);
+    console.log("returned module", mod, m)
+    return m;
+  } catch(ex) {
+    console.log("Module could not be registered", ex);
+  }
 }
 Application.Register = function(regName,id,data) {
   let reg=Application.Registry[regName];
