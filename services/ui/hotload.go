@@ -6,14 +6,14 @@ import (
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
 
-	"github.com/go-fsnotify/fsnotify"
+	"github.com/fsnotify/fsnotify"
 )
 
 func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF func(ctx core.ServerContext, mod, file, dir string) error) error {
 	// creates a new file watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		fmt.Println("ERROR", err)
+		return errors.WrapError(ctx, err)
 	}
 	defer watcher.Close()
 
@@ -36,8 +36,8 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 	}()
 
 	// out of the box fsnotify can watch a single file, or a single directory
-	if err := watcher.Add("/Users/skdomino/Desktop/test.html"); err != nil {
-		fmt.Println("ERROR", err)
+	if err := watcher.Add(file); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	<-done
