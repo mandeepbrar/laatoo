@@ -50,6 +50,13 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	}
 	modMgr.modulesRepo = modulesRepository
 
+	modulesDevRepo, ok := conf.GetString(ctx, constants.CONF_MODULES_DEVREPO)
+	if ok {
+		ctx.Set(constants.CONF_MODULES_DEVREPO, modulesDevRepo)
+	} else {
+		ctx.Set(constants.CONF_MODULES_DEVREPO, "/devmodulesrepo")
+	}
+
 	repoExists, _, _ := utils.FileExists(modulesRepository)
 	if repoExists && (availableModules != nil) {
 		err = modMgr.loadAvailableModules(ctx, modulesRepository, modulesDir, availableModules)
@@ -154,7 +161,7 @@ func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, insta
 			subInstanceConf, _ := modInstances.GetSubConfig(ctx, subinstanceName)
 			newInstanceName := fmt.Sprintf("%s->%s", instance, subinstanceName)
 			modMgr.parentModules[newInstanceName] = instance
-			log.Trace(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)
+			log.Info(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)
 			pendingModules[newInstanceName] = subInstanceConf
 		}
 	}

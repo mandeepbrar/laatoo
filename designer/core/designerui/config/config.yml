@@ -144,6 +144,7 @@ ui:
     react-redux: react-redux
     reactpages: reactpages
     sanitize-html: sanitize-html
+    prop-types: prop-types
   packages:
     react: "^16.3.0"
     redux-saga: "^0.16.0"

@@ -29,6 +29,7 @@ const (
 	CONF_SERVICEFACTORY     = "factory"
 	PROPERTIES_DIR          = "properties"
 	CONF_MODULES_REPO       = "modulesrepo"
+	CONF_MODULES_DEVREPO    = "hotmodulesrepo"
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
 	CONF_LOGGING            = "logging"

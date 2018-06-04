@@ -16,4 +16,4 @@ ui:
     director: "^1.2.8"
     redux-director: "^0.2.6"
     redux-saga: "^0.16.0"
-    prop-types: "^15.5.10"
+    prop-types: "^15.6.0"

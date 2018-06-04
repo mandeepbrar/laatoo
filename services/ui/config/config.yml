@@ -38,7 +38,13 @@ objects:
     description: "Name of the merged descriptor file to be created"
     type: string
     default: "services.conf.js"
+   hotmodules: 
+    type: stringmap
+    description: Hot modules for development
 params:
  application: 
     type: string
     description: "Name of the application being served by this instance"
+ hotmodules: 
+    type: stringmap
+    description: Hot modules for development

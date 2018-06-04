@@ -181,6 +181,30 @@ func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string
 	return nil, false
 }
 
+func (conf GenericConfig) GetStringMap(ctx ctx.Context, configurationName string) (map[string]string, bool) {
+	val, found := conf[configurationName]
+	if found {
+		cf, ok := val.(map[string]interface{})
+		if ok {
+			sm := make(map[string]string)
+			for key, val := range cf {
+				strval, ok := val.(string)
+				if !ok {
+					return nil, false
+				}
+				sm[key] = strval
+			}
+			return sm, true
+		} else {
+			res, ok := val.(map[string]string)
+			if ok {
+				return res, ok
+			}
+		}
+	}
+	return nil, false
+}
+
 //Set string configuration value
 func (conf GenericConfig) SetString(ctx ctx.Context, configurationName string, configurationValue string) {
 	conf.Set(ctx, configurationName, configurationValue)

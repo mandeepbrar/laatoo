@@ -16,6 +16,7 @@ ui:
     authui: authui
     reactwebcommon: reactwebcommon
     reactpages: reactpages
+    prop-types: prop-types
   packages:
     react: "^16.1.0"
     react-dom: "^16.1.0"

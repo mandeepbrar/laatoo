@@ -65,15 +65,16 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 
 	modConf, confFound := modMgr.moduleConf[moduleName]
 	modSettings, settingsFound := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
-	log.Error(ctx, "Creating module instance", "Conf", modConf, "Settings", modSettings)
+	log.Info(ctx, "Creating module instance", "Conf", modConf, "Settings", modSettings)
 	if confFound && settingsFound {
 		//		ctx.SetVals(modSettings.(common.GenericConfig))
 		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
-		log.Error(ctx, "Creating module instance ", "Params", moduleparams)
+		log.Info(ctx, "Creating module instance ", "Params", moduleparams)
 		if moduleparams != nil {
 			paramNames := moduleparams.AllConfigurations(ctx)
 			for _, paramName := range paramNames {
 				val, ok := modSettings.Get(ctx, paramName)
+				log.Info(ctx, "Getting param ", "paramName", paramName, "val", val)
 				if ok {
 					ctx.Set(paramName, val)
 				}
@@ -108,6 +109,8 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	if err != nil {
 		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleName)
 	}
+
+	log.Info(ctx, "New conf for module instance", "Conf", modConf)
 
 	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, pendingModules)
 

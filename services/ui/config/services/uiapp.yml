@@ -7,3 +7,4 @@ mergeduidescriptor: services{{var "application" "."}}.conf.js
 mergedvendorfile: vendor{{var "application" "."}}.js
 properties_ext: {{var "application" "."}}.json
 application: {{var "application"}}
+hotmodules: {{var "hotmodules"}}
