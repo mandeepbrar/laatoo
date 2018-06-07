@@ -221,6 +221,7 @@ func (modMgr *moduleManager) processPlugins(ctx core.ServerContext, mod *serverM
 	}
 	modPlugins := mod.plugins(ctx)
 	for svcName, pluginConf := range modPlugins {
+		log.Error(ctx, "process plugins ", "svc name", svcName)
 		pluginObj, err := svcMgr.getService(mod.svrContext, svcName)
 		if err != nil {
 			return errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", pluginConf)

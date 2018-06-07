@@ -98,7 +98,6 @@ const (
 )
 
 func buildRequestInfo(ctx core.ServerContext, conf config.Config) *requestInfo {
-
 	req, ok := conf.GetSubConfig(ctx, SVCREQ)
 	if ok {
 		requesttype, _ := req.GetString(ctx, SVCDATATYPE)
