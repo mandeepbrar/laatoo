@@ -19,10 +19,11 @@ type BeanstalkConsumer struct {
 	worker      func(ctx core.ServerContext, pool *beanstalk.ConsumerPool)
 }
 
-func (svc *BeanstalkConsumer) Describe(ctx core.ServerContext) {
+func (svc *BeanstalkConsumer) Describe(ctx core.ServerContext) error {
 	svc.SetComponent(ctx, true)
 	svc.SetDescription(ctx, "Beanstalk consumer component")
 	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+	return nil
 }
 func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	/*
@@ -64,9 +65,9 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
-	pool := beanstalk.NewConsumerPool([]string{svc.addr}, []string{queue}, nil)
-	if pool == nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", svc.addr)
+	pool, err := beanstalk.NewConsumerPool([]string{svc.addr}, []string{queue}, nil)
+	if err != nil {
+		return errors.WrapError(ctx, err, "server", svc.addr)
 	}
 	pool.Play()
 	go svc.worker(ctx, pool)

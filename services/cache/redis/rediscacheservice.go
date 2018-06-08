@@ -185,10 +185,11 @@ func (svc *RedisCacheService) Decrement(ctx core.RequestContext, bucket string, 
 	return nil
 }
 
-func (redisSvc *RedisCacheService) Describe(ctx core.ServerContext) {
+func (redisSvc *RedisCacheService) Describe(ctx core.ServerContext) error {
 	redisSvc.SetDescription(ctx, "Redis cache component service")
 	redisSvc.SetComponent(ctx, true)
 	redisSvc.AddStringConfigurations(ctx, []string{REDIS_CONNECTIONSTRING, REDIS_DATABASE, config.ENCODING}, []string{":6379", "0", "binary"})
+	return nil
 }
 
 func (redisSvc *RedisCacheService) Start(ctx core.ServerContext) error {

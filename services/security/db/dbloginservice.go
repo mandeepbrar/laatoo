@@ -54,7 +54,10 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 
 	log.Error(ctx, "***********************Got user object", "userObject", userObject)
 
-	ls.SetRequestType(ctx, userObject.(string), false, false)
+	err := ls.AddParamWithType(ctx, "credentials", userObject.(string))
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	return nil
 }
@@ -62,7 +65,7 @@ func (ls *LoginService) Initialize(ctx core.ServerContext, conf config.Config) e
 //Expects Local user to be provided inside the request
 func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
-	ent := ctx.GetBody()
+	ent, _ := ctx.GetParamValue("credentials")
 	usr, ok := ent.(auth.LocalAuthUser)
 	if !ok {
 		ctx.SetResponse(core.StatusUnauthorizedResponse)
@@ -116,7 +119,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
 		}
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ls.authHeader: token}))
+		ctx.SetResponse(core.SuccessResponseWithInfo(user, map[string]interface{}{ls.authHeader: token}))
 	}
 	return nil
 }

@@ -15,8 +15,8 @@ func (ap *AllPermissions) Invoke(ctx core.RequestContext, req core.Request) (*co
 		sh, ok := elem.(server.SecurityHandler)
 		if ok {
 			perms := sh.AllPermissions(ctx)
-			return core.NewServiceResponse(core.StatusSuccess, perms, nil), nil
+			return core.SuccessResponse(perms), nil
 		}
 	}
-	return core.NewServiceResponse(core.StatusSuccess, []string{}, nil), nil
+	return core.SuccessResponse([]string{}), nil
 }

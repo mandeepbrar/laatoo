@@ -24,10 +24,11 @@ type BeanstalkProducer struct {
 	authHeader string
 }
 
-func (svc *BeanstalkProducer) Describe(ctx core.ServerContext) {
+func (svc *BeanstalkProducer) Describe(ctx core.ServerContext) error {
 	svc.SetComponent(ctx, true)
 	svc.SetDescription(ctx, "Beanstalk producer component")
 	svc.AddStringConfigurations(ctx, []string{CONF_BEANSTALK_SERVER}, []string{":11300"})
+	return nil
 }
 
 func (svc *BeanstalkProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -59,9 +60,11 @@ func (svc *BeanstalkProducer) PushTask(ctx core.RequestContext, queue string, t 
 func (svc *BeanstalkProducer) Start(ctx core.ServerContext) error {
 	addr, _ := svc.GetConfiguration(ctx, CONF_BEANSTALK_SERVER)
 
-	svc.pool = beanstalk.NewProducerPool([]string{addr.(string)}, nil)
-	if svc.pool == nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "server", addr)
+	pool, err := beanstalk.NewProducerPool([]string{addr.(string)}, nil)
+	if err != nil {
+		return errors.WrapError(ctx, err, "server", addr)
+	} else {
+		svc.pool = pool
 	}
 	// Reusable put parameters.
 	svc.params = &beanstalk.PutParams{Priority: 0, Delay: 0, TTR: 5}

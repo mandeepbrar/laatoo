@@ -27,9 +27,13 @@ func newSqlDataService(ctx core.ServerContext, name string, svc *sqlDataServices
 	return sqlDataSvc, nil
 }
 
-func (svc *sqlDataService) Describe(ctx core.ServerContext) {
-	svc.BaseComponent.Describe(ctx)
+func (svc *sqlDataService) Describe(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Describe(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	svc.SetDescription(ctx, "SQL data component")
+	return nil
 }
 
 func (svc *sqlDataService) Initialize(ctx core.ServerContext, conf config.Config) error {

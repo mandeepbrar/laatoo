@@ -22,50 +22,49 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *
 		resp = core.StatusSuccessResponse
 	}
 	engineContext := ctx.EngineRequestContext().(net.WebContext)
-	if resp != nil {
+	if resp != nil && resp.Data != nil {
+		respData := resp.Data["Data"]
 		log.Trace(ctx, "Returning request with status", "Status", resp.Status)
 		switch resp.Status {
 		case core.StatusSuccess:
-			if resp.Data != nil {
-				if resp.Info != nil {
-					keyNames := make([]string, len(resp.Info))
-					i := 0
-					for key, val := range resp.Info {
+			if respData != nil {
+
+				keyNames := make([]string, len(resp.Data))
+				i := 0
+				for key, val := range resp.Data {
+					if key != "Data" {
 						engineContext.SetHeader(key, fmt.Sprint(val))
 						keyNames[i] = key
 						i++
 					}
-					engineContext.SetHeader("Access-Control-Expose-Headers", strings.Join(keyNames, ","))
 				}
-				log.Debug(ctx, "Returning request with data", "time", ctx.GetElapsedTime())
-				log.Trace(ctx, "Returned data", "data", resp.Data)
-				return engineContext.JSON(http.StatusOK, resp.Data)
+				engineContext.SetHeader("Access-Control-Expose-Headers", strings.Join(keyNames, ","))
+				log.Trace(ctx, "Returned data", "data", respData)
+				return engineContext.JSON(http.StatusOK, respData)
 			} else {
 				log.Debug(ctx, "Returning request without content")
 				return engineContext.NoContent(http.StatusOK)
 			}
 		case core.StatusServeFile:
-			fil := resp.Data.(string)
+			fil := respData.(string)
 			log.Debug(ctx, "Returning serve file", "file", fil)
 			return engineContext.File(fil)
 		case core.StatusServeBytes:
 			log.Trace(ctx, " service returning bytes")
-			if resp.Info != nil {
-				for key, val := range resp.Info {
-					switch key {
-					case core.ContentType:
-						engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
-					case core.ContentEncoding:
-						log.Trace(ctx, " sending encoding", "inf", val)
-						engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
-					case core.LastModified:
-						engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
-					}
-				}
+			val, ok := resp.Data[core.ContentType]
+			if ok {
+				engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
 			}
-			bytestoreturn := *resp.Data.(*[]byte)
-			log.Trace(ctx, "Returning bytes", "length", len(bytestoreturn))
-			log.Debug(ctx, "Returning bytes")
+			val, ok = resp.Data[core.ContentEncoding]
+			if ok {
+				engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
+			}
+			val, ok = resp.Data[core.LastModified]
+			if ok {
+				engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
+			}
+			bytestoreturn := *respData.(*[]byte)
+			log.Debug(ctx, "Returning bytes", "length", len(bytestoreturn))
 			_, err := engineContext.Write(bytestoreturn)
 			if err != nil {
 				return err
@@ -85,7 +84,7 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *
 			return engineContext.NoContent(http.StatusBadRequest)
 		case core.StatusRedirect:
 			log.Debug(ctx, "Returning redirect")
-			return engineContext.Redirect(http.StatusTemporaryRedirect, resp.Data.(string))
+			return engineContext.Redirect(http.StatusTemporaryRedirect, respData.(string))
 		}
 	}
 	log.Debug(ctx, "Returning request without content")

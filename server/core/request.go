@@ -5,17 +5,18 @@ import (
 )
 
 type request struct {
-	Body   interface{}
+	//	Body   interface{}
 	Params map[string]core.Param
 }
 
+/*
 func (req *request) GetBody() interface{} {
 	return req.Body
 }
 
 func (req *request) setBody(body interface{}) {
 	req.Body = body
-}
+}*/
 
 func (req *request) GetParams() map[string]core.Param {
 	return req.Params
@@ -28,6 +29,13 @@ func (req *request) setParams(params map[string]core.Param) {
 func (req *request) GetParam(name string) (core.Param, bool) {
 	val, ok := req.Params[name]
 	return val, ok
+}
+func (req *request) GetParamValue(name string) (interface{}, bool) {
+	val, ok := req.Params[name]
+	if ok {
+		return val.GetValue(), true
+	}
+	return nil, ok
 }
 func (req *request) GetStringParam(name string) (string, bool) {
 	val, ok := req.Params[name]

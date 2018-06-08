@@ -2,3 +2,4 @@ parent: root
 service: login.local
 method: POST
 path: "/login"
+bodyparamname: credentials

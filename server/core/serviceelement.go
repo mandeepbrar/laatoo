@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
@@ -12,35 +11,18 @@ import (
 	"reflect"
 )
 
-type objectType int
-
-const (
-	stringmap objectType = iota
-	bytes
-	files
-	inttype
-	stringtype
-	stringarr
-	booltype
-	custom
-	none
-)
-
 type serverService struct {
-	name                        string
-	objectName                  string
-	service                     core.Service
-	conf                        config.Config
-	factory                     server.Factory
-	owner                       *serviceManager
-	middleware                  []*serverService
-	paramValues                 map[string]interface{}
-	impl                        *serviceImpl
-	svrContext                  *serverContext
-	dataObjectCreator           core.ObjectCreator
-	dataObjectCollectionCreator core.ObjectCollectionCreator
-	dataObjectType              objectType
-	codecs                      map[string]core.Codec
+	name        string
+	objectName  string
+	service     core.Service
+	conf        config.Config
+	factory     server.Factory
+	owner       *serviceManager
+	middleware  []*serverService
+	paramValues map[string]interface{}
+	impl        *serviceImpl
+	svrContext  *serverContext
+	codecs      map[string]core.Codec
 }
 
 func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
@@ -69,7 +51,10 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 			impl.serviceInfo = inf.clone()
 		}
 	}
-	svc.service.Describe(ctx)
+	err := svc.service.Describe(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	//svc.info = svc.service.Info()
 	log.Trace(ctx, "Service info ", "Name", svc.name, "Info", svc.impl.serviceInfo)
@@ -99,44 +84,6 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 	err := svc.service.Start(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
-	}
-
-	reqInfo := svc.impl.info().GetRequestInfo()
-
-	datatype := reqInfo.GetDataType()
-	switch datatype {
-	case "":
-		svc.dataObjectType = none
-	case config.OBJECTTYPE_STRINGMAP:
-		svc.dataObjectType = stringmap
-	case config.OBJECTTYPE_BYTES:
-		svc.dataObjectType = bytes
-	case config.OBJECTTYPE_STRING:
-		svc.dataObjectType = stringtype
-	case config.OBJECTTYPE_STRINGARR:
-		svc.dataObjectType = stringarr
-	case config.OBJECTTYPE_BOOL:
-		svc.dataObjectType = booltype
-	case config.OBJECTTYPE_FILES:
-		svc.dataObjectType = files
-	default:
-		svc.dataObjectType = custom
-	}
-
-	if !reqInfo.IsStream() && (svc.dataObjectType == custom) {
-		if reqInfo.IsCollection() {
-			dataObjectCollectionCreator, err := ctx.GetObjectCollectionCreator(datatype)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", datatype)
-			}
-			svc.dataObjectCollectionCreator = dataObjectCollectionCreator
-		} else {
-			dataObjectCreator, err := ctx.GetObjectCreator(datatype)
-			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", datatype)
-			}
-			svc.dataObjectCreator = dataObjectCreator
-		}
 	}
 
 	middleware := make([]*serverService, 0)
@@ -201,10 +148,7 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.
 	return nil
 }
 
-func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[string]interface{}, body []byte) (*core.Response, error) {
-	if svc.dataObjectType == none {
-		return svc.handleRequest(ctx, vals, nil)
-	}
+func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]interface{}) (*core.Response, error) {
 	codecname := "json"
 	co, ok := vals["encoding"]
 	if ok {
@@ -215,46 +159,13 @@ func (svc *serverService) handleEncodedRequest(ctx *requestContext, vals map[str
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
 	}
 
-	var reqData interface{}
-
-	reqInfo := svc.impl.GetRequestInfo()
-
-	log.Error(ctx, "Handle Request", "Info", reqInfo, "Object type", reqInfo.GetDataType())
-
-	if !reqInfo.IsStream() {
-		switch svc.dataObjectType {
-		case stringmap:
-			mapobj := make(map[string]interface{}, 10)
-			reqData = &mapobj
-		case bytes:
-			reqData = body
-		case stringtype:
-			reqData = ""
-		case files:
-			reqData = ""
-			//////not required
-		default:
-			if reqInfo.IsCollection() {
-				reqData = svc.dataObjectCollectionCreator(5)
-			} else {
-				reqData = svc.dataObjectCreator()
-			}
-		}
-	}
-	if err := codec.Unmarshal(body, reqData); err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	return svc.handleRequest(ctx, vals, reqData)
-}
-
-func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
 	req := ctx.createRequest()
-	req.setBody(body)
-	if err := svc.populateParams(ctx, vals, req); err != nil {
+	if err := svc.populateParams(ctx, vals, req, codec); err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+
 	ctx.req = req
-	log.Trace(ctx, "Invoking service", "info", vals)
+	log.Trace(ctx, "Invoking service", "Request", req)
 	err := svc.invoke(ctx)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -262,45 +173,58 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 	return ctx.GetResponse(), nil
 }
 
-func (svc *serverService) handleStreamedRequest(ctx *requestContext, vals map[string]interface{}, body io.ReadCloser) (*core.Response, error) {
-	req := ctx.createRequest()
-	req.setBody(body)
-	if err := svc.populateParams(ctx, vals, req); err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	ctx.req = req
-	err := svc.invoke(ctx)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	return ctx.GetResponse(), nil
-}
-
-func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request) error {
+func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request, codec core.Codec) error {
+	encoded := (codec != nil)
 	reqParams := make(map[string]core.Param)
 	reqInfo := svc.impl.GetRequestInfo()
-	params := reqInfo.GetParams()
+	params := reqInfo.ParamInfo()
+
 	for name, svcParam := range params {
-		reqParam := &param{}
-		*reqParam = *svcParam.(*param)
+		reqParam := svcParam.(*param).clone()
 		val, ok := vals[name]
 		if ok {
-			switch svcParam.GetDataType() {
-			case config.OBJECTTYPE_STRINGMAP:
-				reqParam.value, ok = val.(map[string]interface{})
-			case config.OBJECTTYPE_INT:
-				reqParam.value, ok = val.(int)
-			case config.OBJECTTYPE_STRING:
-				strval, ok := val.(string)
-				if ok {
-					reqParam.value = strval
+			var reqData interface{}
+			switch reqParam.oDataType {
+			case __stringmap:
+				if encoded {
+					p := make(map[string]interface{}, 10)
+					reqData = &p
+				} else {
+					reqParam.value, ok = val.(map[string]interface{})
 				}
-			case config.OBJECTTYPE_STRINGARR:
+			case __stringsmap:
+				if encoded {
+					p := make(map[string]string, 10)
+					reqData = &p
+				} else {
+					reqParam.value, ok = val.(map[string]string)
+				}
+			case __bytes:
+				reqParam.value, ok = val.([]byte)
+			case __inttype:
+				reqParam.value, ok = val.(int)
+			case __stringtype:
+				reqParam.value, ok = val.(string)
+			case __stringarr:
 				reqParam.value, ok = val.([]string)
-			case config.OBJECTTYPE_BOOL:
+			case __booltype:
 				reqParam.value, ok = val.(bool)
 			default:
-				reqParam.value = val
+				if encoded {
+					if reqParam.IsCollection() {
+						reqData = reqParam.dataObjectCollectionCreator(5)
+					} else {
+						reqData = reqParam.dataObjectCreator()
+					}
+				} else {
+					reqParam.value = val
+				}
+			}
+			if encoded {
+				if err := svc.decode(ctx, codec, val, reqData, name); err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				reqParam.value = reqData
 			}
 			if !ok {
 				return errors.BadArg(ctx, name)
@@ -312,9 +236,21 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 		}
 		reqParams[name] = reqParam
 	}
+
 	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params, "reqInfo", reqInfo)
 	req.setParams(reqParams)
 	return nil
+}
+
+func (svc *serverService) decode(ctx core.RequestContext, codec core.Codec, val interface{}, obj interface{}, name string) error {
+	reqBytes, bytesok := val.([]byte)
+	if bytesok {
+		if err := codec.Unmarshal(ctx, reqBytes, obj); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		return nil
+	}
+	return errors.BadArg(ctx, name)
 }
 
 func (svc *serverService) invoke(ctx core.RequestContext) error {

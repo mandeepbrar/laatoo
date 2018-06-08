@@ -12,9 +12,10 @@ type getById struct {
 	DataStore data.DataComponent
 }
 
-func (gi *getById) Describe(ctx core.ServerContext) {
+func (gi *getById) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Get element by Id from the underlying data component")
 	gi.AddStringParam(ctx, CONF_DATA_ID)
+	return nil
 }
 func (svc *getById) Start(ctx core.ServerContext) error {
 	svc.DataStore = svc.fac.DataStore
@@ -34,7 +35,7 @@ func (es *getById) Invoke(ctx core.RequestContext) error {
 			ctx.SetResponse(core.StatusNotFoundResponse)
 			return nil
 		} else {
-			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+			ctx.SetResponse(core.SuccessResponse(result))
 			return nil
 		}
 	} else {

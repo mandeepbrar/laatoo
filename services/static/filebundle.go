@@ -71,10 +71,10 @@ func (bs *BundledFileService) Invoke(ctx core.RequestContext) error {
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, newbundle, nil))
+				ctx.SetResponse(core.SuccessResponse(newbundle))
 				return nil
 			} else {
-				ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, bundle, nil))
+				ctx.SetResponse(core.SuccessResponse(bundle))
 				return nil
 			}
 		} else {

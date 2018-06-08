@@ -55,6 +55,12 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 	rs.userCreator = userCreator
+
+	err = rs.AddParamWithType(ctx, "credentials", rs.userObject)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	/*
 		rs.SetDescription("Db Registration service")
 		rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
@@ -65,7 +71,8 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 
 //Expects Rbac user to be provided inside the request
 func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
-	ent := ctx.GetBody()
+	ent, _ := ctx.GetParamValue("credentials")
+	//ent := ctx.GetBody()
 	body, ok := ent.(*map[string]interface{})
 	if !ok {
 		log.Trace(ctx, "Not map")

@@ -41,7 +41,8 @@ func (impl *factoryImpl) Initialize(ctx core.ServerContext, conf config.Config) 
 func (impl *factoryImpl) Start(ctx core.ServerContext) error {
 	return nil
 }
-func (impl *factoryImpl) Describe(ctx core.ServerContext) {
+func (impl *factoryImpl) Describe(ctx core.ServerContext) error {
+	return nil
 }
 
 //Create the services configured for factory.

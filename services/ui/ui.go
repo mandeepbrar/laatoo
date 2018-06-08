@@ -85,7 +85,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
-	svc.hotloadMods, _ = svc.GetStringMapConfiguration(ctx, CONF_HOT_MODULES)
+	svc.hotloadMods, _ = svc.GetStringsMapConfiguration(ctx, CONF_HOT_MODULES)
 	svc.watchers = make([]*fsnotify.Watcher, 0)
 	log.Error(ctx, "*************hot modules directory being used**********", "hotloadMods", svc.hotloadMods)
 	svc.hotModulesRepo, _ = ctx.GetString(HOT_MODULES_REPO)

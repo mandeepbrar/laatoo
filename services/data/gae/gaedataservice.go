@@ -29,11 +29,15 @@ func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, er
 	return gaeDataSvc, nil
 }
 
-func (svc *gaeDataService) Describe(ctx core.ServerContext) {
-	svc.BaseComponent.Describe(ctx)
+func (svc *gaeDataService) Describe(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Describe(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.OBJECTTYPE_STRING}, nil)
 
 	svc.SetDescription(ctx, "GAE data component")
+	return nil
 }
 
 func (svc *gaeDataService) Initialize(ctx core.ServerContext, conf config.Config) error {

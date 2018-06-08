@@ -31,8 +31,9 @@ const (
 	TMPPATH        = "/tmp"
 )
 
-func (svc *RepositoryUpdate) Describe(ctx core.ServerContext) {
+func (svc *RepositoryUpdate) Describe(ctx core.ServerContext) error {
 	svc.AddStringParam(ctx, PARAM_MOD)
+	return nil
 }
 
 func (svc *RepositoryUpdate) Start(ctx core.ServerContext) error {

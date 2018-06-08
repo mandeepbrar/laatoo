@@ -28,9 +28,10 @@ type GaeConsumer struct {
 	taskManager server.TaskManager
 }
 
-func (svc *GaeConsumer) Describe(ctx core.ServerContext) {
+func (svc *GaeConsumer) Describe(ctx core.ServerContext) error {
 	svc.SetDescription(ctx, "GAE task service consumer component")
-	svc.SetRequestType(ctx, config.OBJECTTYPE_BYTES, false, false)
+	return svc.AddParamWithType(ctx, "task", config.OBJECTTYPE_BYTES)
+	//svc.SetRequestType(ctx, config.OBJECTTYPE_BYTES, false, false)
 }
 
 func (svc *GaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -53,7 +54,8 @@ func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
 	//gae header... if an outside request comes, this header would not be there.. gae will remove it
 	//_, ok := ctx.GetString("X-AppEngine-TaskName")
 	//if ok {
-	bytes := ctx.GetBody().([]byte)
+	val, _ := ctx.GetParamValue("task")
+	bytes := val.([]byte)
 	t := &components.Task{}
 	err := json.Unmarshal(bytes, t)
 	if err != nil {

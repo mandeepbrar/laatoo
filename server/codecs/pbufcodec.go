@@ -2,6 +2,7 @@ package codecs
 
 import (
 	"fmt"
+	"laatoo/sdk/ctx"
 
 	"github.com/golang/protobuf/proto"
 )
@@ -18,7 +19,7 @@ func NewProtobufCodec() *ProtobufCodec {
 type ProtobufCodec struct {
 }
 
-func (cdc *ProtobufCodec) Unmarshal(arr []byte, val interface{}) error {
+func (cdc *ProtobufCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) error {
 	msg, ok := val.(proto.Message)
 	if !ok {
 		return unmarshellingError
@@ -26,7 +27,7 @@ func (cdc *ProtobufCodec) Unmarshal(arr []byte, val interface{}) error {
 	return proto.Unmarshal(arr, msg)
 }
 
-func (codec *ProtobufCodec) Marshal(obj interface{}) ([]byte, error) {
+func (codec *ProtobufCodec) Marshal(c ctx.Context, obj interface{}) ([]byte, error) {
 	msg, ok := obj.(proto.Message)
 	if !ok {
 		return nil, marshellingError

@@ -191,7 +191,7 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		req.AddParam(tskMgr.authHeader, t.Token)*/
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Trace(ctx, "Processing background task")
-		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token}, t.Data)
+		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token, "Task": t.Data})
 		ctx.SetResponse(res)
 		return err
 	}

@@ -13,11 +13,10 @@ type selectSvc struct {
 	DataStore data.DataComponent
 }
 
-func (gi *selectSvc) Describe(ctx core.ServerContext) {
+func (gi *selectSvc) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Get multiple element by criteria. Criteria is specified in stringmap.")
 	gi.AddStringParams(ctx, []string{CONF_FIELD_ORDERBY}, []string{""})
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
-	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	return gi.AddParams(ctx, map[string]string{"argsMap": config.OBJECTTYPE_STRINGMAP, data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
 }
 func (svc *selectSvc) Start(ctx core.ServerContext) error {
 	svc.DataStore = svc.fac.DataStore
@@ -30,7 +29,7 @@ func (es *selectSvc) Invoke(ctx core.RequestContext) error {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
 		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, retdata, requestinfo))
+		ctx.SetResponse(core.SuccessResponseWithInfo(retdata, requestinfo))
 		return nil
 	} else {
 		ctx.SetResponse(core.StatusNotFoundResponse)

@@ -9,7 +9,7 @@ func (svc *UI) Invoke(ctx core.RequestContext) error {
 	if ok {
 		cont, ok := svc.uiFiles[mod]
 		if ok {
-			ctx.SetResponse(core.NewServiceResponse(core.StatusServeBytes, &cont, nil))
+			ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusServeBytes, &cont, nil))
 		} else {
 			ctx.SetResponse(core.StatusNotFoundResponse)
 		}

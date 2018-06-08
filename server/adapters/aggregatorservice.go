@@ -14,9 +14,9 @@ type ServiceAggregator struct {
 	serviceMap map[string]server.Service
 }
 
-func (svc *ServiceAggregator) Describe(ctx core.ServerContext) {
-	svc.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+func (svc *ServiceAggregator) Describe(ctx core.ServerContext) error {
 	svc.AddConfigurations(ctx, map[string]string{constants.CONF_SERVICES: config.OBJECTTYPE_CONFIG})
+	return svc.AddParamWithType(ctx, "argsMap", config.OBJECTTYPE_STRINGMAP)
 }
 
 //The services start serving when this method is called
@@ -40,39 +40,42 @@ func (svc *ServiceAggregator) Start(ctx core.ServerContext) error {
 
 func (svc *ServiceAggregator) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	ctx = ctx.SubContext("Aggregator Service")
-	body := req.GetBody().(*map[string]interface{})
-	argsMap := *body
+	argsMap, ok := req.GetStringMapValue("argsMap")
+	if !ok {
+		return core.StatusBadRequestResponse, nil
+	}
+	//argsMap := *body
 	retval := make(map[string]*core.Response, len(svc.serviceMap))
-	log.Trace(ctx, "Aggregator args", "argsMap", argsMap)
+	log.Trace(ctx, "Aggregator SetRequestTypeargs", "argsMap", argsMap)
 	for k, v := range argsMap {
 		reqctx := ctx.SubContext(k)
 		sArg := v.(map[string]interface{})
 		log.Trace(reqctx, "Service ", "Name", k, "Args", sArg)
-		reqbody, ok := sArg["Body"]
-		var reqmap, reqparams map[string]interface{}
-		if ok {
-			reqmap, ok = reqbody.(map[string]interface{})
-			if !ok {
-				reqmap = make(map[string]interface{})
-			}
-			//reqctx.SetRequest(&reqmap)
-		}
-		params, ok := sArg["Params"]
-		if ok {
-			paramsMap, ok := params.(map[string]interface{})
-			if ok {
-				reqparams := make(map[string]interface{})
-				for k, v := range paramsMap {
-					reqparams[k] = v
-					//reqctx.Set(k, v)
+		/*		reqbody, ok := sArg["Body"]
+				var reqmap, reqparams map[string]interface{}
+				if ok {
+					reqmap, ok = reqbody.(map[string]interface{})
+					if !ok {
+						reqmap = make(map[string]interface{})
+					}
+					//reqctx.SetRequest(&reqmap)
 				}
-			}
-		}
+				params, ok := sArg["Params"]
+				if ok {
+					paramsMap, ok := params.(map[string]interface{})
+					if ok {
+						reqparams := make(map[string]interface{})
+						for k, v := range paramsMap {
+							reqparams[k] = v
+							//reqctx.Set(k, v)
+						}
+					}
+				}*/
 		svcToInvoke, ok := svc.serviceMap[k]
 		if !ok {
 			return nil, errors.BadRequest(ctx)
 		}
-		resp, err := svcToInvoke.HandleRequest(reqctx, reqparams, reqmap)
+		resp, err := svcToInvoke.HandleRequest(reqctx, sArg)
 		if err != nil {
 			return nil, errors.WrapError(reqctx, err)
 		}
