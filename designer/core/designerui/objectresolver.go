@@ -12,7 +12,8 @@ type ObjectResolver struct {
 
 func (svc *ObjectResolver) Start(ctx core.ServerContext) error {
 	svc.objtype, _ = svc.GetStringConfiguration(ctx, "objecttype")
-	svc.SetRequestType(ctx, svc.objtype, false, false)
+	/***try ***/
+	svc.AddParamWithType(ctx, "object", svc.objtype)
 	return nil
 }
 
@@ -30,21 +31,24 @@ func (svc *ObjectResolver) Invoke(ctx core.RequestContext) error {
 
 func (svc *ObjectResolver) resolveServer(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve server")
-	svr := ctx.GetBody().(*Server)
+	obj, _ := ctx.GetParamValue("object")
+	svr := obj.(*Server)
 	log.Error(ctx, "Received server", "svr", svr)
 	return nil
 }
 
 func (svc *ObjectResolver) resolveEnvironment(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve environment")
-	env := ctx.GetBody().(*Environment)
+	obj, _ := ctx.GetParamValue("object")
+	env := obj.(*Environment)
 	log.Error(ctx, "Received environment", "env", env)
 	return nil
 }
 
 func (svc *ObjectResolver) resolveApplication(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve application")
-	app := ctx.GetBody().(*Application)
+	obj, _ := ctx.GetParamValue("object")
+	app := obj.(*Application)
 	log.Error(ctx, "Received application", "app", app)
 	return nil
 }

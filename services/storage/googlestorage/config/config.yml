@@ -6,7 +6,9 @@ objects:
     type: service
     description: Google storage service
     request:
-      type: stringmap
+      params:        
+        files:
+          type: stringmap
     configurations:
       googlestoragebucket:
         description: Bucket to be used by the storage component
