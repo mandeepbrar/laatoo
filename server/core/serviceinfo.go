@@ -3,7 +3,6 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
 )
 
 type serviceInfo struct {
@@ -22,12 +21,12 @@ func newServiceInfo(description string, reqInfo core.RequestInfo, resInfo core.R
 		component:    false,
 		svcsToInject: make(map[string]string)}
 	if resInfo == nil {
-		si.request = nil
+		si.request = newRequestInfo(make(map[string]core.Param))
 	} else {
 		si.request = reqInfo.(*requestInfo)
 	}
 	if resInfo == nil {
-		si.response = nil
+		si.response = newResponseInfo(make(map[string]core.Param))
 	} else {
 		si.response = resInfo.(*responseInfo)
 	}
@@ -165,131 +164,4 @@ func (ri *responseInfo) clone() *responseInfo {
 
 func (ri *responseInfo) ParamInfo() map[string]core.Param {
 	return ri.params
-}
-
-type param struct {
-	name                        string
-	ptype                       string
-	oDataType                   objectDataType
-	dataObjectCreator           core.ObjectCreator
-	dataObjectCollectionCreator core.ObjectCollectionCreator
-	collection                  bool
-	isStream                    bool
-	required                    bool
-	value                       interface{}
-}
-
-func newParam(ctx core.ServerContext, name, ptype string, collection, stream, required bool) (*param, error) {
-	dataObjectType := convertDataType(ptype)
-	p := &param{name, ptype, dataObjectType, nil, nil, collection, stream, required, nil}
-	if dataObjectType == __custom {
-		if collection {
-			dataObjectCollectionCreator, err := ctx.GetObjectCollectionCreator(ptype)
-			if err != nil {
-				return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", ptype)
-			}
-			p.dataObjectCollectionCreator = dataObjectCollectionCreator
-		} else {
-			dataObjectCreator, err := ctx.GetObjectCreator(ptype)
-			if err != nil {
-				return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", ptype)
-			}
-			p.dataObjectCreator = dataObjectCreator
-		}
-	}
-
-	return p, nil
-}
-
-func (p *param) clone() *param {
-	return &param{p.name, p.ptype, p.oDataType, p.dataObjectCreator, p.dataObjectCollectionCreator, p.collection, p.isStream, p.required, p.value}
-}
-
-func (p *param) GetName() string {
-	return p.name
-}
-
-func (p *param) IsCollection() bool {
-	return p.collection
-}
-
-func (p *param) IsRequired() bool {
-	return p.required
-}
-
-func (p *param) GetDataType() string {
-	return p.ptype
-}
-
-func (p *param) IsStream() bool {
-	return p.isStream
-}
-
-func (p *param) GetValue() interface{} {
-	return p.value
-}
-
-func cloneParamsMap(params map[string]core.Param) map[string]core.Param {
-	cparams := make(map[string]core.Param, len(params))
-	for k, v := range params {
-		cparams[k] = v.(*param).clone()
-	}
-	return cparams
-}
-
-func readParamsConf(ctx core.ServerContext, paramsConf config.Config) (map[string]core.Param, error) {
-	params := make(map[string]core.Param)
-	paramNames := paramsConf.AllConfigurations(ctx)
-	for _, paramName := range paramNames {
-		paramDesc, _ := paramsConf.GetSubConfig(ctx, paramName)
-		collection, _ := paramDesc.GetBool(ctx, SVCPARAMCOLLECTION)
-		paramtype, _ := paramDesc.GetString(ctx, SVCPARAMTYPE)
-		stream, _ := paramDesc.GetBool(ctx, SVCSTREAM)
-		paramreqd, _ := paramDesc.GetBool(ctx, SVCPARAMREQD)
-		p, err := newParam(ctx, paramName, paramtype, collection, stream, paramreqd)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		} else {
-			params[paramName] = p
-		}
-	}
-	return params, nil
-}
-
-type objectDataType int
-
-const (
-	__stringmap objectDataType = iota
-	__stringsmap
-	__bytes
-	__files
-	__inttype
-	__stringtype
-	__stringarr
-	__booltype
-	__custom
-	__none
-)
-
-func convertDataType(dtype string) objectDataType {
-	switch dtype {
-	case "":
-		return __none
-	case config.OBJECTTYPE_STRINGMAP:
-		return __stringmap
-	case config.OBJECTTYPE_STRINGSMAP:
-		return __stringsmap
-	case config.OBJECTTYPE_BYTES:
-		return __bytes
-	case config.OBJECTTYPE_STRING:
-		return __stringtype
-	case config.OBJECTTYPE_STRINGARR:
-		return __stringarr
-	case config.OBJECTTYPE_BOOL:
-		return __booltype
-	case config.OBJECTTYPE_FILES:
-		return __files
-	default:
-		return __custom
-	}
 }

@@ -51,11 +51,10 @@ func (impl *serviceImpl) InjectServices(ctx core.ServerContext, services map[str
 
 func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string, required bool) error {
 	for name, typ := range params {
-		p, err := newParam(ctx, name, typ, false, false, required)
+		err := impl.AddParam(ctx, name, typ, false, required, false)
 		if err != nil {
 			return err
 		}
-		impl.serviceInfo.request.params[name] = p
 	}
 	return nil
 }

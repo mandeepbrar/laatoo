@@ -182,52 +182,11 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 	for name, svcParam := range params {
 		reqParam := svcParam.(*param).clone()
 		val, ok := vals[name]
-		if ok {
-			var reqData interface{}
-			switch reqParam.oDataType {
-			case __stringmap:
-				if encoded {
-					p := make(map[string]interface{}, 10)
-					reqData = &p
-				} else {
-					reqParam.value, ok = val.(map[string]interface{})
-				}
-			case __stringsmap:
-				if encoded {
-					p := make(map[string]string, 10)
-					reqData = &p
-				} else {
-					reqParam.value, ok = val.(map[string]string)
-				}
-			case __bytes:
-				reqParam.value, ok = val.([]byte)
-			case __inttype:
-				reqParam.value, ok = val.(int)
-			case __stringtype:
-				reqParam.value, ok = val.(string)
-			case __stringarr:
-				reqParam.value, ok = val.([]string)
-			case __booltype:
-				reqParam.value, ok = val.(bool)
-			default:
-				if encoded {
-					if reqParam.IsCollection() {
-						reqData = reqParam.dataObjectCollectionCreator(5)
-					} else {
-						reqData = reqParam.dataObjectCreator()
-					}
-				} else {
-					reqParam.value = val
-				}
-			}
-			if encoded {
-				if err := svc.decode(ctx, codec, val, reqData, name); err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				reqParam.value = reqData
-			}
-			if !ok {
-				return errors.BadArg(ctx, name)
+		log.Error(ctx, "populate params", "param", svcParam, "val", val)
+		if (val != nil) && ok {
+			err := reqParam.setValue(ctx, val, codec, encoded)
+			if err != nil {
+				return errors.WrapError(ctx, err)
 			}
 		} else {
 			if reqParam.IsRequired() {
@@ -240,17 +199,6 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params, "reqInfo", reqInfo)
 	req.setParams(reqParams)
 	return nil
-}
-
-func (svc *serverService) decode(ctx core.RequestContext, codec core.Codec, val interface{}, obj interface{}, name string) error {
-	reqBytes, bytesok := val.([]byte)
-	if bytesok {
-		if err := codec.Unmarshal(ctx, reqBytes, obj); err != nil {
-			return errors.WrapError(ctx, err)
-		}
-		return nil
-	}
-	return errors.BadArg(ctx, name)
 }
 
 func (svc *serverService) invoke(ctx core.RequestContext) error {
