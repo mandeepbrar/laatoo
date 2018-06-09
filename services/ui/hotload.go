@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
 	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -15,10 +17,8 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	defer watcher.Close()
-
-	//
-	done := make(chan bool)
+	//defer watcher.Close()
+	svc.watchers = append(svc.watchers, watcher)
 
 	//
 	go func() {
@@ -27,7 +27,10 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 			// watch for events
 			case event := <-watcher.Events:
 				fmt.Printf("EVENT! %#v\n", event)
-
+				err = actionF(svc.svrCtx, mod, file, dir)
+				if err != nil {
+					log.Error(ctx, "Error encountered during hot reload", "err", err)
+				}
 				// watch for errors
 			case err := <-watcher.Errors:
 				fmt.Println("ERROR", err)
@@ -40,13 +43,17 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 		return errors.WrapError(ctx, err)
 	}
 
-	<-done
 	return nil
 }
 
 func (svc *UI) reloadAppFile(ctx core.ServerContext, mod, file, dir string) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
-	err := svc.writeAppFile(ctx, baseDir)
+	cont, err := ioutil.ReadFile(file)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	svc.uiFiles[mod] = cont
+	err = svc.writeAppFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -55,7 +62,12 @@ func (svc *UI) reloadAppFile(ctx core.ServerContext, mod, file, dir string) erro
 
 func (svc *UI) reloadVendorFile(ctx core.ServerContext, mod, file, dir string) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
-	err := svc.writeVendorFile(ctx, baseDir)
+	cont, err := ioutil.ReadFile(file)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	svc.vendorFiles[mod] = cont
+	err = svc.writeVendorFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

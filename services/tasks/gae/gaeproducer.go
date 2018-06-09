@@ -21,10 +21,11 @@ type GaeProducer struct {
 	authHeader string
 }
 
-func (svc *GaeProducer) Describe(ctx core.ServerContext) {
+func (svc *GaeProducer) Describe(ctx core.ServerContext) error {
 	svc.SetDescription(ctx, "GAE task service producer component")
 	svc.AddStringConfigurations(ctx, []string{GAE_PATH}, nil)
 	svc.SetComponent(ctx, true)
+	return nil
 }
 func (svc *GaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)

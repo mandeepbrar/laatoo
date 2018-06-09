@@ -15,6 +15,7 @@ const (
 	CONF_DATASERVICE_FACTORY = "dataservicefactory"
 	CONF_SERVICEFACTORY      = "factory"
 	CONF_PARENT_CHANNEL      = "parent"
+	BODY_PARAM_NAME          = "bodyparamname"
 	CHANNEL_SERVICE          = "service"
 	REST_METHOD              = "method"
 	REST_GET                 = "GET"
@@ -54,9 +55,9 @@ func (adapter *DataAdapterModule) Describe(ctx core.ServerContext) {
 }*/
 func (adapter *DataAdapterModule) MetaInfo(ctx core.ServerContext) map[string]interface{} {
 	return map[string]interface{}{
-		"services":[]string{},
-		"factories":[]string{},
-		"channels":[]string{},
+		"services":  []string{},
+		"factories": []string{},
+		"channels":  []string{},
 	}
 }
 
@@ -183,6 +184,7 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	selectRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
 	selectRestChann.Set(ctx, REST_METHOD, REST_POST)
 	selectRestChann.Set(ctx, REST_PATH, "/view")
+	selectRestChann.Set(ctx, BODY_PARAM_NAME, "argsMap")
 	selectstaticvals := ctx.CreateConfig()
 	selectstaticvals.Set(ctx, "permission", "View "+adapter.instance)
 	selectRestChann.Set(ctx, REST_STATIC, selectstaticvals)

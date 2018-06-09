@@ -1,6 +1,8 @@
 package codecs
 
 import (
+	"laatoo/sdk/ctx"
+
 	"github.com/ugorji/go/codec"
 )
 
@@ -14,7 +16,7 @@ func NewFastJsonCodec() *FastJsonCodec {
 	return &FastJsonCodec{h: new(codec.JsonHandle)}
 }
 
-func (cdc *FastJsonCodec) Marshal(val interface{}) ([]byte, error) {
+func (cdc *FastJsonCodec) Marshal(c ctx.Context, val interface{}) ([]byte, error) {
 	if val == nil {
 		return nil, nil
 	}
@@ -27,7 +29,7 @@ func (cdc *FastJsonCodec) Marshal(val interface{}) ([]byte, error) {
 	return b, nil
 }
 
-func (cdc *FastJsonCodec) Unmarshal(arr []byte, val interface{}) error {
+func (cdc *FastJsonCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) error {
 	if arr == nil {
 		return nil
 	}

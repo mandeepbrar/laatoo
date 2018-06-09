@@ -1,6 +1,8 @@
 package codecs
 
 import (
+	"laatoo/sdk/ctx"
+
 	"github.com/ugorji/go/codec"
 )
 
@@ -14,7 +16,7 @@ func NewBinaryCodec() *BinaryCodec {
 	return &BinaryCodec{h: new(codec.BincHandle)}
 }
 
-func (cdc *BinaryCodec) Marshal(val interface{}) ([]byte, error) {
+func (cdc *BinaryCodec) Marshal(c ctx.Context, val interface{}) ([]byte, error) {
 	if val == nil {
 		return nil, nil
 	}
@@ -27,7 +29,7 @@ func (cdc *BinaryCodec) Marshal(val interface{}) ([]byte, error) {
 	return b, nil
 }
 
-func (cdc *BinaryCodec) Unmarshal(arr []byte, val interface{}) error {
+func (cdc *BinaryCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) error {
 	if arr == nil {
 		return nil
 	}

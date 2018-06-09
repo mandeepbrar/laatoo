@@ -171,12 +171,16 @@ func (ctx *requestContext) GetRequest() core.Request {
 	return ctx.req
 }
 
-func (ctx *requestContext) GetBody() interface{} {
+/*func (ctx *requestContext) GetBody() interface{} {
 	return ctx.req.GetBody()
-}
+}*/
 
 func (ctx *requestContext) GetParam(name string) (core.Param, bool) {
 	return ctx.req.GetParam(name)
+}
+
+func (ctx *requestContext) GetParamValue(name string) (interface{}, bool) {
+	return ctx.req.GetParamValue(name)
 }
 
 func (ctx *requestContext) GetParams() map[string]core.Param {

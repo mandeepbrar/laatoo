@@ -36,6 +36,8 @@ func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Con
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	bs.AddStringParam(ctx, "query")
+
 	/*bs.SetDescription(ctx, "Bleve search service")
 	bs.SetRequestType(ctx, config.CONF_OBJECT_STRING, false, false)
 	bs.AddStringConfigurations(ctx, []string{searchsdk.CONF_INDEX, searchsdk.CONF_NUMOFRESULTS}, []string{"", "15"})
@@ -44,7 +46,7 @@ func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	query := req.GetBody().(string)
+	query, _ := req.GetStringParam("query")
 	res, err := bs.Search(ctx, query)
 	if err != nil {
 		return nil, err

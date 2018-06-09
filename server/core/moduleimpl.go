@@ -44,7 +44,8 @@ func (impl *moduleImpl) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (impl *moduleImpl) Describe(ctx core.ServerContext) {
+func (impl *moduleImpl) Describe(ctx core.ServerContext) error {
+	return nil
 }
 
 func (impl *moduleImpl) MetaInfo(ctx core.ServerContext) map[string]interface{} {

@@ -10,11 +10,11 @@ type adminService struct {
 	core.Service
 }
 
-func (svc *adminService) Describe(ctx core.ServerContext) {
+func (svc *adminService) Describe(ctx core.ServerContext) error {
 	svc.SetDescription(ctx, "Server admin service")
 	svc.AddStringParam(ctx, "request")
-	svc.AddParam(ctx, "requestparam", config.OBJECTTYPE_STRING, false, false)
-	svc.SetRequestType(ctx, config.OBJECTTYPE_BYTES, false, false)
+	return svc.AddParam(ctx, "requestparam", config.OBJECTTYPE_STRING, false, false, false)
+	//svc.SetRequestType(ctx, config.OBJECTTYPE_BYTES, false, false)
 }
 
 func (svc *adminService) Invoke(ctx core.RequestContext) error {

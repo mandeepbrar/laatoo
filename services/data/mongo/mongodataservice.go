@@ -29,10 +29,14 @@ func newMongoDataService(ctx core.ServerContext, name string, ms *mongoDataServi
 	return mongoSvc, nil
 }
 
-func (svc *mongoDataService) Describe(ctx core.ServerContext) {
-	svc.BaseComponent.Describe(ctx)
+func (svc *mongoDataService) Describe(ctx core.ServerContext) error {
+	err := svc.BaseComponent.Describe(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	svc.AddOptionalConfigurations(ctx, map[string]string{data.CONF_DATA_COLLECTION: config.OBJECTTYPE_STRING}, nil)
 	svc.SetDescription(ctx, "Mongo data component")
+	return nil
 }
 
 func (svc *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {

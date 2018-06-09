@@ -11,6 +11,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -39,6 +41,7 @@ const (
 
 type UI struct {
 	core.Service
+	svrCtx             core.ServerContext
 	uifile             string
 	descfile           string
 	mergeduifile       string
@@ -59,6 +62,7 @@ type UI struct {
 	requiredUIPkgs     utils.StringSet
 	propertyFiles      map[string]interface{}
 	uiRegistry         map[string]map[string]string
+	watchers           []*fsnotify.Watcher
 }
 
 /*
@@ -72,6 +76,7 @@ func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 }*/
 
 func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
+	svc.svrCtx = ctx
 	svc.uifile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_UI)
 	svc.descfile, _ = svc.GetStringConfiguration(ctx, CONF_FILE_DESC)
 	svc.mergeduifile, _ = svc.GetStringConfiguration(ctx, MERGED_UI_FILE)
@@ -80,7 +85,8 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
-	svc.hotloadMods, _ = svc.GetStringMapConfiguration(ctx, CONF_HOT_MODULES)
+	svc.hotloadMods, _ = svc.GetStringsMapConfiguration(ctx, CONF_HOT_MODULES)
+	svc.watchers = make([]*fsnotify.Watcher, 0)
 	log.Error(ctx, "*************hot modules directory being used**********", "hotloadMods", svc.hotloadMods)
 	svc.hotModulesRepo, _ = ctx.GetString(HOT_MODULES_REPO)
 	svc.uiFiles = make(map[string][]byte)

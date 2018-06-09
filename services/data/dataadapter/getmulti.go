@@ -14,9 +14,10 @@ type getMulti struct {
 	DataStore data.DataComponent
 }
 
-func (gi *getMulti) Describe(ctx core.ServerContext) {
+func (gi *getMulti) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Get multiple element by Ids from the underlying data component. Ids are separated by comma")
 	gi.AddStringParams(ctx, []string{CONF_DATA_IDS, CONF_FIELD_ORDERBY}, nil)
+	return nil
 }
 
 func (svc *getMulti) Start(ctx core.ServerContext) error {
@@ -36,7 +37,7 @@ func (es *getMulti) Invoke(ctx core.RequestContext) error {
 	result, err := es.DataStore.GetMulti(ctx, ids, orderBy)
 	if err == nil {
 		log.Trace(ctx, "Returning results ", "result", result)
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, nil))
+		ctx.SetResponse(core.SuccessResponse(result))
 		return nil
 	} else {
 		ctx.SetResponse(core.StatusNotFoundResponse)

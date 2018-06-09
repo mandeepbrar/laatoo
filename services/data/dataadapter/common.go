@@ -11,9 +11,7 @@ func selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataTo
 	pagesize, _ := ctx.GetIntParam(data.DATA_PAGESIZE)
 	pagenum, _ := ctx.GetIntParam(data.DATA_PAGENUM)
 	orderBy, _ := ctx.GetStringParam(CONF_FIELD_ORDERBY)
-	var argsMap map[string]interface{}
-	body := ctx.GetBody().(*map[string]interface{})
-	argsMap = *body
+	argsMap, _ := ctx.GetStringMapValue("argsMap")
 	log.Trace(ctx, "select", "argsMap", argsMap, "pagesize", pagesize, "pagenum", pagenum)
 	condition, err := datastore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {

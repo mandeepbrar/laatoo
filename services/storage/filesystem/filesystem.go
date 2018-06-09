@@ -30,7 +30,8 @@ type FileSystemSvc struct {
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	log.Info(ctx, "writing file")
-	files := *ctx.GetBody().(*map[string]*core.MultipartFile)
+	val, _ := ctx.GetParamValue("files")
+	files := *val.(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -45,7 +46,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 		i++
 	}
 	log.Info(ctx, "writing file", "urls", urls)
-	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
+	ctx.SetResponse(core.SuccessResponse(urls))
 	return nil
 }
 func (svc *FileSystemSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
@@ -71,7 +72,7 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, fileName string) (io.Rea
 func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) error {
 	path := svc.GetFullPath(ctx, fileName)
 	log.Trace(ctx, "Serving file", "filename", path)
-	ctx.SetResponse(core.NewServiceResponse(core.StatusServeFile, path, nil))
+	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusServeFile, path, nil))
 	return nil
 }
 

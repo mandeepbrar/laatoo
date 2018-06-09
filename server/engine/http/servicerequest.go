@@ -9,8 +9,9 @@ import (
 
 type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}, bytes interface{}) (*core.Response, error)
 
-func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string,
-	svc server.Service, routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool) (ServiceInvoker, error) {
+func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string, svc server.Service,
+	routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool,
+	bodyParamName string) (ServiceInvoker, error) {
 	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
 		engineContext := webctx.EngineRequestContext().(net.WebContext)
 		log.Error(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
@@ -46,8 +47,9 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[name] = val
 			}
 		}
+		vals[bodyParamName] = body
 		log.Trace(webctx, "Handle Request", "info", vals)
-		return svc.HandleEncodedRequest(reqctx, vals, body.([]byte))
+		return svc.HandleRequest(reqctx, vals)
 	}, nil
 }
 

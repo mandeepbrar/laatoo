@@ -14,9 +14,10 @@ type updatemultiple struct {
 	DataStore data.DataComponent
 }
 
-func (gi *updatemultiple) Describe(ctx core.ServerContext) {
+func (gi *updatemultiple) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Update multiple objects using data component. Input a string map containing 'ids' as well as 'data' containing string map of field value updates")
-	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	return gi.AddParamWithType(ctx, "argsMap", config.OBJECTTYPE_STRINGMAP)
+	//	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 func (svc *updatemultiple) Start(ctx core.ServerContext) error {
 	svc.DataStore = svc.fac.DataStore
@@ -24,8 +25,7 @@ func (svc *updatemultiple) Start(ctx core.ServerContext) error {
 }
 func (es *updatemultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATEMULTIPLE")
-	body := ctx.GetBody().(*map[string]interface{})
-	vals := *body
+	vals, _ := ctx.GetStringMapValue("argsMap")
 	ids, ok := vals["ids"]
 	if !ok {
 		log.Error(ctx, "Missing argument", "Name", "ids")

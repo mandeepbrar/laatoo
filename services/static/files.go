@@ -70,10 +70,10 @@ func (fs *FileService) Invoke(ctx core.RequestContext) error {
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				ctx.SetResponse(core.NewServiceResponse(core.StatusServeBytes, &content, file.info))
+				ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusServeBytes, &content, file.info))
 				return nil
 			} else {
-				ctx.SetResponse(core.NewServiceResponse(core.StatusServeBytes, file.Content, file.info))
+				ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusServeBytes, file.Content, file.info))
 				return nil
 			}
 		} else {

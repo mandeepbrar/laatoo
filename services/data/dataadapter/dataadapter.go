@@ -40,8 +40,9 @@ type DataAdapterFactory struct {
 	DataStore data.DataComponent
 }
 
-func (es *DataAdapterFactory) Describe(ctx core.ServerContext) {
+func (es *DataAdapterFactory) Describe(ctx core.ServerContext) error {
 	es.AddStringConfiguration(ctx, CONF_DATAADAPTER_DATA_SVC)
+	return nil
 }
 
 //Create the services configured for factory.

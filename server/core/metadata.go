@@ -54,25 +54,30 @@ func (inf *objectInfo) setDescription(desc string) {
 type metadataProvider struct {
 }
 
-func (provider *metadataProvider) CreateServiceInfo(description string, reqInfo core.RequestInfo, streamedResponse bool, configurations []core.Configuration) core.ServiceInfo {
-	return newServiceInfo(description, reqInfo, streamedResponse, configurations)
+func (provider *metadataProvider) CreateServiceInfo(description string, reqInfo core.RequestInfo, resInfo core.ResponseInfo, configurations []core.Configuration) core.ServiceInfo {
+	return newServiceInfo(description, reqInfo, resInfo, configurations)
 }
 
 func (provider *metadataProvider) CreateFactoryInfo(description string, configurations []core.Configuration) core.ServiceFactoryInfo {
 	return newFactoryInfo(description, configurations)
 }
+
 func (provider *metadataProvider) CreateModuleInfo(description string, configurations []core.Configuration) core.ModuleInfo {
 	return newModuleInfo(description, configurations)
 
 }
-func (provider *metadataProvider) CreateRequestInfo(requesttype string, collection bool, stream bool, params []core.Param) core.RequestInfo {
-	return newRequestInfo(requesttype, collection, stream, params)
-
+func (provider *metadataProvider) CreateRequestInfo(params map[string]core.Param) core.RequestInfo {
+	return newRequestInfo(params)
 }
+
+func (provider *metadataProvider) CreateResponseInfo(params map[string]core.Param) core.ResponseInfo {
+	return newResponseInfo(params)
+}
+
 func (provider *metadataProvider) CreateConfiguration(name, conftype string, required bool, defaultValue interface{}) core.Configuration {
 	return newConfiguration(name, conftype, required, defaultValue)
 }
 
-func (provider *metadataProvider) CreateParam(name, paramtype string, collection, required bool) core.Param {
-	return newParam(name, paramtype, collection, required)
+func (provider *metadataProvider) CreateParam(ctx core.ServerContext, name, paramtype string, collection, isStream bool, required bool) (core.Param, error) {
+	return newParam(ctx, name, paramtype, collection, isStream, required)
 }

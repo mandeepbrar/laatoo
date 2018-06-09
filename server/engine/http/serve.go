@@ -32,6 +32,12 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
 	}
 
+	bodyParam := "Data"
+	body, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_BODY)
+	if ok {
+		bodyParam = body
+	}
+
 	var respHandler server.ServiceResponseHandler
 	handler := ctx.GetServerElement(core.ServerElementServiceResponseHandler)
 	if handler != nil {
@@ -82,7 +88,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		}
 	}
 
-	webReqHandler, err := channel.processServiceRequest(ctx, method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams)
+	webReqHandler, err := channel.processServiceRequest(ctx, method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParam)
 	if err != nil {
 		return err
 	}

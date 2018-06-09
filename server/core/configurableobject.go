@@ -167,7 +167,7 @@ func (impl *configurableObject) GetStringArrayConfiguration(ctx core.ServerConte
 	return val, true
 }
 
-func (impl *configurableObject) GetStringMapConfiguration(ctx core.ServerContext, name string) (map[string]string, bool) {
+func (impl *configurableObject) GetStringsMapConfiguration(ctx core.ServerContext, name string) (map[string]string, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
 	if !ok && c == nil {
 		return nil, false
@@ -219,6 +219,11 @@ func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.
 			switch configu.conftype {
 			case "", config.OBJECTTYPE_STRING:
 				val, ok = conf.GetString(ctx, name)
+				if ok {
+					configu.value = val
+				}
+			case config.OBJECTTYPE_STRINGSMAP:
+				val, ok = conf.GetStringsMap(ctx, name)
 				if ok {
 					configu.value = val
 				}

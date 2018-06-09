@@ -45,7 +45,8 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 }
 
 func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
-	files := *ctx.GetBody().(*map[string]*core.MultipartFile)
+	val, _ := ctx.GetParamValue("files")
+	files := *val.(*map[string]*core.MultipartFile)
 	urls := make([]string, len(files))
 	i := 0
 	for _, fil := range files {
@@ -60,7 +61,7 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 		urls[i] = url
 		i++
 	}
-	ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, urls, nil))
+	ctx.SetResponse(core.SuccessResponse(urls))
 	return nil
 }
 
@@ -108,7 +109,7 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 }
 
 func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
-	ctx.SetResponse(core.NewServiceResponse(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
+	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
 	return nil
 }
 
@@ -120,22 +121,24 @@ func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName strin
 }
 
 func (svc *GoogleStorageSvc) ListFiles(ctx core.RequestContext, pattern string) ([]string, error) {
-	log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+	/******TODO**********/
+	//log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+	/*
+		appengineCtx := ctx.GetAppengineContext()
+		client, err := storage.NewClient(appengineCtx)
+		if err != nil {
+			log.Debug(ctx, "Error while creating file", "err", err)
+			return nil, errors.WrapError(ctx, err)
+		}
 
-	appengineCtx := ctx.GetAppengineContext()
-	client, err := storage.NewClient(appengineCtx)
-	if err != nil {
-		log.Debug(ctx, "Error while creating file", "err", err)
-		return nil, errors.WrapError(ctx, err)
-	}
-
-	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
-	if contentType != "" {
-		dst.ContentType = contentType
-	}
-	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
-	return dst, nil
+		dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
+		if contentType != "" {
+			dst.ContentType = contentType
+		}
+		dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+		return dst, nil*/
 	return nil, nil
+
 }
 
 func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {

@@ -5,6 +5,7 @@ const (
 	CONF_HTTPENGINE_PATH               = "path"
 	CONF_HTTPENGINE_USECORS            = "usecors"
 	CONF_HTTPENGINE_ALLOWEDQUERYPARAMS = "queryparams"
+	CONF_HTTPENGINE_BODY               = "bodyparamname"
 	CONF_HTTPENGINE_CORSOPTIONSPATH    = "corsoptionspath"
 	CONF_HTTPENGINE_CORSHOSTS          = "corshosts"
 	CONF_HTTPENGINE_STATICVALUES       = "staticvalues"

@@ -18,12 +18,13 @@ type join struct {
 	lookupField   string
 }
 
-func (gi *join) Describe(ctx core.ServerContext) {
+func (gi *join) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Get multiple element by Ids from the underlying data component. Ids are separated by comma")
 	gi.AddStringConfigurations(ctx, []string{CONF_SVC_LOOKUP_FIELD, CONF_SVC_LOOKUPSVC}, nil)
 	gi.AddStringParams(ctx, []string{CONF_DATA_IDS, CONF_FIELD_ORDERBY}, nil)
-	gi.AddParams(ctx, map[string]string{data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
-	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	return gi.AddParams(ctx, map[string]string{"argsMap": config.OBJECTTYPE_STRINGMAP, data.DATA_PAGESIZE: config.OBJECTTYPE_INT, data.DATA_PAGENUM: config.OBJECTTYPE_INT}, false)
+	//	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	//return nil
 }
 
 func (es *join) Start(ctx core.ServerContext) error {
@@ -69,7 +70,7 @@ func (es *join) Invoke(ctx core.RequestContext) error {
 		requestinfo := make(map[string]interface{}, 2)
 		requestinfo[CONF_DATA_RECSRETURNED] = recsreturned
 		requestinfo[CONF_DATA_TOTALRECS] = totalrecs
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, result, requestinfo))
+		ctx.SetResponse(core.SuccessResponseWithInfo(result, requestinfo))
 		return nil
 	} else {
 		ctx.SetResponse(core.StatusNotFoundResponse)

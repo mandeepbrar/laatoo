@@ -179,9 +179,13 @@ func (modMgr *moduleManager) buildObjectInfo(ctx core.ServerContext, conf config
 			objconf, _ := objsconf.GetSubConfig(ctx, objname)
 			objtyp, _ := objconf.GetString(ctx, OBJECT_TYPE)
 			var inf core.Info
+			var err error
 			switch objtyp {
 			case "service":
-				inf = buildServiceInfo(ctx, objconf)
+				inf, err = buildServiceInfo(ctx, objconf)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
 			case "module":
 				inf = buildModuleInfo(ctx, objconf)
 			case "factory":

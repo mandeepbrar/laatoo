@@ -13,9 +13,10 @@ type count struct {
 	DataStore data.DataComponent
 }
 
-func (gi *count) Describe(ctx core.ServerContext) {
+func (gi *count) Describe(ctx core.ServerContext) error {
 	gi.SetDescription(ctx, "Count objects meeting selection criteria")
-	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
+	return gi.AddParamWithType(ctx, "argsMap", config.OBJECTTYPE_STRINGMAP)
+	//	gi.SetRequestType(ctx, config.OBJECTTYPE_STRINGMAP, false, false)
 }
 func (svc *count) Start(ctx core.ServerContext) error {
 	svc.DataStore = svc.fac.DataStore
@@ -23,8 +24,9 @@ func (svc *count) Start(ctx core.ServerContext) error {
 }
 func (es *count) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("COUNT")
-	body := ctx.GetBody().(*map[string]interface{})
-	argsMap := *body
+	argsMap, _ := ctx.GetStringMapValue("argsMap")
+	//	body := ctx.GetBody().(*map[string]interface{})
+	//	argsMap := *body
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
 		ctx.SetResponse(core.StatusNotFoundResponse)
@@ -32,7 +34,7 @@ func (es *count) Invoke(ctx core.RequestContext) error {
 	}
 	count, err := es.DataStore.Count(ctx, condition)
 	if err == nil {
-		ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, count, nil))
+		ctx.SetResponse(core.SuccessResponse(count))
 		return nil
 	} else {
 		ctx.SetResponse(core.StatusNotFoundResponse)
