@@ -3,6 +3,7 @@ package websocket
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
 	"laatoo/sdk/server"
 )
 
@@ -25,7 +26,7 @@ func (channel *wsChannelProxy) Child(ctx core.ServerContext, name string, channe
 		return nil, err
 	}
 	proxy := &wsChannelProxy{channel: childChannel}*/
-	return nil, core.NotImplemented(ctx, "Child")
+	return nil, errors.NotImplemented(ctx, "Child")
 }
 
 func (proxy *wsChannelProxy) Reference() core.ServerElement {

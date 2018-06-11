@@ -1,11 +1,13 @@
 package websocket
 
 import (
-	"fmt"
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
+	"laatoo/sdk/log"
 	"laatoo/sdk/server"
-	"log"
+	"laatoo/server/codecs"
+	"laatoo/server/constants"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -16,8 +18,10 @@ type wsEngine struct {
 	address     string
 	path        string
 	proxy       server.Engine
+	rtr         *router
 	rootChannel *wsChannel
 	conf        config.Config
+	codec       core.Codec
 	upgrader    websocket.Upgrader
 }
 
@@ -36,7 +40,15 @@ func (eng *wsEngine) Initialize(ctx core.ServerContext, conf config.Config) erro
 		WriteBufferSize: 1024,
 	}
 
-	eng.origin = eng.address
+	codec, ok := conf.GetString(ctx, constants.CONF_ENGINE_CODEC)
+
+	if codec == "fastjson" {
+		eng.codec = codecs.NewFastJsonCodec()
+	} else {
+		eng.codec = codecs.NewJsonCodec()
+	}
+
+	eng.rtr, _ = newRouter(ctx)
 
 	eng.rootChannel = &wsChannel{name: eng.name, config: eng.conf, engine: eng}
 	err := eng.rootChannel.configure(ctx)
@@ -50,7 +62,7 @@ func (eng *wsEngine) Initialize(ctx core.ServerContext, conf config.Config) erro
 
 func (eng *wsEngine) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Start Engine: " + eng.name)
-	log.Info(startCtx, "Starting websocket engine", "address", eng.address)
+	log.Error(startCtx, "Starting websocket engine", "address", eng.address)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := eng.upgrader.Upgrade(w, r, nil) // error ignored for sake of simplicity
@@ -61,14 +73,13 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 			if err != nil {
 				return
 			}
-
-			// Print the message to the console
-			fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
-
-			// Write message back to browser
-			if err = conn.WriteMessage(msgType, msg); err != nil {
+			jsonRpcMsg := &rpcRequest{}
+			err = eng.codec.Unmarshal(ctx, msg, jsonRpcMsg)
+			if err != nil {
+				conn.WriteMessage(msgType, []byte(err.Error()))
 				return
 			}
+			go eng.rtr.routeMessage(ctx, jsonRpcMsg, conn)
 		}
 	})
 
@@ -78,7 +89,5 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}
-
-	log.Info(startCtx, "Started engine*********************************")
 	return nil
 }
