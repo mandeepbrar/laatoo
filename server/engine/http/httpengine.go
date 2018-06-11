@@ -136,7 +136,7 @@ func (eng *httpEngine) startBalancer(ctx core.ServerContext, conf config.Config)
 
 func (eng *httpEngine) Start(ctx core.ServerContext) error {
 	startCtx := ctx.SubContext("Start Engine: " + eng.name)
-	log.Info(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
+	log.Error(startCtx, "Starting http engine", "address", eng.address, "ssl", eng.ssl)
 	if eng.ssl {
 		//start listening
 		err := eng.framework.StartSSLServer(eng.address, eng.sslcert, eng.sslkey)
@@ -150,6 +150,5 @@ func (eng *httpEngine) Start(ctx core.ServerContext) error {
 			panic("Failed to start application" + err.Error())
 		}
 	}
-	log.Info(startCtx, "Started engine*********************************")
 	return nil
 }

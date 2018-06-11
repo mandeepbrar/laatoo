@@ -12,6 +12,7 @@ import (
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http"
+	"laatoo/server/engine/websocket"
 	slog "laatoo/server/log"
 	"path"
 
@@ -349,6 +350,7 @@ func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Conf
 }
 
 func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.Config, name string) error {
+	log.Error(ctx, "process engine conf========================", "conf", conf, "name", name)
 	_, found := as.engines[name]
 	if !found {
 		engCreateCtx := ctx.SubContext("Create Engine: " + name)
@@ -397,6 +399,8 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	switch enginetype {
 	case constants.CONF_ENGINETYPE_HTTP:
 		engineHandle, engine = http.NewEngine(ctx, engName, engConf)
+	case constants.CONF_ENGINETYPE_WS:
+		engineHandle, engine = websocket.NewEngine(ctx, engName, engConf)
 	case core.CONF_ENGINE_TCP:
 	default:
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)

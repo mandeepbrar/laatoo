@@ -195,6 +195,7 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	saveRestChann.Set(ctx, CHANNEL_SERVICE, adapter.createName(ctx, "save"))
 	saveRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
 	saveRestChann.Set(ctx, REST_METHOD, REST_POST)
+	saveRestChann.Set(ctx, BODY_PARAM_NAME, "object")
 	saveRestChann.Set(ctx, REST_PATH, "")
 	chans[saveRestChannName] = saveRestChann
 
@@ -204,6 +205,7 @@ func (adapter *DataAdapterModule) Channels(ctx core.ServerContext) map[string]co
 	updateRestChann.Set(ctx, CONF_PARENT_CHANNEL, adapter.instance)
 	updateRestChann.Set(ctx, REST_METHOD, REST_PUT)
 	updateRestChann.Set(ctx, REST_PATH, "/:id")
+	updateRestChann.Set(ctx, BODY_PARAM_NAME, "argsMap")
 	updateparams := ctx.CreateConfig()
 	updateparams.Set(ctx, "id", "id")
 	updateRestChann.Set(ctx, REST_PARAMS, updateparams)

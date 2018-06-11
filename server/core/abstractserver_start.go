@@ -112,6 +112,7 @@ func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 	engStartCtx := ctx.SubContext("Start Engines")
 	for engName, engineHandle := range as.engineHandles {
+		log.Error(ctx, "Starting engine*****", "name", engName)
 		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
 			log.Info(ctx, "Starting engine*****", "name", name)
 			err := engHandle.Start(ctx)
@@ -120,6 +121,6 @@ func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 			}
 		}(engStartCtx, engineHandle, engName)
 	}
-	log.Trace(engStartCtx, "Started engines")
+	log.Error(engStartCtx, "Started engines")
 	return nil
 }
