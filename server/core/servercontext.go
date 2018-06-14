@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/config"
 	"laatoo/sdk/core"
+	"laatoo/sdk/errors"
 	"laatoo/sdk/log"
 	"laatoo/sdk/server"
 	"laatoo/server/common"
@@ -81,6 +82,7 @@ type contextElements struct {
 	cacheManager   server.CacheManager
 	taskManager    server.TaskManager
 	moduleManager  server.ModuleManager
+	sessionManager server.SessionManager
 	module         server.Module
 
 	//open element for client applications
@@ -93,9 +95,10 @@ type contextElements struct {
 //this context is passed during initialization of factories and services
 type serverContext struct {
 	*common.Context
-	level         int
-	elements      *contextElements
-	childContexts []*serverContext
+	level          int
+	elements       *contextElements
+	childContexts  []*serverContext
+	sessionManager *sessionManager
 }
 
 //create a new server context
@@ -154,6 +157,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.elements.taskManager
 	case core.ServerElementModuleManager:
 		return ctx.elements.moduleManager
+	case core.ServerElementSessionManager:
+		return ctx.elements.sessionManager
 	case core.ServerElementModule:
 		return ctx.elements.module
 	case core.ServerElementLogger:
@@ -181,7 +186,7 @@ func (ctx *serverContext) SubContext(name string) core.ServerContext {
 func (ctx *serverContext) subContext(name string) *serverContext {
 	subctx := ctx.SubCtx(name)
 	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
-	return &serverContext{Context: subctx.(*common.Context), elements: ctx.elements, level: ctx.level, childContexts: ctx.childContexts}
+	return &serverContext{Context: subctx.(*common.Context), elements: ctx.elements, level: ctx.level, sessionManager: ctx.sessionManager, childContexts: ctx.childContexts}
 }
 
 //create a new server context from the parent. variables set in this context will not be reflected in parent
@@ -194,7 +199,7 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 	newctx := ctx.NewCtx(name)
 	log.Debug(ctx, "Entering new server context ", "Elapsed Time ", ctx.GetElapsedTime(), "Name ", name)
 
-	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: &contextElements{}, level: ctx.level + 1, childContexts: make([]*serverContext, 0)}
+	svrCtx := &serverContext{Context: newctx.(*common.Context), elements: &contextElements{}, sessionManager: ctx.sessionManager, level: ctx.level + 1, childContexts: make([]*serverContext, 0)}
 	cmap := ctx.getElementsContextMap()
 	svrCtx.elements.properties = ctx.elements.properties
 	svrCtx.setElementReferences(cmap, true)
@@ -288,6 +293,14 @@ func (ctx *serverContext) setElementReferences(elements core.ContextMap, ref boo
 			} else {
 				ctxElems.serviceManager = element.(server.ServiceManager)
 			}
+		case core.ServerElementSessionManager:
+			if element == nil {
+				ctxElems.sessionManager = nil
+				ctx.sessionManager = nil
+			} else {
+				ctxElems.sessionManager = element.(server.SessionManager)
+				ctx.sessionManager = element.(*sessionManagerProxy).manager
+			}
 		case core.ServerElementFactoryManager:
 			if element == nil {
 				ctxElems.factoryManager = nil
@@ -370,14 +383,17 @@ func (ctx *serverContext) setServerProperties(props map[string]interface{}) {
 }
 
 //creates a new request with engine context
-func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) core.RequestContext {
+func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}, sessionId string) (core.RequestContext, error) {
 
 	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.elements.service == nil {
-		return nil
+		return nil, errors.MissingService(ctx, name)
 	}
-	reqCtx := ctx.createNewRequest(name, engineCtx)
+	reqCtx, err := ctx.createNewRequest(name, engineCtx, sessionId)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
 
 	reqCtx.logger = ctx.elements.logger
 	//svc := ctx.elements.service.(*serviceProxy)
@@ -390,16 +406,17 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}) c
 		}
 	}
 
-	return reqCtx
+	return reqCtx, nil
 }
 
-func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}) *requestContext {
+func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, sessionId string) (*requestContext, error) {
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
 
 	newctx := ctx.NewCtx(name)
+
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.elements.logger,
-		engineContext: engineCtx, subRequest: false}
+		engineContext: engineCtx, sessionId: sessionId, subRequest: false}, nil
 }
 
 func (ctx *serverContext) CreateCollection(objectName string, length int) (interface{}, error) {
@@ -423,7 +440,10 @@ func (ctx *serverContext) GetObjectMetadata(objectName string) (core.Info, error
 }
 
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
-	reqCtx := ctx.createNewRequest(name, nil)
+	reqCtx, err := ctx.createNewRequest(name, nil, "")
+	if err != nil {
+		log.Error(ctx, "Error while creating system request", "Error", err)
+	}
 	reqCtx.user = nil
 	reqCtx.admin = true
 	return reqCtx

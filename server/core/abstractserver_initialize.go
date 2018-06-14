@@ -99,6 +99,14 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		log.Debug(msginit, "Initialized messaging manager")
 	}
 
+	if as.sessionManagerHandle!=nil {
+		sessinitctx := ctx.SubContext("Initialize session manager")
+		err := as.initializeSessionManager(sessinitctx, conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
 	taskctx := ctx.SubContext("Task Manager: " + as.name)
 	err = as.taskManagerHandle.Initialize(taskctx, conf)
 	if err != nil {
@@ -298,5 +306,23 @@ func (as *abstractserver) initializeCacheManager(ctx core.ServerContext, conf co
 	}
 
 	log.Trace(cacheMgrInitCtx, "Cache Manager Initialized")
+	return nil
+}
+
+func (as *abstractserver) initializeSessionManager(ctx core.ServerContext, conf config.Config) error {
+	sesConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SESSION)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	if ok {
+		sessMgrInitCtx := ctx.SubContext("Initialize Session Manager: " + as.name)
+		err := as.sessionManagerHandle.Initialize(sessMgrInitCtx, sesConf)
+		if err != nil {
+			return errors.WrapError(sessMgrInitCtx, err)
+		}	
+	}
+
+	log.Trace(ctx, "Session Manager Initialized")
 	return nil
 }

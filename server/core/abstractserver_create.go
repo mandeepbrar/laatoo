@@ -142,6 +142,11 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 		return errors.WrapError(createenginectx, err)
 	}
 
+	createsessionctx := ctx.subContext("Create Session Manager " + as.name)
+	if err := as.createSessionManager(createsessionctx, conf); err != nil {
+		return errors.WrapError(createsessionctx, err)
+	}
+
 	createmsgctx := ctx.subContext("Create Messaging Manager: " + as.name)
 	if err := as.createMessagingManager(createmsgctx, conf, as.parent); err != nil {
 		return errors.WrapError(createmsgctx, err)
@@ -313,6 +318,25 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 			as.securityHandlerHandle = as.parent.securityHandlerHandle
 		} else {
 			createSecHandler(ctx)
+		}
+	}
+	return nil
+}
+
+func (as *abstractserver) createSessionManager(ctx *serverContext, conf config.Config) error {
+	sesConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SESSION)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	if ok {
+		smElem, sm := newSessionManager(ctx, "Session Manager:"+as.name, sesConf)
+		as.sessionManagerHandle = smElem
+		as.sessionManager = sm
+	} else {
+		if as.parent != nil {
+			as.sessionManager = as.parent.sessionManager
+			as.sessionManagerHandle = as.parent.sessionManagerHandle
 		}
 	}
 	return nil
@@ -493,6 +517,13 @@ func newCacheManager(ctx core.ServerContext, name string) (*cacheManager, *cache
 	cacheElem := &cacheManagerProxy{manager: cacheMgr}
 	cacheMgr.proxy = cacheElem
 	return cacheMgr, cacheElem
+}
+
+func newSessionManager(ctx core.ServerContext, name string, conf config.Config) (*sessionManager, *sessionManagerProxy) {
+	sessionMgr := &sessionManager{name: name}
+	sessElem := &sessionManagerProxy{manager: sessionMgr}
+	sessionMgr.proxy = sessElem
+	return sessionMgr, sessElem
 }
 
 func childCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {

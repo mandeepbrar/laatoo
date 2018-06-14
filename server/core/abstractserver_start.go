@@ -79,6 +79,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 		}
 	}
 
+	if as.sessionManagerHandle != nil {
+		sessCtx := ctx.SubContext("Start Session Manager")
+		err := as.sessionManagerHandle.Start(sessCtx)
+		if err != nil {
+			return errors.WrapError(sessCtx, err)
+		}
+	}
+
 	if as.rulesManagerHandle != nil {
 		rulesHCtx := ctx.SubContext("Start Rules Manager")
 		log.Trace(rulesHCtx, "Starting Rules Manager")
@@ -105,6 +113,15 @@ func (as *abstractserver) startSecurityHandler(ctx *serverContext) error {
 		secCtx := ctx.SubContext("Start Security Handler")
 		log.Trace(secCtx, "Starting Security Handler")
 		return as.securityHandlerHandle.Start(secCtx)
+	}
+	return nil
+}
+
+func (as *abstractserver) startSessionManager(ctx *serverContext) error {
+	if (as.sessionManagerHandle != nil) && ((as.parent == nil) || (as.sessionManagerHandle != as.parent.sessionManagerHandle)) {
+		sesCtx := ctx.SubContext("Start Session Manager")
+		log.Trace(sesCtx, "Starting Session Manager")
+		return as.sessionManagerHandle.Start(sesCtx)
 	}
 	return nil
 }

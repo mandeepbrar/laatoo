@@ -162,7 +162,11 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 
 	return func(pathCtx net.WebContext) error {
 		errChannel := make(chan error)
-		corectx := ctx.CreateNewRequest(serviceName, pathCtx)
+		corectx, err := ctx.CreateNewRequest(serviceName, pathCtx, "")
+		if(err!=nil) {
+			return errors.WrapError(ctx, err)
+		}
+	
 		httpreq := pathCtx.GetRequest()
 		corectx.SetGaeReq(httpreq)
 		log.Info(corectx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)
@@ -182,7 +186,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 			}
 			errChannel <- err
 		}(corectx, pathCtx)
-		err := <-errChannel
+		err = <-errChannel
 		if err != nil {
 			log.Info(corectx, "Got error in the request", "error", err)
 		}

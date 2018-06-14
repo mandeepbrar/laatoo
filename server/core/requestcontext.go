@@ -14,12 +14,19 @@ type requestContext struct {
 	*common.Context
 
 	cache components.CacheComponent
+
+	sessionId string
+
+	//session to be used for request context
+	session core.Session
+
 	//any context from the engine that received a service request
 	engineContext interface{}
 	//user who is executing the request
 	user auth.User
 	//is the user executing a request an admin
-	admin  bool
+	admin bool
+
 	parent *requestContext
 	//server context that generated this request
 	serverContext *serverContext
@@ -55,12 +62,12 @@ func (ctx *requestContext) createRequest() *request {
 func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req,
-		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, subRequest: true}
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req, sessionId: ctx.sessionId,
+		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, session: ctx.session, subRequest: true}
 }
 
 //new context from the request if a part of the request needs to be tracked separately
-//as a subflow.
+//as a subflow.SESSION_OBJ
 /*func (ctx *requestContext) NewContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request context ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.NewCtx(name)
@@ -174,6 +181,25 @@ func (ctx *requestContext) GetRequest() core.Request {
 /*func (ctx *requestContext) GetBody() interface{} {
 	return ctx.req.GetBody()
 }*/
+
+func (ctx *requestContext) GetSession() core.Session {
+	if ctx.session == nil {
+		var session core.Session
+		var err error
+
+		smgr := ctx.serverContext.sessionManager
+		if smgr != nil {
+			session, err = smgr.getSession(ctx.serverContext, ctx.sessionId)
+			if err != nil {
+				log.Error(ctx, "Error while retrieving session", "err", err)
+			}
+		} else {
+			session = newSession(ctx.sessionId)
+		}
+		ctx.session = session
+	}
+	return ctx.session
+}
 
 func (ctx *requestContext) GetParam(name string) (core.Param, bool) {
 	return ctx.req.GetParam(name)

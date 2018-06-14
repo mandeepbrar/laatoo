@@ -45,6 +45,9 @@ type abstractserver struct {
 	cacheManager       server.CacheManager
 	cacheManagerHandle server.ServerElementHandle
 
+	sessionManager       server.SessionManager
+	sessionManagerHandle server.ServerElementHandle
+
 	//engines configured on the abstract server
 	engineHandles map[string]server.ServerElementHandle
 	engineConf    map[string]config.Config
