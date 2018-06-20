@@ -5,7 +5,6 @@ dependencies:
 description: 'Module provides laatoo view components. '
 ui:
   js:
-    skipUIModules: true
     externals:
       babel-runtime: babel-runtime
       babel-polyfill: babel-polyfill

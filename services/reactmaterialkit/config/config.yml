@@ -24,4 +24,4 @@ ui:
       redux-form: "^7.1.1"
       react-tap-event-plugin: "*"
       prop-types: "^15.6.0"
-      "@babel/runtime": "*"
+      babel-runtime: "latest"

@@ -7,7 +7,7 @@ var entity = require('./entity')
 var yamlparser = require('js-yaml')
 const merge = require('webpack-merge');
 
-var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "skipUIModules", "forceUIModules", "printUIConfig", "getBuildPackages"]});
+var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "skipObjects", "skipUI", "overwriteJSMods", "forceUIModules", "printUIConfig", "getBuildPackages"]});
 
 //, default: {skipObjects: false, skipUI: false, skipUIModules: false, printUIConfig: false}
 
@@ -70,11 +70,7 @@ function buildUI(nextTask) {
 
   let jsUIconfig = modConfig.ui? modConfig.ui.js: null;
 
-  if (!argv.skipUIModules) {
-    if (argv.forceUIModules || (jsUIconfig && !jsUIconfig.skipUIModules)) {
-      getJSUIModules(jsUIconfig);
-    }
-  }
+  getJSUIModules(jsUIconfig);
   //getUIModules();
 
   let copyUIFiles = function() {
@@ -310,33 +306,38 @@ function getJSUIModules(jsUIconfig) {
     process.chdir(wd);
   }
 
-  try {
-    let wd = process.cwd();
-    process.chdir(nodeModulesFolder);
-    if (shell.exec("npm rebuild node-sass").code !== 0) {
-      shell.echo('npm rebuild failed');
-      shell.exit(1);
-    } else {
-      log("Npm rebuild sass successfull");
-    }
-    process.chdir(wd);
-  } catch(ex){}
+  if(argv.getBuildPackages) {
+    try {
+      let wd = process.cwd();
+      process.chdir(nodeModulesFolder);
+      if (shell.exec("npm rebuild node-sass").code !== 0) {
+        shell.echo('npm rebuild failed');
+        shell.exit(1);
+      } else {
+        log("Npm rebuild sass successfull");
+      }
+      process.chdir(wd);
+    } catch(ex){}  
+  }
 
   if(jsUIconfig && jsUIconfig.packages !=null) {
     log("Installing package json from plugin", jsUIconfig.packages)
     Object.keys(jsUIconfig.packages).forEach(function(pkg) {
       console.log("Getting package " + pkg)
       let ver = jsUIconfig.packages[pkg]
-      let command = sprintf('npm i %s --prefix %s %s@%s', silent, nodeModulesFolder, pkg, ver)
-      console.log(command)
-      if (shell.exec(command).code !== 0) {
-        shell.echo('Get package failed '+pkg);
-        shell.exit(1);
+      let existingPkg = path.join(nodeModulesFolder, "node_modules", pkg)
+      if(!fs.pathExistsSync(existingPkg) || argv.overwriteJSMods) {
+        let command = sprintf('npm i %s --prefix %s %s@%s', silent, nodeModulesFolder, pkg, ver)
+        console.log(command)
+        if (shell.exec(command).code !== 0) {
+          shell.echo('Get package failed '+pkg);
+          shell.exit(1);
+        }  
       }
     });
   }
 
-  if (fs.pathExistsSync(path.join(buildFolder,'package.json'))) {
+  if (argv.getBuildPackages && fs.pathExistsSync(path.join(buildFolder,'package.json'))) {
     log("Installing package json from build folder")
     log(sprintf)
     let command = sprintf('cd %s && npm i %s --prefix %s', buildFolder, silent, nodeModulesFolder)
@@ -367,8 +368,8 @@ function buildObjects(nextTask) {
 
   log("Compiling golang")
 
-  let serverSrcFolder = path.join(pluginFolder, "server")
-  if(!fs.pathExistsSync(serverSrcFolder)) {
+  let serverGoSrcFolder = path.join(pluginFolder, "server", "go")
+  if(!fs.pathExistsSync(serverGoSrcFolder)) {
     nextTask()
     return
   }
@@ -379,7 +380,7 @@ function buildObjects(nextTask) {
 
   fs.mkdirsSync(tmpObjsFolder)
 
-  let command = sprintf('go build -buildmode=plugin -o %s/%s.so %s/*.go', tmpObjsFolder, name, serverSrcFolder)
+  let command = sprintf('go build -buildmode=plugin -o %s/%s.so %s/*.go', tmpObjsFolder, name, serverGoSrcFolder)
   if (shell.exec(command).code !== 0) {
     shell.echo('Golang build failed');
     shell.exit(1);
