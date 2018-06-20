@@ -1,5 +1,0 @@
-<div  className="solution_header">
-  <div className="tablecell">Solution Name</div>
-  <div className="tablecell">Solution Description</div>
-  <div className="tablecell">Edit</div>
-</div>

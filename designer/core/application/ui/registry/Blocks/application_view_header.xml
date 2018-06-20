@@ -1,5 +1,0 @@
-<div  className="server_header">
-  <div className="tablecell">Application Name</div>
-  <div className="tablecell">Application Description</div>
-  <div className="tablecell">Edit</div>
-</div>

@@ -4,43 +4,44 @@ dependencies:
   reactwebcommon: ">=0.0.1"
 description: 'Module provides web ui base components. '
 ui:
-  skipUIModules: true
-  externals:
-    autoprefixer: autoprefixer
-    axios: axios
-    babel-runtime: babel-runtime
-    babel-polyfill: babel-polyfill
-    react: react
-    react-dom: react-dom
-    redux-actions: redux-actions
-    react-redux: react-redux
-    tcomb-form: tcomb-form
-    md5: md5
-    redux-director: redux-director
-    director: director
-    reactuibase: reactuibase
-    redux: redux
-    redux-saga: redux-saga
-    react-tinymce-input: react-tinymce-input
-    react-player: react-player
-    react-dropzone: react-dropzone
-    react-bootstrap: react-bootstrap
-    react-pagify-preset-bootstrap: react-pagify-preset-bootstrap
-    react-pagify: react-pagify
-  packages:
-    axios: "^0.16.2"
-    director: "^1.2.8"
-    md5: "^2.2.1"
-    react: "^16.1.0"
-    react-dom: "^16.1.0"
-    react-bootstrap: "^0.31.2"
-    react-dropzone: "^4.0.1"
-    react-pagify: "^2.3.0"
-    react-pagify-preset-bootstrap: "^1.0.2"
-    react-player: "^0.20.0"
-    react-redux: "^5.0.6"
-    redux: "^3.7.2"
-    redux-director: "^0.2.5"
-    redux-saga: "^0.16.0"
-    segmentize: "^0.4.1"
-    tcomb-form: "^0.9.17"
+  js:
+    skipUIModules: true
+    externals:
+      autoprefixer: autoprefixer
+      axios: axios
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      react: react
+      react-dom: react-dom
+      redux-actions: redux-actions
+      react-redux: react-redux
+      tcomb-form: tcomb-form
+      md5: md5
+      redux-director: redux-director
+      director: director
+      reactuibase: reactuibase
+      redux: redux
+      redux-saga: redux-saga
+      react-tinymce-input: react-tinymce-input
+      react-player: react-player
+      react-dropzone: react-dropzone
+      react-bootstrap: react-bootstrap
+      react-pagify-preset-bootstrap: react-pagify-preset-bootstrap
+      react-pagify: react-pagify
+    packages:
+      axios: "^0.16.2"
+      director: "^1.2.8"
+      md5: "^2.2.1"
+      react: "^16.1.0"
+      react-dom: "^16.1.0"
+      react-bootstrap: "^0.31.2"
+      react-dropzone: "^4.0.1"
+      react-pagify: "^2.3.0"
+      react-pagify-preset-bootstrap: "^1.0.2"
+      react-player: "^0.20.0"
+      react-redux: "^5.0.6"
+      redux: "^3.7.2"
+      redux-director: "^0.2.5"
+      redux-saga: "^0.16.0"
+      segmentize: "^0.4.1"
+      tcomb-form: "^0.9.17"

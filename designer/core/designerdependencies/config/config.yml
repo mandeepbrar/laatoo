@@ -1,19 +1,20 @@
 version: 0.0.1
 description: Module provides designer dependencies
 ui:
-  buildDependencies: true
-  externals:
-    react: react
-    react-dom: react-dom
-  packages:
-    babel-polyfill: "^6.26.0"
-    redux: "^3.7.2"
-    react-redux: "^5.0.6"
-    redux-form: "^7.1.1"
-    axios: "^0.16.2"
-    md5: "^2.2.1"
-    sanitize-html: "^1.14.1"
-    director: "^1.2.8"
-    redux-director: "^0.2.6"
-    redux-saga: "^0.16.0"
-    prop-types: "^15.6.0"
+  js:
+    buildDependencies: true
+    externals:
+      react: react
+      react-dom: react-dom
+    packages:
+      babel-polyfill: "^6.26.0"
+      redux: "^3.7.2"
+      react-redux: "^5.0.6"
+      redux-form: "^7.1.1"
+      axios: "^0.16.2"
+      md5: "^2.2.1"
+      sanitize-html: "^1.14.1"
+      director: "^1.2.8"
+      redux-director: "^0.2.6"
+      redux-saga: "^0.16.0"
+      prop-types: "^15.6.0"

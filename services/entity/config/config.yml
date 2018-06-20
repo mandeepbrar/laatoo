@@ -7,18 +7,19 @@ dependencies:
 description: This module provides an entity object services, channels, forms, views
   etc
 ui:
-  skipUIModules: true
-  externals:
-    dataadapter: dataadapter
-    uicommon: uicommon
-    reactwebcommon: reactwebcommon
-    babel-runtime: babel-runtime
-    babel-polyfill: babel-polyfill
-    react: react
-    prop-types: prop-types
-  packages:
-    react: "^16.1.0"
-    prop-types: "^15.6.0"
+  js:
+    skipUIModules: true
+    externals:
+      dataadapter: dataadapter
+      uicommon: uicommon
+      reactwebcommon: reactwebcommon
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      react: react
+      prop-types: prop-types
+    packages:
+      react: "^16.1.0"
+      prop-types: "^15.6.0"
 objects:
   EntityModule:
     type: module

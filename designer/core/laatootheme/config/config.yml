@@ -10,4 +10,5 @@ modules:
       className: laatoodashboard
       vertical: true
 ui:
-  skipUIModules: true
+  js:
+    skipUIModules: true

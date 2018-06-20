@@ -6,7 +6,8 @@ dependencies:
 description: 'This module provides a simple web application shell with /index 
   routes using the files provided in the files directory of the module. '
 ui:
-  skipUIModules: true
+  js:
+    skipUIModules: true
 modules:
   ui:
     module: ui

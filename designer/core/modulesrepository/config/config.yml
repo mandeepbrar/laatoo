@@ -16,12 +16,13 @@ modules:
       instance: ModuleDefinition
       dataservicefactory: mongodatabase
 ui:
-  skipUIModules: true
-  externals:
-    react: react
-    reactwebcommon: reactwebcommon
-    itemdetailview: itemdetailview
-    uicommon: uicommon
-    reactpages: reactpages
-  packages:
-    react: "^16.3.0"
+  js:
+    skipUIModules: true
+    externals:
+      react: react
+      reactwebcommon: reactwebcommon
+      itemdetailview: itemdetailview
+      uicommon: uicommon
+      reactpages: reactpages
+    packages:
+      react: "^16.3.0"

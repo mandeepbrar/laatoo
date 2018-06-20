@@ -1,7 +1,7 @@
 FROM laatoobase:latest
 
-RUN groupadd --gid 1000 node \
-  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
+RUN groupadd --gid 1100 node \
+  && useradd --uid 1100 --gid node --shell /bin/bash --create-home node
 
 RUN NODE_VERSION='8.4.0' ARCH='x64' \
   && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.gz" \

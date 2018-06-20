@@ -5,18 +5,19 @@ dependencies:
   reactpages: ">=0.0.1"
 description: Module provides entity list field for forms
 ui:
-  skipUIModules: true
-  externals:
-    babel-runtime: babel-runtime
-    babel-polyfill: babel-polyfill
-    redux: redux
-    redux-form: redux-form
-    reactpages: reactpages
-    react: react
-    react-redux: react-redux
-    react-dom: react-dom
-    redux-saga: redux-saga
-    reactwebcommon: reactwebcommon
-    uicommon: uicommon
-  packages:
-    react: "^16.1.0"
+  js:
+    skipUIModules: true
+    externals:
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      redux: redux
+      redux-form: redux-form
+      reactpages: reactpages
+      react: react
+      react-redux: react-redux
+      react-dom: react-dom
+      redux-saga: redux-saga
+      reactwebcommon: reactwebcommon
+      uicommon: uicommon
+    packages:
+      react: "^16.1.0"

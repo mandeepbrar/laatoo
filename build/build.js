@@ -68,14 +68,16 @@ function buildUI(nextTask) {
     return
   }
 
+  let jsUIconfig = modConfig.ui? modConfig.ui.js: null;
+
   if (!argv.skipUIModules) {
-    if (argv.forceUIModules || !modConfig.ui || !modConfig.ui.skipUIModules) {
-      getUIModules();
+    if (argv.forceUIModules || (jsUIconfig && !jsUIconfig.skipUIModules)) {
+      getJSUIModules(jsUIconfig);
     }
   }
   //getUIModules();
 
-  compileWebUI(function() {
+  let copyUIFiles = function() {
     log("Copying UI files")
     fs.mkdirsSync(filesFolder)
     if (fs.pathExistsSync(path.join(uiFolder, 'dist'))) {
@@ -83,7 +85,7 @@ function buildUI(nextTask) {
     }
     /*if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/index.js'))) {
       fs.copySync(path.join(uiFolder, "dist/scripts/index.js"), path.join(filesFolder, "webui.js"))
-    }
+    }uiFolderuiFolder
     if (fs.pathExistsSync(path.join(uiFolder, 'dist/scripts/vendor.js'))) {
       fs.copySync(path.join(uiFolder, "dist/scripts/vendor.js"), path.join(filesFolder, "vendor.js"))
     }
@@ -91,6 +93,10 @@ function buildUI(nextTask) {
       fs.copySync(path.join(uiFolder, "dist/css/app.css"), path.join(filesFolder, "app.css"))
     }*/
     nextTask()
+  }
+  
+  compileJSWebUI(jsUIconfig, function() { 
+    compileDartUI(copyUIFiles);
   });
 }
 /*
@@ -164,11 +170,20 @@ function copyUIRegistry(nextTask) {
   nextTask()
 }
 
-function compileWebUI(nextTask) {
+function compileDartUI(nextTask) {
+  nextTask()
+}
+
+function compileJSWebUI(jsUIconfig, nextTask) {
+  let jsuiFolder = path.join(uiFolder, 'js')
+  if(!fs.pathExistsSync(jsuiFolder)) {
+    nextTask()
+    return
+  }
 
   let configFunc = require(path.join(buildFolder, 'cfg/webpack.lib'))
 
-  let externals = modConfig.ui? modConfig.ui.externals:null
+  let externals = jsUIconfig? jsUIconfig.externals:null
 
   let options = {
     library: name,
@@ -176,13 +191,14 @@ function compileWebUI(nextTask) {
     externals: externals
   }
 
-  if(modConfig.ui && modConfig.ui.packages && modConfig.ui.buildDependencies ) {
-    options.dependencies = modConfig.ui.packages
+  if(jsUIconfig && jsUIconfig.packages ) {
+    options.dependencies = jsUIconfig.packages
   }
 
   let config = configFunc(options)
-  if (fs.pathExistsSync(path.join(uiFolder, 'build.js'))) {
-    let custom = require(path.join(uiFolder, 'build'))
+  
+  if (fs.pathExistsSync(path.join(jsuiFolder, 'build.js'))) {
+    let custom = require(path.join(jsuiFolder, 'build'))
     if (custom.config!=nil) {
       config = custom.config(config)
     }
@@ -283,10 +299,10 @@ function processPackageJson() {
   }
 }
 
-function getUIModules() {
+function getJSUIModules(jsUIconfig) {
   let silent = argv.verbose?"":"-s";
   if (argv.getBuildPackages) {
-    let wd = process.cwd();
+    let wd = process.cwd(); 
     process.chdir(nodeModulesFolder);
     let pkgsrc = path.join(buildFolder,'package.json')
     fs.copySync(pkgsrc, path.join(nodeModulesFolder,'package.json'))
@@ -306,10 +322,11 @@ function getUIModules() {
     process.chdir(wd);
   } catch(ex){}
 
-  if(modConfig.ui!=null && modConfig.ui.packages !=null) {
-    log("Installing package json from plugin", modConfig.ui.packages)
-    Object.keys(modConfig.ui.packages).forEach(function(pkg) {
-      let ver = modConfig.ui.packages[pkg]
+  if(jsUIconfig && jsUIconfig.packages !=null) {
+    log("Installing package json from plugin", jsUIconfig.packages)
+    Object.keys(jsUIconfig.packages).forEach(function(pkg) {
+      console.log("Getting package " + pkg)
+      let ver = jsUIconfig.packages[pkg]
       let command = sprintf('npm i %s --prefix %s %s@%s', silent, nodeModulesFolder, pkg, ver)
       console.log(command)
       if (shell.exec(command).code !== 0) {
@@ -350,28 +367,19 @@ function buildObjects(nextTask) {
 
   log("Compiling golang")
 
-  let files = fs.readdirSync(pluginFolder)
-  let goFilesPresent = false
-  for(var i=0;i<files.length; i++) {
-    if(files[i].endsWith('.go')) {
-      goFilesPresent = true
-      break;
-    }
-  }
-
-  if(!goFilesPresent) {
+  let serverSrcFolder = path.join(pluginFolder, "server")
+  if(!fs.pathExistsSync(serverSrcFolder)) {
     nextTask()
     return
   }
 
   let tmpObjsFolder = path.join("/plugins", "tmp", name, "objects")
 
-
   fs.removeSync(tmpObjsFolder)
 
   fs.mkdirsSync(tmpObjsFolder)
 
-  let command = sprintf('go build -buildmode=plugin -o %s/%s.so %s/*.go', tmpObjsFolder, name, pluginFolder)
+  let command = sprintf('go build -buildmode=plugin -o %s/%s.so %s/*.go', tmpObjsFolder, name, serverSrcFolder)
   if (shell.exec(command).code !== 0) {
     shell.echo('Golang build failed');
     shell.exit(1);
@@ -398,7 +406,7 @@ function autoGen(nextTask) {
   if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
     if (fs.pathExistsSync(entitiesFolder)) {
-      let files = fs.readdirSync(entitiesFolder)
+      let files = fs.readdirSync(pluginFolderentitiesFolder)
       for(var i=0;i<files.length; i++) {
         if(files[i].endsWith('.json')) {
           let jsonF = path.join(entitiesFolder, files[i])
