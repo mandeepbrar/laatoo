@@ -2,6 +2,7 @@ var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var Handlebars = require('handlebars')
+var {log} = require('./utils');
 
 
 function collection(collection, name) {
@@ -112,7 +113,7 @@ function createManifest(entities, pluginFolder) {
     let gofile = template({})
     fs.writeFileSync(manifestpath, gofile)
   }
-  let objectspath = path.join(pluginFolder, "server", "objectsmanifest__.go")
+  let objectspath = path.join(pluginFolder, "server", "go", "objectsmanifest__.go")
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }

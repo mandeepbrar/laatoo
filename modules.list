@@ -30,7 +30,7 @@ gurmukhi laatoo/services/gurmukhi
 reactmaterialkit laatoo/services/reactmaterialkit
 reactbootstrapkit laatoo/services/reactbootstrapkit
 reactwebrouter laatoo/services/reactwebrouter
-
+websocket laatoo/services/websocket
 dashboardtheme laatoo/services/dashboardtheme
 laatooviews laatoo/services/laatooviews
 reactpages laatoo/services/reactpages

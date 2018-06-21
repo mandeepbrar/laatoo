@@ -1,0 +1,3 @@
+myfunc() {
+  return "My string";
+}
