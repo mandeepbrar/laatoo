@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/twinj/uuid"
 )
 
 type wsEngine struct {
@@ -48,13 +49,19 @@ func (eng *wsEngine) Initialize(ctx core.ServerContext, conf config.Config) erro
 		eng.codec = codecs.NewJsonCodec()
 	}
 
-	eng.rtr, _ = newRouter(ctx)
+	eng.rtr, _ = newRouter(ctx, eng)
 
 	eng.rootChannel = &wsChannel{name: eng.name, config: eng.conf, engine: eng}
 	err := eng.rootChannel.configure(ctx)
 	if err != nil {
-		return err
+		return errors.WrapError(ctx, err)
 	}
+
+	notifysvcName, ok := conf.GetString(ctx, "NotifierService")
+	if !ok {
+		notifysvcName = "WebClientNotifier"
+	}
+	eng.setupNotifierService(ctx, notifysvcName)
 
 	log.Debug(initCtx, "Initialized engine")
 	return nil
@@ -66,7 +73,8 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := eng.upgrader.Upgrade(w, r, nil) // error ignored for sake of simplicity
-
+		sessionId := uuid.NewV1().String()
+		eng.rtr.addConnection(ctx, sessionId, conn)
 		for {
 			// Read message from browser
 			msgType, msg, err := conn.ReadMessage()
@@ -89,5 +97,13 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 	if err != nil {
 		panic("ListenAndServe: " + err.Error())
 	}
+	return nil
+}
+
+func (eng *wsEngine) setupNotifierService(ctx core.ServerContext, objName string) error {
+	objLoader := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+	objLoader.RegisterObject(ctx, objName, func() interface{} {
+		return &NotifierService{engine: eng}
+	}, nil, nil)
 	return nil
 }

@@ -1,5 +1,6 @@
 version: 0.0.1
 description: Module provides font awesome icons
 ui:
-  packages:
-    font-awesome: "*"
+  js:
+    packages:
+      font-awesome: "^4.7.0"

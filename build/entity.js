@@ -2,6 +2,7 @@ var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var Handlebars = require('handlebars')
+var {log} = require('./utils');
 
 
 function collection(collection, name) {
@@ -78,7 +79,7 @@ function fields(fields) {
 function createEntity(entityJson, pluginFolder, filename) {
   let name = entityJson["name"]
   name = name? name +".go": filename.substring(0, filename.length-5)+".go"
-  let filepath = path.join(pluginFolder, name)
+  let filepath = path.join(pluginFolder, "server", "go", name)
   var buf = fs.readFileSync('./tpl/entitygocode.go.tpl');
   Handlebars.registerHelper('cacheable', cacheable);
   Handlebars.registerHelper('imports', imports);
@@ -105,14 +106,14 @@ function plugins(entities) {
 }
 
 function createManifest(entities, pluginFolder) {
-  let manifestpath = path.join(pluginFolder, "manifest.go")
+  let manifestpath = path.join(pluginFolder, "server", "go", "manifest.go")
   if (!fs.pathExistsSync(manifestpath)) {
     var buf = fs.readFileSync('./tpl/manifest.go.tpl');
     var template = Handlebars.compile(buf.toString());
     let gofile = template({})
     fs.writeFileSync(manifestpath, gofile)
   }
-  let objectspath = path.join(pluginFolder, "objectsmanifest__.go")
+  let objectspath = path.join(pluginFolder, "server", "go", "objectsmanifest__.go")
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }

@@ -12,3 +12,9 @@ type rpcResponse struct {
 	Result  interface{} `json:"result"`
 	Id      string      `json:"id"`
 }
+
+type rpcNotification struct {
+	Jsonrpc string      `json:"jsonrpc"`
+	Data    interface{} `json:"data"`
+	Id      string      `json:"id"`
+}

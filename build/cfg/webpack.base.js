@@ -9,11 +9,12 @@ module.exports = {
   resolve: {
      modules: [
        './src',
+       './js',
        '/nodemodules/node_modules'
      ],
      alias: {
      },
-     mainFields: ['browserify', 'browser', 'module', 'main'],
+     mainFields: ['browserify', 'browser', 'module', 'main', 'style'],
      extensions: ['.js', '.jsx', '.json', '.scss', '.css', '.sass']
   },
   resolveLoader: {

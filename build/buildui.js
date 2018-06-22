@@ -1,4 +1,4 @@
-let webpack = require('webpack')
+/*let webpack = require('webpack')
 let rimraf = require('rimraf')
 let fileExists = require('file-exists')
 var shell = require('shelljs');
@@ -102,3 +102,4 @@ fi
 tar -czvf tmp/$1.tar.gz -C tmp/ $1
 mkdir -p $3
 cp tmp/$1.tar.gz  $3
+*/

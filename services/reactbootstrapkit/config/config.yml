@@ -4,16 +4,17 @@ dependencies:
   reactwebcommon: ">=0.0.1"
 description: Module provides bootstrap ui kit for laatoo applications
 ui:
-  externals:
-    babel-runtime: babel-runtime
-    babel-polyfill: babel-polyfill
-    reactwebcommon: reactwebcommon
-    react: react
-    react-redux: react-redux
-    uicommon: uicommon
-    react-dom: react-dom
-  packages:
-    react: "^16.1.0"
-    react-dom: "^16.1.0"
-    react-redux: "^5.0.6"
-    react-bootstrap: "^0.31.0"
+  js:
+    externals:
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      reactwebcommon: reactwebcommon
+      react: react
+      react-redux: react-redux
+      uicommon: uicommon
+      react-dom: react-dom
+    packages:
+      react: "^16.1.0"
+      react-dom: "^16.1.0"
+      react-redux: "^5.0.6"
+      react-bootstrap: "^0.31.0"

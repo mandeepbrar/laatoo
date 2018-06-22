@@ -3,7 +3,8 @@ dependencies: {}
 description: 'Module provides gurmukhi keymap '
 objects: {}
 ui:
-  skipUIModules: true
-  externals:
-    react: react
-  packages: {}
+  js:
+    skipUIModules: true
+    externals:
+      react: react
+    packages: {}
