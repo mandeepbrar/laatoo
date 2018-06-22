@@ -1,0 +1,41 @@
+@import 'reactwebcommon/css/app';
+
+.entityform {
+  .entityformfield {
+    @extend .w100;
+  }
+  .submitBtn {
+    @extend .ps10;
+  }
+}
+
+.entity {
+  @extend .ps10;
+  .entityarrayitem {
+    @extend .ma10;
+  }
+  .field {
+    @extend .row;
+    .name {
+      @extend .col-xs-4;
+    }
+  }
+}
+
+.entitylist {
+  .actionbar {
+    @extend .right, .p20;
+  }
+  .tablecell {
+    @extend .right, .p10;
+  }
+  .tableheading {
+    @extend  .bg-grey;
+  }
+  .oddindex {
+    @extend  .bg-lgrey;
+  }
+  .evenindex {
+    @extend  .bg-white;
+  }
+}
