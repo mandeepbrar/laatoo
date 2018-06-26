@@ -1,6 +1,6 @@
 package log
 
-import slog "laatoo/sdk/log"
+import slog "laatoo/sdk/server/log"
 
 func GetLevel(level string) int {
 	switch level {

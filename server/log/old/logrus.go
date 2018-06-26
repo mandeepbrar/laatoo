@@ -5,7 +5,7 @@ package log
 /*
 import (
 	"github.com/Sirupsen/logrus"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 )
 
 func NewLogrus() LoggerInterface {

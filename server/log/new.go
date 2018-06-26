@@ -1,10 +1,10 @@
 package log
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
-	slog "laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	slog "laatoo/sdk/server/log"
 )
 
 func NewLogger(ctx core.ServerContext, name string) (*logger, *loggerProxy) {
@@ -15,7 +15,7 @@ func NewLogger(ctx core.ServerContext, name string) (*logger, *loggerProxy) {
 }
 
 /*
-func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement, parentElem core.ServerElement, conf config.Config, filters ...server.Filter) (*logger, *loggerProxy) {
+func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement, parentElem core.ServerElement, conf config.Config, filters ...elements.Filter) (*logger, *loggerProxy) {
 	var loggerInstance components.Logger
 	logconf, ok := conf.GetSubConfig(constants.CONF_LOGGING)
 	if ok {
@@ -33,7 +33,7 @@ func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerEl
 }
 */
 
-func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement) (server.ServerElementHandle, server.Logger) {
+func ChildLogger(ctx core.ServerContext, name string, parentLogger core.ServerElement) (elements.ServerElementHandle, elements.Logger) {
 	var loggerInstance components.Logger
 	if parentLogger != nil {
 		loggerInstance = parentLogger.(*loggerProxy).logger.loggerInstance

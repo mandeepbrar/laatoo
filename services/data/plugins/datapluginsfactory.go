@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	//"laatoosdk/log"
 )
 

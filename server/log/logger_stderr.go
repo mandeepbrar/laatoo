@@ -3,8 +3,8 @@
 package log
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/ctx"
 	"os"
 )
 

@@ -3,10 +3,10 @@ package http
 import (
 	//	"laatoo/core/common"
 
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/constants"
 	//"strconv"
 )
@@ -21,7 +21,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		return nil
 	}
 
-	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 	svc, err := svcManager.GetService(ctx, channel.svcName)
 	if err != nil {
 		return err
@@ -38,10 +38,10 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		bodyParam = body
 	}
 
-	var respHandler server.ServiceResponseHandler
+	var respHandler elements.ServiceResponseHandler
 	handler := ctx.GetServerElement(core.ServerElementServiceResponseHandler)
 	if handler != nil {
-		respHandler = handler.(server.ServiceResponseHandler)
+		respHandler = handler.(elements.ServiceResponseHandler)
 	} else {
 		respHandler = DefaultResponseHandler(ctx)
 	}

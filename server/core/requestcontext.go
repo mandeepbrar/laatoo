@@ -1,10 +1,10 @@
 package core
 
 import (
-	"laatoo/sdk/auth"
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 )
 
@@ -106,8 +106,8 @@ func (ctx *requestContext) DecrementInCache(bucket string, key string) error {
 }
 
 func (ctx *requestContext) PushTask(queue string, task interface{}) error {
-	if ctx.serverContext.elements.taskManager != nil {
-		return ctx.serverContext.elements.taskManager.PushTask(ctx, queue, task)
+	if ctx.serverContext.svrElements.taskManager != nil {
+		return ctx.serverContext.svrElements.taskManager.PushTask(ctx, queue, task)
 	}
 	log.Error(ctx, "No task manager", "queue", queue)
 	return nil
@@ -226,23 +226,23 @@ func (ctx *requestContext) GetStringMapValue(name string) (map[string]interface{
 }
 
 func (ctx *requestContext) HasPermission(perm string) bool {
-	if ctx.serverContext.elements.securityHandler != nil {
-		return ctx.serverContext.elements.securityHandler.HasPermission(ctx, perm)
+	if ctx.serverContext.svrElements.securityHandler != nil {
+		return ctx.serverContext.svrElements.securityHandler.HasPermission(ctx, perm)
 	}
 	return false //ctx.serverContext.HasPermission(ctx, perm)
 }
 
 func (ctx *requestContext) SendSynchronousMessage(msgType string, data interface{}) error {
-	if ctx.serverContext.elements.rulesManager != nil {
-		return ctx.serverContext.elements.rulesManager.SendSynchronousMessage(ctx, msgType, data)
+	if ctx.serverContext.svrElements.rulesManager != nil {
+		return ctx.serverContext.svrElements.rulesManager.SendSynchronousMessage(ctx, msgType, data)
 	}
 	return nil
 }
 
 func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
-	if ctx.serverContext.elements.msgManager != nil {
+	if ctx.serverContext.svrElements.msgManager != nil {
 		go func(ctx *requestContext, topic string, message interface{}) {
-			err := ctx.serverContext.elements.msgManager.Publish(ctx, topic, message)
+			err := ctx.serverContext.svrElements.msgManager.Publish(ctx, topic, message)
 			if err != nil {
 				log.Error(ctx, err.Error())
 			}

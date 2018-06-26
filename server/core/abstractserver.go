@@ -1,10 +1,10 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/log"
 )
 
 const (
@@ -15,48 +15,48 @@ const (
 type abstractserver struct {
 	name string
 
-	objectLoader       server.ObjectLoader
-	objectLoaderHandle server.ServerElementHandle
+	objectLoader       elements.ObjectLoader
+	objectLoaderHandle elements.ServerElementHandle
 
-	channelManager       server.ChannelManager
-	channelManagerHandle server.ServerElementHandle
+	channelManager       elements.ChannelManager
+	channelManagerHandle elements.ServerElementHandle
 
-	factoryManager       server.FactoryManager
-	factoryManagerHandle server.ServerElementHandle
+	factoryManager       elements.FactoryManager
+	factoryManagerHandle elements.ServerElementHandle
 
-	serviceManager       server.ServiceManager
-	serviceManagerHandle server.ServerElementHandle
+	serviceManager       elements.ServiceManager
+	serviceManagerHandle elements.ServerElementHandle
 
-	securityHandler       server.SecurityHandler
-	securityHandlerHandle server.ServerElementHandle
+	securityHandler       elements.SecurityHandler
+	securityHandlerHandle elements.ServerElementHandle
 
-	messagingManager       server.MessagingManager
-	messagingManagerHandle server.ServerElementHandle
+	messagingManager       elements.MessagingManager
+	messagingManagerHandle elements.ServerElementHandle
 
-	moduleManager       server.ModuleManager
-	moduleManagerHandle server.ServerElementHandle
+	moduleManager       elements.ModuleManager
+	moduleManagerHandle elements.ServerElementHandle
 
-	taskManager       server.TaskManager
-	taskManagerHandle server.ServerElementHandle
+	taskManager       elements.TaskManager
+	taskManagerHandle elements.ServerElementHandle
 
-	rulesManager       server.RulesManager
-	rulesManagerHandle server.ServerElementHandle
+	rulesManager       elements.RulesManager
+	rulesManagerHandle elements.ServerElementHandle
 
-	cacheManager       server.CacheManager
-	cacheManagerHandle server.ServerElementHandle
+	cacheManager       elements.CacheManager
+	cacheManagerHandle elements.ServerElementHandle
 
-	sessionManager       server.SessionManager
-	sessionManagerHandle server.ServerElementHandle
+	sessionManager       elements.SessionManager
+	sessionManagerHandle elements.ServerElementHandle
 
 	//engines configured on the abstract server
-	engineHandles map[string]server.ServerElementHandle
+	engineHandles map[string]elements.ServerElementHandle
 	engineConf    map[string]config.Config
-	engines       map[string]server.Engine
+	engines       map[string]elements.Engine
 
 	properties map[string]interface{}
 
-	logger       server.Logger
-	loggerHandle server.ServerElementHandle
+	logger       elements.Logger
+	loggerHandle elements.ServerElementHandle
 
 	parent *abstractserver
 
@@ -71,8 +71,8 @@ func newAbstractServer(svrCtx *serverContext, name string, parent *abstractserve
 	as := &abstractserver{name: name, parent: parent, proxy: proxy, baseDir: baseDir, svrContext: svrCtx}
 	log.Trace(svrCtx, "Base directory set to ", "Name", baseDir)
 	svrCtx.Set(config.BASEDIR, baseDir)
-	as.engineHandles = make(map[string]server.ServerElementHandle)
-	as.engines = make(map[string]server.Engine)
+	as.engineHandles = make(map[string]elements.ServerElementHandle)
+	as.engines = make(map[string]elements.Engine)
 	as.engineConf = make(map[string]config.Config)
 	as.createNonConfComponents(svrCtx, name, parent, proxy)
 	/*	if err := as.installModules(svrCtx, baseDir); err != nil {

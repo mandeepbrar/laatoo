@@ -2,8 +2,8 @@ package common
 
 import (
 	"io/ioutil"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
 	"laatoo/sdk/utils"
 	"os"
 	"path/filepath"

@@ -1,0 +1,22 @@
+FROM golang:latest
+
+RUN mkdir /usr/local/newgo
+
+WORKDIR /usr/local/newgo
+
+RUN git clone https://go.googlesource.com/go
+
+WORKDIR /usr/local/newgo/go/src
+
+RUN ./make.bash
+
+RUN rm -fr /usr/local/go 
+
+RUN mv /usr/local/newgo/go /usr/local
+
+ENV GOPATH /go
+
+RUN go version
+
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 777 "$GOPATH"
+WORKDIR $GOPATH

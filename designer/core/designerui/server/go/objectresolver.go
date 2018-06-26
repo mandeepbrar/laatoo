@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 )
 
 type ObjectResolver struct {

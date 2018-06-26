@@ -1,10 +1,10 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 )
 
 //start application with object loader, factory manager, service manager
@@ -130,7 +130,7 @@ func (as *abstractserver) startEngines(ctx core.ServerContext) error {
 	engStartCtx := ctx.SubContext("Start Engines")
 	for engName, engineHandle := range as.engineHandles {
 		log.Error(ctx, "Starting engine*****", "name", engName)
-		go func(ctx core.ServerContext, engHandle server.ServerElementHandle, name string) {
+		go func(ctx core.ServerContext, engHandle elements.ServerElementHandle, name string) {
 			log.Info(ctx, "Starting engine*****", "name", name)
 			err := engHandle.Start(ctx)
 			if err != nil {

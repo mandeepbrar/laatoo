@@ -1,16 +1,16 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
 )
 
 type factoryManagerProxy struct {
 	manager *factoryManager
 }
 
-func (fm *factoryManagerProxy) GetFactory(ctx core.ServerContext, factoryName string) (server.Factory, error) {
+func (fm *factoryManagerProxy) GetFactory(ctx core.ServerContext, factoryName string) (elements.Factory, error) {
 	elem, ok := fm.manager.serviceFactoryStore[factoryName]
 	if ok {
 		return elem, nil

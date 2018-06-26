@@ -1,12 +1,12 @@
 package main
 
 import (
-	"laatoo/sdk/auth"
-	"laatoo/sdk/components/data"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/components/data"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/services/security/common"
 )
 

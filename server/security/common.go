@@ -2,9 +2,9 @@ package security
 
 import (
 	"fmt"
-	"laatoo/sdk/auth"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 )
 
 func hasPermission(ctx core.RequestContext, perm string, rolePermissions map[string]bool) bool {

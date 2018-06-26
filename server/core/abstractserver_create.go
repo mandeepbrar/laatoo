@@ -1,13 +1,13 @@
 package core
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/components/rules"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/components/rules"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -30,19 +30,19 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
 		objectLoaderHandle, objectLoader := newObjectLoader(objCreateCtx, name, proxy)
 		as.objectLoaderHandle = objectLoaderHandle
-		as.objectLoader = objectLoader.(server.ObjectLoader)
+		as.objectLoader = objectLoader.(elements.ObjectLoader)
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: objectLoader})
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
 		factoryManagerHandle, factoryManager := as.newFactoryManager(fmCreateCtx, name, proxy)
 		as.factoryManagerHandle = factoryManagerHandle
-		as.factoryManager = factoryManager.(server.FactoryManager)
+		as.factoryManager = factoryManager.(elements.FactoryManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementFactoryManager: factoryManager})
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
 		serviceManagerHandle, serviceManager := as.newServiceManager(smCreateCtx, name, proxy)
 		as.serviceManagerHandle = serviceManagerHandle
-		as.serviceManager = serviceManager.(server.ServiceManager)
+		as.serviceManager = serviceManager.(elements.ServiceManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementServiceManager: serviceManager})
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
@@ -76,25 +76,25 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		objCreateCtx := svrCtx.SubContext("Create Object Loader")
 		childLoaderHandle, childLoader := childLoader(objCreateCtx, name, loader, proxy)
 		as.objectLoaderHandle = childLoaderHandle
-		as.objectLoader = childLoader.(server.ObjectLoader)
+		as.objectLoader = childLoader.(elements.ObjectLoader)
 		svrCtx.setElements(core.ContextMap{core.ServerElementLoader: childLoader})
 
 		fmCreateCtx := svrCtx.SubContext("Create Factory Manager")
 		childFactoryManagerHandle, childFactoryManager := as.childFactoryManager(fmCreateCtx, name, factoryManager, proxy)
 		as.factoryManagerHandle = childFactoryManagerHandle
-		as.factoryManager = childFactoryManager.(server.FactoryManager)
+		as.factoryManager = childFactoryManager.(elements.FactoryManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementFactoryManager: childFactoryManager})
 
 		smCreateCtx := svrCtx.SubContext("Create Service Manager")
 		childServiceManagerHandle, childServiceManager := as.childServiceManager(smCreateCtx, name, serviceManager, proxy)
 		as.serviceManagerHandle = childServiceManagerHandle
-		as.serviceManager = childServiceManager.(server.ServiceManager)
+		as.serviceManager = childServiceManager.(elements.ServiceManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementServiceManager: childServiceManager})
 
 		cmCreateCtx := svrCtx.SubContext("Create Channel Manager")
 		childChanMgrHandle, childChannelMgr := childChannelManager(cmCreateCtx, name, channelMgr, proxy)
 		as.channelManagerHandle = childChanMgrHandle
-		as.channelManager = childChannelMgr.(server.ChannelManager)
+		as.channelManager = childChannelMgr.(elements.ChannelManager)
 		svrCtx.setElements(core.ContextMap{core.ServerElementChannelManager: childChannelMgr})
 
 		modCreateCtx := svrCtx.SubContext("Create Module Manager")
@@ -156,14 +156,14 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 	return nil
 }
 
-func (as *abstractserver) newServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) newServiceManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
 	sm := &serviceManager{name: name, parent: parentElem, servicesStore: make(map[string]*serviceProxy, 100), factoryManager: as.factoryManager}
 	smElem := &serviceManagerProxy{manager: sm}
 	sm.proxy = smElem
 	return sm, smElem
 }
 
-func (as *abstractserver) childServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childServiceManager(ctx core.ServerContext, name string, parentSvcMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	svcMgrProxy := parentSvcMgr.(*serviceManagerProxy)
 	svcMgr := svcMgrProxy.manager
 	store := make(map[string]*serviceProxy, len(svcMgr.servicesStore))
@@ -185,14 +185,14 @@ func (as *abstractserver) childServiceManager(ctx core.ServerContext, name strin
 	return sm, smElem
 }
 
-func (as *abstractserver) newFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) newFactoryManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
 	fm := &factoryManager{name: name, parent: parentElem, serviceFactoryStore: make(map[string]*serviceFactoryProxy, 30), svrref: as}
 	fmElem := &factoryManagerProxy{manager: fm}
 	fm.proxy = fmElem
 	return fm, fmElem
 }
 
-func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name string, parentFacMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	facMgrProxy := parentFacMgr.(*factoryManagerProxy)
 	facMgr := facMgrProxy.manager
 	store := make(map[string]*serviceFactoryProxy, len(facMgr.serviceFactoryStore))
@@ -215,16 +215,16 @@ func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name strin
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{name: name, channelStore: make(map[string]server.Channel, 10), parent: parentElem, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
+	cm := &channelManager{name: name, channelStore: make(map[string]elements.Channel, 10), parent: parentElem, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
 	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
 }
 
-func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	chanMgrProxy := parentChannelMgr.(*channelManagerProxy)
 	chanMgr := chanMgrProxy.manager
-	store := make(map[string]server.Channel, len(chanMgr.channelStore))
+	store := make(map[string]elements.Channel, len(chanMgr.channelStore))
 	for k, v := range chanMgr.channelStore {
 		allowed := true
 		for _, filter := range filters {
@@ -278,7 +278,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 	if (as.messagingManager == nil) && (parent != nil) && (parent.messagingManager != nil) {
 		childMsgMgrHandle, childMsgMgr := childMessagingManager(ctx, as.name, parent.messagingManager, nil)
 		as.messagingManagerHandle = childMsgMgrHandle
-		as.messagingManager = childMsgMgr.(server.MessagingManager)
+		as.messagingManager = childMsgMgr.(elements.MessagingManager)
 	}
 
 	return nil
@@ -307,7 +307,7 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 		log.Trace(ctx, "Creating security handler")
 		shElem, sh := newSecurityHandler(ctx, "Security Handler:"+as.name, as.proxy)
 		as.securityHandlerHandle = shElem
-		as.securityHandler = sh.(server.SecurityHandler)
+		as.securityHandler = sh.(elements.SecurityHandler)
 	}
 
 	if secConf != nil {
@@ -395,8 +395,8 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 
 func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Config) error {
 	cacheMgrCreateCtx := ctx.SubContext("Create Cache Manager")
-	var cacheMgrHandle server.ServerElementHandle
-	var cacheMgr server.CacheManager
+	var cacheMgrHandle elements.ServerElementHandle
+	var cacheMgr elements.CacheManager
 	if as.parent == nil || as.parent.cacheManager == nil {
 		cacheMgrHandle, cacheMgr = newCacheManager(cacheMgrCreateCtx, "Root")
 	} else {
@@ -413,13 +413,13 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 	return nil
 }
 
-func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config, engName string) (server.ServerElementHandle, server.Engine, error) {
+func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Config, engName string) (elements.ServerElementHandle, elements.Engine, error) {
 	enginetype, ok := engConf.GetString(ctx, constants.CONF_ENGINE_TYPE)
 	if !ok {
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
 	}
-	var engineHandle server.ServerElementHandle
-	var engine server.Engine
+	var engineHandle elements.ServerElementHandle
+	var engine elements.Engine
 	switch enginetype {
 	case constants.CONF_ENGINETYPE_HTTP:
 		engineHandle, engine = http.NewEngine(ctx, engName, engConf)
@@ -432,18 +432,18 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 	return engineHandle, engine, nil
 }
 
-func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]server.Module), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
+func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
+	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]elements.Module), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
 		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]string), moduleConf: make(map[string]config.Config), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
 }
 
-func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	modMgrProxy := parentModMgr.(*moduleManagerProxy)
 	modMgr := modMgrProxy.modMgr
-	modules := make(map[string]server.Module, len(modMgr.modules))
+	modules := make(map[string]elements.Module, len(modMgr.modules))
 	for k, v := range modMgr.modules {
 		modules[k] = v
 	}
@@ -469,13 +469,13 @@ func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string
 	return childModMgr, childModMgrProxy
 }
 
-func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
 	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem, provider: &metadataProvider{}}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }
 
-func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerElement, parent core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	objLdrProxy := parentLdr.(*objectLoaderProxy)
 	objLoader := objLdrProxy.loader
 	registry := make(map[string]core.ObjectFactory, len(objLoader.objectsFactoryRegister))
@@ -505,7 +505,7 @@ func newRulesManager(ctx core.ServerContext, name string) (*rulesManager, *rules
 }
 
 func newTaskManager(ctx core.ServerContext, name string) (*taskManager, *taskManagerProxy) {
-	tskMgr := &taskManager{name: name, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]server.Service, 10),
+	tskMgr := &taskManager{name: name, taskPublisherSvcs: make(map[string]components.TaskQueue, 10), taskProcessors: make(map[string]elements.Service, 10),
 		taskPublishers: make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10), taskProcessorNames: make(map[string]string, 10)}
 	tskElem := &taskManagerProxy{manager: tskMgr}
 	tskMgr.proxy = tskElem
@@ -526,7 +526,7 @@ func newSessionManager(ctx core.ServerContext, name string, conf config.Config) 
 	return sessionMgr, sessElem
 }
 
-func childCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...server.Filter) (*cacheManager, *cacheManagerProxy) {
+func childCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...elements.Filter) (*cacheManager, *cacheManagerProxy) {
 	cacheMgrProxy := parentCacheManager.(*cacheManagerProxy)
 	cacheMgr := cacheMgrProxy.manager
 	registeredCaches := make(map[string]components.CacheComponent, len(cacheMgr.registeredCaches))

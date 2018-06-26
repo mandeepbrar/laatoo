@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 
 	"github.com/garyburd/redigo/redis"
-	//"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	//"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"time"
 )
 

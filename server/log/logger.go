@@ -1,12 +1,12 @@
 package log
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	slog "laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	slog "laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -29,7 +29,7 @@ const (
 )
 
 type logger struct {
-	proxy          server.Logger
+	proxy          elements.Logger
 	loggerInstance components.Logger
 	name           string
 }

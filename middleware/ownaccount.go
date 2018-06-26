@@ -1,9 +1,9 @@
 package main
 
 import (
-	"laatoo/sdk/core"
-	//"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/core"
+	//"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 )
 
 const (

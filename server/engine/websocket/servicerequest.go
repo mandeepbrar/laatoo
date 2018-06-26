@@ -1,8 +1,8 @@
 package websocket
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 )
 
 func (channel *wsChannel) handleMessage(ctx core.RequestContext, msg *rpcRequest) {

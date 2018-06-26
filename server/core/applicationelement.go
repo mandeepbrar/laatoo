@@ -1,15 +1,15 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 )
 
 type applicationProxy struct {
 	app *application
 }
 
-func (proxy *applicationProxy) GetApplet(name string) (server.Applet, bool) {
+func (proxy *applicationProxy) GetApplet(name string) (elements.Applet, bool) {
 	applet, ok := proxy.app.applets[name]
 	return applet, ok
 }

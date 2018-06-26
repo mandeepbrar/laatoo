@@ -1,10 +1,10 @@
 package common
 
 //jwt "github.com/dgrijalva/jwt-go"
-//"laatoo/sdk/auth"
-//"laatoo/sdk/core"
-//"laatoo/sdk/errors"
-//	"laatoo/sdk/log"
+//"laatoo/sdk/server/auth"
+//"laatoo/sdk/server/core"
+//"laatoo/sdk/server/errors"
+//	"laatoo/sdk/server/log"
 //"time"
 
 const (

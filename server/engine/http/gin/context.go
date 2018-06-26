@@ -3,7 +3,7 @@ package gin
 import (
 	"io"
 	"io/ioutil"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

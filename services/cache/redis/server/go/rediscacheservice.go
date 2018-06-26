@@ -1,11 +1,11 @@
 package main
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	"laatoo/services/cache/common"
 
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/log"
 	"time"
 
 	"github.com/garyburd/redigo/redis"

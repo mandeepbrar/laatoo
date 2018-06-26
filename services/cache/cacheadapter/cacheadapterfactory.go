@@ -1,14 +1,14 @@
 package cacheadapter
 
 import (
-	"laatoo/sdk/log"
-	//"laatoo/sdk/components"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	//"laatoo/sdk/errors"
-	//"laatoo/sdk/log"
+	"laatoo/sdk/server/log"
+	//"laatoo/sdk/server/components"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	//"laatoo/sdk/server/errors"
+	//"laatoo/sdk/server/log"
 )
 
 const (

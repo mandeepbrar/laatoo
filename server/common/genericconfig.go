@@ -1,8 +1,8 @@
 package common
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/utils"
 )
 

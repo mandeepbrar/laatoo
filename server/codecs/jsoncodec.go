@@ -2,7 +2,7 @@ package codecs
 
 import (
 	"encoding/json"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/ctx"
 )
 
 type JsonCodec struct {

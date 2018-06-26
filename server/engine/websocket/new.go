@@ -1,13 +1,13 @@
 package websocket
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	//"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	//"laatoo/sdk/server/log"
+	"laatoo/sdk/server/elements"
 )
 
-func NewEngine(ctx core.ServerContext, name string, conf config.Config) (server.ServerElementHandle, server.Engine) {
+func NewEngine(ctx core.ServerContext, name string, conf config.Config) (elements.ServerElementHandle, elements.Engine) {
 	eng := &wsEngine{name: name, conf: conf}
 	proxy := &wsEngineProxy{engine: eng}
 	eng.proxy = proxy

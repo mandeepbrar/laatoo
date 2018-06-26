@@ -1,11 +1,11 @@
 package main
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/services/security/common"
 )
 
@@ -19,7 +19,7 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 type TokenValidationService struct {
 	core.Service
-	sechandler server.SecurityHandler
+	sechandler elements.SecurityHandler
 	authHeader string
 }
 
@@ -28,7 +28,7 @@ func (ls *TokenValidationService) Initialize(ctx core.ServerContext, conf config
 	if sechandler == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)
 	}
-	ls.sechandler = sechandler.(server.SecurityHandler)
+	ls.sechandler = sechandler.(elements.SecurityHandler)
 	authHeader := sechandler.GetProperty(config.AUTHHEADER)
 	if authHeader == nil {
 		return errors.ThrowError(ctx, common.AUTH_ERROR_INCORRECT_SECURITY_HANDLER)

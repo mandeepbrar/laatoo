@@ -1,6 +1,6 @@
 package core
 
-import "laatoo/sdk/core"
+import "laatoo/sdk/server/core"
 
 type serverProxy struct {
 	server *serverObject

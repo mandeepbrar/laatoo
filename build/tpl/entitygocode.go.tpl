@@ -2,7 +2,7 @@ package main
 
 import (
   {{#imports imports}}{{/imports}}
-  "laatoo/sdk/components/data"
+  "laatoo/sdk/server/components/data"
 )
 
 type {{#type name}}{{/type}}_Ref struct {

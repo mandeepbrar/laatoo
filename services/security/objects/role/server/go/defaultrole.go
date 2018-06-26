@@ -1,9 +1,9 @@
 package main
 
 import (
-	"laatoo/sdk/components/data"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/components/data"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 )
 
 var (

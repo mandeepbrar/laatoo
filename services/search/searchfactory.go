@@ -3,8 +3,8 @@ package search
 /*
 import (
 	"laatoo/framework/core/objects"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 )
 
 type SearchFactory struct {

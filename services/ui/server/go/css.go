@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"io/ioutil"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
 	"path"
 )
 

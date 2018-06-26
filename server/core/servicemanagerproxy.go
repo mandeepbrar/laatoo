@@ -1,15 +1,15 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 )
 
 type serviceManagerProxy struct {
 	manager *serviceManager
 }
 
-func (proxy *serviceManagerProxy) GetService(ctx core.ServerContext, serviceName string) (server.Service, error) {
+func (proxy *serviceManagerProxy) GetService(ctx core.ServerContext, serviceName string) (elements.Service, error) {
 	return proxy.manager.getService(ctx, serviceName)
 }
 

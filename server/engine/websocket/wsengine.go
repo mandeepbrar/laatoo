@@ -1,11 +1,11 @@
 package websocket
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"net/http"
@@ -18,7 +18,7 @@ type wsEngine struct {
 	name        string
 	address     string
 	path        string
-	proxy       server.Engine
+	proxy       elements.Engine
 	rtr         *router
 	rootChannel *wsChannel
 	conf        config.Config
@@ -101,7 +101,7 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 }
 
 func (eng *wsEngine) setupNotifierService(ctx core.ServerContext, objName string) error {
-	objLoader := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+	objLoader := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 	objLoader.RegisterObject(ctx, objName, func() interface{} {
 		return &NotifierService{engine: eng}
 	}, nil, nil)

@@ -2,10 +2,10 @@ package adapters
 
 /*
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	//	"laatoo/sdk/log"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	//	"laatoo/sdk/server/log"
+	"laatoo/sdk/server/errors"
 )
 
 type DefaultMethodFactory struct {

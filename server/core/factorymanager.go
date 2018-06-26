@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
@@ -20,7 +20,7 @@ type factoryManager struct {
 	name   string
 	svrref *abstractserver
 	parent core.ServerElement
-	proxy  server.FactoryManager
+	proxy  elements.FactoryManager
 	//store for service factory in an application
 	serviceFactoryStore map[string]*serviceFactoryProxy
 }

@@ -2,12 +2,12 @@ package core
 
 import (
 	"fmt"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -20,10 +20,10 @@ type moduleManager struct {
 	name             string
 	svrref           *abstractserver
 	parent           core.ServerElement
-	proxy            server.ModuleManager
+	proxy            elements.ModuleManager
 	modulesRepo      string
 	availableModules map[string]string
-	modules          map[string]server.Module
+	modules          map[string]elements.Module
 	installedModules map[string]*semver.Version
 	moduleConf       map[string]config.Config
 	loadedModules    map[string]*semver.Version

@@ -4,8 +4,8 @@ package log
 
 import (
 	"io"
-	"laatoo/sdk/components"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/ctx"
 	"log/syslog"
 )
 

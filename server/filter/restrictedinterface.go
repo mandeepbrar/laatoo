@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 	"reflect"
 )
 

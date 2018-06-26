@@ -2,7 +2,7 @@ package main
 
 import (
   
-  "laatoo/sdk/components/data"
+  "laatoo/sdk/server/components/data"
 )
 
 type Security_Ref struct {

@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"path"
@@ -58,7 +58,7 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 			return errors.TypeMismatch(ctx, "Module does not inherit from core.Module", mod.name)
 		}
 
-		ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+		ldr := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 		md, _ := ldr.GetMetaData(ctx, mod.objectName)
 		if md != nil {
 			inf, ok := md.(*moduleInfo)

@@ -3,8 +3,8 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	"laatoo/server/common"
 	"log"
 	"net/http"

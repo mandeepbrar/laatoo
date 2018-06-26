@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -99,7 +99,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		log.Debug(msginit, "Initialized messaging manager")
 	}
 
-	if as.sessionManagerHandle!=nil {
+	if as.sessionManagerHandle != nil {
 		sessinitctx := ctx.SubContext("Initialize session manager")
 		err := as.initializeSessionManager(sessinitctx, conf)
 		if err != nil {
@@ -150,7 +150,7 @@ func (as *abstractserver) initializeServicesCore(ctx *serverContext, conf config
 	return nil
 }
 
-func initializeChannelManager(ctx core.ServerContext, conf config.Config, channelManagerHandle server.ServerElementHandle) error {
+func initializeChannelManager(ctx core.ServerContext, conf config.Config, channelManagerHandle elements.ServerElementHandle) error {
 	chmgrconf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_CHANNELS)
 	if err != nil {
 		return err
@@ -194,7 +194,7 @@ func (as *abstractserver) initializeMessagingManager(ctx core.ServerContext, nam
 	return nil
 }
 
-func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle server.ServerElementHandle) error {
+func initializeFactoryManager(ctx core.ServerContext, conf config.Config, factoryManagerHandle elements.ServerElementHandle) error {
 	facConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SERVICEFACTORIES)
 	if err != nil {
 		return err
@@ -225,7 +225,7 @@ func (as *abstractserver) readProperties(ctx core.ServerContext) error {
 	return nil
 }
 
-func initializeServiceManager(ctx core.ServerContext, conf config.Config, serviceManagerHandle server.ServerElementHandle) error {
+func initializeServiceManager(ctx core.ServerContext, conf config.Config, serviceManagerHandle elements.ServerElementHandle) error {
 	svcConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SERVICES)
 	if err != nil {
 		return err
@@ -320,7 +320,7 @@ func (as *abstractserver) initializeSessionManager(ctx core.ServerContext, conf 
 		err := as.sessionManagerHandle.Initialize(sessMgrInitCtx, sesConf)
 		if err != nil {
 			return errors.WrapError(sessMgrInitCtx, err)
-		}	
+		}
 	}
 
 	log.Trace(ctx, "Session Manager Initialized")

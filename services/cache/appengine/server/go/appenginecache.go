@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 	"laatoo/services/cache/common"
 
 	"google.golang.org/appengine/memcache"

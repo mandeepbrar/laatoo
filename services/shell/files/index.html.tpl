@@ -14,6 +14,7 @@
   <script type="text/javascript" src="/vendor.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/app.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/services.{{var "uiapplication"}}.conf.js"></script>
+  <script type="text/javascript" src="/scripts/wasm_exec.js"></script>
 
 </body>
 </html>

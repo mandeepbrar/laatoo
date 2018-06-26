@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"reflect"
@@ -16,7 +16,7 @@ type serverService struct {
 	objectName  string
 	service     core.Service
 	conf        config.Config
-	factory     server.Factory
+	factory     elements.Factory
 	owner       *serviceManager
 	middleware  []*serverService
 	paramValues map[string]interface{}
@@ -43,7 +43,7 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 
 	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "fastjson": codecs.NewFastJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
 
-	ldr := ctx.GetServerElement(core.ServerElementLoader).(server.ObjectLoader)
+	ldr := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 	md, _ := ldr.GetMetaData(ctx, svc.objectName)
 	if md != nil {
 		inf, ok := md.(*serviceInfo)

@@ -1,7 +1,7 @@
 package codecs
 
 import (
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/ctx"
 
 	"github.com/ugorji/go/codec"
 )

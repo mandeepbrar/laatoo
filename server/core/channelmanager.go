@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
@@ -13,14 +13,14 @@ import (
 type channelManager struct {
 	name string
 
-	proxy server.ChannelManager
+	proxy elements.ChannelManager
 
 	parent core.ServerElement
 
 	secondPass map[string]config.Config
 
 	//store for service factory in an application
-	channelStore map[string]server.Channel
+	channelStore map[string]elements.Channel
 	channelConfs map[string]config.Config
 }
 
@@ -69,7 +69,7 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 	}
 
 	svcmgrStartCtx := ctx.(*serverContext)
-	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 
 	for chanName, channel := range chanMgr.channelStore {
 		svcName := channel.GetServiceName()
@@ -100,7 +100,7 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 }
 
 /*
-func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string, svc server.Service, channelConfig config.Config) error {
+func (cm *channelManagerProxy) Serve(ctx core.ServerContext, channelName string, svc elements.Service, channelConfig config.Config) error {
 	channel, ok := cm.manager.channelStore[channelName]
 	if ok {
 		return channel.Serve(ctx, svc, channelConfig)

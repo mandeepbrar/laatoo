@@ -1,10 +1,10 @@
 package main
 
 import (
-	"laatoo/sdk/components/data"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/server/components/data"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
 )
 
 type upsert struct {

@@ -2,11 +2,11 @@ package main
 
 import (
 	"io/ioutil"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"mime"
 	"net/http"
 	"os"

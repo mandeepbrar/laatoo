@@ -2,7 +2,7 @@
 
 package log
 
-import "laatoo/sdk/components"
+import "laatoo/sdk/server/components"
 
 func GetLogger(loggertype string, logformat string, loglevel int, name string) components.Logger {
 	var logger components.Logger

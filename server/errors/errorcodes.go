@@ -2,7 +2,7 @@ package errors
 
 import (
 	"fmt"
-	sdkerrors "laatoo/sdk/errors"
+	sdkerrors "laatoo/sdk/server/errors"
 )
 
 const (

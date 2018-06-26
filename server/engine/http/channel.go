@@ -1,10 +1,10 @@
 package http
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/log"
 )
 
 type httpChannelProxy struct {
@@ -19,7 +19,7 @@ func (channel *httpChannelProxy) GetServiceName() string {
 	return channel.channel.svcName
 }
 
-func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (server.Channel, error) {
+func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, channelConfig config.Config) (elements.Channel, error) {
 	log.Trace(ctx, "Creating child channel ", "Parent", channel.channel.name, "Name", name)
 	childChannel, err := channel.channel.child(ctx, name, channelConfig)
 	if err != nil {

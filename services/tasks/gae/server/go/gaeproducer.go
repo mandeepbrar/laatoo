@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
 
 	"google.golang.org/appengine/taskqueue"
 )
@@ -30,7 +30,7 @@ func (svc *GaeProducer) Describe(ctx core.ServerContext) error {
 func (svc *GaeProducer) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
-		shandler := sh.(server.SecurityHandler)
+		shandler := sh.(elements.SecurityHandler)
 		ah := shandler.GetProperty(config.AUTHHEADER)
 		if ah == nil {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
