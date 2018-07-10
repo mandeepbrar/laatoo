@@ -2,15 +2,15 @@ version: 0.0.1
 dependencies:
   staticfileserver: ">=0.0.1"
   filesystemstorage: ">=0.0.1"
-  ui: ">=0.0.1"
+  jsui: ">=0.0.1"
 description: 'This module provides a simple web application shell with /index 
   routes using the files provided in the files directory of the module. '
 ui:
   js:
     skipUIModules: true
 modules:
-  ui:
-    module: ui
+  jsui:
+    module: jsui
     settings:
       application: {{var "uiapplication"}}
       hotmodules: {{var "hotmodules"}}

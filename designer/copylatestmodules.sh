@@ -1,7 +1,7 @@
 LAATOO_MODULES_DIR=/home/mandeep/goprogs/src/laatoo/modules
 DESIGNER_MODULES_DIR=/home/mandeep/goprogs/src/laatoo/designer/modules
 cp $LAATOO_MODULES_DIR/filesystemstorage.tar.gz $LAATOO_MODULES_DIR/staticfileserver.tar.gz $LAATOO_MODULES_DIR/publicdirserver.tar.gz $LAATOO_MODULES_DIR/publicfilesserver.tar.gz \
-  $LAATOO_MODULES_DIR/dataadapter.tar.gz $LAATOO_MODULES_DIR/mongodatabase.tar.gz $LAATOO_MODULES_DIR/shell.tar.gz $LAATOO_MODULES_DIR/ui.tar.gz $DESIGNER_MODULES_DIR
+  $LAATOO_MODULES_DIR/dataadapter.tar.gz $LAATOO_MODULES_DIR/mongodatabase.tar.gz $LAATOO_MODULES_DIR/shell.tar.gz $LAATOO_MODULES_DIR/jsui.tar.gz $DESIGNER_MODULES_DIR
 cp $LAATOO_MODULES_DIR/user.tar.gz $LAATOO_MODULES_DIR/role.tar.gz $LAATOO_MODULES_DIR/localauth.tar.gz $LAATOO_MODULES_DIR/dblogin.tar.gz $DESIGNER_MODULES_DIR
 cp $LAATOO_MODULES_DIR/reactwebrouter.tar.gz $LAATOO_MODULES_DIR/reactapplication.tar.gz $LAATOO_MODULES_DIR/reactmaterialkit.tar.gz \
   $LAATOO_MODULES_DIR/dashboardtheme.tar.gz $LAATOO_MODULES_DIR/reactwebcommon.tar.gz $LAATOO_MODULES_DIR/uicommon.tar.gz \
