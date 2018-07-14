@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	searchsdk "laatoo/sdk/components/search"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	searchsdk "laatoo/sdk/server/components/search"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"reflect"
 	"strconv"
 

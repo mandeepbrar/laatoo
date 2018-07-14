@@ -7,8 +7,8 @@ import (
 	// import _ "github.com/jinzhu/gorm/dialects/sqlite"
 	// import _ "github.com/jinzhu/gorm/dialects/mssql
 
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	//"laatoosdk/log"
 )
 

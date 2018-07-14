@@ -8,6 +8,7 @@ var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
 var {buildGoObjects} = require('./buildgoserver');
 var {log} = require('./utils');
 var {compileDartUI} = require('./builddart');
+var {compileGoWASMUI} = require('./buildgowasm');
 
 function buildModule() {
   createTempDirectory(!(argv.skipUI || argv.skipObjects))
@@ -35,7 +36,7 @@ function buildUI(nextTask) {
   }
   
   compileJSWebUI(jsUIconfig, function() { 
-    compileDartUI(copyUIFiles);
+    compileGoWASMUI(copyUIFiles);
   });
 }
 

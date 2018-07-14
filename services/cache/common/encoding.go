@@ -1,7 +1,7 @@
 package common
 
 import (
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 
 	"github.com/ugorji/go/codec"
 )

@@ -3,11 +3,11 @@ package search
 /*
 import (
 	"laatoo/framework/core/objects"
-	"laatoo/sdk/components/search"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/components/search"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 )
 
 const (

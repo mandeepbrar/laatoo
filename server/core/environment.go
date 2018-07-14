@@ -1,25 +1,25 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/constants"
 )
 
 type environment struct {
 	*abstractserver
 
-	applications map[string]server.Application
+	applications map[string]elements.Application
 
 	server *serverObject
 }
 
 func newEnvironment(svrCtx *serverContext, name string, svr *serverObject, baseDir string) (*environment, *environmentProxy, error) {
 
-	env := &environment{server: svr, applications: make(map[string]server.Application, 5)}
+	env := &environment{server: svr, applications: make(map[string]elements.Application, 5)}
 	proxy := &environmentProxy{env: env}
 	abstractserver, err := newAbstractServer(svrCtx, name, svr.abstractserver, proxy, baseDir)
 	if err != nil {

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/components/rules"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/components/rules"
+	"laatoo/sdk/server/core"
 )
 
 type rulesManagerProxy struct {

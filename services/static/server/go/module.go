@@ -1,6 +1,6 @@
 package main
 
-import "laatoo/sdk/core"
+import "laatoo/sdk/server/core"
 
 const (
 	NAMED_FILES_SVC   = "named_files_service"

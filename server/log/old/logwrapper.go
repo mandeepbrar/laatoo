@@ -1,7 +1,7 @@
 package log
 
 import (
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 )
 
 type LogWrapper struct {

@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
@@ -19,10 +19,10 @@ const (
 type serviceManager struct {
 	name   string
 	parent core.ServerElement
-	proxy  server.ServiceManager
+	proxy  elements.ServiceManager
 	//store for service factory in an application
 	servicesStore  map[string]*serviceProxy
-	factoryManager server.FactoryManager
+	factoryManager elements.FactoryManager
 }
 
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -93,7 +93,7 @@ func (svcMgr *serviceManager) loadServicesFromFolder(ctx core.ServerContext, fol
 	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_SERVICES, true)
 }
 
-func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (server.Service, error) {
+func (svcMgr *serviceManager) getService(ctx core.ServerContext, serviceName string) (elements.Service, error) {
 	elem, ok := svcMgr.servicesStore[serviceName]
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_SERVICE, "Service Alias", serviceName)

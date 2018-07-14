@@ -1,9 +1,9 @@
 package core
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
-	//	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	//	"laatoo/sdk/server/elements"
 )
 
 type taskManagerProxy struct {

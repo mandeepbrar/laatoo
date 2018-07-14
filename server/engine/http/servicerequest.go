@@ -1,15 +1,15 @@
 package http
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/log"
 	"laatoo/server/engine/http/net"
 )
 
 type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}, bytes interface{}) (*core.Response, error)
 
-func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string, svc server.Service,
+func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string, svc elements.Service,
 	routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool,
 	bodyParamName string) (ServiceInvoker, error) {
 	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
@@ -54,7 +54,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 }
 
 /*
-func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, respHandler server.ServiceResponseHandler, method string, routename string,
+func (router *routerImpl) processStreamServiceRequest(ctx core.ServerContext, respHandler elements.ServiceResponseHandler, method string, routename string,
 	svc core.Service, serverElement core.ServerElement, routeParams map[string]string, staticValues map[string]string, headers map[string]string) core.ServiceFunc {
 	return func(webctx core.RequestContext) error {
 		log.Trace(webctx, "Received request ", "route", routename, "service", serverElement.GetName())

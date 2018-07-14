@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
 )
 
 type cacheManagerProxy struct {

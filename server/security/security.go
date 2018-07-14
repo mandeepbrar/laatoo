@@ -1,8 +1,8 @@
 package security
 
 import (
-	//	"laatoo/sdk/auth"
-	"laatoo/sdk/core"
+	//	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/core"
 	/*	"bytes"
 			"encoding/json"
 			"github.com/labstack/echo"

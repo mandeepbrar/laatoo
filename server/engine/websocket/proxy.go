@@ -1,15 +1,15 @@
 package websocket
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 )
 
 type wsEngineProxy struct {
 	engine *wsEngine
 }
 
-func (eng *wsEngineProxy) GetRootChannel(ctx core.ServerContext) server.Channel {
+func (eng *wsEngineProxy) GetRootChannel(ctx core.ServerContext) elements.Channel {
 	return &wsChannelProxy{channel: eng.engine.rootChannel}
 }
 

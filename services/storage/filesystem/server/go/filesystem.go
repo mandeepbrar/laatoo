@@ -2,9 +2,9 @@ package main
 
 import (
 	"io"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 	"os"
 	"path/filepath"
 

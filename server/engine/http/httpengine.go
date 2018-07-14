@@ -5,11 +5,11 @@ import (
 	"laatoo/server/engine/http/echo"
 	"laatoo/server/engine/http/gin"
 
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/engine/http/net"
 )
 
@@ -30,7 +30,7 @@ type httpEngine struct {
 	loadBalanced bool
 	leader       bool
 	//	lb *roundrobin.RoundRobin
-	proxy       server.Engine
+	proxy       elements.Engine
 	rootChannel *httpChannel
 	conf        config.Config
 	fwname      string
@@ -95,7 +95,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		return errors.RethrowError(engCtx, CORE_ERROR_INCORRECT_DELIVERY_CONF, err)
 	}*/
 	/*loaderCtx := ctx.GetElement(core.ServerElementLoader)
-	return facMgr.createServiceFactories(ctx, conf, loaderCtx.(server.ObjectLoader))*/
+	return facMgr.createServiceFactories(ctx, conf, loaderCtx.(elements.ObjectLoader))*/
 	log.Debug(initCtx, "Initialized engine")
 	return nil
 }

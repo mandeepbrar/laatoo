@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
@@ -16,11 +16,11 @@ type application struct {
 	env *environment
 
 	//all applets deployed on this server
-	applets map[string]server.Applet
+	applets map[string]elements.Applet
 }
 
 func newApplication(svrCtx *serverContext, name string, env *environment, baseDir string) (*application, *applicationProxy, error) {
-	app := &application{env: env, applets: make(map[string]server.Applet, 1)}
+	app := &application{env: env, applets: make(map[string]elements.Applet, 1)}
 	proxy := &applicationProxy{app: app}
 	abstractserver, err := newAbstractServer(svrCtx, name, env.abstractserver, proxy, baseDir)
 	if err != nil {
@@ -93,7 +93,7 @@ func (app *application) createApplets(ctx core.ServerContext, conf config.Config
 			return errors.RethrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, err)
 		}
 
-		applet, ok := obj.(server.Applet)
+		applet, ok := obj.(elements.Applet)
 		if !ok {
 			return errors.ThrowError(appletCreateCtx, errors.CORE_ERROR_BAD_CONF, "Not an applet", applprovider)
 		}

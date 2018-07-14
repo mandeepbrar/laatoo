@@ -3,10 +3,10 @@ package main
 import (
 	"io"
 	"laatoo/libraries/disintegration/imaging"
-	"laatoo/sdk/components"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"strconv"
 	"strings"
 )

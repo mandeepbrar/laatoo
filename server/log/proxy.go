@@ -1,8 +1,8 @@
 package log
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
 )
 
 type loggerProxy struct {

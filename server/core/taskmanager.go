@@ -2,32 +2,32 @@ package core
 
 import (
 	"encoding/json"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
 
 type taskManager struct {
 	name               string
-	proxy              server.TaskManager
+	proxy              elements.TaskManager
 	authHeader         string
-	shandler           server.SecurityHandler
+	shandler           elements.SecurityHandler
 	taskPublishers     map[string]string
 	taskPublisherSvcs  map[string]components.TaskQueue
 	taskConsumerNames  map[string]string
 	taskProcessorNames map[string]string
-	taskProcessors     map[string]server.Service
+	taskProcessors     map[string]elements.Service
 }
 
 func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config) error {
 	sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 	if sh != nil {
-		shandler := sh.(server.SecurityHandler)
+		shandler := sh.(elements.SecurityHandler)
 		tskMgr.shandler = shandler
 
 		val := shandler.GetProperty(config.AUTHHEADER)
@@ -111,7 +111,7 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	tskmgrStartCtx := ctx.SubContext("Start task manager")
-	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
 	for queueName, svcName := range tskMgr.taskPublishers {
 		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)

@@ -1,17 +1,17 @@
 package adapters
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/constants"
 )
 
 type ServiceAggregator struct {
 	core.Service
-	serviceMap map[string]server.Service
+	serviceMap map[string]elements.Service
 }
 
 func (svc *ServiceAggregator) Describe(ctx core.ServerContext) error {
@@ -23,9 +23,9 @@ func (svc *ServiceAggregator) Describe(ctx core.ServerContext) error {
 func (svc *ServiceAggregator) Start(ctx core.ServerContext) error {
 	c, _ := svc.GetConfiguration(ctx, constants.CONF_SERVICES)
 	svcConfig := c.(config.Config)
-	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 	svcs := svcConfig.AllConfigurations(ctx)
-	svc.serviceMap = make(map[string]server.Service)
+	svc.serviceMap = make(map[string]elements.Service)
 	for _, svcAlias := range svcs {
 		svcConf, _ := svcConfig.GetSubConfig(ctx, svcAlias)
 		name, _ := svcConf.GetString(ctx, "Name")

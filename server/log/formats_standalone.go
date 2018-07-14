@@ -5,8 +5,8 @@ package log
 import (
 	"bytes"
 	"fmt"
-	"laatoo/sdk/ctx"
-	slog "laatoo/sdk/log"
+	"laatoo/sdk/server/ctx"
+	slog "laatoo/sdk/server/log"
 	"strings"
 	"time"
 

@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"laatoo/sdk/components/data"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/components/data"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"strings"
 

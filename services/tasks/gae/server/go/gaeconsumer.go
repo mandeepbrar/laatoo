@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/log"
 )
 
 type taskQueue struct {
@@ -24,8 +24,8 @@ type GaeConsumer struct {
 	core.Service
 	queues      map[string]*taskQueue
 	authHeader  string
-	shandler    server.SecurityHandler
-	taskManager server.TaskManager
+	shandler    elements.SecurityHandler
+	taskManager elements.TaskManager
 }
 
 func (svc *GaeConsumer) Describe(ctx core.ServerContext) error {
@@ -35,7 +35,7 @@ func (svc *GaeConsumer) Describe(ctx core.ServerContext) error {
 }
 
 func (svc *GaeConsumer) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
+	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(elements.TaskManager)
 	return nil
 }
 

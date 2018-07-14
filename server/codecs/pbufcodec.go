@@ -2,7 +2,7 @@ package codecs
 
 import (
 	"fmt"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/ctx"
 
 	"github.com/golang/protobuf/proto"
 )

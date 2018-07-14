@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 	"net/http"
 
 	"goji.io/pat"

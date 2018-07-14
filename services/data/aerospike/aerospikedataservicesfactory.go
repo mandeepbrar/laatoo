@@ -3,9 +3,9 @@ package aerospike
 import (
 	"laatoo/framework/core/objects"
 	"laatoo/framework/services/data/common"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
 
 	"gopkg.in/mgo.v2"
 	//"laatoosdk/log"

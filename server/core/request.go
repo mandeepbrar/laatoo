@@ -1,7 +1,7 @@
 package core
 
 import (
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 )
 
 type request struct {

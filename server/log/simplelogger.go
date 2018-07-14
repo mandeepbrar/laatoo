@@ -1,9 +1,9 @@
 package log
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/ctx"
-	slog "laatoo/sdk/log"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/ctx"
+	slog "laatoo/sdk/server/log"
 )
 
 const (

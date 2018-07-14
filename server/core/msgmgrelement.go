@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 )
 
 type messagingManagerProxy struct {
@@ -39,7 +39,7 @@ func newMessagingManager(ctx core.ServerContext, name string, commSvcName string
 	return msgMgr, msgElem
 }
 
-func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, filters ...server.Filter) (server.ServerElementHandle, core.ServerElement) {
+func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	msgMgrProxy := parentMessageMgr.(*messagingManagerProxy)
 	msgMgr := msgMgrProxy.manager
 	store := make(map[string][]core.MessageListener, len(msgMgr.topicStore))

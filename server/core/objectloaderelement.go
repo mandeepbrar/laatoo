@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/ctx"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
 )
 
 type objectLoaderProxy struct {

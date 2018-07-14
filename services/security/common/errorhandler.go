@@ -2,14 +2,14 @@ package common
 
 import (
 	"fmt"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/server/errors"
 )
 
 /*
 import (
 	"fmt"
 	"laatoocore"
-	"laatoo/sdk/errors"
+	"laatoo/sdk/server/errors"
 	"net/http"
 )
 

@@ -1,12 +1,12 @@
 package core
 
 import (
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 )
@@ -15,7 +15,7 @@ type messagingManager struct {
 	name        string
 	commSvcName string
 	commSvc     components.PubSubComponent
-	proxy       server.MessagingManager
+	proxy       elements.MessagingManager
 	topicStore  map[string][]core.MessageListener
 }
 

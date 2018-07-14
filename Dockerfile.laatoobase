@@ -1,8 +1,12 @@
-FROM golang:latest
+FROM gonightly:latest
 
 COPY getpackages.sh .
 
 RUN ./getpackages.sh
+
+COPY getwasmpackages.sh .
+
+RUN ./getwasmpackages.sh
 
 RUN useradd -u 1000 -ms /bin/bash -g root -G sudo -p laatoo laatoo
 

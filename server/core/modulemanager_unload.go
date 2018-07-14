@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/core"
-	"laatoo/sdk/log"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 )
 
 func (modMgr *moduleManager) UnloadModule(ctx core.ServerContext, modName string) error {

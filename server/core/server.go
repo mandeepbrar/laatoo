@@ -1,11 +1,11 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/adapters"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -19,7 +19,7 @@ type serverObject struct {
 	serverType string
 
 	//all environments deployed on this server
-	environments map[string]server.Environment
+	environments map[string]elements.Environment
 
 	//config for the server
 	conf config.Config
@@ -30,7 +30,7 @@ func newServer(ctx *serverContext, baseDir string) (*serverObject, error) {
 	ctx.Set(constants.RELATIVE_DIR, constants.CONF_APP_SERVER)
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
-	svr.environments = make(map[string]server.Environment, 5)
+	svr.environments = make(map[string]elements.Environment, 5)
 	//create a proxy for the server
 	svrElem := &serverProxy{server: svr}
 

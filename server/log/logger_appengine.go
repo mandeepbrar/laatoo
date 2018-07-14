@@ -3,8 +3,8 @@
 package log
 
 import (
-	"laatoo/sdk/core"
-	slog "laatoo/sdk/log"
+	"laatoo/sdk/server/core"
+	slog "laatoo/sdk/server/log"
 	stdlog "log"
 
 	glog "google.golang.org/appengine/log"

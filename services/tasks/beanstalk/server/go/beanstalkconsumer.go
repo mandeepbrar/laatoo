@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/components"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 
 	"github.com/prep/beanstalk"
 )
@@ -15,7 +15,7 @@ import (
 type BeanstalkConsumer struct {
 	core.Service
 	addr        string
-	taskManager server.TaskManager
+	taskManager elements.TaskManager
 	worker      func(ctx core.ServerContext, pool *beanstalk.ConsumerPool)
 }
 
@@ -29,7 +29,7 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 	/*
 		sh := ctx.GetServerElement(core.ServerElementSecurityHandler)
 		if sh != nil {
-			shandler := sh.(server.SecurityHandler)
+			shandler := sh.(elements.SecurityHandler)
 			svc.shandler = shandler
 			ah, ok := shandler.GetString(config.AUTHHEADER)
 			if !ok {
@@ -40,7 +40,7 @@ func (svc *BeanstalkConsumer) Initialize(ctx core.ServerContext, conf config.Con
 			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 		}*/
 
-	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(server.TaskManager)
+	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(elements.TaskManager)
 
 	/*queuesConf, ok := conf.GetSubConfig(config.CONF_TASK_QUEUES)
 	if ok {

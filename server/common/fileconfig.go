@@ -3,12 +3,12 @@ package common
 import (
 	"encoding/json"
 	"fmt"
-	"laatoo/sdk/config"
-	context "laatoo/sdk/ctx"
-	"laatoo/sdk/log"
+	"laatoo/sdk/common/config"
+	context "laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 //creates a new config object from file provided to it

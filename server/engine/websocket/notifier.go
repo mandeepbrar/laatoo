@@ -1,6 +1,6 @@
 package websocket
 
-import "laatoo/sdk/core"
+import "laatoo/sdk/server/core"
 
 type NotifierService struct {
 	core.Service

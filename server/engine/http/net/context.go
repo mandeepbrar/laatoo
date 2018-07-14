@@ -2,7 +2,7 @@ package net
 
 import (
 	"io"
-	"laatoo/sdk/core"
+	"laatoo/sdk/server/core"
 	"net/http"
 )
 

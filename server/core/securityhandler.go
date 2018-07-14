@@ -3,12 +3,12 @@ package core
 import (
 	"crypto/rsa"
 	"fmt"
-	"laatoo/sdk/auth"
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/constants"
 	"laatoo/server/security"
@@ -34,7 +34,7 @@ type securityHandler struct {
 	skipSecurity  bool
 }
 
-func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (server.ServerElementHandle, core.ServerElement) {
+func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
 	sh := &securityHandler{name: name}
 	proxy := &securityHandlerProxy{secHandler: sh}
 	return sh, proxy

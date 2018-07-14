@@ -1,11 +1,11 @@
 package websocket
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/core"
-	"laatoo/sdk/errors"
-	"laatoo/sdk/log"
-	"laatoo/sdk/server"
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/server/constants"
 )
 
@@ -14,10 +14,10 @@ type wsChannel struct {
 	disabled     bool
 	config       config.Config
 	svcName      string
-	svc          server.Service
+	svc          elements.Service
 	engine       *wsEngine
 	staticValues map[string]interface{}
-	respHandler  server.ServiceResponseHandler
+	respHandler  elements.ServiceResponseHandler
 }
 
 func (channel *wsChannel) configure(ctx core.ServerContext) error {
@@ -59,7 +59,7 @@ func (channel *wsChannel) serve(ctx core.ServerContext) error {
 	if !channel.disabled {
 		log.Trace(ctx, "Channel config", "name", channel.name, "config", channel.config)
 
-		svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(server.ServiceManager)
+		svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 		svc, err := svcManager.GetService(ctx, channel.svcName)
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func (channel *wsChannel) serve(ctx core.ServerContext) error {
 
 		handler := ctx.GetServerElement(core.ServerElementServiceResponseHandler)
 		if handler != nil {
-			channel.respHandler = handler.(server.ServiceResponseHandler)
+			channel.respHandler = handler.(elements.ServiceResponseHandler)
 		} else {
 			channel.respHandler = DefaultResponseHandler(ctx, channel.engine.codec)
 		}
