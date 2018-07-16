@@ -1,0 +1,20 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+description: Module provides pages laatoo applications
+ui:
+  js:
+    skipUIModules: true
+    externals:
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      react: react
+      react-redux: react-redux
+      redux: redux
+      reactwebcommon: reactwebcommon
+      prop-types: prop-types
+    packages:
+      react: "^16.3.0"
+      react-redux: "^5.0.6"
+      redux: "^3.7.2"
+      prop-types: "^15.6.0"

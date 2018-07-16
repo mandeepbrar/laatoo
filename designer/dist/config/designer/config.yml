@@ -32,7 +32,7 @@ modules:
   - dblogin
   - entity
   - user
-  - ui
+  - jsui
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage

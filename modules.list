@@ -22,7 +22,7 @@ gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
 entity laatoo/services/entity
 jsui laatoo/services/web/jsui
-uicommon laatoo/services/uicommon
+uicommon laatoo/services/web/uicommon
 reactwebcommon laatoo/services/reactwebcommon
 authui laatoo/services/web/react/authui
 reactapplication laatoo/services/web/react/reactapplication

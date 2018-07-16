@@ -1,0 +1,27 @@
+version: 0.0.1
+dependencies:
+  uicommon: ">=0.0.1"
+  reactwebcommon: ">=0.0.1"
+description: Module provides material ui kit for laatoo applications
+objects: {}
+ui:
+  js:    
+    externals:
+      babel-runtime: babel-runtime
+      babel-polyfill: babel-polyfill
+      redux-form: redux-form
+      react: react
+      reactwebcommon: reactwebcommon
+      react-redux: react-redux
+      react-dom: react-dom
+      uicommon: uicommon
+      prop-types: prop-types
+    packages:
+      react: "^16.1.0"
+      react-dom: "^16.1.0"
+      react-redux: "^5.0.6"
+      material-ui: "next"
+      redux-form: "^7.1.1"
+      react-tap-event-plugin: "*"
+      prop-types: "^15.6.0"
+      babel-runtime: "latest"

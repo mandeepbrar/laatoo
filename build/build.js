@@ -9,6 +9,7 @@ var {buildGoObjects} = require('./buildgoserver');
 var {log} = require('./utils');
 var {compileDartUI} = require('./builddart');
 var {compileGoWASMUI} = require('./buildgowasm');
+var {compileRustWASMUI} = require('./buildrustwasm');
 
 function buildModule() {
   createTempDirectory(!(argv.skipUI || argv.skipObjects))
@@ -35,8 +36,10 @@ function buildUI(nextTask) {
     nextTask()
   }
   
-  compileJSWebUI(jsUIconfig, function() { 
-    compileGoWASMUI(copyUIFiles);
+  compileJSWebUI(jsUIconfig, function() {     
+    compileRustWASMUI(function() { 
+      compileGoWASMUI(copyUIFiles)
+    });
   });
 }
 

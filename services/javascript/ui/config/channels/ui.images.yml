@@ -1,0 +1,6 @@
+parent: root
+service: ui.images
+method: GET
+path: "/images/*"
+paramvalues:
+  file: __0

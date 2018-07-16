@@ -1,0 +1,13 @@
+version: 0.0.1
+description: Module provides director router kit for laatoo react applications
+ui:
+  js:
+    skipUIModules: true
+    externals:
+      react: react
+      director: director
+      redux-director: redux-director
+    packages:
+      react: "^16.1.0"
+      director: "^1.2.8"
+      redux-director: "^0.2.6"

@@ -1,0 +1,9 @@
+[package]
+name = "hello-world"
+version = "0.1.0"
+authors = ["Mandeep Singh Brar <mandeep@virsainfomedia.com>"]
+
+[dependencies]
+
+[lib]
+crate-type = ["cdylib"]

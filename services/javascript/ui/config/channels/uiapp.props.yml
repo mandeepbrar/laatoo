@@ -1,0 +1,6 @@
+parent: root
+service:  uiapp.props{{var "application" "."}}
+method: GET
+path: "/properties/*"
+paramvalues:
+  file: __0
