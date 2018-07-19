@@ -1,0 +1,6 @@
+version: 0.0.1
+dependencies:
+  websocket: ">=0.0.1"
+description: Module provides web socket functionality
+ui:
+  dart:

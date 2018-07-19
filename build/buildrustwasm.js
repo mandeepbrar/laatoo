@@ -2,7 +2,7 @@ var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs-extra');
 var {log} = require('./utils');
-var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, packageFolder, release, uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var sprintf = require('sprintf-js').sprintf
 
 function compileRustWASMUI(nextTask) {
@@ -14,22 +14,47 @@ function compileRustWASMUI(nextTask) {
       return
     }
   
-    let tmpObjsFolder = path.join(pluginFolder, "ui", "dist", "wasm")
+    let tmpObjsFolder = path.join(pluginFolder, "ui", "rust", "build")
   
     fs.removeSync(tmpObjsFolder)
   
     fs.mkdirsSync(tmpObjsFolder)
 
+    let cargoHome = path.join(wasmRustSrcFolder, "cargohome")    
+
+    let target = "wasm32-unknown-unknown";
     console.log("folder exists", fs.pathExistsSync(tmpObjsFolder))
-  
-    let command = sprintf('cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target wasm32-unknown-unknown', tmpObjsFolder, wasmRustSrcFolder)
+    let mode = "debug"
+    let command = sprintf('CARGO_HOME=%s cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+    if(release) {
+      mode = "release";
+      command = sprintf('CARGO_HOME=%s cargo +nightly build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+    }
     console.log("Executing command ", command)
     if (shell.exec(command).code !== 0) {
       shell.echo('Rust wasm build failed');
       shell.exit(1);
     } else {
-      shell.echo('Rust wasm compilation successfull');
-      nextTask()
+      let wasmFolder = path.join(tmpObjsFolder, target, mode)
+      let wasmFile = path.join(wasmFolder, name + ".wasm")
+
+      let bindgenCmd = sprintf("wasm-bindgen %s --out-dir %s ", wasmFile, wasmFolder)
+      if (shell.exec(bindgenCmd).code !== 0) {
+        shell.echo('Rust wasm-bindgen failed');
+        shell.exit(1);
+      } else {
+        shell.echo('Rust wasm compilation successfull');
+        if(fs.pathExistsSync(wasmFile)) {
+          log("Copying Wasm files")
+          let distWasmFolder = path.join(pluginFolder, "ui", "dist", "wasm")
+          let distFolderFile = path.join(distWasmFolder, name + ".wasm")
+          fs.mkdirsSync(distWasmFolder)
+          fs.copySync(wasmFile, distFolderFile)
+        } else {
+          log("Wasm file not found")
+          shell.exit(1);
+        }  
+      }
     }    
     nextTask()
 }

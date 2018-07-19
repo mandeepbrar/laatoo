@@ -7,5 +7,5 @@ cp $LAATOO_MODULES_DIR/reactwebrouter.tar.gz $LAATOO_MODULES_DIR/reactapplicatio
   $LAATOO_MODULES_DIR/dashboardtheme.tar.gz $LAATOO_MODULES_DIR/reactwebcommon.tar.gz $LAATOO_MODULES_DIR/uicommon.tar.gz \
   $LAATOO_MODULES_DIR/subentity.tar.gz $LAATOO_MODULES_DIR/fontawesome.tar.gz $DESIGNER_MODULES_DIR
 cp $LAATOO_MODULES_DIR/reactforms.tar.gz $LAATOO_MODULES_DIR/laatooviews.tar.gz $LAATOO_MODULES_DIR/reactpages.tar.gz $LAATOO_MODULES_DIR/authui.tar.gz $LAATOO_MODULES_DIR/entity.tar.gz \
-  $LAATOO_MODULES_DIR/itemdetailview.tar.gz $DESIGNER_MODULES_DIR
+  $LAATOO_MODULES_DIR/itemdetailview.tar.gz $LAATOO_MODULES_DIR/websocket.tar.gz $LAATOO_MODULES_DIR/testsocket.tar.gz $DESIGNER_MODULES_DIR
 #cp $DESIGNER_MODULES_DIR/designerui.tar.gz $DESIGNER_MODULES_DIR/designerdependencies.tar.gz dist/config/designer/modules

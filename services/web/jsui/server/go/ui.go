@@ -24,6 +24,7 @@ const (
 	UI_SVC_ENABLED       = "ui"
 	FILES_DIR            = "files"
 	SCRIPTS_DIR          = "scripts"
+	WASM_DIR             = "wasm"
 	CSS_DIR              = "css"
 	CONF_FILE_UI         = "uifile"
 	CONF_FILE_DESC       = "descriptor"
@@ -34,6 +35,7 @@ const (
 	UI_DIR               = "ui"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
 	MERGED_CSS_FILE      = "mergedcssfile"
+	MERGED_WASM_FILE     = "mergedwasmjson"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
 	HOT_MODULES_REPO     = "hotmodulesrepo"
@@ -47,6 +49,7 @@ type UI struct {
 	mergeduifile       string
 	mergedvendorfile   string
 	mergeduidescriptor string
+	mergedwasmfile     string
 	mergedcssfile      string
 	application        string
 	propsExt           string
@@ -54,6 +57,7 @@ type UI struct {
 	uiFiles            map[string][]byte
 	vendorFiles        map[string][]byte
 	cssFiles           map[string][]byte
+	wasmFiles          map[string][]byte
 	modDeps            map[string][]string
 	insMods            map[string]string
 	hotloadMods        map[string]string
@@ -83,6 +87,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedvendorfile, _ = svc.GetStringConfiguration(ctx, MERGED_VENDOR_FILE)
 	svc.mergeduidescriptor, _ = svc.GetStringConfiguration(ctx, MERGED_SVCS_FILE)
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
+	svc.mergedwasmfile, _ = svc.GetStringConfiguration(ctx, MERGED_WASM_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
 	svc.hotloadMods, _ = svc.GetStringsMapConfiguration(ctx, CONF_HOT_MODULES)
@@ -92,6 +97,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
+	svc.wasmFiles = make(map[string][]byte)
 	svc.insSettings = make(map[string]config.Config)
 	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
@@ -116,7 +122,7 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		log.Debug(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
-
+	log.Error(ctx, "Module read", "mod name", modName)
 	modDevDir, hot := svc.hotloadMods[modName]
 
 	modFilesDir := ""
@@ -127,22 +133,25 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 	}
 	_, modRead := svc.uiFiles[modName]
 	if !modRead {
+
+		modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
+		if ok {
+			svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
+		}
+
 		uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
+
+		if hot {
+			log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
+			svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
+		}
+
 		ok, _, _ = utils.FileExists(uifile)
 		if ok {
 			cont, err := ioutil.ReadFile(uifile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			if hot {
-				log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
-				svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
-			}
-			modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
-			if ok {
-				svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
-			}
-
 			ui, ok := modConf.GetSubConfig(ctx, "ui")
 			if ok {
 				pkgs, ok := ui.GetSubConfig(ctx, "packages")
@@ -178,6 +187,17 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 				return errors.WrapError(ctx, err)
 			}
 			svc.cssFiles[modName] = cont
+		}
+
+		wasmfile := path.Join(modFilesDir, WASM_DIR, modName+".wasm")
+		ok, _, _ = utils.FileExists(wasmfile)
+		if ok {
+			cont, err := ioutil.ReadFile(wasmfile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.wasmFiles[modName] = cont
+			log.Error(ctx, "Wasm file read", "Mod", modName)
 		}
 
 		descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)
@@ -250,6 +270,11 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	wasmdir := path.Join(baseDir, FILES_DIR, WASM_DIR)
+	err = os.MkdirAll(wasmdir, 0700)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	err = svc.writeVendorFile(ctx, baseDir)
 	if err != nil {
@@ -257,6 +282,11 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 	}
 
 	err = svc.writeCssFile(ctx, baseDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	err = svc.writeWasmFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

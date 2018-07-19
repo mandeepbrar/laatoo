@@ -20,6 +20,13 @@ channels:
   path: /app{{var "application" "."}}.css
   staticvalues:
     file: app.css
+- name: uiapp.wasm{{var "application" "."}}
+  parent: root
+  method: GET
+  service: uiapp.files{{var "application" "."}}
+  path: /wasm{{var "application" "."}}.json
+  staticvalues:
+    file: wasm.json
 - name: uiapp.vendor{{var "application" "."}}
   parent: root
   method: GET

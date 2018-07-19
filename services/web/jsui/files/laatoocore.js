@@ -22,6 +22,64 @@ Application.Register = function(regName,id,data) {
   }
   reg[id]=data;
 }
+
+function Base64Decoder(){
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  // Use a lookup table to find the index.
+  var lookup = new Uint8Array(256);
+  for (var i = 0; i < chars.length; i++) {
+    lookup[chars.charCodeAt(i)] = i;
+  }
+  return function(base64) {
+    var bufferLength = base64.length * 0.75,
+    len = base64.length, i, p = 0,
+    encoded1, encoded2, encoded3, encoded4;
+
+    if (base64[base64.length - 1] === "=") {
+      bufferLength--;
+      if (base64[base64.length - 2] === "=") {
+        bufferLength--;
+      }
+    }
+
+    var arraybuffer = new ArrayBuffer(bufferLength),
+    bytes = new Uint8Array(arraybuffer);
+
+    for (i = 0; i < len; i+=4) {
+      encoded1 = lookup[base64.charCodeAt(i)];
+      encoded2 = lookup[base64.charCodeAt(i+1)];
+      encoded3 = lookup[base64.charCodeAt(i+2)];
+      encoded4 = lookup[base64.charCodeAt(i+3)];
+
+      bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+      bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+      bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+    }
+
+    return arraybuffer;
+  };
+};
+
+Application.Base64Decoder = Base64Decoder();
+
+Application.LoadWasm = function(mod, str) {
+  try {
+    var decodedMod = Application.Base64Decoder(str);
+    WebAssembly.instantiate(decodedMod, Application.Modules).then(wasmModule => {        
+      Application.Modules[mod] = wasmModule.instance.exports;
+      console.log("Application after loading mod", mod, Application);
+      var testsock = Application.Modules["testsocket"];
+      if(testsock) {
+        console.log("testsocket", testsock);
+        if(testsock.my_func) {
+          alert(testsock.my_func());
+        }  
+      }
+    });  
+  }catch(ex) {
+    console.log("exception in instantiating wasm", mod, ex);
+  }
+}
 Application.AllRegItems = function(regName) {
   return Application.Registry[regName];
 }
@@ -70,8 +128,8 @@ function modDef(appname, ins, mod, settings) {
     return m;
   });
 }
-function appLoadingComplete(appname, propsurl, modsToInitialize) {
-  console.log("appLoadingComplete");
+function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL, wasmMods) {
+  console.log("appLoadingComplete", wasmMods);
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
@@ -96,6 +154,22 @@ function appLoadingComplete(appname, propsurl, modsToInitialize) {
     console.log("Initialized modules", _$);
     Window.InitializeApplication();
   }
+
+  if(wasmURL) {
+    console.log("fetching wasm url", wasmURL);
+    fetch(wasmURL).then( function(resp) {
+      console.log("gor response", resp);
+      resp.json().then(function(data) {
+        console.log("wasm fetched", wasmURL, data);
+        data.forEach(function(modStruct) {
+          console.log("wasm values====", modStruct);
+          Application.LoadWasm(modStruct.Name, modStruct.Data);
+        });
+      });
+    });  
+
+  }
+
   if(propsurl) {
     propsurl = window.location.origin + propsurl;
     fetch(propsurl).then(function(resp) {

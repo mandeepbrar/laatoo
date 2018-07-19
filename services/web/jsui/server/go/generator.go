@@ -80,11 +80,26 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
+	wasmMods := make([]string, 0)
+	for modName, _ := range svc.wasmFiles {
+		wasmMods = append(wasmMods, modName)
+	}
+	wasmModsStr := ""
+	if len(wasmMods) > 0 {
+		log.Error(ctx, "Joinging wasm mods", "mods", wasmMods)
+		wasmModsbyt, err := json.Marshal(wasmMods)
+		wasmModsStr = string(wasmModsbyt)
+		log.Error(ctx, "Joinging wasm mods", "wasmModsStr", wasmModsStr)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
 	/*settingsStr, err := json.Marshal(svc.insSettings)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}*/
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings);", modsList.String(), svc.application, "/properties/default."+svc.application+".json")
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, '%s', %s);", modsList.String(), svc.application, "/properties/default."+svc.application+".json", "/wasm."+svc.application+".json", wasmModsStr)
 	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)

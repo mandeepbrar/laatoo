@@ -36,6 +36,10 @@ objects:
     description: "Name of the merged css file to be created"
     type: string
     default: "app.css"
+   mergedwasmjson:
+    description: "Name of the merged wasm json file to be created"
+    type: string
+    default: "wasm.json"
    mergedvendorfile:
     description: "Name of the merged vendor file to be created"
     type: string

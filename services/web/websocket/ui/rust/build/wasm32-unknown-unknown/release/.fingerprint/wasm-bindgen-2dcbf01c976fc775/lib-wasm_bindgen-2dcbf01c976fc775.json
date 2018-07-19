@@ -1,0 +1,1 @@
+{"rustc":12950764475518772251,"features":"[\"default\", \"spans\", \"std\", \"wasm-bindgen-macro\"]","target":8512212714895841002,"profile":11452131567839272982,"path":16858867263492411441,"deps":[["wasm-bindgen-macro v0.2.11","wasm_bindgen_macro",9168986747749853360]],"local":[{"Precalculated":"0.2.11"}],"rustflags":[],"edition":"Edition2015"}

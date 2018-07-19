@@ -1,0 +1,54 @@
+[package]
+name = "wasm-bindgen"
+version = "0.2.11"
+authors = ["Alex Crichton <alex@alexcrichton.com>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+categories = ["wasm"]
+repository = "https://github.com/alexcrichton/wasm-bindgen"
+homepage = "https://github.com/alexcrichton/wasm-bindgen"
+documentation = "https://docs.rs/wasm-bindgen"
+description = """
+Easy support for interacting between JS and Rust.
+"""
+
+[lib]
+test = false
+doctest = false
+
+[features]
+default = ["spans", "std"]
+spans = ["wasm-bindgen-macro/spans"]
+std = []
+serde-serialize = ["serde", "serde_json", "std"]
+
+[dependencies]
+wasm-bindgen-macro = { path = "crates/macro", version = "=0.2.11" }
+serde = { version = "1.0", optional = true }
+serde_json = { version = "1.0", optional = true }
+
+[dev-dependencies]
+wasm-bindgen-cli-support = { path = "crates/cli-support", version = '=0.2.11' }
+
+[workspace]
+members = [
+  "crates/cli",
+  "examples/hello_world",
+  "examples/smorgasboard",
+  "examples/console_log",
+  "examples/dom",
+  "examples/math",
+  "examples/performance",
+  "examples/wasm-in-wasm",
+  "examples/closures",
+  "examples/no_modules",
+  "examples/add",
+  "examples/asm.js",
+  "examples/char",
+  "examples/import_js",
+]
+
+[profile.release]
+lto = true
+opt-level = 's'
+panic = 'abort'

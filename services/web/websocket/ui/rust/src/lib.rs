@@ -1,3 +1,23 @@
+/*#![feature(use_extern_macros, link_section, wasm_import_module)]
+
+extern crate wasm_bindgen;
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern {
+    fn alert(s: &str);
+
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(msg: &str);
+}*/
+
+/*
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ($($t:tt)*) => (log(&format!($($t)*)))
+}*/
+
 #[cfg(test)]
 mod tests {
     #[test]

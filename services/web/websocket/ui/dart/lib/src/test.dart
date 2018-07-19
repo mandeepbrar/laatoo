@@ -1,3 +1,0 @@
-testFunc() {
-  return "testfunc";
-}
