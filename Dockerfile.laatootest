@@ -4,6 +4,10 @@ COPY list /
 
 VOLUME /bin
 
+COPY cpplibs/* /usr/lib/
+
+COPY cpplibs.conf /etc/ld.so.conf.d/
+
 COPY dist/config /config
 
 ENV LAATOO_CONFIGDIR /config

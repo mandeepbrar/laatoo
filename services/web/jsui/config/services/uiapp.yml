@@ -3,7 +3,7 @@ servicemethod: ui
 ModuleManagerPlugin: true
 mergeduifile:  app{{var "application" "."}}.js
 mergedcssfile: app{{var "application" "."}}.css
-mergedwasmjson: wasm{{var "application" "."}}.json
+mergedwasm: app{{var "application" "."}}.wasm
 mergeduidescriptor: services{{var "application" "."}}.conf.js
 mergedvendorfile: vendor{{var "application" "."}}.js
 properties_ext: {{var "application" "."}}.json

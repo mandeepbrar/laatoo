@@ -80,7 +80,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
-	wasmMods := make([]string, 0)
+	/*wasmMods := make([]string, 0)
 	for modName, _ := range svc.wasmFiles {
 		wasmMods = append(wasmMods, modName)
 	}
@@ -93,13 +93,13 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-	}
+	}*/
 
 	/*settingsStr, err := json.Marshal(svc.insSettings)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}*/
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, '%s', %s);", modsList.String(), svc.application, "/properties/default."+svc.application+".json", "/wasm."+svc.application+".json", wasmModsStr)
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, {'%s':'%s'});", modsList.String(), svc.application, "/properties/default."+svc.application+".json", svc.application, "/app."+svc.application+".wasm")
 	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -246,3 +246,23 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
 	}
 	return err
 }
+
+/*
+/*Application.LoadWasm = function(mod, str) {
+  try {
+    var decodedMod = Application.Base64Decoder(str);
+    WebAssembly.instantiate(decodedMod, Application.Modules).then(wasmModule => {
+      Application.Modules[mod] = wasmModule.instance.exports;
+      console.log("Application after loading mod", mod, Application);
+      var testsock = Application.Modules["testsocket"];
+      if(testsock) {
+        console.log("testsocket", testsock);
+        if(testsock.my_func) {
+          alert(testsock.my_func());
+        }
+      }
+    });
+  }catch(ex) {
+    console.log("exception in instantiating wasm", mod, ex);
+  }
+}*/

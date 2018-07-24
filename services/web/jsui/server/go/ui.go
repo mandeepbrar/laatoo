@@ -35,7 +35,7 @@ const (
 	UI_DIR               = "ui"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
 	MERGED_CSS_FILE      = "mergedcssfile"
-	MERGED_WASM_FILE     = "mergedwasmjson"
+	MERGED_WASM_FILE     = "mergedwasm"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
 	HOT_MODULES_REPO     = "hotmodulesrepo"
@@ -57,7 +57,7 @@ type UI struct {
 	uiFiles            map[string][]byte
 	vendorFiles        map[string][]byte
 	cssFiles           map[string][]byte
-	wasmFiles          map[string][]byte
+	wasmFiles          map[string]string
 	modDeps            map[string][]string
 	insMods            map[string]string
 	hotloadMods        map[string]string
@@ -97,7 +97,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
-	svc.wasmFiles = make(map[string][]byte)
+	svc.wasmFiles = make(map[string]string)
 	svc.insSettings = make(map[string]config.Config)
 	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
@@ -192,12 +192,12 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		wasmfile := path.Join(modFilesDir, WASM_DIR, modName+".wasm")
 		ok, _, _ = utils.FileExists(wasmfile)
 		if ok {
-			cont, err := ioutil.ReadFile(wasmfile)
+			/*cont, err := ioutil.ReadFile(wasmfile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
-			}
-			svc.wasmFiles[modName] = cont
-			log.Error(ctx, "Wasm file read", "Mod", modName)
+			}*/
+			svc.wasmFiles[modName] = wasmfile
+			//log.Error(ctx, "Wasm file read", "Mod", modName)
 		}
 
 		descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)

@@ -24,9 +24,9 @@ channels:
   parent: root
   method: GET
   service: uiapp.files{{var "application" "."}}
-  path: /wasm{{var "application" "."}}.json
+  path: /app{{var "application" "."}}.wasm
   staticvalues:
-    file: wasm.json
+    file: app.wasm
 - name: uiapp.vendor{{var "application" "."}}
   parent: root
   method: GET

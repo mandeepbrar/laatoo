@@ -2,9 +2,7 @@ FROM gcr.io/distroless/base:latest
 
 COPY list /
 
-COPY dist/bin/laatoo /laatoo
-
-COPY dist/lib /lib
+COPY laatoo /laatoo
 
 COPY dist/config /config
 
@@ -12,4 +10,4 @@ ENV LAATOO_CONFIGDIR /config
 
 WORKDIR /
 
-ENTRYPOINT ["/laatoo"]
+ENTRYPOINT ["/list", "/"]

@@ -62,24 +62,13 @@ function Base64Decoder(){
 
 Application.Base64Decoder = Base64Decoder();
 
-Application.LoadWasm = function(mod, str) {
-  try {
-    var decodedMod = Application.Base64Decoder(str);
-    WebAssembly.instantiate(decodedMod, Application.Modules).then(wasmModule => {        
-      Application.Modules[mod] = wasmModule.instance.exports;
-      console.log("Application after loading mod", mod, Application);
-      var testsock = Application.Modules["testsocket"];
-      if(testsock) {
-        console.log("testsocket", testsock);
-        if(testsock.my_func) {
-          alert(testsock.my_func());
-        }  
-      }
-    });  
-  }catch(ex) {
-    console.log("exception in instantiating wasm", mod, ex);
-  }
+Application.LoadWasmURL = function(mod, url) {
+  WebAssembly.instantiateStreaming(fetch(url)).then(function(wasmModule){
+    Application.Modules[mod] = wasmModule.instance.exports;
+    console.log(Application);
+  });
 }
+
 Application.AllRegItems = function(regName) {
   return Application.Registry[regName];
 }
@@ -128,8 +117,8 @@ function modDef(appname, ins, mod, settings) {
     return m;
   });
 }
-function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL, wasmMods) {
-  console.log("appLoadingComplete", wasmMods);
+function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURLArr) {
+  console.log("appLoadingComplete", wasmURLArr);
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
@@ -154,20 +143,12 @@ function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL, wasmMo
     console.log("Initialized modules", _$);
     Window.InitializeApplication();
   }
-
-  if(wasmURL) {
-    console.log("fetching wasm url", wasmURL);
-    fetch(wasmURL).then( function(resp) {
-      console.log("gor response", resp);
-      resp.json().then(function(data) {
-        console.log("wasm fetched", wasmURL, data);
-        data.forEach(function(modStruct) {
-          console.log("wasm values====", modStruct);
-          Application.LoadWasm(modStruct.Name, modStruct.Data);
-        });
-      });
-    });  
-
+  
+  if(wasmURLArr) {
+    Object.keys(wasmURLArr).forEach(function(name){
+      let url = wasmURLArr[name];
+      Application.LoadWasmURL(name, url);
+    });
   }
 
   if(propsurl) {

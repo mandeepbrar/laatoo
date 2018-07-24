@@ -1,0 +1,3 @@
+[submodule "services/web/jsui/server/go/lib/binaryen"]
+	path = services/web/jsui/server/go/lib/binaryen
+	url = https://github.com/WebAssembly/binaryen
