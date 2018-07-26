@@ -1,21 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
+	"io/ioutil"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/utils"
 	"os"
 	"path"
-	"strings"
 )
 
 // #cgo LDFLAGS: -L ./lib/lib -lbinaryenmerge -lwasm -lasmjs -lemscripten-optimizer -lpasses -lir -lcfg -lsupport -lwasm -lstdc++ -lm -ldl -lbindgenlib
 // #include <stdlib.h>
 //char* mergeFiles(int argc, const char* argv[], const char* outputName);
-//int bindgen(char* input, char* out_dir);
+//int bindgen(char* input, char* wasm_var, char* out_dir);
 //static char** makeCharArray(int size) {
 //	return calloc(sizeof(char*), size);
 //}
@@ -114,7 +111,7 @@ func (svc *UI) writeWasmFile(ctx core.ServerContext, baseDir string) error {
 		}
 	}
 
-	res := C.bindgen(C.CString(wasmfile), C.CString(path.Join(baseDir, FILES_DIR, WASM_DIR)))
+	res := C.bindgen(C.CString(wasmfile), C.CString(svc.wasmModName), C.CString(path.Join(baseDir, FILES_DIR, WASM_DIR)))
 	if res < 0 {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST, "Error", "Wasm file bindgen failed")
 	}
@@ -131,7 +128,11 @@ func (svc *UI) writeWasmFile(ctx core.ServerContext, baseDir string) error {
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			} else {
-				js := []byte{}
+				js, err := ioutil.ReadAll(f)
+				if err != nil {
+					return err
+				}
+				/*js := []byte{}
 				jsBuf := bytes.NewBuffer(js)
 				jsRdr := bufio.NewScanner(f)
 				for jsRdr.Scan() {
@@ -144,8 +145,8 @@ func (svc *UI) writeWasmFile(ctx core.ServerContext, baseDir string) error {
 						return err
 					}
 				}
-				fmt.Println("writing script file", string(jsBuf.Bytes()))
-				//svc.uiFiles[svc.wasmModName] = jsBuf.Bytes()
+				fmt.Println("writing script file", string(jsBuf.Bytes()))*/
+				svc.uiFiles[svc.wasmModName] = js
 			}
 		}
 	}

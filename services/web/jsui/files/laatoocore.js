@@ -63,9 +63,11 @@ function Base64Decoder(){
 Application.Base64Decoder = Base64Decoder();
 
 Application.LoadWasmURL = function(mod, url) {
-  WebAssembly.instantiateStreaming(fetch(url), Application).then(function(wasmModule){
-    Application.Modules[mod] = wasmModule.instance.exports;
-    console.log(Application);
+  wasmFunc = window[mod];
+  console.log("mywasm func", wasmFunc);
+  wasmFunc(url).then(function() {
+    Application.Modules[mod] = wasmFunc;
+    console.log("application", Application);
   });
 }
 

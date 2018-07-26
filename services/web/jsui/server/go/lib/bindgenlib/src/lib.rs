@@ -8,13 +8,14 @@ use std::ffi::CStr;
 use wasm_bindgen_cli_support::Bindgen;
 
 #[no_mangle]
-pub extern "C" fn bindgen(input: *const c_char, out_dir: *const c_char) ->  i32 {
+pub extern "C" fn bindgen(input: *const c_char, wasm_var: *const c_char, out_dir: *const c_char) ->  i32 {
     let inp_str: &CStr = unsafe{CStr::from_ptr(input)};
     let outdir_str: &CStr = unsafe{CStr::from_ptr(out_dir)};
+    let wasmvar_str: &CStr = unsafe{CStr::from_ptr(wasm_var)};
     let mut b = Bindgen::new();
     let inp_name = inp_str.to_str().unwrap();
     println!("{}", inp_name);
-    b.input_path(inp_name);
+    b.input_path(inp_name).no_modules(true).no_modules_global(wasmvar_str.to_str().unwrap());
     /*
         .nodejs(args.flag_nodejs)
         .browser(args.flag_browser)
