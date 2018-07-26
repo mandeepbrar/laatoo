@@ -1,15 +1,21 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/utils"
+	"os"
 	"path"
+	"strings"
 )
 
-// #cgo LDFLAGS: -L ./lib/lib -lbinaryenmerge -lwasm -lasmjs -lemscripten-optimizer -lpasses -lir -lcfg -lsupport -lwasm -lstdc++ -lm
+// #cgo LDFLAGS: -L ./lib/lib -lbinaryenmerge -lwasm -lasmjs -lemscripten-optimizer -lpasses -lir -lcfg -lsupport -lwasm -lstdc++ -lm -ldl -lbindgenlib
 // #include <stdlib.h>
 //char* mergeFiles(int argc, const char* argv[], const char* outputName);
+//int bindgen(char* input, char* out_dir);
 //static char** makeCharArray(int size) {
 //	return calloc(sizeof(char*), size);
 //}
@@ -94,7 +100,7 @@ func (svc *UI) writeWasmFile(ctx core.ServerContext, baseDir string) error {
 		return errors.WrapError(ctx, err)
 	}*/
 
-	wasmfile := path.Join(baseDir, FILES_DIR, WASM_DIR, svc.mergedwasmfile)
+	wasmfile := path.Join(baseDir, FILES_DIR, WASM_DIR, "tmp.wasm")
 	first := true
 	for _, path := range svc.wasmFiles {
 		if first {
@@ -105,6 +111,42 @@ func (svc *UI) writeWasmFile(ctx core.ServerContext, baseDir string) error {
 			first = false
 		} else {
 			svc.mergeWasm(wasmfile, path)
+		}
+	}
+
+	res := C.bindgen(C.CString(wasmfile), C.CString(path.Join(baseDir, FILES_DIR, WASM_DIR)))
+	if res < 0 {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST, "Error", "Wasm file bindgen failed")
+	}
+
+	wasm_bg := path.Join(baseDir, FILES_DIR, WASM_DIR, "tmp_bg.wasm")
+
+	ex, _, _ := utils.FileExists(wasm_bg)
+	if ex {
+		if err := os.Rename(wasm_bg, path.Join(baseDir, FILES_DIR, WASM_DIR, svc.mergedwasmfile)); err != nil {
+			return err
+		} else {
+			f, err := os.Open(path.Join(baseDir, FILES_DIR, WASM_DIR, "tmp.js"))
+			defer f.Close()
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			} else {
+				js := []byte{}
+				jsBuf := bytes.NewBuffer(js)
+				jsRdr := bufio.NewScanner(f)
+				for jsRdr.Scan() {
+					txt := jsRdr.Text() // Println will add back the final '\n'
+					if strings.Contains(txt, "import * as wasm") {
+						txt = fmt.Sprintf("let wasm = require('%s');", svc.wasmModName)
+					}
+					_, err = fmt.Fprintln(jsBuf, txt)
+					if err != nil {
+						return err
+					}
+				}
+				fmt.Println("writing script file", string(jsBuf.Bytes()))
+				//svc.uiFiles[svc.wasmModName] = jsBuf.Bytes()
+			}
 		}
 	}
 

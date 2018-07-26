@@ -28,6 +28,8 @@ COPY makelaatoomodule.sh /make.sh
 
 ENV GOPATH=$GOPATH:/plugins
 
+ENV USER=laatoo
+
 COPY build/ /build
 
 WORKDIR /build

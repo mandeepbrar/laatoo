@@ -1,4 +1,16 @@
-#![feature(wasm_import_module)]
+#![feature(use_extern_macros)]
+
+extern crate wasm_bindgen;
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern {
+    fn alert(s: &str);
+
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(msg: &str);
+}
 
 #[cfg(test)]
 mod tests {
@@ -8,15 +20,9 @@ mod tests {
     }
 }
 
-#[wasm_import_module="websocket"]
-extern {
-    fn add_one(a: u32) -> u32 ;
-}
-
-
 
 #[no_mangle]
-pub extern fn my_func() -> u32 {
-    let mut myvar = unsafe { add_one(1) };
-    myvar
+pub extern fn my_func(a: u32) -> u32 {
+    alert("add one");
+    a + 1
 }

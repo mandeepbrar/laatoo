@@ -1,4 +1,4 @@
-/*#![feature(use_extern_macros, link_section, wasm_import_module)]
+#![feature(use_extern_macros)]
 
 extern crate wasm_bindgen;
 
@@ -10,7 +10,7 @@ extern {
 
     #[wasm_bindgen(js_namespace = console)]
     fn log(msg: &str);
-}*/
+}
 
 /*
 // A macro to provide `println!(..)`-style syntax for `console.log` logging.
@@ -29,5 +29,6 @@ mod tests {
 
 #[no_mangle]
 pub extern fn add_one(a: u32) -> u32 {
+    alert("add one");
     a + 1
 }

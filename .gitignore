@@ -8,4 +8,5 @@ log.txt
 tmp
 *.deb
 cargohome
-
+target
+build

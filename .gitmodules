@@ -1,3 +1,6 @@
 [submodule "services/web/jsui/server/go/lib/binaryen"]
 	path = services/web/jsui/server/go/lib/binaryen
 	url = https://github.com/WebAssembly/binaryen
+[submodule "services/web/jsui/server/go/lib/wasm-bindgen"]
+	path = services/web/jsui/server/go/lib/wasm-bindgen
+	url = https://github.com/rustwasm/wasm-bindgen

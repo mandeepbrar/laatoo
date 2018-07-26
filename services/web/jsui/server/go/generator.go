@@ -99,7 +99,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}*/
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, {'%s':'%s'});", modsList.String(), svc.application, "/properties/default."+svc.application+".json", svc.application, "/app."+svc.application+".wasm")
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, {'%s':'%s'});", modsList.String(), svc.application, "/properties/default."+svc.application+".json", svc.wasmModName, "/app."+svc.application+".wasm")
 	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)

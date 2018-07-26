@@ -1,0 +1,12 @@
+[package]
+name = "bindgenlib"
+version = "0.1.0"
+authors = ["Mandeep Singh Brar <mandeep@virsainfomedia.com>"]
+
+[dependencies]
+wasm-bindgen-cli-support = { path = "../wasm-bindgen/crates/cli-support"}
+wasm-bindgen-shared = { path = "../wasm-bindgen/crates/shared"}
+
+
+[lib]
+crate-type=["staticlib"]

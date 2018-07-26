@@ -8,6 +8,8 @@ debug = false
 lto = true
 
 [dependencies]
-wasm-bindgen="*"
+wasm-bindgen = {git = "https://github.com/rustwasm/wasm-bindgen"}
+
 
 [lib]
+crate-type = ["cdylib"]

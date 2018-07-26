@@ -25,7 +25,7 @@ function compileRustWASMUI(nextTask) {
     let target = "wasm32-unknown-unknown";
     console.log("folder exists", fs.pathExistsSync(tmpObjsFolder))
     let mode = "debug"
-    let command = sprintf('CARGO_HOME=%s cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+    let command = sprintf('CARGO_HOME=%s CARGO_INCREMENTAL=1 cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
     if(release) {
       mode = "release";
       command = sprintf('CARGO_HOME=%s cargo +nightly build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
@@ -37,6 +37,21 @@ function compileRustWASMUI(nextTask) {
     } else {
       let wasmFolder = path.join(tmpObjsFolder, target, mode)
       let wasmFile = path.join(wasmFolder, name + ".wasm")
+      if(fs.pathExistsSync(wasmFile)) {
+        log("Copying Wasm files")
+        let distWasmFolder = path.join(pluginFolder, "ui", "dist", "wasm")
+        let distFolderFile = path.join(distWasmFolder, name + ".wasm")
+        fs.mkdirsSync(distWasmFolder)
+        fs.copySync(wasmFile, distFolderFile)
+      } else {
+        log("Wasm file not found")
+        shell.exit(1);
+      }  
+
+/*      console.log("starting wasm bindgen")
+      let wasmFolder = path.join(tmpObjsFolder, target, mode)
+      let wasmFile = path.join(wasmFolder, name + ".wasm")
+      console.log("starting wasm bindgen",wasmFile)
 
       let bindgenCmd = sprintf("wasm-bindgen %s --out-dir %s ", wasmFile, wasmFolder)
       if (shell.exec(bindgenCmd).code !== 0) {
@@ -44,17 +59,8 @@ function compileRustWASMUI(nextTask) {
         shell.exit(1);
       } else {
         shell.echo('Rust wasm compilation successfull');
-        if(fs.pathExistsSync(wasmFile)) {
-          log("Copying Wasm files")
-          let distWasmFolder = path.join(pluginFolder, "ui", "dist", "wasm")
-          let distFolderFile = path.join(distWasmFolder, name + ".wasm")
-          fs.mkdirsSync(distWasmFolder)
-          fs.copySync(wasmFile, distFolderFile)
-        } else {
-          log("Wasm file not found")
-          shell.exit(1);
-        }  
-      }
+        let wasmBGFile = path.join(wasmFolder, name + "_bg.wasm")
+      }*/
     }    
     nextTask()
 }

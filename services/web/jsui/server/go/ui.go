@@ -67,6 +67,7 @@ type UI struct {
 	propertyFiles      map[string]interface{}
 	uiRegistry         map[string]map[string]string
 	watchers           []*fsnotify.Watcher
+	wasmModName        string
 }
 
 /*
@@ -105,6 +106,8 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.propertyFiles = make(map[string]interface{})
 	svc.requiredUIPkgs = utils.NewStringSet([]string{})
 	svc.uiRegistry = make(map[string]map[string]string)
+	svc.wasmModName = fmt.Sprintf("wasm_%s", svc.application)
+
 	//svc.uiDisplays = make(map[string]string)
 	return nil
 }

@@ -3,12 +3,13 @@ name = "testsocket"
 version = "0.1.0"
 authors = ["Mandeep Singh Brar <mandeep@virsainfomedia.com>"]
 
-[dependencies]
-
-
 [profile.release]
 debug = false
 lto = true
 
-[lib]
+[dependencies]
+wasm-bindgen = {git = "https://github.com/rustwasm/wasm-bindgen"}
 
+
+[lib]
+crate-type = ["cdylib"]
