@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern {
-    fn alert(s: &str);
+   // fn testalert(s: &str);
 
     #[wasm_bindgen(js_namespace = console)]
     fn log(msg: &str);
@@ -23,6 +23,7 @@ mod tests {
 
 #[no_mangle]
 pub extern fn my_func(a: u32) -> u32 {
-    alert("add one");
+ //   testalert("add one");
+    log("my func");
     a + 1
 }

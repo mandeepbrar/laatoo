@@ -20,10 +20,10 @@ dataadapter laatoo/services/data/dataadapter
 mongodatabase laatoo/services/data/mongo
 gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
-entity laatoo/services/entity
 jsui laatoo/services/web/jsui
 uicommon laatoo/services/web/uicommon
-reactwebcommon laatoo/services/reactwebcommon
+reactwebcommon laatoo/services/web/react/reactwebcommon
+entity laatoo/services/entity
 authui laatoo/services/web/react/authui
 reactapplication laatoo/services/web/react/reactapplication
 gurmukhi laatoo/services/gurmukhi

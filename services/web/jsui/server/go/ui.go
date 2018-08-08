@@ -58,6 +58,8 @@ type UI struct {
 	vendorFiles        map[string][]byte
 	cssFiles           map[string][]byte
 	wasmFiles          map[string]string
+	wasmImportFiles    map[string]string
+	wasmImportScript   []byte
 	modDeps            map[string][]string
 	insMods            map[string]string
 	hotloadMods        map[string]string
@@ -99,6 +101,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
 	svc.wasmFiles = make(map[string]string)
+	svc.wasmImportFiles = make(map[string]string)
 	svc.insSettings = make(map[string]config.Config)
 	svc.insMods = make(map[string]string)
 	svc.descriptorFiles = make(map[string][]byte)
@@ -195,13 +198,31 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		wasmfile := path.Join(modFilesDir, WASM_DIR, modName+".wasm")
 		ok, _, _ = utils.FileExists(wasmfile)
 		if ok {
-			/*cont, err := ioutil.ReadFile(wasmfile)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}*/
 			svc.wasmFiles[modName] = wasmfile
+			/*	cont, err := ioutil.ReadFile(wasmfile)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				svc.wasmFiles[modName] = cont*/
 			//log.Error(ctx, "Wasm file read", "Mod", modName)
 		}
+
+		wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
+		ok, _, _ = utils.FileExists(wasmimportsfile)
+		if ok {
+			svc.wasmImportFiles[modName] = wasmimportsfile
+		}
+		/*svc.wasmImportFiles[modName] = path.Join(modFilesDir, WASM_DIR,  modName+".js")
+		wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
+		ok, _, _ = utils.FileExists(wasmimportsfile)
+		if ok {
+			cont, err := ioutil.ReadFile(wasmimportsfile)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			svc.wasmImportFiles[modName] = cont
+			//log.Error(ctx, "Wasm file read", "Mod", modName)
+		}*/
 
 		descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)
 		ok, _, _ = utils.FileExists(descfile)

@@ -35,17 +35,31 @@ function compileRustWASMUI(nextTask) {
       shell.echo('Rust wasm build failed');
       shell.exit(1);
     } else {
+      shell.echo('Rust wasm compilation successfull');
       let wasmFolder = path.join(tmpObjsFolder, target, mode)
       let wasmFile = path.join(wasmFolder, name + ".wasm")
       if(fs.pathExistsSync(wasmFile)) {
-        log("Copying Wasm files")
-        let distWasmFolder = path.join(pluginFolder, "ui", "dist", "wasm")
-        let distFolderFile = path.join(distWasmFolder, name + ".wasm")
-        fs.mkdirsSync(distWasmFolder)
-        fs.copySync(wasmFile, distFolderFile)
-      } else {
-        log("Wasm file not found")
-        shell.exit(1);
+        console.log("starting wasm bindgen",wasmFile)
+        let bindgenCmd = sprintf("wasm-bindgen %s --no-modules --no-modules-global %s_wasm --out-dir %s ", wasmFile, name, wasmFolder)
+        if (shell.exec(bindgenCmd).code !== 0) {
+          shell.echo('Rust wasm-bindgen failed');
+          shell.exit(1);
+        } else {
+          let wasmBGFile = path.join(wasmFolder, name + "_bg.wasm")
+          if(fs.pathExistsSync(wasmBGFile)) {
+            log("Copying Wasm files")
+            let distWasmFolder = path.join(pluginFolder, "ui", "dist", "wasm")
+            let distFolderFile = path.join(distWasmFolder, name + ".wasm")
+            fs.mkdirsSync(distWasmFolder)
+            fs.copySync(wasmBGFile, distFolderFile)
+            let wasmJsFile = path.join(wasmFolder, name + ".js")
+            let distJSFile = path.join(distWasmFolder, name + ".js")
+            fs.copySync(wasmJsFile, distJSFile)
+          } else {
+            log("Wasm file not found")
+            shell.exit(1);
+          }
+        }
       }  
 
 /*      console.log("starting wasm bindgen")

@@ -10,9 +10,9 @@ files:
   app.css:
     cache: 'true'
     path: /css/app{{var "application" "."}}.css
-  app.wasm:
+  wasm.json:
     cache: 'true'
-    path: /wasm/app{{var "application" "."}}.wasm
+    path: /wasm/wasm{{var "application" "."}}.json
   vendor.js:
     cache: 'true'
     path:  /scripts/vendor{{var "application" "."}}.js

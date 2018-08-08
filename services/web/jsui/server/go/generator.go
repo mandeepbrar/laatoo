@@ -99,7 +99,11 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}*/
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, {'%s':'%s'});", modsList.String(), svc.application, "/properties/default."+svc.application+".json", svc.wasmModName, "/app."+svc.application+".wasm")
+	_, err = uiFileCont.Write(svc.wasmImportScript)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, '%s');", modsList.String(), svc.application, "/properties/default."+svc.application+".json", "/wasm."+svc.application+".json")
 	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -266,3 +270,21 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
     console.log("exception in instantiating wasm", mod, ex);
   }
 }*/
+
+/*
+Application.LoadWasmURL = function(mod, url) {
+  wasmFunc = window[mod];
+  console.log("mywasm func", wasmFunc);
+  let env = { memoryBase: 0, tableBase: 0, memory: new WebAssembly.Memory({initial: 20}), table: new WebAssembly.Table({initial: 0, element: 'anyfunc'})}
+  wasmFunc(url, {env: env}).then(function() {
+    Application.Modules[mod] = wasmFunc.wasm;
+    if(wasmFunc.wasm.add_one) {
+      console.log("ad one", wasmFunc.wasm.add_one, wasmFunc.wasm.add_one(4));
+    }
+    if(wasmFunc.wasm.my_func) {
+      console.log("my func", wasmFunc.wasm.add_one, wasmFunc.wasm.my_func(6));
+    }
+    console.log("application", Application);
+  });
+}
+*/

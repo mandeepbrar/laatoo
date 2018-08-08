@@ -62,13 +62,20 @@ function Base64Decoder(){
 
 Application.Base64Decoder = Base64Decoder();
 
-Application.LoadWasmURL = function(mod, url) {
-  wasmFunc = window[mod];
-  console.log("mywasm func", wasmFunc);
-  wasmFunc(url).then(function() {
-    Application.Modules[mod] = wasmFunc;
-    console.log("application", Application);
-  });
+Application.LoadWasm = function(mod, str) {
+  try {
+    var decodedMod = Application.Base64Decoder(str);
+    let wasmImports = {}
+    let wasmExp = wasmBGImports();
+    wasmImports['./'+mod] = wasmExp;
+    let importObject = Object.assign({}, Application.Modules, wasmImports);
+    WebAssembly.instantiate(decodedMod, importObject).then(wasmModule => {
+      Application.Modules[mod] = wasmModule.instance.exports;
+      wasmExp.__wasmInit(wasmModule.instance.exports);
+    });
+  }catch(ex) {
+    console.log("exception in instantiating wasm", mod, ex);
+  }
 }
 
 Application.AllRegItems = function(regName) {
@@ -119,8 +126,8 @@ function modDef(appname, ins, mod, settings) {
     return m;
   });
 }
-function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURLArr) {
-  console.log("appLoadingComplete", wasmURLArr);
+function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
+  console.log("appLoadingComplete", wasmURL);
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
@@ -146,10 +153,13 @@ function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURLArr) {
     Window.InitializeApplication();
   }
   
-  if(wasmURLArr) {
-    Object.keys(wasmURLArr).forEach(function(name){
-      let url = wasmURLArr[name];
-      Application.LoadWasmURL(name, url);
+  if(wasmURL) {
+    fetch(wasmURL).then(function(resp) {
+      resp.json().then(function(wasmURLArr) {
+        wasmURLArr.forEach(function(modItem){
+          Application.LoadWasm(modItem.Name, modItem.Data);
+        });  
+      });
     });
   }
 

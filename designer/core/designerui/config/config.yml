@@ -135,16 +135,18 @@ modules:
       instance: Server
       dataservicefactory: mongodatabase
 ui:
-  skipUIModules: true
-  externals:
-    react: react
-    uicommon: uicommon
-    redux-saga: redux-saga
-    redux: redux
-    react-redux: react-redux
-    reactpages: reactpages
-    sanitize-html: sanitize-html
-    prop-types: prop-types
-  packages:
-    react: "^16.3.0"
-    redux-saga: "^0.16.0"
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      redux-saga: redux-saga
+      redux: redux
+      react-redux: react-redux
+      reactpages: reactpages
+      sanitize-html: sanitize-html
+      prop-types: prop-types
+      axios: axios
+    packages:
+      react: "^16.3.0"
+      redux-saga: "^0.16.0"
+      axios: "^0.16.2"

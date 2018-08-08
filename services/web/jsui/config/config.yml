@@ -39,7 +39,7 @@ objects:
    mergedwasm:
     description: "Name of the merged wasm file to be created"
     type: string
-    default: "app.wasm"
+    default: "wasm.json"
    mergedvendorfile:
     description: "Name of the merged vendor file to be created"
     type: string
