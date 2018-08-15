@@ -1,0 +1,3 @@
+version: "0.0.1"
+dependencies:
+description: "Module provides support for laatoo on web browsers."

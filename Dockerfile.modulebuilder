@@ -22,7 +22,11 @@ USER laatoo
 
 RUN mkdir -p /go/src/laatoo
 
-COPY sdk /go/src/laatoo/sdk
+ENV LAATOO_SDK=/go/src/laatoo/sdk
+
+ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
+
+COPY sdk $LAATOO_SDK
 
 COPY makelaatoomodule.sh /make.sh
 

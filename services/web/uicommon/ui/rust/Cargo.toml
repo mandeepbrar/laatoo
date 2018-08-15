@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Mandeep Singh Brar <mandeep@virsainfomedia.com>"]
 
 [dependencies]
+laatoocore = { path = "/go/src/laatoo/sdk/client/rust/laatoocore" }
 
 [lib]
 crate-type = ["cdylib"]

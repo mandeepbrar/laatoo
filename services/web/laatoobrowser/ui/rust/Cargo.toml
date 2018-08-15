@@ -1,0 +1,15 @@
+[package]
+name = "laatoobrowser"
+version = "0.1.0"
+authors = ["Mandeep Singh Brar <mandeep@virsainfomedia.com>"]
+
+[profile.release]
+debug = false
+lto = true
+
+[dependencies]
+wasm-bindgen = {git = "https://github.com/rustwasm/wasm-bindgen"}
+
+
+[lib]
+crate-type = ["cdylib"]
