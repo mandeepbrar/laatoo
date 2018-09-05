@@ -8,7 +8,13 @@ debug = false
 lto = true
 
 [dependencies]
-wasm-bindgen = {git = "https://github.com/rustwasm/wasm-bindgen"}
+wasm-bindgen = {path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen"}
+futures = "0.1.20"
+js-sys = { path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/js-sys" }
+web-sys = { path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/web-sys" }
+laatoocore = { path = "/go/src/laatoo/sdk/client/rust/laatoocore" }
+wasm-bindgen-futures = "0.2.19"
+
 
 
 [lib]

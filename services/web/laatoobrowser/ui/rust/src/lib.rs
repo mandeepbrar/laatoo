@@ -1,9 +1,17 @@
 extern crate laatoocore;
 extern crate wasm_bindgen;
+extern crate web_sys;
+extern crate js_sys;
+extern crate futures;
+extern crate wasm_bindgen_futures;
+
 use wasm_bindgen::prelude::*;
 use futures::{future, Future};
-use wasm_bindgen_futures::future_to_promise;
-extern crate web_sys;
+//use wasm_bindgen_futures::future_to_promise;
+use web_sys::{Request as WSRequest, RequestInit, RequestMode, Response, Window};
+use laatoocore::{application::Application, request::Request, platform::Platform, platform::SuccessCallback, platform::ErrorCallback};
+use wasm_bindgen_futures::JsFuture;
+use js_sys::Promise;
 
 #[cfg(test)]
 mod tests {
@@ -23,16 +31,19 @@ extern "C" {
 pub struct Browser {
 }
 
-impl laatoocore::Platform for Browser {
+impl Platform for Browser {
 
-    fn http_call(&self, req request::Request, success success_callback, error error_callback) {
-        let mut request_options = web_sys::RequestInit::new();
+    fn http_call(&self, req: laatoocore::request::HttpRequest, success: SuccessCallback, error: ErrorCallback) {
+        let mut request_options = RequestInit::new();
         request_options.method(req.Method);
-        request_options.mode(web_sys::RequestMode::Cors);
-        let req_to_send = web_sys::Request::new_using_usv_str_and_request_init(req.URL, &request_options).unwrap();
-        req_to_send.headers().set("Accept", "application/vnd.github.v3+json").unwrap();
-        let req_promise = web_sys::window.fetch_using_request(&req);
-        let to_return = JsFuture::from(req_promise).and_then(|resp_value| {
+       // request_options.mode(web_sys::RequestMode::Cors);
+        let req_to_send = WSRequest::new_with_str_and_init(&req.URL, &request_options).unwrap();
+        for hdr in req.Headers {
+            req_to_send.headers().set(&hdr.Name, &hdr.Value).unwrap();
+        }
+        
+        let req_promise = Window::fetch_with_request(&req_to_send);
+        JsFuture::from(req_promise).and_then(|resp_value| {
                 // resp_value is a Response object
                 assert!(resp_value.is_instance_of::<Response>());
                 let resp: Response = resp_value.dyn_into().unwrap();
@@ -45,16 +56,21 @@ impl laatoocore::Platform for Browser {
                 JsFuture::from(json_value)
             }).and_then(|json| {
                 // Use serde to parse this into a struct
-                let branch_info: Branch = json.into_serde().unwrap();
+                //let branch_info: Branch = json.into_serde().unwrap();
 
                 // Send the Branch struct back to javascript as an object
-                future::ok(JsValue::from_serde(&branch_info).unwrap())
+                //future::ok(JsValue::from_serde(&branch_info).unwrap())
+                //success()
             });
 
     }
 
 }
 
+fn initialize() -> Box<Application> {
+        let app = Application{pf: Box::new(Browser{})};
+        Box::new(app)
+}
 
 /*
         use web_sys::{Request, RequestInit, RequestMode, Response, Window};

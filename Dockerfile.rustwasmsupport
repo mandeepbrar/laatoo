@@ -10,8 +10,14 @@ RUN curl https://sh.rustup.rs -sSf > $HOME/install.sh && \
 
 RUN rustup target add wasm32-unknown-unknown --toolchain nightly
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		libssl-dev \
+        zlib1g zlib1g-dev \
+	&& rm -rf /var/lib/apt/lists/*
+
 RUN cargo +nightly install wasm-bindgen-cli
 
 COPY getwasmpackages.sh .
 
 RUN ./getwasmpackages.sh
+
