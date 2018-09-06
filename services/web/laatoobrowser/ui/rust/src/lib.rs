@@ -6,6 +6,7 @@ extern crate futures;
 extern crate wasm_bindgen_futures;
 
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use futures::{future, Future};
 //use wasm_bindgen_futures::future_to_promise;
 use web_sys::{Request as WSRequest, RequestInit, RequestMode, Response, Window};
@@ -35,7 +36,7 @@ impl Platform for Browser {
 
     fn http_call(&self, req: laatoocore::request::HttpRequest, success: SuccessCallback, error: ErrorCallback) {
         let mut request_options = RequestInit::new();
-        request_options.method(req.Method);
+        request_options.method(&req.Method.to_string());
        // request_options.mode(web_sys::RequestMode::Cors);
         let req_to_send = WSRequest::new_with_str_and_init(&req.URL, &request_options).unwrap();
         for hdr in req.Headers {
@@ -54,14 +55,14 @@ impl Platform for Browser {
             }).and_then(|json_value: Promise| {
                 // convert this other promise into a rust Future
                 JsFuture::from(json_value)
-            }).and_then(|json| {
+            });/*.and_then(|json| {
                 // Use serde to parse this into a struct
                 //let branch_info: Branch = json.into_serde().unwrap();
 
                 // Send the Branch struct back to javascript as an object
                 //future::ok(JsValue::from_serde(&branch_info).unwrap())
                 //success()
-            });
+            });*/
 
     }
 

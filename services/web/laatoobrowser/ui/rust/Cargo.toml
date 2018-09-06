@@ -8,14 +8,25 @@ debug = false
 lto = true
 
 [dependencies]
-wasm-bindgen = {path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen"}
 futures = "0.1.20"
+wasm-bindgen = {path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen", features = ["serde-serialize"] }
 js-sys = { path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/js-sys" }
-web-sys = { path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/web-sys" }
 laatoocore = { path = "/go/src/laatoo/sdk/client/rust/laatoocore" }
-wasm-bindgen-futures = "0.2.19"
-
+wasm-bindgen-futures = { path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/futures" }
+serde = "^1.0.59"
+serde_derive = "^1.0.59"
 
 
 [lib]
 crate-type = ["cdylib"]
+
+[dependencies.web-sys]
+path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/web-sys"
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
+]

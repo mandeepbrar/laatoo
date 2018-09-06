@@ -28,6 +28,14 @@ ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
 COPY sdk $LAATOO_SDK
 
+USER root
+
+WORKDIR /go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/cli
+
+RUN cargo +nightly install --force 
+
+USER laatoo
+
 COPY makelaatoomodule.sh /make.sh
 
 ENV GOPATH=$GOPATH:/plugins
