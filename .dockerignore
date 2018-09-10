@@ -5,3 +5,5 @@ designer
 services
 dist/bin
 dist/lib
+sdk/client/rust/wasm-bindgen/target
+
