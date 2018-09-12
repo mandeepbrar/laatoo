@@ -21,10 +21,10 @@ extern "C" {
     static window: Window;
 }*/
 
-pub struct Browser {
+pub struct LaatooBrowser {
 }
 
-impl Platform for Browser {
+impl Platform for LaatooBrowser {
 
     fn http_call(&self, url: String, method: http::HttpMethod, req: http::HttpRequest, success: SuccessCallback, error: ErrorCallback) {
         let mut request_options = RequestInit::new();
@@ -60,5 +60,5 @@ impl Platform for Browser {
 
 }
 
-unsafe impl Sync for Browser{}
-unsafe impl Send for Browser{}
+unsafe impl Sync for LaatooBrowser{}
+unsafe impl Send for LaatooBrowser{}

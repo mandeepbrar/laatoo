@@ -4,10 +4,16 @@
     const __exports = {};
     
     function init(wasm_path) {
-        return fetch(wasm_path)
-        .then(response => response.arrayBuffer())
-        .then(buffer => WebAssembly.instantiate(buffer, { './uicommon': __exports }))
-        .then(({instance}) => {
+        const fetchPromise = fetch(wasm_path);
+        let resultPromise;
+        if (typeof WebAssembly.instantiateStreaming === 'function') {
+            resultPromise = WebAssembly.instantiateStreaming(fetchPromise, { './uicommon': __exports });
+        } else {
+            resultPromise = fetchPromise
+            .then(response => response.arrayBuffer())
+            .then(buffer => WebAssembly.instantiate(buffer, { './uicommon': __exports }));
+        }
+        return resultPromise.then(({instance}) => {
             wasm = init.wasm = instance.exports;
             return;
         });

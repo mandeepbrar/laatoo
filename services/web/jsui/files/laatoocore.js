@@ -67,7 +67,8 @@ Application.LoadWasm = function(mod, str) {
     var decodedMod = Application.Base64Decoder(str);
     let wasmImports = {}
     let wasmExp = wasmBGImports();
-    wasmImports['./'+mod] = wasmExp;
+    wasmImports['./'+mod.substring(5)] = wasmExp;
+    console.log("wasm imports", mod, wasmImports, wasmExp);
     let importObject = Object.assign({}, Application.Modules, wasmImports);
     WebAssembly.instantiate(decodedMod, importObject).then(wasmModule => {
       Application.Modules[mod] = wasmModule.instance.exports;
@@ -157,6 +158,7 @@ function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
     fetch(wasmURL).then(function(resp) {
       resp.json().then(function(wasmURLArr) {
         wasmURLArr.forEach(function(modItem){
+          console.log("loading wasm ", modItem);
           Application.LoadWasm(modItem.Name, modItem.Data);
         });  
       });

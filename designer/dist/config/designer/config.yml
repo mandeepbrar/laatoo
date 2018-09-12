@@ -34,7 +34,7 @@ modules:
   - user
   - jsui
   - websocket
-  - testsocket
+  - laatoobrowser
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -64,8 +64,8 @@ moduleinstances:
     module: fontawesome
   websocket:
     module: websocket
-  testsocket:
-    module: testsocket
+  laatoobrowser:
+    module: laatoobrowser
   uicommon:
     module: uicommon
   reactpages:

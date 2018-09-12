@@ -22,4 +22,11 @@ crate-type = ["cdylib"]
 
 [dependencies.web-sys]
 path = "/go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/web-sys"
-
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
+]
