@@ -10,7 +10,7 @@ mod platform;
 pub mod browser;
 
 use std::sync::Once;
-use laatoocore::{application::Application};
+use laatoocore::application;
 
 #[cfg(test)]
 mod tests {
@@ -24,15 +24,15 @@ static INIT: Once = Once::new();
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
 pub fn initialize() {
-    //static mut App: Box<Application>;
     INIT.call_once(|| {
-        Application.lock().unwrap().initialize(Box::new(platform::LaatooBrowser{}));
-        //let app= Application{pf: Box::new(platform::Browser{})};
-        //App = Box::new(app);
+        application::initialize(Box::new(platform::LaatooBrowser{}));
     });
 }
 
 
+    //static mut App: Box<Application>;
+        //let app= Application{pf: Box::new(platform::Browser{})};
+        //App = Box::new(app);
 /*
         use web_sys::{Request, RequestInit, RequestMode, Response, Window};
 

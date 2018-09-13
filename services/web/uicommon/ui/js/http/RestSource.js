@@ -4,7 +4,12 @@ class RestDataSource {
   constructor() {
     this.ExecuteServiceObject = this.ExecuteServiceObject.bind(this);
     this.HttpCall = this.HttpCall.bind(this);
-    this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this);  
+    this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this); 
+    let laatooBrowser = _$["laatoobrowser_wasm"];
+    if(laatooBrowser!=null) {
+      this.Browser =laatooBrowser.Browser;
+    }
+    console.log("********Laatoo browser", this.Browser);
   }
 
   ExecuteServiceObject(service, serviceRequest, config) {
@@ -15,6 +20,8 @@ class RestDataSource {
   }
 
   HttpCall(url, method, params, data, headers, config=null) {
+    console.log("http call...", this.Browser, this.Browser.execute_service);
+    this.Browser.execute_service(url, method, params);
     let service = this;
     var promise = new Promise(
       function (resolve, reject) {
@@ -52,6 +59,7 @@ class RestDataSource {
           req = Object.assign({}, req, config)
         }
         console.log("Request.. ",req);
+
         axios(req).then(successCallback, errorCallback);
       });
     return promise;

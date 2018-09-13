@@ -128,7 +128,7 @@ func (svc *UI) mergeWasmFilesToJson(ctx core.ServerContext, baseDir string) erro
 				return errors.WrapError(ctx, err)
 			}
 			b64str := base64.StdEncoding.EncodeToString(cont)
-			wasmArr = append(wasmArr, &wasmModule{"wasm_" + name, b64str})
+			wasmArr = append(wasmArr, &wasmModule{name, b64str})
 			written[name] = true
 		}
 		return nil

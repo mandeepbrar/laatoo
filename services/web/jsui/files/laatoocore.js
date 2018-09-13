@@ -22,7 +22,25 @@ Application.Register = function(regName,id,data) {
   }
   reg[id]=data;
 }
+Application.AllRegItems = function(regName) {
+  return Application.Registry[regName];
+}
+Application.GetRegistry = function(regName, id) {
+  if(id) {
+    let reg = Application.Registry[regName];
+    if(reg) {
+      return reg[id];
+    }
+  }
+  return null;
+}
 
+var _$=Application.Modules;
+var _rm = Application.RegisterModule;
+var _r = Application.Register;
+var _reg= Application.GetRegistry;
+var _re= null;
+var _ce= null;
 function Base64Decoder(){
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   // Use a lookup table to find the index.
@@ -65,38 +83,20 @@ Application.Base64Decoder = Base64Decoder();
 Application.LoadWasm = function(mod, str) {
   try {
     var decodedMod = Application.Base64Decoder(str);
-    let wasmImports = {}
-    let wasmExp = wasmBGImports();
-    wasmImports['./'+mod.substring(5)] = wasmExp;
-    console.log("wasm imports", mod, wasmImports, wasmExp);
-    let importObject = Object.assign({}, Application.Modules, wasmImports);
-    WebAssembly.instantiate(decodedMod, importObject).then(wasmModule => {
-      Application.Modules[mod] = wasmModule.instance.exports;
-      wasmExp.__wasmInit(wasmModule.instance.exports);
+    let jsMod = wasmBGImports();
+    Application.Modules[mod+"_wasm"] = jsMod;//wasmModule.instance.exports;
+    let wasmJSImports = {};
+    wasmJSImports['./'+mod] = jsMod;
+    console.log("wasm imports", mod, wasmJSImports, jsMod);
+    let importObject = Object.assign({}, Application.Modules, wasmJSImports);
+    return WebAssembly.instantiate(decodedMod, importObject).then(wasmModule => {
+      jsMod.__wasmInit(wasmModule.instance.exports);
     });
   }catch(ex) {
     console.log("exception in instantiating wasm", mod, ex);
   }
 }
 
-Application.AllRegItems = function(regName) {
-  return Application.Registry[regName];
-}
-Application.GetRegistry = function(regName, id) {
-  if(id) {
-    let reg = Application.Registry[regName];
-    if(reg) {
-      return reg[id];
-    }
-  }
-  return null;
-}
-var _$=Application.Modules;
-var _rm = Application.RegisterModule;
-var _r = Application.Register;
-var _reg= Application.GetRegistry;
-var _re= null;
-var _ce= null;
 console.log("Application", Application);
 var _val = function() {
   var obj;
@@ -119,6 +119,7 @@ var _val = function() {
   }
   return "";
 }
+
 function modDef(appname, ins, mod, settings) {
   define(ins, [mod], function (m) {
     if(m.Initialize) {
@@ -127,8 +128,28 @@ function modDef(appname, ins, mod, settings) {
     return m;
   });
 }
+
 function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
   console.log("appLoadingComplete", wasmURL);
+  if(wasmURL) {
+    fetch(wasmURL).then(function(resp) {
+      resp.json().then(function(wasmURLArr) {
+        let promisArr = new Array();
+        wasmURLArr.forEach(function(modItem){
+          console.log("loading wasm ", modItem);
+          let p = Application.LoadWasm(modItem.Name, modItem.Data);
+          promisArr.push(p);
+        });  
+        Promise.all(promisArr).then(values => {
+          initMods(appname, propsurl, modsToInitialize);
+        });
+      });
+    });
+  } else {
+    initMods(appname, propsurl, modsToInitialize);
+  }
+}
+function initMods(appname, propsurl, modsToInitialize) {
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
@@ -154,17 +175,6 @@ function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
     Window.InitializeApplication();
   }
   
-  if(wasmURL) {
-    fetch(wasmURL).then(function(resp) {
-      resp.json().then(function(wasmURLArr) {
-        wasmURLArr.forEach(function(modItem){
-          console.log("loading wasm ", modItem);
-          Application.LoadWasm(modItem.Name, modItem.Data);
-        });  
-      });
-    });
-  }
-
   if(propsurl) {
     propsurl = window.location.origin + propsurl;
     fetch(propsurl).then(function(resp) {
@@ -175,6 +185,6 @@ function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
       });
     });
   } else {
-    init()
+    init();
   }
 }

@@ -9,7 +9,9 @@
         return wasm.initialize();
     };
     
-    let cachedEncoder = new TextEncoder('utf-8');
+    const __wbg_log_4609d9aeb31a73e9_target = console.log;
+    
+    let cachedDecoder = new TextDecoder('utf-8');
     
     let cachegetUint8Memory = null;
     function getUint8Memory() {
@@ -18,6 +20,17 @@
         }
         return cachegetUint8Memory;
     }
+    
+    function getStringFromWasm(ptr, len) {
+        return cachedDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
+    }
+    
+    __exports.__wbg_log_4609d9aeb31a73e9 = function(arg0, arg1) {
+        let varg0 = getStringFromWasm(arg0, arg1);
+        __wbg_log_4609d9aeb31a73e9_target(varg0);
+    };
+    
+    let cachedEncoder = new TextEncoder('utf-8');
     
     function passStringToWasm(arg) {
         
@@ -65,12 +78,6 @@
             return val.obj;
             
         }
-    }
-    
-    let cachedDecoder = new TextDecoder('utf-8');
-    
-    function getStringFromWasm(ptr, len) {
-        return cachedDecoder.decode(getUint8Memory().subarray(ptr, ptr + len));
     }
     
     __exports.__widl_f_set_Headers = function(arg0, arg1, arg2, arg3, arg4, exnptr) {
@@ -142,12 +149,6 @@
     */
     __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
     
-    class ConstructorToken {
-        constructor(ptr) {
-            this.ptr = ptr;
-        }
-    }
-    
     function freeBrowser(ptr) {
         
         wasm.__wbg_browser_free(ptr);
@@ -157,30 +158,26 @@
     class Browser {
         
         static __construct(ptr) {
-            return new Browser(new ConstructorToken(ptr));
+            return new Browser(ptr);
         }
         
-        constructor(...args) {
-            if (args.length === 1 && args[0] instanceof ConstructorToken) {
-                this.ptr = args[0].ptr;
-                return;
-            }
-            
-            // This invocation of new will call this constructor with a ConstructorToken
-            let instance = Browser.new(...args);
-            this.ptr = instance.ptr;
+        constructor(ptr) {
+            this.ptr = ptr;
             
         }
+        
         free() {
             const ptr = this.ptr;
             this.ptr = 0;
             freeBrowser(ptr);
         }
         /**
-        * @returns {Browser}
+        * @param {string} arg0
+        * @returns {void}
         */
-        static new() {
-            return Browser.__construct(wasm.browser_new());
+        static log(arg0) {
+            const [ptr0, len0] = passStringToWasm(arg0);
+            return wasm.browser_log(ptr0, len0);
         }
         /**
         * @param {string} arg0
@@ -261,7 +258,7 @@
         dropRef(i);
     };
     
-    __exports.__wbindgen_closure_wrapper310 = function(ptr, f) {
+    __exports.__wbindgen_closure_wrapper270 = function(ptr, f) {
         let cb = function(arg0) {
             let a = this.a;
             this.a = 0;

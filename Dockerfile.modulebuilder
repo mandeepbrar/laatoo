@@ -28,6 +28,12 @@ ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
 COPY sdk $LAATOO_SDK
 
+WORKDIR /go/src/laatoo/sdk/client/rust/laatoocore
+
+USER root
+
+RUN cargo +nightly build
+
 USER root
 
 WORKDIR /go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/cli
