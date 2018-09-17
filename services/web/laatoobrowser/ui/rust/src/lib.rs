@@ -8,9 +8,7 @@ use wasm_bindgen::prelude::*;
 
 mod platform;
 pub mod browser;
-
-use std::sync::Once;
-use laatoocore::application;
+use laatoocore::application::{Application};
 
 #[cfg(test)]
 mod tests {
@@ -20,13 +18,10 @@ mod tests {
     }
 }
 
-static INIT: Once = Once::new();
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
-pub fn initialize() {
-    INIT.call_once(|| {
-        application::initialize(Box::new(platform::LaatooBrowser{}));
-    });
+pub fn initialize() -> Application {
+    Application::new(Box::new(platform::LaatooBrowser{}))
 }
 
 

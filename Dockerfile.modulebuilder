@@ -32,13 +32,11 @@ WORKDIR /go/src/laatoo/sdk/client/rust/laatoocore
 
 USER root
 
-RUN cargo +nightly build
-
-USER root
+RUN cargo +nightly build --target wasm32-unknown-unknown
 
 WORKDIR /go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/cli
 
-RUN cargo +nightly install --force 
+RUN cargo +nightly install -f
 
 USER laatoo
 

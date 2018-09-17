@@ -15,9 +15,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zlib1g zlib1g-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN cargo +nightly install wasm-bindgen-cli
-
 COPY getwasmpackages.sh .
 
 RUN ./getwasmpackages.sh
+
+COPY sdk/client/rust/wasm-bindgen /wasm-bindgen
+
+WORKDIR /wasm-bindgen/crates/cli
+
+RUN cargo +nightly install
+
+#RUN cargo +nightly install wasm-bindgen-cli
 

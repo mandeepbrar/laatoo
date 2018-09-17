@@ -7,12 +7,12 @@ class RestDataSource {
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this); 
     let laatooBrowser = _$["laatoobrowser_wasm"];
     if(laatooBrowser!=null) {
-      this.Browser =laatooBrowser.Browser;
+      this.Application =laatooBrowser.initialize();
     }
-    console.log("********Laatoo browser", this.Browser);
   }
 
   ExecuteServiceObject(service, serviceRequest, config) {
+    console.log("********Laatoo browser", this.Application, this.Application.js_get_registered_item("sdfdf","sdf"));
     var method = this.getMethod(service);
     var req = serviceRequest.GetRequest("http");
     var url = this.getURL(service, req);

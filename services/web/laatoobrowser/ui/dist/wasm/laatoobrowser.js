@@ -3,10 +3,10 @@
     var wasm;
     const __exports = {};
     /**
-    * @returns {void}
+    * @returns {Application}
     */
     __exports.initialize = function() {
-        return wasm.initialize();
+        return Application.__construct(wasm.initialize());
     };
     
     const __wbg_log_4609d9aeb31a73e9_target = console.log;
@@ -126,28 +126,135 @@
         return addHeapObject(fetch(getObject(arg0)));
     };
     
-    __exports.__wbg_new_68071b7b019cd30b = function() {
+    __exports.__wbg_new_70bbf770ccc49620 = function() {
         return addHeapObject(new Object());
     };
     
-    const __wbg_set_ef6103a13c19a10a_target = Reflect.set.bind(Reflect) || function() {
+    const __wbg_set_278d77d031e5f63c_target = Reflect.set.bind(Reflect) || function() {
         throw new Error(`wasm-bindgen: Reflect.set.bind(Reflect) does not exist`);
     };
     
-    __exports.__wbg_set_ef6103a13c19a10a = function(arg0, arg1, arg2) {
-        return __wbg_set_ef6103a13c19a10a_target(getObject(arg0), getObject(arg1), getObject(arg2)) ? 1 : 0;
+    __exports.__wbg_set_278d77d031e5f63c = function(arg0, arg1, arg2) {
+        return __wbg_set_278d77d031e5f63c_target(getObject(arg0), getObject(arg1), getObject(arg2)) ? 1 : 0;
     };
     
-    const __wbg_then_8677d4a2d4d3886a_target = Promise.prototype.then || function() {
+    const __wbg_then_52c189ae4cd8db1a_target = Promise.prototype.then || function() {
         throw new Error(`wasm-bindgen: Promise.prototype.then does not exist`);
     };
     
-    __exports.__wbg_then_8677d4a2d4d3886a = function(arg0, arg1, arg2) {
-        return addHeapObject(__wbg_then_8677d4a2d4d3886a_target.call(getObject(arg0), getObject(arg1), getObject(arg2)));
+    let cachedGlobalArgumentPtr = null;
+    function globalArgumentPtr() {
+        if (cachedGlobalArgumentPtr === null) {
+            cachedGlobalArgumentPtr = wasm.__wbindgen_global_argument_ptr();
+        }
+        return cachedGlobalArgumentPtr;
+    }
+    
+    function getGlobalArgument(arg) {
+        const idx = globalArgumentPtr() / 4 + arg;
+        return getUint32Memory()[idx];
+    }
+    
+    __exports.__wbg_then_52c189ae4cd8db1a = function(arg0, arg1, arg2) {
+        let idxarg1 = getUint32Memory()[arg1 / 4];
+        if (idxarg1 === 0xffffffff) {
+            let cbarg1 = function(arg0) {
+                let a = this.a;
+                this.a = 0;
+                try {
+                    return this.f(a, addHeapObject(arg0));
+                    
+                } finally {
+                    this.a = a;
+                    
+                }
+                
+            };
+            cbarg1.f = wasm.__wbg_function_table.get(getGlobalArgument(0));
+            cbarg1.a = getGlobalArgument(1);
+            let real = cbarg1.bind(cbarg1);
+            real.original = cbarg1;
+            idxarg1 = getUint32Memory()[arg1 / 4] = addHeapObject(real);
+        }
+        let idxarg2 = getUint32Memory()[arg2 / 4];
+        if (idxarg2 === 0xffffffff) {
+            let cbarg2 = function(arg0) {
+                let a = this.a;
+                this.a = 0;
+                try {
+                    return this.f(a, addHeapObject(arg0));
+                    
+                } finally {
+                    this.a = a;
+                    
+                }
+                
+            };
+            cbarg2.f = wasm.__wbg_function_table.get(getGlobalArgument(2));
+            cbarg2.a = getGlobalArgument(3);
+            let real = cbarg2.bind(cbarg2);
+            real.original = cbarg2;
+            idxarg2 = getUint32Memory()[arg2 / 4] = addHeapObject(real);
+        }
+        return addHeapObject(__wbg_then_52c189ae4cd8db1a_target.call(getObject(arg0), getObject(idxarg1), getObject(idxarg2)));
+    };
+    
+    const __wbg_log_157f92906a030fef_target = console.log;
+    
+    __exports.__wbg_log_157f92906a030fef = function(arg0, arg1) {
+        let varg0 = getStringFromWasm(arg0, arg1);
+        __wbg_log_157f92906a030fef_target(varg0);
     };
     /**
     */
     __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
+    
+    function freeApplication(ptr) {
+        
+        wasm.__wbg_application_free(ptr);
+    }
+    /**
+    */
+    class Application {
+        
+        static __construct(ptr) {
+            return new Application(ptr);
+        }
+        
+        constructor(ptr) {
+            this.ptr = ptr;
+            
+        }
+        
+        free() {
+            const ptr = this.ptr;
+            this.ptr = 0;
+            freeApplication(ptr);
+        }
+        /**
+        * @param {string} arg0
+        * @param {string} arg1
+        * @returns {string}
+        */
+        js_get_registered_item(arg0, arg1) {
+            if (this.ptr === 0) {
+                throw new Error('Attempt to use a moved value');
+            }
+            const [ptr0, len0] = passStringToWasm(arg0);
+            const [ptr1, len1] = passStringToWasm(arg1);
+            const retptr = globalArgumentPtr();
+            wasm.application_js_get_registered_item(retptr, this.ptr, ptr0, len0, ptr1, len1);
+            const mem = getUint32Memory();
+            const rustptr = mem[retptr / 4];
+            const rustlen = mem[retptr / 4 + 1];
+            
+            const realRet = getStringFromWasm(rustptr, rustlen).slice();
+            wasm.__wbindgen_free(rustptr, rustlen * 1);
+            return realRet;
+            
+        }
+    }
+    __exports.Application = Application;
     
     function freeBrowser(ptr) {
         
@@ -256,26 +363,6 @@
         let obj = getObject(i).original;
         obj.a = obj.b = 0;
         dropRef(i);
-    };
-    
-    __exports.__wbindgen_closure_wrapper270 = function(ptr, f) {
-        let cb = function(arg0) {
-            let a = this.a;
-            this.a = 0;
-            try {
-                return this.f(a, addHeapObject(arg0));
-                
-            } finally {
-                this.a = a;
-                
-            }
-            
-        };
-        cb.f = wasm.__wbg_function_table.get(f);
-        cb.a = ptr;
-        let real = cb.bind(cb);
-        real.original = cb;
-        return addHeapObject(real);
     };
     
     __exports.__wbindgen_throw = function(ptr, len) {

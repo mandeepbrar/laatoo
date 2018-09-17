@@ -107,9 +107,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "js-sys"
-version = "0.2.6"
+version = "0.2.4"
 dependencies = [
- "wasm-bindgen 0.2.21",
+ "wasm-bindgen 0.2.19",
 ]
 
 [[package]]
@@ -117,12 +117,12 @@ name = "laatoobrowser"
 version = "0.1.0"
 dependencies = [
  "futures 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys 0.2.6",
+ "js-sys 0.2.4",
  "laatoocore 0.1.0",
  "serde 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen 0.2.21",
- "wasm-bindgen-futures 0.2.21",
+ "wasm-bindgen 0.2.19",
+ "wasm-bindgen-futures 0.2.19",
  "web-sys 0.1.0",
 ]
 
@@ -133,7 +133,7 @@ dependencies = [
  "lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen 0.2.21",
+ "wasm-bindgen 0.2.19",
 ]
 
 [[package]]
@@ -351,57 +351,57 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "serde 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen-macro 0.2.21",
+ "wasm-bindgen-macro 0.2.19",
 ]
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.27 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen-shared 0.2.21",
+ "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wasm-bindgen-shared 0.2.19",
 ]
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "futures 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys 0.2.6",
- "wasm-bindgen 0.2.21",
+ "js-sys 0.2.4",
+ "wasm-bindgen 0.2.19",
 ]
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen-macro-support 0.2.21",
+ "wasm-bindgen-macro-support 0.2.19",
 ]
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen-backend 0.2.21",
- "wasm-bindgen-shared 0.2.21",
+ "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wasm-bindgen-backend 0.2.19",
+ "wasm-bindgen-shared 0.2.19",
 ]
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.21"
+version = "0.2.19"
 dependencies = [
  "serde 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.78 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -417,9 +417,9 @@ dependencies = [
  "log 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "proc-macro2 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen-backend 0.2.21",
- "weedle 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.14.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "wasm-bindgen-backend 0.2.19",
+ "weedle 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -428,15 +428,15 @@ version = "0.1.0"
 dependencies = [
  "env_logger 0.5.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "js-sys 0.2.6",
+ "js-sys 0.2.4",
  "sourcefile 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "wasm-bindgen 0.2.21",
+ "wasm-bindgen 0.2.19",
  "wasm-bindgen-webidl 0.2.17",
 ]
 
 [[package]]
 name = "weedle"
-version = "0.7.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "nom 4.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -521,7 +521,7 @@ dependencies = [
 "checksum unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"
 "checksum utf8-ranges 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "fd70f467df6810094968e2fce0ee1bd0e87157aceb026a8c083bcf5e25b9efe4"
 "checksum version_check 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "7716c242968ee87e5542f8021178248f267f295a5c4803beae8b8b7fd9bc6051"
-"checksum weedle 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "833e8c0eb96d9f8f40bccdc606ee85a0cc5e6963cf0090211dd7b2fa7d46517c"
+"checksum weedle 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4059f4341cd99b2434840996387570e38dc50239367e1aa35d2509fbb80aa76f"
 "checksum winapi 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "773ef9dcc5f24b7d850d0ff101e542ff24c3b090a9768e03ff889fdef41f00fd"
 "checksum winapi-i686-pc-windows-gnu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
 "checksum winapi-util 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "afc5508759c5bf4285e61feb862b6083c8480aec864fa17a81fdec6f69b461ab"
