@@ -9,6 +9,8 @@ lto = true
 
 [dependencies]
 wasm-bindgen = {git = "https://github.com/rustwasm/wasm-bindgen"}
+laatoocore = { path = "/go/src/laatoo/sdk/client/rust/laatoocore" }
+
 
 
 [lib]
