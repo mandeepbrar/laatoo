@@ -1,29 +1,26 @@
 FROM laatoouibase:latest
 
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH 
-
-RUN curl https://sh.rustup.rs -sSf > $HOME/install.sh && \
-    chmod +x $HOME/install.sh && \
-    sh $HOME/install.sh -y --verbose --default-toolchain nightly
-
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
 		libssl-dev \
         zlib1g zlib1g-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
+USER laatoo
+
+RUN curl https://sh.rustup.rs -sSf > $HOME/install.sh && \
+    chmod +x $HOME/install.sh && \
+    sh $HOME/install.sh -y --verbose --default-toolchain nightly
+
+ENV PATH="${PATH}:/home/laatoo/.cargo/bin"
+
+RUN rustup target add wasm32-unknown-unknown --toolchain nightly
+
 COPY getwasmpackages.sh .
 
 RUN ./getwasmpackages.sh
 
-COPY sdk/client/rust/wasm-bindgen /wasm-bindgen
+RUN cargo +nightly install wasm-bindgen-cli
 
-WORKDIR /wasm-bindgen/crates/cli
+RUN cargo install cargo-vendor
 
-RUN cargo +nightly install
-
-#RUN cargo +nightly install wasm-bindgen-cli
-
+USER root
