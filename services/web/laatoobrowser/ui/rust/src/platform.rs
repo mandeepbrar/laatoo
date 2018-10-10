@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use futures::{future, Future};
 //use wasm_bindgen_futures::future_to_promise;
-use web_sys::{Request as WSRequest, RequestInit, RequestMode, Response, Window};
+use web_sys::{Request as WSRequest, RequestInit, RequestMode, Response, window};
 use laatoocore::{http, platform::Platform, platform::SuccessCallback, platform::ErrorCallback};
 use wasm_bindgen_futures::JsFuture;
 use std::marker::{Sync, Send};
@@ -34,8 +34,8 @@ impl Platform for LaatooBrowser {
         for (hdr_name, hdr_value) in req.headers.iter() {
             req_to_send.headers().set(&hdr_name, &hdr_value).unwrap();
         }
-        
-        let req_promise = Window::fetch_with_request(&req_to_send);
+        let wind = window().unwrap();
+        let req_promise = wind.fetch_with_request(&req_to_send);
         JsFuture::from(req_promise).and_then(|resp_value| {
                 // resp_value is a Response object
                 assert!(resp_value.is_instance_of::<Response>());
