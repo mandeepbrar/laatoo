@@ -26,19 +26,11 @@ ENV LAATOO_SDK=/go/src/laatoo/sdk
 
 ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
-COPY sdk $LAATOO_SDK
+COPY --chown=laatoo:root sdk $LAATOO_SDK
 
 WORKDIR /go/src/laatoo/sdk/client/rust/laatoocore
 
-USER root
-
 RUN cargo +nightly build --target wasm32-unknown-unknown
-
-WORKDIR /go/src/laatoo/sdk/client/rust/wasm-bindgen/crates/cli
-
-RUN cargo +nightly install -f
-
-USER laatoo
 
 COPY makelaatoomodule.sh /make.sh
 
