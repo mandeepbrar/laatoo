@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 use laatoocore::redux::{Store, Action, Reducer};
 use laatoocore::event::{EventListener, Event};
 use laatoocore::platform::{Platform, SuccessCallback, ErrorCallback};
+use std::any::Any;
 
 #[wasm_bindgen]
 extern {
@@ -79,30 +80,32 @@ enum TestStoreAction {
     Add(i32),
 }
 
-    impl Action for TestStoreAction {
-        fn get_type(&self)->&'static str {
-            return "TestStoreAction";
-        }
-        fn as_any(&self) -> &dyn Any {
-            self
-        }
+impl Action for TestStoreAction {
+    fn get_type(&self)->&'static str {
+        return "TestStoreAction";
     }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
-    #[test]
-    fn store_works() {
-        let mut app = create_application();
-        let str = Box::new(TestData{testdata: vec![]});
-        let act = TestStoreAction::Add(2);
-        let str_id = str.get_id();
-        app.register_store(str, act.get_type());
-       // let lsr = Box::new(TestListener{});
-        app.register_listener(str_id, |stor| {
-            println!("event received {:?}", stor);
-        });
-        app.dispatch(&act);
-        assert_eq!(2 + 2, 4);
-    }
+/*
+#[test]
+fn store_works() {
+    let mut app = create_application();
+    let str = Box::new(TestData{testdata: vec![]});
+    let act = TestStoreAction::Add(2);
+    let str_id = str.get_id();
+    app.register_store(str, act.get_type());
+    // let lsr = Box::new(TestListener{});
+    app.register_listener(str_id, |stor| {
+        println!("event received {:?}", stor);
+    });
+    app.dispatch(&act);
+    assert_eq!(2 + 2, 4);
+}
 
-    fn create_application() -> Application {
-        Application::new(Box::new(TestPlatform{}))
-    }
+fn create_application() -> Application {
+    Application::new(Box::new(TestPlatform{}))
+}
+*/

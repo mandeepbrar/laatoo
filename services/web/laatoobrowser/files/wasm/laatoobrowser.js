@@ -133,18 +133,18 @@
         return addHeapObject(__widl_f_fetch_with_request_Window_target.call(getObject(arg0), getObject(arg1)));
     };
 
-    __exports.__wbg_newnoargs_7b645db1166d5db3 = function(arg0, arg1) {
+    __exports.__wbg_newnoargs_f3005d02efe69623 = function(arg0, arg1) {
         let varg0 = getStringFromWasm(arg0, arg1);
         return addHeapObject(new Function(varg0));
     };
 
-    const __wbg_call_acb354df3e54038a_target = Function.prototype.call || function() {
+    const __wbg_call_10738551fb4d99e4_target = Function.prototype.call || function() {
         throw new Error(`wasm-bindgen: Function.prototype.call does not exist`);
     };
 
-    __exports.__wbg_call_acb354df3e54038a = function(arg0, arg1, exnptr) {
+    __exports.__wbg_call_10738551fb4d99e4 = function(arg0, arg1, exnptr) {
         try {
-            return addHeapObject(__wbg_call_acb354df3e54038a_target.call(getObject(arg0), getObject(arg1)));
+            return addHeapObject(__wbg_call_10738551fb4d99e4_target.call(getObject(arg0), getObject(arg1)));
         } catch (e) {
             const view = getUint32Memory();
             view[exnptr / 4] = 1;
@@ -153,17 +153,17 @@
         }
     };
 
-    __exports.__wbg_new_f122be77c2ad6473 = function() {
+    __exports.__wbg_new_6b7f4334f7b728fd = function() {
         return addHeapObject(new Object());
     };
 
-    const __wbg_set_4f3d3bf826ffe227_target = Reflect.set.bind(Reflect) || function() {
+    const __wbg_set_6f4fee47694f666d_target = Reflect.set.bind(Reflect) || function() {
         throw new Error(`wasm-bindgen: Reflect.set.bind(Reflect) does not exist`);
     };
 
-    __exports.__wbg_set_4f3d3bf826ffe227 = function(arg0, arg1, arg2, exnptr) {
+    __exports.__wbg_set_6f4fee47694f666d = function(arg0, arg1, arg2, exnptr) {
         try {
-            return __wbg_set_4f3d3bf826ffe227_target(getObject(arg0), getObject(arg1), getObject(arg2)) ? 1 : 0;
+            return __wbg_set_6f4fee47694f666d_target(getObject(arg0), getObject(arg1), getObject(arg2)) ? 1 : 0;
         } catch (e) {
             const view = getUint32Memory();
             view[exnptr / 4] = 1;
@@ -172,16 +172,13 @@
         }
     };
 
-    const __wbg_then_959b7f0f18b92f62_target = Promise.prototype.then || function() {
+    const __wbg_then_074a42f44879a676_target = Promise.prototype.then || function() {
         throw new Error(`wasm-bindgen: Promise.prototype.then does not exist`);
     };
 
-    __exports.__wbg_then_959b7f0f18b92f62 = function(arg0, arg1, arg2) {
-        return addHeapObject(__wbg_then_959b7f0f18b92f62_target.call(getObject(arg0), getObject(arg1), getObject(arg2)));
+    __exports.__wbg_then_074a42f44879a676 = function(arg0, arg1, arg2) {
+        return addHeapObject(__wbg_then_074a42f44879a676_target.call(getObject(arg0), getObject(arg1), getObject(arg2)));
     };
-    /**
-    */
-    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
 
     const __wbg_log_157f92906a030fef_target = console.log;
 
@@ -197,48 +194,9 @@
         }
         return cachedGlobalArgumentPtr;
     }
-
-    function freeApplication(ptr) {
-
-        wasm.__wbg_application_free(ptr);
-    }
     /**
     */
-    class Application {
-
-        static __wrap(ptr) {
-            const obj = Object.create(Application.prototype);
-            obj.ptr = ptr;
-
-            return obj;
-        }
-
-        free() {
-            const ptr = this.ptr;
-            this.ptr = 0;
-            freeApplication(ptr);
-        }
-        /**
-        * @param {string} arg0
-        * @param {string} arg1
-        * @returns {string}
-        */
-        js_get_registered_item(arg0, arg1) {
-            const [ptr0, len0] = passStringToWasm(arg0);
-            const [ptr1, len1] = passStringToWasm(arg1);
-            const retptr = globalArgumentPtr();
-            wasm.application_js_get_registered_item(retptr, this.ptr, ptr0, len0, ptr1, len1);
-            const mem = getUint32Memory();
-            const rustptr = mem[retptr / 4];
-            const rustlen = mem[retptr / 4 + 1];
-
-            const realRet = getStringFromWasm(rustptr, rustlen).slice();
-            wasm.__wbindgen_free(rustptr, rustlen * 1);
-            return realRet;
-
-        }
-    }
-    __exports.Application = Application;
+    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
 
     function freeBrowser(ptr) {
 
@@ -253,6 +211,7 @@
             this.ptr = 0;
             freeBrowser(ptr);
         }
+
         /**
         * @param {string} arg0
         * @returns {void}
@@ -275,6 +234,49 @@
         }
     }
     __exports.Browser = Browser;
+
+    function freeApplication(ptr) {
+
+        wasm.__wbg_application_free(ptr);
+    }
+    /**
+    */
+    class Application {
+
+        static __wrap(ptr) {
+            const obj = Object.create(Application.prototype);
+            obj.ptr = ptr;
+
+            return obj;
+        }
+
+        free() {
+            const ptr = this.ptr;
+            this.ptr = 0;
+            freeApplication(ptr);
+        }
+
+        /**
+        * @param {string} arg0
+        * @param {string} arg1
+        * @returns {string}
+        */
+        js_get_registered_item(arg0, arg1) {
+            const [ptr0, len0] = passStringToWasm(arg0);
+            const [ptr1, len1] = passStringToWasm(arg1);
+            const retptr = globalArgumentPtr();
+            wasm.application_js_get_registered_item(retptr, this.ptr, ptr0, len0, ptr1, len1);
+            const mem = getUint32Memory();
+            const rustptr = mem[retptr / 4];
+            const rustlen = mem[retptr / 4 + 1];
+
+            const realRet = getStringFromWasm(rustptr, rustlen).slice();
+            wasm.__wbindgen_free(rustptr, rustlen * 1);
+            return realRet;
+
+        }
+    }
+    __exports.Application = Application;
 
     __exports.__wbindgen_object_clone_ref = function(idx) {
         // If this object is on the stack promote it to the heap.
@@ -355,7 +357,7 @@
         return 0;
     };
 
-    __exports.__wbindgen_closure_wrapper273 = function(a, b, fi, di, _ignored) {
+    __exports.__wbindgen_closure_wrapper239 = function(a, b, fi, di, _ignored) {
         const f = wasm.__wbg_function_table.get(fi);
         const d = wasm.__wbg_function_table.get(di);
         const cb = function(arg0) {
