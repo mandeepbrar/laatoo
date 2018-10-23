@@ -179,6 +179,9 @@
     __exports.__wbg_then_074a42f44879a676 = function(arg0, arg1, arg2) {
         return addHeapObject(__wbg_then_074a42f44879a676_target.call(getObject(arg0), getObject(arg1), getObject(arg2)));
     };
+    /**
+    */
+    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
 
     const __wbg_log_157f92906a030fef_target = console.log;
 
@@ -194,46 +197,6 @@
         }
         return cachedGlobalArgumentPtr;
     }
-    /**
-    */
-    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
-
-    function freeBrowser(ptr) {
-
-        wasm.__wbg_browser_free(ptr);
-    }
-    /**
-    */
-    class Browser {
-
-        free() {
-            const ptr = this.ptr;
-            this.ptr = 0;
-            freeBrowser(ptr);
-        }
-
-        /**
-        * @param {string} arg0
-        * @returns {void}
-        */
-        static log(arg0) {
-            const [ptr0, len0] = passStringToWasm(arg0);
-            return wasm.browser_log(ptr0, len0);
-        }
-        /**
-        * @param {string} arg0
-        * @param {string} arg1
-        * @param {string} arg2
-        * @returns {void}
-        */
-        static execute_service(arg0, arg1, arg2) {
-            const [ptr0, len0] = passStringToWasm(arg0);
-            const [ptr1, len1] = passStringToWasm(arg1);
-            const [ptr2, len2] = passStringToWasm(arg2);
-            return wasm.browser_execute_service(ptr0, len0, ptr1, len1, ptr2, len2);
-        }
-    }
-    __exports.Browser = Browser;
 
     function freeApplication(ptr) {
 
@@ -277,6 +240,43 @@
         }
     }
     __exports.Application = Application;
+
+    function freeBrowser(ptr) {
+
+        wasm.__wbg_browser_free(ptr);
+    }
+    /**
+    */
+    class Browser {
+
+        free() {
+            const ptr = this.ptr;
+            this.ptr = 0;
+            freeBrowser(ptr);
+        }
+
+        /**
+        * @param {string} arg0
+        * @returns {void}
+        */
+        static log(arg0) {
+            const [ptr0, len0] = passStringToWasm(arg0);
+            return wasm.browser_log(ptr0, len0);
+        }
+        /**
+        * @param {string} arg0
+        * @param {string} arg1
+        * @param {string} arg2
+        * @returns {void}
+        */
+        static execute_service(arg0, arg1, arg2) {
+            const [ptr0, len0] = passStringToWasm(arg0);
+            const [ptr1, len1] = passStringToWasm(arg1);
+            const [ptr2, len2] = passStringToWasm(arg2);
+            return wasm.browser_execute_service(ptr0, len0, ptr1, len1, ptr2, len2);
+        }
+    }
+    __exports.Browser = Browser;
 
     __exports.__wbindgen_object_clone_ref = function(idx) {
         // If this object is on the stack promote it to the heap.
@@ -357,7 +357,7 @@
         return 0;
     };
 
-    __exports.__wbindgen_closure_wrapper239 = function(a, b, fi, di, _ignored) {
+    __exports.__wbindgen_closure_wrapper273 = function(a, b, fi, di, _ignored) {
         const f = wasm.__wbg_function_table.get(fi);
         const d = wasm.__wbg_function_table.get(di);
         const cb = function(arg0) {

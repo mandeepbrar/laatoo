@@ -80,15 +80,15 @@ function Base64Decoder(){
 
 Application.Base64Decoder = Base64Decoder();
 
-Application.LoadWasm = function(mod, str) {
+Application.LoadWasm = function(mod, str, memory) {
   try {
     var decodedMod = Application.Base64Decoder(str);
-    let jsMod = wasmBGImports();
+    let jsMod = wasmBGImports(mod);
     Application.Modules[mod+"_wasm"] = jsMod;//wasmModule.instance.exports;
     let wasmJSImports = {};
     wasmJSImports['./'+mod] = jsMod;
     console.log("wasm imports", mod, wasmJSImports, jsMod);
-    let importObject = Object.assign({}, Application.Modules, wasmJSImports);
+    let importObject = Object.assign({}, Application.Modules, wasmJSImports, {env: {memory: memory}});
     return WebAssembly.instantiate(decodedMod, importObject).then(wasmModule => {
       jsMod.__wasmInit(wasmModule.instance.exports);
     });
@@ -132,12 +132,13 @@ function modDef(appname, ins, mod, settings) {
 function appLoadingComplete(appname, propsurl, modsToInitialize, wasmURL) {
   console.log("appLoadingComplete", wasmURL);
   if(wasmURL) {
+    const memory = new WebAssembly.Memory({initial: 20});
     fetch(wasmURL).then(function(resp) {
       resp.json().then(function(wasmURLArr) {
         let promisArr = new Array();
         wasmURLArr.forEach(function(modItem){
           console.log("loading wasm ", modItem);
-          let p = Application.LoadWasm(modItem.Name, modItem.Data);
+          let p = Application.LoadWasm(modItem.Name, modItem.Data, memory);
           promisArr.push(p);
         });  
         Promise.all(promisArr).then(values => {
@@ -177,6 +178,7 @@ function initMods(appname, propsurl, modsToInitialize) {
   
   if(propsurl) {
     propsurl = window.location.origin + propsurl;
+    wasmTest(appname, propsurl, modsToInitialize);
     fetch(propsurl).then(function(resp) {
       resp.json().then(function(data) {
         console.log("props fetched", propsurl, data);
@@ -187,4 +189,15 @@ function initMods(appname, propsurl, modsToInitialize) {
   } else {
     init();
   }
+}
+
+function wasmTest(appname, propsurl, modsToInitialize) {
+  console.log("all modules", _$);
+  let lb = _$["laatoobrowser_wasm"];
+  console.log("wasm test ", _$, lb);
+  let app = lb.initialize();
+  console.log("app", app);
+  let ws = _$["websocket_wasm"];
+  console.log("websocket", ws);
+  ws.init(app);
 }

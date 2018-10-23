@@ -23,9 +23,20 @@
         let varg0 = getStringFromWasm(arg0, arg1);
         __wbg_alert_47c0af514992a198_target(varg0);
     };
+
+    const __wbg_log_5407d19b57e1095b_target = console.log;
+
+    __exports.__wbg_log_5407d19b57e1095b = function(arg0, arg1) {
+        let varg0 = getStringFromWasm(arg0, arg1);
+        __wbg_log_5407d19b57e1095b_target(varg0);
+    };
     /**
+    * @param {Application} arg0
+    * @returns {void}
     */
-    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
+    __exports.init = function(arg0) {
+        return wasm.init(arg0.ptr);
+    };
 
     const __wbg_log_157f92906a030fef_target = console.log;
 
@@ -59,6 +70,9 @@
         }
         return cachegetUint32Memory;
     }
+    /**
+    */
+    __exports.HttpMethod = Object.freeze({ GET:0,POST:1,PUT:2,DELETE:3, });
 
     function freeApplication(ptr) {
 

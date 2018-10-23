@@ -158,6 +158,46 @@ func (svc *UI) mergeWasmFilesToJson(ctx core.ServerContext, baseDir string) erro
 
 func (svc *UI) mergeJSFiles(ctx core.ServerContext, baseDir string) error {
 	buf := bytes.NewBuffer([]byte{})
+	fmt.Fprintln(buf, "function wasmBGImports(mod) {")
+	for mod, filePath := range svc.wasmImportFiles {
+		fmt.Fprintf(buf, "if (mod === '%s') {", mod)
+		fmt.Fprintln(buf, "return (function() {")
+
+		f, err := os.Open(filePath)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		sc := bufio.NewScanner(f)
+		for sc.Scan() {
+			text := sc.Text()
+			if text == "(function() {" {
+				continue
+			}
+			if strings.Contains(text, "function init(wasm_path)") {
+				break
+			}
+
+			fmt.Fprintln(buf, text)
+		}
+
+		fmt.Fprintf(buf, "__exports.__wasmInit=function(ins){wasm=ins;console.log('%s', wasm);}; return __exports; })();", mod)
+		fmt.Fprintln(buf, "}")
+	}
+	fmt.Fprintln(buf, " return null; }")
+	//fmt.Println(buf.String())
+	/*wasmImportsFile := path.Join(baseDir, FILES_DIR, WASM_DIR, svc.mergedwasmimports)
+	err := ioutil.WriteFile(wasmImportsFile, buf.Bytes(), 0755)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}*/
+	svc.wasmImportScript = buf.Bytes()
+	return nil
+}
+
+/*
+func (svc *UI) _mergeJSFiles(ctx core.ServerContext, baseDir string) error {
+	buf := bytes.NewBuffer([]byte{})
 	fmt.Fprintln(buf, "function wasmBGImports() {var wasm;const __exports = {};__exports.__wasmInit=function(ins){wasm=ins;console.log('memory', wasm);};")
 	skipCachedDec := false
 	skipUint8Mem := false
@@ -210,11 +250,12 @@ func (svc *UI) mergeJSFiles(ctx core.ServerContext, baseDir string) error {
 	}
 	fmt.Fprintln(buf, "return __exports;}")
 	fmt.Println(buf.String())
-	/*wasmImportsFile := path.Join(baseDir, FILES_DIR, WASM_DIR, svc.mergedwasmimports)
-	err := ioutil.WriteFile(wasmImportsFile, buf.Bytes(), 0755)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}*/
 	svc.wasmImportScript = buf.Bytes()
 	return nil
 }
+*/
+/*wasmImportsFile := path.Join(baseDir, FILES_DIR, WASM_DIR, svc.mergedwasmimports)
+err := ioutil.WriteFile(wasmImportsFile, buf.Bytes(), 0755)
+if err != nil {
+	return errors.WrapError(ctx, err)
+}*/

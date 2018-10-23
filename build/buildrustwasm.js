@@ -25,10 +25,16 @@ function compileRustWASMUI(nextTask) {
     let target = "wasm32-unknown-unknown";
     console.log("folder exists", fs.pathExistsSync(tmpObjsFolder))
     let mode = "debug"
-    let command = sprintf('CARGO_HOME=%s CARGO_INCREMENTAL=1 cargo build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+    shell.echo("vendoring")
+    let command = sprintf('cd %s && cargo vendor ', wasmRustSrcFolder)
+    if (shell.exec(command).code !== 0) {
+      shell.echo('Rust wasm build failed');
+      shell.exit(1);
+    }     
+    command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s CARGO_INCREMENTAL=1 cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
     if(release) {
       mode = "release";
-      command = sprintf('CARGO_HOME=%s cargo build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+      command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s cargo  +nightly build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
     }
     console.log("Executing command ", command)
     if (shell.exec(command).code !== 0) {

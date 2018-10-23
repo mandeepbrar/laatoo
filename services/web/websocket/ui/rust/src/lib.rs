@@ -6,6 +6,7 @@ extern crate laatoocore;
 use wasm_bindgen::prelude::*;
 //use utils::{StringMap, StringMapValue};
 use laatoocore::redux::{Store, Action, Reducer};
+use laatoocore::application::{Application};
 use laatoocore::event::{EventListener, Event};
 use laatoocore::platform::{Platform, SuccessCallback, ErrorCallback};
 use std::any::Any;
@@ -14,6 +15,8 @@ use std::any::Any;
 extern {
     #[wasm_bindgen(js_namespace = window)]
     fn alert(s: &str);
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
 
 }
 
@@ -36,6 +39,23 @@ mod tests {
 pub extern fn add_one(a: u32) -> u32 {
     alert("add one");
     a + 1
+}
+
+#[no_mangle]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen)]
+pub extern fn init(app: &mut Application) {
+    alert("init");
+    let str = Box::new(TestData{testdata: vec![]});
+    let act = TestStoreAction::Add(2);
+    log("created action");
+    let str_id = str.get_id();
+    app.register_store(str, act.get_type());
+    // let lsr = Box::new(TestListener{});
+    app.register_listener(str_id, |stor| {
+        println!("event received {:?}", stor);
+    });
+    app.dispatch(&act);
+    assert_eq!(2 + 2, 4);
 }
 
 #[derive(Clone, Debug)]

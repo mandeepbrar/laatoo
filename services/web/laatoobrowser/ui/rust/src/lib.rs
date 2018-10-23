@@ -1,3 +1,8 @@
+#![feature(custom_inner_attributes)]
+#![feature(custom_attribute)]
+#![feature(wasm_import_memory)]
+#![wasm_import_memory]
+
 extern crate laatoocore;
 extern crate web_sys;
 extern crate js_sys;
