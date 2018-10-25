@@ -192,12 +192,12 @@ function initMods(appname, propsurl, modsToInitialize) {
 }
 
 function wasmTest(appname, propsurl, modsToInitialize) {
-  console.log("all modules", _$);
+  /*console.log("all modules", _$);
   let lb = _$["laatoobrowser_wasm"];
   console.log("wasm test ", _$, lb);
   let app = lb.initialize();
   console.log("app", app);
   let ws = _$["websocket_wasm"];
   console.log("websocket", ws);
-  ws.init(app);
+  ws.init(app);*/
 }

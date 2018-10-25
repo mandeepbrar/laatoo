@@ -33,8 +33,6 @@ modules:
   - entity
   - user
   - jsui
-  - websocket
-  - laatoobrowser
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -62,10 +60,6 @@ moduleinstances:
     module: subentity
   fontawesome:
     module: fontawesome
-  websocket:
-    module: websocket
-  laatoobrowser:
-    module: laatoobrowser
   uicommon:
     module: uicommon
   reactpages:

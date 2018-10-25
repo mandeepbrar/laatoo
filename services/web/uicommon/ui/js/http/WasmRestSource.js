@@ -5,9 +5,14 @@ class RestDataSource {
     this.ExecuteServiceObject = this.ExecuteServiceObject.bind(this);
     this.HttpCall = this.HttpCall.bind(this);
     this.buildHttpSvcResponse = this.buildHttpSvcResponse.bind(this); 
+    let laatooBrowser = _$["laatoobrowser_wasm"];
+    if(laatooBrowser!=null) {
+      this.Application =laatooBrowser.initialize();
+    }
   }
 
   ExecuteServiceObject(service, serviceRequest, config) {
+    console.log("********Laatoo browser", this.Application, this.Application.js_get_registered_item("sdfdf","sdf"));
     var method = this.getMethod(service);
     var req = serviceRequest.GetRequest("http");
     var url = this.getURL(service, req);
@@ -15,6 +20,8 @@ class RestDataSource {
   }
 
   HttpCall(url, method, params, data, headers, config=null) {
+    console.log("http call...", this.Browser, this.Browser.execute_service);
+    this.Browser.execute_service(url, method, params);
     let service = this;
     var promise = new Promise(
       function (resolve, reject) {
