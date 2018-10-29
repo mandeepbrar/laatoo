@@ -44,9 +44,9 @@ func (modMgr *moduleManager) processModuleInstanceConf(ctx core.ServerContext, i
 	if err := processLogging(ctx.(*serverContext), instanceConf, instance); err != nil {
 		return false, errors.WrapError(ctx, err)
 	}
-
 	disabled, _ := instanceConf.GetBool(ctx, constants.CONF_MODULE_DISABLED)
 	if !disabled {
+		log.Debug(ctx, "Creating instance", "instance", instance)
 		return modMgr.createModuleInstance(ctx, instance, moduleName, modDir, instanceConf, pendingModules)
 	} else {
 		log.Debug(ctx, "Instance has been disabled")

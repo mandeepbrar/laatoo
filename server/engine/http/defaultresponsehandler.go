@@ -17,18 +17,18 @@ func DefaultResponseHandler(ctx core.ServerContext) *defaultResponseHandler {
 }
 
 func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response) error {
-	log.Trace(ctx, "Returning request with default response handler")
+	log.Trace(ctx, "Returning request with default response handler", "resp", resp)
 	if resp == nil {
 		resp = core.StatusSuccessResponse
 	}
 	engineContext := ctx.EngineRequestContext().(net.WebContext)
-	if resp != nil && resp.Data != nil {
-		respData := resp.Data["Data"]
+	if resp != nil {
+		var respData interface{}
 		log.Trace(ctx, "Returning request with status", "Status", resp.Status)
 		switch resp.Status {
 		case core.StatusSuccess:
-			if respData != nil {
-
+			if resp.Data != nil {
+				respData = resp.Data["Data"]
 				keyNames := make([]string, len(resp.Data))
 				i := 0
 				for key, val := range resp.Data {
@@ -46,28 +46,34 @@ func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *
 				return engineContext.NoContent(http.StatusOK)
 			}
 		case core.StatusServeFile:
-			fil := respData.(string)
-			log.Debug(ctx, "Returning serve file", "file", fil)
-			return engineContext.File(fil)
+			if resp.Data != nil {
+				respData = resp.Data["Data"]
+				fil := respData.(string)
+				log.Debug(ctx, "Returning serve file", "file", fil)
+				return engineContext.File(fil)
+			}
 		case core.StatusServeBytes:
-			log.Trace(ctx, " service returning bytes")
-			val, ok := resp.Data[core.ContentType]
-			if ok {
-				engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
-			}
-			val, ok = resp.Data[core.ContentEncoding]
-			if ok {
-				engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
-			}
-			val, ok = resp.Data[core.LastModified]
-			if ok {
-				engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
-			}
-			bytestoreturn := *respData.(*[]byte)
-			log.Debug(ctx, "Returning bytes", "length", len(bytestoreturn))
-			_, err := engineContext.Write(bytestoreturn)
-			if err != nil {
-				return err
+			if resp.Data != nil {
+				respData = resp.Data["Data"]
+				log.Trace(ctx, " service returning bytes")
+				val, ok := resp.Data[core.ContentType]
+				if ok {
+					engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
+				}
+				val, ok = resp.Data[core.ContentEncoding]
+				if ok {
+					engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
+				}
+				val, ok = resp.Data[core.LastModified]
+				if ok {
+					engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
+				}
+				bytestoreturn := *respData.(*[]byte)
+				log.Debug(ctx, "Returning bytes", "length", len(bytestoreturn))
+				_, err := engineContext.Write(bytestoreturn)
+				if err != nil {
+					return err
+				}
 			}
 			return nil
 		case core.StatusNotModified:

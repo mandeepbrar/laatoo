@@ -215,7 +215,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 			} else {
 				err = codec.Unmarshal(ctx, reqBytes, &reqData)
 			}
-
+			log.Trace(ctx, "unmarshalling bytes", "val", reqData, " err", err)
 			if err != nil {
 				return err
 			} else {

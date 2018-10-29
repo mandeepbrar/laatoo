@@ -216,7 +216,7 @@ func (svc *serverService) invoke(ctx core.RequestContext) error {
 
 		res := ctx.GetResponse()
 		if res != nil {
-			log.Trace(ctx, "Got response ", "service name", svc.name)
+			log.Trace(ctx, "Got response ", "service name", svc.name, "res", res)
 			return nil
 		}
 	}

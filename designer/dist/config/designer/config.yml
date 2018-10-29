@@ -95,11 +95,20 @@ moduleinstances:
       dataservicefactory: mongodatabase
   shell:
     module: shell
-    logging:
-      level: error
-      format: happymax
     settings:
+      instance: index
       uiapplication: designerapplication
+      indexpath: /index
+      hotmodules: 
+        reactpages: services/reactpages
+      uidependencies:
+        react: ''
+  shell:
+    module: shell
+    settings:
+      instance: designer
+      uiapplication: designerapplication
+      indexpath: /designer
       hotmodules: 
         reactpages: services/reactpages
       uidependencies:

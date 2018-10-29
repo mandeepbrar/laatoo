@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/server/components/rules"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/rules"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -25,7 +25,7 @@ func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) e
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err = modManager.loadRules(ctx, rm.processRuleConf); err != nil {
+	if err = modManager.loadRules(ctx, "", rm.processRuleConf); err != nil {
 		return err
 	}
 
@@ -59,7 +59,7 @@ func (rm *rulesManager) processRulesFromFolder(ctx core.ServerContext, folder st
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, rm.processRuleConf); err != nil {
+	if err = common.ProcessObjects(ctx, objs, "", rm.processRuleConf); err != nil {
 		return err
 	}
 	return nil

@@ -31,10 +31,10 @@ function compileRustWASMUI(nextTask) {
       shell.echo('Rust wasm build failed');
       shell.exit(1);
     }     
-    command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s CARGO_INCREMENTAL=1 cargo +nightly build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+    command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s CARGO_INCREMENTAL=1 cargo build --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
     if(release) {
       mode = "release";
-      command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s cargo  +nightly build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
+      command = sprintf('RUST_BACKTRACE=1 CARGO_HOME=%s cargo  build --release --target-dir %s --manifest-path %s/Cargo.toml --target %s', cargoHome, tmpObjsFolder, wasmRustSrcFolder, target)
     }
     console.log("Executing command ", command)
     if (shell.exec(command).code !== 0) {

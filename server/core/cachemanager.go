@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/server/components"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -51,7 +51,7 @@ func (cm *cacheManager) processCachesFromFolder(ctx core.ServerContext, folder s
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, cm.processCache); err != nil {
+	if err = common.ProcessObjects(ctx, objs, "", cm.processCache); err != nil {
 		return err
 	}
 	return nil

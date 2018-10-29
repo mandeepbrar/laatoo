@@ -366,7 +366,7 @@ func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Conf
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, engs, as.processEngineConf); err != nil {
+	if err = common.ProcessObjects(ctx, engs, "", as.processEngineConf); err != nil {
 		return err
 	}
 

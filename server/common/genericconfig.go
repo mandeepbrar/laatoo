@@ -3,6 +3,7 @@ package common
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 )
 
@@ -27,6 +28,7 @@ func (conf GenericConfig) GetString(ctx ctx.Context, configurationName string) (
 	if found {
 		str, ok := fillVariables(ctx, val).(string)
 		if ok {
+			log.Trace(ctx, "Config", "configurationName", configurationName, "val", str)
 			return str, true
 		}
 		return "", false

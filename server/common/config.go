@@ -35,10 +35,14 @@ func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName st
 	}
 }
 
-func ProcessObjects(ctx core.ServerContext, objs map[string]config.Config, processor func(core.ServerContext, config.Config, string) error) error {
+func ProcessObjects(ctx core.ServerContext, objs map[string]config.Config, prefix string, processor func(core.ServerContext, config.Config, string) error) error {
 	for elemName, elemConf := range objs {
-		elemCtx := ctx.SubContext(elemName)
-		if err := processor(elemCtx, elemConf, elemName); err != nil {
+		name := elemName
+		if len(prefix) != 0 {
+			name = fmt.Sprintf("%s.%s", prefix, name)
+		}
+		elemCtx := ctx.SubContext(name)
+		if err := processor(elemCtx, elemConf, name); err != nil {
 			return err
 		}
 	}

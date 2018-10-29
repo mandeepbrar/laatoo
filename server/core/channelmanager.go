@@ -36,7 +36,7 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err = modManager.loadChannels(ctx, chanMgr.processChannel); err != nil {
+	if err = modManager.loadChannels(ctx, "", chanMgr.processChannel); err != nil {
 		return err
 	}
 
@@ -72,6 +72,7 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 
 	for chanName, channel := range chanMgr.channelStore {
+		chanCtx := svcmgrStartCtx.SubContext(chanName)
 		svcName := channel.GetServiceName()
 		if svcName != "" {
 			svcProxy, err := svcMgr.GetService(ctx, svcName)
@@ -91,9 +92,9 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 			if err != nil {
 				return err
 			}
-			log.Info(svcmgrStartCtx, "Serving channel ", "channel", chanName)
+			log.Info(chanCtx, "Serving channel ", "channel", chanName)
 		} else {
-			log.Info(svcmgrStartCtx, "No service configured channel ", "channel", chanName)
+			log.Info(chanCtx, "No service configured channel ", "channel", chanName)
 		}
 	}
 	return nil
@@ -115,7 +116,7 @@ func (chanMgr *channelManager) processChannelsFromFolder(ctx core.ServerContext,
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, chanMgr.processChannel); err != nil {
+	if err = common.ProcessObjects(ctx, objs, "", chanMgr.processChannel); err != nil {
 		return err
 	}
 	return nil

@@ -1,0 +1,4 @@
+route: "/"
+component:
+  type: block
+  id: Modules

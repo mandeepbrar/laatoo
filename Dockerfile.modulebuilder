@@ -30,7 +30,7 @@ COPY --chown=laatoo:root sdk $LAATOO_SDK
 
 WORKDIR /go/src/laatoo/sdk/client/rust/laatoocore
 
-RUN cargo +nightly build --target wasm32-unknown-unknown
+RUN cargo build --target wasm32-unknown-unknown
 
 COPY makelaatoomodule.sh /make.sh
 

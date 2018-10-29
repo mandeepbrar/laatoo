@@ -9,17 +9,17 @@ USER laatoo
 
 RUN curl https://sh.rustup.rs -sSf > $HOME/install.sh && \
     chmod +x $HOME/install.sh && \
-    sh $HOME/install.sh -y --verbose --default-toolchain nightly
+    sh $HOME/install.sh -y --verbose 
 
 ENV PATH="${PATH}:/home/laatoo/.cargo/bin"
 
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly
+RUN rustup target add wasm32-unknown-unknown 
 
 COPY getwasmpackages.sh .
 
 RUN ./getwasmpackages.sh
 
-RUN cargo +nightly install wasm-bindgen-cli
+RUN cargo install wasm-bindgen-cli
 
 RUN cargo install cargo-vendor
 

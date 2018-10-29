@@ -41,7 +41,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err = modManager.loadFactories(ctx, facMgr.createServiceFactory); err != nil {
+	if err = modManager.loadFactories(ctx, "", facMgr.createServiceFactory); err != nil {
 		return err
 	}
 
@@ -74,7 +74,7 @@ func (facMgr *factoryManager) processFactoriesFromFolder(ctx core.ServerContext,
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, facMgr.createServiceFactory); err != nil {
+	if err = common.ProcessObjects(ctx, objs, "", facMgr.createServiceFactory); err != nil {
 		return err
 	}
 	return nil

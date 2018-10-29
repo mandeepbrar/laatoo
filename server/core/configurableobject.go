@@ -149,6 +149,7 @@ func (impl *configurableObject) GetConfiguration(ctx core.ServerContext, name st
 
 func (impl *configurableObject) GetStringConfiguration(ctx core.ServerContext, name string) (string, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
+	log.Trace(ctx, "Config", "name", name, "val", c)
 	if !ok && c == nil {
 		return "", ok
 	}

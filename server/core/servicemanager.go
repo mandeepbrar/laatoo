@@ -29,7 +29,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err := modManager.loadServices(ctx, svcMgr.createService); err != nil {
+	if err := modManager.loadServices(ctx, "", svcMgr.createService); err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (svcMgr *serviceManager) processServicesFromFolder(ctx core.ServerContext, 
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, svcMgr.createService); err != nil {
+	if err = common.ProcessObjects(ctx, objs, "", svcMgr.createService); err != nil {
 		return err
 	}
 	return nil

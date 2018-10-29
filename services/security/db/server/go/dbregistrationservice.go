@@ -1,13 +1,14 @@
 package main
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components/data"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/services/security/common"
+	"reflect"
 )
 
 const (
@@ -72,21 +73,23 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 //Expects Rbac user to be provided inside the request
 func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	ent, _ := ctx.GetParamValue("credentials")
+	log.Trace(ctx, "param value ", "ent", ent)
 	//ent := ctx.GetBody()
-	body, ok := ent.(*map[string]interface{})
+	user, ok := ent.(auth.RbacUser)
 	if !ok {
-		log.Trace(ctx, "Not map")
+		log.Trace(ctx, "Not user", "type", reflect.TypeOf(ent))
 		ctx.SetResponse(core.StatusBadRequestResponse)
 		return nil
 	}
-	fieldMap := *body
-	fieldMap["Roles"] = []string{rs.DefaultRole}
-	log.Trace(ctx, "data", " map", fieldMap)
+	//fieldMap := *body
+	//fieldMap["Roles"] = []string{rs.DefaultRole}
+	user.SetRoles([]string{rs.DefaultRole})
+	log.Trace(ctx, "data", " user", user)
 
-	obj := rs.userCreator()
-	init := obj.(core.Initializable)
-	init.Init(ctx, fieldMap)
-	user := obj.(auth.User)
+	//obj := rs.userCreator()
+	init := ent.(core.Initializable)
+	init.Init(ctx, nil)
+	//user := obj.(auth.User)
 
 	username := user.GetUserName()
 	if username == "" {
@@ -121,7 +124,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 		return err
 	}
 
-	err = rs.UserDataService.Save(ctx, obj.(data.Storable))
+	err = rs.UserDataService.Save(ctx, ent.(data.Storable))
 	if err != nil {
 		ctx.SetResponse(core.StatusInternalErrorResponse)
 		return err

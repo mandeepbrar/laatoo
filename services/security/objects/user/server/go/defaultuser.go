@@ -78,7 +78,7 @@ func (usr *DefaultUser) Init(ctx ctx.Context, args core.MethodArgs) error {
 		}
 		roles, ok := args["Roles"]
 		if ok {
-			usr.setRoles(roles.([]string))
+			usr.SetRoles(roles.([]string))
 		}
 		realm, ok := args["Realm"]
 		if ok {
@@ -143,7 +143,7 @@ func (usr *DefaultUser) GetRoles() ([]string, error) {
 	return usr.Roles, nil
 }
 
-func (usr *DefaultUser) setRoles(roles []string) error {
+func (usr *DefaultUser) SetRoles(roles []string) error {
 	usr.Roles = roles
 	return nil
 }

@@ -1,6 +1,6 @@
 parent: root
 method: GET
 service: shell.index
-path: "/index"
+path: {{var "indexpath"}}
 staticvalues:
   file: index.html

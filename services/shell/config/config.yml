@@ -18,6 +18,10 @@ params:
   uiapplication: 
     type: string
     description: Application to be started by the shell
+  indexpath: 
+    type: string
+    description: Path to be used by the shell
+    default: /index
   hotmodules: 
     type: stringmap
     description: Hot modules for development
