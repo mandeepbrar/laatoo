@@ -36,7 +36,7 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err = modManager.loadChannels(ctx, "", chanMgr.processChannel); err != nil {
+	if err = modManager.loadChannels(ctx, chanMgr.processChannel); err != nil {
 		return err
 	}
 
@@ -88,6 +88,8 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 				return errors.WrapError(svcServeCtx, err)
 			}
 
+			log.Error(ctx, "serving channel ", "name", chanName)
+
 			err = channel.Serve(svcServeCtx)
 			if err != nil {
 				return err
@@ -116,7 +118,7 @@ func (chanMgr *channelManager) processChannelsFromFolder(ctx core.ServerContext,
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, "", chanMgr.processChannel); err != nil {
+	if err = common.ProcessObjects(ctx, objs, chanMgr.processChannel); err != nil {
 		return err
 	}
 	return nil
@@ -171,6 +173,12 @@ func (chanMgr *channelManager) processChannel(ctx core.ServerContext, channelCon
 }
 
 func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
+
+	_, ok := chanMgr.channelConfs[channelName]
+	if ok {
+		return nil
+	}
+
 	createCtx := ctx.SubContext("Create Channel: " + channelName)
 	log.Trace(createCtx, "Creating channel with conf ", "conf", channelConf)
 	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)

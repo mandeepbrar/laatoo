@@ -1,1 +1,4 @@
+name: shell.templates{{var "module" "."}}
 servicemethod: template_files_service
+templatesmap:
+  index{{var "module" "."}}.html: index.html.tpl

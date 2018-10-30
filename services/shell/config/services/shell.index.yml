@@ -1,6 +1,7 @@
+name: shell.index{{var "module" "."}}
 servicemethod: named_files_service
 files:
   index.html:
     cache: 'true'
-    path: index.html
+    path: index{{var "module" "."}}.html
 storage: shell.filesstorage

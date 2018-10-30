@@ -74,7 +74,7 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 		//loop through module instances
 		for _, instance := range instances {
 			instanceConf, _ := moduleInstancesConfig.GetSubConfig(ctx, instance)
-			log.Info(ctx, "Loading module instance", "Name", instance)
+			log.Error(ctx, "Loading module instance", "Name", instance)
 
 			loaded, err := modMgr.processModuleInstanceConf(ctx, instance, instanceConf, pendingModules)
 			if err != nil {
@@ -188,12 +188,12 @@ func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string
 	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_FILE), nil)
 }
 
-func (modMgr *moduleManager) loadServices(ctx core.ServerContext, instance string, processor func(core.ServerContext, config.Config, string) error) error {
+func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		svcCtx := mod.svrContext.SubContext("Load Services")
-		log.Error(svcCtx, "Services to process", "Services", mod.services, "instance", instance, "name", mod.name)
-		if err := common.ProcessObjects(svcCtx, mod.services, instance, processor); err != nil {
+		log.Error(svcCtx, "Services to process", "Services", mod.services, "name", mod.name)
+		if err := common.ProcessObjects(svcCtx, mod.services, processor); err != nil {
 			return errors.WrapError(svcCtx, err)
 		}
 	}
@@ -276,45 +276,45 @@ func (modMgr *moduleManager) loadExtensions(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) loadFactories(ctx core.ServerContext, instance string, processor func(core.ServerContext, config.Config, string) error) error {
+func (modMgr *moduleManager) loadFactories(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		facCtx := mod.svrContext.SubContext("Load Factories")
-		if err := common.ProcessObjects(facCtx, mod.factories, instance, processor); err != nil {
+		if err := common.ProcessObjects(facCtx, mod.factories, processor); err != nil {
 			return errors.WrapError(facCtx, err)
 		}
 	}
 	return nil
 }
 
-func (modMgr *moduleManager) loadChannels(ctx core.ServerContext, instance string, processor func(core.ServerContext, config.Config, string) error) error {
+func (modMgr *moduleManager) loadChannels(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		chanCtx := mod.svrContext.SubContext("Load Channels")
-		log.Trace(chanCtx, "Channels to process", "channels", mod.channels, "name", mod.name, "instance", instance)
-		if err := common.ProcessObjects(chanCtx, mod.channels, instance, processor); err != nil {
+		log.Trace(chanCtx, "Channels to process", "channels", mod.channels, "name", mod.name)
+		if err := common.ProcessObjects(chanCtx, mod.channels, processor); err != nil {
 			return errors.WrapError(chanCtx, err)
 		}
 	}
 	return nil
 }
 
-func (modMgr *moduleManager) loadRules(ctx core.ServerContext, instance string, processor func(core.ServerContext, config.Config, string) error) error {
+func (modMgr *moduleManager) loadRules(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		ruleCtx := mod.svrContext.SubContext("Load Rules")
-		if err := common.ProcessObjects(ruleCtx, mod.rules, instance, processor); err != nil {
+		if err := common.ProcessObjects(ruleCtx, mod.rules, processor); err != nil {
 			return errors.WrapError(ruleCtx, err)
 		}
 	}
 	return nil
 }
 
-func (modMgr *moduleManager) loadTasks(ctx core.ServerContext, instance string, processor func(core.ServerContext, config.Config, string) error) error {
+func (modMgr *moduleManager) loadTasks(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		taskCtx := mod.svrContext.SubContext("Load Tasks")
-		if err := common.ProcessObjects(taskCtx, mod.tasks, instance, processor); err != nil {
+		if err := common.ProcessObjects(taskCtx, mod.tasks, processor); err != nil {
 			return errors.WrapError(taskCtx, err)
 		}
 	}

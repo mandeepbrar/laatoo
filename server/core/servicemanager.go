@@ -29,7 +29,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err := modManager.loadServices(ctx, "", svcMgr.createService); err != nil {
+	if err := modManager.loadServices(ctx, svcMgr.createService); err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (svcMgr *serviceManager) processServicesFromFolder(ctx core.ServerContext, 
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, "", svcMgr.createService); err != nil {
+	if err = common.ProcessObjects(ctx, objs, svcMgr.createService); err != nil {
 		return err
 	}
 	return nil
@@ -157,6 +157,12 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 //create service
 func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
 	svcCreateCtx := ctx.(*serverContext)
+
+	_, ok := svcMgr.servicesStore[serviceAlias]
+	if ok {
+		//return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
+		return nil
+	}
 
 	factoryname, factoryok := conf.GetString(ctx, CONF_FACTORY)
 	if !factoryok {
@@ -242,10 +248,6 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 		return errors.WrapError(svcCtx, err)
 	}
 
-	_, ok = svcMgr.servicesStore[serviceAlias]
-	if ok {
-		return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
-	}
 	svcMgr.servicesStore[serviceAlias] = svcProxy
 
 	log.Trace(svcCtx, "Created service", "service name", serviceAlias)

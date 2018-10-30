@@ -62,6 +62,9 @@ objects:
       processedfilesdirectory:
         description: Directory containing processed files. defaults to templates directory
         type: string
+      templatesmap:
+        description: Map of output file names to template file name
+        type: config
   filebundle_service:
     type: service
     description: This service serves named files from a storage component. Only disk

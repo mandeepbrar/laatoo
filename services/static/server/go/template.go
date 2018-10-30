@@ -16,14 +16,16 @@ import (
 const (
 	CONF_STATIC_TEMPFILEDIR       = "templatefilesdirectory"
 	CONF_STATIC_PROCESSEDFILESDIR = "processedfilesdirectory"
-	CONF_FILES                    = "files"
+	CONF_FILES                    = "inputfiles"
+	CONF_TEMPLATE_MAP             = "templatesmap"
 )
 
 type TemplateFileService struct {
 	core.Service
-	tempFilesDir string
-	procFilesDir string
-	filesMap     config.Config
+	tempFilesDir  string
+	procFilesDir  string
+	inputFilesMap config.Config
+	templatesMap  config.Config
 }
 
 func (svc *TemplateFileService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -43,9 +45,13 @@ func (svc *TemplateFileService) Initialize(ctx core.ServerContext, conf config.C
 	} else {
 		svc.procFilesDir = svc.tempFilesDir
 	}
-	filesMap, ok := svc.GetMapConfiguration(ctx, CONF_FILES)
+	inputFilesMap, ok := svc.GetMapConfiguration(ctx, CONF_FILES)
 	if ok {
-		svc.filesMap = filesMap
+		svc.inputFilesMap = inputFilesMap
+	}
+	templatesMap, ok := svc.GetMapConfiguration(ctx, CONF_TEMPLATE_MAP)
+	if ok {
+		svc.templatesMap = templatesMap
 	}
 
 	return svc.processTemplates(ctx)
@@ -57,8 +63,8 @@ func (svc *TemplateFileService) processTemplates(ctx core.ServerContext) error {
 		return val
 	}
 	fileContent := func(fileIdentifier string) string {
-		if svc.filesMap != nil {
-			depPath, _ := svc.filesMap.GetString(ctx, fileIdentifier)
+		if svc.inputFilesMap != nil {
+			depPath, _ := svc.inputFilesMap.GetString(ctx, fileIdentifier)
 			depContent, err := ioutil.ReadFile(depPath)
 			if err != nil {
 				return "File Not found" + depPath
@@ -69,6 +75,14 @@ func (svc *TemplateFileService) processTemplates(ctx core.ServerContext) error {
 		}
 	}
 	funcMap := template.FuncMap{"var": contextVar, "file": fileContent}
+	if svc.templatesMap == nil {
+		return svc.processAllFiles(ctx, funcMap)
+	} else {
+		return svc.createTargetFiles(ctx, funcMap)
+	}
+}
+
+func (svc *TemplateFileService) processAllFiles(ctx core.ServerContext, funcMap template.FuncMap) error {
 	return filepath.Walk(svc.tempFilesDir, func(filepath string, f os.FileInfo, err error) error {
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -91,4 +105,25 @@ func (svc *TemplateFileService) processTemplates(ctx core.ServerContext) error {
 		}
 		return nil
 	})
+}
+
+func (svc *TemplateFileService) createTargetFiles(ctx core.ServerContext, funcMap template.FuncMap) error {
+	targetFiles := svc.templatesMap.AllConfigurations(ctx)
+	for _, targetFile := range targetFiles {
+		templateFile, _ := svc.templatesMap.GetString(ctx, targetFile)
+		tempFilePath := path.Join(svc.tempFilesDir, templateFile)
+		temp, err := template.New(templateFile).Funcs(funcMap).ParseFiles(tempFilePath)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		result := new(bytes.Buffer)
+		anon := struct{}{}
+		err = temp.Execute(result, anon)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		dest := path.Join(svc.procFilesDir, targetFile)
+		return ioutil.WriteFile(dest, result.Bytes(), 0700)
+	}
+	return nil
 }

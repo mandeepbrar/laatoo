@@ -41,7 +41,7 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err := modManager.loadTasks(ctx, "", tskMgr.processTaskConf); err != nil {
+	if err := modManager.loadTasks(ctx, tskMgr.processTaskConf); err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func (tskMgr *taskManager) processTasksFromFolder(ctx core.ServerContext, folder
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, "", tskMgr.processTaskConf); err != nil {
+	if err = common.ProcessObjects(ctx, objs, tskMgr.processTaskConf); err != nil {
 		return err
 	}
 	return nil

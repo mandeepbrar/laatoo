@@ -51,7 +51,7 @@ func (cm *cacheManager) processCachesFromFolder(ctx core.ServerContext, folder s
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, "", cm.processCache); err != nil {
+	if err = common.ProcessObjects(ctx, objs, cm.processCache); err != nil {
 		return err
 	}
 	return nil

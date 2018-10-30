@@ -93,20 +93,18 @@ moduleinstances:
     module: modulesrepository
     settings:
       dataservicefactory: mongodatabase
-  shell:
+  websiteshell:
     module: shell
     settings:
-      instance: index
-      uiapplication: designerapplication
+      uiapplication: website
       indexpath: /index
       hotmodules: 
         reactpages: services/reactpages
       uidependencies:
         react: ''
-  shell:
+  designershell:
     module: shell
     settings:
-      instance: designer
       uiapplication: designerapplication
       indexpath: /designer
       hotmodules: 
