@@ -82,6 +82,12 @@ moduleinstances:
       application: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
+  websitedashboard:
+    module: dashboardtheme
+    settings:
+      application: websiteapplication
+      className: laatoodashboard
+      infoBlock: InfoBlock
   designerapplication:
     module: reactapplication
     settings:
@@ -89,6 +95,13 @@ moduleinstances:
       router: router
       uikit: reactmaterialkit
       theme: dashboard
+  websiteapplication:
+    module: reactapplication
+    settings:
+      application: websiteapplication
+      router: router
+      uikit: reactmaterialkit
+      theme: websitedashboard
   modulesrepository:
     module: modulesrepository
     settings:
@@ -96,7 +109,7 @@ moduleinstances:
   websiteshell:
     module: shell
     settings:
-      uiapplication: website
+      uiapplication: websiteapplication
       indexpath: /index
       hotmodules: 
         reactpages: services/reactpages

@@ -23,3 +23,9 @@ dashboard:
     title: Laatoo
   welcome:
     text: Welcome buddy
+websitedashboard:
+  header:
+    image: '/images/laatoo.jpg'
+    title: Laatoo
+  welcome:
+    text: Welcome buddy
