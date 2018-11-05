@@ -26,22 +26,26 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 function ProcessPages(theme, uikit) {
   let pages = Application.AllRegItems("Pages")
+  console.log("jhkjhjkhjkhkjhh = ", pages)
   if(pages) {
     for(var pageId in pages) {
       try {
         let page = pages[pageId]
         let reducers = GetPageReducers( page)
         let components = page.components
+        let pageComp = function(comp, page) {
+          return (routerState) => {
+            console.log("page change-------------------------------------", routerState)
+            return <PageComponent pageId={page} placeholder={key} routerState={routerState} description={comp} />
+          }
+        }
         if(page.component) {
-          components = {"main":page.component}
+          console.log("changed ==============")
+          components = {"main": pageComp(page.component, pageId)}
         }
         let pageComps={}
         Object.keys(components).forEach(function(key){
-          pageComps[key] = function(comp, page) {
-            return (routerState) => {
-              return <PageComponent pageId={page} placeholder={key} routerState={routerState} description={comp} />
-            }
-          }(components[key], pageId)
+          pageComps[key] = pageComp(components[key], pageId)
         });
         let route = {pattern: page.route, components: pageComps, reducer: combineReducers(reducers)}
         let newRoute = route
@@ -85,16 +89,18 @@ function GetPageReducers(page) {
 
 class PageComponent extends React.Component {
   getChildContext() {
-    return {routeParams: this.props.routerState.params};
+    return {routeParams: this.props.routerState.params, routerState: this.props.routerState};
   }
   render() {
+    console.log("page component render---", this.props)
     let compKey = this.props.pageId + this.props.placeholder
     return <Panel key={compKey}  description={this.props.description} />
   }
 }
 
 PageComponent.childContextTypes = {
-  routeParams: PropTypes.object
+  routeParams: PropTypes.object,
+  routerState: PropTypes.object
 };
 
 export {

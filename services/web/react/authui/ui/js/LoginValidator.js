@@ -51,7 +51,14 @@ Login.childContextTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => {
-  if (Storage.auth != null && Storage.auth != "") {
+  if(Storage.auth == null) {
+    return {
+      validation: false,
+      loggedIn: false,
+      validateService: ownProps.validateService
+    }
+  }
+  else if (Storage.auth != "") {
     if(state.Security.status != "LoggedIn") {
       return {
         validation: true,

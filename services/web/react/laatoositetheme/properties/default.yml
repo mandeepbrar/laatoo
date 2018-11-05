@@ -1,0 +1,6 @@
+header:
+  image: ''
+  title: My Site
+  className: header
+welcome:
+  text: Welcome

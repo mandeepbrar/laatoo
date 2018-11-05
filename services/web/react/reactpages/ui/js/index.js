@@ -35,21 +35,28 @@ function ProcessPages(theme, uikit) {
         if(page.component) {
           components = {"main":page.component}
         }
+        if(theme && theme.PreprocessPageComponents) {
+          components = theme.PreprocessPageComponents(components, page, pageId, reducers, uikit)
+        }
         let pageComps={}
         Object.keys(components).forEach(function(key){
-          pageComps[key] = function(comp, page) {
+          pageComps[key] = function(pagecomp, key, pageId, page, uikit) {
             return (routerState) => {
-              return <PageComponent pageId={page} placeholder={key} routerState={routerState} description={comp} />
+              let compToRender = typeof(pagecomp) == 'function'? pagecomp(routerState): pagecomp
+              if(theme && theme.RenderPageComponent) {
+                let retval = theme.RenderPageComponent(compToRender, key, pageId, routerState, page, uikit)
+                if(retval) {
+                  return retval
+                }
+              }
+              return compToRender
             }
-          }(components[key], pageId)
+          }(components[key], key, pageId, page, uikit)
         });
+        console.log("page comps ....", pageComps)
         let route = {pattern: page.route, components: pageComps, reducer: combineReducers(reducers)}
-        let newRoute = route
-        if(theme && theme.ProcessRoute) {
-          newRoute = theme.ProcessRoute(route, uikit)
-        }
-        Application.Register('Routes', pageId, newRoute)
-        Application.Register('Actions','Page_'+pageId, {url: newRoute.pattern})
+        Application.Register('Routes', pageId, route)
+        Application.Register('Actions','Page_'+pageId, {url: route.pattern})
       }catch(ex) {
         console.log(ex)
       }
@@ -82,20 +89,6 @@ function GetPageReducers(page) {
   }
   return reducers
 }
-
-class PageComponent extends React.Component {
-  getChildContext() {
-    return {routeParams: this.props.routerState.params};
-  }
-  render() {
-    let compKey = this.props.pageId + this.props.placeholder
-    return <Panel key={compKey}  description={this.props.description} />
-  }
-}
-
-PageComponent.childContextTypes = {
-  routeParams: PropTypes.object
-};
 
 export {
   Initialize,

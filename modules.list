@@ -31,7 +31,7 @@ reactmaterialkit laatoo/services/web/react/reactmaterialkit
 reactbootstrapkit laatoo/services/web/react/reactbootstrapkit
 reactwebrouter laatoo/services/web/react/reactwebrouter
 websocket laatoo/services/web/websocket
-dashboardtheme laatoo/services/web/react/dashboardtheme
+laatoositetheme laatoo/services/web/react/laatoositetheme
 laatooviews laatoo/services/web/react/laatooviews
 reactpages laatoo/services/web/react/reactpages
 reactforms laatoo/services/web/react/reactforms

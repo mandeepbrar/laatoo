@@ -1,0 +1,20 @@
+{
+    "applicationmods": {
+        "name": {
+            "entities": [
+
+            ],
+            "ui":[
+                "components": [
+                    
+                ]
+            ],
+        }
+    }
+    "modules":[
+
+    ],
+    "instances": [
+
+    ]
+}

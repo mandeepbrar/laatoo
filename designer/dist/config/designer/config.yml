@@ -20,7 +20,7 @@ modules:
   - uicommon
   - authui
   - reactforms
-  - dashboardtheme
+  - laatoositetheme
   - modulesrepository
   - designerui
   - reactapplication
@@ -77,13 +77,13 @@ moduleinstances:
   dependencies:
     module: designerdependencies
   dashboard:
-    module: dashboardtheme
+    module: laatoositetheme
     settings:
       application: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
   websitedashboard:
-    module: dashboardtheme
+    module: laatoositetheme
     settings:
       application: websiteapplication
       className: laatoodashboard

@@ -4,7 +4,7 @@ dependencies:
 description: Module provides laatoo theme
 modules:
   def:
-    module: dashboardtheme
+    module: laatoositetheme
     settings:
       headertitle: Laatoo
       className: laatoodashboard
