@@ -6,9 +6,9 @@ modules:
   def:
     module: laatoositetheme
     settings:
-      headertitle: Laatoo
       className: laatoodashboard
-      vertical: true
+      infoBlock: InfoBlock
+      showMenu: true
 ui:
   js:
     skipUIModules: true

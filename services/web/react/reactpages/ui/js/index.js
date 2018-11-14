@@ -42,14 +42,21 @@ function ProcessPages(theme, uikit) {
         Object.keys(components).forEach(function(key){
           pageComps[key] = function(pagecomp, key, pageId, page, uikit) {
             return (routerState) => {
-              let compToRender = typeof(pagecomp) == 'function'? pagecomp(routerState): pagecomp
-              if(theme && theme.RenderPageComponent) {
-                let retval = theme.RenderPageComponent(compToRender, key, pageId, routerState, page, uikit)
-                if(retval) {
-                  return retval
-                }
+              let visible = true
+              if(theme && theme.IsComponentVisible) {
+                visible = theme.IsComponentVisible(compToRender, key, pageId, routerState, page, uikit)
               }
-              return compToRender
+              if(visible) {
+                let compToRender = typeof(pagecomp) == 'function'? pagecomp(routerState): pagecomp
+                if(theme && theme.RenderPageComponent) {
+                  let retval = theme.RenderPageComponent(compToRender, key, pageId, routerState, page, uikit)
+                  if(retval) {
+                    return retval
+                  }
+                }
+                return compToRender  
+              }
+              return null
             }
           }(components[key], key, pageId, page, uikit)
         });

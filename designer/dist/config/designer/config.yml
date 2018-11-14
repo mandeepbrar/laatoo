@@ -21,6 +21,7 @@ modules:
   - authui
   - reactforms
   - laatoositetheme
+  - laatootheme
   - modulesrepository
   - designerui
   - reactapplication
@@ -82,8 +83,9 @@ moduleinstances:
       application: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
+      showMenu: true
   websitedashboard:
-    module: laatoositetheme
+    module: laatootheme
     settings:
       application: websiteapplication
       className: laatoodashboard
