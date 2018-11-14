@@ -10,6 +10,7 @@ const (
 	CONF_CONFIG_FILE        = "config.yml"
 	CONF_MODULES            = "modules"
 	CONF_MODULE_INSTANCES   = "moduleinstances"
+	CONF_EXTENDED_MOD       = "extends"
 	CONF_OBJECTLDR_OBJECTS  = "objects"
 	CONF_OBJECTLDR_METHODS  = "methods"
 	CONST_ALL_PERMISSIONS   = "AllPermissions"

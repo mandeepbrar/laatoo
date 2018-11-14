@@ -30,8 +30,11 @@ type serverModule struct {
 	modSettings config.Config
 }
 
-func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, modconf config.Config) *serverModule {
+func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, modconf config.Config, modMgr *moduleManager) *serverModule {
 	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, moduleName: moduleName, dir: dirpath, modConf: modconf}
+
+	extendedMod, isExtended := modconf.GetString(ctx, constants.CONF_EXTENDED_MOD)
+
 	mod.services = make(map[string]config.Config)
 	mod.factories = make(map[string]config.Config)
 	mod.channels = make(map[string]config.Config)

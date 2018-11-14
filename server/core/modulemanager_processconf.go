@@ -114,7 +114,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 
 	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, pendingModules)
 
-	modu := newServerModule(ctx, moduleInstance, moduleName, dirPath, modConf)
+	modu := newServerModule(ctx, moduleInstance, moduleName, dirPath, modConf, modMgr)
 	ctx.(*serverContext).setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
 
 	objName, ok := modConf.GetString(ctx, constants.CONF_MODULE_OBJ)
