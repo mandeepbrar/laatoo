@@ -1,8 +1,5 @@
 import React from 'react';
-import { Select} from 'material-ui';
-import { MenuItem } from 'material-ui/Menu';
-import { InputLabel } from 'material-ui/Input';
-import { FormControl} from 'material-ui/Form';
+import { FormControl, InputLabel, MenuItem, Select} from '@material-ui/core';
 import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 import PropTypes from 'prop-types';
 import {LoadableComponent} from 'reactwebcommon'

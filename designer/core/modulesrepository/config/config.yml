@@ -17,12 +17,13 @@ modules:
       dataservicefactory: mongodatabase
 ui:
   js:
-    skipUIModules: true
     externals:
       react: react
       reactwebcommon: reactwebcommon
       itemdetailview: itemdetailview
       uicommon: uicommon
       reactpages: reactpages
+      core-js: core-js
     packages:
       react: "^16.3.0"
+      core-js: "^2.5.7"

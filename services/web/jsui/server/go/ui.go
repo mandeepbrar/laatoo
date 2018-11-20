@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -115,32 +116,92 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns string, mod core.Module, modConf config.Config, settings config.Config, props map[string]interface{}) error {
-	ctx = ctx.SubContext("Load UI module " + insName)
+func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
+	ctx = ctx.SubContext("Load UI module " + modInfo.InstanceName)
 
-	ui, ok := settings.GetBool(ctx, UI_SVC_ENABLED)
+	modName := modInfo.ModName
+	ui, ok := modInfo.ModSettings.GetBool(ctx, UI_SVC_ENABLED)
 	if ok && !ui {
 		return nil
 	}
 
-	app, ok := settings.GetString(ctx, CONF_APPLICATION)
+	app, ok := modInfo.ModSettings.GetString(ctx, CONF_APPLICATION)
 	if app != "" && svc.application != app {
 		log.Debug(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
 	log.Error(ctx, "Module read", "mod name", modName)
-	modDevDir, hot := svc.hotloadMods[modName]
 
+	modDevDir, hot := svc.hotloadMods[modName]
 	modFilesDir := ""
 	if hot {
 		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
 	} else {
-		modFilesDir = path.Join(dir, FILES_DIR)
+		modFilesDir = path.Join(modInfo.ModDir, FILES_DIR)
 	}
+
 	_, modRead := svc.uiFiles[modName]
+
+	if modInfo.IsExtended {
+		if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir, modFilesDir, modRead, hot); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
+	if err := svc.LoadFiles(ctx, modInfo, modName, modInfo.ModConf, modInfo.ModDir, modFilesDir, modRead, hot); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	/*
+		instance := insName
+		if parentIns != "" {
+			instance = parentIns
+		}
+	*/
+	if modRead {
+		svc.insSettings[modInfo.InstanceName] = modInfo.ModSettings
+		svc.insMods[modInfo.InstanceName] = modName
+	}
+
+	uiRegDir := path.Join(modInfo.ModDir, UI_DIR)
+	err := svc.readRegistry(ctx, modInfo.Mod, modInfo.ModConf, modInfo.ModDir, uiRegDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	err = svc.appendPropertyFiles(ctx, modName, modInfo.ModProps)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	publicImgs := path.Join(modFilesDir, "images")
+	ok, _, _ = utils.FileExists(publicImgs)
+	if ok {
+		log.Debug(ctx, "Processing images", "dir", publicImgs)
+		err = svc.copyImages(ctx, modName, publicImgs)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+	}
+
+	fontsDir := path.Join(modFilesDir, "fonts")
+	ok, _, _ = utils.FileExists(fontsDir)
+	if ok {
+		log.Debug(ctx, "Copying fonts ", "fonts", fontsDir)
+		err = svc.copyFonts(ctx, modName, fontsDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	return nil
+}
+
+func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, modName string, modConf config.Config, modDir string, modFilesDir string,
+	modRead, hot bool) error {
 	if !modRead {
 
-		modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
+		modDeps, ok := modInfo.ModConf.GetSubConfig(ctx, DEPENDENCIES)
 		if ok {
 			svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
 		}
@@ -234,48 +295,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			svc.descriptorFiles[modName] = cont
 		}
 
-	}
-	/*
-		instance := insName
-		if parentIns != "" {
-			instance = parentIns
-		}
-	*/
-	if modRead {
-		svc.insSettings[insName] = settings
-		svc.insMods[insName] = modName
-	}
-
-	uiRegDir := path.Join(dir, UI_DIR)
-	err := svc.readRegistry(ctx, mod, modConf, dir, uiRegDir)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-
-	err = svc.appendPropertyFiles(ctx, modName, props)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-
-	publicImgs := path.Join(modFilesDir, "images")
-	ok, _, _ = utils.FileExists(publicImgs)
-	if ok {
-		log.Debug(ctx, "Processing images", "dir", publicImgs)
-		err = svc.copyImages(ctx, modName, publicImgs)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-
-	}
-
-	fontsDir := path.Join(modFilesDir, "fonts")
-	ok, _, _ = utils.FileExists(fontsDir)
-	if ok {
-		log.Debug(ctx, "Copying fonts ", "fonts", fontsDir)
-		err = svc.copyFonts(ctx, modName, fontsDir)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
 	}
 
 	return nil

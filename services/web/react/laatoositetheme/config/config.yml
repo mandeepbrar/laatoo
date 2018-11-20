@@ -7,7 +7,6 @@ description: Module provides laatoosite theme for laatoo applications
 objects: {}
 ui:
   js:
-    skipUIModules: true
     externals:
       babel-runtime: babel-runtime
       babel-polyfill: babel-polyfill
@@ -18,10 +17,12 @@ ui:
       reactwebcommon: reactwebcommon
       reactpages: reactpages
       prop-types: prop-types
+      core-js: core-js
     packages:
       react: "^16.1.0"
       react-dom: "^16.1.0"
       react-redux: "^5.0.6"
+      core-js: "^2.5.7"
   settings:
     headerimage: Image used for header
     headertitle: Title used in header

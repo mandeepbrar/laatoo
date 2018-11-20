@@ -1,4 +1,4 @@
-import MUIcon from 'material-ui/Icon';
+import MUIcon from '@material-ui/core/Icon';
 import React from 'react';
 
 const Icons = {

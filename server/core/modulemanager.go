@@ -239,7 +239,23 @@ func (modMgr *moduleManager) processPlugins(ctx core.ServerContext, mod *serverM
 			passedModCtx := passedMod.svrContext.SubContext("Process module plugin: " + passedModName)
 			parentIns := modMgr.parentModules[passedModName]
 			log.Debug(ctx, "Loading module with settings", "Instance", passedModName, "Module name", passedMod.moduleName, "Settings", passedMod.modSettings)
-			err := plugin.Load(passedModCtx, passedModName, passedMod.moduleName, passedMod.dir, parentIns, passedMod.userModule, passedMod.modConf, passedMod.modSettings, passedMod.properties)
+
+			modInfo := &components.ModInfo{
+				InstanceName:    passedModName,
+				ModName:         passedMod.moduleName,
+				ModDir:          passedMod.dir,
+				ParentModName:   parentIns,
+				Mod:             passedMod.userModule,
+				ModConf:         passedMod.modConf,
+				ModSettings:     passedMod.modSettings,
+				ModProps:        passedMod.properties,
+				IsExtended:      passedMod.isExtended,
+				ExtendedModName: passedMod.extendedMod,
+				ExtendedModConf: passedMod.extendedModConf,
+				ExtendedModDir:  passedMod.extendedModDir,
+			}
+
+			err := plugin.Load(passedModCtx, modInfo)
 			if err != nil {
 				return errors.WrapError(passedModCtx, err)
 			}

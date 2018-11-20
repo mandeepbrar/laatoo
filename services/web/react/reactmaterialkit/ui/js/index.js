@@ -2,18 +2,15 @@ import React from 'react';
 import {render } from 'react-dom'
 import Dialogs from './components/Dialogs'
 import Navbar from './components/Navbar'
-import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-import {Button, FontIcon} from 'material-ui';
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import {Button} from '@material-ui/core';
 import {TextField} from './components/TextField';
 import {ScrollListener} from 'reactwebcommon';
 import './styles/app.scss';
 import Forms from './forms';
-import { FormControl } from 'material-ui/Form';
-import { MenuItem } from 'material-ui/Menu';
 import {Tabset, Tab} from './components/Tabs';
 import {Block} from './components/Block';
 import {Icons} from './components/Icons';
-import { Select} from './components/Select';
 
 //import injectTapEventPlugin from "react-tap-event-plugin";
 

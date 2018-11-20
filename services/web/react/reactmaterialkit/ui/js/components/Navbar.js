@@ -1,6 +1,6 @@
 import React from 'react';
 import {Action} from'reactwebcommon';
-import Button from 'material-ui/Button';
+import Button from '@material-ui/core/Button';
 
 const Navbutton=(props)=>(
     <Button className={props.vertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</Button>

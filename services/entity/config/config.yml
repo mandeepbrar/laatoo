@@ -8,7 +8,6 @@ description: This module provides an entity object services, channels, forms, vi
   etc
 ui:
   js:
-    skipUIModules: true
     externals:
       dataadapter: dataadapter
       uicommon: uicommon
@@ -17,9 +16,11 @@ ui:
       babel-polyfill: babel-polyfill
       react: react
       prop-types: prop-types
+      core-js: core-js
     packages:
       react: "^16.1.0"
       prop-types: "^15.6.0"
+      core-js: "^2.5.7"
 objects:
   EntityModule:
     type: module

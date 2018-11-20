@@ -6,7 +6,6 @@ dependencies:
 description: Module provides entity list field for forms
 ui:
   js:
-    skipUIModules: true
     externals:
       babel-runtime: babel-runtime
       babel-polyfill: babel-polyfill
@@ -19,5 +18,7 @@ ui:
       redux-saga: redux-saga
       reactwebcommon: reactwebcommon
       uicommon: uicommon
+      core-js: core-js
     packages:
       react: "^16.1.0"
+      core-js: "^2.5.7"

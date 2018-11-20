@@ -4,7 +4,6 @@ dependencies:
 description: Module provides pages laatoo applications
 ui:
   js:
-    skipUIModules: true
     externals:
       babel-runtime: babel-runtime
       babel-polyfill: babel-polyfill
@@ -13,8 +12,10 @@ ui:
       redux: redux
       reactwebcommon: reactwebcommon
       prop-types: prop-types
+      core-js: core-js
     packages:
       react: "^16.3.0"
       react-redux: "^5.0.6"
       redux: "^3.7.2"
       prop-types: "^15.6.0"
+      core-js: "^2.5.7"

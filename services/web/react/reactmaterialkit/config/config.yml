@@ -20,7 +20,7 @@ ui:
       react: "^16.1.0"
       react-dom: "^16.1.0"
       react-redux: "^5.0.6"
-      material-ui: "next"
+      "@material-ui/core": "latest"
       redux-form: "^7.1.1"
       react-tap-event-plugin: "*"
       prop-types: "^15.6.0"

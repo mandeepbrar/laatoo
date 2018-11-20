@@ -1,8 +1,6 @@
-import Tabs, { Tab as MUITab} from 'material-ui/Tabs';
+import {AppBar, Button, Tabs, Tab as MUITab} from '@material-ui/core';
 import React from 'react';
-import AppBar from 'material-ui/AppBar';
 import PropTypes from 'prop-types';
-import Button from 'material-ui/Button';
 
 class Tabset extends React.Component {
   constructor(props) {

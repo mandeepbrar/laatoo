@@ -1,13 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import Button from 'material-ui/Button';
-import Snackbar from 'material-ui/Snackbar';
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from 'material-ui/Dialog';
+import {Button, Snackbar, Dialog,  DialogActions,  DialogContent,  DialogContentText,  DialogTitle} from '@material-ui/core';
 import {Block} from './Block';
 
 

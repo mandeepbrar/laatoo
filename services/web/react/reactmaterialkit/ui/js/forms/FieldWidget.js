@@ -6,12 +6,12 @@ import {
   TextField,
   Toggle,
   DatePicker,
+  MenuItem,
+  FormControl, FormControlLabel, FormGroup,
+  InputLabel, 
   Switch,
   TimePicker
-} from 'material-ui';
-import { MenuItem } from 'material-ui/Menu';
-import { FormControl, FormControlLabel, FormGroup } from 'material-ui/Form';
-import { InputLabel } from 'material-ui/Input';
+} from '@material-ui/core';
 import {Select} from '../components/Select';
 import PropTypes from 'prop-types';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Icons} from './Icons';
-import IconButton from 'material-ui/IconButton';
+import {IconButton} from '@material-ui/core';
 
 const Block=(props) =>  {
   let cl = props.className? props.className:""

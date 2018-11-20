@@ -209,13 +209,15 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 		}
 	}
 
-	uiplugin, ok := mod.(UIPlugin)
-	if ok {
-		registry := uiplugin.GetRegistry(ctx)
-		if registry != nil {
-			err := processRegistryConfig(ctx, registry)
-			if err != nil {
-				return errors.WrapError(ctx, err)
+	if mod != nil {
+		uiplugin, ok := mod.(UIPlugin)
+		if ok {
+			registry := uiplugin.GetRegistry(ctx)
+			if registry != nil {
+				err := processRegistryConfig(ctx, registry)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
 			}
 		}
 	}

@@ -5,7 +5,6 @@ dependencies:
 description: Module provides base for react based applications of laatoo.
 ui:
   js:
-    skipUIModules: true
     externals:
       babel-runtime: babel-runtime
       babel-polyfill: babel-polyfill
@@ -16,12 +15,14 @@ ui:
       redux: redux
       redux-saga: redux-saga
       prop-types: prop-types
+      core-js: core-js
     packages:
       react: "^16.1.0"
       react-redux: "^5.0.6"
       redux: "^3.7.2"
       redux-saga: "^0.16.0"
       prop-types: "^15.6.0"
+      core-js: "^2.5.7"
 params:
   uikit: Uikit to be used by laatoo react application
   theme: Theme to be used by laatoo react application
