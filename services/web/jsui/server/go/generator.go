@@ -32,6 +32,9 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 
 	filesWritten := make(map[string]bool)
 	for name, _ := range svc.uiFiles {
+
+		log.Error(ctx, "file written.....", "name", name)
+
 		err := svc.appendContent(ctx, name, uiFileCont, filesWritten)
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -220,6 +223,10 @@ func (svc *UI) writeDependenciesSourceFile(ctx core.ServerContext, baseDir strin
 }*/
 
 func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buffer, writtenMods map[string]bool) error {
+	_, written := writtenMods[name]
+	if written {
+		return nil
+	}
 	log.Info(ctx, "Appending module content ", "Name", name)
 	nl := []byte(fmt.Sprintln(""))
 
@@ -230,12 +237,9 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
 
 	deps := svc.modDeps[name]
 	for _, dep := range deps {
-		_, ok := writtenMods[dep]
-		if !ok {
-			err := svc.appendContent(ctx, dep, buf, writtenMods)
-			if err != nil {
-				return err
-			}
+		err := svc.appendContent(ctx, dep, buf, writtenMods)
+		if err != nil {
+			return err
 		}
 	}
 	/*cont, ok := svc.uiFiles[name]

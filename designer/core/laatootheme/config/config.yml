@@ -6,3 +6,5 @@ extends: laatoositetheme
 ui:
   js:
     skipUIModules: true
+    externals:
+      reactwebcommon: reactwebcommon

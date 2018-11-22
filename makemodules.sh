@@ -12,7 +12,7 @@ modFile=$1
 shift
 
 compile_module() {
-  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e packageFolder=$2 -e verbose=true  -e overwriteJSMods=false -e getBuildPackages=true laatoomodulebuilder
+  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e packageFolder=$2 -e verbose=true  -e overwriteJSMods=false -e getBuildPackages=false laatoomodulebuilder
   echo '================================================================'
 }
 

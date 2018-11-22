@@ -143,6 +143,7 @@ ui:
       redux: redux
       react-redux: react-redux
       reactpages: reactpages
+      reactwebcommon: reactwebcommon
       sanitize-html: sanitize-html
       prop-types: prop-types
       axios: axios

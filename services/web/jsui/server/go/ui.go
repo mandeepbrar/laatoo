@@ -124,10 +124,11 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	if ok && !ui {
 		return nil
 	}
+	log.Error(ctx, "Loading module", "modInfo", modInfo, "application", svc.application)
 
 	app, ok := modInfo.ModSettings.GetString(ctx, CONF_APPLICATION)
 	if app != "" && svc.application != app {
-		log.Debug(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
+		log.Error(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
 	log.Error(ctx, "Module read", "mod name", modName)
@@ -142,14 +143,17 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 
 	_, modRead := svc.uiFiles[modName]
 
-	if modInfo.IsExtended {
-		if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir, modFilesDir, modRead, hot); err != nil {
+	if !modRead {
+		if modInfo.IsExtended {
+			if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir, modFilesDir, hot); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+
+		if err := svc.LoadFiles(ctx, modInfo, modName, modInfo.ModConf, modInfo.ModDir, modFilesDir, hot); err != nil {
 			return errors.WrapError(ctx, err)
 		}
-	}
-
-	if err := svc.LoadFiles(ctx, modInfo, modName, modInfo.ModConf, modInfo.ModDir, modFilesDir, modRead, hot); err != nil {
-		return errors.WrapError(ctx, err)
+		_, modRead = svc.uiFiles[modName]
 	}
 
 	/*
@@ -159,6 +163,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 		}
 	*/
 	if modRead {
+		log.Error(ctx, "creating instance", "modName", modName, "modInfo.InstanceName", modInfo.InstanceName)
 		svc.insSettings[modInfo.InstanceName] = modInfo.ModSettings
 		svc.insMods[modInfo.InstanceName] = modName
 	}
@@ -198,103 +203,98 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 }
 
 func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, modName string, modConf config.Config, modDir string, modFilesDir string,
-	modRead, hot bool) error {
-	if !modRead {
+	hot bool) error {
+	modDeps, ok := modInfo.ModConf.GetSubConfig(ctx, DEPENDENCIES)
+	if ok {
+		svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
+	}
 
-		modDeps, ok := modInfo.ModConf.GetSubConfig(ctx, DEPENDENCIES)
-		if ok {
-			svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
+	uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
+
+	if hot {
+		log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
+		svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
+	}
+
+	ok, _, _ = utils.FileExists(uifile)
+	if ok {
+		cont, err := ioutil.ReadFile(uifile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
-
-		uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
-
-		if hot {
-			log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
-			svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
-		}
-
-		ok, _, _ = utils.FileExists(uifile)
+		ui, ok := modConf.GetSubConfig(ctx, "ui")
 		if ok {
-			cont, err := ioutil.ReadFile(uifile)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			ui, ok := modConf.GetSubConfig(ctx, "ui")
+			pkgs, ok := ui.GetSubConfig(ctx, "packages")
 			if ok {
-				pkgs, ok := ui.GetSubConfig(ctx, "packages")
-				if ok {
-					pkgNames := pkgs.AllConfigurations(ctx)
-					svc.requiredUIPkgs.Append(pkgNames)
-				}
+				pkgNames := pkgs.AllConfigurations(ctx)
+				svc.requiredUIPkgs.Append(pkgNames)
 			}
-
-			svc.uiFiles[modName] = cont
-			modRead = true
 		}
 
-		vendorfile := path.Join(modFilesDir, SCRIPTS_DIR, "vendor.js")
-		ok, _, _ = utils.FileExists(vendorfile)
-		if ok {
-			if hot {
-				svc.addWatch(ctx, modName, vendorfile, modFilesDir, svc.reloadVendorFile)
-			}
-			log.Trace(ctx, "Reading vendor file", "file", vendorfile)
-			cont, err := ioutil.ReadFile(vendorfile)
+		svc.uiFiles[modName] = cont
+	}
+
+	vendorfile := path.Join(modFilesDir, SCRIPTS_DIR, "vendor.js")
+	ok, _, _ = utils.FileExists(vendorfile)
+	if ok {
+		if hot {
+			svc.addWatch(ctx, modName, vendorfile, modFilesDir, svc.reloadVendorFile)
+		}
+		log.Trace(ctx, "Reading vendor file", "file", vendorfile)
+		cont, err := ioutil.ReadFile(vendorfile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		svc.vendorFiles[fmt.Sprintf("%s_vendor", modName)] = cont
+	}
+
+	cssfile := path.Join(modFilesDir, CSS_DIR, "app.css")
+	ok, _, _ = utils.FileExists(cssfile)
+	if ok {
+		cont, err := ioutil.ReadFile(cssfile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		svc.cssFiles[modName] = cont
+	}
+
+	wasmfile := path.Join(modFilesDir, WASM_DIR, modName+".wasm")
+	ok, _, _ = utils.FileExists(wasmfile)
+	if ok {
+		svc.wasmFiles[modName] = wasmfile
+		/*	cont, err := ioutil.ReadFile(wasmfile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			svc.vendorFiles[fmt.Sprintf("%s_vendor", modName)] = cont
-		}
+			svc.wasmFiles[modName] = cont*/
+		//log.Error(ctx, "Wasm file read", "Mod", modName)
+	}
 
-		cssfile := path.Join(modFilesDir, CSS_DIR, "app.css")
-		ok, _, _ = utils.FileExists(cssfile)
-		if ok {
-			cont, err := ioutil.ReadFile(cssfile)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			svc.cssFiles[modName] = cont
+	wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
+	ok, _, _ = utils.FileExists(wasmimportsfile)
+	if ok {
+		svc.wasmImportFiles[modName] = wasmimportsfile
+	}
+	/*svc.wasmImportFiles[modName] = path.Join(modFilesDir, WASM_DIR,  modName+".js")
+	wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
+	ok, _, _ = utils.FileExists(wasmimportsfile)
+	if ok {
+		cont, err := ioutil.ReadFile(wasmimportsfile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
+		svc.wasmImportFiles[modName] = cont
+		//log.Error(ctx, "Wasm file read", "Mod", modName)
+	}*/
 
-		wasmfile := path.Join(modFilesDir, WASM_DIR, modName+".wasm")
-		ok, _, _ = utils.FileExists(wasmfile)
-		if ok {
-			svc.wasmFiles[modName] = wasmfile
-			/*	cont, err := ioutil.ReadFile(wasmfile)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				svc.wasmFiles[modName] = cont*/
-			//log.Error(ctx, "Wasm file read", "Mod", modName)
+	descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)
+	ok, _, _ = utils.FileExists(descfile)
+	if ok {
+		cont, err := ioutil.ReadFile(descfile)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
-
-		wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
-		ok, _, _ = utils.FileExists(wasmimportsfile)
-		if ok {
-			svc.wasmImportFiles[modName] = wasmimportsfile
-		}
-		/*svc.wasmImportFiles[modName] = path.Join(modFilesDir, WASM_DIR,  modName+".js")
-		wasmimportsfile := path.Join(modFilesDir, WASM_DIR, modName+".js")
-		ok, _, _ = utils.FileExists(wasmimportsfile)
-		if ok {
-			cont, err := ioutil.ReadFile(wasmimportsfile)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			svc.wasmImportFiles[modName] = cont
-			//log.Error(ctx, "Wasm file read", "Mod", modName)
-		}*/
-
-		descfile := path.Join(modFilesDir, SCRIPTS_DIR, svc.descfile)
-		ok, _, _ = utils.FileExists(descfile)
-		if ok {
-			cont, err := ioutil.ReadFile(descfile)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			svc.descriptorFiles[modName] = cont
-		}
-
+		svc.descriptorFiles[modName] = cont
 	}
 
 	return nil
