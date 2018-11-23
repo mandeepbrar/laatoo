@@ -192,7 +192,7 @@ func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func
 	for _, modProxy := range modMgr.modules {
 		mod := modProxy.(*moduleProxy).mod
 		svcCtx := mod.svrContext.SubContext("Load Services")
-		log.Error(svcCtx, "Services to process", "Services", mod.services, "name", mod.name)
+		log.Debug(svcCtx, "Services to process", "Services", mod.services, "name", mod.name)
 		if err := common.ProcessObjects(svcCtx, mod.services, processor); err != nil {
 			return errors.WrapError(svcCtx, err)
 		}

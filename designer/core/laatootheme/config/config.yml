@@ -1,6 +1,7 @@
 version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
+  laatoositetheme: ">=0.0.1"
 description: Module provides laatoo theme
 extends: laatoositetheme
 ui:
@@ -8,3 +9,4 @@ ui:
     skipUIModules: true
     externals:
       reactwebcommon: reactwebcommon
+      laatoositetheme: laatoositetheme

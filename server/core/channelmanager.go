@@ -88,8 +88,6 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 				return errors.WrapError(svcServeCtx, err)
 			}
 
-			log.Error(ctx, "serving channel ", "name", chanName)
-
 			err = channel.Serve(svcServeCtx)
 			if err != nil {
 				return err

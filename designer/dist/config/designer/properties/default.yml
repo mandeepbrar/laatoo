@@ -25,7 +25,6 @@ dashboard:
     text: Welcome buddy
 websitedashboard:
   header:
-    image: '/images/Laatoo.jpg'
-    title: Laatoo
+    image: '/images/Laatoo.png'
   welcome:
     text: Welcome buddy

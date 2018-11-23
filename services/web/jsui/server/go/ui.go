@@ -124,33 +124,27 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	if ok && !ui {
 		return nil
 	}
-	log.Error(ctx, "Loading module", "modInfo", modInfo, "application", svc.application)
 
 	app, ok := modInfo.ModSettings.GetString(ctx, CONF_APPLICATION)
 	if app != "" && svc.application != app {
 		log.Error(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
-	log.Error(ctx, "Module read", "mod name", modName)
+	log.Info(ctx, "Module read", "mod name", modName)
 
-	modDevDir, hot := svc.hotloadMods[modName]
-	modFilesDir := ""
-	if hot {
-		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
-	} else {
-		modFilesDir = path.Join(modInfo.ModDir, FILES_DIR)
-	}
+	modFilesDir, _ := svc.getFilesDir(ctx, modName, modInfo.ModDir)
 
 	_, modRead := svc.uiFiles[modName]
 
 	if !modRead {
+
 		if modInfo.IsExtended {
-			if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir, modFilesDir, hot); err != nil {
+			if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		}
 
-		if err := svc.LoadFiles(ctx, modInfo, modName, modInfo.ModConf, modInfo.ModDir, modFilesDir, hot); err != nil {
+		if err := svc.LoadFiles(ctx, modInfo, modName, modInfo.ModConf, modInfo.ModDir); err != nil {
 			return errors.WrapError(ctx, err)
 		}
 		_, modRead = svc.uiFiles[modName]
@@ -161,11 +155,23 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 		if parentIns != "" {
 			instance = parentIns
 		}
+
+
 	*/
-	if modRead {
+
+	_, modExists := svc.uiFiles[modName]
+	_, extendedModExists := svc.uiFiles[modInfo.ExtendedModName]
+
+	log.Trace(ctx, "Mod exists ", "application", svc.application, "modname", modName, "extended mod name", modInfo.ExtendedModName, "mod exists", modExists, "extended mod exists", extendedModExists)
+
+	if modExists || extendedModExists {
 		log.Error(ctx, "creating instance", "modName", modName, "modInfo.InstanceName", modInfo.InstanceName)
 		svc.insSettings[modInfo.InstanceName] = modInfo.ModSettings
-		svc.insMods[modInfo.InstanceName] = modName
+		if modInfo.IsExtended {
+			svc.insMods[modInfo.InstanceName] = modInfo.ExtendedModName
+		} else {
+			svc.insMods[modInfo.InstanceName] = modName
+		}
 	}
 
 	uiRegDir := path.Join(modInfo.ModDir, UI_DIR)
@@ -202,8 +208,10 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	return nil
 }
 
-func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, modName string, modConf config.Config, modDir string, modFilesDir string,
-	hot bool) error {
+func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, modName string, modConf config.Config, modDir string) error {
+
+	modFilesDir, hot := svc.getFilesDir(ctx, modName, modDir)
+
 	modDeps, ok := modInfo.ModConf.GetSubConfig(ctx, DEPENDENCIES)
 	if ok {
 		svc.modDeps[modName] = modDeps.AllConfigurations(ctx)
@@ -230,6 +238,7 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 				svc.requiredUIPkgs.Append(pkgNames)
 			}
 		}
+		log.Debug(ctx, "adding files", "modname", modName)
 
 		svc.uiFiles[modName] = cont
 	}
@@ -298,6 +307,18 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 	}
 
 	return nil
+}
+
+func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string) (string, bool) {
+	modDevDir, hot := svc.hotloadMods[modName]
+
+	modFilesDir := ""
+	if hot {
+		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
+	} else {
+		modFilesDir = path.Join(modDir, FILES_DIR)
+	}
+	return modFilesDir, hot
 }
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
@@ -414,7 +435,7 @@ func (svc *UI) copyImages(ctx core.ServerContext, mod, dirPath string) error {
 			return errors.WrapError(ctx, err)
 		}*/
 	dest := filepath.Join(basedir, "images")
-	log.Debug(ctx, "Copying images ", "src", dirPath, "dest", dest)
+	log.Error(ctx, "Copying images ", "src", dirPath, "dest", dest)
 	err := utils.CopyDir(dirPath, dest, "")
 	if err != nil {
 		return errors.WrapError(ctx, err)
