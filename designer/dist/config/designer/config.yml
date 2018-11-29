@@ -34,6 +34,7 @@ modules:
   - entity
   - user
   - jsui
+  - laatoositeui
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -88,8 +89,7 @@ moduleinstances:
     module: laatootheme
     settings:
       application: websiteapplication
-      className: laatoodashboard
-      infoBlock: InfoBlock
+      className: laatoosite
   designerapplication:
     module: reactapplication
     settings:
@@ -128,6 +128,12 @@ moduleinstances:
         react: ''
   designerui:
     module: designerui
+    settings:
+      application: designerapplication
+  laatoositeui:
+    module: laatoositeui
+    settings:
+      application: websiteapplication
   publicdirserver:
     module: publicdirserver
     settings:

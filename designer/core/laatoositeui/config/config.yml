@@ -1,0 +1,15 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides laatoo site ui 
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+    packages:
+      react: "^16.3.0"

@@ -64,9 +64,22 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	}
 
 	modConf, confFound := modMgr.moduleConf[moduleName]
-	modSettings, settingsFound := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
+
+	var modSettings config.Config
+
+	if confFound {
+		modSettings, _ = modConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
+	}
+
+	insSettings, settingsFound := instanceConf.GetSubConfig(ctx, constants.CONF_MODULE_SETTINGS)
+
+	if settingsFound {
+		//merge modSettings and insSettings
+		modSettings = common.Merge(ctx, modSettings, insSettings)
+	}
+
 	log.Info(ctx, "Creating module instance", "Conf", modConf, "Settings", modSettings)
-	if confFound && settingsFound {
+	if confFound && (modSettings != nil) {
 		//		ctx.SetVals(modSettings.(common.GenericConfig))
 		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
 		log.Info(ctx, "Creating module instance ", "Params", moduleparams)

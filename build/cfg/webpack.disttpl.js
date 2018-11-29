@@ -18,7 +18,8 @@ let cssoptions = {
   includePaths: [
     path.resolve("/nodemodules/node_modules/")
   ],
-  alias: cssaliases
+  alias: cssaliases,
+  url: false
 }
 module.exports = merge(config, {
   devtool: 'cheap-module-source-map',

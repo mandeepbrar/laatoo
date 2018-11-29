@@ -1,0 +1,14 @@
+<div className="sitebody w100">
+    <div className="row w960 ma">
+        <div  className="w100 row m50">
+            <div className="col-xs-6">
+                <Image src="images/spintop.jpg" module="reactwebcommon"/>
+            </div>
+            <div className="col-xs-6 p30">
+                <div className="text m50">
+                    Rapid application development
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -4,6 +4,8 @@ dependencies:
   laatoositetheme: ">=0.0.1"
 description: Module provides laatoo theme
 extends: laatoositetheme
+settings:
+  infoBlock: designerlink
 ui:
   js:
     skipUIModules: true

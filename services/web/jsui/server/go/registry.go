@@ -312,6 +312,12 @@ func (svc *UI) getRegistryItemName(ctx core.ServerContext, conf config.Config, i
 
 func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType, modDir string) error {
 	ctx = ctx.SubContext("Registry Item: " + itemName)
+	itemApp, ok := conf.GetString(ctx, CONF_APPLICATION)
+	if ok {
+		if itemApp != svc.application {
+			return nil
+		}
+	}
 	itemCfg, ok := conf.GetSubConfig(ctx, ITEM_CONFIG)
 	if ok {
 		skipItem, _ := itemCfg.GetBool(ctx, ITEM_SKIP)

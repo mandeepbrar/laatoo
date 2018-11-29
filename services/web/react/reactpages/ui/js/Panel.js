@@ -37,7 +37,7 @@ class Panel extends React.Component {
     this.closePanel = props.closePanel? props.closePanel: null
 
     //console.log("print id ", desc.id)
-    console.log("creating panel test*$$$$$$$$$$$$$$$$", desc, props, ctx, this.context)
+    console.log("creating panel", desc, props, ctx, this.context)
     let className = props.className? props.className + " panel " : " panel "
     if(desc.id) {
       className = className + " " +desc.id
@@ -189,7 +189,7 @@ class Panel extends React.Component {
     let panel=this
     if(display) {
       this.getView = function(props, ctx, state, className) {
-        console.log("calling block func", props, ctx)
+        console.log("calling block func", props, ctx, className)
         let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
         return retval
       }

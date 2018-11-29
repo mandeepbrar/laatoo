@@ -13,6 +13,7 @@ class Image extends React.Component {
       if(this.props.children) {
         return this.props.children
       }
+      console.log("No src tag provieded for image", this.props);
       return null
     }
     if (this.props.prefix && !this.props.skipPrefix && !this.props.src.startsWith("http")) {
