@@ -81,11 +81,12 @@ moduleinstances:
   dashboard:
     module: laatoositetheme
     settings:
+      authenticate: true
       application: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
       showMenu: true
-  websitedashboard:
+  websitetheme:
     module: laatootheme
     settings:
       application: websiteapplication
@@ -103,7 +104,7 @@ moduleinstances:
       application: websiteapplication
       router: router
       uikit: reactmaterialkit
-      theme: websitedashboard
+      theme: websitetheme
   modulesrepository:
     module: modulesrepository
     settings:

@@ -10,6 +10,7 @@ class HeaderUI extends React.Component {
   render() {
     let props = this.props;
     let module = props.module;
+    console.log("header props", props)
     let hs = module.properties.header;
     let settings = module.settings;
     let infoBlock = settings.infoBlock ? settings.infoBlock: "userBlock";

@@ -14,7 +14,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
   initTheme(module);
   module.properties = Application.Properties[ins];
   module.settings = settings;
-  module.skipAuth = settings.skipAuth
+  module.authenticate = settings.authenticate
   let homePage = _reg('Pages', 'home')
   if(!homePage) {
     let homePage={id:"home", route:"/", components: {"main": {type:"component", component: <Welcome modProps={module.properties}/>}}}
@@ -23,7 +23,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
   }
   let loginModule = "authui"
   let loginComp = "WebLoginForm"
-  if(settings && !settings.skipAuth && settings.loginModule) {
+  if(settings && settings.loginModule) {
       loginModule = settings.loginModule
       loginComp = settings.loginComp
   }

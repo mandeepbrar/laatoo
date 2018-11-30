@@ -23,7 +23,7 @@ dashboard:
     title: Laatoo
   welcome:
     text: Welcome buddy
-websitedashboard:
+websitetheme:
   header:
     image: '/images/Laatoo.png'
   welcome:
