@@ -1,4 +1,8 @@
 route: "/"
 component:
-  type: block
-  id: sitebody
+  type: layout
+  items:
+    - type: block
+      id: siteleader
+    - type: block
+      id: sitefooter

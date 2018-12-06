@@ -158,8 +158,13 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, e
 	default:
 		elem = fmt.Sprintf("_$['%s'].%s", mod, node.XMLName.Local)
 	}
+
+	childArrStr := "null"
+	if len(children) > 0 {
+		childArrStr = fmt.Sprintf("[%s]", strings.Join(children, ","))
+	}
 	//n.Attrs
-	return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, strings.Join(children, ",")), nil
+	return fmt.Sprintf("_ce(%s, %s, %s)", elem, attrStr, childArrStr), nil
 }
 
 func processJS(ctx core.ServerContext, input string) string {

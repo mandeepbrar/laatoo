@@ -112,6 +112,7 @@ class Panel extends React.Component {
     }
     if(desc instanceof Array) {
       let items = desc.map(function(item) {
+        console.log("rendering panel array element", item)
         return <Panel description={item}/>
       });
       return items
@@ -138,6 +139,7 @@ class Panel extends React.Component {
     var block = this
     var layout = null
     var panelComp = (id)=> {
+      console.log("looking for panel component in layout", desc, id)
       return desc[id]?
       <block.uikit.Block className={id}>
         {block.getPanelItems(desc[id])}
@@ -146,6 +148,7 @@ class Panel extends React.Component {
     }
 
     this.getView = function (props, ctx, state, className) {
+      console.log("getting layout", desc, props)
       switch(desc.layout) {
         case "2col": {
           layout=( <this.uikit.Block className={className + " twocol"}>

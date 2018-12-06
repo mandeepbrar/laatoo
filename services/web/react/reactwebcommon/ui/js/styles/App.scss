@@ -374,8 +374,12 @@
   flex-direction: column !important;
 }
 
-.fdmiddle {
+.fdcenter {
   justify-content: center !important;
+}
+
+.fdmiddle {
+  align-items: center !important;
 }
 
 .fdgrow {
