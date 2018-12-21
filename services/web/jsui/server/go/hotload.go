@@ -73,3 +73,10 @@ func (svc *UI) reloadVendorFile(ctx core.ServerContext, mod, file, dir string) e
 	}
 	return nil
 }
+
+
+func (svc *UI) reloadRegistry(ctx core.ServerContext, itemType string) func(ctx core.ServerContext, mod, file, dir string) error) error {
+	return func(ctx core.ServerContext, mod, file, dir string) error) error {
+
+	}
+}
