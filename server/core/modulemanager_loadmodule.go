@@ -72,7 +72,7 @@ func (modMgr *moduleManager) extractArchives(ctx core.ServerContext, modulesRepo
 				}
 			}
 			if extractFile {
-				if err := archiver.TarGz.Open(modFile, modulesDir); err != nil {
+				if err := archiver.Unarchive(modFile, modulesDir); err != nil {
 					return errors.WrapError(ctx, err)
 				}
 				log.Info(ctx, "Extracted module ", "Module", modToExtract, "Module file", modFile, "Repo", modulesRepo, "Destination", modulesDir, "Module directory", modDir)

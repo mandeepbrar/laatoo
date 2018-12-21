@@ -110,7 +110,12 @@ func (svc *RepositoryUpdate) extractArchive(ctx core.RequestContext, mod, file s
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if err := archiver.TarGz.Read(str, TMPPATH); err != nil {
+	targz := archiver.NewTarGz()
+	err = targz.Open(str, -1); 
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if err := targz.Extract("", "", TMPPATH); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	log.Error(ctx, "Extracted module ", "Module", mod, "Module file", file)
