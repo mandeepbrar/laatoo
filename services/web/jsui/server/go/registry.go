@@ -35,38 +35,7 @@ func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName stri
 	itemReg[itemName] = fmt.Sprintf("_r('%s', '%s', %s);", itemType, itemName, itemStr)
 }
 
-/*
-func (svc *UI) processFile(ctx core.ServerContext, cont []byte, filetype string, itemName string, itemType string) error {
-	ctx = ctx.SubContext(itemName)
-	log.Error(ctx, "processing file", "filetype", filetype, "itemName", itemName, " cont", string(cont))
-	if (filetype == ".json") || (filetype == ".yml") {
-processConfig
-		if itemType == "Block" {
-			err := svc.createYmlBlock(ctx, itemType, itemName, cont)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-		} else {
-			svc.addRegItem(ctx, itemType, itemName, string(cont))
-		}
-	}
-	if filetype == ".xml" {
-		buf := bytes.NewBuffer(cont)
-		dec := xml.NewDecoder(buf)
-		var n Node
-		err := dec.Decode(&n)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-		err = svc.createXMLBlock(ctx, itemType, itemName, n)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-	return nil
-}
-*/
-func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType string, modDir string) error {
+func (svc *UI) processItemDir(ctx core.ServerContext, modName string, dirPath string, itemType string, modDir string) error {
 	files, err := ioutil.ReadDir(dirPath)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -76,113 +45,57 @@ func (svc *UI) processItemDir(ctx core.ServerContext, dirPath string, itemType s
 			continue
 		}
 		path := filepath.Join(dirPath, info.Name())
-		fileName := info.Name()
-		ext := filepath.Ext(fileName)
-		itemName := strings.TrimSuffix(fileName, ext)
-		var cont []byte
-		if ext == ".yml" || ext == ".json" {
-			conf, err := ctx.ReadConfig(path, nil)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-			err = svc.processConfig(ctx, conf, itemName, itemType, modDir)
-			if err != nil {
-				return errors.WrapError(ctx, err)
-			}
-		} else {
-			if ((itemType == BLOCK_REG) || (itemType == FORM_REG)) && ext == ".xml" {
-				cont, err = ioutil.ReadFile(path)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				buf := bytes.NewBuffer(cont)
-				dec := xml.NewDecoder(buf)
-				var n Node
-				err := dec.Decode(&n)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				if itemType == BLOCK_REG {
-					err = svc.createXMLBlock(ctx, itemType, itemName, n)
-					if err != nil {
-						return errors.WrapError(ctx, err)
-					}
-				} else {
-					err = svc.createXMLForm(ctx, itemType, itemName, n)
-					if err != nil {
-						return errors.WrapError(ctx, err)
-					}
-				}
-			}
+		err = svc.processRegItem(ctx, path, itemType, modDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
 	}
-	/*	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		log.Error(ctx, "Processing dir", "path", path, "itemType", itemType)
-		fileName := info.Name()
-		itemName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-		ext := filepath.Ext(path)
-		var cont []byte
-		if ext == ".yml" || ext == ".json" {
-			conf, err := ctx.ReadConfig(path, nil)
+	return nil
+}
+
+func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType string, modDir string) error {
+	ext := filepath.Ext(path)
+	fileName := filepath.Base(path)
+	itemName := strings.TrimSuffix(fileName, ext)
+	if ext == ".yml" || ext == ".json" {
+		conf, err := ctx.ReadConfig(path, nil)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		err = svc.processConfig(ctx, conf, itemName, itemType, modDir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	} else {
+		if ((itemType == BLOCK_REG) || (itemType == FORM_REG)) && ext == ".xml" {
+			cont, err := ioutil.ReadFile(path)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			err = svc.processConfig(ctx, conf, itemName, itemType)
+			buf := bytes.NewBuffer(cont)
+			dec := xml.NewDecoder(buf)
+			var n Node
+			err = dec.Decode(&n)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-		} else {
-			if itemType == BLOCK_REG && ext == ".xml" {
-				cont, err = ioutil.ReadFile(path)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				buf := bytes.NewBuffer(cont)
-				dec := xml.NewDecoder(buf)
-				var n Node
-				err := dec.Decode(&n)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
+			if itemType == BLOCK_REG {
 				err = svc.createXMLBlock(ctx, itemType, itemName, n)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
+			} else {
+				err = svc.createXMLForm(ctx, itemType, itemName, n)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
 			}
 		}
-		/*err = svc.processFile(ctx, cont, ext, itemName, itemType)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}*/
-	/*return nil
-	})
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}*/
+	}
 	return nil
 }
 
-/*
-func (svc *UI) processTemplate(ctx core.ServerContext, cont []byte, filetype string, itemName string, itemType string) error {
-	contextVar := func(variable string) string {
-		val, _ := ctx.GetString(variable)
-		return val
-	}
-	funcMap := template.FuncMap{"var": contextVar}
-	temp, err := template.New(itemName).Funcs(funcMap).Parse(string(cont))
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	result := new(bytes.Buffer)
-	anon := struct{}{}
-	err = temp.Execute(result, anon)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	return svc.processFile(ctx, result.Bytes(), filetype, itemName, itemType)
-}*/
-
-func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf config.Config, dir, regDir string) error {
+func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Module, modConf config.Config, dir, regDir string) error {
 
 	processRegistryConfig := func(ctx core.ServerContext, registry config.Config) error {
 		confs := registry.AllConfigurations(ctx)
@@ -231,7 +144,7 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 		for _, info := range files {
 			path := filepath.Join(regDir, info.Name())
 			if info.IsDir() {
-				svc.processItemDir(ctx, path, info.Name(), dir)
+				svc.processItemDir(ctx, modName, path, info.Name(), dir)
 				continue
 			}
 			fileName := info.Name()
@@ -248,34 +161,6 @@ func (svc *UI) readRegistry(ctx core.ServerContext, mod core.Module, modConf con
 				}
 			}
 		}
-		/*err := filepath.Walk(regDir, func(path string, info os.FileInfo, err error) error {
-			if regDir == path {
-				return nil
-			}
-			log.Error(ctx, "Reading registry1", "path", path, "isdir", info.IsDir(), "regDir", regDir)
-			if info.IsDir() {
-				svc.processItemDir(ctx, path, info.Name())
-				return nil
-			}
-			log.Error(ctx, "Reading registry", "path", path)
-			fileName := info.Name()
-			itemType := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			ext := filepath.Ext(path)
-			if ext == ".yml" || ext == ".json" {
-				items, err := ctx.ReadConfig(path, nil)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-				err = svc.processMutipleItems(ctx, items, itemType)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}*/
 	}
 	return nil
 }

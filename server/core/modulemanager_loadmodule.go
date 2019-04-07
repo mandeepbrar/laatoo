@@ -15,15 +15,39 @@ import (
 	"github.com/mholt/archiver"
 )
 
-func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, modulesRepo, modulesDir string, modulesToInstall []string) error {
+func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, modulesRepo, modulesDir string, modulesToInstall config.Config) error {
 
-	err := modMgr.extractArchives(ctx, modulesRepo, modulesDir, modulesToInstall)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
+	moduleNamesToInstall := modulesToInstall.AllConfigurations(ctx)
+	for _, moduleName := range moduleNamesToInstall {
+		moduleConf, _ := modulesToInstall.GetSubConfig(ctx, moduleName)
+		modDir := ""
+		if moduleConf != nil {
+			hot, _ := moduleConf.GetBool(ctx, constants.CONF_HOT_MODULE)
+			if hot {
+				modDevDir, fnd := moduleConf.GetString(ctx, constants.CONF_HOT_MODULE_PATH)
+				if fnd {
+					modDir = modDevDir
+				}
 
-	for _, moduleName := range modulesToInstall {
-		modDir := modMgr.getModuleDir(ctx, modulesDir, moduleName)
+				if hot {
+					log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
+					err := modMgr.addWatch(ctx, moduleName, modDir)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
+				}
+
+			}
+		}
+
+		if modDir == "" {
+			err := modMgr.extractArchive(ctx, modulesRepo, modulesDir, moduleName)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			modDir = modMgr.getModuleDir(ctx, modulesDir, moduleName)
+		}
+
 		modDirExists, modDirInf, _ := utils.FileExists(modDir)
 		if !modDirExists || !modDirInf.IsDir() {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Module", moduleName)
@@ -38,7 +62,7 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 		}
 	}
 
-	err = modMgr.installModules(ctx)
+	err := modMgr.installModules(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -46,42 +70,39 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 	return nil
 }
 
-func (modMgr *moduleManager) extractArchives(ctx core.ServerContext, modulesRepo, modulesDir string, modulesToInstall []string) error {
-	ctx = ctx.SubContext("Extracting archives ")
-	for _, modToExtract := range modulesToInstall {
-		modFile := path.Join(modMgr.modulesRepo, fmt.Sprint(modToExtract, ".tar.gz"))
-		archiveExists, modFileInf, _ := utils.FileExists(modFile)
-		if archiveExists {
-			modDir := modMgr.getModuleDir(ctx, modulesDir, modToExtract)
-			modDirExists, modDirInf, _ := utils.FileExists(modDir)
-			log.Debug(ctx, "Extracting archive", "Module", modToExtract, "Dir exists", modDirExists)
-			//ensure latest module directory is present
-			// if zip file is newer than module dir
-			// delete the directory and extract latest zip file
-			extractFile := true
-			if modDirExists {
-				tim := modDirInf.ModTime().Sub(modFileInf.ModTime())
-				if tim < 0 {
-					err := os.RemoveAll(modDir)
-					if err != nil {
-						return errors.WrapError(ctx, err)
-					}
-					log.Debug(ctx, "Deleted old version of module", "Module", modToExtract)
-				} else {
-					extractFile = false
-				}
-			}
-			if extractFile {
-				if err := archiver.Unarchive(modFile, modulesDir); err != nil {
+func (modMgr *moduleManager) extractArchive(ctx core.ServerContext, modulesRepo, modulesDir string, moduleName string) error {
+	ctx = ctx.SubContext("Extracting archive " + moduleName)
+	modFile := path.Join(modMgr.modulesRepo, fmt.Sprint(moduleName, ".tar.gz"))
+	archiveExists, modFileInf, _ := utils.FileExists(modFile)
+	if archiveExists {
+		modDir := modMgr.getModuleDir(ctx, modulesDir, moduleName)
+		modDirExists, modDirInf, _ := utils.FileExists(modDir)
+		log.Debug(ctx, "Extracting archive", "Module", moduleName, "Dir exists", modDirExists)
+		//ensure latest module directory is present
+		// if zip file is newer than module dir
+		// delete the directory and extract latest zip file
+		extractFile := true
+		if modDirExists {
+			tim := modDirInf.ModTime().Sub(modFileInf.ModTime())
+			if tim < 0 {
+				err := os.RemoveAll(modDir)
+				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				log.Info(ctx, "Extracted module ", "Module", modToExtract, "Module file", modFile, "Repo", modulesRepo, "Destination", modulesDir, "Module directory", modDir)
+				log.Debug(ctx, "Deleted old version of module", "Module", moduleName)
+			} else {
+				extractFile = false
 			}
-		} else {
-			log.Error(ctx, "Archive not found for module", "Module", modToExtract)
 		}
+		if extractFile {
+			if err := archiver.Unarchive(modFile, modulesDir); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			log.Info(ctx, "Extracted module ", "Module", moduleName, "Module file", modFile, "Repo", modulesRepo, "Destination", modulesDir, "Module directory", modDir)
+		}
+	} else {
+		log.Error(ctx, "Archive not found for module", "Module", moduleName)
 	}
-
 	return nil
 }
 

@@ -13,6 +13,8 @@ import (
 	"laatoo/server/constants"
 	"path"
 
+	"github.com/fsnotify/fsnotify"
+
 	"github.com/blang/semver"
 )
 
@@ -28,7 +30,9 @@ type moduleManager struct {
 	moduleConf       map[string]config.Config
 	loadedModules    map[string]*semver.Version
 	parentModules    map[string]string
+	hotModules       map[string]string
 	objLoader        *objectLoader
+	watchers         []*fsnotify.Watcher
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -38,7 +42,10 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 		return errors.WrapError(ctx, err)
 	}
 
-	availableModules, _ := conf.GetStringArray(ctx, constants.CONF_MODULES)
+	availableModules, _ := conf.GetSubConfig(ctx, constants.CONF_MODULES)
+
+	modMgr.hotModules = make(map[string]string)
+	modMgr.watchers = make([]*fsnotify.Watcher, 0)
 
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 

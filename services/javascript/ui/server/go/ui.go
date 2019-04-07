@@ -120,11 +120,8 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 	modDevDir, hot := svc.hotloadMods[modName]
 
 	modFilesDir := ""
-	if hot {
-		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
-	} else {
-		modFilesDir = path.Join(dir, FILES_DIR)
-	}
+	modFilesDir = path.Join(dir, FILES_DIR)
+
 	_, modRead := svc.uiFiles[modName]
 	if !modRead {
 		uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
@@ -133,10 +130,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 			cont, err := ioutil.ReadFile(uifile)
 			if err != nil {
 				return errors.WrapError(ctx, err)
-			}
-			if hot {
-				log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
-				svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
 			}
 			modDeps, ok := modConf.GetSubConfig(ctx, DEPENDENCIES)
 			if ok {
@@ -159,9 +152,6 @@ func (svc *UI) Load(ctx core.ServerContext, insName, modName, dir, parentIns str
 		vendorfile := path.Join(modFilesDir, SCRIPTS_DIR, "vendor.js")
 		ok, _, _ = utils.FileExists(vendorfile)
 		if ok {
-			if hot {
-				svc.addWatch(ctx, modName, vendorfile, modFilesDir, svc.reloadVendorFile)
-			}
 			log.Trace(ctx, "Reading vendor file", "file", vendorfile)
 			cont, err := ioutil.ReadFile(vendorfile)
 			if err != nil {

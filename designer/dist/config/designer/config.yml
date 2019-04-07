@@ -3,38 +3,39 @@ logging:
   level: error
   format: happymax
 modules:
-  - filesystemstorage
-  - mongodatabase
-  - localauth
-  - role
-  - staticfileserver
-  - designerdependencies
-  - reactwebrouter
-  - reactmaterialkit
-  - subentity
-  - fontawesome
-  - uicommon
-  - reactpages
-  - reactwebcommon
-  - laatooviews
-  - uicommon
-  - authui
-  - reactforms
-  - laatoositetheme
-  - laatootheme
-  - modulesrepository
-  - designerui
-  - reactapplication
-  - shell
-  - publicdirserver
-  - publicfilesserver
-  - itemdetailview
-  - dataadapter
-  - dblogin
-  - entity
-  - user
-  - jsui
-  - laatoositeui
+  filesystemstorage:
+  mongodatabase:
+  localauth:
+  role:
+  staticfileserver:
+  designerdependencies:
+  reactwebrouter:
+  reactmaterialkit:
+  subentity:
+  fontawesome:
+  uicommon:
+  reactpages:
+#    hotmodule: true
+#    hotmodulepath: services/reactpages
+  reactwebcommon:
+  laatooviews:
+  authui:
+  reactforms:
+  laatoositetheme:
+  laatootheme:
+  modulesrepository:
+  designerui:
+  reactapplication:
+  shell:
+  publicdirserver:
+  publicfilesserver:
+  itemdetailview:
+  dataadapter:
+  dblogin:
+  entity:
+  user:
+  jsui:
+  laatoositeui:
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -114,8 +115,6 @@ moduleinstances:
     settings:
       uiapplication: websiteapplication
       indexpath: /index
-      hotmodules: 
-        reactpages: services/reactpages
       uidependencies:
         react: ''
   designershell:
@@ -123,8 +122,6 @@ moduleinstances:
     settings:
       uiapplication: designerapplication
       indexpath: /designer
-      hotmodules: 
-        reactpages: services/reactpages
       uidependencies:
         react: ''
   designerui:

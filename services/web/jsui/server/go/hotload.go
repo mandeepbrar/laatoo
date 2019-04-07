@@ -1,17 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
-	"laatoo/sdk/server/log"
-
-	"github.com/fsnotify/fsnotify"
 )
 
-func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF func(ctx core.ServerContext, mod, file, dir string) error) error {
+/*
+func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF func(ctx core.ServerContext, mod, file, dir string, cont []byte) error) error {
 	// creates a new file watcher
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -27,7 +23,13 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 			// watch for events
 			case event := <-watcher.Events:
 				fmt.Printf("EVENT! %#v\n", event)
-				err = actionF(svc.svrCtx, mod, file, dir)
+
+				cont, err := ioutil.ReadFile(file)
+				if err != nil {
+					log.Error(ctx, "Error encountered during hot reload", "err", err)
+				}
+
+				err = actionF(svc.svrCtx, mod, file, dir, cont)
 				if err != nil {
 					log.Error(ctx, "Error encountered during hot reload", "err", err)
 				}
@@ -45,38 +47,44 @@ func (svc *UI) addWatch(ctx core.ServerContext, mod, file, dir string, actionF f
 
 	return nil
 }
+*/
 
-func (svc *UI) reloadAppFile(ctx core.ServerContext, mod, file, dir string) error {
+func (svc *UI) reloadAppFile(ctx core.ServerContext, mod, file, dir string, cont []byte) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
-	cont, err := ioutil.ReadFile(file)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
 	svc.uiFiles[mod] = cont
-	err = svc.writeAppFile(ctx, baseDir)
+	err := svc.writeAppFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	return nil
 }
 
-func (svc *UI) reloadVendorFile(ctx core.ServerContext, mod, file, dir string) error {
+func (svc *UI) reloadVendorFile(ctx core.ServerContext, mod, file, dir string, cont []byte) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
-	cont, err := ioutil.ReadFile(file)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	svc.vendorFiles[mod] = cont
-	err = svc.writeVendorFile(ctx, baseDir)
+	svc.cssFiles[mod] = cont
+	err := svc.writeVendorFile(ctx, baseDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	return nil
 }
 
+func (svc *UI) reloadCSSFile(ctx core.ServerContext, mod, file, dir string, cont []byte) error {
+	baseDir, _ := ctx.GetString(config.MODULEDIR)
+	svc.vendorFiles[mod] = cont
+	err := svc.writeCssFile(ctx, baseDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
 
-func (svc *UI) reloadRegistry(ctx core.ServerContext, itemType string) func(ctx core.ServerContext, mod, file, dir string) error) error {
-	return func(ctx core.ServerContext, mod, file, dir string) error) error {
-
+func (svc *UI) reloadRegistry(ctx core.ServerContext, itemType string) func(ctx core.ServerContext, mod, file, dir string, cont []byte) error {
+	return func(ctx core.ServerContext, mod, file, dir string, cont []byte) error {
+		err := svc.processRegItem(ctx, file, itemType, dir)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		return nil
 	}
 }

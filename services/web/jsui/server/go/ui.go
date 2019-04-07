@@ -31,7 +31,6 @@ const (
 	CONF_FILE_DESC       = "descriptor"
 	CONF_PROPS_EXTENSION = "properties_ext"
 	CONF_APPLICATION     = "application"
-	CONF_HOT_MODULES     = "hotmodules"
 	DEPENDENCIES         = "dependencies"
 	UI_DIR               = "ui"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
@@ -39,7 +38,6 @@ const (
 	MERGED_WASM_FILE     = "mergedwasm"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
-	HOT_MODULES_REPO     = "hotmodulesrepo"
 )
 
 type UI struct {
@@ -54,7 +52,6 @@ type UI struct {
 	mergedcssfile      string
 	application        string
 	propsExt           string
-	hotModulesRepo     string
 	uiFiles            map[string][]byte
 	vendorFiles        map[string][]byte
 	cssFiles           map[string][]byte
@@ -63,7 +60,6 @@ type UI struct {
 	wasmImportScript   []byte
 	modDeps            map[string][]string
 	insMods            map[string]string
-	hotloadMods        map[string]string
 	insSettings        map[string]config.Config
 	descriptorFiles    map[string][]byte
 	requiredUIPkgs     utils.StringSet
@@ -94,10 +90,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedwasmfile, _ = svc.GetStringConfiguration(ctx, MERGED_WASM_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
-	svc.hotloadMods, _ = svc.GetStringsMapConfiguration(ctx, CONF_HOT_MODULES)
 	svc.watchers = make([]*fsnotify.Watcher, 0)
-	log.Error(ctx, "*************hot modules directory being used**********", "hotloadMods", svc.hotloadMods)
-	svc.hotModulesRepo, _ = ctx.GetString(HOT_MODULES_REPO)
 	svc.uiFiles = make(map[string][]byte)
 	svc.vendorFiles = make(map[string][]byte)
 	svc.cssFiles = make(map[string][]byte)
@@ -132,7 +125,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	}
 	log.Info(ctx, "Module read", "mod name", modName)
 
-	modFilesDir, _ := svc.getFilesDir(ctx, modName, modInfo.ModDir)
+	modFilesDir := svc.getFilesDir(ctx, modName, modInfo.ModDir, modInfo)
 
 	_, modRead := svc.uiFiles[modName]
 
@@ -175,7 +168,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	}
 
 	uiRegDir := path.Join(modInfo.ModDir, UI_DIR)
-	err := svc.readRegistry(ctx, modInfo.Mod, modInfo.ModConf, modInfo.ModDir, uiRegDir)
+	err := svc.readRegistry(ctx, modName, modInfo.Mod, modInfo.ModConf, modInfo.ModDir, uiRegDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -210,7 +203,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 
 func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, modName string, modConf config.Config, modDir string) error {
 
-	modFilesDir, hot := svc.getFilesDir(ctx, modName, modDir)
+	modFilesDir := svc.getFilesDir(ctx, modName, modDir, modInfo)
 
 	modDeps, ok := modInfo.ModConf.GetSubConfig(ctx, DEPENDENCIES)
 	if ok {
@@ -218,11 +211,6 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 	}
 
 	uifile := path.Join(modFilesDir, SCRIPTS_DIR, svc.uifile)
-
-	if hot {
-		log.Info(ctx, "*************hot modules directory being used**********", "modFilesDir", modFilesDir)
-		svc.addWatch(ctx, modName, uifile, modFilesDir, svc.reloadAppFile)
-	}
 
 	ok, _, _ = utils.FileExists(uifile)
 	if ok {
@@ -246,9 +234,6 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 	vendorfile := path.Join(modFilesDir, SCRIPTS_DIR, "vendor.js")
 	ok, _, _ = utils.FileExists(vendorfile)
 	if ok {
-		if hot {
-			svc.addWatch(ctx, modName, vendorfile, modFilesDir, svc.reloadVendorFile)
-		}
 		log.Trace(ctx, "Reading vendor file", "file", vendorfile)
 		cont, err := ioutil.ReadFile(vendorfile)
 		if err != nil {
@@ -309,16 +294,8 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 	return nil
 }
 
-func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string) (string, bool) {
-	modDevDir, hot := svc.hotloadMods[modName]
-
-	modFilesDir := ""
-	if hot {
-		modFilesDir = path.Join(svc.hotModulesRepo, modDevDir, FILES_DIR)
-	} else {
-		modFilesDir = path.Join(modDir, FILES_DIR)
-	}
-	return modFilesDir, hot
+func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string, modInfo *components.ModInfo) string {
+	return path.Join(modDir, FILES_DIR)
 }
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
