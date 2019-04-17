@@ -24,6 +24,7 @@ type moduleManager struct {
 	parent           core.ServerElement
 	proxy            elements.ModuleManager
 	modulesRepo      string
+	hotModulesRepo   string
 	availableModules map[string]string
 	modules          map[string]elements.Module
 	installedModules map[string]*semver.Version
@@ -59,9 +60,9 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 	modulesDevRepo, ok := conf.GetString(ctx, constants.CONF_MODULES_DEVREPO)
 	if ok {
-		ctx.Set(constants.CONF_MODULES_DEVREPO, modulesDevRepo)
+		modMgr.hotModulesRepo = modulesDevRepo
 	} else {
-		ctx.Set(constants.CONF_MODULES_DEVREPO, "/devmodulesrepo")
+		modMgr.hotModulesRepo = "/devmodulesrepo"
 	}
 
 	repoExists, _, _ := utils.FileExists(modulesRepository)
@@ -192,7 +193,7 @@ func (modMgr *moduleManager) getModuleDir(ctx core.ServerContext, modulesDir str
 }
 
 func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string) (config.Config, error) {
-	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_FILE), nil)
+	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_DIR, constants.CONF_CONFIG_FILE), nil)
 }
 
 func (modMgr *moduleManager) loadServices(ctx core.ServerContext, processor func(core.ServerContext, config.Config, string) error) error {

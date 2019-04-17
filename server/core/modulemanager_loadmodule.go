@@ -26,7 +26,7 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 			if hot {
 				modDevDir, fnd := moduleConf.GetString(ctx, constants.CONF_HOT_MODULE_PATH)
 				if fnd {
-					modDir = modDevDir
+					modDir = path.Join(modMgr.hotModulesRepo, modDevDir)
 				}
 
 				if hot {

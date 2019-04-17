@@ -144,14 +144,17 @@ func (mod *serverModule) readProperties(ctx core.ServerContext, dir string) erro
 }
 
 func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error {
-	if err := mod.readProperties(ctx, dir); err != nil {
+
+	modConfigDir := path.Join(dir, constants.CONF_CONFIG_DIR)
+
+	if err := mod.readProperties(ctx, modConfigDir); err != nil {
 		return err
 	}
 
 	factoriesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICEFACTORIES)
 
 	if !ok || factoriesEnabled {
-		factories, err := common.ProcessDirectoryFiles(ctx, dir, constants.CONF_SERVICEFACTORIES, true)
+		factories, err := common.ProcessDirectoryFiles(ctx, modConfigDir, constants.CONF_SERVICEFACTORIES, true)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Module", mod.name)
 		}
@@ -161,7 +164,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error
 	servicesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_SERVICES)
 
 	if !ok || servicesEnabled {
-		services, err := common.ProcessDirectoryFiles(ctx, dir, constants.CONF_SERVICES, true)
+		services, err := common.ProcessDirectoryFiles(ctx, modConfigDir, constants.CONF_SERVICES, true)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Module", mod.name)
 		}
@@ -171,7 +174,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error
 	channelsEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_CHANNELS)
 
 	if !ok || channelsEnabled {
-		channels, err := common.ProcessDirectoryFiles(ctx, dir, constants.CONF_CHANNELS, true)
+		channels, err := common.ProcessDirectoryFiles(ctx, modConfigDir, constants.CONF_CHANNELS, true)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Module", mod.name)
 		}
@@ -181,7 +184,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error
 	rulesEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_RULES)
 
 	if !ok || rulesEnabled {
-		rules, err := common.ProcessDirectoryFiles(ctx, dir, constants.CONF_RULES, true)
+		rules, err := common.ProcessDirectoryFiles(ctx, modConfigDir, constants.CONF_RULES, true)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Module", mod.name)
 		}
@@ -190,7 +193,7 @@ func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error
 
 	tasksEnabled, ok := mod.modSettings.GetBool(ctx, constants.CONF_TASKS)
 	if !ok || tasksEnabled {
-		tasks, err := common.ProcessDirectoryFiles(ctx, dir, constants.CONF_TASKS, true)
+		tasks, err := common.ProcessDirectoryFiles(ctx, modConfigDir, constants.CONF_TASKS, true)
 		if err != nil {
 			return errors.WrapError(ctx, err, "Module", mod.name)
 		}

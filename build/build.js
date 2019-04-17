@@ -93,7 +93,7 @@ function buildObjects(nextTask) {
 
 function copyConfig(nextTask) {
   log("Copying config")
-  let configDestFolder = path.join("/plugins", "tmp", name)
+  let configDestFolder = path.join("/plugins", "tmp", name, "config")
   let configSrcFolder = path.join(pluginFolder, "config")
   log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
 

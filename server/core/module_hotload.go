@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -23,7 +24,7 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 			// watch for events
 			case event := <-watcher.Events:
 				fmt.Printf("EVENT! %#v\n", event)
-
+				log.Error(ctx, "Module change event ", "event", event)
 				/*cont, err := ioutil.ReadFile(file)
 				if err != nil {
 					log.Error(ctx, "Error encountered during hot reload", "err", err)
@@ -36,6 +37,7 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 				// watch for errors
 			case err := <-watcher.Errors:
 				fmt.Println("ERROR", err)
+				log.Error(ctx, "Module change event error ", "err", err)
 			}
 		}
 	}()
@@ -44,6 +46,7 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 	if err := watcher.Add(modDir); err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	log.Error(ctx, "Watching module directory for change ", "dir", modDir)
 
 	return nil
 }

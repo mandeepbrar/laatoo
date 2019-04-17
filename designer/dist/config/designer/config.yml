@@ -15,8 +15,8 @@ modules:
   fontawesome:
   uicommon:
   reactpages:
-#    hotmodule: true
-#    hotmodulepath: services/reactpages
+    hotmodule: true
+    hotmodulepath: services/web/react/reactpages
   reactwebcommon:
   laatooviews:
   authui:
