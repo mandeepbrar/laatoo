@@ -1,6 +1,6 @@
 header:
   image: ''
-  title: My Dashboard
+  title: Dashboard
   className: header
 welcome:
   text: Welcome

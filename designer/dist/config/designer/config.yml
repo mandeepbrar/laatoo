@@ -1,7 +1,10 @@
 modulesrepo: "/modules"
 logging:
-  level: error
+  level: info
   format: happymax
+  settings:
+    protocol: tcp
+    address: logs:5514
 modules:
   filesystemstorage:
   mongodatabase:

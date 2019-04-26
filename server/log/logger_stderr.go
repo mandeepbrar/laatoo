@@ -3,14 +3,16 @@
 package log
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"os"
 )
 
 var stderrWriteHandler WriteHandler
 
-func NewStdLogger(appname string) components.Logger {
+func NewStdLogger(ctx core.ServerContext, appname string, settings config.Config) components.Logger {
 	if stderrWriteHandler == nil {
 		stderrWriteHandler = stdSimpleLogsHandler()
 	}

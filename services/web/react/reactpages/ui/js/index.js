@@ -3,7 +3,7 @@ import './styles/app.scss'
 import Panel from './Panel'
 import { combineReducers } from 'redux';
 const PropTypes = require('prop-types');
-//import {ViewReducer, View} from 'laatooviews';
+//import {ViewReducer, View} from 'laatooview';
 
 var module;
 function Initialize(appName, ins, mod, settings, def, req) {

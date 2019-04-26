@@ -16,16 +16,18 @@ import (
 const (
 	CONF_LOGGINGLEVEL      = "level"
 	CONF_LOGGER_TYPE       = "loggertype"
+	CONF_LOGGER_SETTINGS   = "settings"
 	CONF_APPLICATION       = "application"
 	CONF_LOGGING_FORMAT    = "format"
 	CONF_STDERR_LOGGER     = "stderr"
-	CONF_SYS_LOGGER        = "stderr"
+	CONF_SYS_LOGGER        = "sys"
 	CONF_FMT_JSON          = "json"
 	CONF_FMT_JSONMAX       = "jsonmax"
 	CONF_FMT_HAPPY         = "happy"
 	CONF_FMT_HAPPYMAX      = "happymax"
 	CONF_FMT_HAPPYCOLOR    = "happycolor"
 	CONF_FMT_HAPPYMAXCOLOR = "happymaxcolor"
+	CONF_FMT_RFC5424       = "rfc5424"
 )
 
 type logger struct {
@@ -37,8 +39,9 @@ type logger struct {
 func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error {
 	logconf, ok := conf.GetSubConfig(ctx, constants.CONF_LOGGING)
 	if ok {
-		loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
-		lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
+		loggerType, loggingFormat, loggingLevel, loggerSettings := processConf(ctx, logconf)
+		lgr.loggerInstance = GetLogger(ctx, loggerType, loggingFormat, loggingLevel, lgr.name, loggerSettings)
+		slog.Trace(ctx, "Logger initialized *************************************************")
 	} else {
 		baseDir, _ := ctx.GetString(config.BASEDIR)
 		confFile := path.Join(baseDir, constants.CONF_LOGGING, constants.CONF_CONFIG_FILE)
@@ -48,14 +51,14 @@ func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error 
 			if logconf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			loggerType, loggingFormat, loggingLevel := processConf(ctx, logconf)
-			lgr.loggerInstance = GetLogger(loggerType, loggingFormat, loggingLevel, lgr.name)
+			loggerType, loggingFormat, loggingLevel, loggerSettings := processConf(ctx, logconf)
+			lgr.loggerInstance = GetLogger(ctx, loggerType, loggingFormat, loggingLevel, lgr.name, loggerSettings)
 		}
 	}
 	return nil
 }
 
-func processConf(ctx core.ServerContext, logconf config.Config) (string, string, int) {
+func processConf(ctx core.ServerContext, logconf config.Config) (string, string, int, config.Config) {
 	loggerType := CONF_STDERR_LOGGER
 	loggingFormat := CONF_FMT_JSON
 	loggingLevel := slog.TRACE
@@ -71,7 +74,9 @@ func processConf(ctx core.ServerContext, logconf config.Config) (string, string,
 	if ok {
 		loggingLevel = GetLevel(lLevel)
 	}
-	return loggerType, loggingFormat, loggingLevel
+	loggerSettings, _ := logconf.GetSubConfig(ctx, CONF_LOGGER_SETTINGS)
+
+	return loggerType, loggingFormat, loggingLevel, loggerSettings
 }
 
 func (lgr *logger) Start(ctx core.ServerContext) error {

@@ -19,22 +19,22 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 
 	moduleNamesToInstall := modulesToInstall.AllConfigurations(ctx)
 	for _, moduleName := range moduleNamesToInstall {
-		moduleConf, _ := modulesToInstall.GetSubConfig(ctx, moduleName)
+		moduleInstallConf, _ := modulesToInstall.GetSubConfig(ctx, moduleName)
 		modDir := ""
-		if moduleConf != nil {
-			hot, _ := moduleConf.GetBool(ctx, constants.CONF_HOT_MODULE)
+		if moduleInstallConf != nil {
+			hot, _ := moduleInstallConf.GetBool(ctx, constants.CONF_HOT_MODULE)
 			if hot {
-				modDevDir, fnd := moduleConf.GetString(ctx, constants.CONF_HOT_MODULE_PATH)
+				modDevDir, fnd := moduleInstallConf.GetString(ctx, constants.CONF_HOT_MODULE_PATH)
 				if fnd {
 					modDir = path.Join(modMgr.hotModulesRepo, modDevDir)
 				}
 
 				if hot {
 					log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
-					err := modMgr.addWatch(ctx, moduleName, modDir)
-					if err != nil {
+					go modMgr.addWatch(ctx, moduleName, modDir)
+					/*if err != nil {
 						return errors.WrapError(ctx, err)
-					}
+					}*/
 				}
 
 			}

@@ -1,7 +1,7 @@
 version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
-description: Module provides pages laatoo applications
+description: Module provides pages laatoo application
 ui:
   js:
     externals:

@@ -8,7 +8,7 @@ import (
 )
 
 func NewLogger(ctx core.ServerContext, name string) (*logger, *loggerProxy) {
-	logger := &logger{name: name, loggerInstance: GetLogger(CONF_STDERR_LOGGER, CONF_FMT_JSON, slog.TRACE, "")}
+	logger := &logger{name: name, loggerInstance: GetLogger(ctx, CONF_STDERR_LOGGER, CONF_FMT_JSON, slog.TRACE, "", nil)}
 	loggerElem := &loggerProxy{logger: logger}
 	logger.proxy = loggerElem
 	return logger, loggerElem

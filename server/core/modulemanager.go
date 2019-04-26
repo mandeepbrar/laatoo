@@ -13,9 +13,9 @@ import (
 	"laatoo/server/constants"
 	"path"
 
-	"github.com/fsnotify/fsnotify"
-
+	//"github.com/fsnotify/fsnotify"
 	"github.com/blang/semver"
+	"github.com/radovskyb/watcher"
 )
 
 type moduleManager struct {
@@ -33,7 +33,7 @@ type moduleManager struct {
 	parentModules    map[string]string
 	hotModules       map[string]string
 	objLoader        *objectLoader
-	watchers         []*fsnotify.Watcher
+	watchers         []*watcher.Watcher
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -46,7 +46,7 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 	availableModules, _ := conf.GetSubConfig(ctx, constants.CONF_MODULES)
 
 	modMgr.hotModules = make(map[string]string)
-	modMgr.watchers = make([]*fsnotify.Watcher, 0)
+	modMgr.watchers = make([]*watcher.Watcher, 0)
 
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)
 

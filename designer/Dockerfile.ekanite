@@ -1,0 +1,15 @@
+FROM golang:latest
+
+RUN go get github.com/ekanite/ekanite
+
+RUN ["/usr/sbin/addgroup", "ekanited"]
+RUN ["/usr/sbin/adduser", "--no-create-home", "--disabled-password", "--disabled-login", "--gecos", "First Last,RoomNumber,WorkPhone,HomePhone", "--ingroup", "ekanited", "ekanited"]
+
+RUN go install github.com/ekanite/ekanite/cmd/ekanited
+
+USER ekanited:ekanited
+EXPOSE 5514/tcp 5514/udp 18080/tcp 9950/tcp 9951/tcp
+
+VOLUME /logs
+
+ENTRYPOINT ["/go/bin/ekanited", "--datadir", "/logs", "-queryhttp", "0.0.0.0:18080", "--batchsize", "1", "--maxpending", "1", "--batchtime", "100", "--query", "0.0.0.0:9950", "-tcp", "0.0.0.0:5514", "-udp", "0.0.0.0:5514"]

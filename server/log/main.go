@@ -2,14 +2,20 @@
 
 package log
 
-import "laatoo/sdk/server/components"
+import (
+	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	slog "laatoo/sdk/server/log"
+)
 
-func GetLogger(loggertype string, logformat string, loglevel int, name string) components.Logger {
+func GetLogger(ctx core.ServerContext, loggertype string, logformat string, loglevel int, name string, settings config.Config) components.Logger {
+	slog.Error(ctx, "Initializing Logger  *************************************************", "loggertype", loggertype, "logformat", logformat, "loglevel", loglevel, "name", name, "settings", settings)
 	var logger components.Logger
 	if loggertype == CONF_STDERR_LOGGER {
-		logger = NewStdLogger(name)
+		logger = NewStdLogger(ctx, name, settings)
 	} else {
-		logger = NewSysLogger(name)
+		logger = NewSysLogger(ctx, name, settings)
 	}
 	logger.SetFormat(logformat)
 	logger.SetLevel(loglevel)

@@ -374,7 +374,6 @@ func (as *abstractserver) createEngines(ctx core.ServerContext, conf config.Conf
 }
 
 func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.Config, name string) error {
-	log.Error(ctx, "process engine conf========================", "conf", conf, "name", name)
 	_, found := as.engines[name]
 	if !found {
 		engCreateCtx := ctx.SubContext("Create Engine: " + name)
