@@ -65,6 +65,16 @@ func (svcMgr *serviceManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
+func (svcMgr *serviceManager) startModuleInstanceServices(ctx core.ServerContext, mod *serverModule) error {
+	for svcname, _ := range mod.services {
+		svc, _ := svcMgr.servicesStore[svcname]
+		if err := svcMgr.startService(ctx, svc); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (svcMgr *serviceManager) startService(ctx core.ServerContext, svcProxy *serviceProxy) error {
 	svcStartCtx := svcProxy.svc.svrContext.subContext("Start " + svcProxy.svc.name)
 	log.Debug(svcStartCtx, "Starting service ", "service name", svcProxy.svc.name)
@@ -269,6 +279,31 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 			}
 			log.Trace(svcInitializeCtx, "Initialized service")
 		}
+	}
+	return nil
+}
+
+func (svcMgr *serviceManager) unloadModuleServices(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("unload services")
+	if err := common.ProcessObjects(ctx, mod.services, svcMgr.unloadService); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (svcMgr *serviceManager) unloadService(ctx core.ServerContext, conf config.Config, svcName string) error {
+	unloadSvc := ctx.SubContext("Unload service")
+	svcprxy, ok := svcMgr.servicesStore[svcName]
+	if ok {
+		err := svcprxy.svc.stop(unloadSvc)
+		if err != nil {
+			log.Error(unloadSvc, "Error while stopping service", "err", err)
+		}
+		err = svcprxy.svc.unload(unloadSvc)
+		if err != nil {
+			log.Error(unloadSvc, "Error while stopping service", "err", err)
+		}
+		delete(svcMgr.servicesStore, svcName)
 	}
 	return nil
 }

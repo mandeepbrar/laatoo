@@ -20,8 +20,9 @@ type channelManager struct {
 	secondPass map[string]config.Config
 
 	//store for service factory in an application
-	channelStore map[string]elements.Channel
-	channelConfs map[string]config.Config
+	channelStore   map[string]elements.Channel
+	channelConfs   map[string]config.Config
+	serviceManager elements.ServiceManager
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -35,6 +36,8 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 	baseDir, _ := ctx.GetString(config.BASEDIR)
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
+	chanMgr.serviceManager = svcMgr
 
 	if err = modManager.loadChannels(ctx, chanMgr.processChannel); err != nil {
 		return err
@@ -68,34 +71,40 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 		}
 	}
 
-	svcmgrStartCtx := ctx.(*serverContext)
-	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
-
 	for chanName, channel := range chanMgr.channelStore {
-		chanCtx := svcmgrStartCtx.SubContext(chanName)
-		svcName := channel.GetServiceName()
-		if svcName != "" {
-			svcProxy, err := svcMgr.GetService(ctx, svcName)
-			if err != nil {
-				return err
-			}
-			proxy := svcProxy.(*serviceProxy)
-			svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
-
-			chanConf := chanMgr.channelConfs[chanName]
-
-			if err := processLogging(svcServeCtx, chanConf, chanName); err != nil {
-				return errors.WrapError(svcServeCtx, err)
-			}
-
-			err = channel.Serve(svcServeCtx)
-			if err != nil {
-				return err
-			}
-			log.Info(chanCtx, "Serving channel ", "channel", chanName)
-		} else {
-			log.Info(chanCtx, "No service configured channel ", "channel", chanName)
+		err := chanMgr.startChannel(ctx, chanName, channel)
+		if err != nil {
+			return errors.WrapError(ctx, err)
 		}
+
+	}
+	return nil
+}
+
+func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName string, channel elements.Channel) error {
+	chanCtx := ctx.SubContext(chanName)
+	svcName := channel.GetServiceName()
+	if svcName != "" {
+		svcProxy, err := chanMgr.serviceManager.GetService(ctx, svcName)
+		if err != nil {
+			return err
+		}
+		proxy := svcProxy.(*serviceProxy)
+		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
+
+		chanConf := chanMgr.channelConfs[chanName]
+
+		if err := processLogging(svcServeCtx, chanConf, chanName); err != nil {
+			return errors.WrapError(svcServeCtx, err)
+		}
+
+		err = channel.Serve(svcServeCtx)
+		if err != nil {
+			return err
+		}
+		log.Info(chanCtx, "Serving channel ", "channel", chanName)
+	} else {
+		log.Info(chanCtx, "No service configured channel ", "channel", chanName)
 	}
 	return nil
 }
@@ -206,5 +215,66 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	chanMgr.channelConfs[channelName] = channelConf
 	//log.Trace(ctx, "Creating channel", "Name:", channelName)
 	log.Info(createCtx, "Created channel", "Name:", channelName)
+	return nil
+}
+
+func (chanMgr *channelManager) unloadModuleChannels(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("unload channels")
+	if err := common.ProcessObjects(ctx, mod.channels, chanMgr.unloadChannel); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (chanMgr *channelManager) unloadChildChannels(ctx core.ServerContext, conf config.Config) error {
+	channelsConf, ok := conf.GetSubConfig(ctx, constants.CONF_ENGINE_CHANNELS)
+	if ok {
+		channelNames := channelsConf.AllConfigurations(ctx)
+		for _, channelName := range channelNames {
+			channelConf, err, _ := common.ConfigFileAdapter(ctx, channelsConf, channelName)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			if err := chanMgr.unloadChannel(ctx, channelConf, channelName); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (chanMgr *channelManager) unloadChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
+	unloadCtx := ctx.SubContext("Unload Channel: " + channelName)
+
+	_, childChannels := channelConf.Get(unloadCtx, constants.CONF_ENGINE_CHANNELS)
+	if childChannels {
+		err := chanMgr.unloadChildChannels(unloadCtx, channelConf)
+		if err != nil {
+			return errors.WrapError(unloadCtx, err)
+		}
+	}
+
+	parentChannelName, ok := channelConf.GetString(unloadCtx, constants.CONF_ENGINE_PARENTCHANNEL)
+	if !ok {
+		return errors.ThrowError(unloadCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
+	}
+	parentChannel, ok := chanMgr.channelStore[parentChannelName]
+	err := parentChannel.RemoveChild(unloadCtx, channelName, channelConf)
+	if err != nil {
+		return errors.WrapError(unloadCtx, err)
+	}
+	delete(chanMgr.channelStore, channelName)
+	//log.Trace(ctx, "Creating channel", "Name:", channelName)
+	log.Info(unloadCtx, "Unloaded channel", "Name:", channelName)
+	return nil
+}
+
+func (chanMgr *channelManager) startModuleInstanceChannels(ctx core.ServerContext, mod *serverModule) error {
+	for chanName, _ := range mod.channels {
+		chn, _ := chanMgr.channelStore[chanName]
+		if err := chanMgr.startChannel(ctx, chanName, chn); err != nil {
+			return err
+		}
+	}
 	return nil
 }

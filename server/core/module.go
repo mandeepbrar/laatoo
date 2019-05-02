@@ -56,7 +56,7 @@ func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, m
 func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
-	impl := newModuleImpl()
+	impl := newModuleImpl(mod.name)
 	mod.impl = impl
 	var modval core.Module
 	modval = impl
@@ -240,13 +240,30 @@ func (mod *serverModule) loadModuleFromObj(ctx core.ServerContext) error {
 	return nil
 }
 
-func (mod *serverModule) plugins(ctx core.ServerContext) map[string]config.Config {
-	retVal := make(map[string]config.Config)
-	for k, v := range mod.services {
-		isPlugin, _ := v.GetBool(ctx, constants.MODULEMGR_PLUGIN)
+/*
+func (mod *serverModule) plugins(ctx core.ServerContext) (map[string]components.ModuleManagerPlugin, error) {
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
+	retVal := make(map[string]components.ModuleManagerPlugin)
+	for svcName, svcConf := range mod.services {
+		isPlugin, _ := svcConf.GetBool(ctx, constants.MODULEMGR_PLUGIN)
 		if isPlugin {
-			retVal[k] = v
+			pluginObj, err := svcMgr.GetService(mod.svrContext, svcName)
+			if err != nil {
+				return nil, errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", svcConf)
+			}
+			pluginSvc := pluginObj.(*serviceProxy)
+
+			plugin, ok := pluginSvc.svc.service.(components.ModuleManagerPlugin)
+			if !ok {
+				return nil, errors.BadConf(ctx, constants.MODULEMGR_PLUGIN, "Module Plugin", svcName, "pluginConf", svcConf)
+			}
+
+			retVal[svcName] = plugin
 		}
 	}
-	return retVal
+	return retVal, nil
+}
+*/
+func (mod *serverModule) reload(ctx core.ServerContext) error {
+	return nil
 }

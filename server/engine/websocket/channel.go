@@ -29,6 +29,10 @@ func (channel *wsChannelProxy) Child(ctx core.ServerContext, name string, channe
 	return nil, errors.NotImplemented(ctx, "Child")
 }
 
+func (proxy *wsChannelProxy) RemoveChild(ctx core.ServerContext, name string, channelConfig config.Config) error {
+	return nil
+}
+
 func (proxy *wsChannelProxy) Reference() core.ServerElement {
 	return &wsChannelProxy{channel: proxy.channel}
 }

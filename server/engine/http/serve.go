@@ -31,6 +31,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
 	}
+	channel.method = method
 
 	bodyParam := "Data"
 	body, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_BODY)

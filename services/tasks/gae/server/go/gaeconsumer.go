@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/server/components"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/log"
@@ -87,5 +87,9 @@ func (svc *GaeConsumer) Invoke(ctx core.RequestContext) error {
 	}*/
 }
 func (svc *GaeConsumer) SubsribeQueue(ctx core.ServerContext, queue string) error {
+	return nil
+}
+
+func (svc *GaeConsumer) UnsubsribeQueue(ctx core.ServerContext, queue string) error {
 	return nil
 }

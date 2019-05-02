@@ -9,14 +9,14 @@ type factoryInfo struct {
 	*configurableObject
 }
 
-func newFactoryInfo(description string, configurations []core.Configuration) *factoryInfo {
-	f := &factoryInfo{newConfigurableObject(description, "Factory")}
+func newFactoryInfo(name, description string, configurations []core.Configuration) *factoryInfo {
+	f := &factoryInfo{newConfigurableObject(name, description, "Factory")}
 	f.setConfigurations(configurations)
 	return f
 }
 
-func buildFactoryInfo(ctx core.ServerContext, conf config.Config) *factoryInfo {
-	return &factoryInfo{buildConfigurableObject(ctx, conf)}
+func buildFactoryInfo(ctx core.ServerContext, name string, conf config.Config) *factoryInfo {
+	return &factoryInfo{buildConfigurableObject(ctx, name, conf)}
 }
 func (facInfo *factoryInfo) clone() *factoryInfo {
 	return &factoryInfo{facInfo.configurableObject.clone()}
@@ -27,8 +27,8 @@ type factoryImpl struct {
 	state State
 }
 
-func newFactoryImpl() *factoryImpl {
-	return &factoryImpl{state: Created, factoryInfo: newFactoryInfo("", nil)}
+func newFactoryImpl(name string) *factoryImpl {
+	return &factoryImpl{state: Created, factoryInfo: newFactoryInfo(name, "", nil)}
 }
 
 func (impl *factoryImpl) setFactoryInfo(fi *factoryInfo) {
@@ -42,6 +42,13 @@ func (impl *factoryImpl) Start(ctx core.ServerContext) error {
 	return nil
 }
 func (impl *factoryImpl) Describe(ctx core.ServerContext) error {
+	return nil
+}
+
+func (impl *factoryImpl) Stop(ctx core.ServerContext) error {
+	return nil
+}
+func (impl *factoryImpl) Unload(ctx core.ServerContext) error {
 	return nil
 }
 

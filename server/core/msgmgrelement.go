@@ -23,8 +23,8 @@ func (proxy *messagingManagerProxy) GetType() core.ServerElementType {
 }
 
 //subscribe to a topic
-func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.MessageListener) error {
-	return mgr.manager.subscribeTopic(ctx, topics, handler)
+func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.MessageListener, lsnrid string) error {
+	return mgr.manager.subscribeTopic(ctx, topics, handler, lsnrid)
 }
 
 //publish message using
@@ -33,7 +33,7 @@ func (mgr *messagingManagerProxy) Publish(ctx core.RequestContext, topic string,
 }
 
 func newMessagingManager(ctx core.ServerContext, name string, commSvcName string) (*messagingManager, *messagingManagerProxy) {
-	msgMgr := &messagingManager{name: name, topicStore: make(map[string][]core.MessageListener, 10), commSvcName: commSvcName}
+	msgMgr := &messagingManager{name: name, topicStore: make(map[string][]*messagingListenerHolder, 10), commSvcName: commSvcName}
 	msgElem := &messagingManagerProxy{manager: msgMgr}
 	msgMgr.proxy = msgElem
 	return msgMgr, msgElem
@@ -42,7 +42,7 @@ func newMessagingManager(ctx core.ServerContext, name string, commSvcName string
 func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	msgMgrProxy := parentMessageMgr.(*messagingManagerProxy)
 	msgMgr := msgMgrProxy.manager
-	store := make(map[string][]core.MessageListener, len(msgMgr.topicStore))
+	store := make(map[string][]*messagingListenerHolder, len(msgMgr.topicStore))
 	for k, _ := range msgMgr.topicStore {
 		allowed := true
 		for _, filter := range filters {
@@ -52,7 +52,7 @@ func childMessagingManager(ctx core.ServerContext, name string, parentMessageMgr
 			}
 		}
 		if allowed {
-			store[k] = []core.MessageListener{}
+			store[k] = []*messagingListenerHolder{}
 		}
 	}
 	childmsgMgr := &messagingManager{name: name, topicStore: store, commSvcName: msgMgr.commSvcName}

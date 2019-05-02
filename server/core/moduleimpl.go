@@ -9,14 +9,14 @@ type moduleInfo struct {
 	*configurableObject
 }
 
-func newModuleInfo(description string, configurations []core.Configuration) *moduleInfo {
-	f := &moduleInfo{newConfigurableObject(description, "Module")}
+func newModuleInfo(name, description string, configurations []core.Configuration) *moduleInfo {
+	f := &moduleInfo{newConfigurableObject(name, description, "Module")}
 	f.setConfigurations(configurations)
 	return f
 }
 
-func buildModuleInfo(ctx core.ServerContext, conf config.Config) *moduleInfo {
-	return &moduleInfo{buildConfigurableObject(ctx, conf)}
+func buildModuleInfo(ctx core.ServerContext, name string, conf config.Config) *moduleInfo {
+	return &moduleInfo{buildConfigurableObject(ctx, name, conf)}
 }
 
 func (modInfo *moduleInfo) clone() *moduleInfo {
@@ -28,8 +28,8 @@ type moduleImpl struct {
 	state State
 }
 
-func newModuleImpl() *moduleImpl {
-	return &moduleImpl{state: Created, moduleInfo: newModuleInfo("", nil)}
+func newModuleImpl(name string) *moduleImpl {
+	return &moduleImpl{state: Created, moduleInfo: newModuleInfo(name, "", nil)}
 }
 
 func (impl *moduleImpl) setModuleInfo(inf *moduleInfo) {

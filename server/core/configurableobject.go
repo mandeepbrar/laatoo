@@ -41,14 +41,15 @@ func (conf *configuration) GetType() string {
 
 type configurableObject struct {
 	core.Info
+	name           string
 	configurations map[string]core.Configuration
 }
 
-func newConfigurableObject(description, objectType string) *configurableObject {
-	return &configurableObject{Info: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
+func newConfigurableObject(name, description, objectType string) *configurableObject {
+	return &configurableObject{name: name, Info: newObjectInfo(description, objectType), configurations: make(map[string]core.Configuration)}
 }
 func (impl *configurableObject) clone() *configurableObject {
-	inf := &configurableObject{Info: impl.Info}
+	inf := &configurableObject{name: impl.name, Info: impl.Info}
 	inf.configurations = make(map[string]core.Configuration, len(impl.configurations))
 	for k, v := range impl.configurations {
 		inf.configurations[k] = v.(*configuration).clone()
@@ -63,8 +64,8 @@ const (
 	CONFREQ          = "required"
 )
 
-func buildConfigurableObject(ctx core.ServerContext, conf config.Config) *configurableObject {
-	co := &configurableObject{Info: buildObjectInfo(ctx, conf), configurations: make(map[string]core.Configuration)}
+func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Config) *configurableObject {
+	co := &configurableObject{name: name, Info: buildObjectInfo(ctx, conf), configurations: make(map[string]core.Configuration)}
 	confs, ok := conf.GetSubConfig(ctx, CONFIGURATIONS)
 	if ok {
 		confNames := confs.AllConfigurations(ctx)
@@ -79,6 +80,10 @@ func buildConfigurableObject(ctx core.ServerContext, conf config.Config) *config
 		}
 	}
 	return co
+}
+
+func (impl *configurableObject) GetName() string {
+	return impl.name
 }
 
 func (impl *configurableObject) setConfigurations(confs []core.Configuration) {

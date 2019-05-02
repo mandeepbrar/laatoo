@@ -1,6 +1,7 @@
 package net
 
 import (
+	"laatoo/sdk/server/core"
 	"net/http"
 )
 
@@ -16,6 +17,7 @@ type Router interface {
 	Post(path string, handler HandlerFunc)
 	Put(path string, handler HandlerFunc)
 	Delete(path string, handler HandlerFunc)
+	RemovePath(ctx core.ServerContext, path string, method string) error
 	UseMW(handler func(http.Handler) http.Handler)
 	UseMiddleware(handler http.HandlerFunc)
 }

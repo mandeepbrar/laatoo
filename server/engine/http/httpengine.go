@@ -76,7 +76,7 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
 
-	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), config: eng.conf, engine: eng}
+	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), config: eng.conf, engine: eng, disabled: false}
 	err := eng.rootChannel.configure(ctx)
 	if err != nil {
 		return err

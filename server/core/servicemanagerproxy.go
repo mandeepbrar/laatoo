@@ -13,6 +13,14 @@ func (proxy *serviceManagerProxy) GetService(ctx core.ServerContext, serviceName
 	return proxy.manager.getService(ctx, serviceName)
 }
 
+func (proxy *serviceManagerProxy) GetServiceContext(ctx core.ServerContext, serviceName string) (core.ServerContext, error) {
+	svc, err := proxy.GetService(ctx, serviceName)
+	if err != nil {
+		return nil, err
+	}
+	return svc.ServiceContext(), nil
+}
+
 func (proxy *serviceManagerProxy) Reference() core.ServerElement {
 	return &serviceManagerProxy{manager: proxy.manager}
 }

@@ -121,6 +121,7 @@ func (modMgr *moduleManager) installModules(ctx core.ServerContext) error {
 
 func (modMgr *moduleManager) installModule(ctx core.ServerContext, moduleName, modDir string) (*semver.Version, config.Config, error) {
 	ctx = ctx.SubContext("Installing module " + moduleName)
+	ctx.Set(constants.CONF_MODULE, moduleName)
 
 	modconf, err := modMgr.getModuleConf(ctx, modDir)
 	if err != nil {
@@ -171,17 +172,7 @@ func (modMgr *moduleManager) installModule(ctx core.ServerContext, moduleName, m
 		}
 	}
 
-	log.Debug(ctx, "Module dependencies resolved. Loading Objects", "moduleName", moduleName)
-
-	objsPath := path.Join(modDir, constants.CONF_OBJECTLDR_OBJECTS)
-	err = modMgr.objLoader.loadPluginsFolderIfExists(ctx, objsPath)
-	if err != nil {
-		return nil, nil, errors.WrapError(ctx, err, "Module", moduleName)
-	}
-
-	log.Debug(ctx, "Objects Loaded. Building object info", "moduleName", moduleName)
-
-	if err = modMgr.buildObjectInfo(ctx, modconf); err != nil {
+	if err = modMgr.loadModuleObjects(ctx, moduleName, modDir, modconf); err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
 
@@ -190,6 +181,24 @@ func (modMgr *moduleManager) installModule(ctx core.ServerContext, moduleName, m
 
 	log.Info(ctx, "Module installed", "moduleName", moduleName)
 	return &module_ver, modconf, nil
+}
+
+func (modMgr *moduleManager) loadModuleObjects(ctx core.ServerContext, moduleName string, modDir string, modconf config.Config) error {
+	log.Debug(ctx, "Module dependencies resolved. Loading Objects", "moduleName", moduleName)
+
+	objsPath := path.Join(modDir, constants.CONF_OBJECTLDR_OBJECTS)
+	err := modMgr.objLoader.loadObjectsFolderIfExists(ctx, objsPath)
+	if err != nil {
+		return errors.WrapError(ctx, err, "Module", moduleName)
+	}
+
+	log.Debug(ctx, "Objects Loaded. Building object info", "moduleName", moduleName)
+
+	if err = modMgr.buildObjectInfo(ctx, modconf); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	return nil
 }
 
 func (modMgr *moduleManager) buildObjectInfo(ctx core.ServerContext, conf config.Config) error {
@@ -203,14 +212,14 @@ func (modMgr *moduleManager) buildObjectInfo(ctx core.ServerContext, conf config
 			var err error
 			switch objtyp {
 			case "service":
-				inf, err = buildServiceInfo(ctx, objconf)
+				inf, err = buildServiceInfo(ctx, objname, objconf)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
 			case "module":
-				inf = buildModuleInfo(ctx, objconf)
+				inf = buildModuleInfo(ctx, objname, objconf)
 			case "factory":
-				inf = buildFactoryInfo(ctx, objconf)
+				inf = buildFactoryInfo(ctx, objname, objconf)
 			}
 			if inf != nil {
 				ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader

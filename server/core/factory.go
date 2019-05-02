@@ -22,7 +22,7 @@ type serviceFactory struct {
 func (fac *serviceFactory) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
-	impl := newFactoryImpl()
+	impl := newFactoryImpl(fac.name)
 	fac.impl = impl
 	var facval core.ServiceFactory
 	facval = impl
@@ -60,4 +60,15 @@ func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config
 
 	fac.impl.state = Initialized
 	return nil
+}
+
+func (fac *serviceFactory) start(ctx core.ServerContext) error {
+	return fac.factory.Start(ctx)
+}
+
+func (fac *serviceFactory) stop(ctx core.ServerContext) error {
+	return fac.factory.Stop(ctx)
+}
+func (fac *serviceFactory) unload(ctx core.ServerContext) error {
+	return fac.factory.Unload(ctx)
 }

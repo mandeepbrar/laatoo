@@ -83,6 +83,49 @@ func (tskMgr *taskManager) loadTasksFromDirectory(ctx core.ServerContext, folder
 	return common.ProcessDirectoryFiles(ctx, folder, constants.CONF_TASKS, true)
 }
 
+func (tskMgr *taskManager) unloadModuleTasks(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("unload tasks")
+	if err := common.ProcessObjects(ctx, mod.tasks, tskMgr.unloadTaskProcessor); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (tskMgr *taskManager) unloadTaskProcessor(ctx core.ServerContext, conf config.Config, taskName string) error {
+	unloadCtx := ctx.SubContext("Unload task processor")
+
+	queueName, ok := conf.GetString(unloadCtx, constants.CONF_TASKS_QUEUE)
+	if !ok {
+		return errors.MissingConf(unloadCtx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
+	}
+
+	consumer, ok := conf.GetString(unloadCtx, constants.CONF_TASK_CONSUMER)
+	if !ok {
+		return errors.MissingConf(unloadCtx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
+	}
+
+	consumerSvc, err := unloadCtx.GetService(consumer)
+	if err != nil {
+		return errors.WrapError(unloadCtx, err)
+	}
+	ts, ok := consumerSvc.(components.TaskServer)
+	if !ok {
+		return errors.BadConf(unloadCtx, constants.CONF_TASK_PROCESSOR, "queue", queueName)
+	}
+
+	err = ts.UnsubsribeQueue(unloadCtx, queueName)
+	if err != nil {
+		return errors.WrapError(unloadCtx, err)
+	}
+
+	delete(tskMgr.taskConsumerNames, queueName)
+	delete(tskMgr.taskProcessorNames, queueName)
+	delete(tskMgr.taskPublishers, queueName)
+	delete(tskMgr.taskPublisherSvcs, queueName)
+	delete(tskMgr.taskProcessors, queueName)
+	return nil
+}
+
 func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
 	queueName, ok := conf.GetString(ctx, constants.CONF_TASKS_QUEUE)
 	if !ok {
@@ -111,44 +154,58 @@ func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.C
 
 func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 	tskmgrStartCtx := ctx.SubContext("Start task manager")
-	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 	log.Trace(tskmgrStartCtx, "Start Task Manager queues")
 	for queueName, svcName := range tskMgr.taskPublishers {
-		log.Trace(tskmgrStartCtx, "Starting task producer ", "queue", queueName)
-		tqSvc, err := tskmgrStartCtx.GetService(svcName)
-		if err != nil {
-			return errors.WrapError(tskmgrStartCtx, err)
+		if err := tskMgr.startPublisher(tskmgrStartCtx, queueName, svcName); err != nil {
+			return errors.WrapError(ctx, err)
 		}
-		tq, ok := tqSvc.(components.TaskQueue)
-		if !ok {
-			return errors.ThrowError(tskmgrStartCtx, errors.CORE_ERROR_BAD_CONF)
-		}
-		tskMgr.taskPublisherSvcs[queueName] = tq
 	}
 
 	for queueName, consumerName := range tskMgr.taskConsumerNames {
-		log.Trace(tskmgrStartCtx, "Starting task consumer ", "queue", queueName)
-		consumerSvc, err := tskmgrStartCtx.GetService(consumerName)
-		if err != nil {
-			return errors.WrapError(tskmgrStartCtx, err)
+		if err := tskMgr.startConsumer(tskmgrStartCtx, queueName, consumerName); err != nil {
+			return errors.WrapError(ctx, err)
 		}
-		ts, ok := consumerSvc.(components.TaskServer)
-		if !ok {
-			return errors.BadConf(tskmgrStartCtx, constants.CONF_TASK_PROCESSOR, "queue", queueName)
-		}
-
-		err = ts.SubsribeQueue(tskmgrStartCtx, queueName)
-		if err != nil {
-			return errors.WrapError(tskmgrStartCtx, err)
-		}
-
-		procSvc, err := svcMgr.GetService(tskmgrStartCtx, tskMgr.taskProcessorNames[queueName])
-		if err != nil {
-			return errors.WrapError(tskmgrStartCtx, err)
-		}
-		tskMgr.taskProcessors[queueName] = procSvc
 	}
 
+	return nil
+}
+
+func (tskMgr *taskManager) startPublisher(ctx core.ServerContext, queueName, svcName string) error {
+	log.Trace(ctx, "Starting task producer ", "queue", queueName)
+	tqSvc, err := ctx.GetService(svcName)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	tq, ok := tqSvc.(components.TaskQueue)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
+	}
+	tskMgr.taskPublisherSvcs[queueName] = tq
+	return nil
+}
+
+func (tskMgr *taskManager) startConsumer(ctx core.ServerContext, queueName, consumerName string) error {
+	log.Trace(ctx, "Starting task consumer ", "queue", queueName)
+	consumerSvc, err := ctx.GetService(consumerName)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	ts, ok := consumerSvc.(components.TaskServer)
+	if !ok {
+		return errors.BadConf(ctx, constants.CONF_TASK_PROCESSOR, "queue", queueName)
+	}
+
+	err = ts.SubsribeQueue(ctx, queueName)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
+	procSvc, err := svcMgr.GetService(ctx, tskMgr.taskProcessorNames[queueName])
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	tskMgr.taskProcessors[queueName] = procSvc
 	return nil
 }
 
@@ -189,11 +246,53 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		/*req := ctx.CreateRequest()
 		req.SetBody(t.Data)
 		req.AddParam(tskMgr.authHeader, t.Token)*/
+		/****TODO****error handling****/
 		tskMgr.shandler.AuthenticateRequest(ctx, true)
 		log.Trace(ctx, "Processing background task")
 		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token, "Task": t.Data})
 		ctx.SetResponse(res)
 		return err
+	}
+	return nil
+}
+
+func (tskMgr *taskManager) startModuleInstanceTasks(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("load tasks")
+	if err := common.ProcessObjects(ctx, mod.tasks, tskMgr.loadModuleInstanceTask); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (tskMgr *taskManager) loadModuleInstanceTask(ctx core.ServerContext, conf config.Config, taskName string) error {
+	queueName, ok := conf.GetString(ctx, constants.CONF_TASKS_QUEUE)
+	if !ok {
+		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
+	}
+
+	consumer, ok := conf.GetString(ctx, constants.CONF_TASK_CONSUMER)
+	if !ok {
+		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
+	}
+	tskMgr.taskConsumerNames[queueName] = consumer
+
+	processor, ok := conf.GetString(ctx, constants.CONF_TASK_PROCESSOR)
+	if !ok {
+		return errors.MissingConf(ctx, constants.CONF_TASK_PROCESSOR, "Task Name", taskName)
+	}
+	tskMgr.taskProcessorNames[queueName] = processor
+
+	publisher, ok := conf.GetString(ctx, constants.CONF_TASK_PUBLISHER)
+	if !ok {
+		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
+	}
+	tskMgr.taskPublishers[queueName] = publisher
+
+	if err := tskMgr.startPublisher(ctx, queueName, publisher); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if err := tskMgr.startConsumer(ctx, queueName, consumer); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }

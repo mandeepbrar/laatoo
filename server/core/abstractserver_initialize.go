@@ -66,7 +66,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 
 	modpluginsctx := ctx.SubContext("Module manager plugins: " + as.name)
-	err = as.moduleManagerHandle.(*moduleManager).loadExtensions(modpluginsctx)
+	err = as.moduleManagerHandle.(*moduleManager).loadPlugins(modpluginsctx)
 	if err != nil {
 		return errors.WrapError(modsctx, err)
 	}

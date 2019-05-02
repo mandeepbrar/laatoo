@@ -28,7 +28,7 @@ type serverService struct {
 func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
-	impl := newServiceImpl()
+	impl := newServiceImpl(svc.name)
 	svc.impl = impl
 	var svcval core.Service
 	svcval = impl
@@ -221,4 +221,11 @@ func (svc *serverService) invoke(ctx core.RequestContext) error {
 		}
 	}
 	return nil
+}
+
+func (svc *serverService) stop(ctx core.ServerContext) error {
+	return svc.service.Stop(ctx)
+}
+func (svc *serverService) unload(ctx core.ServerContext) error {
+	return svc.service.Unload(ctx)
 }

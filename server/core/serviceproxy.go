@@ -13,6 +13,10 @@ func (svc *serviceProxy) Service() core.Service {
 	return svc.svc.service
 }
 
+func (svc *serviceProxy) ServiceContext() core.ServerContext {
+	return svc.svc.svrContext
+}
+
 func (proxy *serviceProxy) Reference() core.ServerElement {
 	return &serviceProxy{svc: proxy.svc}
 }

@@ -39,6 +39,7 @@ const (
 type httpChannel struct {
 	name           string
 	method         string
+	disabled       bool
 	Router         net.Router
 	config         config.Config
 	svcName        string
@@ -130,7 +131,7 @@ func (channel *httpChannel) child(ctx core.ServerContext, name string, channelCo
 	}
 
 	log.Trace(ctx, "Creating child channel ", "Parent", channel.name, "Name", name, "Service", svc, "Path", path)
-	childChannel := &httpChannel{name: routername, Router: router, config: channelConfig, engine: channel.engine, svcName: svc, path: path}
+	childChannel := &httpChannel{name: routername, Router: router, config: channelConfig, engine: channel.engine, svcName: svc, path: path, disabled: false}
 	err := childChannel.configure(ctx)
 	if err != nil {
 		return nil, err
@@ -161,6 +162,10 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	}
 
 	return func(pathCtx net.WebContext) error {
+		if channel.disabled {
+			pathCtx.NoContent(400)
+			return nil
+		}
 		errChannel := make(chan error)
 		corectx, err := ctx.CreateNewRequest(serviceName, pathCtx, "")
 		if err != nil {
@@ -228,4 +233,9 @@ func (channel *httpChannel) useMW(ctx core.ServerContext, handler func(http.Hand
 }
 func (channel *httpChannel) useMiddleware(ctx core.ServerContext, handler http.HandlerFunc) {
 	channel.Router.UseMiddleware(handler)
+}
+
+func (channel *httpChannel) removeChild(ctx core.ServerContext, name string, channelConfig config.Config) error {
+	channel.disabled = true
+	return nil
 }

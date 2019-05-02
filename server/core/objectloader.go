@@ -16,6 +16,7 @@ import (
 
 type objectLoader struct {
 	objectsFactoryRegister map[string]core.ObjectFactory
+	objModMap              utils.StringMap
 	name                   string
 	parentElem             core.ServerElement
 	provider               *metadataProvider
@@ -29,7 +30,7 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 		log.Info(ctx, "Setting base directory for objects", "Directory", objectsBaseFolder)
 	}
 
-	err := objLoader.loadPlugins(ctx, conf)
+	err := objLoader.loadObjects(ctx, conf)
 	if err != nil {
 		return err
 	}
@@ -75,8 +76,8 @@ func (objLoader *objectLoader) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder string) error {
-	log.Trace(ctx, "Loading plugins", "plugins folder", folder)
+func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder string) error {
+	log.Trace(ctx, "Loading objects", "objects folder", folder)
 	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
@@ -127,11 +128,11 @@ func (objLoader *objectLoader) loadPluginsFolder(ctx core.ServerContext, folder 
 	return err
 }
 
-func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext, folder string) error {
+func (objLoader *objectLoader) loadObjectsFolderIfExists(ctx core.ServerContext, folder string) error {
 	exists, _, _ := utils.FileExists(folder)
 	if exists {
-		log.Trace(ctx, "Loading plugins folder", "Folder", folder)
-		if err := objLoader.loadPluginsFolder(ctx, folder); err != nil {
+		log.Trace(ctx, "Loading objects folder", "Folder", folder)
+		if err := objLoader.loadObjectsFolder(ctx, folder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	} else {
@@ -140,16 +141,16 @@ func (objLoader *objectLoader) loadPluginsFolderIfExists(ctx core.ServerContext,
 	return nil
 }
 
-func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.Config) error {
-	pluginsFolder, ok := conf.GetString(ctx, constants.CONF_OBJECTLDR_OBJECTS)
+func (objLoader *objectLoader) loadObjects(ctx core.ServerContext, conf config.Config) error {
+	objsFolder, ok := conf.GetString(ctx, constants.CONF_OBJECTLDR_OBJECTS)
 	if ok {
-		if err := objLoader.loadPluginsFolderIfExists(ctx, pluginsFolder); err != nil {
+		if err := objLoader.loadObjectsFolderIfExists(ctx, objsFolder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 	baseDir, _ := ctx.GetString(config.BASEDIR)
 	baseFolder := path.Join(baseDir, constants.CONF_OBJECTLDR_OBJECTS)
-	if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
+	if err := objLoader.loadObjectsFolderIfExists(ctx, baseFolder); err != nil {
 		return err
 	}
 
@@ -157,7 +158,7 @@ func (objLoader *objectLoader) loadPlugins(ctx core.ServerContext, conf config.C
 	if found {
 		relDir, _ := ctx.GetString(constants.RELATIVE_DIR)
 		baseFolder = path.Join(objectsbaseDir, relDir)
-		if err := objLoader.loadPluginsFolderIfExists(ctx, baseFolder); err != nil {
+		if err := objLoader.loadObjectsFolderIfExists(ctx, baseFolder); err != nil {
 			return err
 		}
 	}
@@ -182,6 +183,10 @@ func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName
 	if !ok {
 		log.Info(ctx, "Registering object factory ", "Object Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
+		mod, modok := ctx.GetString(constants.CONF_MODULE)
+		if modok {
+			objLoader.objModMap[objectName] = mod
+		}
 	}
 }
 
@@ -238,4 +243,14 @@ func (objLoader *objectLoader) getMetaData(ctx ctx.Context, objectName string) (
 		return nil, nil
 	}
 	return factory.Info(), nil
+}
+
+func (objLoader *objectLoader) unloadModuleObjects(ctx ctx.Context, modName string) error {
+	for obj, mod := range objLoader.objModMap {
+		if mod == modName {
+			delete(objLoader.objModMap, obj)
+			delete(objLoader.objectsFactoryRegister, obj)
+		}
+	}
+	return nil
 }

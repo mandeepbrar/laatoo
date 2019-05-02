@@ -14,8 +14,8 @@ type serviceInfo struct {
 	svcsToInject map[string]string
 }
 
-func newServiceInfo(description string, reqInfo core.RequestInfo, resInfo core.ResponseInfo, configurations []core.Configuration) *serviceInfo {
-	co := newConfigurableObject(description, "Service")
+func newServiceInfo(name, description string, reqInfo core.RequestInfo, resInfo core.ResponseInfo, configurations []core.Configuration) *serviceInfo {
+	co := newConfigurableObject(name, description, "Service")
 	co.setConfigurations(configurations)
 	si := &serviceInfo{configurableObject: co,
 		component:    false,
@@ -33,7 +33,7 @@ func newServiceInfo(description string, reqInfo core.RequestInfo, resInfo core.R
 	return si
 }
 
-func buildServiceInfo(ctx core.ServerContext, conf config.Config) (*serviceInfo, error) {
+func buildServiceInfo(ctx core.ServerContext, name string, conf config.Config) (*serviceInfo, error) {
 	comp, _ := conf.GetBool(ctx, SVCCOMP)
 	reqInfo, err := buildRequestInfo(ctx, conf)
 	if err != nil {
@@ -43,7 +43,7 @@ func buildServiceInfo(ctx core.ServerContext, conf config.Config) (*serviceInfo,
 	if err != nil {
 		return nil, err
 	}
-	return &serviceInfo{configurableObject: buildConfigurableObject(ctx, conf),
+	return &serviceInfo{configurableObject: buildConfigurableObject(ctx, name, conf),
 		component:    comp,
 		request:      reqInfo,
 		response:     resInfo,

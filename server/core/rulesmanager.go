@@ -13,6 +13,7 @@ import (
 type rulesManager struct {
 	name            string
 	registeredRules map[string][]rules.Rule
+	rulesStore      map[string]rules.Rule
 	proxy           *rulesManagerProxy
 }
 
@@ -91,13 +92,14 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 	if !ok {
 		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_RULE_OBJECT)
 	}
+	rm.rulesStore[ruleName] = rule
 	switch triggerType {
 	case constants.CONF_RULE_TRIGGER_ASYNC:
 		msgType, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_MSGTYPE)
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
-		ruleMethod := func(rule rules.Rule, msgType string) core.MessageListener {
+		lsnr := func(rule rules.Rule, msgType string) core.MessageListener {
 			return func(msgctx core.RequestContext, data interface{}, info map[string]interface{}) error {
 				go func() {
 					tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.AsynchronousMessage, Message: data}
@@ -111,8 +113,8 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 				}()
 				return nil
 			}
-		}
-		ruleCtx.SubscribeTopic([]string{msgType}, ruleMethod(rule, msgType))
+		}(rule, msgType)
+		ruleCtx.SubscribeTopic([]string{msgType}, lsnr, ruleName)
 	case constants.CONF_RULE_TRIGGER_SYNC:
 		msgType, ok := ruleConf.GetString(ruleCtx, constants.CONF_RULE_MSGTYPE)
 		if !ok {
@@ -146,6 +148,39 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 				log.Debug(ctx, "Executed rule", "message", msgType)
 				if err != nil {
 					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (rm *rulesManager) unloadModuleRules(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("unload rules")
+	if err := common.ProcessObjects(ctx, mod.rules, rm.unloadRule); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (rm *rulesManager) unloadRule(ctx core.ServerContext, ruleConf config.Config, ruleName string) error {
+	ctx = ctx.SubContext("unload rule" + ruleName)
+	unloadCtx := ctx.SubContext("Unload rule")
+	triggerType, _ := ruleConf.GetString(unloadCtx, constants.CONF_RULE_TRIGGER)
+	msgType, _ := ruleConf.GetString(ctx, constants.CONF_RULE_MSGTYPE)
+	switch triggerType {
+	case constants.CONF_RULE_TRIGGER_ASYNC:
+		msgManager := ctx.GetServerElement(core.ServerElementMessagingManager).(*messagingManagerProxy).manager
+		msgManager.unsubscribeTopic(ctx, []string{msgType}, ruleName)
+	case constants.CONF_RULE_TRIGGER_SYNC:
+		rule, ok := rm.rulesStore[ruleName]
+		if ok {
+			regrules, prs := rm.registeredRules[msgType]
+			if prs {
+				for idx, existingrule := range regrules {
+					if existingrule == rule {
+						regrules[idx] = nil
+					}
 				}
 			}
 		}

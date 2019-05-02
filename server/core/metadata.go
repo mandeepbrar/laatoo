@@ -54,16 +54,16 @@ func (inf *objectInfo) setDescription(desc string) {
 type metadataProvider struct {
 }
 
-func (provider *metadataProvider) CreateServiceInfo(description string, reqInfo core.RequestInfo, resInfo core.ResponseInfo, configurations []core.Configuration) core.ServiceInfo {
-	return newServiceInfo(description, reqInfo, resInfo, configurations)
+func (provider *metadataProvider) CreateServiceInfo(name, description string, reqInfo core.RequestInfo, resInfo core.ResponseInfo, configurations []core.Configuration) core.ServiceInfo {
+	return newServiceInfo(name, description, reqInfo, resInfo, configurations)
 }
 
-func (provider *metadataProvider) CreateFactoryInfo(description string, configurations []core.Configuration) core.ServiceFactoryInfo {
-	return newFactoryInfo(description, configurations)
+func (provider *metadataProvider) CreateFactoryInfo(name, description string, configurations []core.Configuration) core.ServiceFactoryInfo {
+	return newFactoryInfo(name, description, configurations)
 }
 
-func (provider *metadataProvider) CreateModuleInfo(description string, configurations []core.Configuration) core.ModuleInfo {
-	return newModuleInfo(description, configurations)
+func (provider *metadataProvider) CreateModuleInfo(name, description string, configurations []core.Configuration) core.ModuleInfo {
+	return newModuleInfo(name, description, configurations)
 
 }
 func (provider *metadataProvider) CreateRequestInfo(params map[string]core.Param) core.RequestInfo {

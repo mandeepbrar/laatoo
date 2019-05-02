@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/server/components"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
@@ -16,7 +16,12 @@ type messagingManager struct {
 	commSvcName string
 	commSvc     components.PubSubComponent
 	proxy       elements.MessagingManager
-	topicStore  map[string][]core.MessageListener
+	topicStore  map[string][]*messagingListenerHolder
+}
+
+type messagingListenerHolder struct {
+	name string
+	lsnr core.MessageListener
 }
 
 func (msgMgr *messagingManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -61,21 +66,38 @@ func (msgMgr *messagingManager) createTopics(ctx core.ServerContext, conf config
 }
 
 func (msgMgr *messagingManager) createTopic(ctx core.ServerContext, name string, conf config.Config) error {
-	msgMgr.topicStore[name] = []core.MessageListener{}
+	msgMgr.topicStore[name] = []*messagingListenerHolder{}
 	return nil
 }
 
 //subscribe to a topic
-func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []string, handler core.MessageListener) error {
+func (mgr *messagingManager) subscribeTopic(ctx core.ServerContext, topics []string, handler core.MessageListener, lsnrId string) error {
 	for _, topic := range topics {
 		listeners, prs := mgr.topicStore[topic]
 		if !prs {
 			log.Error(ctx, "Topic not allowed for Subscription", "Topic", topic)
 			return nil
 		}
-		mgr.topicStore[topic] = append(listeners, handler)
+		lsnrHolder := &messagingListenerHolder{lsnr: handler, name: lsnrId}
+		mgr.topicStore[topic] = append(listeners, lsnrHolder)
 		log.Trace(ctx, "Subscribed topic", "topic", topic)
 	}
+	return nil
+}
+
+//unsubscribe to a topic
+func (mgr *messagingManager) unsubscribeTopic(ctx core.ServerContext, topics []string, lsnrId string) error {
+	for _, topic := range topics {
+		listeners, prs := mgr.topicStore[topic]
+		if !prs {
+			for idx, lsnr := range listeners {
+				if lsnr.name == lsnrId {
+					listeners[idx] = nil
+				}
+			}
+		}
+	}
+	log.Trace(ctx, "Unsubscribed topics", "topics", topics)
 	return nil
 }
 
@@ -107,7 +129,7 @@ func (mgr *messagingManager) subscribeTopics(ctx core.ServerContext) error {
 			if ok {
 				lsnrs := mgr.topicStore[topic]
 				for _, val := range lsnrs {
-					go val(reqctx, data, params)
+					go val.lsnr(reqctx, data, params)
 				}
 			}
 			return nil

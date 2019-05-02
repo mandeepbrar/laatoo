@@ -5,8 +5,8 @@ import (
 	"laatoo/sdk/server/core"
 )
 
-func newServiceImpl() *serviceImpl {
-	return &serviceImpl{serviceInfo: newServiceInfo("", nil, nil, nil), state: Created}
+func newServiceImpl(name string) *serviceImpl {
+	return &serviceImpl{serviceInfo: newServiceInfo(name, "", nil, nil, nil), state: Created}
 }
 
 type serviceImpl struct {
@@ -35,6 +35,13 @@ func (impl *serviceImpl) Describe(ctx core.ServerContext) error {
 }
 
 func (impl *serviceImpl) Invoke(core.RequestContext) error {
+	return nil
+}
+
+func (impl *serviceImpl) Stop(ctx core.ServerContext) error {
+	return nil
+}
+func (impl *serviceImpl) Unload(ctx core.ServerContext) error {
 	return nil
 }
 

@@ -432,8 +432,8 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 }
 
 func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, modules: make(map[string]elements.Module), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
-		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]string), moduleConf: make(map[string]config.Config), svrref: as}
+	mm := &moduleManager{name: name, parent: parentElem, moduleInstances: make(map[string]elements.Module), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
+		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]string), modulePlugins: make(map[string]components.ModuleManagerPlugin), moduleConf: make(map[string]config.Config), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
@@ -442,9 +442,9 @@ func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, 
 func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	modMgrProxy := parentModMgr.(*moduleManagerProxy)
 	modMgr := modMgrProxy.modMgr
-	modules := make(map[string]elements.Module, len(modMgr.modules))
-	for k, v := range modMgr.modules {
-		modules[k] = v
+	moduleInstances := make(map[string]elements.Module, len(modMgr.moduleInstances))
+	for k, v := range modMgr.moduleInstances {
+		moduleInstances[k] = v
 	}
 	installedModules := make(map[string]*semver.Version, len(modMgr.installedModules))
 	for k, v := range modMgr.installedModules {
@@ -462,14 +462,19 @@ func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string
 	for k, v := range modMgr.moduleConf {
 		moduleConf[k] = v
 	}
-	childModMgr := &moduleManager{name: name, parent: parent, modules: modules, installedModules: installedModules, parentModules: make(map[string]string),
-		loadedModules: loadedModules, moduleConf: moduleConf, svrref: as, availableModules: availableModules}
+	modulePlugins := make(map[string]components.ModuleManagerPlugin)
+	for k, v := range modMgr.modulePlugins {
+		modulePlugins[k] = v
+	}
+
+	childModMgr := &moduleManager{name: name, parent: parent, moduleInstances: moduleInstances, installedModules: installedModules, parentModules: make(map[string]string),
+		loadedModules: loadedModules, moduleConf: moduleConf, svrref: as, availableModules: availableModules, modulePlugins: modulePlugins}
 	childModMgrProxy := &moduleManagerProxy{modMgr: childModMgr}
 	return childModMgr, childModMgrProxy
 }
 
 func newObjectLoader(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
-	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), name: name, parentElem: parentElem, provider: &metadataProvider{}}
+	ldr := &objectLoader{objectsFactoryRegister: make(map[string]core.ObjectFactory, 30), objModMap: make(utils.StringMap), name: name, parentElem: parentElem, provider: &metadataProvider{}}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }
@@ -490,14 +495,17 @@ func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 			registry[k] = v
 		}
 	}
+
+	childModMap := objLoader.objModMap.Clone()
+
 	log.Trace(ctx, "carrying over the following objects to the child", "objects", registry)
-	ldr := &objectLoader{objectsFactoryRegister: registry, name: name, parentElem: parent, provider: objLoader.provider}
+	ldr := &objectLoader{objectsFactoryRegister: registry, objModMap: childModMap, name: name, parentElem: parent, provider: objLoader.provider}
 	ldrElem := &objectLoaderProxy{loader: ldr}
 	return ldr, ldrElem
 }
 
 func newRulesManager(ctx core.ServerContext, name string) (*rulesManager, *rulesManagerProxy) {
-	rulesMgr := &rulesManager{registeredRules: make(map[string][]rules.Rule, 10), name: name}
+	rulesMgr := &rulesManager{registeredRules: make(map[string][]rules.Rule, 10), rulesStore: make(map[string]rules.Rule, 10), name: name}
 	rulesElem := &rulesManagerProxy{manager: rulesMgr}
 	rulesMgr.proxy = rulesElem
 	return rulesMgr, rulesElem

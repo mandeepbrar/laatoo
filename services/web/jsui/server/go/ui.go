@@ -299,6 +299,10 @@ func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string
 }
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
+	return svc.writeOutput(ctx)
+}
+
+func (svc *UI) writeOutput(ctx core.ServerContext) error {
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
 
 	scriptsdir := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR)
@@ -432,5 +436,24 @@ func (svc *UI) copyImages(ctx core.ServerContext, mod, dirPath string) error {
 				return errors.WrapError(ctx, err)
 			}
 		}*/
+	return nil
+}
+
+func (svc *UI) Unloading(ctx core.ServerContext, insName, modName string) error {
+	delete(svc.uiFiles, modName)
+	delete(svc.vendorFiles, modName)
+	delete(svc.cssFiles, modName)
+	delete(svc.wasmFiles, modName)
+	delete(svc.wasmImportFiles, modName)
+	delete(svc.descriptorFiles, modName)
+	delete(svc.propertyFiles, modName)
+	delete(svc.uiRegistry, modName)
+	return nil
+}
+
+func (svc *UI) Unloaded(ctx core.ServerContext, insName, modName string) error {
+	if err := svc.writeOutput(ctx); err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	return nil
 }

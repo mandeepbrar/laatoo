@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/server/components"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
@@ -71,6 +71,10 @@ func (svc *BeanstalkConsumer) SubsribeQueue(ctx core.ServerContext, queue string
 	}
 	pool.Play()
 	go svc.worker(ctx, pool)
+	return nil
+}
+
+func (svc *BeanstalkConsumer) UnsubsribeQueue(ctx core.ServerContext, queue string) error {
 	return nil
 }
 

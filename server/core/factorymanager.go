@@ -58,13 +58,35 @@ func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
 		log.Debug(facmgrStartCtx, "Starting factory", "factory name", facname)
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
-			facStartCtx := facStruct.svrContext.subContext("Start " + facname)
-			err := facStruct.factory.Start(facStartCtx)
+			err := facMgr.startFactory(facmgrStartCtx, facProxy)
 			if err != nil {
-				return errors.WrapError(facStartCtx, err)
+				return errors.WrapError(facmgrStartCtx, err)
 			}
 		}
 	}
+	return nil
+}
+
+func (facMgr *factoryManager) startModuleInstanceFactories(ctx core.ServerContext, mod *serverModule) error {
+	for facname, _ := range mod.factories {
+		fac, _ := facMgr.serviceFactoryStore[facname]
+		if err := facMgr.startFactory(ctx, fac); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (facMgr *factoryManager) startFactory(ctx core.ServerContext, facProxy *serviceFactoryProxy) error {
+	facStartCtx := facProxy.fac.svrContext.subContext("Start " + facProxy.fac.name)
+	log.Debug(facStartCtx, "Starting factory ", "factory name", facProxy.fac.name)
+	err := facProxy.fac.start(facStartCtx)
+	if err != nil {
+		return errors.WrapError(facStartCtx, err)
+	}
+	log.Info(facStartCtx, "Started factory ", "name", facProxy.fac.name)
+
+	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
 	return nil
 }
 
@@ -200,6 +222,31 @@ func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error 
 			}
 			log.Trace(facInitializeCtx, "Initialized factory", "factory name", facname)
 		}
+	}
+	return nil
+}
+
+func (facMgr *factoryManager) unloadModuleFactories(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("unload factories")
+	if err := common.ProcessObjects(ctx, mod.factories, facMgr.unloadFactory); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (facMgr *factoryManager) unloadFactory(ctx core.ServerContext, conf config.Config, fac string) error {
+	unloadfac := ctx.SubContext("Unload factory")
+	facprxy, ok := facMgr.serviceFactoryStore[fac]
+	if ok {
+		err := facprxy.fac.stop(unloadfac)
+		if err != nil {
+			log.Error(unloadfac, "Error while stopping factory", "err", err)
+		}
+		err = facprxy.fac.unload(unloadfac)
+		if err != nil {
+			log.Error(unloadfac, "Error while stopping factory", "err", err)
+		}
+		delete(facMgr.serviceFactoryStore, fac)
 	}
 	return nil
 }

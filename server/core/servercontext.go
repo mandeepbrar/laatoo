@@ -118,6 +118,14 @@ func (ctx *serverContext) GetService(alias string) (core.Service, error) {
 	return svcStruct.Service(), nil
 }
 
+func (ctx *serverContext) getService(alias string) (elements.Service, error) {
+	return ctx.svrElements.serviceManager.(*serviceManagerProxy).manager.getService(ctx, alias)
+}
+
+func (ctx *serverContext) GetServiceContext(serviceName string) (core.ServerContext, error) {
+	return ctx.svrElements.serviceManager.GetServiceContext(ctx, serviceName)
+}
+
 //get a server element applicable to the context by its type
 func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core.ServerElement {
 	switch elemType {
@@ -449,9 +457,9 @@ func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	return reqCtx
 }
 
-func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageListener) error {
+func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageListener, lsnrID string) error {
 	if ctx.svrElements.msgManager != nil {
-		return ctx.svrElements.msgManager.Subscribe(ctx, topics, lstnr)
+		return ctx.svrElements.msgManager.Subscribe(ctx, topics, lstnr, lsnrID)
 	}
 	return nil
 }
