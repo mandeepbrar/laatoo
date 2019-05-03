@@ -432,7 +432,7 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 }
 
 func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
-	mm := &moduleManager{name: name, parent: parentElem, moduleInstances: make(map[string]elements.Module), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
+	mm := &moduleManager{name: name, parent: parentElem, moduleInstances: make(map[string]*serverModule), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
 		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]string), modulePlugins: make(map[string]components.ModuleManagerPlugin), moduleConf: make(map[string]config.Config), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
@@ -442,7 +442,7 @@ func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, 
 func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string, parentModMgr core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
 	modMgrProxy := parentModMgr.(*moduleManagerProxy)
 	modMgr := modMgrProxy.modMgr
-	moduleInstances := make(map[string]elements.Module, len(modMgr.moduleInstances))
+	moduleInstances := make(map[string]*serverModule, len(modMgr.moduleInstances))
 	for k, v := range modMgr.moduleInstances {
 		moduleInstances[k] = v
 	}

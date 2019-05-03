@@ -93,6 +93,7 @@ func (tskMgr *taskManager) unloadModuleTasks(ctx core.ServerContext, mod *server
 
 func (tskMgr *taskManager) unloadTaskProcessor(ctx core.ServerContext, conf config.Config, taskName string) error {
 	unloadCtx := ctx.SubContext("Unload task processor")
+	log.Error(ctx, "Unloading task", "taskName", taskName)
 
 	queueName, ok := conf.GetString(unloadCtx, constants.CONF_TASKS_QUEUE)
 	if !ok {
@@ -123,32 +124,6 @@ func (tskMgr *taskManager) unloadTaskProcessor(ctx core.ServerContext, conf conf
 	delete(tskMgr.taskPublishers, queueName)
 	delete(tskMgr.taskPublisherSvcs, queueName)
 	delete(tskMgr.taskProcessors, queueName)
-	return nil
-}
-
-func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
-	queueName, ok := conf.GetString(ctx, constants.CONF_TASKS_QUEUE)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
-	}
-
-	consumer, ok := conf.GetString(ctx, constants.CONF_TASK_CONSUMER)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
-	}
-	tskMgr.taskConsumerNames[queueName] = consumer
-
-	processor, ok := conf.GetString(ctx, constants.CONF_TASK_PROCESSOR)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_PROCESSOR, "Task Name", taskName)
-	}
-	tskMgr.taskProcessorNames[queueName] = processor
-
-	publisher, ok := conf.GetString(ctx, constants.CONF_TASK_PUBLISHER)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
-	}
-	tskMgr.taskPublishers[queueName] = publisher
 	return nil
 }
 
@@ -265,6 +240,21 @@ func (tskMgr *taskManager) startModuleInstanceTasks(ctx core.ServerContext, mod 
 }
 
 func (tskMgr *taskManager) loadModuleInstanceTask(ctx core.ServerContext, conf config.Config, taskName string) error {
+	if err := tskMgr.loadTask(ctx, conf, taskName, true); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	return nil
+}
+
+func (tskMgr *taskManager) processTaskConf(ctx core.ServerContext, conf config.Config, taskName string) error {
+	if err := tskMgr.loadTask(ctx, conf, taskName, false); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (tskMgr *taskManager) loadTask(ctx core.ServerContext, conf config.Config, taskName string, start bool) error {
 	queueName, ok := conf.GetString(ctx, constants.CONF_TASKS_QUEUE)
 	if !ok {
 		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
@@ -287,12 +277,14 @@ func (tskMgr *taskManager) loadModuleInstanceTask(ctx core.ServerContext, conf c
 		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
 	}
 	tskMgr.taskPublishers[queueName] = publisher
+	if start {
+		if err := tskMgr.startPublisher(ctx, queueName, publisher); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		if err := tskMgr.startConsumer(ctx, queueName, consumer); err != nil {
+			return errors.WrapError(ctx, err)
+		}
 
-	if err := tskMgr.startPublisher(ctx, queueName, publisher); err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	if err := tskMgr.startConsumer(ctx, queueName, consumer); err != nil {
-		return errors.WrapError(ctx, err)
 	}
 	return nil
 }

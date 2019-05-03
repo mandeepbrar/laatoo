@@ -65,19 +65,21 @@ func (modMgr *moduleManager) ReloadModule(ctx core.ServerContext, modName string
 	var err error
 	removedInstances := make(map[string]*serverModule)
 	for name, modInstance := range modMgr.moduleInstances {
-		mod := modInstance.(*moduleProxy).mod
-		if mod.moduleName == modName {
+		if modInstance.moduleName == modName {
 			log.Error(ctx, "Reload module instance", "name", name, "mod", modName)
-			if err = modMgr.unloadInstanceLive(ctx, mod, false, removedInstances); err != nil {
+			if err = modMgr.unloadInstanceLive(ctx, modInstance, false, removedInstances); err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		}
 	}
 
+	log.Info(ctx, "unloading module objects", "mod", modName)
 	ldr := ctx.GetServerElement(core.ServerElementLoader).(*objectLoaderProxy).loader
 	if err := ldr.unloadModuleObjects(ctx, modName); err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	log.Info(ctx, "Loading module objects", "mod", modName)
 
 	modconf, ok := modMgr.moduleConf[modName]
 
@@ -87,49 +89,62 @@ func (modMgr *moduleManager) ReloadModule(ctx core.ServerContext, modName string
 			return errors.WrapError(ctx, err)
 		}
 	}
-	var createdInstances []string
+	var createdInstanceNames []string
+
+	log.Info(ctx, "Loading instances", "mod", modName)
 	for insName, _ := range removedInstances {
 		insConf := modMgr.moduleInstancesConfig[insName]
-		createdInstances, err = modMgr.loadLiveInstance(ctx, insName, modName, modDir, insConf)
+		createdInstanceNames, err = modMgr.loadLiveInstance(ctx, insName, modName, modDir, insConf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 
+	createdInstances := make(map[string]*serverModule)
+	for _, instanceName := range createdInstanceNames {
+		modInstance := modMgr.moduleInstances[instanceName]
+		createdInstances[instanceName] = modInstance
+	}
+
+	log.Info(ctx, "Starting instances", "mod", modName)
 	if err = modMgr.startInstances(ctx, createdInstances); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 
+	log.Info(ctx, "Loading rules", "mod", modName)
 	ruleManager := ctx.GetServerElement(core.ServerElementRulesManager).(*rulesManagerProxy).manager
 	if _, err = ruleManager.loadRulesFromDirectory(ctx, modDir); err != nil {
-		return err
+		return errors.WrapError(ctx, err)
+	}
+
+	log.Info(ctx, "Passing instances to plugins", "mod", modName)
+	if err = modMgr.loadInstancesToPluginsforload(ctx, createdInstances); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	return nil
 }
 
-func (modMgr *moduleManager) startInstances(ctx core.ServerContext, instanceNames []string) error {
+func (modMgr *moduleManager) startInstances(ctx core.ServerContext, instances map[string]*serverModule) error {
 	taskManager := ctx.GetServerElement(core.ServerElementTaskManager).(*taskManagerProxy).manager
 	chnManager := ctx.GetServerElement(core.ServerElementChannelManager).(*channelManagerProxy).manager
 	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(*serviceManagerProxy).manager
 	facManager := ctx.GetServerElement(core.ServerElementFactoryManager).(*factoryManagerProxy).manager
-	for _, insName := range instanceNames {
-		instance := modMgr.moduleInstances[insName]
-		mod := instance.(*moduleProxy).mod
-		err := modMgr.startInstance(ctx, instance.(*moduleProxy))
+	for _, modInstance := range instances {
+		err := modMgr.startInstance(ctx, modInstance)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		if err := facManager.startModuleInstanceFactories(ctx, mod); err != nil {
+		if err := facManager.startModuleInstanceFactories(ctx, modInstance); err != nil {
 			return err
 		}
-		if err := svcManager.startModuleInstanceServices(ctx, mod); err != nil {
+		if err := svcManager.startModuleInstanceServices(ctx, modInstance); err != nil {
 			return err
 		}
-		if err := chnManager.startModuleInstanceChannels(ctx, mod); err != nil {
+		if err := chnManager.startModuleInstanceChannels(ctx, modInstance); err != nil {
 			return err
 		}
-		if err := taskManager.startModuleInstanceTasks(ctx, mod); err != nil {
+		if err := taskManager.startModuleInstanceTasks(ctx, modInstance); err != nil {
 			return err
 		}
 
@@ -145,6 +160,7 @@ func (modMgr *moduleManager) unloadFromPluginsforReload(ctx core.ServerContext, 
 			return errors.WrapError(ctx, err)
 		}
 	}
+	log.Error(ctx, "Unloaded instance from plugins", "instance", mod.name)
 	return nil
 }
 
@@ -172,9 +188,9 @@ func (modMgr *moduleManager) unloadInstanceLive(ctx core.ServerContext, mod *ser
 	var err error
 	for ins, parentIns := range modMgr.parentModules {
 		if parentIns == mod.name {
-			childMod, ok := modMgr.moduleInstances[ins]
+			childModIns, ok := modMgr.moduleInstances[ins]
 			if ok {
-				modMgr.unloadInstanceLive(ctx, childMod.(*moduleProxy).mod, unloadObjs, removedInstances)
+				modMgr.unloadInstanceLive(ctx, childModIns, unloadObjs, removedInstances)
 			}
 		}
 	}

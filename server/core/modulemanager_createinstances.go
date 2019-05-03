@@ -177,7 +177,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		return false, errors.WrapError(initCtx, err)
 	}
 
-	modMgr.moduleInstances[moduleInstance] = &moduleProxy{mod: modu}
+	modMgr.moduleInstances[moduleInstance] = modu
 
 	return true, nil
 }
@@ -186,12 +186,11 @@ func (modMgr *moduleManager) setupInstanceContext(ctx core.ServerContext, instan
 	parentModuleName, pok := modMgr.parentModules[instance]
 	var newCtx core.ServerContext
 	if pok {
-		parentModule, ok := modMgr.moduleInstances[parentModuleName]
+		parentModuleInstance, ok := modMgr.moduleInstances[parentModuleName]
 		if !ok {
 			return nil, false, nil
 		} else {
-			parentmod := parentModule.(*moduleProxy).mod
-			newCtx = parentmod.svrContext.newContext("Module: " + instance)
+			newCtx = parentModuleInstance.svrContext.newContext("Module: " + instance)
 		}
 	} else {
 		newCtx = modMgr.svrref.svrContext.newContext("Module: " + instance)

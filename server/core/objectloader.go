@@ -248,6 +248,7 @@ func (objLoader *objectLoader) getMetaData(ctx ctx.Context, objectName string) (
 func (objLoader *objectLoader) unloadModuleObjects(ctx ctx.Context, modName string) error {
 	for obj, mod := range objLoader.objModMap {
 		if mod == modName {
+			log.Info(ctx, "Unloaded Object", "Name:", obj, "Module", mod)
 			delete(objLoader.objModMap, obj)
 			delete(objLoader.objectsFactoryRegister, obj)
 		}

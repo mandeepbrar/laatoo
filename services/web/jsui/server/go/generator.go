@@ -33,7 +33,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	filesWritten := make(map[string]bool)
 	for name, _ := range svc.uiFiles {
 
-		log.Info(ctx, "file written.....", "name", name)
+		log.Debug(ctx, "file written.....", "name", name)
 
 		err := svc.appendContent(ctx, name, uiFileCont, filesWritten)
 		if err != nil {
@@ -227,7 +227,7 @@ func (svc *UI) appendContent(ctx core.ServerContext, name string, buf *bytes.Buf
 	if written {
 		return nil
 	}
-	log.Info(ctx, "Appending module content ", "Name", name)
+	log.Trace(ctx, "Appending module content ", "Name", name)
 	nl := []byte(fmt.Sprintln(""))
 
 	cont, uiprs := svc.uiFiles[name]

@@ -33,10 +33,10 @@ func (modMgr *moduleManager) loadPlugins(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) startPlugins(ctx core.ServerContext) error {
+func (modMgr *moduleManager) loadInstancesToPluginsforload(ctx core.ServerContext, instances map[string]*serverModule) error {
 	for svcName, plugin := range modMgr.modulePlugins {
-		for _, modInsProxy := range modMgr.moduleInstances {
-			err := modMgr.loadPluginWithMod(ctx, modInsProxy.(*moduleProxy).mod, svcName, plugin)
+		for _, modIns := range instances {
+			err := modMgr.loadPluginWithMod(ctx, modIns, svcName, plugin)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

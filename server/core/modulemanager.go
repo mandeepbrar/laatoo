@@ -24,7 +24,7 @@ type moduleManager struct {
 	modulesRepo           string
 	hotModulesRepo        string
 	availableModules      map[string]string
-	moduleInstances       map[string]elements.Module
+	moduleInstances       map[string]*serverModule
 	installedModules      map[string]*semver.Version
 	moduleConf            map[string]config.Config
 	moduleInstancesConfig map[string]config.Config
@@ -103,13 +103,13 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Module manager start")
-	for _, modProxy := range modMgr.moduleInstances {
-		err := modMgr.startInstance(ctx, modProxy.(*moduleProxy))
+	for _, modIns := range modMgr.moduleInstances {
+		err := modMgr.startInstance(ctx, modIns)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	err := modMgr.startPlugins(ctx)
+	err := modMgr.loadInstancesToPluginsforload(ctx, modMgr.moduleInstances)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -162,8 +162,7 @@ func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.Serve
 	return createdInstances, nil
 }
 
-func (modMgr *moduleManager) startInstance(ctx core.ServerContext, ins *moduleProxy) error {
-	mod := ins.mod
+func (modMgr *moduleManager) startInstance(ctx core.ServerContext, mod *serverModule) error {
 	startCtx := mod.svrContext.SubContext("Module Start")
 	err := mod.start(startCtx)
 	if err != nil {
