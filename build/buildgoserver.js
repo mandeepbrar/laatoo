@@ -6,6 +6,10 @@ var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig,
 var sprintf = require('sprintf-js').sprintf
 
 function buildGoObjects(nextTask) {
+    if(argv.uionly) {
+      nextTask()
+      return
+    }
     log("Compiling golang")
 
     let serverGoSrcFolder = path.join(pluginFolder, "server", "go")

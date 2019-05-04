@@ -8,6 +8,11 @@ var sprintf = require('sprintf-js').sprintf
 function compileRustWASMUI(nextTask) {
     log("Compiling rust wasm")
 
+    if(argv.norust) {
+      nextTask()
+      return
+    }
+
     let wasmRustSrcFolder = path.join(pluginFolder, "ui", "rust")
     if(!fs.pathExistsSync(wasmRustSrcFolder)) {
       nextTask()

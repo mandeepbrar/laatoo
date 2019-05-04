@@ -31,7 +31,7 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 
 				if hot {
 					log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
-					go modMgr.addWatch(ctx, moduleName, modDir)
+					go modMgr.addWatch(ctx, moduleName, modDir, moduleInstallConf)
 					/*if err != nil {
 						return errors.WrapError(ctx, err)
 					}*/

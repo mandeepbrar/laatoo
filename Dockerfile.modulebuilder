@@ -14,7 +14,7 @@ RUN chown -R laatoo /build /plugins /deploy /nodemodules
 
 RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader object-assign babel-cli babel-core babel-eslint babel-loader babel-plugin-transform-react-constant-elements babel-plugin-transform-react-remove-prop-types babel-plugin-transform-runtime babel-preset-env babel-preset-react babel-preset-stage-0 copy-webpack-plugin cross-env css-loader eslint resolve-url-loader extract-text-webpack-plugin@next flow-bin html-webpack-plugin path postcss-loader rimraf sass-loader style-loader expose-loader url-loader webpack webpack-dev-middleware webpack-hot-middleware react-hot-loader webpack-merge
 
-ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false
+ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 
@@ -44,14 +44,4 @@ WORKDIR /build
 
 COPY /build/.babelrc /
 
-#COPY list /
-
-#RUN chmod u+x /list
-
-#CMD ["list","/plugins"]
-
-ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects
-
-#ENTRYPOINT /bin/bash
-
-#ENTRYPOINT /make.sh $name $package /plugins/bin/modules/
+ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust norust --nobundle nobundle

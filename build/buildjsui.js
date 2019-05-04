@@ -109,7 +109,7 @@ function compileJSWebUI(jsUIconfig, nextTask) {
           })
         }
       }
-  
+      log("*UI compilation ends*")
       nextTask()
     });
  }

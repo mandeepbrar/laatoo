@@ -11,8 +11,25 @@ if [[ ($# < 1) ]]
 modFile=$1
 shift
 
+uionly=false
+verbose=false
+getBuildPackages=false
+nobundle=false
+norust=false
+
+while [[ "$#" -gt 0 ]]; 
+do case $1 in
+  --uionly) uionly=true; shift;;
+  --verbose) verbose=true; shift;;
+  --nobundle) nobundle=true; shift;;
+  --norust) norust=true; shift;;
+  --getBuildPackages) getBuildPackages=true; shift;;
+  *) break;;
+esac; 
+done
+
 compile_module() {
-  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e packageFolder=$2 -e verbose=true  -e overwriteJSMods=false -e getBuildPackages=false laatoomodulebuilder
+  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e norust=norust -e uionly=uionly -e packageFolder=$2 -e verbose=$verbose  -e nobundle=nobundle -e overwriteJSMods=false -e getBuildPackages=$getBuildPackages laatoomodulebuilder
   echo '================================================================'
 }
 

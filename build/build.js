@@ -2,7 +2,7 @@ var shell = require('shelljs');
 var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
-var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var entity = require('./entity')
 var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
 var {buildGoObjects} = require('./buildgoserver');
@@ -104,6 +104,10 @@ function copyConfig(nextTask) {
 }
 
 function autoGen(nextTask) {
+  if(argv.uionly) {
+    nextTask()
+    return
+  }
   let entities = {}
   if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
@@ -126,6 +130,10 @@ function autoGen(nextTask) {
 }
 
 function copyFiles(nextTask) {
+  if(argv.nobundle) {
+    nextTask()
+    return
+  }
   let filesSrcFolder = path.join(pluginFolder, "files")
   if (!fs.pathExistsSync(filesSrcFolder)) {
     nextTask()
@@ -140,6 +148,10 @@ function copyFiles(nextTask) {
 }
 
 function bundleModule(nextTask) {
+  if(argv.nobundle) {
+    nextTask()
+    return
+  }
   let verbose = argv.verbose? "-v":""
   let tarfilepath = path.join("/plugins", "tmp", name+".tar.gz")
   let command = sprintf('tar %s -czf %s -C %s %s', verbose, tarfilepath, path.join("/plugins", "tmp"), name)
@@ -153,7 +165,9 @@ function bundleModule(nextTask) {
 }
 
 function deployModule(nextTask) {
-  fs.copySync(path.join("/plugins", "tmp", name +".tar.gz"), path.join(deploymentFolder, name +".tar.gz"))
+  if(!argv.nobundle) {
+    fs.copySync(path.join("/plugins", "tmp", name +".tar.gz"), path.join(deploymentFolder, name +".tar.gz"))
+  }
   nextTask()
 }
 
@@ -165,11 +179,11 @@ function startTask(taskName) {
     func = copyConfig
     nextTask = "autogen"
   }
-  if (taskName === "autogen") {
+  if (taskName === "autogen" ) {
     func = autoGen
     nextTask = "objcompile"
   }
-  if ( taskName === "objcompile" ){
+  if ( taskName === "objcompile"){
     func = buildObjects
     nextTask = "copyproperties"
   }
@@ -203,7 +217,9 @@ function startTask(taskName) {
   }
   return function() {
     nextTaskFunc = startTask(nextTask)
+    log("-----------------------------")
     log("Starting task ", taskName)
+    log("-----------------------------")
     func(nextTaskFunc)
   }
 }

@@ -13,6 +13,7 @@ import (
 )
 
 func (svc *UI) appendPropertyFiles(ctx core.ServerContext, modName string, props map[string]interface{}) error {
+	log.Info(ctx, "Appending properties", "modName", modName, "props", props)
 	modprops := make(map[string]interface{})
 	if props != nil {
 		for locale, val := range props {

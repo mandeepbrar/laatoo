@@ -4,15 +4,19 @@ var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var yamlparser = require('js-yaml')
 
-var argv = require('minimist')(process.argv.slice(2), {boolean:["verbose", "release", "skipObjects", "skipUI", "overwriteJSMods", "forceUIModules", "printUIConfig", "getBuildPackages"]});
+var argv = require('minimist')(process.argv.slice(2), {boolean:["norust", "verbose", "nobundle", "release", "skipObjects", "skipUI", "overwriteJSMods", "forceUIModules", "printUIConfig", "getBuildPackages", "uionly"]});
 
 //, default: {skipObjects: false, skipUI: false, skipUIModules: false, printUIConfig: false}
 
 var name = argv.name
 
-var packageFolder = argv.packageFolder
+var pluginFolder
 
-var pluginFolder = path.join("/plugins", "src", packageFolder)
+if(argv.packageFolder.startsWith("/")) {
+  pluginFolder = argv.packageFolder
+} else {
+  pluginFolder = path.join("/plugins", "src", argv.packageFolder)
+}
 
 var uiFolder = path.join(pluginFolder, "ui")
 
@@ -52,7 +56,6 @@ module.exports = {
     name: name,
     pluginFolder: pluginFolder,
     release: release,
-    packageFolder: packageFolder,
     uiFolder: uiFolder,
     filesFolder: filesFolder,
     modConfig: modConfig,

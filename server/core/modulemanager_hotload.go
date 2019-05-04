@@ -2,18 +2,24 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
+	"os/exec"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/radovskyb/watcher"
 	//"github.com/fsnotify/fsnotify"
 )
 
-func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, modDir string) error {
+func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, modDir string, modInsConf config.Config) error {
 	ctx = ctx.SubContext("Watch " + modName)
+	hotmodcompiler, compilerok := modInsConf.GetString(ctx, "hotmodcompiler")
 
 	/*
 		watcher, err := fsnotify.NewWatcher()
@@ -22,6 +28,9 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 		}*/
 	w := watcher.New()
 	w.SetMaxEvents(1)
+
+	compileWatcher := watcher.New()
+	compileWatcher.SetMaxEvents(1)
 
 	go func() {
 		for {
@@ -42,12 +51,19 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 		}
 	}()
 
-	//defer watcher.Close()
-	modMgr.watchers = append(modMgr.watchers, w)
-
-	// Watch test_folder recursively for changes.
-	if err := w.AddRecursive(modDir); err != nil {
+	files, err := ioutil.ReadDir(modDir)
+	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+
+	for _, f := range files {
+		name := f.Name()
+		if name != "ui" && name != "server" && f.IsDir() {
+			// Watch test_folder recursively for changes.
+			if err := w.AddRecursive(path.Join(modDir, name)); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
 	}
 
 	go func() {
@@ -55,6 +71,53 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 			log.Error(ctx, "Watcher stopped watching")
 		}
 	}()
+
+	if compilerok {
+
+		go func(modname, modDir, compilerCommand string) {
+			compilerCmdArr := strings.Split(compilerCommand, " ")
+			command := compilerCmdArr[0]
+			compilerCmdArr = append(compilerCmdArr[1:], "--name", modname, "--packageFolder", modDir)
+			for {
+				select {
+				case event := <-compileWatcher.Event:
+					log.Info(ctx, "Compile required", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
+
+					cmd := exec.Command(command, compilerCmdArr...)
+					stdoutStderr, err := cmd.CombinedOutput()
+					if err != nil {
+						log.Error(ctx, "Error executing command ***********", "err", err)
+					}
+					fmt.Printf("%s\n", stdoutStderr)
+				case err := <-compileWatcher.Error:
+					log.Error(ctx, "Error while watching", err)
+				case <-compileWatcher.Closed:
+					return
+				}
+			}
+		}(modName, modDir, hotmodcompiler)
+
+		go func() {
+			if err := compileWatcher.Start(time.Millisecond * 5000); err != nil {
+				log.Error(ctx, "Compiler Watcher stopped watching")
+			}
+		}()
+
+		foldersToWatch := []string{"ui", "server"}
+		for _, name := range foldersToWatch {
+			folderToWatch := path.Join(modDir, name)
+			exists, _, _ := utils.FileExists(folderToWatch)
+			if exists {
+				if err := compileWatcher.AddRecursive(folderToWatch); err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+
+	}
+
+	//defer watcher.Close()
+	modMgr.watchers = append(modMgr.watchers, w, compileWatcher)
 
 	log.Error(ctx, "Watching module directory for change ", "dir", modDir, "watchers", modMgr.watchers)
 

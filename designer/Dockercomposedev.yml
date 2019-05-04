@@ -12,6 +12,9 @@ services:
     - /home/mandeep/goprogs/src/laatoo/designer/modules:/modules
     - /home/mandeep/goprogs/src/laatoo/designer/modulesrepo:/modulesrepo
     - /home/mandeep/goprogs/src/laatoo:/devmodulesrepo
+    - /home/mandeep/goprogs/src/laatoo/ui/nodemodules:/nodemodules
+    - /home/mandeep/goprogs:/plugins
+    - /home/mandeep/goprogs/src/laatoo/designer/modules:/deploy
     ports:
      - "6060:6060"
      - "6061:6061"

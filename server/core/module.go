@@ -139,15 +139,16 @@ func (mod *serverModule) readProperties(ctx core.ServerContext, dir string) erro
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	log.Info(ctx, "Read module properties", "propsDir", propsDir, "props", props)
 	mod.properties = common.MergeProps(mod.properties, props)
 	return nil
 }
 
 func (mod *serverModule) loadModuleDir(ctx core.ServerContext, dir string) error {
-
+	log.Info(ctx, "Loading module directory", "dir", dir)
 	modConfigDir := path.Join(dir, constants.CONF_CONFIG_DIR)
 
-	if err := mod.readProperties(ctx, modConfigDir); err != nil {
+	if err := mod.readProperties(ctx, dir); err != nil {
 		return err
 	}
 

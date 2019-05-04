@@ -11,6 +11,7 @@ var module;
 function Initialize(appName, ins, mod, settings, def, req) {
   module=this;
   module.properties = Application.Properties[ins]
+  console.log("authui initialization", Application, ins)
   module.settings = settings;
   if(Object.keys(settings).length != 0 ) {
     Application.Security = {

@@ -20,6 +20,7 @@ modules:
   reactpages:
     hotmodule: true
     hotmodulepath: services/web/react/reactpages
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
   reactwebcommon:
   laatooviews:
   authui:

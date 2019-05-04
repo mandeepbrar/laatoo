@@ -362,7 +362,7 @@ class Panel extends React.Component {
   }
 
   render() {
-    console.log("rendering panel", this.props, this.getView, this.className);
+    console.log("Rendering panel***************", this.props, this.getView, this.className);
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
     let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
     if(this.overlay || this.title || this.closePanel) {
