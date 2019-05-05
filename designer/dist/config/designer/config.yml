@@ -27,8 +27,14 @@ modules:
   reactforms:
   laatoositetheme:
   laatootheme:
+    hotmodule: true
+    hotmodulepath: designer/core/laatootheme
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
   modulesrepository:
   designerui:
+    hotmodule: true
+    hotmodulepath: designer/core/designerui
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle"
   reactapplication:
   shell:
   publicdirserver:

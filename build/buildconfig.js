@@ -47,7 +47,7 @@ var deploymentFolder = "/deploy/"
 
 var nodeModulesFolder = "/nodemodules"
 
-var buildFolder = "/build"
+var buildFolder = argv.buildFolder? argv.buildFolder: "/build"
 
 var tmpFolder = "/tmp"
 

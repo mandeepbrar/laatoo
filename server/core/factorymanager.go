@@ -145,6 +145,19 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	return nil
 }
 
+func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod *serverModule) error {
+	if mod.factories != nil {
+		for factoryName, factoryConfig := range mod.factories {
+			facCtx := ctx.SubContext("Create Factory:" + factoryName)
+			err := facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
+	}
+	return nil
+}
+
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
 	ctx = ctx.SubContext("Create Service Factory")
 	factoryName, ok := factoryConfig.GetString(ctx, constants.CONF_SERVICEFACTORY)

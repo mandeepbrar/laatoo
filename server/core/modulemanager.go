@@ -116,18 +116,18 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.ServerContext, mods map[string]config.Config) ([]string, error) {
+func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.ServerContext, mods map[string]config.Config) (map[string]*serverModule, error) {
 	//create pending modules from this iteration
 	pendingModuleInstances := make(map[string]config.Config)
-	createdInstances := []string{}
+	createdInstances := make(map[string]*serverModule)
 
 	//loop through provided modules
 	for instance, instanceConf := range mods {
-		loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
+		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
 		if err != nil {
 			return nil, err
 		}
-		createdInstances = append(createdInstances, instance)
+		createdInstances[instance] = modins
 		if !loaded {
 			pendingModuleInstances[instance] = instanceConf
 		}
@@ -155,7 +155,9 @@ func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.Serve
 		if err != nil {
 			return nil, err
 		}
-		createdInstances = append(createdInstances, insCreated...)
+		for k, v := range insCreated {
+			createdInstances[k] = v
+		}
 	} else {
 		return nil, errors.DepNotMet(ctx, "Multiple Modules", "Modules", pendingModuleInstances)
 	}

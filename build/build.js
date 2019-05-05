@@ -12,6 +12,9 @@ var {compileGoWASMUI} = require('./buildgowasm');
 var {compileRustWASMUI} = require('./buildrustwasm');
 
 function buildModule() {
+  if(argv.verbose) {
+    console.log(argv)
+  }
   createTempDirectory(!(argv.skipUI || argv.skipObjects))
   startTask("copyconfig")()
 }

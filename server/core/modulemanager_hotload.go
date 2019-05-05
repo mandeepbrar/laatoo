@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -21,18 +22,29 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 	ctx = ctx.SubContext("Watch " + modName)
 	hotmodcompiler, compilerok := modInsConf.GetString(ctx, "hotmodcompiler")
 
-	/*
-		watcher, err := fsnotify.NewWatcher()
+	if compilerok {
+		err := modMgr.watchFilesToCompile(ctx, modName, modDir, hotmodcompiler, modInsConf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
-		}*/
+		}
+	} else {
+		err := modMgr.watchNonCompileFileChanges(ctx, modName, modDir, modInsConf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
+	//defer watcher.Close()
+
+	log.Error(ctx, "Watching module directory for change ", "dir", modDir)
+
+	return nil
+}
+
+func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, modName string, modDir string, modInsConf config.Config) error {
 	w := watcher.New()
 	w.SetMaxEvents(1)
-
-	compileWatcher := watcher.New()
-	compileWatcher.SetMaxEvents(1)
-
-	go func() {
+	go func(ctx core.ServerContext, modName, modDir string) {
 		for {
 			select {
 			case event := <-w.Event:
@@ -49,7 +61,7 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 				return
 			}
 		}
-	}()
+	}(ctx, modName, modDir)
 
 	files, err := ioutil.ReadDir(modDir)
 	if err != nil {
@@ -65,62 +77,70 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 			}
 		}
 	}
-
 	go func() {
 		if err := w.Start(time.Millisecond * 800); err != nil {
 			log.Error(ctx, "Watcher stopped watching")
 		}
 	}()
+	modMgr.watchers = append(modMgr.watchers, w)
+	return nil
+}
 
-	if compilerok {
+func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName string, modDir, compilerCommand string, modInsConf config.Config) error {
+	compileWatcher := watcher.New()
+	compileWatcher.SetMaxEvents(1)
 
-		go func(modname, modDir, compilerCommand string) {
-			compilerCmdArr := strings.Split(compilerCommand, " ")
-			command := compilerCmdArr[0]
-			compilerCmdArr = append(compilerCmdArr[1:], "--name", modname, "--packageFolder", modDir)
-			for {
-				select {
-				case event := <-compileWatcher.Event:
-					log.Info(ctx, "Compile required", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
-
-					cmd := exec.Command(command, compilerCmdArr...)
-					stdoutStderr, err := cmd.CombinedOutput()
+	go func(ctx core.ServerContext, modname, modDir, compilerCommand string) {
+		compilerCmdArr := strings.Split(compilerCommand, " ")
+		command := compilerCmdArr[0]
+		compilerCmdArr = append(compilerCmdArr[1:], "--name", modname, "--packageFolder", modDir)
+		for {
+			select {
+			case event := <-compileWatcher.Event:
+				compileCtx := ctx.SubContext("Module Compile" + modName)
+				log.Info(compileCtx, "Compile required", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
+				compileWatcher.Wait()
+				env := os.Environ()
+				log.Error(compileCtx, "Environment", "env", env)
+				cmd := exec.Command(command, compilerCmdArr...)
+				cmd.Env = env
+				stdoutStderr, err := cmd.CombinedOutput()
+				if err != nil {
+					log.Error(compileCtx, "Error executing command ***********", "err", err, "stdoutStderr", string(stdoutStderr))
+				} else {
+					log.Error(compileCtx, "Compile success ***********", "stdoutStderr", string(stdoutStderr))
+					reloadCtx := compileCtx.SubContext("Reload module " + modName)
+					err = modMgr.ReloadModule(reloadCtx, modName, modDir)
 					if err != nil {
-						log.Error(ctx, "Error executing command ***********", "err", err)
+						log.Error(reloadCtx, "Error while reloading module", err)
 					}
-					fmt.Printf("%s\n", stdoutStderr)
-				case err := <-compileWatcher.Error:
-					log.Error(ctx, "Error while watching", err)
-				case <-compileWatcher.Closed:
-					return
 				}
-			}
-		}(modName, modDir, hotmodcompiler)
-
-		go func() {
-			if err := compileWatcher.Start(time.Millisecond * 5000); err != nil {
-				log.Error(ctx, "Compiler Watcher stopped watching")
-			}
-		}()
-
-		foldersToWatch := []string{"ui", "server"}
-		for _, name := range foldersToWatch {
-			folderToWatch := path.Join(modDir, name)
-			exists, _, _ := utils.FileExists(folderToWatch)
-			if exists {
-				if err := compileWatcher.AddRecursive(folderToWatch); err != nil {
-					return errors.WrapError(ctx, err)
-				}
+				compileWatcher.Start(time.Millisecond * 5000)
+			case err := <-compileWatcher.Error:
+				log.Error(ctx, "Error while watching", err)
+			case <-compileWatcher.Closed:
+				return
 			}
 		}
+	}(ctx, modName, modDir, compilerCommand)
 
+	go func() {
+		if err := compileWatcher.Start(time.Millisecond * 5000); err != nil {
+			log.Error(ctx, "Compiler Watcher stopped watching")
+		}
+	}()
+
+	foldersToWatch := []string{"ui", "server"}
+	for _, name := range foldersToWatch {
+		folderToWatch := path.Join(modDir, name)
+		exists, _, _ := utils.FileExists(folderToWatch)
+		if exists {
+			if err := compileWatcher.AddRecursive(folderToWatch); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}
 	}
-
-	//defer watcher.Close()
-	modMgr.watchers = append(modMgr.watchers, w, compileWatcher)
-
-	log.Error(ctx, "Watching module directory for change ", "dir", modDir, "watchers", modMgr.watchers)
-
+	modMgr.watchers = append(modMgr.watchers, compileWatcher)
 	return nil
 }
 
@@ -147,26 +167,16 @@ func (modMgr *moduleManager) ReloadModule(ctx core.ServerContext, modName string
 	modconf, ok := modMgr.moduleConf[modName]
 
 	if ok {
-		err = modMgr.loadModuleObjects(ctx, modName, modDir, modconf)
+		err := modMgr.loadModuleObjects(ctx, modName, modDir, modconf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
-	var createdInstanceNames []string
+	var createdInstances map[string]*serverModule
 
 	log.Info(ctx, "Loading instances", "mod", modName)
-	for insName, _ := range removedInstances {
-		insConf := modMgr.moduleInstancesConfig[insName]
-		createdInstanceNames, err = modMgr.loadLiveInstance(ctx, insName, modName, modDir, insConf)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-
-	createdInstances := make(map[string]*serverModule)
-	for _, instanceName := range createdInstanceNames {
-		modInstance := modMgr.moduleInstances[instanceName]
-		createdInstances[instanceName] = modInstance
+	if createdInstances, err = modMgr.loadInstances(ctx, modName, modDir, removedInstances); err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	log.Info(ctx, "Starting instances", "mod", modName)
@@ -227,20 +237,41 @@ func (modMgr *moduleManager) unloadFromPluginsforReload(ctx core.ServerContext, 
 	return nil
 }
 
-func (modMgr *moduleManager) loadLiveInstance(ctx core.ServerContext, instance, moduleName, modDir string, instanceConf config.Config) ([]string, error) {
-	newCtx, _, err := modMgr.setupInstanceContext(ctx, instance, instanceConf, modDir)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	pendingModuleInstances := make(map[string]config.Config)
-	_, err = modMgr.createModuleInstance(newCtx, instance, moduleName, modDir, instanceConf, pendingModuleInstances)
-	createdInstances := []string{instance}
-	if len(pendingModuleInstances) > 0 {
-		instancesCreated, err := modMgr.iterateAndLoadPendingModuleInstances(ctx, pendingModuleInstances)
+func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, modDir string, removedInstances map[string]*serverModule) (map[string]*serverModule, error) {
+	createdInstances := make(map[string]*serverModule)
+
+	for instance, removedMod := range removedInstances {
+		instanceConf := removedMod.modConf
+		newCtx, _, err := modMgr.setupInstanceContext(ctx, instance, instanceConf, modDir)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		createdInstances = append(createdInstances, instancesCreated...)
+		pendingModuleInstances := make(map[string]config.Config)
+		modIns, _, err := modMgr.createModuleInstance(newCtx, instance, moduleName, modDir, instanceConf, pendingModuleInstances)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		createdInstances[instance] = modIns
+		if len(pendingModuleInstances) > 0 {
+			instancesCreated, err := modMgr.iterateAndLoadPendingModuleInstances(ctx, pendingModuleInstances)
+			if err != nil {
+				return nil, errors.WrapError(ctx, err)
+			}
+			for k, v := range instancesCreated {
+				createdInstances[k] = v
+			}
+		}
+	}
+	log.Info(ctx, "created instances", " created instan", createdInstances)
+	//taskManager := ctx.GetServerElement(core.ServerElementTaskManager).(*taskManagerProxy).manager
+	//chnManager := ctx.GetServerElement(core.ServerElementChannelManager).(*channelManagerProxy).manager
+	//svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(*serviceManagerProxy).manager
+	facManager := ctx.GetServerElement(core.ServerElementFactoryManager).(*factoryManagerProxy).manager
+	for modName, modInstance := range createdInstances {
+		log.Info(ctx, "Creating factories of module ", "modName", modName, "modInstance", modInstance)
+		if err := facManager.createModuleFactories(ctx, modInstance); err != nil {
+			return nil, err
+		}
 	}
 
 	return createdInstances, nil
@@ -339,49 +370,3 @@ func (modMgr *moduleManager) unloadFactories(ctx core.ServerContext, mod *server
 	}
 	return nil
 }
-
-/*cont, err := ioutil.ReadFile(file)
-if err != nil {
-	log.Error(ctx, "Error encountered during hot reload", "err", err)
-}
-
-err = actionF(svc.svrCtx, mod, file, dir, cont)
-if err != nil {
-	log.Error(ctx, "Error encountered during hot reload", "err", err)
-}*/
-// watch for errors
-
-/*
-//
-go func() {
-	for {
-		select {
-		// watch for events
-		case event := <-watcher.Events:
-			//fmt.Printf("EVENT! %#v\n", event)
-			log.Error(ctx, "Module change event ", "event", event.Name, "op", event.Op)
-			// watch for errors
-		case err := <-watcher.Errors:
-			fmt.Println("ERROR", err)
-			log.Error(ctx, "Module change event error ", "err", err)
-		}
-	}
-}()
-
-// out of the box fsnotify can watch a single file, or a single directory
-
-visit := func(path string, info os.FileInfo, err error) error {
-	if info.IsDir() {
-		log.Trace(ctx, "Watching directory for change ", "dir", path)
-		if err := watcher.Add(path); err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-	return nil
-}
-
-err = filepath.Walk(modDir, visit)
-if err != nil {
-	log.Error(ctx, "Could not walk through hot directory")
-}
-*/

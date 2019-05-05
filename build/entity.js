@@ -3,7 +3,7 @@ var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var Handlebars = require('handlebars')
 var {log} = require('./utils');
-
+var {buildFolder} = require('./buildconfig');
 
 function collection(collection, name) {
   return collection? collection: name
@@ -80,7 +80,8 @@ function createEntity(entityJson, pluginFolder, filename) {
   let name = entityJson["name"]
   name = name? name +".go": filename.substring(0, filename.length-5)+".go"
   let filepath = path.join(pluginFolder, "server", "go", name)
-  var buf = fs.readFileSync('./tpl/entitygocode.go.tpl');
+  let tplpath = path.join(buildFolder, 'tpl/entitygocode.go.tpl');
+  var buf = fs.readFileSync(tplpath);
   Handlebars.registerHelper('cacheable', cacheable);
   Handlebars.registerHelper('imports', imports);
   Handlebars.registerHelper('type', type);
@@ -108,7 +109,7 @@ function plugins(entities) {
 function createManifest(entities, pluginFolder) {
   let manifestpath = path.join(pluginFolder, "server", "go", "manifest.go")
   if (!fs.pathExistsSync(manifestpath)) {
-    var buf = fs.readFileSync('./tpl/manifest.go.tpl');
+    var buf = fs.readFileSync(path.join(buildFolder, '/tpl/manifest.go.tpl'));
     var template = Handlebars.compile(buf.toString());
     let gofile = template({})
     fs.writeFileSync(manifestpath, gofile)
@@ -117,7 +118,7 @@ function createManifest(entities, pluginFolder) {
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }
-  var buf = fs.readFileSync('./tpl/objects.go.tpl');
+  var buf = fs.readFileSync(path.join(buildFolder,'/tpl/objects.go.tpl'));
   Handlebars.registerHelper('plugins', plugins);
   var template = Handlebars.compile(buf.toString());
   let gofile = template({"entities": entities})

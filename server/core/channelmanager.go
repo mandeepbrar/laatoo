@@ -259,9 +259,11 @@ func (chanMgr *channelManager) unloadChannel(ctx core.ServerContext, channelConf
 		return errors.ThrowError(unloadCtx, errors.CORE_ERROR_MISSING_CONF, "conf", constants.CONF_ENGINE_PARENTCHANNEL)
 	}
 	parentChannel, ok := chanMgr.channelStore[parentChannelName]
-	err := parentChannel.RemoveChild(unloadCtx, channelName, channelConf)
-	if err != nil {
-		return errors.WrapError(unloadCtx, err)
+	if ok {
+		err := parentChannel.RemoveChild(unloadCtx, channelName, channelConf)
+		if err != nil {
+			return errors.WrapError(unloadCtx, err)
+		}
 	}
 	delete(chanMgr.channelStore, channelName)
 	//log.Trace(ctx, "Creating channel", "Name:", channelName)

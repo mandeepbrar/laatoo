@@ -29,7 +29,7 @@ esac;
 done
 
 compile_module() {
-  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e norust=norust -e uionly=uionly -e packageFolder=$2 -e verbose=$verbose  -e nobundle=nobundle -e overwriteJSMods=false -e getBuildPackages=$getBuildPackages laatoomodulebuilder
+  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $pluginsRoot:/plugins -v $deploy:/deploy -e name=$1 -e release=false -e norust=$norust -e uionly=$uionly -e packageFolder=$2 -e verbose=$verbose  -e nobundle=nobundle -e overwriteJSMods=false -e getBuildPackages=$getBuildPackages laatoomodulebuilder
   echo '================================================================'
 }
 

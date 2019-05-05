@@ -6,9 +6,10 @@ dist/bin
 laatoo
 log.txt
 tmp
-*.deb
+**/*.deb
 cargohome
 target
 build
 vendor
 designer/punjabimehfilmongo
+**/*.so

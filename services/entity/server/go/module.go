@@ -44,8 +44,8 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if(md==nil) {
-		log.Error(ctx, "Object metadata not found", "object", entity.object)
+	if md == nil {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Object metadata not found", entity.object)
 	}
 	desc := md.GetProperty("descriptor")
 	if desc != nil {

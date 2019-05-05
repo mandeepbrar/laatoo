@@ -10,9 +10,9 @@ import (
 	"laatoo/server/constants"
 )
 
-func (modMgr *moduleManager) createInstances(ctx core.ServerContext) ([]string, error) {
+func (modMgr *moduleManager) createInstances(ctx core.ServerContext) (map[string]*serverModule, error) {
 	pendingModuleInstances := make(map[string]config.Config)
-	createdInstances := []string{}
+	createdInstances := make(map[string]*serverModule)
 	//loop through module instances
 	for instance, instanceConf := range modMgr.moduleInstancesConfig {
 		_, ok := modMgr.moduleInstances[instance]
@@ -21,11 +21,11 @@ func (modMgr *moduleManager) createInstances(ctx core.ServerContext) ([]string, 
 		}
 		log.Error(ctx, "Loading module instance", "Name", instance)
 
-		loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
+		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
 		if err != nil {
 			return nil, err
 		}
-		createdInstances = append(createdInstances, instance)
+		createdInstances[instance] = modins
 		if !loaded {
 			pendingModuleInstances[instance] = instanceConf
 		}
@@ -38,12 +38,14 @@ func (modMgr *moduleManager) createInstances(ctx core.ServerContext) ([]string, 
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		createdInstances = append(createdInstances, instancesCreated...)
+		for k, v := range instancesCreated {
+			createdInstances[k] = v
+		}
 	}
 	return createdInstances, nil
 }
 
-func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (bool, error) {
+func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (*serverModule, bool, error) {
 	ctx = ctx.SubContext("Process Instance Conf " + instance)
 
 	//get module to be used
@@ -55,15 +57,15 @@ func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext
 	_, moduleInstalled := modMgr.installedModules[moduleName]
 	modDir, modAvailable := modMgr.availableModules[moduleName]
 	if !moduleInstalled {
-		return false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Name", moduleName, "Module Installed", moduleInstalled, "Module Available", modAvailable)
+		return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Name", moduleName, "Module Installed", moduleInstalled, "Module Available", modAvailable)
 	}
 
 	ctx, fnd, err := modMgr.setupInstanceContext(ctx, instance, instanceConf, modDir)
 	if err != nil {
-		return false, errors.WrapError(ctx, err)
+		return nil, false, errors.WrapError(ctx, err)
 	}
 	if !fnd {
-		return false, nil
+		return nil, false, nil
 	}
 
 	disabled, _ := instanceConf.GetBool(ctx, constants.CONF_MODULE_DISABLED)
@@ -73,10 +75,10 @@ func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext
 	} else {
 		log.Debug(ctx, "Instance has been disabled")
 	}
-	return true, nil
+	return nil, true, nil
 }
 
-func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (bool, error) {
+func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (*serverModule, bool, error) {
 	ctx = ctx.SubContext("Create Instance " + moduleInstance)
 
 	//get the environment in which module should operate
@@ -100,7 +102,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		modSettings = common.Merge(ctx, modSettings, insSettings)
 	}
 
-	log.Info(ctx, "Creating module instance", "Conf", modConf, "Settings", modSettings)
+	log.Info(ctx, "Creating module instance", "name", moduleInstance, "Conf", modConf, "Settings", modSettings)
 	if confFound && (modSettings != nil) {
 		//		ctx.SetVals(modSettings.(common.GenericConfig))
 		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
@@ -109,7 +111,6 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 			paramNames := moduleparams.AllConfigurations(ctx)
 			for _, paramName := range paramNames {
 				val, ok := modSettings.Get(ctx, paramName)
-				log.Info(ctx, "Getting param ", "paramName", paramName, "val", val)
 				if ok {
 					ctx.Set(paramName, val)
 				}
@@ -142,7 +143,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	//create a new mod conf with all variables set in the context so that they can be used by yml templates
 	modConf, err := modMgr.getModuleConf(ctx, dirPath)
 	if err != nil {
-		return false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleName)
+		return nil, false, errors.WrapError(ctx, err, "Info", "Error in opening config", "Module", moduleName)
 	}
 
 	log.Info(ctx, "New conf for module instance", "Conf", modConf)
@@ -156,30 +157,30 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	if ok {
 		obj, err := ctx.CreateObject(objName)
 		if err != nil {
-			return false, errors.WrapError(ctx, err)
+			return nil, false, errors.WrapError(ctx, err)
 		}
 
 		usermod, ok := obj.(core.Module)
 		if !ok {
-			return false, errors.TypeMismatch(ctx, "Module", moduleInstance, "Object", objName)
+			return nil, false, errors.TypeMismatch(ctx, "Module", moduleInstance, "Object", objName)
 		}
 		modu.userModule = usermod
 		modu.objectName = objName
 	}
 
 	if err := modu.loadMetaData(ctx); err != nil {
-		return false, errors.WrapError(ctx, err)
+		return nil, false, errors.WrapError(ctx, err)
 	}
 
 	initCtx := ctx.SubContext("Initialize Module Instance")
 	err = modu.initialize(initCtx, modSettings)
 	if err != nil {
-		return false, errors.WrapError(initCtx, err)
+		return nil, false, errors.WrapError(initCtx, err)
 	}
 
 	modMgr.moduleInstances[moduleInstance] = modu
 
-	return true, nil
+	return modu, true, nil
 }
 
 func (modMgr *moduleManager) setupInstanceContext(ctx core.ServerContext, instance string, instanceConf config.Config, modDir string) (core.ServerContext, bool, error) {
