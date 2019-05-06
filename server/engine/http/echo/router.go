@@ -1,7 +1,6 @@
 package echo
 
 import (
-	"laatoo/sdk/server/core"
 	"laatoo/server/engine/http/net"
 	"net/http"
 
@@ -61,8 +60,4 @@ func (router *EchoRouter) UseMW(handler func(http.Handler) http.Handler) {
 }
 func (router *EchoRouter) UseMiddleware(handler http.HandlerFunc) {
 	panic("not implemented")
-}
-
-func (router *EchoRouter) RemovePath(ctx core.ServerContext, path string, method string) error {
-	return nil
 }

@@ -46,3 +46,7 @@ func (proxy *wsChannelProxy) GetName() string {
 func (proxy *wsChannelProxy) GetType() core.ServerElementType {
 	return core.ServerElementChannel
 }
+
+func (proxy *wsChannelProxy) Destruct(ctx core.ServerContext, parentChannel elements.Channel) error {
+	return proxy.channel.destruct(ctx, parentChannel.(*wsChannelProxy).channel)
+}

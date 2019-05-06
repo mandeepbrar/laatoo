@@ -29,10 +29,6 @@ func (channel *httpChannelProxy) Child(ctx core.ServerContext, name string, chan
 	return proxy, nil
 }
 
-func (proxy *httpChannelProxy) RemoveChild(ctx core.ServerContext, name string, channelConfig config.Config) error {
-	return proxy.channel.removeChild(ctx, name, channelConfig)
-}
-
 func (proxy *httpChannelProxy) Reference() core.ServerElement {
 	return &httpChannelProxy{channel: proxy.channel}
 }
@@ -45,4 +41,7 @@ func (proxy *httpChannelProxy) GetName() string {
 }
 func (proxy *httpChannelProxy) GetType() core.ServerElementType {
 	return core.ServerElementChannel
+}
+func (proxy *httpChannelProxy) Destruct(ctx core.ServerContext, parentChannel elements.Channel) error {
+	return proxy.channel.destruct(ctx, parentChannel.(*httpChannelProxy).channel)
 }

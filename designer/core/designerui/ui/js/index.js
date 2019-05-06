@@ -5,7 +5,7 @@ import Actions from './actions';
 import './sagas'
 import {  createAction } from 'uicommon';
 import {RequestBuilder, DataSource, EntityData} from 'uicommon';
-import "styles/app.scss"
+import "styles/app.scss";
 
 
 function Form_Instance_Modules(props, context, callback) {

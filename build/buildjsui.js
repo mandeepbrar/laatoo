@@ -65,7 +65,7 @@ function compileJSWebUI(jsUIconfig, nextTask) {
               log("Mod found: ", pkg)
               found = true
             } else {
-              console.log("Mod path not found: ", modPath)
+              shell.echo("Mod path not found: ", modPath)
             }
           }
         }
@@ -99,11 +99,11 @@ function compileJSWebUI(jsUIconfig, nextTask) {
   
     log("Starting compilation", __dirname)
     compiler.run(function(err, stats) {
-      if(stats && stats.compilation ) {
+      if(stats && stats.compilation && stats.compilation.errors && stats.compilation.errors.length !=0 ) {
         console.log("Errors: ", stats.compilation.errors);
         //console.log(stats.compilation)
       } else {
-        if(stats.stats) {
+        if(stats.stats && stats.stats.length !=0 ) {
           stats.stats.forEach(function(stat) {
             console.log("Errors: ", stat.compilation.errors);
           })
@@ -160,7 +160,7 @@ function getJSUIModules(jsUIconfig) {
     if(jsUIconfig && jsUIconfig.packages !=null) {
         log("Installing package json from plugin", jsUIconfig.packages)
         Object.keys(jsUIconfig.packages).forEach(function(pkg) {
-        console.log("Getting package " + pkg)
+        log("Getting package " + pkg)
         let ver = jsUIconfig.packages[pkg]
         let existingPkg = path.join(nodeModulesFolder, "node_modules", pkg)
         if(!fs.pathExistsSync(existingPkg) || argv.overwriteJSMods) {
@@ -178,7 +178,7 @@ function getJSUIModules(jsUIconfig) {
         log("Installing package json from build folder")
         log(sprintf)
         let command = sprintf('cd %s && npm i %s --prefix %s', buildFolder, silent, nodeModulesFolder)
-        console.log(command)
+        log(command)
         if (shell.exec(command).code !== 0) {
         shell.echo('Get package failed');
         shell.exit(1);

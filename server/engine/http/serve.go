@@ -27,12 +27,6 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		return err
 	}
 
-	method, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_METHOD)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
-	}
-	channel.method = method
-
 	bodyParam := "Data"
 	body, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_BODY)
 	if ok {
@@ -89,19 +83,20 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		}
 	}
 
-	webReqHandler, err := channel.processServiceRequest(ctx, method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParam)
+	webReqHandler, err := channel.processServiceRequest(ctx, channel.method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParam)
 	if err != nil {
 		return err
 	}
-	switch method {
+
+	switch channel.method {
 	case "GET":
-		channel.get(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.get(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "POST":
-		channel.post(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.post(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "PUT":
-		channel.put(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.put(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 	case "DELETE":
-		channel.delete(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.delete(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
 		/*	case CONF_ROUTE_METHOD_INVOKE:
 					router.Post(ctx, path, router.processServiceRequest(ctx, respHandler, method, router.name, svc, serverElement, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 			case CONF_ROUTE_METHOD_GETSTREAM:
@@ -112,6 +107,9 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 				{
 					router.Post(ctx, path, router.processStreamServiceRequest(ctx, respHandler, method, router.name, svc, routeParams, staticValues, headers))
 				}*/
+	}
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }

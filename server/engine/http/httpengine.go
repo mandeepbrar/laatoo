@@ -1,16 +1,13 @@
 package http
 
 import (
-	"laatoo/server/constants"
-	"laatoo/server/engine/http/echo"
-	"laatoo/server/engine/http/gin"
-
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/server/engine/http/net"
+	"laatoo/server/constants"
+	"laatoo/server/engine/http/common"
 )
 
 /*"github.com/vulcand/oxy/forward"
@@ -19,7 +16,7 @@ import (
 
 //"laatoo/engine/http/goji"
 type httpEngine struct {
-	framework    net.Webframework
+	framework    *common.WebFWAdapter
 	name         string
 	ssl          bool
 	sslcert      string
@@ -33,24 +30,17 @@ type httpEngine struct {
 	proxy       elements.Engine
 	rootChannel *httpChannel
 	conf        config.Config
-	fwname      string
 }
 
 func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
 	initCtx := ctx.SubContext("InitializeEngine: " + eng.name)
-	eng.fwname = "Echo"
+	fwname := "Echo"
 	fw, ok := eng.conf.GetString(ctx, constants.CONF_HTTP_FRAMEWORK)
 	if ok {
-		eng.fwname = fw
+		fwname = fw
 	}
-	switch eng.fwname {
-	case "Echo":
-		eng.framework = &echo.EchoWebFramework{}
-	default:
-		eng.framework = &gin.GinWebFramework{Name: eng.name}
-		/*	case "Goji":
-			eng.framework = &goji.GojiWebFramework{}*/
-	}
+	var err error
+	eng.framework, err = common.NewAdapter(eng.name, fwname)
 	ssl, ok := eng.conf.GetBool(ctx, constants.CONF_ENG_SSL)
 	if ok && ssl {
 		cert, ok := eng.conf.GetString(ctx, constants.CONF_ENG_SSLCERT)
@@ -76,8 +66,8 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
 
-	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), config: eng.conf, engine: eng, disabled: false}
-	err := eng.rootChannel.configure(ctx)
+	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), adapter: eng.framework, group: true, config: eng.conf, engine: eng, disabled: false}
+	err = eng.rootChannel.initialize(ctx)
 	if err != nil {
 		return err
 	}

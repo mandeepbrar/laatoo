@@ -306,8 +306,8 @@ func (chanMgr *channelManager) unloadChildChannels(ctx core.ServerContext, conf 
 func (chanMgr *channelManager) unloadChannel(ctx core.ServerContext, channelConf config.Config, channelName string) error {
 	unloadCtx := ctx.SubContext("Unload Channel: " + channelName)
 
-	_, channelExists := chanMgr.channelStore[channelName]
-	if !channelExists {
+	channel, ok := chanMgr.channelStore[channelName]
+	if !ok {
 		return nil
 	}
 
@@ -331,7 +331,7 @@ func (chanMgr *channelManager) unloadChannel(ctx core.ServerContext, channelConf
 	}
 	parentChannel, ok := chanMgr.channelStore[parentChannelName]
 	if ok {
-		err := parentChannel.RemoveChild(unloadCtx, channelName, channelConf)
+		err := channel.Destruct(unloadCtx, parentChannel)
 		if err != nil {
 			return errors.WrapError(unloadCtx, err)
 		}

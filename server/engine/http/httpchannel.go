@@ -10,10 +10,8 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/server/constants"
+	"laatoo/server/engine/http/common"
 	"laatoo/server/engine/http/net"
-	"net/http"
-
-	"github.com/rs/cors"
 )
 
 const (
@@ -39,7 +37,9 @@ const (
 type httpChannel struct {
 	name           string
 	method         string
+	group          bool
 	disabled       bool
+	adapter        *common.WebFWAdapter
 	Router         net.Router
 	config         config.Config
 	svcName        string
@@ -50,7 +50,7 @@ type httpChannel struct {
 	parentChannel  *httpChannel
 }
 
-func (channel *httpChannel) configure(ctx core.ServerContext) error {
+func (channel *httpChannel) initialize(ctx core.ServerContext) error {
 	skipAuth, ok := channel.config.GetBool(ctx, constants.CONF_HTTPENGINE_SKIPAUTH)
 	if !ok && channel.parentChannel != nil {
 		skipAuth = channel.parentChannel.skipAuth
@@ -69,6 +69,13 @@ func (channel *httpChannel) configure(ctx core.ServerContext) error {
 			channel.allowedQParams = channel.parentChannel.allowedQParams
 		}
 	}
+	if !channel.group {
+		method, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_METHOD)
+		if !ok {
+			return errors.MissingConf(ctx, constants.CONF_HTTPENGINE_METHOD)
+		}
+		channel.method = method
+	}
 
 	usecors, _ := channel.config.GetBool(ctx, constants.CONF_HTTPENGINE_USECORS)
 
@@ -76,39 +83,13 @@ func (channel *httpChannel) configure(ctx core.ServerContext) error {
 		allowedOrigins, ok := channel.config.GetStringArray(ctx, constants.CONF_HTTPENGINE_CORSHOSTS)
 		if ok {
 			corsOptionsPath, _ := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_CORSOPTIONSPATH)
-			corsMw := cors.New(cors.Options{
-				AllowedOrigins:     allowedOrigins,
-				AllowedHeaders:     []string{"*"},
-				AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-				ExposedHeaders:     []string{"*"},
-				OptionsPassthrough: true,
-				AllowCredentials:   true,
-			})
-			switch channel.engine.fwname {
-			case "Echo":
-				if corsOptionsPath == "" {
-					corsOptionsPath = "/*"
-				}
-				channel.useMW(ctx, corsMw.Handler)
-			case "Gin":
-				if corsOptionsPath == "" {
-					corsOptionsPath = "/*f"
-				}
-				channel.useMiddleware(ctx, corsMw.HandlerFunc)
-			case "Goji":
-				if corsOptionsPath == "" {
-					corsOptionsPath = "/*"
-				}
-				channel.useMW(ctx, corsMw.Handler)
+			if err := channel.adapter.SetupCors(channel.Router, allowedOrigins, corsOptionsPath); err != nil {
+				return errors.WrapError(ctx, err)
 			}
-			channel.Router.Options(corsOptionsPath, func(webctx net.WebContext) error {
-				webctx.NoContent(200)
-				return nil
-			})
-			//retRouter.UseMiddleware(ctx, corsMw.HandlerFunc)
 			log.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
 		}
 	}
+
 	return nil
 }
 
@@ -122,17 +103,19 @@ func (channel *httpChannel) child(ctx core.ServerContext, name string, channelCo
 
 	var routername string
 	var router net.Router
+	group := false
 	if found {
 		router = channel.Router
 		routername = fmt.Sprintf("%s > %s", channel.name, name)
 	} else {
 		routername = fmt.Sprintf("%s > %s", channel.name, name)
-		router = channel.Router.Group(path)
+		router = channel.adapter.Group(channel.Router, path)
+		group = true
 	}
 
 	log.Trace(ctx, "Creating child channel ", "Parent", channel.name, "Name", name, "Service", svc, "Path", path)
-	childChannel := &httpChannel{name: routername, Router: router, config: channelConfig, engine: channel.engine, svcName: svc, path: path, disabled: false}
-	err := childChannel.configure(ctx)
+	childChannel := &httpChannel{name: routername, Router: router, adapter: channel.adapter, config: channelConfig, group: group, engine: channel.engine, svcName: svc, path: path, disabled: false}
+	err := childChannel.initialize(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -199,43 +182,35 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 	}
 }
 
-func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
+func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Get(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Get(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
+func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
-	channel.Router.Options(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Options(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
+func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Put(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Put(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
+func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Post(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Post(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
+func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	channel.Router.Delete(path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Delete(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
-	channel.Router.Use(channel.httpAdapter(ctx, middlewareName, handler, respHandler, svc))
+	channel.adapter.Use(channel.Router, channel.httpAdapter(ctx, middlewareName, handler, respHandler, svc))
 }
 
-func (channel *httpChannel) useMW(ctx core.ServerContext, handler func(http.Handler) http.Handler) {
-	channel.Router.UseMW(handler)
-}
-func (channel *httpChannel) useMiddleware(ctx core.ServerContext, handler http.HandlerFunc) {
-	channel.Router.UseMiddleware(handler)
-}
-
-func (channel *httpChannel) removeChild(ctx core.ServerContext, name string, channelConfig config.Config) error {
-	channel.disabled = true
-	return nil
+func (channel *httpChannel) destruct(ctx core.ServerContext, parentChannel *httpChannel) error {
+	return channel.adapter.RemovePath(channel.Router, channel.path, channel.method)
 }

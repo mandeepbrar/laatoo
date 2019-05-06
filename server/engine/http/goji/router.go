@@ -78,7 +78,3 @@ func (router *GojiRouter) UseMW(handler func(http.Handler) http.Handler) {
 func (router *GojiRouter) UseMiddleware(handler http.HandlerFunc) {
 	panic("not implemented")
 }
-
-func (router *GojiRouter) RemovePath(ctx core.ServerContext, path string, method string) error {
-	return nil
-}

@@ -76,7 +76,6 @@ func (channel *wsChannel) serve(ctx core.ServerContext) error {
 	return nil
 }
 
-func (channel *wsChannel) removeChild(ctx core.ServerContext, name string, channelConfig config.Config) error {
-	channel.disabled = true
+func (channel *wsChannel) destruct(ctx core.ServerContext, parentChannel *wsChannel) error {
 	return nil
 }

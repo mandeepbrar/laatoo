@@ -2,7 +2,6 @@ package gin
 
 import (
 	"fmt"
-	"laatoo/sdk/server/core"
 	"laatoo/server/engine/http/net"
 	"net/http"
 	"strings"
@@ -69,8 +68,4 @@ func (router *GinRouter) UseMW(handler func(http.Handler) http.Handler) {
 }
 func (router *GinRouter) UseMiddleware(handler http.HandlerFunc) {
 	router.routerGrp.Use(gin.WrapF(handler))
-}
-
-func (router *GinRouter) RemovePath(ctx core.ServerContext, path string, method string) error {
-	return nil
 }
