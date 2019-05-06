@@ -215,7 +215,7 @@ func (as *abstractserver) childFactoryManager(ctx core.ServerContext, name strin
 }
 
 func newChannelManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (*channelManager, *channelManagerProxy) {
-	cm := &channelManager{name: name, channelStore: make(map[string]elements.Channel, 10), parent: parentElem, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
+	cm := &channelManager{name: name, channelStore: make(map[string]elements.Channel, 10), parent: parentElem, channelConfs: make(map[string]config.Config), parentChannels: make(map[string]string)}
 	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem
@@ -225,6 +225,7 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 	chanMgrProxy := parentChannelMgr.(*channelManagerProxy)
 	chanMgr := chanMgrProxy.manager
 	store := make(map[string]elements.Channel, len(chanMgr.channelStore))
+	confs := make(map[string]config.Config)
 	for k, v := range chanMgr.channelStore {
 		allowed := true
 		for _, filter := range filters {
@@ -235,9 +236,10 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 		}
 		if allowed {
 			store[k] = v
+			confs[k] = chanMgr.channelConfs[k]
 		}
 	}
-	cm := &channelManager{name: name, channelStore: store, parent: parent, channelConfs: make(map[string]config.Config), secondPass: make(map[string]config.Config)}
+	cm := &channelManager{name: name, channelStore: store, parent: parent, channelConfs: confs, parentChannels: make(map[string]string)}
 	cmElem := &channelManagerProxy{manager: cm}
 	cm.proxy = cmElem
 	return cm, cmElem

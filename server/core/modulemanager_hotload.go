@@ -112,7 +112,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 					reloadCtx := compileCtx.SubContext("Reload module " + modName)
 					err = modMgr.ReloadModule(reloadCtx, modName, modDir)
 					if err != nil {
-						log.Error(reloadCtx, "Error while reloading module", err)
+						log.Error(reloadCtx, "Error while reloading module", "err", err)
 					}
 				}
 				compileWatcher.Start(time.Millisecond * 5000)
@@ -264,12 +264,24 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 	}
 	log.Info(ctx, "created instances", " created instan", createdInstances)
 	//taskManager := ctx.GetServerElement(core.ServerElementTaskManager).(*taskManagerProxy).manager
-	//chnManager := ctx.GetServerElement(core.ServerElementChannelManager).(*channelManagerProxy).manager
-	//svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(*serviceManagerProxy).manager
+	chnManager := ctx.GetServerElement(core.ServerElementChannelManager).(*channelManagerProxy).manager
+	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(*serviceManagerProxy).manager
 	facManager := ctx.GetServerElement(core.ServerElementFactoryManager).(*factoryManagerProxy).manager
 	for modName, modInstance := range createdInstances {
 		log.Info(ctx, "Creating factories of module ", "modName", modName, "modInstance", modInstance)
 		if err := facManager.createModuleFactories(ctx, modInstance); err != nil {
+			return nil, err
+		}
+		log.Info(ctx, "Creating services of module ", "modName", modName, "modInstance", modInstance)
+		if err := svcManager.createModuleServices(ctx, modInstance); err != nil {
+			return nil, err
+		}
+		/*log.Info(ctx, "Creating tasks of module ", "modName", modName, "modInstance", modInstance)
+		if err := svcManager.createModuleTasks(ctx, modInstance); err != nil {
+			return nil, err
+		}*/
+		log.Info(ctx, "Creating channels of module ", "modName", modName, "modInstance", modInstance)
+		if err := chnManager.createModuleChannels(ctx, modInstance); err != nil {
 			return nil, err
 		}
 	}

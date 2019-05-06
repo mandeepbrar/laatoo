@@ -32,7 +32,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 	}
 	c := ctx.CreateConfig()
 	c.SetVals(ctx, map[string]interface{}{constants.CONF_SERVICEFACTORY: common.CONF_DEFAULTFACTORY_NAME})
-	err = facMgr.createServiceFactory(ctx, c, common.CONF_DEFAULTFACTORY_NAME)
+	_, err = facMgr.createServiceFactory(ctx, c, common.CONF_DEFAULTFACTORY_NAME)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -41,7 +41,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err = modManager.loadFactories(ctx, facMgr.createServiceFactory); err != nil {
+	if err = modManager.loadFactories(ctx, facMgr.processFactoryConf); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(ctx, err)
 	}
 
-	return facMgr.initializeFactories(ctx)
+	return facMgr.initializeFactories(ctx, facMgr.serviceFactoryStore)
 }
 
 func (facMgr *factoryManager) Start(ctx core.ServerContext) error {
@@ -96,7 +96,15 @@ func (facMgr *factoryManager) processFactoriesFromFolder(ctx core.ServerContext,
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, facMgr.createServiceFactory); err != nil {
+	if err = common.ProcessObjects(ctx, objs, facMgr.processFactoryConf); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (facMgr *factoryManager) processFactoryConf(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
+	_, err := facMgr.createServiceFactory(ctx, factoryConfig, factoryAlias)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -137,7 +145,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 			return errors.WrapError(ctx, err)
 		}
 		facCtx := ctx.SubContext("Create Factory:" + factoryName)
-		err = facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
+		_, err = facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -146,85 +154,85 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 }
 
 func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod *serverModule) error {
+	facs := make(map[string]*serviceFactoryProxy)
 	if mod.factories != nil {
 		for factoryName, factoryConfig := range mod.factories {
 			facCtx := ctx.SubContext("Create Factory:" + factoryName)
-			err := facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
+			fac, err := facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
+			facs[factoryName] = fac
 		}
 	}
-	return nil
+	return facMgr.initializeFactories(ctx, facs)
+
 }
 
-func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) error {
+func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) (*serviceFactoryProxy, error) {
 	ctx = ctx.SubContext("Create Service Factory")
 	factoryName, ok := factoryConfig.GetString(ctx, constants.CONF_SERVICEFACTORY)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)
 	}
 
-	_, ok = facMgr.serviceFactoryStore[factoryAlias]
+	facprxy, ok := facMgr.serviceFactoryStore[factoryAlias]
 	if ok {
-		return nil
+		return facprxy, nil
 	}
 
 	log.Trace(ctx, "Creating factory object", "Name", factoryName)
 	factoryInt, err := ctx.CreateObject(factoryName)
 
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return nil, errors.WrapError(ctx, err)
 	}
 	factory, ok := factoryInt.(core.ServiceFactory)
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Object is not factory for Factory Name", factoryName)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Object is not factory for Factory Name", factoryName)
 	}
 
-	if factory != nil {
+	var facCtx *serverContext
 
-		var facCtx *serverContext
+	mod := ctx.GetServerElement(core.ServerElementModule)
 
-		mod := ctx.GetServerElement(core.ServerElementModule)
-
-		if mod != nil {
-			log.Trace(ctx, "Creating factory object for module", "facmgr", facMgr)
-			facCtx = mod.(*moduleProxy).mod.svrContext.newContext("Factory: " + factoryAlias)
-		} else {
-			//derivce new context from abstract server context
-			facCtx = facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
-		}
-
-		if err := processLogging(facCtx, factoryConfig, factoryAlias); err != nil {
-			return errors.WrapError(facCtx, err)
-		}
-
-		fac := &serviceFactory{name: factoryAlias, objectName: factoryName, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
-		facProxy := &serviceFactoryProxy{fac: fac}
-		facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})
-
-		common.SetupMiddleware(facCtx, factoryConfig)
-
-		cacheToUse, ok := factoryConfig.GetString(facCtx, constants.CONF_CACHE_NAME)
-		if ok {
-			facCtx.Set("__cache", cacheToUse)
-		}
-
-		if err := fac.loadMetaData(facCtx); err != nil {
-			return errors.WrapError(facCtx, err)
-		}
-
-		//add the service to the application
-		facMgr.serviceFactoryStore[factoryAlias] = facProxy
-		log.Trace(ctx, "factory store in manager", "serviceFactoryStore", facMgr.serviceFactoryStore)
-
+	if mod != nil {
+		log.Trace(ctx, "Creating factory object for module", "facmgr", facMgr)
+		facCtx = mod.(*moduleProxy).mod.svrContext.newContext("Factory: " + factoryAlias)
+	} else {
+		//derivce new context from abstract server context
+		facCtx = facMgr.svrref.svrContext.newContext("Factory: " + factoryAlias)
 	}
-	return nil
+
+	if err := processLogging(facCtx, factoryConfig, factoryAlias); err != nil {
+		return nil, errors.WrapError(facCtx, err)
+	}
+
+	fac := &serviceFactory{name: factoryAlias, objectName: factoryName, factory: factory, owner: facMgr, conf: factoryConfig, svrContext: facCtx}
+	facProxy := &serviceFactoryProxy{fac: fac}
+	facCtx.setElements(core.ContextMap{core.ServerElementServiceFactory: facProxy})
+
+	common.SetupMiddleware(facCtx, factoryConfig)
+
+	cacheToUse, ok := factoryConfig.GetString(facCtx, constants.CONF_CACHE_NAME)
+	if ok {
+		facCtx.Set("__cache", cacheToUse)
+	}
+
+	if err := fac.loadMetaData(facCtx); err != nil {
+		return nil, errors.WrapError(facCtx, err)
+	}
+
+	//add the service to the application
+	facMgr.serviceFactoryStore[factoryAlias] = facProxy
+	log.Trace(ctx, "factory store in manager", "serviceFactoryStore", facMgr.serviceFactoryStore)
+
+	return facProxy, nil
 }
 
 //initialize services within an application
-func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext) error {
-	for facname, facProxy := range facMgr.serviceFactoryStore {
+func (facMgr *factoryManager) initializeFactories(ctx core.ServerContext, factories map[string]*serviceFactoryProxy) error {
+	for facname, facProxy := range factories {
 		facStruct := facProxy.fac
 		if facStruct.owner == facMgr {
 			facInitializeCtx := facStruct.svrContext.SubContext("Initialize: " + facname)

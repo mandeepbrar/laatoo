@@ -29,7 +29,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 
 	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
 
-	if err := modManager.loadServices(ctx, svcMgr.createService); err != nil {
+	if err := modManager.loadServices(ctx, svcMgr.processServiceConf); err != nil {
 		return err
 	}
 
@@ -45,7 +45,7 @@ func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Con
 		return errors.WrapError(ctx, err)
 	}
 
-	err = svcMgr.initializeServices(ctx)
+	err = svcMgr.initializeServices(ctx, svcMgr.servicesStore)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -93,7 +93,7 @@ func (svcMgr *serviceManager) processServicesFromFolder(ctx core.ServerContext, 
 		return err
 	}
 
-	if err = common.ProcessObjects(ctx, objs, svcMgr.createService); err != nil {
+	if err = common.ProcessObjects(ctx, objs, svcMgr.processServiceConf); err != nil {
 		return err
 	}
 	return nil
@@ -147,7 +147,7 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 
 			svcCtx := ctx.SubContext("Create Service:" + svcAlias)
 
-			err = svcMgr.createService(svcCtx, serviceConfig, svcAlias)
+			_, err = svcMgr.createService(svcCtx, serviceConfig, svcAlias)
 			if err != nil {
 				return errors.WrapError(svcCtx, err)
 			}
@@ -164,14 +164,22 @@ func (svcMgr *serviceManager) createServices(ctx core.ServerContext, conf config
 	return nil
 }
 
+func (svcMgr *serviceManager) processServiceConf(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+	_, err := svcMgr.createService(ctx, conf, serviceAlias)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //create service
-func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) error {
+func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.Config, serviceAlias string) (*serviceProxy, error) {
 	svcCreateCtx := ctx.(*serverContext)
 
-	_, ok := svcMgr.servicesStore[serviceAlias]
+	existingProxy, ok := svcMgr.servicesStore[serviceAlias]
 	if ok {
-		//return errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
-		return nil
+		//return nil,errors.ThrowError(svcCtx, errors.CORE_ERROR_BAD_CONF, "Error", "Service with this alias already exists")
+		return existingProxy, nil
 	}
 
 	factoryname, factoryok := conf.GetString(ctx, CONF_FACTORY)
@@ -187,7 +195,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	//get the factory from factory manager
 	facElem, err := svcMgr.factoryManager.GetFactory(ctx, factoryname)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return nil, errors.WrapError(ctx, err)
 	}
 
 	svcfactoryProxy := facElem.(*serviceFactoryProxy)
@@ -239,7 +247,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	}
 
 	if err := processLogging(svcCtx, conf, serviceAlias); err != nil {
-		return errors.WrapError(svcCtx, err)
+		return nil, errors.WrapError(svcCtx, err)
 	}
 
 	//pass a server context to service with element set to service
@@ -247,27 +255,28 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 	log.Trace(svcCtx, "Creating service", "service name", serviceAlias, "method", serviceMethod, "factory", factoryname)
 	svc, err := factory.CreateService(svcCtx, serviceAlias, serviceMethod, conf)
 	if err != nil {
-		return errors.WrapError(svcCtx, err)
+		return nil, errors.WrapError(svcCtx, err)
 	}
 	if svc == nil {
-		return errors.ThrowError(svcCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
+		return nil, errors.ThrowError(svcCtx, errors.CORE_ERROR_MISSING_SERVICE, "Name", serviceAlias)
 	}
 	svcStruct.service = svc
 
 	if err := svcStruct.loadMetaData(svcCtx); err != nil {
-		return errors.WrapError(svcCtx, err)
+		return nil, errors.WrapError(svcCtx, err)
 	}
 
 	svcMgr.servicesStore[serviceAlias] = svcProxy
 
 	log.Trace(svcCtx, "Created service", "service name", serviceAlias)
 
-	return nil
+	return svcProxy, nil
 }
 
 //initialize services within an application
-func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
-	for svcname, svcProxy := range svcMgr.servicesStore {
+func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext, services map[string]*serviceProxy) error {
+	for svcname, svcProxy := range services {
+		log.Error(ctx, "Services ", "svcname", svcname, "proxy", svcProxy)
 		if svcProxy.svc.owner == svcMgr {
 			//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
 			svcInitializeCtx := svcProxy.svc.svrContext.SubContext("Initialize: " + svcname)
@@ -283,6 +292,26 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext) error {
 	return nil
 }
 
+func (svcMgr *serviceManager) createModuleServices(ctx core.ServerContext, mod *serverModule) error {
+	services := make(map[string]*serviceProxy)
+	if mod.services != nil {
+		for svcName, svcConfig := range mod.services {
+			svcCtx := ctx.SubContext("Create Service:" + svcName)
+			log.Info(svcCtx, "Creating Service", "name", svcName)
+			svc, err := svcMgr.createService(svcCtx, svcConfig, svcName)
+			if err != nil {
+				return errors.WrapError(svcCtx, err)
+			}
+			services[svcName] = svc
+		}
+	}
+	err := svcMgr.initializeServices(ctx, services)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
 func (svcMgr *serviceManager) unloadModuleServices(ctx core.ServerContext, mod *serverModule) error {
 	ctx = ctx.SubContext("unload services")
 	if err := common.ProcessObjects(ctx, mod.services, svcMgr.unloadService); err != nil {
@@ -292,16 +321,19 @@ func (svcMgr *serviceManager) unloadModuleServices(ctx core.ServerContext, mod *
 }
 
 func (svcMgr *serviceManager) unloadService(ctx core.ServerContext, conf config.Config, svcName string) error {
-	unloadSvc := ctx.SubContext("Unload service")
+	unloadSvcCtx := ctx.SubContext("Unload service")
+	log.Info(unloadSvcCtx, "Unloading Service", "name", svcName)
 	svcprxy, ok := svcMgr.servicesStore[svcName]
 	if ok {
-		err := svcprxy.svc.stop(unloadSvc)
+		err := svcprxy.svc.stop(unloadSvcCtx)
 		if err != nil {
-			log.Error(unloadSvc, "Error while stopping service", "err", err)
+			log.Error(unloadSvcCtx, "Error while stopping service", "err", err)
+			return errors.WrapError(ctx, err)
 		}
-		err = svcprxy.svc.unload(unloadSvc)
+		err = svcprxy.svc.unload(unloadSvcCtx)
 		if err != nil {
-			log.Error(unloadSvc, "Error while stopping service", "err", err)
+			log.Error(unloadSvcCtx, "Error while stopping service", "err", err)
+			return errors.WrapError(ctx, err)
 		}
 		delete(svcMgr.servicesStore, svcName)
 	}
