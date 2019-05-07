@@ -11,7 +11,7 @@ import (
 )
 
 func (modMgr *moduleManager) createInstances(ctx core.ServerContext) (map[string]*serverModule, error) {
-	pendingModuleInstances := make(map[string]config.Config)
+	pendingModuleInstances := make(map[string]*pendingModInfo)
 	createdInstances := make(map[string]*serverModule)
 	//loop through module instances
 	for instance, instanceConf := range modMgr.moduleInstancesConfig {
@@ -21,15 +21,15 @@ func (modMgr *moduleManager) createInstances(ctx core.ServerContext) (map[string
 		}
 		log.Error(ctx, "Loading module instance", "Name", instance)
 
-		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
+		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, nil, pendingModuleInstances)
 		if err != nil {
 			return nil, err
 		}
-		createdInstances[instance] = modins
-		if !loaded {
-			pendingModuleInstances[instance] = instanceConf
+		if loaded {
+			createdInstances[instance] = modins
+		} else {
+			pendingModuleInstances[instance] = &pendingModInfo{conf: instanceConf}
 		}
-
 	}
 
 	//load pending modules
@@ -45,7 +45,7 @@ func (modMgr *moduleManager) createInstances(ctx core.ServerContext) (map[string
 	return createdInstances, nil
 }
 
-func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (*serverModule, bool, error) {
+func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext, instance string, instanceConf config.Config, parentModInstance *serverModule, pendingModuleInstances map[string]*pendingModInfo) (*serverModule, bool, error) {
 	ctx = ctx.SubContext("Process Instance Conf " + instance)
 
 	//get module to be used
@@ -60,7 +60,7 @@ func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext
 		return nil, false, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_MODULE, "Name", moduleName, "Module Installed", moduleInstalled, "Module Available", modAvailable)
 	}
 
-	ctx, fnd, err := modMgr.setupInstanceContext(ctx, instance, instanceConf, modDir)
+	ctx, fnd, err := modMgr.setupInstanceContext(ctx, instance, parentModInstance, instanceConf, modDir)
 	if err != nil {
 		return nil, false, errors.WrapError(ctx, err)
 	}
@@ -71,14 +71,14 @@ func (modMgr *moduleManager) createModuleInstanceFromConf(ctx core.ServerContext
 	disabled, _ := instanceConf.GetBool(ctx, constants.CONF_MODULE_DISABLED)
 	if !disabled {
 		log.Debug(ctx, "Creating instance", "instance", instance)
-		return modMgr.createModuleInstance(ctx, instance, moduleName, modDir, instanceConf, pendingModuleInstances)
+		return modMgr.createModuleInstance(ctx, instance, moduleName, modDir, parentModInstance, instanceConf, pendingModuleInstances)
 	} else {
 		log.Debug(ctx, "Instance has been disabled")
 	}
 	return nil, true, nil
 }
 
-func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) (*serverModule, bool, error) {
+func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, moduleInstance, moduleName, dirPath string, parentModInstance *serverModule, instanceConf config.Config, pendingModuleInstances map[string]*pendingModInfo) (*serverModule, bool, error) {
 	ctx = ctx.SubContext("Create Instance " + moduleInstance)
 
 	//get the environment in which module should operate
@@ -148,9 +148,10 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 
 	log.Info(ctx, "New conf for module instance", "Conf", modConf)
 
-	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, pendingModuleInstances)
+	modu := newServerModule(ctx, moduleInstance, moduleName, dirPath, parentModInstance, modConf, modMgr)
 
-	modu := newServerModule(ctx, moduleInstance, moduleName, dirPath, modConf, modMgr)
+	modMgr.addModuleSubInstances(ctx, moduleInstance, modConf, modu, pendingModuleInstances)
+
 	ctx.(*serverContext).setElements(core.ContextMap{core.ServerElementModule: &moduleProxy{mod: modu}})
 
 	objName, ok := modConf.GetString(ctx, constants.CONF_MODULE_OBJ)
@@ -183,16 +184,10 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 	return modu, true, nil
 }
 
-func (modMgr *moduleManager) setupInstanceContext(ctx core.ServerContext, instance string, instanceConf config.Config, modDir string) (core.ServerContext, bool, error) {
-	parentModuleName, pok := modMgr.parentModules[instance]
+func (modMgr *moduleManager) setupInstanceContext(ctx core.ServerContext, instance string, parentModuleInstance *serverModule, instanceConf config.Config, modDir string) (core.ServerContext, bool, error) {
 	var newCtx core.ServerContext
-	if pok {
-		parentModuleInstance, ok := modMgr.moduleInstances[parentModuleName]
-		if !ok {
-			return nil, false, nil
-		} else {
-			newCtx = parentModuleInstance.svrContext.newContext("Module: " + instance)
-		}
+	if parentModuleInstance != nil {
+		newCtx = parentModuleInstance.svrContext.newContext("Module: " + instance)
 	} else {
 		newCtx = modMgr.svrref.svrContext.newContext("Module: " + instance)
 	}
@@ -213,7 +208,7 @@ const (
 
 //adds any modules that need to be instantiated as  a part of another module instance
 
-func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instance string, instanceConf config.Config, pendingModuleInstances map[string]config.Config) {
+func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, instance string, instanceConf config.Config, modInstance *serverModule, pendingModuleInstances map[string]*pendingModInfo) {
 	//retInstances := make(map[string]config.Config)
 	modInstances, ok := instanceConf.GetSubConfig(ctx, constants.CONF_MODULES)
 	if ok {
@@ -221,9 +216,9 @@ func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, insta
 		for _, subinstanceName := range instanceNames {
 			subInstanceConf, _ := modInstances.GetSubConfig(ctx, subinstanceName)
 			newInstanceName := fmt.Sprintf("%s->%s", instance, subinstanceName)
-			modMgr.parentModules[newInstanceName] = instance
+			modMgr.parentModules[newInstanceName] = modInstance
 			log.Info(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)
-			pendingModuleInstances[newInstanceName] = subInstanceConf
+			pendingModuleInstances[newInstanceName] = &pendingModInfo{conf: subInstanceConf, parent: modInstance}
 		}
 	}
 }

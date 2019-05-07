@@ -30,7 +30,7 @@ type moduleManager struct {
 	moduleInstancesConfig map[string]config.Config
 	loadedModules         map[string]*semver.Version
 	modulePlugins         map[string]components.ModuleManagerPlugin
-	parentModules         map[string]string
+	parentModules         map[string]*serverModule
 	hotModules            map[string]string
 	objLoader             *objectLoader
 	watchers              []*watcher.Watcher
@@ -116,20 +116,21 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.ServerContext, mods map[string]config.Config) (map[string]*serverModule, error) {
+func (modMgr *moduleManager) iterateAndLoadPendingModuleInstances(ctx core.ServerContext, mods map[string]*pendingModInfo) (map[string]*serverModule, error) {
 	//create pending modules from this iteration
-	pendingModuleInstances := make(map[string]config.Config)
+	pendingModuleInstances := make(map[string]*pendingModInfo)
 	createdInstances := make(map[string]*serverModule)
 
 	//loop through provided modules
-	for instance, instanceConf := range mods {
-		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, pendingModuleInstances)
+	for instance, pendingMod := range mods {
+		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, pendingMod.conf, pendingMod.parent, pendingModuleInstances)
 		if err != nil {
 			return nil, err
 		}
-		createdInstances[instance] = modins
-		if !loaded {
-			pendingModuleInstances[instance] = instanceConf
+		if loaded {
+			createdInstances[instance] = modins
+		} else {
+			pendingModuleInstances[instance] = pendingMod
 		}
 	}
 
@@ -179,4 +180,9 @@ func (modMgr *moduleManager) getModuleDir(ctx core.ServerContext, modulesDir str
 
 func (modMgr *moduleManager) getModuleConf(ctx core.ServerContext, modDir string) (config.Config, error) {
 	return common.NewConfigFromFile(ctx, path.Join(modDir, constants.CONF_CONFIG_DIR, constants.CONF_CONFIG_FILE), nil)
+}
+
+type pendingModInfo struct {
+	conf   config.Config
+	parent *serverModule
 }

@@ -111,14 +111,18 @@ func (modMgr *moduleManager) processModulePlugins(ctx core.ServerContext, mod *s
 func (modMgr *moduleManager) loadPluginWithMod(ctx core.ServerContext, modIns *serverModule, pluginName string, plugin components.ModuleManagerPlugin) error {
 	log.Info(ctx, "Processing module with module manager plugin", "Module", modIns.name, "Service name", pluginName)
 	modInsCtx := modIns.svrContext.SubContext("Process module plugin: " + pluginName)
-	parentIns := modMgr.parentModules[modIns.name]
 	log.Debug(modInsCtx, "Loading plugin with module", "Instance", modIns.name, "Module name", modIns.moduleName, "Settings", modIns.modSettings)
+
+	parentName := ""
+	if modIns.parentInstance != nil {
+		parentName = modIns.parentInstance.name
+	}
 
 	modInfo := &components.ModInfo{
 		InstanceName:    modIns.name,
 		ModName:         modIns.moduleName,
 		ModDir:          modIns.dir,
-		ParentModName:   parentIns,
+		ParentModName:   parentName,
 		Mod:             modIns.userModule,
 		ModConf:         modIns.modConf,
 		ModSettings:     modIns.modSettings,

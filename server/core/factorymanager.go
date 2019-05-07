@@ -154,6 +154,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 }
 
 func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("Start module factories " + mod.name)
 	facs := make(map[string]*serviceFactoryProxy)
 	if mod.factories != nil {
 		for factoryName, factoryConfig := range mod.factories {

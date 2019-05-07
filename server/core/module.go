@@ -26,6 +26,7 @@ type serverModule struct {
 	tasks           map[string]config.Config
 	rules           map[string]config.Config
 	properties      map[string]interface{}
+	parentInstance  *serverModule
 	modConf         config.Config
 	isExtended      bool
 	extendedMod     string
@@ -34,8 +35,8 @@ type serverModule struct {
 	modSettings     config.Config
 }
 
-func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, modconf config.Config, modMgr *moduleManager) *serverModule {
-	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, moduleName: moduleName, dir: dirpath, modConf: modconf}
+func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, parentModIns *serverModule, modconf config.Config, modMgr *moduleManager) *serverModule {
+	mod := &serverModule{svrContext: ctx.(*serverContext), name: name, moduleName: moduleName, dir: dirpath, modConf: modconf, parentInstance: parentModIns}
 
 	mod.extendedMod, mod.isExtended = modconf.GetString(ctx, constants.CONF_EXTENDED_MOD)
 
@@ -267,4 +268,8 @@ func (mod *serverModule) plugins(ctx core.ServerContext) (map[string]components.
 */
 func (mod *serverModule) reload(ctx core.ServerContext) error {
 	return nil
+}
+
+func (mod *serverModule) isSubInstance(ctx core.ServerContext) bool {
+	return mod.parentInstance != nil
 }

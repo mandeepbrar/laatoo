@@ -89,74 +89,82 @@ func (adapter *WebFWAdapter) UseMiddleware(router net.Router, handler http.Handl
 	router.UseMiddleware(handler)
 }
 
-func (adapter *WebFWAdapter) Group(router net.Router, path string) net.Router {
+func (adapter *WebFWAdapter) Group(router net.Router, path, name string) net.Router {
 	return router.Group(path)
 }
 func (adapter *WebFWAdapter) Use(router net.Router, handler net.HandlerFunc) {
 	router.Use(handler)
 }
-func (adapter *WebFWAdapter) Get(router net.Router, path string, handler net.HandlerFunc) error {
-	adaptedHandler, err := adapter.createController("Get", path, handler)
+func (adapter *WebFWAdapter) Get(router net.Router, path, name string, handler net.HandlerFunc) error {
+	adaptedHandler, err := adapter.createController("Get", path, name, handler)
 	if err != nil {
 		return err
 	}
-	router.Get(path, adaptedHandler)
+	if adaptedHandler != nil {
+		router.Get(path, adaptedHandler)
+	}
 	return nil
 }
-func (adapter *WebFWAdapter) Options(router net.Router, path string, handler net.HandlerFunc) error {
-	adaptedHandler, err := adapter.createController("Options", path, handler)
+func (adapter *WebFWAdapter) Options(router net.Router, path, name string, handler net.HandlerFunc) error {
+	adaptedHandler, err := adapter.createController("Options", path, name, handler)
 	if err != nil {
 		return err
 	}
-	router.Options(path, adaptedHandler)
+	if adaptedHandler != nil {
+		router.Options(path, adaptedHandler)
+	}
 	return nil
 }
-func (adapter *WebFWAdapter) Post(router net.Router, path string, handler net.HandlerFunc) error {
-	adaptedHandler, err := adapter.createController("Post", path, handler)
+func (adapter *WebFWAdapter) Post(router net.Router, path, name string, handler net.HandlerFunc) error {
+	adaptedHandler, err := adapter.createController("Post", path, name, handler)
 	if err != nil {
 		return err
 	}
-	router.Post(path, adaptedHandler)
+	if adaptedHandler != nil {
+		router.Post(path, adaptedHandler)
+	}
 	return nil
 }
-func (adapter *WebFWAdapter) Put(router net.Router, path string, handler net.HandlerFunc) error {
-	adaptedHandler, err := adapter.createController("Put", path, handler)
+func (adapter *WebFWAdapter) Put(router net.Router, path, name string, handler net.HandlerFunc) error {
+	adaptedHandler, err := adapter.createController("Put", path, name, handler)
 	if err != nil {
 		return err
 	}
-	router.Put(path, adaptedHandler)
+	if adaptedHandler != nil {
+		router.Put(path, adaptedHandler)
+	}
 	return nil
 }
-func (adapter *WebFWAdapter) Delete(router net.Router, path string, handler net.HandlerFunc) error {
-	adaptedHandler, err := adapter.createController("Delete", path, handler)
+func (adapter *WebFWAdapter) Delete(router net.Router, path, name string, handler net.HandlerFunc) error {
+	adaptedHandler, err := adapter.createController("Delete", path, name, handler)
 	if err != nil {
 		return err
 	}
-	router.Delete(path, adaptedHandler)
+	if adaptedHandler != nil {
+		router.Delete(path, adaptedHandler)
+	}
 	return nil
 }
-func (adapter *WebFWAdapter) RemovePath(router net.Router, path string, method string) error {
-	key := fmt.Sprintf("%s_%s", method, path)
-	controllerStruct, ok := adapter.handlers[key]
+func (adapter *WebFWAdapter) RemovePath(router net.Router, path, name string, method string) error {
+	controllerStruct, ok := adapter.handlers[name]
 	if ok {
 		controllerStruct.handler = nil
 	}
 	return nil //router.RemovePath(path, method)
 }
 
-func (adapter *WebFWAdapter) createController(method, path string, handler net.HandlerFunc) (net.HandlerFunc, error) {
-	key := fmt.Sprintf("%s_%s", method, path)
-	controllerStruct, ok := adapter.handlers[key]
+func (adapter *WebFWAdapter) createController(method, path, name string, handler net.HandlerFunc) (net.HandlerFunc, error) {
+	controllerStruct, ok := adapter.handlers[name]
 	if !ok {
 		controllerStruct = &handlerController{handler: handler}
-		adapter.handlers[key] = controllerStruct
+		adapter.handlers[name] = controllerStruct
 	} else {
 		if controllerStruct.handler == nil {
 			controllerStruct.handler = handler
 		} else {
-			return nil, fmt.Errorf("Handler already exists for path %s method %s", path, method)
+			return nil, fmt.Errorf("Handler already exists for path %s method %s channel %s", path, method, name)
 		}
-
+		return nil, nil
 	}
 	return adapter.controllerFunc(controllerStruct), nil
 }

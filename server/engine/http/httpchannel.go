@@ -109,7 +109,7 @@ func (channel *httpChannel) child(ctx core.ServerContext, name string, channelCo
 		routername = fmt.Sprintf("%s > %s", channel.name, name)
 	} else {
 		routername = fmt.Sprintf("%s > %s", channel.name, name)
-		router = channel.adapter.Group(channel.Router, path)
+		router = channel.adapter.Group(channel.Router, path, channel.name)
 		group = true
 	}
 
@@ -184,27 +184,27 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 
 func (channel *httpChannel) get(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	return channel.adapter.Get(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Get(channel.Router, path, channel.name, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) options(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Options")
-	return channel.adapter.Options(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Options(channel.Router, path, channel.name, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) put(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	return channel.adapter.Put(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Put(channel.Router, path, channel.name, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) post(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	return channel.adapter.Post(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Post(channel.Router, path, channel.name, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) delete(ctx core.ServerContext, path string, serviceName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) error {
 	log.Info(ctx, "Registering route", "channel", channel.name, "path", path, "method", "Get")
-	return channel.adapter.Delete(channel.Router, path, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
+	return channel.adapter.Delete(channel.Router, path, channel.name, channel.httpAdapter(ctx, serviceName, handler, respHandler, svc))
 }
 
 func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, handler ServiceInvoker, respHandler elements.ServiceResponseHandler, svc elements.Service) {
@@ -212,5 +212,5 @@ func (channel *httpChannel) use(ctx core.ServerContext, middlewareName string, h
 }
 
 func (channel *httpChannel) destruct(ctx core.ServerContext, parentChannel *httpChannel) error {
-	return channel.adapter.RemovePath(channel.Router, channel.path, channel.method)
+	return channel.adapter.RemovePath(channel.Router, channel.path, channel.name, channel.method)
 }

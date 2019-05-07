@@ -77,15 +77,20 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 			}
 		}
 	}
-	go func() {
-		if err := w.Start(time.Millisecond * 800); err != nil {
-			log.Error(ctx, "Watcher stopped watching")
-		}
-	}()
+
+	modMgr.startWatcher(ctx, w, time.Millisecond*800)
+
 	modMgr.watchers = append(modMgr.watchers, w)
 	return nil
 }
 
+func (modMgr *moduleManager) startWatcher(ctx core.ServerContext, w *watcher.Watcher, ms time.Duration) {
+	go func(ctx core.ServerContext, w *watcher.Watcher, ms time.Duration) {
+		if err := w.Start(ms); err != nil {
+			log.Error(ctx, "Watcher stopped watching")
+		}
+	}(ctx, w, ms)
+}
 func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName string, modDir, compilerCommand string, modInsConf config.Config) error {
 	compileWatcher := watcher.New()
 	compileWatcher.SetMaxEvents(1)
@@ -98,7 +103,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 			select {
 			case event := <-compileWatcher.Event:
 				compileCtx := ctx.SubContext("Module Compile" + modName)
-				log.Info(compileCtx, "Compile required", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
+				log.Info(compileCtx, "Compile required, Suspending watcher", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
 				compileWatcher.Wait()
 				env := os.Environ()
 				log.Error(compileCtx, "Environment", "env", env)
@@ -115,7 +120,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 						log.Error(reloadCtx, "Error while reloading module", "err", err)
 					}
 				}
-				compileWatcher.Start(time.Millisecond * 5000)
+				//modMgr.startWatcher(ctx, compileWatcher, time.Millisecond*5000)
 			case err := <-compileWatcher.Error:
 				log.Error(ctx, "Error while watching", err)
 			case <-compileWatcher.Closed:
@@ -124,11 +129,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		}
 	}(ctx, modName, modDir, compilerCommand)
 
-	go func() {
-		if err := compileWatcher.Start(time.Millisecond * 5000); err != nil {
-			log.Error(ctx, "Compiler Watcher stopped watching")
-		}
-	}()
+	modMgr.startWatcher(ctx, compileWatcher, time.Millisecond*5000)
 
 	foldersToWatch := []string{"ui", "server"}
 	for _, name := range foldersToWatch {
@@ -241,22 +242,27 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 	createdInstances := make(map[string]*serverModule)
 
 	for instance, removedMod := range removedInstances {
+		if removedMod.isSubInstance(ctx) {
+			continue
+		}
 		instanceConf := removedMod.modConf
-		newCtx, _, err := modMgr.setupInstanceContext(ctx, instance, instanceConf, modDir)
+		newCtx, _, err := modMgr.setupInstanceContext(ctx, instance, nil, instanceConf, modDir)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		pendingModuleInstances := make(map[string]config.Config)
-		modIns, _, err := modMgr.createModuleInstance(newCtx, instance, moduleName, modDir, instanceConf, pendingModuleInstances)
+		pendingModuleInstances := make(map[string]*pendingModInfo)
+		modIns, _, err := modMgr.createModuleInstance(newCtx, instance, moduleName, modDir, nil, instanceConf, pendingModuleInstances)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
 		createdInstances[instance] = modIns
+		log.Error(ctx, "************************", "pending instances", pendingModuleInstances)
 		if len(pendingModuleInstances) > 0 {
 			instancesCreated, err := modMgr.iterateAndLoadPendingModuleInstances(ctx, pendingModuleInstances)
 			if err != nil {
 				return nil, errors.WrapError(ctx, err)
 			}
+			log.Error(ctx, "*********instances created***************", "instancesCreated", instancesCreated)
 			for k, v := range instancesCreated {
 				createdInstances[k] = v
 			}
@@ -293,7 +299,7 @@ func (modMgr *moduleManager) unloadInstanceLive(ctx core.ServerContext, mod *ser
 	ctx = ctx.SubContext("Unload live instance " + mod.name)
 	var err error
 	for ins, parentIns := range modMgr.parentModules {
-		if parentIns == mod.name {
+		if parentIns.name == mod.name {
 			childModIns, ok := modMgr.moduleInstances[ins]
 			if ok {
 				modMgr.unloadInstanceLive(ctx, childModIns, unloadObjs, removedInstances)
@@ -325,7 +331,9 @@ func (modMgr *moduleManager) unloadInstanceLive(ctx core.ServerContext, mod *ser
 	}
 	delete(modMgr.moduleInstances, mod.name)
 	delete(modMgr.parentModules, mod.name)
-	removedInstances[mod.name] = mod
+	if removedInstances != nil {
+		removedInstances[mod.name] = mod
+	}
 	return nil
 }
 

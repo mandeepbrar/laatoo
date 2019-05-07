@@ -175,6 +175,7 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 
 func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName string, channel elements.Channel) error {
 	chanCtx := ctx.SubContext(chanName)
+	log.Info(chanCtx, "Starting channels ", "chanName", chanName)
 	svcName := channel.GetServiceName()
 	if svcName != "" {
 		svcProxy, err := chanMgr.serviceManager.GetService(ctx, svcName)
@@ -348,8 +349,11 @@ func (chanMgr *channelManager) unloadChannel(ctx core.ServerContext, channelConf
 }
 
 func (chanMgr *channelManager) startModuleInstanceChannels(ctx core.ServerContext, mod *serverModule) error {
+	ctx = ctx.SubContext("Start module channels " + mod.name)
+	log.Info(ctx, "Starting channels for module instance ", "module name", mod.name)
 	for chanName, _ := range mod.channels {
 		chn, _ := chanMgr.channelStore[chanName]
+		log.Info(ctx, "Starting channels for module instance ", "chanName", chanName)
 		if err := chanMgr.startChannel(ctx, chanName, chn); err != nil {
 			return err
 		}
@@ -358,16 +362,23 @@ func (chanMgr *channelManager) startModuleInstanceChannels(ctx core.ServerContex
 }
 
 func (chanMgr *channelManager) createModuleChannels(ctx core.ServerContext, mod *serverModule) error {
-	channels := make(map[string]elements.Channel)
+	//channels := make(map[string]elements.Channel)
 	if mod.channels != nil {
-		for chanName, chanConf := range mod.channels {
-			chnCtx := ctx.SubContext("Create channel:" + chanName)
-			channel, err := chanMgr.createChannel(chnCtx, chanConf, chanName)
-			if err != nil {
-				return errors.WrapError(chnCtx, err)
-			}
-			channels[chanName] = channel
-			chanMgr.channelConfs[chanName] = chanConf
+		_, err := chanMgr.createChannels(ctx, mod.channels)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		/*for chanName, chanConf := range mod.channels {
+		chnCtx := ctx.SubContext("Create channel:" + chanName)
+		log.Info(chnCtx, "Creating channel ", "mod name", mod.name, "channel", chanName)
+		channel, err := chanMgr.createChannel(chnCtx, chanConf, chanName)
+		if err != nil {
+			return errors.WrapError(chnCtx, err)
+		}
+		channels[chanName] = channel
+		*/
+		for k, v := range mod.channels {
+			chanMgr.channelConfs[k] = v
 		}
 	}
 	//channels do not require initialization... so leaving the stored channels here
