@@ -114,7 +114,7 @@ func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) (*core.Resp
 	encodedState := base64.StdEncoding.EncodeToString(state)
 	url := os.config.AuthCodeURL(encodedState)
 	log.Trace(ctx, "redirecting to url", "url", url)
-	return core.NewServiceResponse(core.StatusRedirect, url, nil), nil
+	return core.NewServiceResponseWithInfo(core.StatusRedirect, url, nil), nil
 }
 
 //Expects Local user to be provided inside the request
@@ -144,9 +144,9 @@ func (os *OAuthLoginService) unauthorized(ctx core.RequestContext, err error, ur
 	log.Trace(ctx, "unauthorized")
 	if url == "" {
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginFailure\"}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>"))
-		return core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
+		return core.NewServiceResponseWithInfo(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
 	} else {
-		return core.NewServiceResponse(core.StatusRedirect, url, map[string]interface{}{os.authHeader: "", "Error": err}), nil
+		return core.NewServiceResponseWithInfo(core.StatusRedirect, url, map[string]interface{}{os.authHeader: "", "Error": err}), nil
 	}
 }
 
@@ -208,14 +208,14 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		permissions, _ := testedUser.(auth.RbacUser).GetPermissions()
 		permissionsArr, _ := json.Marshal(permissions)
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
-		return core.NewServiceResponse(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
+		return core.NewServiceResponseWithInfo(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
 	}
-	return core.NewServiceResponse(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr}), nil
+	return core.NewServiceResponseWithInfo(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr}), nil
 }
 
 //Expects Local user to be provided inside the request
 func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf config.Config) error {
-	siteType, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_OAUTH_TYPE)
+	siteType, ok := siteConf.GetString(ctx, CONF_OAUTHLOGINSERVICE_OAUTH_TYPE)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_OAUTH_TYPE)
 	}
@@ -229,19 +229,19 @@ func (os *OAuthLoginService) configureSite(ctx core.ServerContext, siteConf conf
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_OAUTH_TYPE)
 	}
 	os.sitetype = siteType
-	clientId, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_CLIENTID)
+	clientId, ok := siteConf.GetString(ctx, CONF_OAUTHLOGINSERVICE_CLIENTID)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_CLIENTID)
 	}
-	clientSecret, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_CLIENTSECRET)
+	clientSecret, ok := siteConf.GetString(ctx, CONF_OAUTHLOGINSERVICE_CLIENTSECRET)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_CLIENTSECRET)
 	}
-	profile, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL)
+	profile, ok := siteConf.GetString(ctx, CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_OAUTH_PROFILEURL)
 	}
-	callbackURL, ok := siteConf.GetString(CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK)
+	callbackURL, ok := siteConf.GetString(ctx, CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "conf", CONF_OAUTHLOGINSERVICE_OAUTH_AUTHCALLBACK)
 	}

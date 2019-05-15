@@ -95,7 +95,12 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 	if !ok {
 		return core.StatusUnauthorizedResponse, nil
 	}
-	reqbytes := req.GetBody()
+	bodyParam := "Data"
+	reqbytes, ok := ctx.GetParamValue(bodyParam)
+	if !ok {
+		return core.StatusUnauthorizedResponse, nil
+	}
+	 //:= req.GetBody()
 	data, ok := reqbytes.([]byte)
 	if !ok {
 		return core.StatusUnauthorizedResponse, nil
@@ -122,7 +127,7 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 	if err != nil {
 		return core.StatusUnauthorizedResponse, nil
 	}
-	return core.NewServiceResponse(core.StatusSuccess, user, map[string]interface{}{ks.authHeader: token}), nil
+	return core.NewServiceResponseWithInfo(core.StatusSuccess, user, map[string]interface{}{ks.authHeader: token}), nil
 }
 
 func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {
@@ -134,13 +139,13 @@ func (ks *KeyAuthService) Start(ctx core.ServerContext) error {
 	c, ok := ks.GetConfiguration(ctx, CONF_KEYAUTH_CLIENTS)
 	if ok {
 		clientsConf := c.(config.Config)
-		allclients := clientsConf.AllConfigurations()
+		allclients := clientsConf.AllConfigurations(ctx)
 		ks.clients = make(map[string]*client, len(allclients))
 		for _, clientName := range allclients {
-			clientConf, _ := clientsConf.GetSubConfig(clientName)
-			role, ok := clientConf.GetString(CONF_KEYAUTH_CLIENT_ROLE)
+			clientConf, _ := clientsConf.GetSubConfig(ctx, clientName)
+			role, ok := clientConf.GetString(ctx, CONF_KEYAUTH_CLIENT_ROLE)
 			if ok {
-				pubKeyPath, _ := clientConf.GetString(config.CONF_PUBLICKEYPATH)
+				pubKeyPath, _ := clientConf.GetString(ctx, config.CONF_PUBLICKEYPATH)
 				pubKey, err := utils.LoadPublicKey(pubKeyPath)
 				if err != nil {
 					return errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "path", pubKeyPath)

@@ -47,7 +47,7 @@ func (ls *TokenValidationService) Invoke(ctx core.RequestContext) error {
 	if err == nil && usr != nil {
 		log.Error(ctx, "checked token", "usr", usr.GetId())
 		if usr.GetId() != "Anonymous" {
-			ctx.SetResponse(core.NewServiceResponse(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token}))
+			ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusSuccess, usr, map[string]interface{}{ls.authHeader: token}))
 			return nil
 		}
 	}
