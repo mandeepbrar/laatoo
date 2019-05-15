@@ -3,6 +3,9 @@ redispubsub laatoo/services/pubsub/redis
 role laatoo/services/security/objects/role
 user laatoo/services/security/objects/user
 dblogin laatoo/services/security/db
+oauthlogin laatoo/services/security/oauth
+miscsecurity laatoo/services/security/misc
+keyauthlogin laatoo/services/security/keyauth
 memorycache laatoo/services/cache/memory
 appenginecache laatoo/services/cache/appengine
 rediscache laatoo/services/cache/redis

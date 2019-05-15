@@ -4,6 +4,14 @@ COPY getpackages.sh .
 
 RUN ./getpackages.sh
 
+COPY forcaching /go/forcaching
+
+WORKDIR /go/forcaching
+
+RUN go mod download -json 
+
 RUN useradd -u 1000 -ms /bin/bash -g root -G sudo -p laatoo laatoo
+
+WORKDIR /go
 
 ENTRYPOINT /bin/bash

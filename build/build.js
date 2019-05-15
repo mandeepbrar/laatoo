@@ -6,7 +6,7 @@ var {argv, name, pluginFolder, uiFolder, filesFolder, modConfig, deploymentFolde
 var entity = require('./entity')
 var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
 var {buildGoObjects} = require('./buildgoserver');
-var {log} = require('./utils');
+var {log, clearDirectory} = require('./utils');
 var {compileDartUI} = require('./builddart');
 var {compileGoWASMUI} = require('./buildgowasm');
 var {compileRustWASMUI} = require('./buildrustwasm');
@@ -15,7 +15,9 @@ function buildModule() {
   if(argv.verbose) {
     console.log(argv)
   }
-  createTempDirectory(!(argv.skipUI || argv.skipObjects))
+  if(!(argv.skipUI || argv.skipObjects)) {
+    clearDirectory(tmpFolder)
+  }
   startTask("copyconfig")()
 }
 
@@ -50,7 +52,7 @@ function buildUI(nextTask) {
 function copyproperties(nextTask) {
   let propsSrcFolder = path.join(pluginFolder, "properties")
   if (fs.pathExistsSync(propsSrcFolder)) {
-    let propsDestFolder = path.join("/plugins", "tmp", name, "properties")
+    let propsDestFolder = path.join(tmpFolder, name, "properties")
     fs.mkdirsSync(propsDestFolder)
     log("Copying properties", "dest", propsDestFolder, "src", propsSrcFolder)
 
@@ -65,7 +67,7 @@ function copyproperties(nextTask) {
 function copyUIRegistry(nextTask) {
   let regSrcFolder = path.join(uiFolder, "registry")
   if (fs.pathExistsSync(regSrcFolder)) {
-    let regDestFolder = path.join("/plugins", "tmp", name, "ui")
+    let regDestFolder = path.join(tmpFolder, name, "ui")
     fs.mkdirsSync(regDestFolder)
     log("Copying registered items", "dest", regDestFolder, "src", regSrcFolder)
     fs.removeSync(regDestFolder)
@@ -74,16 +76,6 @@ function copyUIRegistry(nextTask) {
   nextTask()
 }
 
-
-
-function createTempDirectory(removeDir) {
-  let tmpFolder = path.join("/plugins", "tmp", name)
-  if (removeDir) {
-    fs.removeSync(tmpFolder)
-  }
-  log("Ensuring temp folder ", tmpFolder)
-  fs.mkdirsSync(tmpFolder)
-}
 
 function buildObjects(nextTask) {
   if (argv.skipObjects) {
@@ -96,7 +88,7 @@ function buildObjects(nextTask) {
 
 function copyConfig(nextTask) {
   log("Copying config")
-  let configDestFolder = path.join("/plugins", "tmp", name, "config")
+  let configDestFolder = path.join(tmpFolder, name, "config")
   let configSrcFolder = path.join(pluginFolder, "config")
   log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
 
@@ -112,22 +104,27 @@ function autoGen(nextTask) {
     return
   }
   let entities = {}
+  let autogenFolder = entity.autogenFolder(pluginFolder)
   if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
     if (fs.pathExistsSync(entitiesFolder)) {
       let files = fs.readdirSync(entitiesFolder)
+      fs.removeSync(autogenFolder)
+      if(files.length>0) {
+        fs.mkdirsSync(autogenFolder)
+      }
       for(var i=0;i<files.length; i++) {
         if(files[i].endsWith('.json')) {
           let jsonF = path.join(entitiesFolder, files[i])
           let jsonContent = require(jsonF)
           entities[jsonContent["name"]] = jsonContent
-          entity.createEntity(jsonContent, pluginFolder, files[i])
+          entity.createEntity(jsonContent, autogenFolder, files[i])
         }
       }
+      if(entities && Object.keys(entities).length >0) {
+        entity.createManifest(entities, autogenFolder, pluginFolder)
+      }    
     }
-  }
-  if(entities && Object.keys(entities).length >0) {
-    entity.createManifest(entities, pluginFolder)
   }
   nextTask()
 }
@@ -143,7 +140,7 @@ function copyFiles(nextTask) {
     return
   }
   log("Copying config")
-  let filesDestFolder = path.join("/plugins", "tmp", name, "files")
+  let filesDestFolder = path.join(tmpFolder, name, "files")
   fs.removeSync(filesDestFolder)
 
   fs.copySync(filesSrcFolder, filesDestFolder)
@@ -156,8 +153,8 @@ function bundleModule(nextTask) {
     return
   }
   let verbose = argv.verbose? "-v":""
-  let tarfilepath = path.join("/plugins", "tmp", name+".tar.gz")
-  let command = sprintf('tar %s -czf %s -C %s %s', verbose, tarfilepath, path.join("/plugins", "tmp"), name)
+  let tarfilepath = path.join(tmpFolder, name+".tar.gz")
+  let command = sprintf('tar %s -czf %s -C %s %s', verbose, tarfilepath, tmpFolder, name)
   log("Bundle module: ", command)
   if (shell.exec(command).code > 1) { //ignore the exit code for file changed
     shell.echo('Could not compress module failed');
@@ -169,7 +166,7 @@ function bundleModule(nextTask) {
 
 function deployModule(nextTask) {
   if(!argv.nobundle) {
-    fs.copySync(path.join("/plugins", "tmp", name +".tar.gz"), path.join(deploymentFolder, name +".tar.gz"))
+    fs.copySync(path.join(tmpFolder, name +".tar.gz"), path.join(deploymentFolder, name +".tar.gz"))
   }
   nextTask()
 }

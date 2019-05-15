@@ -76,10 +76,15 @@ function fields(fields) {
   return fieldsStr
 }
 
-function createEntity(entityJson, pluginFolder, filename) {
+function autogenFolder(pluginFolder) {
+  return path.join(pluginFolder, "server", "go", "autogen")
+}
+
+
+function createEntity(entityJson, autogenFolder, filename) {
   let name = entityJson["name"]
   name = name? name +".go": filename.substring(0, filename.length-5)+".go"
-  let filepath = path.join(pluginFolder, "server", "go", name)
+  let filepath = path.join(autogenFolder, name)
   let tplpath = path.join(buildFolder, 'tpl/entitygocode.go.tpl');
   var buf = fs.readFileSync(tplpath);
   Handlebars.registerHelper('cacheable', cacheable);
@@ -106,7 +111,7 @@ function plugins(entities) {
   return str
 }
 
-function createManifest(entities, pluginFolder) {
+function createManifest(entities, autogenFolder, pluginFolder) {
   let manifestpath = path.join(pluginFolder, "server", "go", "manifest.go")
   if (!fs.pathExistsSync(manifestpath)) {
     var buf = fs.readFileSync(path.join(buildFolder, '/tpl/manifest.go.tpl'));
@@ -114,7 +119,7 @@ function createManifest(entities, pluginFolder) {
     let gofile = template({})
     fs.writeFileSync(manifestpath, gofile)
   }
-  let objectspath = path.join(pluginFolder, "server", "go", "objectsmanifest__.go")
+  let objectspath = path.join(autogenFolder, "objectsmanifest.go")
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }
@@ -127,5 +132,6 @@ function createManifest(entities, pluginFolder) {
 
 module.exports = {
   createEntity: createEntity,
-  createManifest: createManifest
+  createManifest: createManifest,
+  autogenFolder: autogenFolder
 }

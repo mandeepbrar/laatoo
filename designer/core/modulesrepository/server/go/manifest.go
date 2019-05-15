@@ -2,10 +2,11 @@ package main
 
 import (
 	"laatoo/sdk/server/core"
+	"modulesrepository/autogen"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	objects := ObjectsManifest(provider)
+	objects := autogen.ObjectsManifest(provider)
 	services := ServicesManifest(provider)
 	objs := []core.PluginComponent{}
 	objs = append(objs, objects...)

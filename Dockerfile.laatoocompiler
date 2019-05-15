@@ -1,7 +1,15 @@
 FROM laatoobase:latest
 
-VOLUME /go/src/laatoo
+VOLUME /laatoosdk
 
-WORKDIR /go/src/laatoo
+VOLUME /laatooserver
 
-ENTRYPOINT ["sh", "/go/src/laatoo/build.sh"]
+RUN chown -R laatoo /laatooserver /go
+
+WORKDIR /laatooserver
+
+COPY build.sh /
+
+USER laatoo
+
+ENTRYPOINT ["sh", "/build.sh"]

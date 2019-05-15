@@ -4,37 +4,42 @@ RUN mkdir -p /build
 
 VOLUME /nodemodules
 
-VOLUME /plugins
+VOLUME /compiletmp
 
-RUN mkdir -p /plugins/src
+VOLUME /modulesrepo
+
+#RUN mkdir -p /plugins/src
 
 VOLUME /deploy
 
-RUN chown -R laatoo /build /plugins /deploy /nodemodules
+RUN chown -R laatoo /build /modulesrepo /deploy /nodemodules /go /compiletmp
 
 RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader object-assign babel-cli babel-core babel-eslint babel-loader babel-plugin-transform-react-constant-elements babel-plugin-transform-react-remove-prop-types babel-plugin-transform-runtime babel-preset-env babel-preset-react babel-preset-stage-0 copy-webpack-plugin cross-env css-loader eslint resolve-url-loader extract-text-webpack-plugin@next flow-bin html-webpack-plugin path postcss-loader rimraf sass-loader style-loader expose-loader url-loader webpack webpack-dev-middleware webpack-hot-middleware react-hot-loader webpack-merge child_process
 
 ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
+#ENV GO111MODULE on
+
+RUN mkdir -p /laatoo
+
+RUN chown -R laatoo.root /laatoo
 
 USER laatoo
 
-RUN mkdir -p /go/src/laatoo
-
-ENV LAATOO_SDK=/go/src/laatoo/sdk
+ENV LAATOO_SDK=/laatoo/sdk
 
 ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
 COPY --chown=laatoo:root sdk $LAATOO_SDK
 
-WORKDIR /go/src/laatoo/sdk/client/rust/laatoocore
+WORKDIR /laatoo/sdk/client/rust/laatoocore
 
 RUN cargo build --target wasm32-unknown-unknown
 
 COPY makelaatoomodule.sh /make.sh
 
-ENV GOPATH=$GOPATH:/plugins
+#ENV GOPATH=$GOPATH:/plugins
 
 ENV USER=laatoo
 

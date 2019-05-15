@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"laatoo/sdk/server/core"
-	"laatoo/services/cache/common"
+	"cachecommon"
 
 	"google.golang.org/appengine/memcache"
 )

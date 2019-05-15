@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"modulesrepository/autogen"
 
 	"github.com/mholt/archiver"
 )
@@ -63,7 +64,7 @@ func (svc *RepositoryUpdate) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*ModuleDefinition, error) {
+func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*autogen.ModuleDefinition, error) {
 	files, err := svc.repositoryFiles.ListFiles(ctx, fmt.Sprintf("%s.tar.gz", mod))
 	if err != nil {
 		return nil, err
@@ -85,7 +86,7 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 	return nil, nil
 }
 
-func (svc *RepositoryUpdate) processArchive(ctx core.RequestContext, mod, file string) (*ModuleDefinition, error) {
+func (svc *RepositoryUpdate) processArchive(ctx core.RequestContext, mod, file string) (*autogen.ModuleDefinition, error) {
 	err := svc.extractArchive(ctx, mod, file)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -122,13 +123,13 @@ func (svc *RepositoryUpdate) extractArchive(ctx core.RequestContext, mod, file s
 	return nil
 }
 
-func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*ModuleDefinition, error) {
+func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*autogen.ModuleDefinition, error) {
 	confPath := path.Join(TMPPATH, modName, "config.yml")
 	conf, err := ctx.ServerContext().ReadConfig(confPath, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	mod := &ModuleDefinition{Name: modName}
+	mod := &autogen.ModuleDefinition{Name: modName}
 	err = svc.readConf(ctx, mod, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -177,7 +178,7 @@ func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*
 	return mod, nil
 }
 
-func (svc *RepositoryUpdate) readConf(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
+func (svc *RepositoryUpdate) readConf(ctx core.RequestContext, mod *autogen.ModuleDefinition, conf config.Config) error {
 	desc, ok := conf.GetString(ctx, "description")
 	if ok {
 		mod.Description = desc
@@ -201,7 +202,7 @@ func (svc *RepositoryUpdate) readConf(ctx core.RequestContext, mod *ModuleDefini
 	return nil
 }
 
-func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
+func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *autogen.ModuleDefinition, conf config.Config) error {
 	depVals := make(map[string]string)
 	deps, ok := conf.GetSubConfig(ctx, "dependencies")
 	if ok {
@@ -215,8 +216,8 @@ func (svc *RepositoryUpdate) readDependencies(ctx core.RequestContext, mod *Modu
 	return nil
 }
 
-func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	params := make(map[string]ModuleParam)
+func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *autogen.ModuleDefinition, conf config.Config) error {
+	params := make(map[string]autogen.ModuleParam)
 	log.Error(ctx, "Reading params", "conf", conf)
 	paramsConf, ok := conf.GetSubConfig(ctx, "params")
 	if ok {
@@ -225,7 +226,7 @@ func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *ModuleDefi
 			paramConf, _ := paramsConf.GetSubConfig(ctx, paramName)
 			ptype, _ := paramConf.GetString(ctx, "type")
 			desc, _ := paramConf.GetString(ctx, "description")
-			modParam := ModuleParam{Name: paramName, Type: ptype, Description: desc}
+			modParam := autogen.ModuleParam{Name: paramName, Type: ptype, Description: desc}
 			params[paramName] = modParam
 		}
 	}
@@ -234,13 +235,13 @@ func (svc *RepositoryUpdate) readParams(ctx core.RequestContext, mod *ModuleDefi
 	return nil
 }
 
-func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	objects := make([]ObjectDefinition, 0)
+func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *autogen.ModuleDefinition, conf config.Config) error {
+	objects := make([]autogen.ObjectDefinition, 0)
 	objsConf, ok := conf.GetSubConfig(ctx, "objects")
 	if ok {
 		objNames := objsConf.AllConfigurations(ctx)
 		for _, objName := range objNames {
-			objDef := ObjectDefinition{Name: objName}
+			objDef := autogen.ObjectDefinition{Name: objName}
 			objConf, _ := objsConf.GetSubConfig(ctx, objName)
 			objType, _ := objConf.GetString(ctx, "type")
 			if objType == "module" {
@@ -252,10 +253,10 @@ func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDef
 			objDef.Type = objType
 			objConfs, ok := objConf.GetSubConfig(ctx, "configurations")
 			if ok {
-				objConfDefs := make([]ConfigurationDefinition, 0)
+				objConfDefs := make([]autogen.ConfigurationDefinition, 0)
 				allConfs := objConfs.AllConfigurations(ctx)
 				for _, confName := range allConfs {
-					confDef := ConfigurationDefinition{Name: confName}
+					confDef := autogen.ConfigurationDefinition{Name: confName}
 					confConf, _ := objConfs.GetSubConfig(ctx, confName)
 					confType, ok := confConf.GetString(ctx, "type")
 					if ok {
@@ -279,7 +280,7 @@ func (svc *RepositoryUpdate) readObjects(ctx core.RequestContext, mod *ModuleDef
 	return nil
 }
 
-func (svc *RepositoryUpdate) readModObj(ctx core.RequestContext, objName string, mod *ModuleDefinition, conf config.Config) error {
+func (svc *RepositoryUpdate) readModObj(ctx core.RequestContext, objName string, mod *autogen.ModuleDefinition, conf config.Config) error {
 	log.Error(ctx, "Creating obj", "objName", objName)
 	obj, err := ctx.ServerContext().CreateObject(objName)
 	if err != nil {
@@ -342,7 +343,7 @@ func (svc *RepositoryUpdate) readElementNames(ctx core.RequestContext, modDir, e
 	return elems, nil
 }
 
-func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
+func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *autogen.ModuleDefinition, conf config.Config) error {
 	modsConf, ok := conf.GetSubConfig(ctx, "modules")
 	if ok {
 		allSubMods := modsConf.AllConfigurations(ctx)
@@ -364,7 +365,7 @@ func (svc *RepositoryUpdate) readSubModules(ctx core.RequestContext, mod *Module
 	return nil
 }
 
-func (svc *RepositoryUpdate) writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) error {
+func (svc *RepositoryUpdate) writeParamsForm(ctx core.RequestContext, mod *autogen.ModuleDefinition) error {
 	formConf := make(map[string]interface{})
 	formFields := make(map[string]interface{})
 

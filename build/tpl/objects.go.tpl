@@ -1,4 +1,4 @@
-package main
+package autogen
 
 import (
 	"laatoo/sdk/server/core"

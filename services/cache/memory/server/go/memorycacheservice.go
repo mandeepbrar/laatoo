@@ -4,7 +4,7 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/utils"
-	"laatoo/services/cache/common"
+	"cachecommon"
 )
 
 const (

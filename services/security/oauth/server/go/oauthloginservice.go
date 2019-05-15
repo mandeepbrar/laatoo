@@ -11,7 +11,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/services/security/common"
+	"securitycommon"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"

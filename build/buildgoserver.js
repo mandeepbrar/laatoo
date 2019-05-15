@@ -23,7 +23,7 @@ function buildGoObjects(nextTask) {
     if(argv.nobundle) {
       outputFolder = path.join(pluginFolder, "objects")
     } else {
-      outputFolder = path.join("/plugins", "tmp", name, "objects")
+      outputFolder = path.join(tmpFolder, name, "objects")
     }
 
     fs.removeSync(outputFolder)
@@ -33,17 +33,22 @@ function buildGoObjects(nextTask) {
     let fileToBuild = sprintf('%s/%s.so', outputFolder, name)
 
     let optionsArr = ["build", "-buildmode=plugin", "-o", fileToBuild]
-    let srcfileslist = fs.readdirSync(serverGoSrcFolder)
+    /*let srcfileslist = fs.readdirSync(serverGoSrcFolder)
     srcfileslist.forEach((file)=> {
       optionsArr.push(path.join(serverGoSrcFolder, file));
-    })
-    let res = spawnSync("go", optionsArr)
+    })*/
+    //optionsArr.push();
+    let res = spawnSync("go", optionsArr, {cwd: serverGoSrcFolder})
     if(res.status !== 0) {
-      shell.echo('Golang build failed');
+      shell.echo('Golang build unsuccessful');
+      shell.echo("Res", res.stdout.toString())
+      shell.echo("Err", res.stderr.toString())      
       shell.exit(1);
     } else {
       let fileBuilt = fs.pathExistsSync(fileToBuild)
       log('Golang compilation successfull. Output to', outputFolder, "File built", fileBuilt);
+      log(res.stdout.toString())
+      log(res.stderr.toString())
       fs.pathExistsSync(fileToBuild)
       nextTask()
     }      

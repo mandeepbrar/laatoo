@@ -10,7 +10,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/utils"
-	"laatoo/services/security/common"
+	"securitycommon"
 )
 
 const (

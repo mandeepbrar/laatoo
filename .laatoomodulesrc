@@ -1,4 +1,5 @@
 nodeModulesFolder=/home/mandeep/goprogs/src/laatoo/ui/nodemodules
-pluginsRoot=/home/mandeep/goprogs
+modulesRepo=/home/mandeep/goprogs/src
+tmpFolder=/home/mandeep/goprogs/tmp
 deploy=/home/mandeep/goprogs/src/laatoo/modules
 clientsdk=/home/mandeep/goprogs/src/laatoo/sdk/client/rust

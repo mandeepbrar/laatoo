@@ -18,8 +18,17 @@ function listDir(path) {
   });  
 }
 
+function clearDirectory(path) {
+  var filesToDel
+  filesToDel = fs.readdirSync(path)
+  for (file of filesToDel) {
+    fs.removeSync(file);
+  }
+}
+
 
 module.exports = {
     log: log,
-    listDir: listDir
+    listDir: listDir,
+    clearDirectory: clearDirectory
 }

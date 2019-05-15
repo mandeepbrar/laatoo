@@ -15,7 +15,7 @@ var pluginFolder
 if(argv.packageFolder.startsWith("/")) {
   pluginFolder = argv.packageFolder
 } else {
-  pluginFolder = path.join("/plugins", "src", argv.packageFolder)
+  pluginFolder = path.join("/modulesrepo", argv.packageFolder)
 }
 
 var uiFolder = path.join(pluginFolder, "ui")
@@ -49,7 +49,7 @@ var nodeModulesFolder = "/nodemodules"
 
 var buildFolder = argv.buildFolder? argv.buildFolder: "/build"
 
-var tmpFolder = "/tmp"
+var tmpFolder = "/compiletmp"
 
 module.exports = {
     argv: argv,

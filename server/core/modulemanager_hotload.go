@@ -95,6 +95,41 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 	compileWatcher := watcher.New()
 	compileWatcher.SetMaxEvents(1)
 
+	autogen_skipper := func(info os.FileInfo, fullPath string) error {
+		if strings.HasSuffix(fullPath, "_ag.go") {
+			return watcher.ErrSkip
+		}
+		return nil
+	}
+
+	addFoldersToWatcher := func(ctx core.ServerContext, modDir string, w *watcher.Watcher) error {
+		log.Error(ctx, "adding folders", "moddir", modDir)
+		foldersToWatch := []string{"ui", "server"}
+		w.AddFilterHook(autogen_skipper)
+
+		for _, name := range foldersToWatch {
+			folderToWatch := path.Join(modDir, name)
+			exists, _, _ := utils.FileExists(folderToWatch)
+			if exists {
+				if err := w.AddRecursive(folderToWatch); err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+		return nil
+	}
+	/*
+		removedFoldersFromWatcher := func(ctx core.ServerContext, modDir string, w *watcher.Watcher) error {
+			log.Error(ctx, "removed folders", "moddir", modDir)
+			if err := w.RemoveRecursive(path.Join(modDir, "ui")); err != nil {
+				return err
+			}
+			if err := w.RemoveRecursive(path.Join(modDir, "server")); err != nil {
+				return err
+			}
+			return nil
+		}*/
+
 	go func(ctx core.ServerContext, modname, modDir, compilerCommand string) {
 		compilerCmdArr := strings.Split(compilerCommand, " ")
 		command := compilerCmdArr[0]
@@ -104,7 +139,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 			case event := <-compileWatcher.Event:
 				compileCtx := ctx.SubContext("Module Compile" + modName)
 				log.Info(compileCtx, "Compile required, Suspending watcher", "modName", modName, " file ", event.Path, "compilerCommand", command, "args", compilerCmdArr)
-				compileWatcher.Wait()
+				//compileWatcher.Wait()
 				env := os.Environ()
 				log.Error(compileCtx, "Environment", "env", env)
 				cmd := exec.Command(command, compilerCmdArr...)
@@ -120,6 +155,11 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 						log.Error(reloadCtx, "Error while reloading module", "err", err)
 					}
 				}
+				/*err = removedFoldersFromWatcher(ctx, modDir, compileWatcher)
+				if err != nil {
+					log.Error(compileCtx, "Error reloading watchers", "err", err)
+				}*/
+				log.Error(compileCtx, "starting watchers")
 				//modMgr.startWatcher(ctx, compileWatcher, time.Millisecond*5000)
 			case err := <-compileWatcher.Error:
 				log.Error(ctx, "Error while watching", err)
@@ -129,18 +169,10 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		}
 	}(ctx, modName, modDir, compilerCommand)
 
+	addFoldersToWatcher(ctx, modDir, compileWatcher)
+
 	modMgr.startWatcher(ctx, compileWatcher, time.Millisecond*5000)
 
-	foldersToWatch := []string{"ui", "server"}
-	for _, name := range foldersToWatch {
-		folderToWatch := path.Join(modDir, name)
-		exists, _, _ := utils.FileExists(folderToWatch)
-		if exists {
-			if err := compileWatcher.AddRecursive(folderToWatch); err != nil {
-				return errors.WrapError(ctx, err)
-			}
-		}
-	}
 	modMgr.watchers = append(modMgr.watchers, compileWatcher)
 	return nil
 }
