@@ -1,7 +1,7 @@
 import { DataSource, RequestBuilder, EntityData } from './sources/DataSource';
 import {Response} from './sources/ResponseCodes';
 import {createAction, formatUrl, LaatooError, hasPermission} from './utils';
-import Color from './colors'
+import Colors from './colors'
 import { RestDataSource } from './http/RestSource';
 
 

@@ -1,4 +1,4 @@
-FROM laatoouiwithwasm:latest
+FROM laatoouibase:latest
 
 RUN mkdir -p /build
 
@@ -14,28 +14,34 @@ VOLUME /deploy
 
 RUN chown -R laatoo /build /modulesrepo /deploy /nodemodules /go /compiletmp
 
-RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader object-assign babel-cli babel-core babel-eslint babel-loader babel-plugin-transform-react-constant-elements babel-plugin-transform-react-remove-prop-types babel-plugin-transform-runtime babel-preset-env babel-preset-react babel-preset-stage-0 copy-webpack-plugin cross-env css-loader eslint resolve-url-loader extract-text-webpack-plugin@next flow-bin html-webpack-plugin path postcss-loader rimraf sass-loader style-loader expose-loader url-loader webpack webpack-dev-middleware webpack-hot-middleware react-hot-loader webpack-merge child_process
-
 ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
 #ENV GO111MODULE on
 
-RUN mkdir -p /laatoo
+#RUN mkdir -p /laatoo
 
-RUN chown -R laatoo.root /laatoo
+#RUN chown -R laatoo.root /laatoo
 
-USER laatoo
+COPY forcaching /go/forcaching
 
-ENV LAATOO_SDK=/laatoo/sdk
+#RUN chown -R laatoo /go
 
-ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
+#USER laatoo
+
+WORKDIR /go/forcaching
+
+RUN go mod download -json 
+
+#ENV LAATOO_SDK=/laatoo/sdk
+
+#ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
 COPY --chown=laatoo:root sdk $LAATOO_SDK
 
-WORKDIR /laatoo/sdk/client/rust/laatoocore
+#WORKDIR /laatoo/sdk/client/rust/laatoocore
 
-RUN cargo build --target wasm32-unknown-unknown
+#RUN cargo build --target wasm32-unknown-unknown
 
 COPY makelaatoomodule.sh /make.sh
 
@@ -49,4 +55,10 @@ WORKDIR /build
 
 COPY /build/.babelrc /
 
-ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust norust --nobundle nobundle 
+RUN chown -R laatoo /go
+
+USER laatoo
+
+WORKDIR /go
+
+ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust $norust --nobundle $nobundle 

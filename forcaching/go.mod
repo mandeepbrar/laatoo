@@ -63,4 +63,8 @@ require (
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a // indirect
+	golang.org/x/text v0.3.0
+	github.com/disintegration/imaging v1.6.0
+	golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81
+	github.com/tdewolff/parse v2.3.4+incompatible
 )

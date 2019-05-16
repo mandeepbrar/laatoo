@@ -28,10 +28,11 @@ require (
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/sys v0.0.0-20190412213103-97732733099d
+	golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862
+	golang.org/x/text v0.3.0
 	google.golang.org/appengine v1.5.0
 	gopkg.in/yaml.v2 v2.2.2
 	laatoo/sdk v0.0.0
 )
 
-replace laatoo/sdk => /laatoosdk
+replace laatoo/sdk => /laatoo/sdk

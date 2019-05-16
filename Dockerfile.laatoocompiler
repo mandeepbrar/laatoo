@@ -1,10 +1,8 @@
-FROM laatoobase:latest
-
-VOLUME /laatoosdk
+FROM laatoomodulebuilder:latest
 
 VOLUME /laatooserver
 
-RUN chown -R laatoo /laatooserver /go
+#RUN chown -R laatoo /laatooserver /go
 
 WORKDIR /laatooserver
 

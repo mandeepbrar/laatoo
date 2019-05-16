@@ -40,5 +40,4 @@ export {
   RequestBuilder,
   DataSource,
   EntityData,
-  Response
 };

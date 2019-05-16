@@ -10,3 +10,6 @@ RUN NODE_VERSION='8.4.0' ARCH='x64' \
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 RUN npm i -g --unsafe-perm node-sass
+
+RUN npm i -g webpack shelljs fs-extra sprintf-js minimist concat-files expose-loader handlebars js-yaml webpack-merge css-loader file-loader url-loader object-assign babel-cli babel-core babel-eslint babel-loader babel-plugin-transform-react-constant-elements babel-plugin-transform-react-remove-prop-types babel-plugin-transform-runtime babel-preset-env babel-preset-react babel-preset-stage-0 copy-webpack-plugin cross-env css-loader eslint resolve-url-loader extract-text-webpack-plugin@next flow-bin html-webpack-plugin path postcss-loader rimraf sass-loader style-loader expose-loader url-loader webpack webpack-dev-middleware webpack-hot-middleware react-hot-loader webpack-merge child_process
+

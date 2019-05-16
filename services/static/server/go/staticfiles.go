@@ -2,12 +2,13 @@ package main
 
 import (
 	"io"
-	"laatoo/libraries/disintegration/imaging"
+	"github.com/disintegration/imaging"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"strconv"
+	"image"
 	"strings"
 )
 
@@ -128,7 +129,7 @@ func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, ope
 	case "crop":
 		{
 			return func(reader io.Reader, writer io.Writer) error {
-				img, format, err := imaging.Decode(reader)
+				img, format, err := decode(reader)
 				log.Info(ctx, "crop", "format", format)
 				if err != nil {
 					return err
@@ -141,7 +142,7 @@ func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, ope
 	case "fill":
 		{
 			return func(reader io.Reader, writer io.Writer) error {
-				img, format, err := imaging.Decode(reader)
+				img, format, err := decode(reader)
 				if err != nil {
 					return err
 				}
@@ -153,7 +154,7 @@ func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, ope
 	case "fit":
 		{
 			return func(reader io.Reader, writer io.Writer) error {
-				img, format, err := imaging.Decode(reader)
+				img, format, err := decode(reader)
 				if err != nil {
 					return err
 				}
@@ -167,6 +168,12 @@ func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, ope
 			return nil
 		}
 	}
+}
+
+
+func decode(reader io.Reader) (image.Image, string, error) {
+	//img, format, err := imaging.Decode(reader)
+	return image.Decode(reader)
 }
 
 func getFormat(format string) imaging.Format {
