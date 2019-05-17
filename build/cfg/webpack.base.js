@@ -38,7 +38,7 @@ module.exports = {
         query: {
           limit: 8192,
           name: '[name].[ext]?[hash]',
-          outputPath: '/dist/images',
+          outputPath: '/images',
           publicPath: 'images'
         }
       },
@@ -49,7 +49,7 @@ module.exports = {
         query: {
           limit: 8192,
           name: '[name].[ext]?[hash]',
-          outputPath: '/dist/fonts',
+          outputPath: '/fonts',
           publicPath: 'fonts'
         }
       }

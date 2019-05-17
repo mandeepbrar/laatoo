@@ -32,7 +32,7 @@ module.exports = merge(config, {
       debug: false
     }),
     new ExtractTextPlugin({
-      filename: 'dist/css/app.css',
+      filename: 'css/app.css',
       allChunks: true
     })
   ],

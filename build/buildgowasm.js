@@ -2,7 +2,7 @@ var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs-extra');
 var {log} = require('./utils');
-var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, packageFolder,  uiFolder, uiBuildFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var sprintf = require('sprintf-js').sprintf
 
 function compileGoWASMUI(nextTask) {
@@ -14,7 +14,7 @@ function compileGoWASMUI(nextTask) {
       return
     }
   
-    let tmpObjsFolder = path.join(pluginFolder, "ui", "dist", "wasm")
+    let tmpObjsFolder = path.join(uiBuildFolder, "wasm")
   
     fs.removeSync(tmpObjsFolder)
   

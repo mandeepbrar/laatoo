@@ -3,7 +3,7 @@ var path = require('path');
 let webpack = require('webpack')
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra');
-var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, packageFolder,  uiFolder, uiBuildFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var {log} = require('./utils');
 
 function compileJSWebUI(jsUIconfig, nextTask) {
@@ -20,6 +20,7 @@ function compileJSWebUI(jsUIconfig, nextTask) {
     let options = {
       library: name,
       uifolder: uiFolder,
+      uiBuildFolder: uiBuildFolder,
       externals: externals
     }
   
@@ -91,11 +92,11 @@ function compileJSWebUI(jsUIconfig, nextTask) {
     }
     let compiler = webpack(config)
   
-    fs.removeSync(path.join(uiFolder,'dist'))
+    fs.removeSync(uiBuildFolder)
   
     log("Removed directory dist")
   
-    fs.mkdirsSync(path.join(uiFolder,'dist/scripts'))
+    fs.mkdirsSync(path.join(uiBuildFolder,'scripts'))
   
     log("Starting compilation", __dirname)
     compiler.run(function(err, stats) {

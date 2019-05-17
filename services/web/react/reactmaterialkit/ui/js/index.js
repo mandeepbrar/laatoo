@@ -11,6 +11,7 @@ import Forms from './forms';
 import {Tabset, Tab} from './components/Tabs';
 import {Block} from './components/Block';
 import {Icons} from './components/Icons';
+import Icon from '@material-ui/core/Icon';
 
 //import injectTapEventPlugin from "react-tap-event-plugin";
 

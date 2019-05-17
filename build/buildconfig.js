@@ -19,6 +19,7 @@ if(argv.packageFolder.startsWith("/")) {
 }
 
 var uiFolder = path.join(pluginFolder, "ui")
+var uiBuildFolder = path.join(pluginFolder, "uibuild")
 
 var filesFolder = path.join(pluginFolder, "files")
 
@@ -57,6 +58,7 @@ module.exports = {
     pluginFolder: pluginFolder,
     release: release,
     uiFolder: uiFolder,
+    uiBuildFolder: uiBuildFolder,
     filesFolder: filesFolder,
     modConfig: modConfig,
     deploymentFolder: deploymentFolder,

@@ -16,8 +16,8 @@ module.exports = function(env) {
     output: {
       library: env.library,
       libraryTarget: "amd",
-      filename: 'dist/scripts/index.js',
-      path: env.uifolder,
+      filename: 'scripts/index.js',
+      path: env.uiBuildFolder,
       publicPath: '/'
     }
   })
@@ -48,8 +48,8 @@ module.exports = function(env) {
       output: {
         library: env.library+"_vendor",
         libraryTarget: "amd",
-        filename: 'dist/scripts/vendor.js',
-        path: env.uifolder,
+        filename: 'scripts/vendor.js',
+        path: env.uiBuildFolder,
         publicPath: '/'
       }
     })

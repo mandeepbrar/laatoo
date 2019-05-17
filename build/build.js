@@ -2,7 +2,7 @@ var shell = require('shelljs');
 var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
-var {argv, name, pluginFolder, uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, uiFolder, uiBuildFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var entity = require('./entity')
 var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
 var {buildGoObjects} = require('./buildgoserver');
@@ -35,8 +35,8 @@ function buildUI(nextTask) {
   let copyUIFiles = function() {
     log("Copying UI files")
     fs.mkdirsSync(filesFolder)
-    if (fs.pathExistsSync(path.join(uiFolder, 'dist'))) {
-      fs.copySync(path.join(uiFolder, "dist"), filesFolder)
+    if (fs.pathExistsSync(uiBuildFolder)) {
+      fs.copySync(uiBuildFolder, filesFolder)
     }
     nextTask()
   }
@@ -50,6 +50,10 @@ function buildUI(nextTask) {
 
 
 function copyproperties(nextTask) {
+  if(argv.nobundle) {
+    nextTask()
+    return
+  }
   let propsSrcFolder = path.join(pluginFolder, "properties")
   if (fs.pathExistsSync(propsSrcFolder)) {
     let propsDestFolder = path.join(tmpFolder, name, "properties")
@@ -65,6 +69,10 @@ function copyproperties(nextTask) {
 }
 
 function copyUIRegistry(nextTask) {
+  if(argv.nobundle) {
+    nextTask()
+    return
+  }
   let regSrcFolder = path.join(uiFolder, "registry")
   if (fs.pathExistsSync(regSrcFolder)) {
     let regDestFolder = path.join(tmpFolder, name, "ui")
@@ -87,7 +95,10 @@ function buildObjects(nextTask) {
 }
 
 function copyConfig(nextTask) {
-  log("Copying config")
+  if(argv.nobundle) {
+    nextTask()
+    return
+  }
   let configDestFolder = path.join(tmpFolder, name, "config")
   let configSrcFolder = path.join(pluginFolder, "config")
   log("Copying config", "dest", configDestFolder, "src", configSrcFolder)
@@ -139,7 +150,7 @@ function copyFiles(nextTask) {
     nextTask()
     return
   }
-  log("Copying config")
+  log("Copying files")
   let filesDestFolder = path.join(tmpFolder, name, "files")
   fs.removeSync(filesDestFolder)
 

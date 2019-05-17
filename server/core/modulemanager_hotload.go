@@ -96,9 +96,11 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 	compileWatcher.SetMaxEvents(1)
 
 	autogen_skipper := func(info os.FileInfo, fullPath string) error {
-		if strings.HasSuffix(fullPath, "_ag.go") {
+		if strings.Contains(fullPath, "autogen") {
+			log.Error(ctx, "skipping autogen", "fullpath", fullPath)
 			return watcher.ErrSkip
 		}
+		log.Error(ctx, "not skipping ", "fullpath", fullPath)
 		return nil
 	}
 
