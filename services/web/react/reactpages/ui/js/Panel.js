@@ -198,6 +198,7 @@ class Panel extends React.Component {
       }
     } else {
       this.getView = function(props, ctx, state, className) {
+        console.log("rendering empty block func", props, ctx, className)
         return <ctx.uikit.Block></ctx.uikit.Block>
       }
     }
@@ -249,8 +250,9 @@ class Panel extends React.Component {
   }
 
   getDisplayFunc(item, props) {
-    console.log("getting block", item)
+    console.log("getting display func", item);
     if(!item) {
+      console.log("returning null display func", item)
       return null
     }
     if (typeof(item) == "string") {
@@ -261,6 +263,7 @@ class Panel extends React.Component {
       if(!display) {
         display = _reg('Blocks', item.defaultBlock)
       }
+      console.log("returning display func", display, Application);
       return display
     }
   }
@@ -358,13 +361,13 @@ class Panel extends React.Component {
         module[key] = retval
       }
     }
-    return retval
+    return retval;
   }
 
   render() {
-    console.log("Rendering panel***************", this.props, this.getView, this.className);
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
     let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
+    console.log("Rendering panel***************", this.getView, this.props, comp, this.overlay, this.title, this.closePanel, this.className);
     if(this.overlay || this.title || this.closePanel) {
       return <this.uikit.Block className="overlaywrapper" title={this.title} closeBlock={this.closePanel}>
         <this.uikit.Block style={{display:( showOverlay?"none":"block")}}>

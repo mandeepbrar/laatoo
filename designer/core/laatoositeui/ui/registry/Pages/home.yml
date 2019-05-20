@@ -1,6 +1,7 @@
 route: "/"
 component:
   type: layout
+  layout: 1col
   items:
     - type: block
       id: siteleader

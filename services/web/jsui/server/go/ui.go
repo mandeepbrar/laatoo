@@ -33,6 +33,7 @@ const (
 	CONF_APPLICATION     = "application"
 	DEPENDENCIES         = "dependencies"
 	UI_DIR               = "ui"
+	REG_DIR              = "registry"
 	MERGED_SVCS_FILE     = "mergeduidescriptor"
 	MERGED_CSS_FILE      = "mergedcssfile"
 	MERGED_WASM_FILE     = "mergedwasm"
@@ -167,8 +168,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 		}
 	}
 
-	uiRegDir := path.Join(modInfo.ModDir, UI_DIR)
-	err := svc.readRegistry(ctx, modName, modInfo.Mod, modInfo.ModConf, modInfo.ModDir, uiRegDir)
+	err := svc.readRegistry(ctx, modName, modInfo.Mod, modInfo.ModConf, modInfo.ModDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

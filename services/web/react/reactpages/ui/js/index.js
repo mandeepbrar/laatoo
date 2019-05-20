@@ -39,10 +39,12 @@ function ProcessPages(theme, uikit) {
           components = theme.PreprocessPageComponents(components, page, pageId, reducers, uikit)
         }
         let pageComps={}
+        console.log("page components ", pageId, page, components)
         Object.keys(components).forEach(function(key){
           pageComps[key] = function(pagecomp, key, pageId, page, uikit) {
             return (routerState) => {
               let visible = true
+              console.log("Page components ", routerState, pagecomp, key, pageId, page)
               if(theme && theme.IsComponentVisible) {
                 visible = theme.IsComponentVisible(compToRender, key, pageId, routerState, page, uikit)
               }
@@ -60,8 +62,8 @@ function ProcessPages(theme, uikit) {
             }
           }(components[key], key, pageId, page, uikit)
         });
-        console.log("page comps ....", pageComps)
         let route = {pattern: page.route, components: pageComps, reducer: combineReducers(reducers)}
+        console.log("page ....", route)
         Application.Register('Routes', pageId, route)
         Application.Register('Actions','Page_'+pageId, {url: route.pattern})
       }catch(ex) {

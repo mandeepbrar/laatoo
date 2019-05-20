@@ -15,7 +15,7 @@ class ThemeUI extends React.Component {
     super(props);
   }
   render() {
-      console.log("rendering theme ui", this.props);
+    console.log("rendering theme ui", this.props);
     let props = this.props;
     let vertical = module.settings.vertical?true:false
     return (

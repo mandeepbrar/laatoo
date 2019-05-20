@@ -11,6 +11,7 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -54,6 +55,7 @@ func (svc *UI) processItemDir(ctx core.ServerContext, modName string, dirPath st
 }
 
 func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType string, modDir string) error {
+	log.Error(ctx, "process reg item ", "path", path)
 	ext := filepath.Ext(path)
 	fileName := filepath.Base(path)
 	itemName := strings.TrimSuffix(fileName, ext)
@@ -95,14 +97,14 @@ func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType stri
 	return nil
 }
 
-func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Module, modConf config.Config, dir, regDir string) error {
+func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Module, modConf config.Config, moddir string) error {
 
 	processRegistryConfig := func(ctx core.ServerContext, registry config.Config) error {
 		confs := registry.AllConfigurations(ctx)
 		for _, itemType := range confs {
 			items, ok := registry.GetSubConfig(ctx, itemType)
 			if ok {
-				err := svc.processMutipleItems(ctx, items, itemType, dir)
+				err := svc.processMutipleItems(ctx, items, itemType, moddir)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
@@ -135,16 +137,18 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Mod
 		}
 	}
 
-	ok, _, _ = utils.FileExists(regDir)
+	uiRegDir := path.Join(moddir, UI_DIR, REG_DIR)
+	ok, _, _ = utils.FileExists(uiRegDir)
+	log.Error(ctx, "Reading registry ", "regDir", uiRegDir)
 	if ok {
-		files, err := ioutil.ReadDir(regDir)
+		files, err := ioutil.ReadDir(uiRegDir)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 		for _, info := range files {
-			path := filepath.Join(regDir, info.Name())
+			path := filepath.Join(uiRegDir, info.Name())
 			if info.IsDir() {
-				svc.processItemDir(ctx, modName, path, info.Name(), dir)
+				svc.processItemDir(ctx, modName, path, info.Name(), moddir)
 				continue
 			}
 			fileName := info.Name()
@@ -155,7 +159,7 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Mod
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				err = svc.processMutipleItems(ctx, items, itemType, dir)
+				err = svc.processMutipleItems(ctx, items, itemType, moddir)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}

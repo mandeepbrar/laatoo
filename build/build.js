@@ -75,7 +75,7 @@ function copyUIRegistry(nextTask) {
   }
   let regSrcFolder = path.join(uiFolder, "registry")
   if (fs.pathExistsSync(regSrcFolder)) {
-    let regDestFolder = path.join(tmpFolder, name, "ui")
+    let regDestFolder = path.join(tmpFolder, name, "ui", "registry")
     fs.mkdirsSync(regDestFolder)
     log("Copying registered items", "dest", regDestFolder, "src", regSrcFolder)
     fs.removeSync(regDestFolder)

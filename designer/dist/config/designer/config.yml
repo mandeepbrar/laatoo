@@ -46,6 +46,9 @@ modules:
   user:
   jsui:
   laatoositeui:
+    hotmodule: true
+    hotmodulepath: designer/core/laatoositeui
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -89,59 +92,10 @@ moduleinstances:
     module: reactforms
   dependencies:
     module: designerdependencies
-  dashboard:
-    module: laatoositetheme
-    settings:
-      authenticate: true
-      application: designerapplication
-      className: laatoodashboard
-      infoBlock: InfoBlock
-      showMenu: true
-  websitetheme:
-    module: laatootheme
-    settings:
-      application: websiteapplication
-      className: laatoosite
-  designerapplication:
-    module: reactapplication
-    settings:
-      application: designerapplication
-      router: router
-      uikit: reactmaterialkit
-      theme: dashboard
-  websiteapplication:
-    module: reactapplication
-    settings:
-      application: websiteapplication
-      router: router
-      uikit: reactmaterialkit
-      theme: websitetheme
   modulesrepository:
     module: modulesrepository
     settings:
       dataservicefactory: mongodatabase
-  websiteshell:
-    module: shell
-    settings:
-      uiapplication: websiteapplication
-      indexpath: /index
-      uidependencies:
-        react: ''
-  designershell:
-    module: shell
-    settings:
-      uiapplication: designerapplication
-      indexpath: /designer
-      uidependencies:
-        react: ''
-  designerui:
-    module: designerui
-    settings:
-      application: designerapplication
-  laatoositeui:
-    module: laatoositeui
-    settings:
-      application: websiteapplication
   publicdirserver:
     module: publicdirserver
     settings:
@@ -159,3 +113,55 @@ moduleinstances:
         index.html:
           cache: 'true'
           path: index.html
+          
+  websiteshell:
+    module: shell
+    settings:
+      uiapplication: websiteapplication
+      indexpath: /index
+      uidependencies:
+        react: ''
+  websiteapplication:
+    module: reactapplication
+    settings:
+      application: websiteapplication
+      router: router
+      uikit: reactmaterialkit
+      theme: websitetheme
+  laatoositeui:
+    module: laatoositeui
+    settings:
+      application: websiteapplication
+  websitetheme:
+    module: laatootheme
+    settings:
+      application: websiteapplication
+      className: laatoosite
+
+
+  designershell:
+    module: shell
+    settings:
+      uiapplication: designerapplication
+      indexpath: /designer
+      uidependencies:
+        react: ''
+  designerapplication:
+    module: reactapplication
+    settings:
+      application: designerapplication
+      router: router
+      uikit: reactmaterialkit
+      theme: dashboard
+  dashboard:
+    module: laatoositetheme
+    settings:
+      authenticate: true
+      application: designerapplication
+      className: laatoodashboard
+      infoBlock: InfoBlock
+      showMenu: true
+  designerui:
+    module: designerui
+    settings:
+      application: designerapplication
