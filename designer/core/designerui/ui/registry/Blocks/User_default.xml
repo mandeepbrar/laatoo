@@ -1,10 +1,10 @@
-<div className="user_default">
-  <div className="field">{{js "_val(ctx, 'data','Username')"}}</div>
-  <div className="field">this is {{js "_val(ctx, 'data','Username')" "insert"}}</div>
-  <div className="field">
-    <Action module="reactwebcommon" name="viewUser">
+<Block className="user_default">
+  <Block className="field">{{js "_val(ctx, 'data','Username')"}}</Block>
+  <Block className="field">this is {{js "_val(ctx, 'data','Username')" "insert"}}</Block>
+  <Block className="field">
+    <Action name="viewUser">
       <Attr name="params" obj="true">{id: "{{js "_val(ctx, 'data', 'Id')"}}", someother: "someval"}</Attr>
       <Content>View User</Content>
     </Action>
-  </div>
-</div>
+  </Block>
+</Block>

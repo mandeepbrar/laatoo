@@ -1,5 +1,5 @@
-<div  className="user_header">
-  <div className="tablecell">User Name</div>
-  <div className="tablecell">User ID</div>
-  <div className="tablecell"></div>
-</div>
+<Block  className="user_header">
+  <Block className="tablecell">User Name</Block>
+  <Block className="tablecell">User ID</Block>
+  <Block className="tablecell"></Block>
+</Block>

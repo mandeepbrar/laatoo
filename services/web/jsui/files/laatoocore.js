@@ -39,8 +39,17 @@ var _$=Application.Modules;
 var _rm = Application.RegisterModule;
 var _r = Application.Register;
 var _reg= Application.GetRegistry;
-var _re= null;
-var _ce= null;
+var _re = null;
+var _ce = null;
+function createElement(elem, props, children, name) {
+  if(elem) {
+    return _re.createElement(elem, props, children);
+  }
+  else {
+    console.log("Element is null ", (name? name: ""));
+  }
+  return null
+}
 function Base64Decoder(){
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   // Use a lookup table to find the index.
@@ -154,7 +163,7 @@ function initMods(appname, propsurl, modsToInitialize) {
   var init = function() {
     console.log("Initializing application", modsToInitialize);
     _re=require('react');
-    _ce=_re.createElement;
+    _ce=createElement;
     if(modsToInitialize!=null) {
       for(var i=0;i<modsToInitialize.length;i++) {
         var row = modsToInitialize[i];

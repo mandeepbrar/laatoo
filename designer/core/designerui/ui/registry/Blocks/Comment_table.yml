@@ -1,9 +1,9 @@
-div:
+Block:
   className: comment_default
   children:
-  - div:
+  - Block:
       className: field
       body: some {{js "ctx.data.Post" "insert"}}
-  - div:
+  - Block:
       className: field
       body: this is {{js "ctx.data.PostTitle" "insert"}}

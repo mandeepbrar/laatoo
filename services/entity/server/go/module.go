@@ -132,23 +132,23 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 	blocks := ctx.CreateConfig()
 
 	tableHeaderStr := `{
-			div: {
+			Block: {
 				className: "%s_list_header tableheading ",
 				children: [
 					{
-						div:	{
+						Block:	{
 							className: "tablecell",
 							body: "Name"
 						}
 					},
 					{
-						div:	{
+						Block:	{
 							className: "tablecell",
 							body: "Last Updated"
 						}
 					},
 					{
-						div:	{
+						Block:	{
 							className: "tablecell",
 							body: ""
 						}
@@ -169,23 +169,23 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 			config: {
 				skip: false
 			},
-			div: {
+			Block: {
 				className: "%s_tablerow tablerow javascript%s ",
 			  children: [
 					{
-						div: {
+						Block: {
 							className: "tablecell field",
 							body: "javascript%s"
 						}
 					},
 					{
-						div: {
+						Block: {
 							className: "tablecell field",
 							body: "javascript%s"
 						}
 					},
 					{
-						div: {
+						Block: {
 							className: "tablecell field",
 							children: [
 								{
@@ -294,7 +294,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
 	//blkDiv.Set(ctx, "children", fields)
 	blkDiv.Set(ctx, "body", "javascript###Window.displayDefaultEntity(ctx, desc, uikit)###")
 	blkDiv.Set(ctx, "className", "entity default "+entity.object)
-	defaultBlk.Set(ctx, "div", blkDiv)
+	defaultBlk.Set(ctx, "Block", blkDiv)
 	blocks.Set(ctx, entity.object+"_default", defaultBlk)
 
 	/*fields, ok := entity.entityConf.GetSubConfig(ctx, "fields")

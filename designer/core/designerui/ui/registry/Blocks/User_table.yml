@@ -1,17 +1,16 @@
-div:
+Block:
   className: user_default
   children:
-  - div:
+  - Block:
       className: field
       body: {{js "ctx.data.Username"}}
-  - div:
+  - Block:
       className: field
       body: this is {{js "ctx.data.Id" "insert"}}
-  - div:
+  - Block:
       className: field
       children:
       - Action:
-          module: reactwebcommon
           name: viewUser
           params:
             id: {{js "ctx.data.Id"}}

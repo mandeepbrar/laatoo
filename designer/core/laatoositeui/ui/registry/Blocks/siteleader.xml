@@ -1,20 +1,20 @@
-<div className="siteleader w100">
-    <div className="row w960 ma">
-        <div  className="w100 row m50">
-            <div className="col-xs-6">
-                <Image src="images/spintop.jpg" module="reactwebcommon"/>
-            </div>
-            <div className="col-xs-6 fd fdmiddle">
-                <div className="right">
-                    <h2 className="m50">
+<Block className="siteleader w100">
+    <Block className="row w960 ma">
+        <Block  className="w100 row m50">
+            <Block className="col-xs-6">
+                <Image src="images/spintop.jpg"/>
+            </Block>
+            <Block className="col-xs-6 fd fdmiddle">
+                <Block className="right">
+                    <h2 className="m50" module="html">
                         Rapid application development
                     </h2>
-                    <br/>
-                    <h3 className="m20">
+                    <br module="html"/>
+                    <h3 className="m20" module="html">
                         Modular, Configurable, Cloud Ready
                     </h3>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                </Block>
+            </Block>
+        </Block>
+    </Block>
+</Block>

@@ -79,6 +79,7 @@ func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType stri
 			var n Node
 			err = dec.Decode(&n)
 			if err != nil {
+				log.Error(ctx, "Xml Error ", "err", err)
 				return errors.WrapError(ctx, err)
 			}
 			if itemType == BLOCK_REG {

@@ -40,7 +40,7 @@ func (svc *UI) regItem(ctx core.ServerContext, itemType, itemName, cont string) 
 
 func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName string, conf config.Config) error {
 
-	val, err := svc.processBlockConf(ctx, conf)
+	val, err := svc.processBlockConf(ctx, conf, itemName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -51,7 +51,8 @@ func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName
 
 func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName string, node Node) error {
 	ctx = ctx.SubContext(fmt.Sprintf("%s_%s", itemType, itemName))
-	val, err := svc.processXMLBlockNode(ctx, node)
+	log.Error(ctx, "creating xml block", "itemName", itemName)
+	val, err := svc.processXMLBlockNode(ctx, node, itemName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -59,7 +60,7 @@ func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName 
 	return nil
 }
 
-func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, error) {
+func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node, itemName string) (string, error) {
 	children := make([]string, 0)
 	var mod = ""
 	attrBuf := new(bytes.Buffer)
@@ -119,7 +120,7 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, e
 			}
 		default:
 			{
-				childTxt, err := svc.processXMLBlockNode(ctx, n)
+				childTxt, err := svc.processXMLBlockNode(ctx, n, itemName)
 				if err != nil {
 					return "", errors.WrapError(ctx, err)
 				}
@@ -127,6 +128,8 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, e
 			}
 		}
 	}
+	log.Error(ctx, "Reading attributes")
+
 	//attrs := make(map[string]interface{})
 	for _, attr := range node.Attrs {
 		val := attr.Value
@@ -149,22 +152,14 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node) (string, e
 		children = append(children, fmt.Sprintf("%s", processJS(ctx, string(val))))
 	}
 
-	elem := ""
-	switch mod {
-	case "":
-		elem = fmt.Sprintf("'%s'", node.XMLName.Local)
-	case "uikit":
-		elem = fmt.Sprintf("uikit.%s", node.XMLName.Local)
-	default:
-		elem = fmt.Sprintf("_$['%s'].%s", mod, node.XMLName.Local)
-	}
-
+	elem, elemname := getModString(ctx, node.XMLName.Local, mod, itemName)
+	log.Error(ctx, "element returned", "mod", mod, "local", node.XMLName.Local, "children", children)
 	childArrStr := "null"
 	if len(children) > 0 {
 		childArrStr = fmt.Sprintf("[%s]", strings.Join(children, ","))
 	}
 	//n.Attrs
-	return fmt.Sprintf("_ce(%s, %s, %s)", elem, attrStr, childArrStr), nil
+	return fmt.Sprintf("_ce(%s, %s, %s, %s)", elem, attrStr, childArrStr, elemname), nil
 }
 
 func processJS(ctx core.ServerContext, input string) string {
@@ -222,7 +217,18 @@ func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string 
 	return fmt.Sprintf("{%s}", attrBuf.String())
 }
 
-func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (string, error) {
+func getModString(ctx core.ServerContext, elem, mod, itemname string) (string, string) {
+	switch mod {
+	case "":
+		return fmt.Sprintf("uikit.%s", elem), fmt.Sprintf("'%s.uikit.%s'", itemname, elem)
+	case "html":
+		return fmt.Sprintf("'%s'", elem), fmt.Sprintf("'%s.%s.%s'", itemname, mod, elem)
+	default:
+		return fmt.Sprintf("_$['%s'].%s", mod, elem), fmt.Sprintf("'%s.%s.%s'", itemname, mod, elem)
+	}
+}
+
+func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, itemName string) (string, error) {
 
 	//svc.processJS(ctx, conf)
 	keys := conf.AllConfigurations(ctx)
@@ -242,7 +248,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 		childrenArr, ok := root.GetConfigArray(ctx, "children")
 		if ok {
 			for _, child := range childrenArr {
-				childTxt, err := svc.processBlockConf(ctx, child)
+				childTxt, err := svc.processBlockConf(ctx, child, itemName)
 				if err != nil {
 					return "", errors.WrapError(ctx, err)
 				}
@@ -295,18 +301,13 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config) (str
 
 		attrStr := fmt.Sprintf("{%s}", attrBuf.String())
 
-		elem := ""
-		if mod == "" {
-			elem = fmt.Sprintf("'%s'", rootelem)
-		} else {
-			elem = fmt.Sprintf("_$['%s'].%s", mod, rootelem)
-		}
+		elem, elemName := getModString(ctx, rootelem, mod, itemName)
 
 		//n.Attrs
 		if content != "" {
-			return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, processJS(ctx, content)), nil
+			return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, processJS(ctx, content), elemName), nil
 		}
-		return fmt.Sprintf("_ce(%s, %s, [%s])", elem, attrStr, strings.Join(childStr, ",")), nil
+		return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, strings.Join(childStr, ","), elemName), nil
 
 	}
 	return "", nil

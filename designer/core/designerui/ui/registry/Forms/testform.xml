@@ -1,5 +1,5 @@
-<Form module="uikit" entity="comment" className="w100">
-  <h1>my form</h1>
+<Form  entity="comment" className="w100">
+  <h1 module="html">my form</h1>
   <Field name="post" type="string" label="Post" module="reactforms"  className="w100"/>
   <Field name="review" type="bool" label="Review" module="reactforms" />
   <Field name="tester" type="string" label="Choice" module="reactforms"  className="w100" widget="Select">
