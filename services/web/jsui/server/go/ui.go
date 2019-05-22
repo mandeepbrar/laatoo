@@ -130,7 +130,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 
 	_, modRead := svc.uiFiles[modName]
 
-	if !modRead {
+	if modInfo.Hot || !modRead {
 
 		if modInfo.IsExtended {
 			if err := svc.LoadFiles(ctx, modInfo, modInfo.ExtendedModName, modInfo.ExtendedModConf, modInfo.ExtendedModDir); err != nil {
@@ -244,6 +244,7 @@ func (svc *UI) LoadFiles(ctx core.ServerContext, modInfo *components.ModInfo, mo
 
 	cssfile := path.Join(modFilesDir, CSS_DIR, "app.css")
 	ok, _, _ = utils.FileExists(cssfile)
+	log.Error(ctx, "CSS file exists", "file", cssfile, "ok", ok)
 	if ok {
 		cont, err := ioutil.ReadFile(cssfile)
 		if err != nil {

@@ -45,6 +45,7 @@ modules:
   entity:
   user:
   jsui:
+    cachefiles: false
   laatoositeui:
     hotmodule: true
     hotmodulepath: designer/core/laatoositeui

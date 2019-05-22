@@ -51,6 +51,10 @@ objects:
    hotmodules: 
     type: stringmap
     description: Hot modules for development
+   cachefiles:
+    type: string
+    description: Cache generated scripts and css files. Set false for hot module support
+    default: true
 params:
  application: 
     type: string

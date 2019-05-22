@@ -117,7 +117,7 @@ func (modMgr *moduleManager) loadPluginWithMod(ctx core.ServerContext, modIns *s
 	if modIns.parentInstance != nil {
 		parentName = modIns.parentInstance.name
 	}
-
+	_, hot := modMgr.hotModules[modIns.moduleName]
 	modInfo := &components.ModInfo{
 		InstanceName:    modIns.name,
 		ModName:         modIns.moduleName,
@@ -131,6 +131,7 @@ func (modMgr *moduleManager) loadPluginWithMod(ctx core.ServerContext, modIns *s
 		ExtendedModName: modIns.extendedMod,
 		ExtendedModConf: modIns.extendedModConf,
 		ExtendedModDir:  modIns.extendedModDir,
+		Hot:             hot,
 	}
 
 	err := plugin.Load(modInsCtx, modInfo)

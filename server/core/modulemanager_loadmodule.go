@@ -28,7 +28,7 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 				if fnd {
 					modDir = path.Join(modMgr.hotModulesRepo, modDevDir)
 				}
-
+				modMgr.hotModules[moduleName] = modDir
 				if hot {
 					log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
 					go modMgr.addWatch(ctx, moduleName, modDir, moduleInstallConf)

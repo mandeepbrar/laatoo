@@ -54,7 +54,6 @@ func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Conf
 
 	availableModules, _ := conf.GetSubConfig(ctx, constants.CONF_MODULES)
 
-	modMgr.hotModules = make(map[string]string)
 	modMgr.watchers = make([]*watcher.Watcher, 0)
 
 	modMgr.objLoader = modMgr.svrref.objectLoaderHandle.(*objectLoader)

@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
@@ -47,12 +46,30 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 	w := watcher.New()
 	w.SetMaxEvents(1)
 	log.Info(ctx, "Add nonCompileFileChanges", "modName", modName)
+
+	addFoldersToWatcher := func(ctx core.ServerContext, modDir string, w *watcher.Watcher) error {
+		log.Error(ctx, "adding non compile folders", "moddir", modDir)
+		foldersToWatch := []string{"files", "ui/registry", "properties"} /*"uibuild", "objects",*/
+
+		for _, name := range foldersToWatch {
+			folderToWatch := path.Join(modDir, name)
+			exists, _, _ := utils.FileExists(folderToWatch)
+			if exists {
+				if err := w.AddRecursive(folderToWatch); err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+		return nil
+	}
+
 	go func(ctx core.ServerContext, modName, modDir string) {
 		for {
 			select {
 			case event := <-w.Event:
 				log.Info(ctx, "Hot module changed", "modName", modName, " file ", event.Path, "event", event)
 				reloadCtx := ctx.SubContext("Reload module " + modName)
+				w.Close()
 				err := modMgr.ReloadModule(reloadCtx, modName, modDir)
 				if err != nil {
 					log.Error(reloadCtx, "Error while reloading module", err)
@@ -66,23 +83,11 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 		}
 	}(ctx, modName, modDir)
 
-	files, err := ioutil.ReadDir(modDir)
-	if err != nil {
+	modMgr.startWatcher(ctx, w, time.Millisecond*800)
+
+	if err := addFoldersToWatcher(ctx, modDir, w); err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
-	for _, f := range files {
-		name := f.Name()
-		if name != "ui" && name != "server" && name != "uibuild" && name != "objects" && f.IsDir() {
-			log.Info(ctx, "Add watcher", "modName", modName, "name", name)
-			// Watch test_folder recursively for changes.
-			if err := w.AddRecursive(path.Join(modDir, name)); err != nil {
-				return errors.WrapError(ctx, err)
-			}
-		}
-	}
-
-	modMgr.startWatcher(ctx, w, time.Millisecond*800)
 
 	modMgr.watchers = append(modMgr.watchers, w)
 	return nil
@@ -108,7 +113,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 
 	addFoldersToWatcher := func(ctx core.ServerContext, modDir string, w *watcher.Watcher) error {
 		log.Error(ctx, "adding folders", "moddir", modDir)
-		foldersToWatch := []string{"ui", "server"}
+		foldersToWatch := []string{"ui/js", "server/go", "build"}
 		w.AddFilterHook(autogen_skipper)
 
 		for _, name := range foldersToWatch {
@@ -172,7 +177,9 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		}
 	}(ctx, modName, modDir, compilerCommand)
 
-	addFoldersToWatcher(ctx, modDir, compileWatcher)
+	if err := addFoldersToWatcher(ctx, modDir, compileWatcher); err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	log.Info(ctx, "Added Compile watcher", "modDir", modDir)
 
 	modMgr.startWatcher(ctx, compileWatcher, time.Millisecond*5000)
