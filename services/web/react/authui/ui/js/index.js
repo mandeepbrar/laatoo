@@ -2,6 +2,8 @@ import React from 'react';
 import {LoginComponent} from './LoginComponent';
 import {LoginValidator} from './LoginValidator';
 import {renderWebLogin} from './WebLoginForm';
+import {renderSignup} from './SignupForm';
+import {SignupComponent} from './SignupComponent';
 const PropTypes = require('prop-types');
 import './reducers/Security';
 import './sagas/Security';
@@ -24,12 +26,14 @@ function Initialize(appName, ins, mod, settings, def, req) {
   } else {
     Application.Security = {
       loginService: "login",
+      signupService: "signup",
       validateService: "validate",
       realm: ""
     }
     let loginSvc = _reg("Services")
     if(!loginSvc) {
       Application.Register('Services', 'login', {url:"/login", method:'POST'})
+      Application.Register('Services', 'signup', {url:"/register", method:'POST'})
       Application.Register('Services', 'validate', {url:"/validate", method:'POST'})
     }
   }
@@ -45,12 +49,23 @@ function Initialize(appName, ins, mod, settings, def, req) {
 const WebLoginForm = (props, context) => {
   console.log("render logiform", LoginComponent)
   return (
-    <LoginComponent className={props.className} renderLogin={renderWebLogin(context.uikit, module.settings, module.properties)} realm={props.realm} loginService={props.loginService}
-      loginServiceURL={props.loginServiceURL} googleAuthUrl={props.googleAuthUrl}/>
+    <LoginComponent className={props.className} renderLogin={renderWebLogin(context.uikit, module.settings, module.properties)} loginService={props.loginService}
+      googleAuthUrl={props.googleAuthUrl}/>
   )
 }
 
 WebLoginForm.contextTypes = {
+  uikit: PropTypes.object
+};
+
+const SignupForm = (props, context) => {
+  console.log("render signup form", SignupComponent)
+  return (
+    <SignupComponent className={props.className} renderSignup={renderSignup(context.uikit, module.settings, module.properties)} module={module}/>
+  )
+}
+
+SignupForm.contextTypes = {
   uikit: PropTypes.object
 };
 
@@ -67,6 +82,9 @@ export {
   Initialize,
   LoginComponent,
   renderWebLogin,
+  renderSignup,
+  SignupComponent,
+  SignupForm,
   WebLoginForm,
   LoginValidator
 }

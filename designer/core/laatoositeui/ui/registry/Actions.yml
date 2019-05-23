@@ -1,2 +1,5 @@
-viewAccount:
+signin:
   url: "/designer"
+  newpage: true
+signup:
+  url: "/signup"

@@ -3,6 +3,22 @@ import { call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions';
 import {  createAction, Response,  DataSource,  RequestBuilder } from 'uicommon';
 
+
+function* signup(action) {
+  try {
+    yield put(createAction(ActionNames.SIGNING_UP));
+    let req = RequestBuilder.DefaultRequest(null, action.payload);
+    const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
+    let signupaction = createAction(ActionNames.SIGNUP_SUCCESS, {});
+    yield put(signupaction);
+    console.log("dispatched signup action success");
+  } catch (e) {
+    yield put(createAction(ActionNames.SIGNUP_FAILURE, e));
+    Window.handleError(e);
+  }
+}
+
+
 function* login(action) {
   try {
     yield put(createAction(ActionNames.LOGGING_IN));
@@ -18,6 +34,7 @@ function* login(action) {
     console.log("dispatched login action &&&&")
   } catch (e) {
     yield put(createAction(ActionNames.LOGIN_FAILURE, e));
+    Window.handleError(e);
   }
 }
 
@@ -25,12 +42,13 @@ function* logout(action) {
   yield put(createAction(ActionNames.LOGOUT_SUCCESS, {}));
 }
 
-function* loginSaga() {
+function* authSaga() {
   yield [
     takeLatest(ActionNames.LOGIN, login),
+    takeLatest(ActionNames.SIGN_UP, signup),
     takeLatest(ActionNames.LOGOUT, logout)
   ];
 }
 
 //export {loginSaga as loginSaga};
-Application.Register('Sagas', "loginSaga", loginSaga)
+Application.Register('Sagas', "authSaga", authSaga)

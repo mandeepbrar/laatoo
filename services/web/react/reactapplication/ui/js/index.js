@@ -85,6 +85,9 @@ function createMessageDialogs(store) {
       console.log(Ex)
     }
   }
+  Window.handleError = function(errObj, resp) {
+    Window.showError(errObj, resp)
+  }
   Window.showDialog = function(title, component, onClose, actions, contentStyle, titleStyle) {
     store.dispatch(createAction(Actions.SHOW_DIALOG, {Title: title, Component: component, OnClose: onClose, Actions: actions, ContentStyle: contentStyle, TitleStyle: titleStyle}, null))
   }

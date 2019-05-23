@@ -64,7 +64,7 @@ class ActionComp extends React.Component {
         let formattedUrl = formatUrl(this.action.url, this.props.params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
-        Window.redirect(formattedUrl); //Router.redirect(formattedUrl);
+        Window.redirect(formattedUrl, this.action.newpage); //Router.redirect(formattedUrl);
       }
       return false;
     }

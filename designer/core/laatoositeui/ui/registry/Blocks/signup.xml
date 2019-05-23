@@ -1,0 +1,3 @@
+<Block className="signup" >
+    <SignupForm module="authui"/>
+</Block>

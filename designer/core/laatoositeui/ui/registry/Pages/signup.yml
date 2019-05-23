@@ -1,0 +1,7 @@
+route: "/signup"
+component:
+  type: layout
+  layout: 1col
+  items:
+    - type: block
+      id: signup

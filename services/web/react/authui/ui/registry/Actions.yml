@@ -4,3 +4,5 @@ googleAuth:
   actiontype: method
 logout:
   actiontype: method
+signupAction:
+  actiontype: method

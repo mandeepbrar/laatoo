@@ -7,3 +7,14 @@ loginForm:
   userplaceholder: Email
   passwordlabel: Password
   passwordplaceholder: Password
+signupForm:
+  signupBtnText: Register
+  formtext: 'Sign up'
+  userlabel: Email
+  userplaceholder: Email
+  passwordlabel: Password
+  passwordplaceholder: Password
+  confirmpasswordlabel: Confirm Password
+  confirmpasswordplaceholder: Confirm Password
+errors:
+  passwordmismatch: Passwords do not match

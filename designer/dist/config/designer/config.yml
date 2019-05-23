@@ -1,6 +1,6 @@
 modulesrepo: "/modules"
 logging:
-  level: info
+  level: trace
   format: happymax
   settings:
     protocol: tcp
