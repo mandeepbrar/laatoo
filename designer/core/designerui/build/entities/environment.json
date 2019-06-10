@@ -2,6 +2,7 @@
   "name":"Environment",
   "inherits":"",
   "imports":[],
+  "multitenant": true,
   "form": {
     "tabs": {
       "General": ["Name", "Description", "Solution", "ServerTemp", "LoggingLevel", "LoggingFormat"],
@@ -30,12 +31,10 @@
         "type":"string"
     },
     "Solution": {
-      "type":"entity",
-      "entity": "Solution",
-      "ref": true
+      "type":"storableref"
     },
     "ServerTemp": {
-      "type":"entity",
+      "type":"subentity",
       "entity": "Server",
       "label": "Server Template",
       "ref": true

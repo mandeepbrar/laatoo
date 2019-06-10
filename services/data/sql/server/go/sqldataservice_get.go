@@ -17,8 +17,9 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	log.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
 	object := svc.ObjectCreator()
+	query := svc.getMultitenantQuery(ctx, svc.db)
 
-	err := svc.db.First(object, id).Error
+	err := query.First(object, id).Error
 
 	if err != nil {
 		return nil, errors.RethrowError(ctx, data.DATA_ERROR_OPERATION, err, "ID", id)
@@ -95,7 +96,9 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	}
 	results := svc.ObjectCollectionCreator(lenids)
 
-	query := svc.db.Where(ids)
+	query := svc.getMultitenantQuery(ctx, svc.db)
+
+	query = query.Where(ids)
 
 	if len(orderBy) > 0 {
 		query = query.Order(orderBy)
@@ -212,6 +215,7 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 			if lenarr == 0 {
 				return input, nil
 			}
+			input = svc.getMultitenantQuery(ctx, input)
 			placeholders := fmt.Sprintf("%s in( %s)", cond.args[0], strings.Trim(strings.Repeat("?,", lenarr), ","))
 			return input.Where(placeholders, arr...), nil
 			//append([]interface{}{placeholders}, arr...), nil //"name in (?)", []string{"jinzhu", "jinzhu 2"}
@@ -237,6 +241,9 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 			if svc.SoftDelete {
 				argsMap[svc.SoftDeleteField] = false
 			}
+			if svc.Multitenant {
+				argsMap["Tenant"] = ctx.GetUser().GetTenant()
+			}
 			return input.Where(argsMap), nil
 		}
 	default:
@@ -247,6 +254,14 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 //create condition for passing to data service
 func (svc *sqlDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	return &sqlCondition{operation, args}, nil
+}
+
+func (svc *sqlDataService) getMultitenantQuery(ctx core.RequestContext, input *gorm.DB) *gorm.DB {
+	if svc.Multitenant {
+		multiTenant := fmt.Sprintf(" Tenant='%s' ", ctx.GetUser().GetTenant())
+		return input.Where(multiTenant)
+	}
+	return input
 }
 
 type sqlCondition struct {

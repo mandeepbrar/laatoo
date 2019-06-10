@@ -1,0 +1,8 @@
+route: "/solutions"
+authenticate: true
+component:
+  type: layout
+  layout: 1col
+  items:
+    - type: view
+      id: list_solutions

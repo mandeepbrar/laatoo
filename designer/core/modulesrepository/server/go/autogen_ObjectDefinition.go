@@ -1,35 +1,36 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type Task_Ref struct {
+type ObjectDefinition_Ref struct {
   Id    string
   Name string
 }
 
-type Task struct {
+type ObjectDefinition struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Receiver	string `json:"Receiver" bson:"Receiver" datastore:"Receiver"`
-	Processor	string `json:"Processor" bson:"Processor" datastore:"Processor"`
+	Type	string `json:"Type" bson:"Type" datastore:"Type"`
+	Configurations	[]ConfigurationDefinition `json:"Configurations" bson:"Configurations" datastore: "Configurations"`
 }
 
-func (ent *Task) Config() *data.StorableConfig {
+func (ent *ObjectDefinition) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Task",
+		Type:            "ObjectDefinition",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Task",
+		Multitenant:     false,
+		Collection:      "ObjectDefinition",
 		Cacheable:       false,
 	}
 }

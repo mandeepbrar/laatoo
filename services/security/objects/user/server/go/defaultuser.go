@@ -62,6 +62,7 @@ type DefaultUser struct {
 	Name                     string   `json:"Name" bson:"Name"`
 	Picture                  string   `json:"Picture" bson:"Picture"`
 	Realm                    string   `json:"Realm" bson:"Realm"`
+	Tenant                   string   `json:"Tenant" bson:"Tenant"`
 }
 
 //Creates object
@@ -187,6 +188,13 @@ func (usr *DefaultUser) GetUserName() string {
 
 func (usr *DefaultUser) GetPicture() string {
 	return usr.Picture
+}
+
+func (usr *DefaultUser) GetTenant() string {
+	if usr.Tenant == "" {
+		return usr.GetId()
+	}
+	return usr.Tenant
 }
 
 func (usr *DefaultUser) LoadClaims(claims map[string]interface{}) {

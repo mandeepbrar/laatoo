@@ -1,4 +1,5 @@
 name: list_{{default "instance" "object" | lower}}
+authenticate: {{if exists "authenticate_view"}} {{var "authenticate_view"}} {{else}} true {{end}} 
 config:
   skip: {{contains "skipItems" "list_page" }}
 route: {{if exists "list_page_route"}} {{var "list_page_route"}} {{else}} /list_{{default "instance" "object" | lower}} {{end}}

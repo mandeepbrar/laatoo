@@ -1,4 +1,4 @@
-package autogen
+package main
 
 import (
   
@@ -11,12 +11,11 @@ type Server_Ref struct {
 }
 
 type Server struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+	data.SoftDeleteAuditableMT `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
-	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore: "Solution"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
@@ -42,6 +41,7 @@ func (ent *Server) Config() *data.StorableConfig {
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
+		Multitenant:     true,
 		Collection:      "Server",
 		Cacheable:       false,
 	}

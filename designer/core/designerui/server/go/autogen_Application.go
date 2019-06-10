@@ -1,24 +1,23 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type Environment_Ref struct {
+type Application_Ref struct {
   Id    string
   Title string
 }
 
-type Environment struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+type Application struct {
+	data.SoftDeleteAuditableMT `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
-	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
-	ServerTempRef	*Server `json:"ServerTempRef" bson:"ServerTempRef" datastore:"ServerTempRef"`
-	ServerTemp	string `json:"ServerTemp" bson:"ServerTemp" datastore: "ServerTemp"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore: "Solution"`
+	ServerTemp	*Server `json:"ServerTemp" bson:"ServerTemp" datastore:"ServerTemp"`
+	EnvironmentTemp	*Environment `json:"EnvironmentTemp" bson:"EnvironmentTemp" datastore:"EnvironmentTemp"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
@@ -34,17 +33,18 @@ type Environment struct {
 	Security	Security `json:"Security" bson:"Security" datastore: "Security"`
 }
 
-func (ent *Environment) Config() *data.StorableConfig {
+func (ent *Application) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Title",
-		Type:            "Environment",
+		Type:            "Application",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Environment",
+		Multitenant:     true,
+		Collection:      "Application",
 		Cacheable:       false,
 	}
 }

@@ -1,4 +1,4 @@
-package autogen
+package main
 
 import (
   
@@ -11,11 +11,12 @@ type Solution_Ref struct {
 }
 
 type Solution struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+	data.SoftDeleteAuditableMT `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Modules	[]Module `json:"Modules" bson:"Modules" datastore: "Modules"`
+	User	string `json:"User" bson:"User" datastore:"User"`
+	Modules	[]data.StorableRef `json:"Modules" bson:"Modules" datastore: "Modules"`
 }
 
 func (ent *Solution) Config() *data.StorableConfig {
@@ -28,6 +29,7 @@ func (ent *Solution) Config() *data.StorableConfig {
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
+		Multitenant:     true,
 		Collection:      "Solution",
 		Cacheable:       false,
 	}

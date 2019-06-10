@@ -1,34 +1,37 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type Channel_Ref struct {
+type ConfigurationDefinition_Ref struct {
   Id    string
   Name string
 }
 
-type Channel struct {
+type ConfigurationDefinition struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Service	string `json:"Service" bson:"Service" datastore:"Service"`
+	Type	string `json:"Type" bson:"Type" datastore:"Type"`
+	Default	string `json:"Default" bson:"Default" datastore:"Default"`
+	Required	bool `json:"Required" bson:"Required" datastore:"Required"`
 }
 
-func (ent *Channel) Config() *data.StorableConfig {
+func (ent *ConfigurationDefinition) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Channel",
+		Type:            "ConfigurationDefinition",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Channel",
+		Multitenant:     false,
+		Collection:      "ConfigurationDefinition",
 		Cacheable:       false,
 	}
 }

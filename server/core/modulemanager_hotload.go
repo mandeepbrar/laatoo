@@ -105,7 +105,7 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 	compileWatcher.SetMaxEvents(1)
 
 	autogen_skipper := func(info os.FileInfo, fullPath string) error {
-		if strings.Contains(fullPath, "autogen") {
+		if strings.Contains(fullPath, "autogen_") {
 			return watcher.ErrSkip
 		}
 		return nil

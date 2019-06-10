@@ -1,33 +1,35 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type KeyValue_Ref struct {
+type Factory_Ref struct {
   Id    string
   Name string
 }
 
-type KeyValue struct {
+type Factory struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Value	string `json:"Value" bson:"Value" datastore:"Value"`
+	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	Object	string `json:"Object" bson:"Object" datastore:"Object"`
 }
 
-func (ent *KeyValue) Config() *data.StorableConfig {
+func (ent *Factory) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "KeyValue",
+		Type:            "Factory",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "KeyValue",
+		Multitenant:     false,
+		Collection:      "Factory",
 		Cacheable:       false,
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"designerui/autogen"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/log"
 )
@@ -33,7 +32,7 @@ func (svc *ObjectResolver) Invoke(ctx core.RequestContext) error {
 func (svc *ObjectResolver) resolveServer(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve server")
 	obj, _ := ctx.GetParamValue("object")
-	svr := obj.(*autogen.Server)
+	svr := obj.(*Server)
 	log.Error(ctx, "Received server", "svr", svr)
 	return nil
 }
@@ -41,7 +40,7 @@ func (svc *ObjectResolver) resolveServer(ctx core.RequestContext) error {
 func (svc *ObjectResolver) resolveEnvironment(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve environment")
 	obj, _ := ctx.GetParamValue("object")
-	env := obj.(*autogen.Environment)
+	env := obj.(*Environment)
 	log.Error(ctx, "Received environment", "env", env)
 	return nil
 }
@@ -49,7 +48,7 @@ func (svc *ObjectResolver) resolveEnvironment(ctx core.RequestContext) error {
 func (svc *ObjectResolver) resolveApplication(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("Resolve application")
 	obj, _ := ctx.GetParamValue("object")
-	app := obj.(*autogen.Application)
+	app := obj.(*Application)
 	log.Error(ctx, "Received application", "app", app)
 	return nil
 }

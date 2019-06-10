@@ -1,5 +1,4 @@
 signin:
-  url: "/designer"
-  newpage: true
+  url: "/list_solution"
 signup:
   url: "/signup"

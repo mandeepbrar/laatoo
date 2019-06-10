@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -111,6 +111,9 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 			return err
 		}
 	}
+	if ms.Multitenant {
+		item.(data.StorableMT).SetTenant(ctx.GetUser().GetTenant())
+	}
 	if ms.Auditable {
 		data.Audit(ctx, item)
 	}
@@ -137,6 +140,13 @@ func (ms *mongoDataService) CreateMulti(ctx core.RequestContext, items []data.St
 
 func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Storable) error {
 	ctx = ctx.SubContext("PutMulti")
+	if ms.Multitenant {
+		for _, item := range items {
+			if item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant() {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+			}
+		}
+	}
 	log.Trace(ctx, "Saving multiple objects", "ObjectType", ms.Object)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -179,6 +189,9 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 
 func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
+	if ms.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+	}
 	log.Trace(ctx, "Putting object", "ObjectType", ms.Object, "id", id)
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -238,6 +251,9 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	}
 	condition := bson.M{}
 	condition[ms.ObjectId] = id
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	var err error
@@ -357,6 +373,9 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 		return ms.Update(ctx, id, map[string]interface{}{ms.SoftDeleteField: true})
 	}
 	condition := bson.M{}
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
 	condition[ms.ObjectId] = id
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
@@ -373,6 +392,9 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 	conditionVal := bson.M{}
 	conditionVal["$in"] = ids
 	condition := bson.M{}
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
 	condition[ms.ObjectId] = conditionVal
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()

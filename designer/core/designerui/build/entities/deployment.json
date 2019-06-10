@@ -2,6 +2,7 @@
   "name":"Deployment",
   "inherits":"",
   "imports":[],
+  "multitenant": true,
   "form": {
     "layout":["Name", "Description", "Solution", "Server", "Environment", "Application"]
   },
@@ -14,24 +15,20 @@
         "type":"string"
     },
     "Solution": {
-      "type":"entity",
-      "entity": "Solution",
-      "ref": true
+      "type":"storableref",
+      "entity": "Solution"
     },
     "Environment": {
       "type":"entity",
-      "entity":"Environment",
-      "ref": true
+      "entity":"Environment"
     },
     "Server": {
       "type":"entity",
-      "entity":"Server",
-      "ref": true
+      "entity":"Server"
     },
     "Application": {
       "type":"entity",
-      "entity":"Application",
-      "ref": true
+      "entity":"Application"
     }
   }
 }

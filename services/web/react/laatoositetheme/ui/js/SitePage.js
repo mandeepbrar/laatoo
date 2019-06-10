@@ -21,7 +21,7 @@ function RenderPageComponent(comp, key, pageId, routerState, page, uikit) {
 
 const SitePage  = (props, context) => {
     console.log("rendering site page", props, context, module)
-    let needAuthentication = props.pageComp.authenticate || module.authenticate
+    let needAuthentication = props.page.authenticate || module.authenticate
     if(!needAuthentication || context.loggedIn) {
         return <PageComponent pageId={props.pageId} placeholder={props.pageKey} routerState={props.routerState} description={props.pageComp} />
     } else {

@@ -2,6 +2,7 @@
   "name":"Server",
   "inherits":"",
   "imports":[],
+  "multitenant": true,
   "form": {
     "tabs": {
       "General": ["Name", "Description", "Solution", "LoggingLevel", "LoggingFormat"],
@@ -30,9 +31,8 @@
         "type":"string"
     },
     "Solution": {
-      "type":"entity",
-      "entity": "Solution",
-      "ref": true
+      "type":"storableref",
+      "entity": "Solution"
     },
     "LoggingLevel": {
         "type":"string",

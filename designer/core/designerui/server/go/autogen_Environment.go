@@ -1,26 +1,22 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type Application_Ref struct {
+type Environment_Ref struct {
   Id    string
   Title string
 }
 
-type Application struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+type Environment struct {
+	data.SoftDeleteAuditableMT `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	SolutionRef	*Solution `json:"SolutionRef" bson:"SolutionRef" datastore:"SolutionRef"`
-	Solution	string `json:"Solution" bson:"Solution" datastore: "Solution"`
-	ServerTempRef	*Server `json:"ServerTempRef" bson:"ServerTempRef" datastore:"ServerTempRef"`
-	ServerTemp	string `json:"ServerTemp" bson:"ServerTemp" datastore: "ServerTemp"`
-	EnvironmentTempRef	*Environment `json:"EnvironmentTempRef" bson:"EnvironmentTempRef" datastore:"EnvironmentTempRef"`
-	EnvironmentTemp	string `json:"EnvironmentTemp" bson:"EnvironmentTemp" datastore: "EnvironmentTemp"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore: "Solution"`
+	ServerTemp	Server `json:"ServerTemp" bson:"ServerTemp" datastore: "ServerTemp"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
@@ -36,17 +32,18 @@ type Application struct {
 	Security	Security `json:"Security" bson:"Security" datastore: "Security"`
 }
 
-func (ent *Application) Config() *data.StorableConfig {
+func (ent *Environment) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Title",
-		Type:            "Application",
+		Type:            "Environment",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Application",
+		Multitenant:     true,
+		Collection:      "Environment",
 		Cacheable:       false,
 	}
 }

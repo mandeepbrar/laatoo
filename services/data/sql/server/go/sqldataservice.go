@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -122,6 +122,9 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 			return err
 		}
 	}
+	if svc.Multitenant {
+		item.(data.StorableMT).SetTenant(ctx.GetUser().GetTenant())
+	}
 	if svc.Auditable {
 		data.Audit(ctx, item)
 	}
@@ -150,6 +153,13 @@ func (svc *sqlDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 }
 func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storable, createNew bool) error {
 	ctx = ctx.SubContext("PutMulti")
+	if svc.Multitenant {
+		for _, item := range items {
+			if item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant() {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+			}
+		}
+	}
 	for _, item := range items {
 		if svc.PreSave {
 			err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)
@@ -190,6 +200,9 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
+	if svc.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+	}
 	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
 	if svc.PreSave {
@@ -244,11 +257,13 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if upsert {
 		newVals[svc.ObjectId] = id
 	}
+	query := svc.getMultitenantQuery(ctx, svc.db)
+
 	var err error
 	if upsert {
-		err = svc.db.Where([]string{id}).FirstOrCreate(newVals).Error
+		err = query.Where([]string{id}).FirstOrCreate(newVals).Error
 	} else {
-		err = svc.db.Where([]string{id}).Updates(newVals).Error
+		err = query.Where([]string{id}).Updates(newVals).Error
 	}
 	if err != nil {
 		return err
@@ -334,7 +349,8 @@ func (svc *sqlDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			return errors.WrapError(ctx, err)
 		}
 	}
-	err := svc.db.Where(ids).Updates(newVals).Error
+	query := svc.getMultitenantQuery(ctx, svc.db)
+	err := query.Where(ids).Updates(newVals).Error
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -355,7 +371,8 @@ func (svc *sqlDataService) Delete(ctx core.RequestContext, id string) error {
 	if svc.SoftDelete {
 		return svc.Update(ctx, id, map[string]interface{}{svc.SoftDeleteField: true})
 	}
-	return svc.db.Delete(id).Error
+	query := svc.getMultitenantQuery(ctx, svc.db)
+	return query.Delete(id).Error
 }
 
 //Delete object by ids
@@ -364,7 +381,8 @@ func (svc *sqlDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 	if svc.SoftDelete {
 		return svc.UpdateMulti(ctx, ids, map[string]interface{}{svc.SoftDeleteField: true})
 	}
-	return svc.db.Delete(ids).Error
+	query := svc.getMultitenantQuery(ctx, svc.db)
+	return query.Delete(ids).Error
 }
 
 //Delete object by condition

@@ -57,20 +57,6 @@ modules:
       parent: root
       instance: Service
       dataservicefactory: mongodatabase
-  keyvalue:
-    module: entity
-    settings:
-      object: KeyValue
-      parent: root
-      instance: KeyValue
-      dataservicefactory: mongodatabase
-  configuration:
-    module: entity
-    settings:
-      object: Configuration
-      parent: root
-      instance: Configuration
-      dataservicefactory: mongodatabase
   channel:
     module: entity
     settings:
@@ -98,13 +84,6 @@ modules:
       object: Entity
       parent: root
       instance: Entity
-      dataservicefactory: mongodatabase
-  field:
-    module: entity
-    settings:
-      object: Field
-      parent: root
-      instance: Field
       dataservicefactory: mongodatabase
   engine:
     module: entity

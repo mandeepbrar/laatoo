@@ -13,6 +13,10 @@ function cacheable(cacheable) {
   return cacheable? cacheable: false
 }
 
+function multitenant(multitenant) {
+  return multitenant? multitenant: false
+}
+
 function imports(imports) {
   var importsStr = ""
   imports.forEach(function(pkg) {
@@ -39,13 +43,25 @@ function fields(fields) {
     let bsonF = field.bson?field.bson:fieldName
     let datastoreF = field.datastore? field.datastore : fieldName
     switch (field.type) {
+      case "storable":
+        if(field.list) {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.Storable", jsonF, bsonF, datastoreF)
+        } else {
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.Storable", jsonF, bsonF, datastoreF)
+        }
+        break;
+      case "storableref":
+      if(field.list) {
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, datastoreF)
+      } else {
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, datastoreF)
+      }
+      break;
       case "entity":
         if(field.list) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, "*" + field.entity, jsonF, bsonF, datastoreF)
         } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName + "Ref", "*" + field.entity, jsonF+ "Ref", bsonF+ "Ref", datastoreF+ "Ref")
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "string", jsonF, bsonF, datastoreF)
+          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, "*" + field.entity, jsonF, bsonF, datastoreF)
         }
         break;
       case "subentity":
@@ -77,17 +93,22 @@ function fields(fields) {
 }
 
 function autogenFolder(pluginFolder) {
-  return path.join(pluginFolder, "server", "go", "autogen")
+  return path.join(pluginFolder, "server", "go")
 }
 
 
 function createEntity(entityJson, autogenFolder, filename) {
   let name = entityJson["name"]
   name = name? name +".go": filename.substring(0, filename.length-5)+".go"
-  let filepath = path.join(autogenFolder, name)
+  fs.mkdirsSync(autogenFolder)
+  let filepath = path.join(autogenFolder, "autogen_" + name)
   let tplpath = path.join(buildFolder, 'tpl/entitygocode.go.tpl');
+  if(entityJson.collection == "<nocollection>") {
+    tplpath = path.join(buildFolder, 'tpl/entitynodb.go.tpl');
+  }
   var buf = fs.readFileSync(tplpath);
   Handlebars.registerHelper('cacheable', cacheable);
+  Handlebars.registerHelper('multitenant', multitenant);
   Handlebars.registerHelper('imports', imports);
   Handlebars.registerHelper('type', type);
   Handlebars.registerHelper('titleField', titleField);
@@ -119,7 +140,7 @@ function createManifest(entities, autogenFolder, pluginFolder) {
     let gofile = template({})
     fs.writeFileSync(manifestpath, gofile)
   }
-  let objectspath = path.join(autogenFolder, "objectsmanifest.go")
+  let objectspath = path.join(autogenFolder, "autogen_objectsmanifest.go")
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }

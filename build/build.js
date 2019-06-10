@@ -120,10 +120,10 @@ function autoGen(nextTask) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
     if (fs.pathExistsSync(entitiesFolder)) {
       let files = fs.readdirSync(entitiesFolder)
-      fs.removeSync(autogenFolder)
+      /*fs.removeSync(autogenFolder)
       if(files.length>0) {
         fs.mkdirsSync(autogenFolder)
-      }
+      }*/
       for(var i=0;i<files.length; i++) {
         if(files[i].endsWith('.json')) {
           let jsonF = path.join(entitiesFolder, files[i])

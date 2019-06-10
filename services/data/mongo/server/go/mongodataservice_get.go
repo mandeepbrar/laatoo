@@ -18,6 +18,9 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
 	condition[ms.ObjectId] = id
 	err := connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
 	if err != nil {
@@ -102,6 +105,9 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
 	condition := bson.M{}
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
 	operatorCond := bson.M{}
 	operatorCond["$in"] = ids
 	condition[ms.ObjectId] = operatorCond
@@ -175,7 +181,11 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 			if len(args) < 2 {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
-			return bson.M{args[0].(string): bson.M{"$in": args[1]}}, nil
+			retVal := bson.M{args[0].(string): bson.M{"$in": args[1]}}
+			if ms.Multitenant {
+				retVal["Tenant"] = ctx.GetUser().GetTenant()
+			}
+			return retVal, nil
 		}
 	case data.FIELDVALUE:
 		{
@@ -185,6 +195,9 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 			argsMap := args[0].(map[string]interface{})
 			if ms.SoftDelete {
 				argsMap[ms.SoftDeleteField] = false
+			}
+			if ms.Multitenant {
+				argsMap["Tenant"] = ctx.GetUser().GetTenant()
 			}
 			return argsMap, nil
 		}

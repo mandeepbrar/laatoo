@@ -1,4 +1,4 @@
-package autogen
+package main
 
 import (
   
@@ -29,6 +29,7 @@ func (ent *ModuleInstance) Config() *data.StorableConfig {
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
+		Multitenant:     false,
 		Collection:      "ModuleInstance",
 		Cacheable:       false,
 	}

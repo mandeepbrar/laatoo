@@ -1,4 +1,4 @@
-package autogen
+package main
 
 import (
   
@@ -33,6 +33,7 @@ func (ent *Security) Config() *data.StorableConfig {
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
+		Multitenant:     false,
 		Collection:      "Security",
 		Cacheable:       false,
 	}

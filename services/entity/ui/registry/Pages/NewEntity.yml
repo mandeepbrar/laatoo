@@ -1,4 +1,5 @@
 name: new_form_{{default "instance" "object" | lower}}
+authenticate: {{if exists "authenticate_update"}} {{var "authenticate_update"}} {{else}} true {{end}} 
 config:
   skip: {{contains "skipItems" "new_form" }}
 route: {{if exists "new_form_route"}} {{var "new_form_route"}} {{else}} /new_form_{{default "instance" "object" | lower}} {{end}}

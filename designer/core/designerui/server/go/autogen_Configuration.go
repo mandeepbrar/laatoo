@@ -1,4 +1,4 @@
-package autogen
+package main
 
 import (
   
@@ -7,11 +7,10 @@ import (
 
 type Configuration_Ref struct {
   Id    string
-  Name string
 }
 
 type Configuration struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+  Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Values	[]KeyValue `json:"Values" bson:"Values" datastore: "Values"`
@@ -22,12 +21,5 @@ func (ent *Configuration) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "Configuration",
-		SoftDeleteField: "Deleted",
-		PreSave:         false,
-		PostSave:        false,
-		PostLoad:        false,
-		Auditable:       true,
-		Collection:      "Configuration",
-		Cacheable:       false,
 	}
 }

@@ -3,6 +3,7 @@
   "inherits":"",
   "imports":[],
   "titleField": "Name",
+  "collection": "<nocollection>",
   "form": {
     "layout": ["Name", "Value"]
   },

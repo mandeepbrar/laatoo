@@ -4,6 +4,14 @@ dependencies:
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
 description: Module provides laatoo site ui 
+modules:
+  environment:
+    module: entity
+    settings:
+      object: Solution
+      parent: root
+      instance: Solution
+      dataservicefactory: mongodatabase
 ui:
   js:
     externals:

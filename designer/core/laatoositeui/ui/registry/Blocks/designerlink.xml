@@ -1,4 +1,5 @@
 <Block className="designerlink" >
     <Action name="signup" className="signup">Sign Up</Action>
     <Action name="signin" className="signin">Sign In</Action>
+    <Panel id="userBlock" type="block" module="reactpages" />
 </Block>

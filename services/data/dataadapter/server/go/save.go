@@ -20,7 +20,8 @@ func (svc *save) Start(ctx core.ServerContext) error {
 	svc.DataStore = svc.fac.DataStore
 	//	svc.SetRequestType(ctx, svc.DataStore.GetObject(), false, false)
 	/****TODO test*****/
-	return svc.AddParamWithType(ctx, "object", svc.DataStore.GetObject())
+	obj := svc.DataStore.GetObject()
+	return svc.AddParamWithType(ctx, "object", obj)
 }
 func (es *save) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SAVE")

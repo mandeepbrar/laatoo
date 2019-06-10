@@ -1,38 +1,40 @@
-package autogen
+package main
 
 import (
   
   "laatoo/sdk/server/components/data"
 )
 
-type Service_Ref struct {
+type Rule_Ref struct {
   Id    string
   Name string
 }
 
-type Service struct {
+type Rule struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Factory	string `json:"Factory" bson:"Factory" datastore:"Factory"`
-	ServiceMethod	string `json:"ServiceMethod" bson:"ServiceMethod" datastore:"ServiceMethod"`
+	Trigger	string `json:"Trigger" bson:"Trigger" datastore:"Trigger"`
+	MessageType	string `json:"MessageType" bson:"MessageType" datastore:"MessageType"`
+	Rule	string `json:"Rule" bson:"Rule" datastore:"Rule"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Configuration	Configuration `json:"Configuration" bson:"Configuration" datastore: "Configuration"`
 }
 
-func (ent *Service) Config() *data.StorableConfig {
+func (ent *Rule) Config() *data.StorableConfig {
 	return &data.StorableConfig{
 		IdField:         "Id",
     LabelField:      "Name",
-		Type:            "Service",
+		Type:            "Rule",
 		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,
-		Collection:      "Service",
+		Multitenant:     false,
+		Collection:      "Rule",
 		Cacheable:       false,
 	}
 }
