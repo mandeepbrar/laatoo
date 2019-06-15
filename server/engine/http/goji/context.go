@@ -49,9 +49,8 @@ func (gojictx *GojiContext) GetHeader(header string) string {
 	return gojictx.req.Header.Get(header)
 }
 
-/*
 func (gojictx *GojiContext) GetRouteParamNames() []string {
-	all := gojictx.baseCtx.Value(pattern.AllVariables).(map[pattern.Variable]interface{})
+	/*all := gojictx.baseCtx.Value(pattern.AllVariables).(map[pattern.Variable]interface{})
 	length := len(all)
 	paramnames := make([]string, length)
 	i := 0
@@ -64,8 +63,9 @@ func (gojictx *GojiContext) GetRouteParamNames() []string {
 	for i := 0; i < length; i++ {
 		paramnames[i] = ginctx.baseCtx.Params[i].Key
 	}
-	return paramnames
-}*/
+	return paramnames*/
+	return []string{}
+}
 func (gojictx *GojiContext) GetRouteParam(paramname string) string {
 	return pat.Param(gojictx.baseCtx, paramname)
 }

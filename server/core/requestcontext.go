@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 )
@@ -22,6 +23,9 @@ type requestContext struct {
 
 	//any context from the engine that received a service request
 	engineContext interface{}
+	//engine to be used in a context
+	engine elements.Engine
+
 	//user who is executing the request
 	user auth.User
 	//is the user executing a request an admin
@@ -45,11 +49,18 @@ func (ctx *requestContext) EngineRequestContext() interface{} {
 	return ctx.engineContext
 }
 
+func (ctx *requestContext) EngineRequestParams() map[string]interface{} {
+	return ctx.engine.GetRequestParams(ctx)
+}
+
 //server context that generated this request
 func (ctx *requestContext) ServerContext() core.ServerContext {
 	return ctx.serverContext
 }
 func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) core.ServerElement {
+	if elemType == core.ServerElementEngine {
+		return ctx.engine
+	}
 	return ctx.serverContext.GetServerElement(elemType)
 }
 
@@ -250,6 +261,10 @@ func (ctx *requestContext) PublishMessage(topic string, message interface{}) {
 	}
 	log.Error(ctx, "Publishing message to non existent manager")
 	return
+}
+
+func (ctx *requestContext) setEngine(engine elements.Engine) {
+	ctx.engine = engine
 }
 
 //completes a request

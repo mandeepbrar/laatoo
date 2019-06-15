@@ -29,7 +29,7 @@ func (rtr *router) addConnection(ctx core.ServerContext, sessionId string, conn 
 }
 
 func (rtr *router) routeMessage(ctx core.ServerContext, msg *rpcRequest, conn *websocket.Conn) error {
-	reqctx, err := ctx.CreateNewRequest(msg.Method, conn, "")
+	reqctx, err := ctx.CreateNewRequest(msg.Method, rtr.engine.proxy, conn, "")
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

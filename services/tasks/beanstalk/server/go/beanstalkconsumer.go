@@ -96,7 +96,7 @@ func (svc *BeanstalkConsumer) Start(ctx core.ServerContext) error {
 						log.Error(ctx, "Error in background process", "job", job.ID, "err", err)
 						job.Bury()
 					} else {
-						req, err := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil, "")
+						req, err := ctx.CreateNewRequest("Beanstalk task "+t.Queue, nil, nil, "")
 						if err != nil {
 							log.Error(req, "Error in background process", "job", job.ID, "err", err)
 							job.Bury()

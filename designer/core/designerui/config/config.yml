@@ -4,6 +4,7 @@ dependencies:
   entity: ">=0.0.1"
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
+  laatoositeui: ">=0.0.1"
 description: Module provides designer ui components
 objects:
   objectsresolver:
@@ -92,13 +93,6 @@ modules:
       parent: root
       instance: Engine
       dataservicefactory: mongodatabase
-  solution:
-    module: entity
-    settings:
-      object: Solution
-      parent: root
-      instance: Solution
-      dataservicefactory: mongodatabase
   security:
     module: entity
     settings:
@@ -108,6 +102,9 @@ modules:
       dataservicefactory: mongodatabase
   server:
     module: entity
+    environment:
+      list_view_args:
+        Solution: javascript###ctx.data.solutionId###
     settings:
       object: Server
       parent: root

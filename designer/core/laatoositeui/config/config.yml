@@ -5,8 +5,10 @@ dependencies:
   reactpages: ">=0.0.1"
 description: Module provides laatoo site ui 
 modules:
-  environment:
+  solution:
     module: entity
+    environment:
+      list_view_mode: list_view
     settings:
       object: Solution
       parent: root

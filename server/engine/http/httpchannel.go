@@ -150,11 +150,11 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 			return nil
 		}
 		errChannel := make(chan error)
-		corectx, err := ctx.CreateNewRequest(serviceName, pathCtx, "")
+		corectx, err := ctx.CreateNewRequest(serviceName, channel.engine.proxy, pathCtx, "")
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-
+		
 		httpreq := pathCtx.GetRequest()
 		corectx.SetGaeReq(httpreq)
 		log.Info(corectx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)

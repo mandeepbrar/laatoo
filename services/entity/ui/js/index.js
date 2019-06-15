@@ -26,21 +26,21 @@ Window.displayDefaultEntity = function(ctx, desc, uikit) {
 class DefaultEntityDisplay extends React.Component {
   createField = (fieldVal, field,  level, ctx, desc, uikit) => {
     let fldDisp = this.createObjFields(fieldVal, level+1, ctx, desc, uikit)
-    return (<div className={"field " + field}>
-       <div className="name">
+    return (<uikit.Block className={"field " + field}>
+       <uikit.Block className="name">
        {field}
-       </div>
-       <div className="value">
+       </uikit.Block>
+       <uikit.Block className="value">
        {fldDisp}
-       </div>
-     </div>)
+       </uikit.Block>
+     </uikit.Block>)
   }
   createObjFields = (obj, level, ctx, desc, uikit) => {
     if(obj==null) return null;
     if(obj instanceof Array) {
       let fields = new Array()
       for(var i=0;i<obj.length;i++) {
-        fields.push(<div className="entityarrayitem">{this.createObjFields(obj[i], level+1, ctx, desc, uikit)}</div>)
+        fields.push(<uikit.Block className="entityarrayitem">{this.createObjFields(obj[i], level+1, ctx, desc, uikit)}</uikit.Block>)
       }
       return fields
     } else if(typeof(obj) == "object") {
@@ -65,9 +65,9 @@ class DefaultEntityDisplay extends React.Component {
   render() {
     let {ctx, desc, uikit} = this.props
     console.log(ctx, desc, uikit)
-    return <div className="entity ">
+    return <uikit.Block className="entity ">
       {this.createObjFields(ctx.data, 0, ctx, desc, uikit)}
-    </div>
+    </uikit.Block>
   }
 }
 /*

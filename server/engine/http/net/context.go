@@ -9,6 +9,7 @@ import (
 type WebContext interface {
 	GetHeader(header string) string
 	GetRouteParam(paramname string) string
+	GetRouteParamNames() []string
 	GetQueryParams() map[string][]string
 	GetQueryParam(paramname string) string
 	Bind(data interface{}) error

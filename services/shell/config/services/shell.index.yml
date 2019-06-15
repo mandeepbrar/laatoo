@@ -4,4 +4,7 @@ files:
   index.html:
     cache: 'true'
     path: index{{var "module" "."}}.html
+    replacements:
+      - search: <<routeinfo>>
+        method: routeinfo
 storage: shell.filesstorage

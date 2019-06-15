@@ -33,6 +33,7 @@ func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName stri
 		itemReg = make(map[string]string)
 		svc.uiRegistry[itemType] = itemReg
 	}
+	//itemStrVal, _ := processJSRegex(ctx, itemStr)
 	itemReg[itemName] = fmt.Sprintf("_r('%s', '%s', %s);", itemType, itemName, itemStr)
 }
 

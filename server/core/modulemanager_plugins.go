@@ -112,6 +112,7 @@ func (modMgr *moduleManager) loadPluginWithMod(ctx core.ServerContext, modIns *s
 	log.Info(ctx, "Processing module with module manager plugin", "Module", modIns.name, "Service name", pluginName)
 	modInsCtx := modIns.svrContext.SubContext("Process module plugin: " + pluginName)
 	log.Debug(modInsCtx, "Loading plugin with module", "Instance", modIns.name, "Module name", modIns.moduleName, "Settings", modIns.modSettings)
+	modInsCtx.Dump()
 
 	parentName := ""
 	if modIns.parentInstance != nil {

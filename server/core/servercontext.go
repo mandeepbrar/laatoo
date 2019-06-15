@@ -50,8 +50,6 @@ import (
 type contextElements struct {
 	//main server reference
 	server elements.Server
-	//engine to be used in a context
-	engine elements.Engine
 	//object loader to be used in a context
 	objectLoader elements.ObjectLoader
 	//application on which work is being done
@@ -131,8 +129,6 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 	switch elemType {
 	case core.ServerElementServer:
 		return ctx.svrElements.server
-	case core.ServerElementEngine:
-		return ctx.svrElements.engine
 	case core.ServerElementEnvironment:
 		return ctx.svrElements.environment
 	case core.ServerElementLoader:
@@ -216,7 +212,7 @@ func (ctx *serverContext) newContext(name string) *serverContext {
 }
 
 func (ctx *serverContext) getElementsContextMap() core.ContextMap {
-	return core.ContextMap{core.ServerElementServer: ctx.svrElements.server, core.ServerElementEngine: ctx.svrElements.engine, core.ServerElementEnvironment: ctx.svrElements.environment,
+	return core.ContextMap{core.ServerElementServer: ctx.svrElements.server, core.ServerElementEnvironment: ctx.svrElements.environment,
 		core.ServerElementLoader: ctx.svrElements.objectLoader, core.ServerElementServiceFactory: ctx.svrElements.factory, core.ServerElementApplication: ctx.svrElements.application,
 		core.ServerElementService: ctx.svrElements.service, core.ServerElementServiceManager: ctx.svrElements.serviceManager, core.ServerElementFactoryManager: ctx.svrElements.factoryManager,
 		core.ServerElementChannel: ctx.svrElements.channel, core.ServerElementChannelManager: ctx.svrElements.channelManager, core.ServerElementSecurityHandler: ctx.svrElements.securityHandler,
@@ -246,12 +242,6 @@ func (ctx *serverContext) setElementReferences(svrelements core.ContextMap, ref 
 				ctxElems.server = nil
 			} else {
 				ctxElems.server = element.(elements.Server)
-			}
-		case core.ServerElementEngine:
-			if element == nil {
-				ctxElems.engine = nil
-			} else {
-				ctxElems.engine = element.(elements.Engine)
 			}
 		case core.ServerElementEnvironment:
 			if element == nil {
@@ -391,14 +381,14 @@ func (ctx *serverContext) setServerProperties(props map[string]interface{}) {
 }
 
 //creates a new request with engine context
-func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}, sessionId string) (core.RequestContext, error) {
+func (ctx *serverContext) CreateNewRequest(name string, engine interface{}, engineCtx interface{}, sessionId string) (core.RequestContext, error) {
 
 	log.Info(ctx, "Creating new request ", "Name", name)
 	//a service must be there in the server context if a request is to be created
 	if ctx.svrElements.service == nil {
 		return nil, errors.MissingService(ctx, name)
 	}
-	reqCtx, err := ctx.createNewRequest(name, engineCtx, sessionId)
+	reqCtx, err := ctx.createNewRequest(name, engine.(elements.Engine), engineCtx, sessionId)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -417,13 +407,13 @@ func (ctx *serverContext) CreateNewRequest(name string, engineCtx interface{}, s
 	return reqCtx, nil
 }
 
-func (ctx *serverContext) createNewRequest(name string, engineCtx interface{}, sessionId string) (*requestContext, error) {
+func (ctx *serverContext) createNewRequest(name string, engine elements.Engine, engineCtx interface{}, sessionId string) (*requestContext, error) {
 	//create the request as a child of service context
 	//so that the variables set by the service are available while executing a request
 
 	newctx := ctx.NewCtx(name)
 
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.svrElements.logger,
+	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx, logger: ctx.svrElements.logger, engine: engine,
 		engineContext: engineCtx, sessionId: sessionId, subRequest: false}, nil
 }
 
@@ -448,7 +438,7 @@ func (ctx *serverContext) GetObjectMetadata(objectName string) (core.Info, error
 }
 
 func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
-	reqCtx, err := ctx.createNewRequest(name, nil, "")
+	reqCtx, err := ctx.createNewRequest(name, nil, nil, "")
 	if err != nil {
 		log.Error(ctx, "Error while creating system request", "Error", err)
 	}

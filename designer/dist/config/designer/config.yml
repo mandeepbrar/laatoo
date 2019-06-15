@@ -144,7 +144,7 @@ moduleinstances:
     module: shell
     settings:
       uiapplication: designerapplication
-      indexpath: /designer
+      indexpath: /designer/:solutionId
       uidependencies:
         react: ''
   designerapplication:

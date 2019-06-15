@@ -10,7 +10,6 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
-	"regexp"
 	"strings"
 )
 
@@ -20,11 +19,6 @@ type Node struct {
 	Content []byte     `xml:",innerxml"`
 	Nodes   []Node     `xml:",any"`
 }
-
-var (
-	jsReplaceRegex    *regexp.Regexp
-	jsVarReplaceRegex *regexp.Regexp
-)
 
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	n.Attrs = start.Attr
@@ -162,31 +156,6 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node, itemName s
 	return fmt.Sprintf("_ce(%s, %s, %s, %s)", elem, attrStr, childArrStr, elemname), nil
 }
 
-func processJS(ctx core.ServerContext, input string) string {
-	if jsReplaceRegex == nil {
-		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)#@#`)
-	}
-	if jsVarReplaceRegex == nil {
-		jsVarReplaceRegex, _ = regexp.Compile(`javascript###([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)###`)
-	}
-
-	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
-	if len(arr) != 0 {
-		return `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`
-	}
-
-	arr = jsVarReplaceRegex.FindAllStringIndex(input, -1)
-	if len(arr) == 0 {
-		val, e := json.Marshal(input)
-		if e != nil {
-			log.Error(ctx, "Error in marshalling string", "string", input, "error", e)
-		}
-		return string(val)
-	} else {
-		return jsVarReplaceRegex.ReplaceAllString(input, `$1`)
-	}
-}
-
 func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string {
 	attrBuf := new(bytes.Buffer)
 	attrNames := conf.AllConfigurations(ctx)
@@ -230,7 +199,6 @@ func getModString(ctx core.ServerContext, elem, mod, itemname string) (string, s
 
 func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, itemName string) (string, error) {
 
-	//svc.processJS(ctx, conf)
 	keys := conf.AllConfigurations(ctx)
 	rootelem := ""
 	for _, key := range keys {

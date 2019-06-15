@@ -27,3 +27,6 @@ func (proxy *wsEngineProxy) GetName() string {
 func (proxy *wsEngineProxy) GetType() core.ServerElementType {
 	return core.ServerElementEngine
 }
+func (proxy *wsEngineProxy) GetRequestParams(ctx core.RequestContext) map[string]interface{} {
+	return nil
+}

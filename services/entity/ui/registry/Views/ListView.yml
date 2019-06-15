@@ -5,8 +5,8 @@ postArgs: {{if exists "list_view_args"}} {{var "list_view_args"}} {{else}} {} {{
 urlparams: {{if exists "list_view_params"}} {{var "list_view_params"}} {{else}} {} {{end}}
 serviceName: {{default "instance" "object"}}_view_service
 className: tableview
-header: {{default "instance" "object" | lower}}_viewheader
+header: {{if exists "list_view_header"}} {{var "list_view_header"}} {{else}} {{default "instance" "object" | lower}}_viewheader {{end}}
 item:
   type: entity
   entityName: {{var "object"}}
-  entityDisplay: listtablerow
+  entityDisplay: {{if exists "list_view_mode"}} {{var "list_view_mode"}} {{else}} listtablerow {{end}}

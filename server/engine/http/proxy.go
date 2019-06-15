@@ -3,6 +3,7 @@ package http
 import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
+	"laatoo/server/engine/http/net"
 )
 
 type httpEngineProxy struct {
@@ -26,4 +27,14 @@ func (proxy *httpEngineProxy) GetName() string {
 }
 func (proxy *httpEngineProxy) GetType() core.ServerElementType {
 	return core.ServerElementEngine
+}
+func (proxy *httpEngineProxy) GetRequestParams(ctx core.RequestContext) map[string]interface{} {
+	params := make(map[string]interface{})
+	webCtx := ctx.EngineRequestContext().(net.WebContext)
+	paramNames := webCtx.GetRouteParamNames()
+	for _, pname := range paramNames {
+		pval := webCtx.GetRouteParam(pname)
+		params[pname] = pval
+	}
+	return params
 }

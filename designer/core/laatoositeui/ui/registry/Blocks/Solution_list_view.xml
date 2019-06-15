@@ -1,0 +1,5 @@
+<Block className="tablerow">
+    <Block className="tablecell">javascript#@#ctx.data.Name#@#</Block>
+    <Block className="tablecell">javascript#@#ctx.data.UpdatedAt#@#</Block>
+    <Block className="tablecell"><a href="/designer/javascript#@#ctx.data.Id#@#" module="html">View</a></Block>
+</Block>

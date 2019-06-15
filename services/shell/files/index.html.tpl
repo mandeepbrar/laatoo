@@ -10,7 +10,8 @@
 </head>
 <body>
   <div id="app">APPLICATION CONTENT</div>
-
+  
+  <<routeinfo>>
   <script type="text/javascript" src="/vendor.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/app.{{var "uiapplication"}}.js"></script>
   <script type="text/javascript" src="/services.{{var "uiapplication"}}.conf.js"></script>
