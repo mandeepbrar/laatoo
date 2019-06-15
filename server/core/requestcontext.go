@@ -74,7 +74,7 @@ func (ctx *requestContext) SubContext(name string) core.RequestContext {
 	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
 	newctx := ctx.SubCtx(name)
 	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req, sessionId: ctx.sessionId,
-		engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, session: ctx.session, subRequest: true}
+		engine: ctx.engine, engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, session: ctx.session, subRequest: true}
 }
 
 //new context from the request if a part of the request needs to be tracked separately

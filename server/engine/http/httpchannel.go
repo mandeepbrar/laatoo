@@ -154,7 +154,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		
+
 		httpreq := pathCtx.GetRequest()
 		corectx.SetGaeReq(httpreq)
 		log.Info(corectx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)
