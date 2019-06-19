@@ -1,0 +1,32 @@
+{
+  "name":"Solution",
+  "inherits":"",
+  "imports":[],
+  "multitenant": true,
+  "form": {
+    "overlay": true,
+    "layout": ["Name", "Description", "Modules"]
+  },
+  "titleField": "Name",
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "User": {
+      "type":"string"
+    },
+    "Modules": {
+      "type":"storableref",
+      "label": "Solution Modules",
+      "addwidget": "ModuleSelect",
+      "addwidgetmodule": "modulesrepository",
+      "list": true,
+      "widget": "SubEntity",
+      "module": "subentity",
+      "entity": "ModuleDefinition"
+    }
+  }
+}

@@ -9,7 +9,6 @@ tmp
 **/*.deb
 cargohome
 target
-build
 vendor
 designer/punjabimehfilmongo
 **/*.so
