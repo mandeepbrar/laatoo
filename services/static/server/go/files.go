@@ -190,7 +190,7 @@ func (fs *FileService) runtimeReplace(ctx core.RequestContext, content *[]byte, 
 	for _, replace := range replacements {
 		if replace.method == "routeinfo" {
 			p, _ := json.Marshal(ctx.EngineRequestParams())
-			replaceString := []byte(fmt.Sprintf("<script>var routeParams=%s;</script>", p))
+			replaceString := []byte(fmt.Sprintf("<script>var _routeParams=%s;</script>", p))
 			retVal = bytes.ReplaceAll(retVal, []byte(replace.search), replaceString)
 		}
 	}

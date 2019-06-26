@@ -33,8 +33,8 @@ func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName stri
 		itemReg = make(map[string]string)
 		svc.uiRegistry[itemType] = itemReg
 	}
-	//itemStrVal, _ := processJSRegex(ctx, itemStr)
-	itemReg[itemName] = fmt.Sprintf("_r('%s', '%s', %s);", itemType, itemName, itemStr)
+	itemStrVal, _ := processJSRegex(ctx, itemStr)
+	itemReg[itemName] = fmt.Sprintf("_r('%s', '%s', %s);", itemType, itemName, itemStrVal)
 }
 
 func (svc *UI) processItemDir(ctx core.ServerContext, modName string, dirPath string, itemType string, modDir string) error {
@@ -56,7 +56,7 @@ func (svc *UI) processItemDir(ctx core.ServerContext, modName string, dirPath st
 }
 
 func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType string, modDir string) error {
-	log.Error(ctx, "process reg item ", "path", path)
+	ctx = ctx.SubContext("Process reg item " + path)
 	ext := filepath.Ext(path)
 	fileName := filepath.Base(path)
 	itemName := strings.TrimSuffix(fileName, ext)
@@ -75,12 +75,18 @@ func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType stri
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			buf := bytes.NewBuffer(cont)
+			proccont,err := utils.ProcessTemplate(ctx, cont, nil)
+			if err != nil {
+				log.Error(ctx, "Template not correct", "Content", string(cont), "Path",path) 
+				return errors.WrapError(ctx, err)
+			}
+
+			buf := bytes.NewBuffer(proccont)
 			dec := xml.NewDecoder(buf)
 			var n Node
 			err = dec.Decode(&n)
 			if err != nil {
-				log.Error(ctx, "Xml Error ", "err", err)
+				log.Error(ctx, "Xml Error ", "err", err, "xml", string(cont))
 				return errors.WrapError(ctx, err)
 			}
 			if itemType == BLOCK_REG {
@@ -150,7 +156,10 @@ func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Mod
 		for _, info := range files {
 			path := filepath.Join(uiRegDir, info.Name())
 			if info.IsDir() {
-				svc.processItemDir(ctx, modName, path, info.Name(), moddir)
+				err = svc.processItemDir(ctx, modName, path, info.Name(), moddir)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
 				continue
 			}
 			fileName := info.Name()

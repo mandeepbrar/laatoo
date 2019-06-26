@@ -1,11 +1,12 @@
 name: uiapp{{var "application" "."}}
 servicemethod: ui
 ModuleManagerPlugin: true
-mergeduifile:  app{{var "application" "."}}.js
+mergeduifile:  modules{{var "application" "."}}.js
 mergedcssfile: app{{var "application" "."}}.css
 mergedwasm: wasm{{var "application" "."}}.json
-mergeduidescriptor: services{{var "application" "."}}.conf.js
+mergeduidescriptor: components{{var "application" "."}}.conf.js
 mergedvendorfile: vendor{{var "application" "."}}.js
+bootfile: boot{{var "application" "."}}.js
 properties_ext: {{var "application" "."}}.json
 application: {{var "application"}}
 hotmodules: {{var "hotmodules"}}

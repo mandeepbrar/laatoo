@@ -3,15 +3,15 @@ Block:
   children:
   - Block:
       className: field
-      body: {{js "ctx.data.Username"}}
+      body: {{jsreplace "ctx.data.Username"}}
   - Block:
       className: field
-      body: this is {{js "ctx.data.Id" "insert"}}
+      body: {{jsformat "this is %s" "ctx.data.Id"}}
   - Block:
       className: field
       children:
       - Action:
           name: viewUser
           params:
-            id: {{js "ctx.data.Id"}}
+            id: {{jsreplace "ctx.data.Id"}}
           body: View User

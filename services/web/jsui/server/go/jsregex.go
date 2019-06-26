@@ -5,11 +5,13 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/log"
 	"regexp"
+	"strings"
+	"fmt"
 )
 
 var (
 	jsReplaceRegex    *regexp.Regexp
-	jsVarReplaceRegex *regexp.Regexp
+	jsFMTRegex *regexp.Regexp
 )
 
 func processJS(ctx core.ServerContext, input string) string {
@@ -27,21 +29,46 @@ func processJS(ctx core.ServerContext, input string) string {
 
 func processJSRegex(ctx core.ServerContext, input string) (string, bool) {
 	if jsReplaceRegex == nil {
-		jsReplaceRegex, _ = regexp.Compile(`javascript#@#([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)#@#`)
+		jsReplaceRegex, _ = regexp.Compile(`"javascript###replace@@@([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)###"`)
 	}
-	if jsVarReplaceRegex == nil {
-		jsVarReplaceRegex, _ = regexp.Compile(`javascript###([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)###`)
-	}
-
-	arr := jsReplaceRegex.FindAllStringIndex(input, -1)
-	if len(arr) != 0 {
-		return `"` + jsReplaceRegex.ReplaceAllString(input, `"+$1+"`) + `"`, true
+	if jsFMTRegex == nil {
+		jsFMTRegex, _ = regexp.Compile(`"javascript###format@@@([^###]*)###"`)
 	}
 
-	arr = jsVarReplaceRegex.FindAllStringIndex(input, -1)
-	if len(arr) == 0 {
+	resStr := input
+	found := false
+	matches := jsReplaceRegex.FindAllSubmatch([]byte(input), -1)
+
+	if len(matches) != 0 {
+		for _, match := range matches {
+			resStr = strings.ReplaceAll(resStr, string(match[0]), string(match[1]))
+		}
+		found = true
+	}
+
+	matches = jsFMTRegex.FindAllSubmatch([]byte(input), -1)
+	if len(matches) != 0 {
+		for _, match := range matches {
+			vars := strings.Split(string(match[1]), "@@@")
+			fmtStr := vars[0]
+			fmtArgs := vars[1:]
+			for _, arg := range fmtArgs {
+				fmtStr = strings.Replace(fmtStr, "%s", "\"+"+arg+"+\"", 1)
+			}
+			fmtStr = fmt.Sprintf("\"%s\"", fmtStr)
+			resStr = strings.ReplaceAll(resStr, string(match[0]), fmtStr)
+		}
+		found = true
+	}
+/*	//arr = jsVarReplaceRegex.FindAllStringIndex(input, -1)
+	if len(matches) == 0 {
 		return input, false
 	} else {
-		return jsVarReplaceRegex.ReplaceAllString(input, `$1`), true
-	}
+//		return jsVarReplaceRegex.ReplaceAllString(input, `$1`), true
+		for _, match := range matches {
+			log.Error(ctx, "javascript matches found", "matches", string(match[0]))
+		}
+		return input, false
+	}*/
+	return resStr, found
 }

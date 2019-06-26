@@ -39,6 +39,7 @@ const (
 	MERGED_WASM_FILE     = "mergedwasm"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
+	BOOT_FILE       = "bootfile"
 )
 
 type UI struct {
@@ -51,6 +52,7 @@ type UI struct {
 	mergeduidescriptor string
 	mergedwasmfile     string
 	mergedcssfile      string
+	bootfile string
 	application        string
 	propsExt           string
 	uiFiles            map[string][]byte
@@ -89,6 +91,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergeduidescriptor, _ = svc.GetStringConfiguration(ctx, MERGED_SVCS_FILE)
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.mergedwasmfile, _ = svc.GetStringConfiguration(ctx, MERGED_WASM_FILE)
+	svc.bootfile, _ = svc.GetStringConfiguration(ctx, BOOT_FILE)
 	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
 	svc.watchers = make([]*fsnotify.Watcher, 0)
@@ -351,6 +354,12 @@ func (svc *UI) writeOutput(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	err = svc.writeBootFile(ctx, baseDir)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 
 	return nil
 	/*

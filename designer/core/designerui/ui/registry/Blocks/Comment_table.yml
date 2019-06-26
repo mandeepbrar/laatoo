@@ -3,7 +3,7 @@ Block:
   children:
   - Block:
       className: field
-      body: some {{js "ctx.data.Post" "insert"}}
+      body: {{jsformat "some %s" "ctx.data.Post"}}
   - Block:
       className: field
-      body: this is {{js "ctx.data.PostTitle" "insert"}}
+      body: {{jsformat "some %s" "ctx.data.PostTitle"}}

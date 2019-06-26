@@ -1,12 +1,15 @@
 name: uiapp.files{{var "application" "."}}
 servicemethod: named_files_service
 files:
-  app.js:
+  modules.js:
     cache: {{var "cachefiles"}}
-    path: /scripts/app{{var "application" "."}}.js
-  services.conf.js:
+    path: /scripts/modules{{var "application" "."}}.js
+  components.conf.js:
     cache: {{var "cachefiles"}}
-    path: /scripts/services{{var "application" "."}}.conf.js
+    path: /scripts/components{{var "application" "."}}.conf.js
+  boot.js:
+    cache: {{var "cachefiles"}}
+    path: /scripts/boot{{var "application" "."}}.js
   app.css:
     cache: {{var "cachefiles"}}
     path: /css/app{{var "application" "."}}.css

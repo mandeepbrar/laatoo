@@ -4,6 +4,7 @@ var Application = n ? { Native:n} : document.InitConfig;
 Application.Registry={};
 Application.Modules={};
 var Window = n ? {} : window;
+Application.Route={Location: window.location.href, Params: _routeParams};
 Application.RegisterModule = function(mod) {
   console.log("register module", mod)
   try {

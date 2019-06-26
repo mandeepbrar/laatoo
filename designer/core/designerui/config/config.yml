@@ -102,9 +102,6 @@ modules:
       dataservicefactory: mongodatabase
   server:
     module: entity
-    environment:
-      list_view_args:
-        Solution: javascript###ctx.data.solutionId###
     settings:
       object: Server
       parent: root

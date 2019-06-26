@@ -18,10 +18,18 @@ func NewConfigFromFile(ctx context.Context, file string, funcs map[string]interf
 	if err != nil {
 		return nil, fmt.Errorf("Error opening config file %s. Error: %s", file, err.Error())
 	}
-	return NewConfig(ctx, fileData, funcs)
+	return newConfig(ctx, fileData, funcs)
 }
 
 func NewConfig(ctx context.Context, data []byte, funcs map[string]interface{}) (config.Config, error) {
+	fileData, err := utils.ProcessTemplate(ctx, data, funcs)
+	if err != nil {
+		return nil, fmt.Errorf("Error processing data",  err.Error())
+	}
+	return newConfig(ctx, fileData, funcs)
+}
+
+func newConfig(ctx context.Context, data []byte, funcs map[string]interface{}) (config.Config, error) {
 	conf := make(GenericConfig, 50)
 	if err := yaml.Unmarshal(data, &conf); err != nil {
 		return nil, fmt.Errorf("Error parsing config %s. Error: %s", string(data), err.Error())

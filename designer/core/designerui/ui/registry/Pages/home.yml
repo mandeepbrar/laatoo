@@ -1,4 +1,6 @@
 route: "/"
 component:
-  type: block
-  id: Modules
+  type: entity
+  entityName: Solution
+  entityId: {{jsreplace "Application.Route.Params.solutionId"}}
+

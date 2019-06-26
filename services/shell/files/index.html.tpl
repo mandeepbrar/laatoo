@@ -13,9 +13,10 @@
   
   <<routeinfo>>
   <script type="text/javascript" src="/vendor.{{var "uiapplication"}}.js"></script>
-  <script type="text/javascript" src="/app.{{var "uiapplication"}}.js"></script>
-  <script type="text/javascript" src="/services.{{var "uiapplication"}}.conf.js"></script>
+  <script type="text/javascript" src="/modules.{{var "uiapplication"}}.js"></script>
+  <script type="text/javascript" src="/components.{{var "uiapplication"}}.conf.js"></script>
   <script type="text/javascript" src="/wasm/app.wasm"></script>
+  <script type="text/javascript" src="/boot.{{var "uiapplication"}}.js"></script>
 
 </body>
 </html>

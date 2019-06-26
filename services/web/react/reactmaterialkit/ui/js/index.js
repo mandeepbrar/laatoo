@@ -30,12 +30,12 @@ class UIWrapper extends React.Component {
     super(props)
     this.theme = createMuiTheme()
   }
-  componentDidMount() {
+  /*componentDidMount() {
     var injectTapEventPlugin = require("react-tap-event-plugin");
     console.log("injectd.........", injectTapEventPlugin)
 //    injectTapEventPlugin();
     injectTapEventPlugin();
-  }
+  }*/
   render() {
     return (
       <MuiThemeProvider><Dialogs/>{this.props.children}</MuiThemeProvider>

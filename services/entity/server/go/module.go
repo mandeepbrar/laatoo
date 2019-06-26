@@ -7,6 +7,9 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"strings"
+	"bytes"
+	"path"
+	"text/template"
 )
 
 const (
@@ -24,6 +27,7 @@ type EntityModule struct {
 	object     string
 	entityConf config.Config
 	instance   string
+	templatesDir string
 }
 
 /*
@@ -47,6 +51,10 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	if md == nil {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Object metadata not found", entity.object)
 	}
+
+	baseDir, _ := ctx.GetString(config.MODULEDIR)
+	entity.templatesDir = path.Join(baseDir, "files", "templates")
+
 	desc := md.GetProperty("descriptor")
 	if desc != nil {
 		str, ok := desc.(string)
@@ -77,7 +85,10 @@ func (entity *EntityModule) GetRegistry(ctx core.ServerContext) config.Config {
 	reg := ctx.CreateConfig()
 	forms := entity.createForms(ctx)
 	reg.Set(ctx, "Forms", forms)
-	blocks := entity.createBlocks(ctx)
+	blocks, err := entity.createBlocks(ctx)
+	if(err!=nil) {
+		log.Error(ctx, "Error createing entity registry", "Error", err)
+	}
 	reg.Set(ctx, "Blocks", blocks)
 	return reg
 }
@@ -128,245 +139,85 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	return forms
 }
 
-func (entity *EntityModule) createBlocks(ctx core.ServerContext) config.Config {
+func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,error)  {
 	blocks := ctx.CreateConfig()
 
-	tableHeaderStr := `{
-			Block: {
-				className: "%s_list_header tableheading ",
-				children: [
-					{
-						Block:	{
-							className: "tablecell",
-							body: "Name"
-						}
-					},
-					{
-						Block:	{
-							className: "tablecell",
-							body: "Last Updated"
-						}
-					},
-					{
-						Block:	{
-							className: "tablecell",
-							body: ""
-						}
-					}
-				]
-			}
-		}`
+	type TemplateData struct {
+		EntityName string
+		LabelField string
+	}
 
-	tableHeader, err := ctx.ReadConfigData([]byte(fmt.Sprintf(tableHeaderStr, entity.object)), nil)
+	funcMap := template.FuncMap{
+		// The name "title" is what the function will be called in the template text.
+		"lower": strings.ToLower,
+	}
+
+	viewtableHeaderTemp, err := template.New("viewtableheader.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtableheader.tpl"))
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	tableHeaderStr := new(bytes.Buffer)
+	data := TemplateData{entity.object, "Name"}
+
+	err = viewtableHeaderTemp.Execute(tableHeaderStr, data)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	tableHeader, err := ctx.ReadConfigData(tableHeaderStr.Bytes(), nil)
 	if err == nil {
 		blocks.Set(ctx, strings.ToLower(entity.object)+"_viewheader", tableHeader)
 	} else {
 		log.Error(ctx, "Error writing entity block", "Err", err)
-		return blocks
+		return blocks, nil
 	}
 
-	tableRowStr := `{
-			config: {
-				skip: false
-			},
-			Block: {
-				className: "%s_tablerow tablerow javascript%s ",
-			  children: [
-					{
-						Block: {
-							className: "tablecell field",
-							body: "javascript%s"
-						}
-					},
-					{
-						Block: {
-							className: "tablecell field",
-							body: "javascript%s"
-						}
-					},
-					{
-						Block: {
-							className: "tablecell field",
-							children: [
-								{
-									Action: {
-											module: "reactwebcommon",
-											name: "update_page_%s",
-											params: {
-												entityId: "javascript%s"
-											},
-											body: "View %s"
-									}
-								}
-							]
-						}
-					}
-				]
-			}
-		}	`
-	labelField := "Name"
-	tableRowStr = fmt.Sprintf(tableRowStr, entity.object, "#@#ctx.className#@#", fmt.Sprintf("#@#ctx.data.%s#@#", labelField), "#@#ctx.data.UpdatedAt#@#", strings.ToLower(entity.object), "#@#ctx.data.Id#@#", entity.object)
-	tableRow, err := ctx.ReadConfigData([]byte(tableRowStr), nil)
+
+	viewtableRowTemp, err := template.New("viewtablerow.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtablerow.tpl"))
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	tableRowStr := new(bytes.Buffer)
+
+	err = viewtableRowTemp.Execute(tableRowStr, data)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	tableRow, err := ctx.ReadConfigData(tableRowStr.Bytes(), nil)
 	if err == nil {
 		blocks.Set(ctx, entity.object+"_listtablerow", tableRow)
 	} else {
 		log.Error(ctx, "Error writing entity block", "Err", err)
-		return blocks
+		return blocks, nil
 	}
-	/*defaultStr := `{
-		config: {
-			skip: false
-		},
-		div: {
-			className: "%s_default javascript%s ",
-		  children: [
-				{
-					div: {
-						className: "tablecell field",
-						body: "javascript%s"
-					}
-				},
-				{
-					div: {
-						className: "tablecell field",
-						body: "javascript%s"
-					}
-				},
-				{
-					div: {
-						className: "tablecell field",
-						children: [
-							{
-								Action: {
-										module: "reactwebcommon",
-										name: "update_page_%s",
-										params: {
-											entityId: "javascript%s"
-										},
-										body: "View %s"
-								}
-							}
-						]
-					}
-				}
-			]
-		}
-	}	`*/
-	defaultBlk := ctx.CreateConfig()
+	
+	
+	defaultEntityTemp, err := template.New("defaultentity.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "defaultentity.tpl"))
+	defaultEntityStr := new(bytes.Buffer)
+
+	
+	err = defaultEntityTemp.Execute(defaultEntityStr, data)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	log.Error(ctx," defaultEntityTemp ", "file", string(defaultEntityStr.Bytes()))
+
+	defEntity, err := ctx.ReadConfigData(defaultEntityStr.Bytes(), nil)
+	if err == nil {
+		blocks.Set(ctx, entity.object+"_default", defEntity)
+	} else {
+		log.Error(ctx, "Error writing entity block", "Err", err)
+		return blocks, nil
+	}
+
+	/*defaultBlk := ctx.CreateConfig()
 	blkDiv := ctx.CreateConfig()
-	/*fields := make([]config.Config, 0)
-	fieldsConf, ok := entity.entityConf.GetSubConfig(ctx, "fields")
-	if ok {
-		fieldNames := fieldsConf.AllConfigurations(ctx)
-		for _, field := range fieldNames {
-			//fieldConf, _ := fieldsConf.GetSubConfig(ctx, field)
-			fieldConf := ctx.CreateConfig()
-
-			fieldDiv := ctx.CreateConfig()
-
-			fieldElems := make([]config.Config, 0)
-
-			fieldNameDiv := ctx.CreateConfig()
-			fieldNameElems := ctx.CreateConfig()
-			fieldNameElems.Set(ctx, "className", "name " + field)
-			fieldNameElems.Set(ctx, "body", field)
-			fieldNameDiv.Set(ctx, "div", fieldNameElems)
-			fieldElems = append(fieldElems, fieldNameDiv)
-
-			fieldValDiv := ctx.CreateConfig()
-			fieldValElems := ctx.CreateConfig()
-			fieldValElems.Set(ctx, "className", "value " + field)
-			fieldValElems.Set(ctx, "body", fmt.Sprintf("javascript#@#ctx.data.%s#@#", field))
-			fieldValDiv.Set(ctx, "div", fieldValElems)
-			fieldElems = append(fieldElems, fieldValDiv)
-
-			fieldDiv.Set(ctx, "children", fieldElems)
-			fieldDiv.Set(ctx, "className", "field " + field)
-
-			fieldConf.Set(ctx, "div", fieldDiv)
-			//fldChildren := ctx.CreateConfig()
-			fields = append(fields, fieldConf)
-			//fieldToBeAdded := ctx.CreateConfig()
-			//fieldConf, _ := fields.GetSubConfig(ctx, field)
-		}
-	}
-	log.Error(ctx, "fields conf ", "entity", entity.object, "fields", fields)*/
-	//blkDiv.Set(ctx, "children", fields)
-	blkDiv.Set(ctx, "body", "javascript###Window.displayDefaultEntity(ctx, desc, uikit)###")
+	
+	blkDiv.Set(ctx, "body", `{{jsreplace "Window.displayDefaultEntity(ctx, desc, uikit)"`)
 	blkDiv.Set(ctx, "className", "entity default "+entity.object)
 	defaultBlk.Set(ctx, "Block", blkDiv)
 	blocks.Set(ctx, entity.object+"_default", defaultBlk)
-
-	/*fields, ok := entity.entityConf.GetSubConfig(ctx, "fields")
-	if ok {
-		fieldNames := fields.AllConfigurations(ctx)
-		for _, field := range fieldNames {
-			fieldToBeAdded := ctx.CreateConfig()
-
-			fieldConf, _ := fields.GetSubConfig(ctx, field)
-			fType, ok := fieldConf.GetString(ctx, "type")
-			if ok {
-				fieldToBeAdded.Set(ctx, "type", fType)
-			}
-			fLabel, ok := fieldConf.GetString(ctx, "label")
-			if ok {
-				fieldToBeAdded.Set(ctx, "label", fLabel)
-			}
-			fieldToBeAdded.Set(ctx, "className", " entityfield "+field)
-			newEntityFormFields.Set(ctx, field, fieldToBeAdded)
-
-		}
-	}*/
-
-	/*
-
-	  layoutFields = (fldToDisp, flds, className) => {
-	    let fieldsArr = new Array()
-	    let comp = this
-	    fldToDisp.forEach(function(k) {
-	      let fd = flds[k]
-	      let cl = className? className + " m10": "m10"
-	      fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={comp.state.formValue} {...comp.parentFormProps} time={comp.state.time} className={cl}/>      )
-	    })
-	    return fieldsArr
-	  }
-
-	  fields = () => {
-	    let desc = this.props.description
-	    console.log("desc of form ", desc)
-	    let comp = this
-	    if(desc && desc.fields) {
-	      let flds = desc.fields
-	      if(flds) {
-	        if(desc.info && desc.info.tabs) {
-	          let tabs = new Array()
-	          let tabsToDisp = desc.info && desc.info.tabs? desc.info.layout: Object.keys(desc.info.tabs)
-	          tabsToDisp.forEach(function(k) {
-	            let tabFlds = desc.info.tabs[k];
-	            if(tabFlds) {
-	              let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield")
-	              tabs.push(
-	                <comp.uikit.Tab label={k} time={comp.state.time} value={k}>
-	                  {tabArr}
-	                </comp.uikit.Tab>
-	              )
-	            }
-	          })
-	          let vertical = desc.info.verticaltabs? true: false
-	          return (
-	            <this.uikit.Tabset vertical={vertical} time={comp.state.time}>
-	              {tabs}
-	            </this.uikit.Tabset>
-	          )
-	        } else {
-	          let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
-	          let className=comp.props.inline?"inline formfield":"formfield"
-	          return this.layoutFields(fldToDisp, flds, className)
-	        }
-	      }
-	    }
-	    return null
-	  }*/
-
-	return blocks
+	*/
+	return blocks, nil
 }

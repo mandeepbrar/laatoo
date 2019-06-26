@@ -9,7 +9,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/sdk/utils"
+	//"laatoo/sdk/utils"
 	"strings"
 )
 
@@ -19,6 +19,15 @@ type Node struct {
 	Content []byte     `xml:",innerxml"`
 	Nodes   []Node     `xml:",any"`
 }
+
+func (node *Node) HasChildren() bool {
+	return len(node.Nodes) > 0
+}
+
+func (node *Node) HasContent() bool {
+	return len(node.Content) > 0
+}
+
 
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	n.Attrs = start.Attr
@@ -46,14 +55,108 @@ func (svc *UI) createConfBlock(ctx core.ServerContext, itemType string, itemName
 func (svc *UI) createXMLBlock(ctx core.ServerContext, itemType string, itemName string, node Node) error {
 	ctx = ctx.SubContext(fmt.Sprintf("%s_%s", itemType, itemName))
 	log.Error(ctx, "creating xml block", "itemName", itemName)
-	val, err := svc.processXMLBlockNode(ctx, node, itemName)
+	/*val, err := svc.processXMLBlockNode(ctx, node, itemName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	svc.regItem(ctx, itemType, itemName, val)
+	svc.regItem(ctx, itemType, itemName, val)*/
+	//conf := ctx.CreateConfig()
+	conf, _, err := svc.createConfFromXML(ctx, node)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	log.Error(ctx, " xml block conf", "conf", conf)
+	err = svc.createConfBlock(ctx, itemType, itemName, conf)
+	if err != nil {
+		log.Error(ctx, " error processing block conf", "conf", conf, "err", err)
+		return errors.WrapError(ctx, err)
+	}
 	return nil
 }
 
+func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Config, string, error) {
+	switch node.XMLName.Local {
+	case "Attr":
+		{
+			nodeConf := ctx.CreateConfig()
+			name := ""
+			for _, attr := range node.Attrs {
+				if attr.Name.Local == "name" {
+					name = attr.Value
+				}
+			}
+			if name == "" {
+				return nil, "", errors.BadConf(ctx, "Attribute name not provided ")
+			}
+			if node.HasChildren() {
+				for _, attrChild := range node.Nodes {
+					if attrChild.XMLName.Local == "Content" {
+						nodeConf.SetString(ctx, "body", string(node.Content))
+					} else {
+						aconf, _, err := svc.createConfFromXML(ctx, attrChild)
+						if err != nil {
+							return nil, "", errors.WrapError(ctx, err)
+						}
+						nodeConf.Set(ctx, name, aconf)	
+					}
+				}
+			} else if node.HasContent() {
+				nodeConf.SetString(ctx, name, string(node.Content))
+			}
+			return nodeConf, name, nil
+		}
+	default: 
+		{
+			nodeConf := ctx.CreateConfig()
+			if len(node.Nodes) ==0 && len(node.Content) > 0 {
+				nodeConf.SetString(ctx, "body", string(node.Content))
+			}
+			for _, attr := range node.Attrs {
+				nodeConf.SetString(ctx, attr.Name.Local, attr.Value)
+			}	
+			if node.HasChildren() {
+				childrenConf := make([]config.Config, 0)
+				for _, n := range node.Nodes {
+					isAttr := n.XMLName.Local == "Attr"
+					//childConf := ctx.CreateConfig()
+					/*if n.XMLName.Local == "Attr" {
+						err := svc.createConfFromXML(ctx, n, nodeconf)
+						if err!=nil {
+							return errors.WrapError(ctx, err)
+						}
+					} else {*/
+						//nconf := ctx.CreateConfig()
+						childConf, name, err := svc.createConfFromXML(ctx, n)
+						if err!=nil {
+							return nil, "", errors.WrapError(ctx, err)
+						}
+						//nodeconf.Set(ctx, n.XMLName.Local, nconf)
+					//}
+					if isAttr {
+						aconf, _ := childConf.GetSubConfig(ctx, name)
+						nodeConf.Set(ctx, name, aconf)
+					} else {
+						childrenConf = append(childrenConf, childConf)
+					}
+				}	
+				nodeConf.Set(ctx, "children", childrenConf)
+			} else if node.HasContent() {
+				nodeConf.SetString(ctx, "body", string(node.Content))
+			}
+			nConf := ctx.CreateConfig()
+			nConf.Set(ctx, node.XMLName.Local, nodeConf)
+			return nConf, node.XMLName.Local, nil
+		}
+	}
+	/*if childConfOnly {
+		return conf, nil
+	}
+	nodeConf := ctx.CreateConfig()
+	nodeConf.Set(ctx, node.XMLName.Local, conf)
+	return nodeConf, nil*/
+}
+
+/*
 func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node, itemName string) (string, error) {
 	children := make([]string, 0)
 	var mod = ""
@@ -155,7 +258,7 @@ func (svc *UI) processXMLBlockNode(ctx core.ServerContext, node Node, itemName s
 	//n.Attrs
 	return fmt.Sprintf("_ce(%s, %s, %s, %s)", elem, attrStr, childArrStr, elemname), nil
 }
-
+*/
 func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string {
 	attrBuf := new(bytes.Buffer)
 	attrNames := conf.AllConfigurations(ctx)
@@ -185,6 +288,8 @@ func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string 
 	}
 	return fmt.Sprintf("{%s}", attrBuf.String())
 }
+
+
 
 func getModString(ctx core.ServerContext, elem, mod, itemname string) (string, string) {
 	switch mod {
@@ -268,15 +373,16 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 		}
 
 		attrStr := fmt.Sprintf("{%s}", attrBuf.String())
-
 		elem, elemName := getModString(ctx, rootelem, mod, itemName)
 
 		//n.Attrs
 		if content != "" {
 			return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, processJS(ctx, content), elemName), nil
 		}
-		return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, strings.Join(childStr, ","), elemName), nil
-
+		if len(childStr) > 0 {
+			return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, strings.Join(childStr, ","), elemName), nil
+		}
+		return fmt.Sprintf("_ce(%s, %s, null, %s)", elem, attrStr, elemName), nil
 	}
 	return "", nil
 }

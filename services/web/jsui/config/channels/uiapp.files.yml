@@ -3,16 +3,23 @@ channels:
   parent: root
   method: GET
   service: uiapp.files{{var "application" "."}}
-  path: /app{{var "application" "."}}.js
+  path: /modules{{var "application" "."}}.js
   staticvalues:
-    file: app.js
+    file: modules.js
 - name: uiapp.services{{var "application" "."}}
   parent: root
   method: GET
   service:  uiapp.files{{var "application" "."}}
-  path: /services{{var "application" "."}}.conf.js
+  path: /components{{var "application" "."}}.conf.js
   staticvalues:
-    file: services.conf.js
+    file: components.conf.js
+- name:  uiapp.boot{{var "application" "."}}
+  parent: root
+  method: GET
+  service: uiapp.files{{var "application" "."}}
+  path: /boot{{var "application" "."}}.js
+  staticvalues:
+    file: boot.js
 - name: uiapp.style{{var "application" "."}}
   parent: root
   method: GET

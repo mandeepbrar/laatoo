@@ -20,7 +20,6 @@ services:
      - "6061:6061"
     depends_on:
     - mongo
-    - logs
     environment:
      - LAATOO_mongoconnectionstring=mongo
     logging:
@@ -31,15 +30,5 @@ services:
      - "27017:27017"
     volumes:
     - /backups/punjabimehfilmongo:/data/db
-  logs:
-    build:
-      context: .
-      dockerfile: Dockerfile.ekanite
-    ports:
-     - "18080:18080"
-     - "5514:5514"
-     - "9950:9950"
-    volumes:
-    - /home/mandeep/goprogs/src/laatoo/designer/logs:/logs
 volumes:
   logvolume01: {}

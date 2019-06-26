@@ -70,7 +70,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 			return errors.WrapError(ctx, err)
 		}
 	*/
-
+/*
 	modsList := new(bytes.Buffer)
 	for insName, settings := range svc.insSettings {
 		settingsStr, err := json.Marshal(settings)
@@ -82,7 +82,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 			return errors.WrapError(ctx, err)
 		}
 	}
-
+*/
 	/*wasmMods := make([]string, 0)
 	for modName, _ := range svc.wasmFiles {
 		wasmMods = append(wasmMods, modName)
@@ -103,11 +103,6 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 		return errors.WrapError(ctx, err)
 	}*/
 	_, err = uiFileCont.Write(svc.wasmImportScript)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, '%s');", modsList.String(), svc.application, "/properties/default."+svc.application+".json", "/wasm."+svc.application+".json")
-	_, err = uiFileCont.WriteString(loadingComplete)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -147,8 +142,8 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 			}
 		}
 	*/
-	initFunc := fmt.Sprintf("console.log('initializing application js');Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
-	descFileCont.WriteString(initFunc)
+	//initFunc := fmt.Sprintf("console.log('initializing application js');Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
+	//descFileCont.WriteString(initFunc)
 
 	descfile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.mergeduidescriptor)
 	err := ioutil.WriteFile(descfile, descFileCont.Bytes(), 0755)
@@ -156,6 +151,38 @@ func (svc *UI) writeDescriptorFile(ctx core.ServerContext, baseDir string) error
 		return errors.WrapError(ctx, err)
 	}
 
+	return nil
+}
+
+func (svc *UI) writeBootFile(ctx core.ServerContext, baseDir string) error {
+	bootFileCont := new(bytes.Buffer)
+	initFunc := fmt.Sprintf("console.log('initializing application js');Window.InitializeApplication=function(){var app=require('%s'); app.StartApplication();};", svc.application)
+	bootFileCont.WriteString(initFunc)
+
+	modSettings := new(bytes.Buffer)
+	for insName, settings := range svc.insSettings {
+		settingsStr, err := json.Marshal(settings)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		_, err = modSettings.WriteString(fmt.Sprintf("['%s','%s',%s],", insName, svc.insMods[insName], string(settingsStr)))
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
+	loadingComplete := fmt.Sprintf("var insSettings=[%s];console.log('insSettings', insSettings);appLoadingComplete('%s','%s',insSettings, '%s');", modSettings.String(), svc.application, "/properties/default."+svc.application+".json", "/wasm."+svc.application+".json")
+	_, err := bootFileCont.WriteString(loadingComplete)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+
+	bootfile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.bootfile)
+	err = ioutil.WriteFile(bootfile, bootFileCont.Bytes(), 0755)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	return nil
 }
 
