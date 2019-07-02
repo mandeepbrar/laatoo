@@ -15,7 +15,10 @@ function RenderPageComponent(comp, key, pageId, routerState, page, uikit) {
     }
     if(key=="menu") {
   //    return null
-      return <SiteMenu menu={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page} uikit={uikit}/>
+        if(page.hideMenu) {
+            return null
+        }
+        return <SiteMenu menu={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page} uikit={uikit}/>
     }
 }
 

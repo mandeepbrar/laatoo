@@ -1,0 +1,3 @@
+modulesrepoview:
+  method: POST
+  url: "/moduledefinition/view"

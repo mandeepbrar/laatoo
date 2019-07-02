@@ -39,6 +39,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
 function processMenu(){
   var menuItems=[]
   let menu = []
+  console.log("Menu process", module.settings, Application)
   if(module.settings && module.settings.menu) {
     menu = module.settings.menu
   } else {

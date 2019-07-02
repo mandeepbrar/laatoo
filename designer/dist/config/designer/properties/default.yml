@@ -2,17 +2,14 @@ menu:
   - homepage:
     title: My Home
     page: home
-  - solutions:
-    title: My Solutions
-    page: list_solution
   - servers:
-    title: My Servers
+    title: Servers
     page: list_server
   - environments:
-    title: My Environments
+    title: Environments
     page: list_environment
   - applications:
-    title: My Applications
+    title: Applications
     page: list_application
   - modules:
     title: All Modules

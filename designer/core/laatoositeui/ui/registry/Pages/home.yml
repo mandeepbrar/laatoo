@@ -1,4 +1,5 @@
 route: "/"
+hideMenu: true
 component:
   type: layout
   layout: 1col

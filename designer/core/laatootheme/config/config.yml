@@ -6,6 +6,17 @@ description: Module provides laatoo theme
 extends: laatoositetheme
 settings:
   infoBlock: designerlink
+  showMenu: true
+  menu:
+  - homepage:
+    title: Account
+    page: account
+  - Solutions:
+    title: Solutions
+    page: solutions
+  - Modules:
+    title: Modules
+    page: modulesrepo
 ui:
   js:
     skipUIModules: true

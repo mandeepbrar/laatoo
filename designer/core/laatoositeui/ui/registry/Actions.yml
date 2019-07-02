@@ -1,4 +1,4 @@
 signin:
-  url: "/list_solution"
+  url: "/account"
 signup:
   url: "/signup"

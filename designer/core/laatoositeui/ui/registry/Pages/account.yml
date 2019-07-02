@@ -1,0 +1,5 @@
+route: "/account"
+authenticate: true
+component:
+  type: layout
+  layout: 1col
