@@ -185,6 +185,8 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	case __stringtype:
 		p.value, ok = val.(string)
 		log.Error(ctx, "set values", "p.value", p.value, "ok", ok)
+	case __files:
+		p.value, ok = val.(map[string]*core.MultipartFile)
 	case __stringarr:
 		p.value, ok = val.([]string)
 	case __booltype:

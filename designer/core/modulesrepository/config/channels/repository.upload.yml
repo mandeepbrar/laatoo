@@ -1,0 +1,5 @@
+parent: root
+method: POST
+service: repository.modules.directory
+path: "repository/upload"
+body: "files"

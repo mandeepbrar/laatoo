@@ -51,6 +51,7 @@ const (
 	CONF_TASK_PROCESSOR     = "processor"
 	CONF_TASK_CONSUMER      = "consumer"
 	CONF_CHANNEL_SERVICE    = "service"
+	CONF_SERVICE_FORWARD    = "forward"
 
 	CONF_CACHE_SVC           = "service"
 	CONF_SESSION             = "session"

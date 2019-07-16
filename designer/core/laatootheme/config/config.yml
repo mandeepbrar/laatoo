@@ -14,8 +14,8 @@ settings:
   - Solutions:
     title: Solutions
     page: solutions
-  - Modules:
-    title: Modules
+  - AllModules:
+    title: AllModules
     page: modulesrepo
 ui:
   js:

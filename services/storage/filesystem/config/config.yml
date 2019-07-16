@@ -6,8 +6,8 @@ objects:
     description: File system storage service
     request:
       params:        
-        files:
-          type: stringmap
+        Data:
+          type: files
     configurations:
       filestoragedir:
         description: Directory to be used by the storage component

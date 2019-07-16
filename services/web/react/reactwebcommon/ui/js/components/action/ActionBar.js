@@ -15,7 +15,7 @@ class ActionBar extends React.Component {
     var comp = this;
     if(desc && desc.actions) {
         desc.actions.forEach(function(action){
-          comp.actions.push(<Action name={action.name} label={action.label} actiontype={desc.actiontype} widget={desc.widget} className=" action "/>)
+          comp.actions.push(<Action name={action.name} label={action.label} widget={action.widget} className=" action "/>)
         })
     }
   }

@@ -35,11 +35,19 @@ Application.GetRegistry = function(regName, id) {
   }
   return null;
 }
+Application.Resolve = function(mod, comp) {
+  let moduleObj = _$[mod];
+  if(moduleObj && comp) {
+    return moduleObj[comp]
+  }
+}
+
 
 var _$=Application.Modules;
 var _rm = Application.RegisterModule;
 var _r = Application.Register;
 var _reg= Application.GetRegistry;
+var _res = Application.Resolve;
 var _re = null;
 var _ce = null;
 function createElement(elem, props, children, name) {

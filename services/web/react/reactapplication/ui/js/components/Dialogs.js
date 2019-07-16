@@ -21,7 +21,7 @@ class DialogHandler extends React.Component {
     if(!this.state.open) {
       return <div></div>
     }
-
+    console.log("opening dialog", this.props)
     let contentStyle = this.props.contentStyle
     if(!contentStyle) {
       contentStyle = {minWidth:400, maxWidth: 450}

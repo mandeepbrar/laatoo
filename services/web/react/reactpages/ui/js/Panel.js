@@ -83,7 +83,7 @@ class Panel extends React.Component {
               return desc.component
             }
           } else {
-            var comp = this.getComponent(desc.module, desc.componentName, module.req)
+            var comp = _res(desc.module, desc.componentName)
             this.getView = function(comp) {
               return function(props, context, state, className) {
                 let cl = { description: desc, className: className};
@@ -230,7 +230,7 @@ class Panel extends React.Component {
     var cfg = desc.info
     if(!this.form) {
       console.log("getting form",  module)
-      this.form = this.getComponent("reactforms", "Form", module.req)
+      this.form = _res("reactforms", "Form")
       console.log("got form",  module)
     }
 
@@ -274,7 +274,7 @@ class Panel extends React.Component {
     let viewHeader = desc.header? <Panel description={desc.header}/> :null
 
     if(!this.view) {
-      this.view = this.getComponent("laatooviews", "View", module.req)
+      this.view = _res("laatooviews", "View")
     }
     console.log("processing view", this.view)
 
@@ -289,7 +289,7 @@ class Panel extends React.Component {
 
   processEntity = (desc, props, ctx) => {
     if(!this.entity) {
-      this.entity = this.getComponent("laatooviews", "Entity", module.req)
+      this.entity = _res("laatooviews", "Entity")
     }
     this.getView = function(props, ctx, state, className) {
       var desc = props.description
@@ -351,7 +351,7 @@ class Panel extends React.Component {
     }
   }
 
-  getComponent = (mod, comp, req) => {
+  /*getComponent = (mod, comp, req) => {
     let key = mod + comp
     let retval = module[key]
     if(!retval) {
@@ -362,7 +362,7 @@ class Panel extends React.Component {
       }
     }
     return retval;
-  }
+  }*/
 
   render() {
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"

@@ -1,0 +1,4 @@
+route: "/solutionmodules"
+component:
+  type: block
+  id: SolutionModules

@@ -1,22 +1,41 @@
 package http
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/log"
 	"laatoo/server/engine/http/net"
 )
 
-type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}, bytes interface{}) (*core.Response, error)
+type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}) (*core.Response, error)
 
 func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string, svc elements.Service,
 	routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool,
-	bodyParamName string) (ServiceInvoker, error) {
-	return func(webctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
+	bodyParamName, bodyParamType string) (ServiceInvoker, error) {
+	includeBody := bodyParamType != ""
+	multipart := bodyParamType == config.OBJECTTYPE_FILES
+	return func(webctx core.RequestContext, vals map[string]interface{}) (*core.Response, error) {
 		engineContext := webctx.EngineRequestContext().(net.WebContext)
 		log.Error(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
 		reqctx := webctx.SubContext(svc.GetName())
 		defer reqctx.CompleteRequest()
+
+		if includeBody {
+			if multipart {
+				files, err := engineContext.GetFiles()
+				if err != nil {
+					return core.BadRequestResponse(err.Error()), err
+				}
+				vals[bodyParamName] = files
+			} else {
+				bytes, err := engineContext.GetBody()
+				if err != nil {
+					return core.BadRequestResponse(err.Error()), err
+				}
+				vals[bodyParamName] = bytes
+			}
+		}
 
 		if routeParams != nil {
 			for param, routeParamName := range routeParams {
@@ -47,8 +66,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[name] = val
 			}
 		}
-		vals[bodyParamName] = body
-		log.Trace(webctx, "Handle Request", "info", vals)
+		log.Error(webctx, "Handle Request", "info", vals)
 		return svc.HandleRequest(reqctx, vals)
 	}, nil
 }

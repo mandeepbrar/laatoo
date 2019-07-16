@@ -1,0 +1,6 @@
+dropzone:
+  text: Try dropping some files here, or click to select files to upload.
+success:
+  text: File uploaded successfully
+failure:
+  text: File uploaded successfully

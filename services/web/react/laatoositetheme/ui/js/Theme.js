@@ -22,13 +22,9 @@ class ThemeUI extends React.Component {
       <props.uikit.Block className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
         <Header uikit={props.uikit} module={module} />
         <props.uikit.Block className="body">
-        {
-        module.settings.showMenu?
           <props.uikit.Block className={vertical?"vertmenu":"horizmenu"}>
             <props.router.View name="menu" loggedIn={props.loggedIn} />
           </props.uikit.Block>
-        :null
-        }
           <props.uikit.Block className={vertical?"vertbody":"horizbody"}>
             <props.router.View name="main" loggedIn={props.loggedIn}/>
           </props.uikit.Block>
@@ -55,8 +51,8 @@ const SiteTheme = (props, st, c) => {
   
 
 function PreprocessPageComponents(components, page, pageId, reducers, uikit) {
-    if(module.settings.showMenu) {
-        console.log("pre processing.......", components);
+    if(module.settings.showMenu && !page.hideMenu) {
+        console.log("pre processing.......", components, page);
         components.menu = (routerState) => {
           console.log("menu items ", routerState, module.menu)
           return (

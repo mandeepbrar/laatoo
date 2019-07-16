@@ -10,10 +10,10 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"modulesrepository/autogen"
 	"os"
 	"path"
 	"path/filepath"
-	"modulesrepository/autogen"
 
 	"github.com/mholt/archiver"
 )
@@ -38,6 +38,7 @@ func (svc *RepositoryUpdate) Describe(ctx core.ServerContext) error {
 }
 
 func (svc *RepositoryUpdate) Start(ctx core.ServerContext) error {
+
 	dataSvcName := "repository.modules.database"
 	dataSvc, err := ctx.GetService(dataSvcName)
 	if err != nil {
@@ -107,24 +108,47 @@ func (svc *RepositoryUpdate) extractArchive(ctx core.RequestContext, mod, file s
 			return errors.WrapError(ctx, err)
 		}
 	}
-	str, err := svc.repositoryFiles.Open(ctx, file)
+	//	os.MkdirAll(modTmpDir, os.ModeTemporary)
+	archiveExists := svc.repositoryFiles.Exists(ctx, file)
+	if !archiveExists {
+		log.Info(ctx, "Archive does not exist", "file", file)
+		ctx.SetResponse(core.StatusNotFoundResponse)
+		return nil
+	}
+	localmodFile := path.Join(TMPPATH, file)
+	fil, err := os.Create(localmodFile)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	targz := archiver.NewTarGz()
-	err = targz.Open(str, -1); 
+	log.Error(ctx, "Archive exists", "file", file)
+	err = svc.repositoryFiles.CopyFile(ctx, file, fil)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if err := targz.Extract("", "", TMPPATH); err != nil {
+	if err := archiver.Unarchive(localmodFile, TMPPATH); err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	log.Error(ctx, "Extracted module ", "Module", mod, "Module file", file)
+	/*	str, err := svc.repositoryFiles.Open(ctx, file)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		targz := archiver.NewTarGz()
+		err = targz.Open(str, -1)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		if err := targz.Extract(mod, mod, TMPPATH); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	*/
+	utils.PrintDirContents(modTmpDir)
+	log.Error(ctx, "Extracted module ", "Module", mod, "Module file", file, "modTmpDir", modTmpDir)
 	return nil
 }
 
 func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*autogen.ModuleDefinition, error) {
-	confPath := path.Join(TMPPATH, modName, "config.yml")
+	confDir := path.Join(TMPPATH, modName, "config")
+	confPath := path.Join(confDir, "config.yml")
 	conf, err := ctx.ServerContext().ReadConfig(confPath, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -134,34 +158,33 @@ func (svc *RepositoryUpdate) readMod(ctx core.RequestContext, modName string) (*
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	modDir := path.Join(TMPPATH, modName)
-	svcs, err := svc.readElementNames(ctx, modDir, "services", conf)
+	svcs, err := svc.readElementNames(ctx, confDir, "services", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Services = svcs
-	channels, err := svc.readElementNames(ctx, modDir, "channels", conf)
+	channels, err := svc.readElementNames(ctx, confDir, "channels", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	log.Error(ctx, "Services for mod", "services", svcs)
 	mod.Channels = channels
-	factories, err := svc.readElementNames(ctx, modDir, "factories", conf)
+	factories, err := svc.readElementNames(ctx, confDir, "factories", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Factories = factories
-	engines, err := svc.readElementNames(ctx, modDir, "engines", conf)
+	engines, err := svc.readElementNames(ctx, confDir, "engines", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Engines = engines
-	rules, err := svc.readElementNames(ctx, modDir, "rules", conf)
+	rules, err := svc.readElementNames(ctx, confDir, "rules", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Rules = rules
-	tasks, err := svc.readElementNames(ctx, modDir, "tasks", conf)
+	tasks, err := svc.readElementNames(ctx, confDir, "tasks", conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

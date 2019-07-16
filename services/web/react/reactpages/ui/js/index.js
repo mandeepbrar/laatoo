@@ -24,6 +24,10 @@ function Initialize(appName, ins, mod, settings, def, req) {
   Panel.setModule(module)
 }
 
+Window.resolvePanel = (panelType, id) => {
+  return <Panel type={panelType} id={id}/>
+}
+
 function ProcessPages(theme, uikit) {
   let pages = Application.AllRegItems("Pages")
   if(pages) {

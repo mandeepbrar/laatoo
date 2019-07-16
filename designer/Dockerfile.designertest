@@ -12,4 +12,6 @@ VOLUME /bin/appfiles
 
 VOLUME /devmodulesrepo
 
+VOLUME /modulesrepo
+
 EXPOSE 6060

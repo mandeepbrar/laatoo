@@ -30,9 +30,10 @@ type FileSystemSvc struct {
 
 func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	log.Info(ctx, "writing file")
-	val, _ := ctx.GetParamValue("files")
-	files := *val.(*map[string]*core.MultipartFile)
-	urls := make([]string, len(files))
+	val, _ := ctx.GetParamValue("Data")
+	log.Info(ctx, "File System Service", "Data", val)
+	files := val.(map[string]*core.MultipartFile)
+	urls := map[string]string{}
 	i := 0
 	for _, fil := range files {
 		defer fil.File.Close()
@@ -42,7 +43,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 		if err != nil {
 			return err
 		}
-		urls[i] = url
+		urls[fileName] = url
 		i++
 	}
 	log.Info(ctx, "writing file", "urls", urls)
@@ -73,6 +74,20 @@ func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, fileName string) er
 	path := svc.GetFullPath(ctx, fileName)
 	log.Trace(ctx, "Serving file", "filename", path)
 	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusServeFile, path, nil))
+	return nil
+}
+
+func (svc *FileSystemSvc) CopyFile(ctx core.RequestContext, fileName string, dest io.WriteCloser) error {
+	// Source file
+	src, err := svc.Open(ctx, fileName)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	if _, err = io.Copy(dest, src); err != nil {
+		return err
+	}
 	return nil
 }
 

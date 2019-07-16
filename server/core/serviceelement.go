@@ -12,17 +12,19 @@ import (
 )
 
 type serverService struct {
-	name        string
-	objectName  string
-	service     core.Service
-	conf        config.Config
-	factory     elements.Factory
-	owner       *serviceManager
-	middleware  []*serverService
-	paramValues map[string]interface{}
-	impl        *serviceImpl
-	svrContext  *serverContext
-	codecs      map[string]core.Codec
+	name             string
+	objectName       string
+	service          core.Service
+	conf             config.Config
+	factory          elements.Factory
+	owner            *serviceManager
+	middleware       []*serverService
+	paramValues      map[string]interface{}
+	impl             *serviceImpl
+	svrContext       *serverContext
+	codecs           map[string]core.Codec
+	serviceToForward string
+	forward          bool
 }
 
 func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
@@ -67,6 +69,8 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	if err := svc.processInfo(ctx, conf, svc.impl); err != nil {
 		return err
 	}
+
+	svc.serviceToForward, svc.forward = conf.GetString(ctx, constants.CONF_SERVICE_FORWARD)
 
 	err := svc.service.Initialize(ctx, conf)
 	if err != nil {
@@ -170,7 +174,18 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	return ctx.GetResponse(), nil
+	resp := ctx.GetResponse()
+
+	if svc.forward {
+		if resp.Status == core.StatusSuccess {
+			err := ctx.Forward(svc.serviceToForward, map[string]interface{}{"Data": resp.Data})
+			if err != nil {
+				return nil, errors.WrapError(ctx, err)
+			}
+			resp = ctx.GetResponse()
+		}
+	}
+	return resp, nil
 }
 
 func (svc *serverService) populateParams(ctx *requestContext, vals map[string]interface{}, req *request, codec core.Codec) error {

@@ -12,8 +12,8 @@ menu:
     title: Applications
     page: list_application
   - modules:
-    title: All Modules
-    page: modulesrepo
+    title: Solution Modules
+    page: solutionmodules
 dashboard:
   header:
     image: '/images/laatoo.jpg'

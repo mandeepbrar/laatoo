@@ -3,6 +3,7 @@ package http
 import (
 	//	"laatoo/core/common"
 
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
@@ -27,10 +28,19 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		return err
 	}
 
-	bodyParam := "Data"
+	bodyParamType := ""
 	body, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_BODY)
 	if ok {
-		bodyParam = body
+		bodyParamType = body
+	}
+
+	bodyParamName := "Data"
+	bodyParam, ok := channel.config.GetString(ctx, constants.CONF_HTTPENGINE_BODYPARAMNAME)
+	if ok {
+		bodyParamName = bodyParam
+		if bodyParamType == "" {
+			bodyParamType = config.OBJECTTYPE_BYTES
+		}
 	}
 
 	var respHandler elements.ServiceResponseHandler
@@ -83,7 +93,7 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		}
 	}
 
-	webReqHandler, err := channel.processServiceRequest(ctx, channel.method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParam)
+	webReqHandler, err := channel.processServiceRequest(ctx, channel.method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParamName, bodyParamType)
 	if err != nil {
 		return err
 	}

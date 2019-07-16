@@ -5,4 +5,4 @@ component:
   layout: 1col
   items:
     - type: view
-      id: list_solutions
+      id: list_solution

@@ -45,9 +45,9 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 }
 
 func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
-	val, _ := ctx.GetParamValue("files")
+	val, _ := ctx.GetParamValue("Data")
 	files := *val.(*map[string]*core.MultipartFile)
-	urls := make([]string, len(files))
+	urls := map[string]string{}
 	i := 0
 	for _, fil := range files {
 		defer fil.File.Close()
@@ -58,7 +58,7 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 			log.Debug(ctx, "Error while invoking upload", "err", err)
 			return errors.WrapError(ctx, err)
 		}
-		urls[i] = url
+		urls[fileName] = url
 		i++
 	}
 	ctx.SetResponse(core.SuccessResponse(urls))
@@ -79,7 +79,8 @@ func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string
 	if contentType != "" {
 		dst.ContentType = contentType
 	}
-	dst.ACL = []storage.ACLRule{{storage.AllUsers, storage.RoleReader}}
+
+	dst.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 	return dst, nil
 }
 
@@ -110,6 +111,20 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.
 
 func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
 	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
+	return nil
+}
+
+func (svc *GoogleStorageSvc) CopyFile(ctx core.RequestContext, fileName string, dest io.WriteCloser) error {
+	// Source file
+	src, err := svc.Open(ctx, fileName)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	if _, err = io.Copy(dest, src); err != nil {
+		return err
+	}
 	return nil
 }
 

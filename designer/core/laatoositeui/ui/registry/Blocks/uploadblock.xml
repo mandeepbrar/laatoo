@@ -1,0 +1,3 @@
+<Block>
+    <FileUpload module="reactfileupload" uploadService="repositoryupload"/>
+</Block>

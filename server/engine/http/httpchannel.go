@@ -132,7 +132,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		authtoken = val.(string)
 	}
 
-	processRequest := func(reqctx core.RequestContext, vals map[string]interface{}, body interface{}) (*core.Response, error) {
+	processRequest := func(reqctx core.RequestContext, vals map[string]interface{}) (*core.Response, error) {
 		if (!channel.skipAuth) && (shandler != nil) {
 			_, err := shandler.AuthenticateRequest(reqctx, false)
 			if err != nil {
@@ -141,7 +141,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		} else {
 			log.Trace(reqctx, "Auth skipped")
 		}
-		return handler(reqctx, vals, body)
+		return handler(reqctx, vals)
 	}
 
 	return func(pathCtx net.WebContext) error {
@@ -160,14 +160,9 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		log.Info(corectx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)
 		defer corectx.CompleteRequest()
 		go func(reqctx core.RequestContext, webctx net.WebContext) {
-			bytes, err := webctx.GetBody()
-			if err != nil {
-				errChannel <- err
-				return
-			}
 			vals := make(map[string]interface{})
 			vals[authtoken] = pathCtx.GetHeader(authtoken)
-			resp, err := processRequest(reqctx, vals, bytes)
+			resp, err := processRequest(reqctx, vals)
 			log.Trace(reqctx, "Completed request for service. Handling Response")
 			if err == nil {
 				err = respHandler.HandleResponse(reqctx, resp)

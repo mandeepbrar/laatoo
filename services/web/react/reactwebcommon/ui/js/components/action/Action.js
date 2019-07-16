@@ -34,8 +34,9 @@ class ActionComp extends React.Component {
     }
     this.props.dispatch(createAction(this.action.action, payload, {successCallback: this.props.successCallback, failureCallback: this.props.failureCallback}));
   }
+
   actionFunc(evt) {
-    console.log("action executed", this.props.name, this.props)
+    console.log("action executed", this.props.name, this.props, this.action)
     evt.preventDefault();
     if(this.props.confirm) {
       if(!this.props.confirm(this.props)) {
@@ -48,9 +49,16 @@ class ActionComp extends React.Component {
       return false;
       case "method":
         let params = this.props.params? this.props.params: this.action.params
-        let method = this.props.method? this.props.method: this.action.method
+        let method = this.props.method? this.props.method: _reg("Methods", this.action.method)
         method(params);
       return false;
+      case "showdialog":
+        let comp = Window.resolvePanel("block", this.action.id)
+        console.log("show dialog", this.action, comp)
+        let onClose = this.props.onClose? this.props.onClose: _reg("Methods", this.action.onClose)
+        // onClose, actions, contentStyle, titleStyle
+        Window.showDialog(this.action.title, comp, onClose, this.action.actions, this.action.contentStyle, this.action.titleStyle)
+        return false;
       case "newwindow":
       if(this.action.url) {
         let formattedUrl = formatUrl(this.action.url, this.props.params);

@@ -40,7 +40,7 @@ class DialogHandler extends React.Component {
       case "Error":
         return  <Dialog actions={<Button raised label="Close" onTouchTap={this.handleClose}/>} title="Error" titleClassName="errorTitle" modal={true}
             contentStyle={{minWidth:300, maxWidth: 350}} open={this.state.open} onRequestClose={this.handleClose} >
-            <div className="errorMessage">{this.state.message}</div>
+            <Block className="errorMessage">{this.state.message}</Block>
           </Dialog>
       break;
       case "Message":

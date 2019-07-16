@@ -1,4 +1,14 @@
 route: "/modulesrepo"
 component:
-  type: block
-  id: Modules
+  type: layout
+  layout: 1col
+  items:
+    - type: component
+      componentName: ActionBar
+      module: reactwebcommon
+      actions:
+        - name: uploadmodule
+          label: Upload Module
+          widget: button
+    - type: block
+      id: Modules

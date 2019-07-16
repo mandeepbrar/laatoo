@@ -2,3 +2,7 @@ signin:
   url: "/account"
 signup:
   url: "/signup"
+uploadmodule:
+  actiontype: showdialog
+  title: Upload Module
+  id: uploadblock

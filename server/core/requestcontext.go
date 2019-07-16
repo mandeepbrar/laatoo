@@ -236,6 +236,23 @@ func (ctx *requestContext) GetStringMapValue(name string) (map[string]interface{
 	return ctx.req.GetStringMapValue(name)
 }
 
+func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) error {
+	svc, err := ctx.serverContext.getService(alias)
+	if err != nil {
+		return err
+	}
+	res, err := svc.HandleRequest(ctx.SubContext(alias), vals)
+	ctx.SetResponse(res)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctx *requestContext) ForwardToService(svc core.Service, vals map[string]interface{}) error {
+	return ctx.Forward(svc.GetName(), vals)
+}
+
 func (ctx *requestContext) HasPermission(perm string) bool {
 	if ctx.serverContext.svrElements.securityHandler != nil {
 		return ctx.serverContext.svrElements.securityHandler.HasPermission(ctx, perm)

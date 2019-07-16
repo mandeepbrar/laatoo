@@ -13,6 +13,7 @@ modules:
   staticfileserver:
   designerdependencies:
   reactwebrouter:
+  reactfileupload:
   reactmaterialkit:
   subentity:
   fontawesome:
@@ -91,6 +92,8 @@ moduleinstances:
     module: authui
   reactforms:
     module: reactforms
+  reactfileupload:
+    module: reactfileupload
   dependencies:
     module: designerdependencies
   modulesrepository:
