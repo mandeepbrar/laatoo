@@ -145,6 +145,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 
 	connCopy := ms.factory.connection.Copy()
 	defer connCopy.Close()
+	log.Error(ctx, "Executing Get", "query Cond", queryCond)
 	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
 	if pageSize > 0 {
 		totalrecs, err = query.Count()
@@ -193,12 +194,7 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			argsMap := args[0].(map[string]interface{})
-			if ms.SoftDelete {
-				argsMap[ms.SoftDeleteField] = false
-			}
-			if ms.Multitenant {
-				argsMap["Tenant"] = ctx.GetUser().GetTenant()
-			}
+			argsMap = ms.PreProcessConditionMap(ctx, data.FIELDVALUE, argsMap)
 			return argsMap, nil
 		}
 	default:

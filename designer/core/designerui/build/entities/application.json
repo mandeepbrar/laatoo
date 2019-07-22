@@ -5,7 +5,7 @@
   "multitenant": true,
   "form": {
     "tabs": {
-      "General": ["Name", "Description", "Solution", "ServerTemp", "EnvironmentTemp", "LoggingLevel", "LoggingFormat"],
+      "General": ["Name", "Description", "ServerTemp", "EnvironmentTemp", "LoggingLevel", "LoggingFormat"],
       "Modules": [ "Modules"],
       "Module Instances": ["Instances"],
       "Services": ["Services"],
@@ -31,7 +31,8 @@
         "type":"string"
     },
     "Solution": {
-      "type":"storableref"
+      "type":"storableref",
+      "entity": "Solution"
     },
     "ServerTemp": {
       "type":"entity",

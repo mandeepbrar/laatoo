@@ -264,8 +264,12 @@ const mapStateToProps = (state, ownProps) => {
   console.log("redux form state...........=======", state, ownProps)
   let formVal  = state.form[ownProps.form]
   formVal = formVal? formVal.values: empty
+  let formData = ownProps.formData
 
-  return { formVal }
+  if (desc.info && desc.info.preAssigned){
+    formData = Object.assign({}, formData, desc.info.preAssigned)
+  }
+  return { formVal, formData }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {

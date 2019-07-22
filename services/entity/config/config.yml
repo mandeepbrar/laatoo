@@ -68,8 +68,11 @@ params:
     type: string
     description: Route for the view page route on application ui. Default route /instance/:entityId
   list_view_args: 
-    type: string
+    type: stringmap
     description: Filter args for list view
+  form_new_args: 
+    type: stringmap
+    description: State params for new form
   skipItems: 
     type: string
     description: Items to be skipped for an entity. list_page, new_form, update_form, view_page, list_view

@@ -49,7 +49,7 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 	files := *val.(*map[string]*core.MultipartFile)
 	urls := map[string]string{}
 	i := 0
-	for _, fil := range files {
+	for filNam, fil := range files {
 		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
 		log.Debug(ctx, "writing file", "name", fileName, "MimeType", fil.MimeType)
@@ -58,7 +58,7 @@ func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
 			log.Debug(ctx, "Error while invoking upload", "err", err)
 			return errors.WrapError(ctx, err)
 		}
-		urls[fileName] = url
+		urls[filNam] = url
 		i++
 	}
 	ctx.SetResponse(core.SuccessResponse(urls))

@@ -1,0 +1,4 @@
+route: "/servers"
+component:
+  type: view
+  id: solution.servers

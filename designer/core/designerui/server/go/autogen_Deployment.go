@@ -15,7 +15,7 @@ type Deployment struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore: "Solution"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution"  entity:"Solution" datastore: "Solution"`
 	Environment	*Environment `json:"Environment" bson:"Environment" datastore:"Environment"`
 	Server	*Server `json:"Server" bson:"Server" datastore:"Server"`
 	Application	*Application `json:"Application" bson:"Application" datastore:"Application"`

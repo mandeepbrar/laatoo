@@ -42,6 +42,7 @@ function fields(fields) {
     let jsonF = field.json?field.json:fieldName
     let bsonF = field.bson?field.bson:fieldName
     let datastoreF = field.datastore? field.datastore : fieldName
+    let refentity = field.entity? field.entity: "";
     switch (field.type) {
       case "storable":
         if(field.list) {
@@ -52,9 +53,9 @@ function fields(fields) {
         break;
       case "storableref":
       if(field.list) {
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, datastoreF)
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" entity:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, refentity, datastoreF)
       } else {
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, datastoreF)
+        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\"  entity:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, refentity, datastoreF)
       }
       break;
       case "entity":

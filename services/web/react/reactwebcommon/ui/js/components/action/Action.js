@@ -22,6 +22,17 @@ class ActionComp extends React.Component {
       this.action = _reg('Actions', props.name)
     }
     console.log("action", this.action)
+    if(this.action.actiontype == "method") {
+      if(this.props.method) {
+        this.actionMethod = this.props.method? this.props.method: _reg("Methods", this.action.method)
+      } else {
+        if(this.action.method && (typeof(this.action.method) === "function")) {
+          this.actionMethod = this.action.method
+        } else {
+          this.actionMethod = _reg("Methods", this.action.method)
+        }
+      }
+    }
     if(this.action) {
       this.hasPermission =  hasPermission(this.action.permission);
     }
@@ -49,8 +60,7 @@ class ActionComp extends React.Component {
       return false;
       case "method":
         let params = this.props.params? this.props.params: this.action.params
-        let method = this.props.method? this.props.method: _reg("Methods", this.action.method)
-        method(params);
+        this.actionMethod(params);
       return false;
       case "showdialog":
         let comp = Window.resolvePanel("block", this.action.id)

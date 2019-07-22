@@ -151,6 +151,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	var reqData interface{}
 	resPtr := false
 	ok := false
+	log.Error(ctx, "setting value", "param type", p.ptype, "otype", p.oDataType, "stringsmap", __stringsmap, "val", val)
 	switch p.oDataType {
 	case __stringmap:
 		if encoded {

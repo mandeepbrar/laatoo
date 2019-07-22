@@ -238,12 +238,7 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			argsMap := cond.args[0].(map[string]interface{})
-			if svc.SoftDelete {
-				argsMap[svc.SoftDeleteField] = false
-			}
-			if svc.Multitenant {
-				argsMap["Tenant"] = ctx.GetUser().GetTenant()
-			}
+			argsMap = svc.PreProcessConditionMap(ctx, data.FIELDVALUE, argsMap)
 			return input.Where(argsMap), nil
 		}
 	default:

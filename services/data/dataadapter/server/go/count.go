@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 )
@@ -24,7 +24,7 @@ func (svc *count) Start(ctx core.ServerContext) error {
 }
 func (es *count) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("COUNT")
-	argsMap, _ := ctx.GetStringMapValue("argsMap")
+	argsMap, _ := ctx.GetStringMapParam("argsMap")
 	//	body := ctx.GetBody().(*map[string]interface{})
 	//	argsMap := *body
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)

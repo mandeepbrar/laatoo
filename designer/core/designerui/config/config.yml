@@ -23,6 +23,14 @@ modules:
       parent: root
       instance: Environment
       dataservicefactory: mongodatabase
+      list_view_args: 
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
+      form_new_args:
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
   application:
     module: entity
     settings:
@@ -30,6 +38,14 @@ modules:
       parent: root
       instance: Application
       dataservicefactory: mongodatabase
+      list_view_args: 
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
+      form_new_args:
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
   module:
     module: entity
     settings:
@@ -107,6 +123,14 @@ modules:
       parent: root
       instance: Server
       dataservicefactory: mongodatabase
+      list_view_args: 
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
+      form_new_args:
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
 ui:
   js:
     externals:

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 )
@@ -26,7 +26,7 @@ func (es *upsert) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPSERT")
 	//	body := ctx.GetBody().(*map[string]interface{})
 	//	vals := *body
-	vals, _ := ctx.GetStringMapValue("argsMap")
+	vals, _ := ctx.GetStringMapParam("argsMap")
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, vals["condition"].(map[string]interface{}))
 	if err != nil {
 		ctx.SetResponse(core.StatusBadRequestResponse)

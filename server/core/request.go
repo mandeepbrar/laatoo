@@ -61,10 +61,22 @@ func (req *request) GetIntParam(name string) (int, bool) {
 	return -1, ok
 }
 
-func (req *request) GetStringMapValue(name string) (map[string]interface{}, bool) {
+func (req *request) GetStringMapParam(name string) (map[string]interface{}, bool) {
 	val, ok := req.Params[name]
 	if ok {
 		pval, ok := val.GetValue().(map[string]interface{})
+		if ok {
+			return pval, ok
+		}
+		return nil, ok
+	}
+	return nil, ok
+}
+
+func (req *request) GetStringsMapParam(name string) (map[string]string, bool) {
+	val, ok := req.Params[name]
+	if ok {
+		pval, ok := val.GetValue().(map[string]string)
 		if ok {
 			return pval, ok
 		}

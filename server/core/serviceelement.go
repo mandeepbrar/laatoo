@@ -153,14 +153,18 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.
 }
 
 func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]interface{}) (*core.Response, error) {
+	ctx = ctx.SubContext(svc.name).(*requestContext)
 	codecname := "json"
 	co, ok := vals["encoding"]
 	if ok {
 		codecname = co.(string)
 	}
-	codec, ok := svc.codecs[codecname]
-	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
+	var codec core.Codec
+	if codecname != "" {
+		codec, ok = svc.codecs[codecname]
+		if !ok {
+			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
+		}
 	}
 
 	req := ctx.createRequest()
@@ -178,7 +182,9 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 
 	if svc.forward {
 		if resp.Status == core.StatusSuccess {
-			err := ctx.Forward(svc.serviceToForward, map[string]interface{}{"Data": resp.Data})
+			dat := resp.Data
+			dat["encoding"] = ""
+			err := ctx.Forward(svc.serviceToForward, dat)
 			if err != nil {
 				return nil, errors.WrapError(ctx, err)
 			}
@@ -197,7 +203,7 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 	for name, svcParam := range params {
 		reqParam := svcParam.(*param).clone()
 		val, ok := vals[name]
-		log.Error(ctx, "populate params", "param", svcParam, "val", val)
+		log.Error(ctx, "populate params", "param", svcParam, "val", val, "encoded", encoded)
 		if (val != nil) && ok {
 			err := reqParam.setValue(ctx, val, codec, encoded)
 			if err != nil {

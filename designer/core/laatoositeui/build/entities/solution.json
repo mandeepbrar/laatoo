@@ -20,6 +20,7 @@
     },
     "Modules": {
       "type":"storableref",
+      "entity": "ModuleDefinition",
       "label": "Solution Modules",
       "addwidget": "ModuleSelect",
       "addwidgetmodule": "modulesrepository",

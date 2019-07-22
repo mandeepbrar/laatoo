@@ -1,14 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"strings"
-	"bytes"
 	"path"
+	"strings"
 	"text/template"
 )
 
@@ -24,9 +24,9 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 type EntityModule struct {
 	core.Module
-	object     string
-	entityConf config.Config
-	instance   string
+	object       string
+	entityConf   config.Config
+	instance     string
 	templatesDir string
 }
 
@@ -86,7 +86,7 @@ func (entity *EntityModule) GetRegistry(ctx core.ServerContext) config.Config {
 	forms := entity.createForms(ctx)
 	reg.Set(ctx, "Forms", forms)
 	blocks, err := entity.createBlocks(ctx)
-	if(err!=nil) {
+	if err != nil {
 		log.Error(ctx, "Error createing entity registry", "Error", err)
 	}
 	reg.Set(ctx, "Blocks", blocks)
@@ -107,7 +107,13 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	entityFormInfo.Set(ctx, "entity", entity.object)
 	entityFormInfo.Set(ctx, "className", fmt.Sprint(" entityform ", strings.ToLower(entity.instance+"_form")))
 	entityFormInfo.Set(ctx, "successRedirectPage", fmt.Sprint("list_", strings.ToLower(entity.instance)))
+	formNewArgs, ok := ctx.Get("form_new_args")
+	if ok {
+		log.Error(ctx, " Setting pre assigned params for new form", "form_new_args", formNewArgs)
+		entityFormInfo.Set(ctx, "preAssigned", formNewArgs)
+	}
 	newEntityForm.Set(ctx, "info", entityFormInfo)
+
 	entityFormFields := ctx.CreateConfig()
 
 	fields, ok := entity.entityConf.GetSubConfig(ctx, "fields")
@@ -117,10 +123,8 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 			//fieldToBeAdded := ctx.CreateConfig()
 			fieldConf, _ := fields.GetSubConfig(ctx, field)
 			fieldToBeAdded := fieldConf.Clone()
-
 			fieldToBeAdded.Set(ctx, "className", " entityformfield "+field)
 			entityFormFields.Set(ctx, field, fieldToBeAdded)
-
 		}
 	}
 
@@ -139,7 +143,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	return forms
 }
 
-func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,error)  {
+func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config, error) {
 	blocks := ctx.CreateConfig()
 
 	type TemplateData struct {
@@ -152,7 +156,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 		"lower": strings.ToLower,
 	}
 
-	viewtableHeaderTemp, err := template.New("viewtableheader.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtableheader.tpl"))
+	viewtableHeaderTemp, err := template.New("viewtableheader.tpl").Delims("<<", ">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtableheader.tpl"))
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -172,8 +176,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 		return blocks, nil
 	}
 
-
-	viewtableRowTemp, err := template.New("viewtablerow.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtablerow.tpl"))
+	viewtableRowTemp, err := template.New("viewtablerow.tpl").Delims("<<", ">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "viewtablerow.tpl"))
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -191,17 +194,15 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 		log.Error(ctx, "Error writing entity block", "Err", err)
 		return blocks, nil
 	}
-	
-	
-	defaultEntityTemp, err := template.New("defaultentity.tpl").Delims("<<",">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "defaultentity.tpl"))
+
+	defaultEntityTemp, err := template.New("defaultentity.tpl").Delims("<<", ">>").Funcs(funcMap).ParseFiles(path.Join(entity.templatesDir, "defaultentity.tpl"))
 	defaultEntityStr := new(bytes.Buffer)
 
-	
 	err = defaultEntityTemp.Execute(defaultEntityStr, data)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Error(ctx," defaultEntityTemp ", "file", string(defaultEntityStr.Bytes()))
+	log.Error(ctx, " defaultEntityTemp ", "file", string(defaultEntityStr.Bytes()))
 
 	defEntity, err := ctx.ReadConfigData(defaultEntityStr.Bytes(), nil)
 	if err == nil {
@@ -213,7 +214,7 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 
 	/*defaultBlk := ctx.CreateConfig()
 	blkDiv := ctx.CreateConfig()
-	
+
 	blkDiv.Set(ctx, "body", `{{jsreplace "Window.displayDefaultEntity(ctx, desc, uikit)"`)
 	blkDiv.Set(ctx, "className", "entity default "+entity.object)
 	defaultBlk.Set(ctx, "Block", blkDiv)

@@ -1,0 +1,8 @@
+postArgs: 
+  Solution: ffba3ba0-b3b3-417d-b30d-f6edd4375b91
+urlparams: {}
+serviceName: solution.servers
+item:
+  type: entity
+  entityName: Server
+  entityDisplay: table

@@ -35,7 +35,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 	files := val.(map[string]*core.MultipartFile)
 	urls := map[string]string{}
 	i := 0
-	for _, fil := range files {
+	for filNam, fil := range files {
 		defer fil.File.Close()
 		fileName := uuid.NewV4().String()
 		log.Info(ctx, "writing file", "name", fileName, "mimetype", fil.MimeType)
@@ -43,7 +43,7 @@ func (svc *FileSystemSvc) Invoke(ctx core.RequestContext) error {
 		if err != nil {
 			return err
 		}
-		urls[fileName] = url
+		urls[filNam] = url
 		i++
 	}
 	log.Info(ctx, "writing file", "urls", urls)

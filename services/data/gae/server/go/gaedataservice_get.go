@@ -240,12 +240,7 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 	case data.FIELDVALUE:
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
 		if ok {
-			if svc.Multitenant {
-				queryCondMap["Tenant"] = ctx.GetUser().GetTenant()
-			}
-			if svc.SoftDelete {
-				queryCondMap[svc.SoftDeleteField] = false
-			}
+			queryCondMap = svc.PreProcessConditionMap(ctx, data.FIELDVALUE, queryCondMap)
 			for k, v := range queryCondMap {
 				query = query.Filter(fmt.Sprintf("%s =", k), v)
 			}

@@ -1,9 +1,15 @@
 users:
   method: POST
   url: "/user/view"
-applicationsview:
+solution.applications:
   method: POST
   url: "/application/view"
+solution.environments:
+  method: POST
+  url: "/environment/view"
+solution.servers:
+  method: POST
+  url: "/server/view"
 applicationresolver:
   method: POST
   url: "/resolve/application"

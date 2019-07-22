@@ -6,7 +6,14 @@ dependencies:
   uicommon: ">=0.0.1"
   itemdetailview: ">=0.0.1"
 description: Module provides repository
-objects: {}
+objects: 
+  repositoryimport:
+    type: service
+    description: Module import service. Uploaded files are passed to this service
+    request:
+      params:        
+        Data:
+          type: stringsmap
 modules:
   moduledefinition:
     module: entity

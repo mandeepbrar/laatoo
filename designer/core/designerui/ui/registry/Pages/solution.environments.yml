@@ -1,0 +1,4 @@
+route: "/environments"
+component:
+  type: view
+  id: solution.environments

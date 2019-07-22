@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -25,7 +25,7 @@ func (svc *updatemultiple) Start(ctx core.ServerContext) error {
 }
 func (es *updatemultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATEMULTIPLE")
-	vals, _ := ctx.GetStringMapValue("argsMap")
+	vals, _ := ctx.GetStringMapParam("argsMap")
 	ids, ok := vals["ids"]
 	if !ok {
 		log.Error(ctx, "Missing argument", "Name", "ids")

@@ -232,8 +232,12 @@ func (ctx *requestContext) GetStringParam(name string) (string, bool) {
 	return ctx.req.GetStringParam(name)
 }
 
-func (ctx *requestContext) GetStringMapValue(name string) (map[string]interface{}, bool) {
-	return ctx.req.GetStringMapValue(name)
+func (ctx *requestContext) GetStringMapParam(name string) (map[string]interface{}, bool) {
+	return ctx.req.GetStringMapParam(name)
+}
+
+func (ctx *requestContext) GetStringsMapParam(name string) (map[string]string, bool) {
+	return ctx.req.GetStringsMapParam(name)
 }
 
 func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) error {

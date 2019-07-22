@@ -5,7 +5,7 @@
   "multitenant": true,
   "form": {
     "tabs": {
-      "General": ["Name", "Description", "Solution", "LoggingLevel", "LoggingFormat"],
+      "General": ["Name", "Description", "LoggingLevel", "LoggingFormat"],
       "Modules": [ "Modules"],
       "Module Instances": ["Instances"],
       "Services": ["Services"],

@@ -15,7 +15,7 @@ type Environment struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore: "Solution"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution"  entity:"Solution" datastore: "Solution"`
 	ServerTemp	Server `json:"ServerTemp" bson:"ServerTemp" datastore: "ServerTemp"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`

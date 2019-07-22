@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 )
 
@@ -24,7 +24,7 @@ func (svc *update) Start(ctx core.ServerContext) error {
 func (es *update) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("UPDATE")
 	id, _ := ctx.GetStringParam(CONF_DATA_ID)
-	vals, _ := ctx.GetStringMapValue("argsMap")
+	vals, _ := ctx.GetStringMapParam("argsMap")
 	//vals := *body
 	res, err := updateVals(ctx, id, vals, es.DataStore)
 	ctx.SetResponse(res)

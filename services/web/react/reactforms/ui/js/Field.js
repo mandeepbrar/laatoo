@@ -28,6 +28,9 @@ class FieldWrapper extends React.Component {
       let method = _reg("Methods", this.field.transformer)
       this.transformer = method;
     }
+    if(this.field.type == "storableref") [
+      this.isRef = true
+    ]
     if(this.field.module) {
       let mod = modrequire(this.field.module);
       this.fldWidget = mod[this.field.widget];
@@ -44,8 +47,14 @@ class FieldWrapper extends React.Component {
   fieldChange = (fldProps) => {
     let comp=this
     return (data, name, evt)=> {
-      console.log("fld change", data, name, evt, this.props, this.context, fldProps, fldProps.input.onChange)
+      console.log("fld change", data, name, evt, this.props, this.context, fldProps, fldProps.input.onChange, comp.isRef)
       if(fldProps.input.onChange) {
+        if(comp.isRef) {
+          let myRefObj = {}
+          myRefObj[comp.field.name] = {"Id": data, "Type": comp.field.entity}
+          data = myRefObj
+          console.log("set ref value data", myRefObj, data)
+        }
         console.log("setting fld value", comp, data, name)
         fldProps.input.onChange(data, name)
       }
@@ -57,6 +66,13 @@ class FieldWrapper extends React.Component {
     let newProps = fieldProps
     if(this.transformer) {
       newProps = this.transformer(fieldProps, this.props.formValue, this.field, this.context.fields, this.props, this.state,  this)
+    }
+    if(this.isRef) {
+      let ref = newProps.input.value[this.field.name]
+      if(ref) {
+        newProps.input.value = ref.Id
+      }
+      console.log("ref props", newProps)
     }
     let comp = null
     let baseComp = null

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 )
@@ -25,7 +25,7 @@ func (svc *deleteAll) Start(ctx core.ServerContext) error {
 
 func (es *deleteAll) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("DELETEALL")
-	argsMap, _ := ctx.GetStringMapValue("argsMap")
+	argsMap, _ := ctx.GetStringMapParam("argsMap")
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
 		ctx.SetResponse(core.StatusNotFoundResponse)

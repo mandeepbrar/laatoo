@@ -13,7 +13,7 @@ menu:
     page: list_application
   - modules:
     title: Solution Modules
-    page: solutionmodules
+    page: solution.modules
 dashboard:
   header:
     image: '/images/laatoo.jpg'
