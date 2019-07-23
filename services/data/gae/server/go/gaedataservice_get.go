@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
 	"reflect"
 
 	glctx "golang.org/x/net/context"
@@ -239,6 +240,12 @@ func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineCo
 	}*/
 	case data.FIELDVALUE:
 		queryCondMap, ok := dqCondition.arg1.(map[string]interface{})
+		if svc.EmbeddedSearch {
+			retMap := make(map[string]interface{})
+			utils.FlattenMap(queryCondMap, retMap, "")
+			queryCondMap = retMap
+			log.Error(ctx, "creating condition embedded search", "args", queryCondMap)
+		}
 		if ok {
 			queryCondMap = svc.PreProcessConditionMap(ctx, data.FIELDVALUE, queryCondMap)
 			for k, v := range queryCondMap {

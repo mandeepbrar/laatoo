@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -194,6 +195,13 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_ARG)
 			}
 			argsMap := args[0].(map[string]interface{})
+			if ms.EmbeddedSearch {
+				retMap := make(map[string]interface{})
+				utils.FlattenMap(argsMap, retMap, "")
+				argsMap = retMap
+				log.Error(ctx, "creating condition embedded search", "args", argsMap)
+			}
+			log.Error(ctx, "creating condition search", "args", argsMap)
 			argsMap = ms.PreProcessConditionMap(ctx, data.FIELDVALUE, argsMap)
 			return argsMap, nil
 		}

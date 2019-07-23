@@ -23,6 +23,7 @@ modules:
       parent: root
       instance: Environment
       dataservicefactory: mongodatabase
+      embedded_doc_search: true
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
@@ -38,6 +39,7 @@ modules:
       parent: root
       instance: Application
       dataservicefactory: mongodatabase
+      embedded_doc_search: true
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
@@ -123,6 +125,7 @@ modules:
       parent: root
       instance: Server
       dataservicefactory: mongodatabase
+      embedded_doc_search: true
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}

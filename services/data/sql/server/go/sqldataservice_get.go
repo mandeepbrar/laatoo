@@ -239,6 +239,12 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 			}
 			argsMap := cond.args[0].(map[string]interface{})
 			argsMap = svc.PreProcessConditionMap(ctx, data.FIELDVALUE, argsMap)
+			if svc.EmbeddedSearch {
+				retMap := make(map[string]interface{})
+				utils.FlattenMap(argsMap, retMap, "")
+				argsMap = retMap
+				log.Error(ctx, "creating condition embedded search", "args", argsMap)
+			}
 			return input.Where(argsMap), nil
 		}
 	default:

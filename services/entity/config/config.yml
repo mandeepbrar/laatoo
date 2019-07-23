@@ -41,6 +41,7 @@ modules:
       parent: {{var "parent"}}
       instance: {{var "instance"}}
       dataservicefactory: {{var "dataservicefactory"}}
+      embedded_doc_search: {{var "embedded_doc_search"}}
 params:
   object: 
     type: string
@@ -70,6 +71,9 @@ params:
   list_view_args: 
     type: stringmap
     description: Filter args for list view
+  embedded_doc_search: 
+    type: bool
+    description: Allow embedded document search in list screen
   form_new_args: 
     type: stringmap
     description: State params for new form

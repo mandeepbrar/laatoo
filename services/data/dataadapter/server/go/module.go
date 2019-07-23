@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/log"
 	"strings"
@@ -13,6 +13,7 @@ const (
 	DATA_ADAPTER_MODULE      = "DataAdapterModule"
 	DATA_ADAPTER_INSTANCE    = "instance"
 	CONF_DATASERVICE_FACTORY = "dataservicefactory"
+	CONF_EMBEDDED_SEARCH     = "embedded_doc_search"
 	CONF_SERVICEFACTORY      = "factory"
 	CONF_PARENT_CHANNEL      = "parent"
 	BODY_PARAM_NAME          = "bodyparamname"
@@ -45,6 +46,7 @@ type DataAdapterModule struct {
 	adapterdataSvcName string
 	middleware         string
 	parentChannel      string
+	embeddedDocSearch  bool
 }
 
 /*
@@ -68,6 +70,7 @@ func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config
 	adapter.instance, _ = adapter.GetStringConfiguration(ctx, DATA_ADAPTER_INSTANCE)
 	adapter.middleware, _ = adapter.GetStringConfiguration(ctx, MIDDLEWARE)
 	adapter.parentChannel, _ = adapter.GetStringConfiguration(ctx, CONF_PARENT_CHANNEL)
+	adapter.embeddedDocSearch, _ = adapter.GetBoolConfiguration(ctx, CONF_EMBEDDED_SEARCH)
 
 	adapter.adapterfacName = adapter.createName(ctx, "factory")
 	adapter.adapterdataSvcName = adapter.createName(ctx, "dataservice")
@@ -99,6 +102,7 @@ func (adapter *DataAdapterModule) Services(ctx core.ServerContext) map[string]co
 	dataService := ctx.CreateConfig()
 	dataService.Set(ctx, CONF_SERVICEFACTORY, adapter.factory)
 	dataService.Set(ctx, data.CONF_DATA_OBJECT, adapter.object)
+	dataService.Set(ctx, CONF_EMBEDDED_SEARCH, adapter.embeddedDocSearch)
 	svcs[adapter.adapterdataSvcName] = dataService
 
 	/*dataSvcName := adapter.createName(ctx, "dataservice")

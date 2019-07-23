@@ -66,6 +66,7 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 
 func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config) error {
 
+	log.Error(ctx, "initializing service with conf", "conf", conf)
 	if err := svc.processInfo(ctx, conf, svc.impl); err != nil {
 		return err
 	}

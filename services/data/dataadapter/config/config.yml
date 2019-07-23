@@ -32,6 +32,9 @@ objects:
       middleware:
         type: string
         description: middleware to be added to the data adapter factory and all services
+      embedded_doc_search:
+        type: bool
+        description: allow embedded document search on select service
       parent:
         type: string
         description: Parent channel for APIs
