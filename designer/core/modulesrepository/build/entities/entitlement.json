@@ -1,0 +1,30 @@
+{
+    "name":"Entitlement",
+    "inherits":"",
+    "imports":[],
+    "multitenant": true,
+    "form": {
+        "layout": ["Name", "Module"]
+      },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Solution": {
+            "type":"storableref",
+            "entity": "Solution"
+        },
+        "Local": {
+            "type": "bool"
+        },
+        "Module": {
+            "type":"subentity",
+            "widget": "SubEntity",
+            "module": "subentity",
+            "addwidget": "ModuleSelect",
+            "addwidgetmodule": "modulesrepository",
+            "entity": "ModuleDefinition"
+        }
+    }
+  }
+  

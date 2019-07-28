@@ -1,0 +1,7 @@
+parent: root
+method: POST
+service: repository.solution.module.import
+path: "/repository/solutionmodule/:solutionId"
+body: "files"
+paramvalues:
+  solutionId: solutionId

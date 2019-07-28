@@ -151,7 +151,6 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	var reqData interface{}
 	resPtr := false
 	ok := false
-	log.Error(ctx, "setting value", "param type", p.ptype, "otype", p.oDataType, "stringsmap", __stringsmap, "val", val)
 	switch p.oDataType {
 	case __stringmap:
 		if encoded {
@@ -185,7 +184,6 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 		}
 	case __stringtype:
 		p.value, ok = val.(string)
-		log.Error(ctx, "set values", "p.value", p.value, "ok", ok)
 	case __files:
 		p.value, ok = val.(map[string]*core.MultipartFile)
 	case __stringarr:
@@ -206,29 +204,34 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 		}
 	}
 
+	if ok {
+		return nil
+	}
+
 	/** decode encoded objects**/
-	if encoded && !ok {
+	if encoded {
 		var reqBytes []byte
 		reqBytes, ok = val.([]byte)
 		if ok {
-
-			var err error
-			if resPtr {
-				err = codec.Unmarshal(ctx, reqBytes, reqData)
+			if p.oDataType == __stringtype {
+				p.value = string(reqBytes)
+				return nil
 			} else {
-				err = codec.Unmarshal(ctx, reqBytes, &reqData)
-			}
-			log.Trace(ctx, "unmarshalling bytes", "val", reqData, " err", err)
-			if err != nil {
-				return err
-			} else {
-				p.value = reqData
+				var err error
+				if resPtr {
+					err = codec.Unmarshal(ctx, reqBytes, reqData)
+				} else {
+					err = codec.Unmarshal(ctx, reqBytes, &reqData)
+				}
+				log.Trace(ctx, "unmarshalling bytes", "val", reqData, " err", err)
+				if err != nil {
+					return err
+				} else {
+					p.value = reqData
+					return nil
+				}
 			}
 		}
 	}
-	if !ok {
-		return errors.BadArg(ctx, p.name)
-	}
-
-	return nil
+	return errors.BadArg(ctx, p.name)
 }

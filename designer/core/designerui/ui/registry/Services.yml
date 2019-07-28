@@ -19,3 +19,6 @@ environmentresolver:
 serverresolver:
   method: POST
   url: "/resolve/server"
+modulesrepoview:
+  method: POST
+  url: "/moduledefinition/view"

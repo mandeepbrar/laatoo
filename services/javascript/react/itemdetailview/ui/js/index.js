@@ -46,7 +46,7 @@ class ItemDetailView extends React.Component {
             :
             <View service={props.service} serviceName={props.serviceName} name={props.viewname} global={props.global}  editable={props.editable}
               className={props.className} incrementalLoad={props.incrementalLoad} paginate={props.paginate} header={props.header} viewRef={props.viewRef}
-              getHeader={props.getHeader} getView={props.getView} getItem={this.getItem} urlparams={props.urlparams} postArgs={props.postArgs}>
+              getHeader={props.getHeader} getView={props.getView} getItem={this.getItem} urlparams={props.urlparams} postArgs={props.postArgs} singleSelection={props.singleSelection}>
             </View>
           }
         </ctx.uikit.Block>

@@ -12,6 +12,7 @@ require (
 	github.com/couchbase/vellum v0.0.0-20190328134517-462e86d8716b // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
+	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
 	laatoo/sdk v0.0.0
 )

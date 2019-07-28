@@ -19,6 +19,7 @@ const mapStateToProps = (state, ownProps) => {
     pageSize: ownProps.pageSize,
     header: ownProps.header,
     getView: ownProps.getView,
+    singleSelection: ownProps.singleSelection,
     getItem: ownProps.getItem,
     getHeader: ownProps.getHeader,
     defaultFilter: ownProps.defaultFilter,
@@ -104,12 +105,13 @@ const View = (props) => {
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
     let viewname = view.name? view.name : props.id;
+    let singleSelection = view.singleSelection? view.singleSelection: props.singleSelection
     let className = props.className+ " view_"+viewname + " ";
     if(view.className) {
       className = className + view.className;
     }
     let item = props.children;
-    return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global}
+    return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global} singleSelection={singleSelection}
       className={className} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
        editable={props.editable} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
        {item}

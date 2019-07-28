@@ -1,2 +1,8 @@
-viewUser:
-  url: "/user/:id"
+uploadSolutionModule:
+  actiontype: showdialog
+  title: Upload Module
+  id: uploadsolutionmodule
+installModule:
+  actiontype: showdialog
+  title: Install Module
+  id: installmodule

@@ -2,6 +2,7 @@ postArgs: {}
 urlparams: {}
 serviceName: repositoryview
 overlay: true
+singleSelection: true
 item:
   type: entity
   entityName: ModuleDefinition

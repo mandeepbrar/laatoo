@@ -1,0 +1,3 @@
+servicemethod: dummy
+factory: mongodatabase
+object: Entitlement

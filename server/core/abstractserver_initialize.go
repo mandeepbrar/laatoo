@@ -217,7 +217,7 @@ func (as *abstractserver) readProperties(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 	if as.parent != nil {
-		as.properties = common.MergeProps(as.parent.properties, props)
+		as.properties = utils.MergeMaps(as.parent.properties, props)
 	} else {
 		as.properties = props
 	}

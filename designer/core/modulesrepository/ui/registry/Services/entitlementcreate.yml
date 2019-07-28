@@ -1,0 +1,4 @@
+method: POST
+url: /repository/solutionentitlement/:solutionId
+urlparams: 
+  solutionId: {{jsreplace "Application.Route.Params.solutionId"}}

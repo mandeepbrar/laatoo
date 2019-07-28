@@ -1,0 +1,7 @@
+parent: root
+method: POST
+service: entitlement
+path: "/repository/solutionentitlement/:solutionId"
+bodyparamname: "moduleId"
+paramvalues:
+  solutionId: solutionId

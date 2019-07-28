@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {formatUrl} from '../utils';
 
 class RestDataSource {
   constructor() {
@@ -10,8 +11,17 @@ class RestDataSource {
   ExecuteServiceObject(service, serviceRequest, config) {
     var method = this.getMethod(service);
     var req = serviceRequest.GetRequest("http");
-    var url = this.getURL(service, req);
-    return this.HttpCall(url, method, req.params, req.data, req.headers, config);
+    let urlparams = Object.assign({}, req.urlparams, service.urlparams)
+    let url = formatUrl(service.url, urlparams)
+    if (!url.startsWith('http')) {
+      url = Application.Backend + url;
+    }
+    let data = req.data
+    if(service.postArgs && method == 'POST') {
+      data = Object.assign({}, req.data, service.postArgs);
+    }
+    console.log("executing service", service, url, data, req)
+    return this.HttpCall(url, method, req.params, data, req.headers, config);
   }
 
   HttpCall(url, method, params, data, headers, config=null) {
@@ -86,20 +96,6 @@ class RestDataSource {
     }
     console.log(response);
     return response;
-  }
-
-  getURL(service, req) {
-    var url = service.url;
-    if (req.urlparams != null) {
-      for (var param in req.urlparams) {
-        url = url.replace(":" + param, req.urlparams[param]);
-      }
-    }
-    if (url.startsWith('http')) {
-      return url;
-    } else {
-      return Application.Backend + url;
-    }
   }
 
   getMethod(service) {

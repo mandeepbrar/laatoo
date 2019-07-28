@@ -1,0 +1,1 @@
+<ItemDetailView module="itemdetailview" id="repositoryview" form="true" submitService="entitlementcreate" postIds="true" entityName="ModuleDefinition"></ItemDetailView>

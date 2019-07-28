@@ -69,18 +69,30 @@ class ViewData extends React.Component {
   itemCount() {
     return this.viewitems.length
   }
+  setSelection(item, val){
+    if(item.setSelected) {
+      item.setSelected(val)
+    } else {
+      item.selected = val
+    }
+  }
   itemSelectionChange = (i, val) => {
     let viewItem = this.viewitems[i]
     if(viewItem) {
       let renderedItem = viewItem.renderedItem
-      if(renderedItem.setSelected) {
-        renderedItem.setSelected(val)
-      } else {
-        renderedItem.selected = true
+      this.setSelection(renderedItem, val)
+    }
+    if(this.props.singleSelection) {
+      if(this.selectedItem) {
+        this.setSelection(this.selectedItem.renderedItem, false)
       }
+      this.selectedItem = viewItem
     }
   }
   selectedItems() {
+    if(this.props.singleSelection) {
+      return this.selectedItem.data
+    }
     let selectedItems = []
     let numItems = this.itemCount()
     console.log("num items ", numItems)

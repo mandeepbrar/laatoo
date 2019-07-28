@@ -27,7 +27,6 @@ modules:
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
-          Type: Solution
       form_new_args:
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
@@ -43,7 +42,6 @@ modules:
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
-          Type: Solution
       form_new_args:
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
@@ -129,7 +127,6 @@ modules:
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
-          Type: Solution
       form_new_args:
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}

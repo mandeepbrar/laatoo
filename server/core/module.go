@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
 	"path"
@@ -141,7 +142,7 @@ func (mod *serverModule) readProperties(ctx core.ServerContext, dir string) erro
 		return errors.WrapError(ctx, err)
 	}
 	log.Info(ctx, "Read module properties", "propsDir", propsDir, "props", props)
-	mod.properties = common.MergeProps(mod.properties, props)
+	mod.properties = utils.MergeMaps(mod.properties, props)
 	return nil
 }
 

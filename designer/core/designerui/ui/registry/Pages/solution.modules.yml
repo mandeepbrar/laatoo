@@ -1,4 +1,20 @@
 route: "/solutionmodules"
 component:
-  type: block
-  id: SolutionModules
+  type: layout
+  layout: 1col
+  items:
+    - type: html
+      html: <h3>Solution Modules</h3>
+    - type: component
+      componentName: ActionBar
+      actions:
+        - name: installModule
+          label: Install
+          widget: button
+        - name: uploadSolutionModule
+          label: Upload
+          className: right
+          widget: button
+      module: reactwebcommon
+    - type: view
+      id: list_entitlement

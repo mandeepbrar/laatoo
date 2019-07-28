@@ -14,6 +14,24 @@ objects:
       params:        
         Data:
           type: stringsmap
+  entitlementcreator:
+    type: service
+    description: Entitlement service that creates entitlements after a module has been uploaded
+    request:
+      params:        
+        Data:
+          type: stringsmap
+        solutionId:
+          type: string
+        moduleId:
+          type: string
+  repositoryupdate:
+    type: service
+    description: Module update service. Updates files from file name passed to this service
+    request:
+      params:        
+        module:
+          type: string
 modules:
   moduledefinition:
     module: entity
@@ -22,6 +40,21 @@ modules:
       parent: root
       instance: ModuleDefinition
       dataservicefactory: mongodatabase
+  entitlements:
+    module: entity
+    settings:
+      object: Entitlement
+      parent: root
+      instance: Entitlement
+      dataservicefactory: mongodatabase
+      embedded_doc_search: true
+      list_view_args: 
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+      form_new_args:
+        Solution: 
+          Id: {{jsreplace "Application.Route.Params.solutionId"}}
+          Type: Solution
 ui:
   js:
     externals:

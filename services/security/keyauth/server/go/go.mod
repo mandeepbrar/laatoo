@@ -3,6 +3,7 @@ module keyauthservice
 go 1.12
 
 require (
+	github.com/imdario/mergo v0.3.7 // indirect
 	laatoo/sdk v0.0.0
 
 	securitycommon v0.0.0

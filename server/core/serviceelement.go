@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
 	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"reflect"
@@ -180,12 +181,15 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 		return nil, errors.WrapError(ctx, err)
 	}
 	resp := ctx.GetResponse()
-
+	log.Error(ctx, "handle request", "vals", vals, " data", resp.Data)
 	if svc.forward {
 		if resp.Status == core.StatusSuccess {
-			dat := resp.Data
-			dat["encoding"] = ""
-			err := ctx.Forward(svc.serviceToForward, dat)
+			params := utils.ShallowMergeMaps(vals, resp.Data)
+			//dat := resp.Data
+			params["encoding"] = ""
+			log.Error(ctx, "handle request", "params", params)
+
+			err := ctx.Forward(svc.serviceToForward, params)
 			if err != nil {
 				return nil, errors.WrapError(ctx, err)
 			}

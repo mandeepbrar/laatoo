@@ -10,22 +10,7 @@ import (
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
-
-	"github.com/imdario/mergo"
 )
-
-func MergeProps(obj1, obj2 map[string]interface{}) map[string]interface{} {
-	if obj1 == nil {
-		return obj2
-	}
-	if obj2 == nil {
-		return obj1
-	}
-	res := make(map[string]interface{})
-	mergo.Merge(&res, obj1)
-	mergo.Merge(&res, obj2)
-	return res
-}
 
 func ReadProperties(ctx core.ServerContext, propsDir string) (map[string]interface{}, error) {
 	ok, _, _ := utils.FileExists(propsDir)
@@ -65,7 +50,7 @@ func ReadProperties(ctx core.ServerContext, propsDir string) (map[string]interfa
 				if k != "default" {
 					val, ok := v.(map[string]interface{})
 					if ok {
-						properties[k] = MergeProps(defMap, val)
+						properties[k] = utils.MergeMaps(defMap, val)
 					}
 				}
 			}

@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cachecommon v0.0.0
+	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/ugorji/go v1.1.4 // indirect
 	google.golang.org/appengine v1.5.0
 	laatoo/sdk v0.0.0
