@@ -21,27 +21,27 @@ class RestDataSource {
       data = Object.assign({}, req.data, service.postArgs);
     }
     console.log("executing service", service, url, data, req)
-    return this.HttpCall(url, method, req.params, data, req.headers, config);
+    return this.HttpCall(service, url, method, req.params, data, req.headers, config);
   }
 
-  HttpCall(url, method, params, data, headers, config=null) {
-    let service = this;
+  HttpCall(service, url, method, params, data, headers, config=null) {
+    let requestor = this;
     var promise = new Promise(
       function (resolve, reject) {
         if (method === "" || url === "") {
-          reject(service.buildHttpSvcResponse(Response.InternalError, 'Could not build request', url));
+          reject(requestor.buildHttpSvcResponse(service, Response.InternalError, 'Could not build request', url));
           return;
         }
         let successCallback = function(response) {
           if (response.status < 300) {
-            let res = service.buildHttpSvcResponse(Response.Success, "", response);
+            let res = requestor.buildHttpSvcResponse(service, Response.Success, "", response);
             resolve(res);
           } else {
-            reject(service.buildHttpSvcResponse(Response.Failure, "", response));
+            reject(requestor.buildHttpSvcResponse(service, Response.Failure, "", response));
           }
         };
         let errorCallback = function(response) {
-          reject(service.buildHttpSvcResponse(Response.Failure, "", response));
+          reject(requestor.buildHttpSvcResponse(service, Response.Failure, "", response));
         };
         if(method == 'DELETE' || method == 'GET') {
           data = null;
@@ -77,15 +77,34 @@ class RestDataSource {
     return url
   }
 
-  buildHttpSvcResponse(code, msg, res) {
+  buildHttpSvcResponse(service, code, msg, res) {
     if(res instanceof Error) {
-      return this.buildSvcResponse(code, msg, res, {});
+      return this.buildSvcResponse(service, code, msg, res, {});
     }
-    return this.buildSvcResponse(code, msg, res.data, res.headers, res.status);
+    return this.buildSvcResponse(service, code, msg, res.data, res.headers, res.status);
   }
 
-  buildSvcResponse(code, msg, data, info, statuscode) {
+  buildSvcResponse(service, code, msg, data, info, statuscode) {
     var response = {};
+    if(data) {
+      if(service.responseField) {
+        if(Array.isArray(data)) {
+          data = data.forEach((item)=>{
+            return item[service.responseField]
+          })
+        }
+        else {
+          data = data[service.responseField]
+        }
+      }
+      if(service.transformResponse) {
+        let method = _reg('Methods', service.transformResponse)
+        if(method) {
+          data = method(data)
+        }
+      }
+    }
+
     switch (code) {
       default:
         response.code = code;
@@ -94,7 +113,7 @@ class RestDataSource {
         response.info = info;
         response.statuscode = statuscode;
     }
-    console.log(response);
+    console.log("service response", service, response)  
     return response;
   }
 

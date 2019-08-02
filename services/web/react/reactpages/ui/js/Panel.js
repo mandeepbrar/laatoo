@@ -29,7 +29,7 @@ class Panel extends React.Component {
         default:
           desc = _reg('Panels', id)
       }
-      console.log("desc before assig", desc, props)
+      console.log("desc before assig", desc, props, id, type, Application)
       desc = Object.assign({type: type, id: id}, desc, props)
     }
 
@@ -236,7 +236,10 @@ class Panel extends React.Component {
 
     if(this.form) {
       this.getView = function(props, ctx, state, className) {
-        let formCfg = Object.assign({}, cfg, ctx.routeParams)
+        let formCfg = cfg
+        if(!props.subform) {
+          formCfg = Object.assign({}, cfg, ctx.routeParams)
+        }
         console.log("form cfg", formCfg, cfg, props)
         return <this.form form={desc.id} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
           onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}

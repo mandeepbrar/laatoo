@@ -1,20 +1,15 @@
-'use strict';
+/*'use strict';
 
 import React from 'react';
 import { Field } from 'redux-form'
 const PropTypes = require('prop-types');
 import {FldList} from './FldList';
 
-var modrequire = null;
-
-function Initialize(appName, ins, mod, settings, def, req) {
-  modrequire = req;
-}
 
 class FieldWrapper extends React.Component {
   constructor(props, context) {
     super(props)
-    let field = context.fields[props.name]
+    let field = props.fields[props.name]
     this.field = field
     console.log("fields created", props, this.field, context)
     if(!this.field.label && !this.field.skipLabel) {
@@ -32,8 +27,7 @@ class FieldWrapper extends React.Component {
       this.isRef = true
     ]
     if(this.field.module) {
-      let mod = modrequire(this.field.module);
-      this.fldWidget = mod[this.field.widget];
+      this.fldWidget = _res(this.field.module, this.field.widget);
     }
   }
 
@@ -107,4 +101,5 @@ FieldWrapper.contextTypes = {
   uikit:  PropTypes.object
 };
 
-export { FieldWrapper as Field, Initialize}
+export { FieldWrapper as Field}
+*/

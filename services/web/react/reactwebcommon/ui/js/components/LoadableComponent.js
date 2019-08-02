@@ -8,18 +8,23 @@ class LoadableComponent extends React.Component {
     if(props.loader) {
       this.method = _reg("Methods", props.loader)
     }
+    if(props.loadData) {
+      this.loadData = props.loadData
+    }
   }
 
   componentWillMount() {
     console.log("loadable component:---------", this.method, this.props)
     let props = this.props
-    if(this.method) {
-      this.method(props, this.getLoadContext? this.getLoadContext(): {}, this.dataLoaded)
-    } else if(!props.skipDataLoad && props.dataService) {
-      let req = RequestBuilder.DefaultRequest(null, props.dataServiceParams);
-      DataSource.ExecuteService(props.dataService, req).then(this.response, this.errorMethod);
-    } else if(!props.skipDataLoad && props.entity) {
-      EntityData.ListEntities(props.entity).then(this.response, this.errorMethod);
+    if(this.loadData) {
+      if(this.method) {
+        this.method(props, this.getLoadContext? this.getLoadContext(): {}, this.dataLoaded)
+      } else if(props.dataService) {
+        let req = RequestBuilder.DefaultRequest(null, props.dataServiceParams);
+        DataSource.ExecuteService(props.dataService, req).then(this.response, this.errorMethod);
+      } else if(props.entity) {
+        EntityData.ListEntities(props.entity).then(this.response, this.errorMethod);
+      }  
     }
   }
 

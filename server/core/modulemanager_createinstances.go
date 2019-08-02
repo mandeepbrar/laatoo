@@ -19,7 +19,11 @@ func (modMgr *moduleManager) createInstances(ctx core.ServerContext) (map[string
 		if ok {
 			continue
 		}
-		log.Error(ctx, "Loading module instance", "Name", instance)
+		skip, _ := instanceConf.GetBool(ctx, "skip")
+		if skip {
+			continue
+		}
+		log.Error(ctx, "Loading module instance", "Name", instance, "skip", skip, "instance Conf", instanceConf)
 
 		modins, loaded, err := modMgr.createModuleInstanceFromConf(ctx, instance, instanceConf, nil, pendingModuleInstances)
 		if err != nil {
@@ -215,6 +219,11 @@ func (modMgr *moduleManager) addModuleSubInstances(ctx core.ServerContext, insta
 		instanceNames := modInstances.AllConfigurations(ctx)
 		for _, subinstanceName := range instanceNames {
 			subInstanceConf, _ := modInstances.GetSubConfig(ctx, subinstanceName)
+			skip, _ := subInstanceConf.GetBool(ctx, "skip")
+			if skip {
+				continue
+			}
+			log.Error(ctx, "Loading module sub instance", "Name", subinstanceName, "skip", skip, "subInstanceConf", subInstanceConf)
 			newInstanceName := fmt.Sprintf("%s->%s", instance, subinstanceName)
 			modMgr.parentModules[newInstanceName] = modInstance
 			log.Info(ctx, "Sub module added to the load list", "Instance name", newInstanceName, "Conf", subInstanceConf)

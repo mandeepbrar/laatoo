@@ -6,7 +6,6 @@
   "form": {
     "tabs": {
       "General": ["Name", "Description", "ServerTemp", "EnvironmentTemp", "LoggingLevel", "LoggingFormat"],
-      "Modules": [ "Modules"],
       "Module Instances": ["Instances"],
       "Services": ["Services"],
       "Channels": ["Channels"],
@@ -21,7 +20,7 @@
     "overlay": true,
     "actions":"AbstractServer_Actions",
     "submit": "Save",
-    "layout": ["General", "Modules", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Security"]
+    "layout": ["General", "Module Instances", "Entities", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Security"]
   },
   "fields":{
     "Name": {
@@ -68,13 +67,6 @@
     "Objects": {
       "type":"string",
       "list": true
-    },
-    "Modules": {
-        "type":"subentity",
-        "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
-        "entity": "Module"
     },
     "Instances": {
         "type":"subentity",

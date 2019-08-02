@@ -16,12 +16,11 @@
     },
     "Module": {
       "type":"subentity",
-      "entity": "Module",
+      "entity": "Entitlement",
       "widget": "SubEntity",
       "module": "subentity",
       "mode": "select",
-      "skipDataLoad": true,
-      "loader":"Form_Instance_Modules"
+      "dataService": "entitlementmodule"
     },
     "Description": {
         "type":"string"

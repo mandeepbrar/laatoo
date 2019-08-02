@@ -93,7 +93,6 @@ class ActionComp extends React.Component {
       return null;
     }
     let children= this.props.children? this.props.children: this.props.label
-    console.log("children of render view", children, this.props);
     let actionF = this.actionFunc;
     switch(this.props.widget) {
       case 'button': {

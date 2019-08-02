@@ -36,6 +36,7 @@ objects:
 modules:
   data:
     module: dataadapter
+    skip: {{var "skipData"}}
     settings:
       object: {{var "object"}}
       parent: {{var "parent"}}
@@ -80,3 +81,6 @@ params:
   skipItems: 
     type: string
     description: Items to be skipped for an entity. list_page, new_form, update_form, view_page, list_view
+  skipData:
+    type: bool
+    description: Skip data adapter services for entity

@@ -144,7 +144,7 @@ class EntityListField extends React.Component {
     let submit = formData? (data, success, failure)=>{return cl.edit(data, index, success, failure)}: this.add
     let comp = fld.addwidget?
       <Panel title={"Add "+this.props.label} description={{type:"component", componentName: fld.addwidget, module:fld.addwidgetmodule, add: this.add}} parentFormRef={this} subform={true} closePanel={this.closeForm} autoSubmitOnChange={this.props.autoSubmitOnChange}/>
-    : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} parentFormRef={this}  subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} autoSubmitOnChange={this.props.autoSubmitOnChange}/> //, actions, contentStyle)
+    : <Panel actions={this.actions} inline={true} formData={formData} title={"Add "+this.props.label} subform={true} closePanel={this.closeForm} onSubmit={submit} description={this.props.formDesc} autoSubmitOnChange={this.props.autoSubmitOnChange}/> //, actions, contentStyle)
     switch(this.props.field.mode) {
       case "inline":
         this.inlineRow = comp
@@ -219,14 +219,15 @@ class EntityListField extends React.Component {
 class SubEntity extends LoadableComponent {
   constructor(props, ctx) {
     super(props)
-    this.list = props.field.list? true: false
-    this.label = props.field.label? props.field.label : props.field.entity
-    let formName = props.field.form? props.field.form : "new_form_"+props.field.entity.toLowerCase()
+    let field = props.field
+    this.list = field.list? true: false
+    this.label = field.label? field.label : field.entity
+    let formName = field.form? field.form : "new_form_"+field.entity.toLowerCase()
     this.formDesc = {type: "form", id: formName}
     this.uikit = ctx.uikit;
     let value = props.input.value? props.input.value: (this.list? [] : {})
     this.state = {value}
-    console.log("show subentity", this.formDesc, props, ctx)
+    console.log("show subentity", this.formDesc, props, ctx, this.state)
   }
 
   componentWillReceiveProps(nextProps) {
@@ -235,6 +236,7 @@ class SubEntity extends LoadableComponent {
     if(this.state.value != value) {
       this.setState(Object.assign({}, this.state, {value}))
     }
+    console.log("subentity componentWillReceiveProps", this.state)
   }
 
   dataLoaded = (data) => {
@@ -274,12 +276,12 @@ class SubEntity extends LoadableComponent {
     return (
       <this.uikit.Block className={"subentity "+this.label}>
         {this.list?
-        <EntityListField uikit={this.uikit} getFormValue={this.context.getFormValue} field={this.props.field} onChange={this.change} label={this.label} form={this.props.form} formRef={this.props.formRef} autoSubmitOnChange={this.props.autoSubmitOnChange}
-          selectOptions= {this.state.selectOptions} overlayComponent={this.context.overlayComponent}  parentFormRef={this.props.parentFormRef} formDesc={this.formDesc} title={title} value={this.state.value}/>
+        <EntityListField uikit={this.uikit} field={field} onChange={this.change} label={this.label} formRef={this.props.formRef} autoSubmitOnChange={this.props.autoSubmitOnChange}
+          selectOptions= {this.state.selectOptions} overlayComponent={this.context.overlayComponent}  formDesc={this.formDesc} title={title} value={this.state.value}/>
         : ((field.mode=="select")?
         this.selectSubEntity()
         :
-        <Panel actions={()=>{}} formData={this.state.value} title={title}  autoSubmitOnChange={true} onChange={this.change} trackChanges={true} subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} description={this.formDesc} />)
+        <Panel actions={()=>{}} formData={this.state.value} title={title}  autoSubmitOnChange={true} onChange={this.change} trackChanges={true} subform={this.props.subform} formRef={this.props.formRef} description={this.formDesc} />)
         }
       </this.uikit.Block>
     )

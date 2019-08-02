@@ -72,7 +72,7 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 				w.Close()
 				err := modMgr.ReloadModule(reloadCtx, modName, modDir)
 				if err != nil {
-					log.Error(reloadCtx, "Error while reloading module", err)
+					log.Error(reloadCtx, "Error while reloading module", "Error", err)
 				}
 				fmt.Println(event) // Print the event's info.
 			case err := <-w.Error:

@@ -2,3 +2,4 @@ parent: root
 method: POST
 service: designer.environmentresolver
 path: "/resolve/environment"
+body: Environment

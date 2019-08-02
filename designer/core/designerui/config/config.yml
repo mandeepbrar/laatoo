@@ -109,6 +109,13 @@ modules:
       parent: root
       instance: Engine
       dataservicefactory: mongodatabase
+  field:
+    module: entity
+    settings:
+      object: Field
+      parent: root
+      instance: Field
+      skipData: true
   security:
     module: entity
     settings:
