@@ -16,13 +16,13 @@ class HeaderUI extends React.Component {
     let infoBlock = settings.infoBlock ? settings.infoBlock: "userBlock";
     console.log("header properties", hs, props, settings)
     return (
-      <props.uikit.Block className={hs.className?hs.className:'header'}>
-        <props.uikit.Block className="logo">
-          {hs.image?<props.uikit.Block className="image"><Image src={hs.image}/></props.uikit.Block>:null}
-          {hs.title?<props.uikit.Block className="title">{hs.title}</props.uikit.Block>:null}
-        </props.uikit.Block>
+      <_uikit.Block className={hs.className?hs.className:'header'}>
+        <_uikit.Block className="logo">
+          {hs.image?<_uikit.Block className="image"><Image src={hs.image}/></_uikit.Block>:null}
+          {hs.title?<_uikit.Block className="title">{hs.title}</_uikit.Block>:null}
+        </_uikit.Block>
         <Panel id={infoBlock} type="block" className="infoBlock"/>
-      </props.uikit.Block>
+      </_uikit.Block>
     )
   }
 }

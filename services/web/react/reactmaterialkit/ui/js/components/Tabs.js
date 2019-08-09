@@ -40,28 +40,25 @@ class Tabset extends React.Component {
   render() {
     return (
         this.isVertical()?
-        <this.context.uikit.Block className="row">
-          <this.context.uikit.Block className="col-xs-3">
+        <_uikit.Block className="row">
+          <_uikit.Block className="col-xs-3">
           {this.props.children}
-          </this.context.uikit.Block>
-          <this.context.uikit.Block  className="col-xs-9">
+          </_uikit.Block>
+          <_uikit.Block  className="col-xs-9">
           {this.state.selectedTab}
-          </this.context.uikit.Block>
-        </this.context.uikit.Block>
+          </_uikit.Block>
+        </_uikit.Block>
         :
-        <this.context.uikit.Block className={this.props.className}>
+        <_uikit.Block className={this.props.className}>
           <Tabs value={this.state.value} scrollable onChange={this.handleChange}>
           {this.props.children}
           </Tabs>
           {this.state.selectedTab}
-        </this.context.uikit.Block>
+        </_uikit.Block>
     )
   }
 }
 
-Tabset.contextTypes = {
-  uikit: PropTypes.object
-};
 Tabset.childContextTypes = {
   tabset: PropTypes.object
 };
@@ -92,9 +89,9 @@ class Tab extends React.Component {
   render() {
     return (
         this.vertical?
-        <this.context.uikit.Block className="tab w100">
+        <_uikit.Block className="tab w100">
           <Button onClick={this.tabClick}>{this.props.label}</Button>
-        </this.context.uikit.Block>
+        </_uikit.Block>
         :
         <MUITab label={this.props.label} className={this.props.className? this.props.className + " tab " : "tab"} value={this.value}  {...this.props} icon={this.props.icon} />
     )
@@ -102,7 +99,6 @@ class Tab extends React.Component {
 }
 
 Tab.contextTypes = {
-  uikit: PropTypes.object,
   tabset: PropTypes.object
 };
 

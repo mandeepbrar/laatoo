@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+
 	//"laatoo/sdk/utils"
 	"strings"
 )
@@ -28,7 +29,6 @@ func (node *Node) HasContent() bool {
 	return len(node.Content) > 0
 }
 
-
 func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	n.Attrs = start.Attr
 	type node Node
@@ -36,7 +36,7 @@ func (n *Node) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 func (svc *UI) regItem(ctx core.ServerContext, itemType, itemName, cont string) {
-	dispFunc := fmt.Sprintf("function(ctx, desc, uikit) { if(!ctx){ctx={};}if(!desc){desc={};}if(!uikit){uikit={};} console.log('ctx', ctx);return %s}", cont)
+	dispFunc := fmt.Sprintf("function(ctx, desc) { if(!ctx){ctx={};}if(!desc){desc={};} console.log('ctx', ctx);return %s}", cont)
 	//dispType := "EntityDisplay"
 	svc.addRegItem(ctx, itemType, itemName, dispFunc)
 }
@@ -97,7 +97,7 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 						if err != nil {
 							return nil, "", errors.WrapError(ctx, err)
 						}
-						nodeConf.Set(ctx, name, aconf)	
+						nodeConf.Set(ctx, name, aconf)
 					}
 				}
 			} else if node.HasContent() {
@@ -105,15 +105,15 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 			}
 			return nodeConf, name, nil
 		}
-	default: 
+	default:
 		{
 			nodeConf := ctx.CreateConfig()
-			if len(node.Nodes) ==0 && len(node.Content) > 0 {
+			if len(node.Nodes) == 0 && len(node.Content) > 0 {
 				nodeConf.SetString(ctx, "body", string(node.Content))
 			}
 			for _, attr := range node.Attrs {
 				nodeConf.SetString(ctx, attr.Name.Local, attr.Value)
-			}	
+			}
 			if node.HasChildren() {
 				childrenConf := make([]config.Config, 0)
 				for _, n := range node.Nodes {
@@ -125,12 +125,12 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 							return errors.WrapError(ctx, err)
 						}
 					} else {*/
-						//nconf := ctx.CreateConfig()
-						childConf, name, err := svc.createConfFromXML(ctx, n)
-						if err!=nil {
-							return nil, "", errors.WrapError(ctx, err)
-						}
-						//nodeconf.Set(ctx, n.XMLName.Local, nconf)
+					//nconf := ctx.CreateConfig()
+					childConf, name, err := svc.createConfFromXML(ctx, n)
+					if err != nil {
+						return nil, "", errors.WrapError(ctx, err)
+					}
+					//nodeconf.Set(ctx, n.XMLName.Local, nconf)
 					//}
 					if isAttr {
 						aconf, _ := childConf.GetSubConfig(ctx, name)
@@ -138,7 +138,7 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 					} else {
 						childrenConf = append(childrenConf, childConf)
 					}
-				}	
+				}
 				nodeConf.Set(ctx, "children", childrenConf)
 			} else if node.HasContent() {
 				nodeConf.SetString(ctx, "body", string(node.Content))
@@ -289,12 +289,10 @@ func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string 
 	return fmt.Sprintf("{%s}", attrBuf.String())
 }
 
-
-
 func getModString(ctx core.ServerContext, elem, mod, itemname string) (string, string) {
 	switch mod {
 	case "":
-		return fmt.Sprintf("uikit.%s", elem), fmt.Sprintf("'%s.uikit.%s'", itemname, elem)
+		return fmt.Sprintf("_uikit.%s", elem), fmt.Sprintf("'%s.uikit.%s'", itemname, elem)
 	case "html":
 		return fmt.Sprintf("'%s'", elem), fmt.Sprintf("'%s.%s.%s'", itemname, mod, elem)
 	default:

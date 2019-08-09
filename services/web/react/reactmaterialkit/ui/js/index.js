@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import {Button} from '@material-ui/core';
 import {TextField} from './components/TextField';
+import {Select} from './components/Select';
 import './styles/app.scss';
 import Forms from './forms';
 import {Tabset, Tab} from './components/Tabs';
@@ -66,6 +67,7 @@ export {
   Tab,
   Forms,
   Dialogs,
+  Select,
   Block,
   TextField,
   Form,

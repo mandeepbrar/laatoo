@@ -37,16 +37,15 @@ class ItemDetailView extends React.Component {
           console.log("selected ", i)
           methods.itemSelectionChange(i, true)
         }
-        let uikit = this.context.uikit;
-        return <uikit.Block>
-          <uikit.Block className="row center valigncenter ma10">
+        return <_uikit.Block>
+          <_uikit.Block className="row center valigncenter ma10">
           {x.Name}
-          </uikit.Block>
-          <uikit.Block className="row m10">
+          </_uikit.Block>
+          <_uikit.Block className="row m10">
             <Action className="p10" action={{actiontype:"method", method: select, params:{}}}>Select</Action>
             <Action className="p10" action={{actiontype:"method", method: this.openDetail, params:{data: x, index: i}}}>Details</Action>
-          </uikit.Block>
-        </uikit.Block>  
+          </_uikit.Block>
+        </_uikit.Block>  
       } else { 
         return <Action action={{actiontype:"method", method: this.openDetail, params:{data: x, index: i}}}>{item}</Action>
       }
@@ -104,8 +103,8 @@ class ItemDetailView extends React.Component {
     let detailPanelClass = " col-xs-6 "
     let viewClass = this.state.open? " col-xs-6 ": ""
     return (
-      <ctx.uikit.Block className={" itemdetailview ma10 " + itemDetailViewClass}>
-        <ctx.uikit.Block className={" view " + viewClass}>
+      <_uikit.Block className={" itemdetailview ma10 " + itemDetailViewClass}>
+        <_uikit.Block className={" view " + viewClass}>
           {props.id?
             <Panel className={props.className} editable={props.editable} getItem={this.getItem} viewRef={this.view} type="view" id={props.id}></Panel>
             :
@@ -114,8 +113,8 @@ class ItemDetailView extends React.Component {
               getHeader={props.getHeader} getView={props.getView} getItem={this.getItem} urlparams={props.urlparams} postArgs={props.postArgs}>
             </View>
           }
-        </ctx.uikit.Block>
-        <ctx.uikit.Block className={detailPanelClass}>
+        </_uikit.Block>
+        <_uikit.Block className={detailPanelClass}>
         {
           this.state.open?(
             props.entityName?
@@ -124,15 +123,15 @@ class ItemDetailView extends React.Component {
             )
           :null
         }
-        </ctx.uikit.Block>
+        </_uikit.Block>
         {
           props.form?
-          <ctx.uikit.Block className=" w100 right ">
+          <_uikit.Block className=" w100 right ">
             <Action widget="button" className="p10" action={{actiontype:"method", method: this.submit, params:{}}}>Submit</Action>
-          </ctx.uikit.Block>
+          </_uikit.Block>
           : null
         }
-      </ctx.uikit.Block>
+      </_uikit.Block>
     )
   }
 }
@@ -141,9 +140,6 @@ class ItemDetailView extends React.Component {
    getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args}>
    {item}
    </ViewComponent>*/
-ItemDetailView.contextTypes = {
-  uikit: PropTypes.object
-};
 
 export {
   ItemDetailView

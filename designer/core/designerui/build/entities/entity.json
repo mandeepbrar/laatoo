@@ -21,9 +21,13 @@
       "type":"subentity",
       "list": true,
       "entity": "Field",
-      "mode": "dialog",
-      "widget": "SubEntity",
-      "module": "subentity"
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity",
+        "props": {
+          "mode": "dialog"
+        }
+      }
     }
   }
 }

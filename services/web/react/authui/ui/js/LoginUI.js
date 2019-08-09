@@ -59,8 +59,4 @@ LoginUI.propTypes = {
   handleLogin: PropTypes.func.isRequired
 };
 
-LoginUI.contextTypes = {
-  uikit: PropTypes.object
-};
-
 export {LoginUI} ;

@@ -28,7 +28,7 @@ Window.resolvePanel = (panelType, id) => {
   return <Panel type={panelType} id={id}/>
 }
 
-function ProcessPages(theme, uikit) {
+function ProcessPages(theme) {
   let pages = Application.AllRegItems("Pages")
   if(pages) {
     for(var pageId in pages) {
@@ -40,22 +40,22 @@ function ProcessPages(theme, uikit) {
           components = {"main":page.component}
         }
         if(theme && theme.PreprocessPageComponents) {
-          components = theme.PreprocessPageComponents(components, page, pageId, reducers, uikit)
+          components = theme.PreprocessPageComponents(components, page, pageId, reducers)
         }
         let pageComps={}
         console.log("page components ", pageId, page, components)
         Object.keys(components).forEach(function(key){
-          pageComps[key] = function(pagecomp, key, pageId, page, uikit) {
+          pageComps[key] = function(pagecomp, key, pageId, page) {
             return (routerState) => {
               let visible = true
               console.log("Page components ", routerState, pagecomp, key, pageId, page)
               if(theme && theme.IsComponentVisible) {
-                visible = theme.IsComponentVisible(compToRender, key, pageId, routerState, page, uikit)
+                visible = theme.IsComponentVisible(compToRender, key, pageId, routerState, page)
               }
               if(visible) {
                 let compToRender = typeof(pagecomp) == 'function'? pagecomp(routerState): pagecomp
                 if(theme && theme.RenderPageComponent) {
-                  let retval = theme.RenderPageComponent(compToRender, key, pageId, routerState, page, uikit)
+                  let retval = theme.RenderPageComponent(compToRender, key, pageId, routerState, page)
                   if(retval) {
                     return retval
                   }
@@ -64,7 +64,7 @@ function ProcessPages(theme, uikit) {
               }
               return null
             }
-          }(components[key], key, pageId, page, uikit)
+          }(components[key], key, pageId, page)
         });
         let route = {pattern: page.route, components: pageComps, reducer: combineReducers(reducers)}
         console.log("page ....", route)

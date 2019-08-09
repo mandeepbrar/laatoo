@@ -24,32 +24,42 @@
         "type":"string"
     },
     "LoggingLevel": {
-        "type":"string",
-        "widget": "Select",
-        "items": [
-          {"text": "Error", "value":"error"},
-          {"text": "Warn", "value":"warn"},
-          {"text": "Info", "value":"info"},
-          {"text": "Debug", "value":"debug"},
-          {"text": "Trace", "value":"trace"}
-        ]
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Error", "value":"error"},
+            {"text": "Warn", "value":"warn"},
+            {"text": "Info", "value":"info"},
+            {"text": "Debug", "value":"debug"},
+            {"text": "Trace", "value":"trace"}
+          ]
+        }
+      }
     },
     "LoggingFormat": {
-        "type":"string",
-        "widget": "Select",
-        "items": [
-          {"text": "Json ", "value":"json"},
-          {"text": "Json Full", "value":"jsonmax"},
-          {"text": "Formatted", "value":"happy"},
-          {"text": "Formatted Full", "value":"happymax"}
-        ]
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Json ", "value":"json"},
+            {"text": "Json Full", "value":"jsonmax"},
+            {"text": "Formatted", "value":"happy"},
+            {"text": "Formatted Full", "value":"happymax"}
+          ]    
+        }
+      }
     },
     "Configuration": {
         "type":"subentity",
         "entity": "Configuration",
         "mode": "dialog",
-        "widget": "SubEntity",
-        "module": "subentity"
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        }
     }
   }
 }

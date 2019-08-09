@@ -32,39 +32,46 @@ class ListEditor extends React.Component {
     console.log("value onchange triggered ", values, this.props)
     if(this.props.fieldChange) {
       this.props.fieldChange(values, this.props.name, null)
-    } else {
-      this.setState({values: values})
     }
+    this.setState({values: values})
   }
   render() {
     let editor = this
     let props = this.props
     let comps = []
+    console.log("list editor ", props, this.state)
     this.state.values.forEach(function(str, index) {
-      let editText = (value, name, evt)=> {console.log("edit text", evt, value); editor.changeValue(value, index)}
-      let newProps = Object.assign({}, props.baseProps, {input:{value: str}})
+      let editText = (evt, val)=> {console.log("edit text", evt, val); editor.changeValue(event.target.value, index)}
+      let newProps = Object.assign({}, props, {input:{value: str}})
       if(props.field.widget == "Select") {
         console.log("creating select val", str)
-        comps.push(<props.uikit.Forms.FieldWidget className={props.className + " w100"} value={str} onChange={editText} field={props.field} {...props.baseProps} {...props.ap} time={editor.state.time}/>)
+        comps.push(<_uikit.Forms.FieldWidget className={props.className + " w100"} value={str} onChange={editText} field={props.field} {...props}/>)
       }else {
-        comps.push(<props.uikit.TextField className={props.className + " w100"} value={str} onChange={editText} time={editor.state.time} />)
+        comps.push(<_uikit.TextField className={props.className + " w100"} value={str} onChange={editText} />)
       }
     })
-    return <props.uikit.Block className="w100" titleBarActions={[<Action action={{actiontype:"method"}} className="left" method={this.addItem}><props.uikit.Icons.NewIcon/></Action>]}>{comps}</props.uikit.Block>
+    return <_uikit.Block className="w100" titleBarActions={[<Action action={{actiontype:"method"}} className="left" method={this.addItem}><_uikit.Icons.NewIcon/></Action>]}>{comps}</_uikit.Block>
   }
 }
 
 class FldList extends React.Component {
   constructor(props) {
     super(props)
-    let vals = props.baseProps.input.value? props.baseProps.input.value: []
-    this.state = {values: vals, time: props.time}
+    console.log("fld list", props)
+    this.state = {values: this.createState(props.input.value)}
     this.field = props.field
   }
   componentWillReceiveProps(nextProps) {
-    let values = nextProps.baseProps.input.value? nextProps.baseProps.input.value: []
     console.log("componentWillReceiveProps fldlist", nextProps)
-    this.setState(Object.assign({}, this.state, {values}))
+    this.setState(Object.assign({}, this.state, {values: this.createState(nextProps.input.value)}))
+  }
+  createState(val) {
+    if(val) {
+      if(Array.isArray(val)) {
+        return val
+      }
+    }
+    return []
   }
   editingComplete = () => {
     //this.setState(Object.assign({}, this.state, {values}))
@@ -74,42 +81,39 @@ class FldList extends React.Component {
   }
   onChange = (values) => {
     console.log("onchange fldlist", values)
-    this.props.baseProps.input.onChange(values)
+    this.props.input.onChange(values)
   }
   editList = () => {
     console.log("edit list")
     let actions = [<Action action={{actiontype:"method"}} widget="button" className="right" method={this.editingComplete}>Save</Action>]
-    Window.showDialog("Items", <ListEditor ref={(editor) => {this.editor = editor;}} uikit={this.context.uikit} values={this.state.values} {...this.props}/>, null, actions )
+    Window.showDialog("Items", <ListEditor ref={(editor) => {this.editor = editor;}} values={this.state.values} {...this.props}/>, null, actions )
   }
   render() {
-    let uikit = this.context.uikit
     console.log("reder stringlist", this.state, this.props, this.context, this.field)
     let cl = this.props.className? this.props.className:""
     if(this.field.inplace) {
       return (
-        <uikit.Block time={this.state.time} className={cl + " w100 row stringlist_inplace"}>
-          <ListEditor ref={(editor) => {this.editor = editor;}} uikit={this.context.uikit} onChange={this.onChange} values={this.state.values} {...this.props}/>
-        </uikit.Block>
+        <_uikit.Block className={cl + " w100 row stringlist_inplace"}>
+          <ListEditor ref={(editor) => {this.editor = editor;}} onChange={this.onChange} values={this.state.values} {...this.props}/>
+        </_uikit.Block>
       )
     } else {
+      console.log("non list editor", this.state, "props", this.props)
       let val = this.state.values.join()
+      console.log("non list editor1", val, _uikit)
       return (
-        <uikit.Block time={this.state.time} className={cl + " row stringlist"}>
-          <uikit.Block className="col-xs-12 label">{this.props.name}</uikit.Block>
-          <uikit.Block className="value col-xs-10">
+        <_uikit.Block className={cl + " row stringlist"}>
+          <_uikit.Block className="col-xs-12 label">{this.props.name}</_uikit.Block>
+          <_uikit.Block className="value col-xs-10">
           {val? val: "<No Data>"}
-          </uikit.Block>
+          </_uikit.Block>
           <Action action={{actiontype:"method"}} className=" col-xs-2" method={this.editList}>
-            <uikit.Icons.EditIcon/>
+            <_uikit.Icons.EditIcon/>
           </Action>
-        </uikit.Block>
+        </_uikit.Block>
       )
     }
   }
 }
-
-FldList.contextTypes = {
-  uikit: PropTypes.object
-};
 
 export {FldList}

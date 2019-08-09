@@ -12,9 +12,6 @@ class ViewUI extends ViewData {
     this.getHeader = this.getHeader.bind(this);
     this.getPagination = this.getPagination.bind(this);
     this.getFilter = this.getFilter.bind(this);
-    this.uikit = context.uikit;
-    this.div = this.uikit.Block;
-    this.scroll = this.uikit.Scroll;
     this.onScrollEnd = this.onScrollEnd.bind(this);
   }
 
@@ -66,21 +63,21 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     }
     if(this.props.incrementalLoad) {
       return (
-        <this.uikit.scroll key={this.props.key} className={this.props.className} onScrollEnd={this.onScrollEnd}>
+        <_uikit.scroll key={this.props.key} className={this.props.className} onScrollEnd={this.onScrollEnd}>
           {filter}
           {header}
           {groups}
           {pagination}
-        </this.uikit.scroll>
+        </_uikit.scroll>
       )
     } else {
       return (
-        <this.uikit.Block key={this.props.key} className={this.props.className} style={this.props.style} >
+        <_uikit.Block key={this.props.key} className={this.props.className} style={this.props.style} >
         {filter}
         {header}
         {groups}
         {pagination}
-        </this.uikit.Block>
+        </_uikit.Block>
       )
     }
   }
@@ -95,7 +92,7 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     if(this.props.getItemGroup) {
       return this.props.getItemGroup(this, x)
     }
-    return <this.uikit.Block className="group">x</this.uikit.Block>
+    return <_uikit.Block className="group">x</_uikit.Block>
   }
   getRenderedItem = (x, i) => {
     console.log("get rendered item", this.props.children, this.props)
@@ -191,7 +188,4 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
   }*/
 }
 
-ViewUI.contextTypes = {
-  uikit: PropTypes.object
-};
 export {ViewUI as ViewUI}

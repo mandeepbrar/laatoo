@@ -7,7 +7,6 @@ var module;
 class Panel extends React.Component {
   constructor(props, ctx) {
     super(props)
-    this.uikit = ctx.uikit
     let desc = props.description
 
     /*if(!desc && props.id) {
@@ -141,9 +140,9 @@ class Panel extends React.Component {
     var panelComp = (id)=> {
       console.log("looking for panel component in layout", desc, id)
       return desc[id]?
-      <block.uikit.Block className={id}>
+      <_uikit.Block className={id}>
         {block.getPanelItems(desc[id])}
-      </block.uikit.Block>
+      </_uikit.Block>
       :null
     }
 
@@ -151,33 +150,33 @@ class Panel extends React.Component {
       console.log("getting layout", desc, props)
       switch(desc.layout) {
         case "2col": {
-          layout=( <this.uikit.Block className={className + " twocol"}>
+          layout=( <_uikit.Block className={className + " twocol"}>
               {panelComp("header")}
-            <this.uikit.Block className="row">
+            <_uikit.Block className="row">
               {panelComp("left")}
               {panelComp("right")}
-            </this.uikit.Block>
+            </_uikit.Block>
             {panelComp("footer")}
-          </this.uikit.Block>
+          </_uikit.Block>
           )
         }
         break;
         case "3col": {
-          layout=( <this.uikit.Block className={className + " threecol"}>
+          layout=( <_uikit.Block className={className + " threecol"}>
               {panelComp("header")}
-            <this.uikit.Block className="row">
+            <_uikit.Block className="row">
               {panelComp("left")}
               {panelComp("right")}
-            </this.uikit.Block>
+            </_uikit.Block>
             {panelComp("footer")}
-          </this.uikit.Block>
+          </_uikit.Block>
           )
         }
         break;
         default: {
-          layout=( <this.uikit.Block className={className}>
+          layout=( <_uikit.Block className={className}>
               {panelComp("items")}
-              </this.uikit.Block>
+              </_uikit.Block>
           )
         }
       }
@@ -193,13 +192,13 @@ class Panel extends React.Component {
     if(display) {
       this.getView = function(props, ctx, state, className) {
         console.log("calling block func", props, ctx, className)
-        let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc, ctx.uikit)
+        let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc)
         return retval
       }
     } else {
       this.getView = function(props, ctx, state, className) {
         console.log("rendering empty block func", props, ctx, className)
-        return <ctx.uikit.Block></ctx.uikit.Block>
+        return <_uikit.Block></_uikit.Block>
       }
     }
   }
@@ -214,17 +213,17 @@ class Panel extends React.Component {
       }
     } else {
       this.getView = function(props, ctx, state, className) {
-        return <ctx.uikit.Block></ctx.uikit.Block>
+        return <_uikit.Block></_uikit.Block>
       }
     }
   }
 
   processForm = (desc, props,  ctx) => {
-    console.log("processing form=", desc)
+    console.log("processing form=", desc, props)
     if(!desc || !desc.info) {
       return
     }
-    console.log("processing form+++", desc, module)
+    console.log("processing form+++", desc, module, props)
     this.cfgPanel(desc.info.title, desc.info.overlay)
 
     var cfg = desc.info
@@ -247,7 +246,7 @@ class Panel extends React.Component {
       }
     } else {
       this.getView = function(props, ctx, state, className) {
-        return <ctx.uikit.Block></ctx.uikit.Block>
+        return <_uikit.Block></_uikit.Block>
       }
     }
   }
@@ -314,7 +313,7 @@ class Panel extends React.Component {
         itemClass = props.index%2 ? "oddindex": "evenindex"
       }
       console.log("my entity data111", entityData, entityIndex, desc, props)
-      return <this.entity id={id} name={name} entityDescription={desc} data={entityData} index={entityIndex} uikit={ctx.uikit}>
+      return <this.entity id={id} name={name} entityDescription={desc} data={entityData} index={entityIndex}>
         <Panel description={entityDisplay} parent={props.parent} className={itemClass} />
       </this.entity>
     }
@@ -369,15 +368,15 @@ class Panel extends React.Component {
 
   render() {
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
-    let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <this.context.uikit.Block/>
+    let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <_uikit.Block/>
     console.log("Rendering panel***************", this.getView, this.props, comp, this.overlay, this.title, this.closePanel, this.className);
     if(this.overlay || this.title || this.closePanel) {
-      return <this.uikit.Block className="overlaywrapper" title={this.title} closeBlock={this.closePanel}>
-        <this.uikit.Block style={{display:( showOverlay?"none":"block")}}>
+      return <_uikit.Block className="overlaywrapper" title={this.title} closeBlock={this.closePanel}>
+        <_uikit.Block style={{display:( showOverlay?"none":"block")}}>
         {comp}
-        </this.uikit.Block>
+        </_uikit.Block>
         {showOverlay?this.state.overlayComponent:null}
-      </this.uikit.Block>
+      </_uikit.Block>
     } else {
       return comp
     }
@@ -392,7 +391,6 @@ Panel.childContextTypes = {
 Panel.contextTypes = {
   overlayComponent: PropTypes.func,
   closeOverlay: PropTypes.func,
-  uikit: PropTypes.object,
   routeParams: PropTypes.object
 };
 export default Panel

@@ -4,16 +4,20 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "layout": ["Mode", "RoleSvc", "Publickey", "Privatekey", "Realm", "supportedrealms", "authservices", "permissions"]
+    "layout": ["Mode", "RoleSvc", "Publickey", "Privatekey", "Realm", "Supportedrealms", "Authservices", "Permissions"]
   },
   "fields":{
     "Mode": {
         "type":"string",
-        "widget": "Select",
-        "items": [
-          {"text": "Local", "value":"local"},
-          {"text": "Remote", "value":"remote"}
-        ]
+        "widget": {
+          "name": "Select",
+          "props": {
+            "items": [
+              {"text": "Local", "value":"local"},
+              {"text": "Remote", "value":"remote"}
+            ]
+          }
+        }
     },
     "RoleSvc": {
       "label": "Role Data Service",
@@ -29,17 +33,17 @@
         "type":"string",
         "label": "Message"
     },
-    "supportedrealms": {
+    "Supportedrealms": {
         "type":"string",
         "label": "Supported Realms",
         "list": true
     },
-    "authservices": {
+    "Authservices": {
         "label": "Authentication Services",
         "type":"string",
         "list": true
     },
-    "permissions": {
+    "Permissions": {
         "label": "Permissions",
         "type":"string",
         "list": true

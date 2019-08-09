@@ -28,7 +28,6 @@ class BaseForm extends React.Component {
     }   
     this.state={formValue: props.formVal}
     this.trackChanges = this.config.trackChanges || props.trackChanges
-    this.uikit = context.uikit
 
     this.className = "webform " + (this.config.className? this.config.className :"")
     this.formName="myform"
@@ -109,6 +108,7 @@ class BaseForm extends React.Component {
       let mapper = _reg('Method', this.config.dataMapper)
       formData = mapper(formData)
     }
+    console.log("setData", this.props.form, formData)
     let x = this.props.initialize( formData)
     this.props.dispatch(x)
   }
@@ -134,30 +134,30 @@ class BaseForm extends React.Component {
     let props = this.props
     console.log("**********************rendering web form****************", props.form, props, this.state)
     let cfg = this.config
-    if(this.uikit.Form) {
+    if(_uikit.Form) {
       if(cfg.layout && (typeof(cfg.layout) == "string") ) {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
           console.log("form context", this.props.formContext);
-          let root = display(props.formContext, props.description, this.uikit)
+          let root = display(props.formContext, props.description)
           return React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: this.className})
         }
       } else {
         return (
-          <this.uikit.Form onSubmit={this.submitFunc} className={this.className}>
+          <_uikit.Form onSubmit={this.submitFunc} className={this.className}>
             <FieldsPanel description={props.description} formRef={this} autoSubmitOnChange={props.autoSubmitOnChange} formValue={this.state.formValue} />
-            <this.uikit.Block className="actionbar p20 right">
+            <_uikit.Block className="actionbar p20 right">
               {
                 this.actions?
-                this.actions(this, this.submitFunc, this.reset, this.uikit, this.setData, this.props.dispatch):
-                <this.uikit.ActionButton onClick={this.submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</this.uikit.ActionButton>
+                this.actions(this, this.submitFunc, this.reset, this.setData, this.props.dispatch):
+                <_uikit.ActionButton onClick={this.submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</_uikit.ActionButton>
               }
-            </this.uikit.Block>
-          </this.uikit.Form>
+            </_uikit.Block>
+          </_uikit.Form>
         )
       }
     } else {
-      return <this.uikit.Block/>
+      return <_uikit.Block/>
     }
   }  
 }
@@ -215,7 +215,6 @@ class EntityForm extends BaseForm {
   }
 }
 EntityForm.contextTypes = {
-  uikit: PropTypes.object,
   getFormValue: PropTypes.func,
   routeParams: PropTypes.object
 };
@@ -237,10 +236,15 @@ class SubEntityForm extends BaseForm {
 
   configureForm = (dispatch, props) => {
     this.setData(this.props.formData)
+    let form = this
+    this.formSubmit = (data, successCallback, failureCallback) => {
+      data = form.preSubmit(data)
+      console.log("form submit update", data, props)
+
+    }
   }
 }
 SubEntityForm.contextTypes = {
-  uikit: PropTypes.object,
   getFormValue: PropTypes.func,
   routeParams: PropTypes.object
 };
@@ -281,7 +285,6 @@ class CustomForm extends BaseForm {
   }
 }
 CustomForm.contextTypes = {
-  uikit: PropTypes.object,
   getFormValue: PropTypes.func,
   routeParams: PropTypes.object
 };
@@ -300,6 +303,11 @@ class WebFormUI extends React.Component {
       this.formType = CustomForm
     }
   }
+
+  componentWillReceiveProps(nextProps, nextState) {
+    console.log("webform ui: next props ", nextProps)
+  }
+
 
   render() {
     console.log("creating web form", this.formType, this.props, this.props.children)
@@ -323,8 +331,10 @@ const mapStateToProps = (state, ownProps) => {
   }
 
 
-  let formVal  = state.form[ownProps.form]
-  formVal = formVal? formVal: empty
+  let form  = state.form[ownProps.form]
+  console.log("form val", form, ownProps.form, state)
+  let formVal = form? form.values: empty
+  console.log("form val", formVal)
   return { formVal, formData}
 }
 

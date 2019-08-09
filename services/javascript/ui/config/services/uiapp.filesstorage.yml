@@ -1,2 +1,0 @@
-name: uiapp.filesstorage{{var "application" "."}}
-servicemethod: filesystem

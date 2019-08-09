@@ -41,9 +41,6 @@ class SignupUI extends React.Component {
     handleSignup: PropTypes.func.isRequired
   };
   
-  SignupUI.contextTypes = {
-    uikit: PropTypes.object
-  };
-  
+
   export {SignupUI} ;
 

@@ -17,7 +17,6 @@ class FileUpload extends React.Component {
   constructor(props, context) {
     super(props)
     console.log("fileupload", props, context)
-    this.uikit = context.uikit
 
     this.drop = this.drop.bind(this)
     this.clear = this.clear.bind(this)
@@ -76,29 +75,28 @@ class FileUpload extends React.Component {
     }
   }
   getValueComponent() {
-    let uikit = this.context.uikit
     let items=[]
     if(this.props.multiple) {
       console.log("value of files ", this.state.value)
       let val = this.state.value? this.state.value.split(","): []
       val.forEach((item)=> {
         items.push(
-          <uikit.Block className="w100">{item}</uikit.Block>
+          <_uikit.Block className="w100">{item}</_uikit.Block>
         )
       })
     } else {
       items.push(
-        <uikit.Block className="w100">{this.state.value}</uikit.Block>
+        <_uikit.Block className="w100">{this.state.value}</_uikit.Block>
       )
     }
     return(
-      <uikit.Block className="w100">
+      <_uikit.Block className="w100">
         {module.properties.success.text}
         {items}
-      </uikit.Block>
+      </_uikit.Block>
     )
   }
-//  {this.props.clear? this.props.clear(this.clear):<uikit.ActionButton onClick={this.clear}>Clear</uikit.ActionButton>}
+//  {this.props.clear? this.props.clear(this.clear):<_uikit.ActionButton onClick={this.clear}>Clear</_uikit.ActionButton>}
 
   clear(evt) {
     evt.preventDefault();
@@ -109,28 +107,27 @@ class FileUpload extends React.Component {
   }
   getDropZoneComponent() {
     let multiple = this.props.multiple? this.props.multiple: false
-    let uikit = this.context.uikit
     return(
-      <uikit.Block className="upload" style={{display:"block"}}>
+      <_uikit.Block className="upload" style={{display:"block"}}>
         <Dropzone onDrop={this.drop} className={this.props.dropzoneClass} multiple={multiple}>
           {
             this.props.text ?
             this.props.text
             :
-            <uikit.Block>{module.properties.dropzone.text}</uikit.Block>
+            <_uikit.Block>{module.properties.dropzone.text}</_uikit.Block>
           }
         </Dropzone>
-      </uikit.Block>
+      </_uikit.Block>
     )
   }
   getComponent() {
-  /*    let uikit = this.context.uikit
+  /*    let _uikit = this.context._uikit
     if (choice == "url") {
       return(
-        <uikit.Block style={{display:"block"}} className="url">
+        <_uikit.Block style={{display:"block"}} className="url">
           <input className="ma30" type="text" ref="imageediturl" placeholder="link"/>
           <button className="ma10 rightalign" role="button" onClick={this.uselink}>Use Image</button>
-        </uikit.Block>
+        </_uikit.Block>
       )
     } else {*/
       return this.getDropZoneComponent()
@@ -138,7 +135,6 @@ class FileUpload extends React.Component {
   }
   
   render () {
-    let uikit = this.context.uikit
     let style = null
     if(this.props.style) {
       style = this.props.style
@@ -147,10 +143,10 @@ class FileUpload extends React.Component {
     }
 //    let showChoice = !this.props.multiple && !this.props.hideChoice
     return (
-      <uikit.Block className="fileupload" style={style}>
+      <_uikit.Block className="fileupload" style={style}>
         {this.getComponent()}
         {this.getValueComponent()}
-      </uikit.Block>
+      </_uikit.Block>
     )
     /*if(this.props.value) {
       )
@@ -158,9 +154,9 @@ class FileUpload extends React.Component {
       let component = this.getComponent()
       if(showChoice) {
         return (
-          <uikit.Block style={style} className="imageedit">
+          <_uikit.Block style={style} className="imageedit">
             {component}
-          </uikit.Block>
+          </_uikit.Block>
         )
       } else {
         return component
@@ -168,10 +164,6 @@ class FileUpload extends React.Component {
     }*/
   }
 }
-
-FileUpload.contextTypes = {
-  uikit: PropTypes.object
-};
 
 export {
   FileUpload,

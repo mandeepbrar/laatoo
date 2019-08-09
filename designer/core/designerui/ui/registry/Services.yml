@@ -25,4 +25,4 @@ modulesrepoview:
 entitlementmodule:
     method: POST
     url: "/entitlement/view"
-    responseField: modDef
+    responseField: Module

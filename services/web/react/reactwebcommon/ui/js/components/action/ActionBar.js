@@ -21,15 +21,11 @@ class ActionBar extends React.Component {
   }
   render() {
     return (
-      <this.context.uikit.Block className={" actionbar " + this.className}>
+      <_uikit.Block className={" actionbar " + this.className}>
       {this.actions}
-      </this.context.uikit.Block>
+      </_uikit.Block>
     )
   }
 }
-
-ActionBar.contextTypes = {
-  uikit: PropTypes.object
-};
 
 export {ActionBar as ActionBar}

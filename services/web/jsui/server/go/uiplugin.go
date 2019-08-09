@@ -6,5 +6,6 @@ import (
 )
 
 type UIPlugin interface {
-	GetRegistry(ctx core.ServerContext) config.Config
+	UILoad(ctx core.ServerContext) map[string]config.Config
+	LoadingComplete(ctx core.ServerContext) map[string]config.Config
 }

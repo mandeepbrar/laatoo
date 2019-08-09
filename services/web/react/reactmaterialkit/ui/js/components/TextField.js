@@ -2,6 +2,7 @@ import {TextField} from '@material-ui/core';
 import React from 'react';
 
 const TextFieldComp = (props)=> {
+  console.log("props of text field", props)
   return(
     <TextField  {...props} hintText={props.placeholder} />
   )

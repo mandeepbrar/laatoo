@@ -34,25 +34,33 @@
       "entity": "Solution"
     },
     "LoggingLevel": {
-        "type":"string",
-        "widget": "Select",
-        "items": [
-          {"text": "Error", "value":"error"},
-          {"text": "Warn", "value":"warn"},
-          {"text": "Info", "value":"info"},
-          {"text": "Debug", "value":"debug"},
-          {"text": "Trace", "value":"trace"}
-        ]
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Error", "value":"error"},
+            {"text": "Warn", "value":"warn"},
+            {"text": "Info", "value":"info"},
+            {"text": "Debug", "value":"debug"},
+            {"text": "Trace", "value":"trace"}
+          ]
+        }
+      }
     },
     "LoggingFormat": {
-        "type":"string",
-        "widget": "Select",
-        "items": [
-          {"text": "Json ", "value":"json"},
-          {"text": "Json Full", "value":"jsonmax"},
-          {"text": "Formatted", "value":"happy"},
-          {"text": "Formatted Full", "value":"happymax"}
-        ]
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Json ", "value":"json"},
+            {"text": "Json Full", "value":"jsonmax"},
+            {"text": "Formatted", "value":"happy"},
+            {"text": "Formatted Full", "value":"happymax"}
+          ]    
+        }
+      }
     },
     "Objects": {
       "type":"string",
@@ -61,64 +69,82 @@
     "Instances": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "ModuleInstance"
     },
     "Services": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Service"
     },
     "Entities": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Entity"
     },
     "Factories": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Factory"
     },
     "Channels": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Channel"
     },
     "Engines": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Engine"
     },
     "Rules": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Rule"
     },
     "Tasks": {
         "type":"subentity",
         "list": true,
-        "widget": "SubEntity",
-        "module": "subentity",
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        },
         "entity": "Task"
     },
     "Security": {
         "type":"subentity",
         "entity": "Security",
-        "widget": "SubEntity",
-        "module": "subentity"
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        }
     }
   }
 }

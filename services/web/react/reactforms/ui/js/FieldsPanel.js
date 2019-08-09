@@ -10,24 +10,25 @@ class FieldsPanel extends React.Component {
         let desc = props.description
         this.fields = desc? desc.fields:{}
         this.state={formValue: props.formValue}       
-        this.uikit = context.uikit        
-        this.configureFields(props, this.uikit)
+        console.log("fields panel constructor", desc, props)
+        this.configureFields(props)
     }
     componentWillReceiveProps(nextProps, nextState) {
         this.setState(Object.assign({}, this.state, {formValue: nextProps.formValue}))
     }    
 
-    configureFields = (props, uikit) => {
+    configureFields = (props) => {
         this.fieldWidgets = {}
         this.fieldProps = {}
+        console.log("configure fields", props, this)
         for(let [fieldName, field] of Object.entries(this.fields)) {
-            if(field.module) {
-                let fldWidget = _res(field.module, field.widget);
+            if(field.widget && field.widget.module) {
+                let fldWidget = _res(field.widget.module, field.widget.name);
                 this.fieldWidgets[fieldName] = fldWidget
             } else if(field.list) {
                 this.fieldWidgets[fieldName] = FldList
             } else {
-                this.fieldWidgets[fieldName] = uikit.Forms.FieldWidget
+                this.fieldWidgets[fieldName] = _uikit.Forms.FieldWidget
             }
 
             let cl= props.inline?"inline formfield m10":"formfield m10"
@@ -35,9 +36,10 @@ class FieldsPanel extends React.Component {
             if(!field.label && !field.skipLabel) {
                 field.label = fieldName
             }
-            let fieldProperties = {name: fieldName, entity: field.entity, dataService: field.dataService, dataServiceParams: field.dataServiceParams, 
-                loader: field.loader, skipDataLoad: field.skipDataLoad, className: cl, field: field, autoSubmitOnChange: props.autoSubmitOnChange,
-                formRef: props.formRef}
+            let fieldProperties = {name: fieldName, entity: field.entity, className: cl, field: field, formRef: props.formRef}
+            if(field.widget) {
+                fieldProperties = Object.assign(fieldProperties, field.widget.props)
+            }
             
             this.fieldProps[fieldName] = fieldProperties
         }
@@ -48,7 +50,8 @@ class FieldsPanel extends React.Component {
         let fldpanel = this
         fldToDisp.forEach(function(k) {
             let field = flds[k]    
-            fieldsArr.push( <Field key={field.name} name={field.name} component={fldpanel.component}/>)
+            console.log("layout field in fld panel ", k)
+            fieldsArr.push( <Field key={field.name} name={field.name} className={className} component={fldpanel.component}/>)
             //fieldsArr.push(  <Field key={fd.name} name={fd.name} formValue={state.formValue} autoSubmitOnChange={props.autoSubmitOnChange} fields={flds}
               //   className={cl} formRef={props.formRef} />  )
         })
@@ -60,11 +63,11 @@ class FieldsPanel extends React.Component {
 //    <Field key={this.props.name} name={this.props.name} time={this.state.time} component={this.component}/>
 
 
-    fieldChange = (fldProps) => {
+    fieldChange = (onChange) => {
         let comp=this
         return (data, name, evt)=> {
-            console.log("fld change", data, name, evt, this.props, this.context, fldProps, fldProps.input.onChange, comp.isRef)
-            if(fldProps.input.onChange) {
+            console.log("fld change", data, name, evt, this.props, this.context, onChange, comp.isRef)
+            if(onChange) {
                 if(comp.isRef) {
                     let myRefObj = {}
                     myRefObj[comp.field.name] = {"Id": data, "Type": comp.field.entity}
@@ -72,65 +75,39 @@ class FieldsPanel extends React.Component {
                     console.log("set ref value data", myRefObj, data)
                 }
                 console.log("setting fld value", comp, data, name)
-                fldProps.input.onChange(data, name)
+                onChange(data, name)
             }
         }
     }
 
     component = (fieldProps) => {
-        console.log("component", this.state, fieldProps, this.props)
+        console.log("field panel component", this.state, fieldProps, this.props)
+        let {input, meta, className} = fieldProps
         let fieldName = fieldProps.input.name
         let field = this.fields[fieldName]
         if(field) {
             let widget = this.fieldWidgets[fieldName]
             let fprops = this.fieldProps[fieldName]
-            let fieldChange= this.fieldChange(fieldProps)
-            let newProps = Object.assign({}, fieldProps, fprops, {fieldChange, formValue: this.state.formValue})            
+            let fieldChange= this.fieldChange(input.onChange)
+            let errorText = meta.touched && meta.error
+            let cl = className + (fprops.className? fprops.className: "")
+            
+            let newProps = Object.assign({}, fprops, {onChange: fieldChange, errorText: errorText, formValue: this.state.formValue, className: cl,
+                onFocus: input.onFocus, onBlur: input.onBlur, value: input.value})            
             if(field.transformer) {
                 let transformerMethod = _reg("Methods", field.transformer)
                 newProps = transformerMethod(newProps, this.props.formValue, field, this.fields, this.props, this.state,  this)
             }
             if(field.type == "storableref") {
                 let isRef = true
-                let ref = newProps.input.value[fieldName]
+                let ref = input.value[fieldName]
                 if(ref) {
-                  newProps.input.value = ref.Id
+                  newprops.value = input.value = ref.Id
                 }
                 console.log("ref props", newProps)
             }
+            console.log("creating widget, state:", this.state, " props:", newProps, " widget:", widget)
             return React.createElement(widget, newProps, null)
-              /*let newProps = fieldProps
-            if(this.transformer) {
-              newProps = this.transformer(fieldProps, this.props.formValue, this.field, this.context.fields, this.props, this.state,  this)
-            }
-            if(this.isRef) {
-              let ref = newProps.input.value[this.field.name]
-              if(ref) {
-                newProps.input.value = ref.Id
-              }
-              console.log("ref props", newProps)
-            }
-    
-    
-            let comp = null
-    
-            let baseComp = null
-            if(this.fldWidget) {
-              return <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time}
-                  formValue={this.props.formValue} field={this.field} fieldChange={this.fieldChange(fieldProps)} subFormChange={this.props.subFormChange} autoSubmitOnChange={this.props.autoSubmitOnChange}
-                  subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} {...newProps}/>
-            } else {
-              if(this.field.list) {
-                return <FldList name={this.props.name} baseComponent={this.context.uikit.Forms.FieldWidget} className={this.props.className} ap={this.state.additionalProperties}
-                 time={this.state.time}  formValue={this.props.formValue} field={this.field}  fieldChange={this.fieldChange(fieldProps)} autoSubmitOnChange={this.props.autoSubmitOnChange}
-                 subFormChange={this.props.subFormChange} subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} baseProps={newProps}/>
-              } else {
-                return <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties}
-                  time={this.state.time}  formValue={this.props.formValue} field={this.field}  fieldChange={this.fieldChange(fieldProps)} subFormChange={this.props.subFormChange} autoSubmitOnChange={this.props.autoSubmitOnChange}
-                  subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} {...newProps}/>
-              }
-            }
-            */    
         }
         return null
       }
@@ -151,17 +128,17 @@ class FieldsPanel extends React.Component {
                         if(tabFlds) {
                             let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield", comp.state)
                             tabs.push(
-                                <comp.uikit.Tab label={k} value={k}>
+                                <_uikit.Tab label={k} value={k}>
                                 {tabArr}
-                                </comp.uikit.Tab>
+                                </_uikit.Tab>
                             )
                         }
                     })
                     let vertical = desc.info.verticaltabs? true: false
                     return (
-                        <this.uikit.Tabset vertical={vertical}>
+                        <_uikit.Tabset vertical={vertical}>
                         {tabs}
-                        </this.uikit.Tabset>
+                        </_uikit.Tabset>
                     )
                 } else {
                     let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
@@ -174,8 +151,4 @@ class FieldsPanel extends React.Component {
     }
 }
 
-FieldsPanel.contextTypes = {
-    uikit:  PropTypes.object
-  };
-  
 export { FieldsPanel as FieldsPanel}

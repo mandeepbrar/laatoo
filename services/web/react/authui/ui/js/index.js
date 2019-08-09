@@ -49,30 +49,23 @@ function Initialize(appName, ins, mod, settings, def, req) {
 const WebLoginForm = (props, context) => {
   console.log("render logiform", LoginComponent)
   return (
-    <LoginComponent className={props.className} renderLogin={renderWebLogin(context.uikit, module.settings, module.properties)} loginService={props.loginService}
+    <LoginComponent className={props.className} renderLogin={renderWebLogin(module.settings, module.properties)} loginService={props.loginService}
       googleAuthUrl={props.googleAuthUrl}/>
   )
 }
 
-WebLoginForm.contextTypes = {
-  uikit: PropTypes.object
-};
 
 const SignupForm = (props, context) => {
   console.log("render signup form", SignupComponent)
   return (
-    <SignupComponent className={props.className} renderSignup={renderSignup(context.uikit, module.settings, module.properties)} module={module}/>
+    <SignupComponent className={props.className} renderSignup={renderSignup(module.settings, module.properties)} module={module}/>
   )
 }
 
-SignupForm.contextTypes = {
-  uikit: PropTypes.object
-};
 
-
-function userBlockDisplay(ctx, desc, uikit, className) {
+function userBlockDisplay(ctx, desc, className) {
   return (
-    <UserBlock className={ctx.className} uikit={uikit} module={module}/>
+    <UserBlock className={ctx.className} module={module}/>
   )
 }
 

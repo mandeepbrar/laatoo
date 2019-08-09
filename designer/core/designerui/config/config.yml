@@ -116,6 +116,20 @@ modules:
       parent: root
       instance: Field
       skipData: true
+  keyvalue:
+    module: entity
+    settings:
+      object: KeyValue
+      parent: root
+      instance: KeyValue
+      skipData: true
+  configuration:
+    module: entity
+    settings:
+      object: Configuration
+      parent: root
+      instance: Configuration
+      skipData: true
   security:
     module: entity
     settings:

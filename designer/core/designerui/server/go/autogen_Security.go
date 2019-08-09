@@ -18,9 +18,9 @@ type Security struct {
 	Publickey	string `json:"Publickey" bson:"Publickey" datastore:"Publickey"`
 	Privatekey	string `json:"Privatekey" bson:"Privatekey" datastore:"Privatekey"`
 	Realm	string `json:"Realm" bson:"Realm" datastore:"Realm"`
-	supportedrealms	[]string `json:"supportedrealms" bson:"supportedrealms" datastore:"supportedrealms"`
-	authservices	[]string `json:"authservices" bson:"authservices" datastore:"authservices"`
-	permissions	[]string `json:"permissions" bson:"permissions" datastore:"permissions"`
+	Supportedrealms	[]string `json:"Supportedrealms" bson:"Supportedrealms" datastore:"Supportedrealms"`
+	Authservices	[]string `json:"Authservices" bson:"Authservices" datastore:"Authservices"`
+	Permissions	[]string `json:"Permissions" bson:"Permissions" datastore:"Permissions"`
 }
 
 func (ent *Security) Config() *data.StorableConfig {

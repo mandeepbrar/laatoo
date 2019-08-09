@@ -41,6 +41,9 @@ func (modMgr *moduleManager) loadInstancesToPluginsforload(ctx core.ServerContex
 				return errors.WrapError(ctx, err)
 			}
 		}
+	}
+
+	for svcName, plugin := range modMgr.modulePlugins {
 		svcCtx, err := ctx.GetServiceContext(svcName)
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -49,7 +52,6 @@ func (modMgr *moduleManager) loadInstancesToPluginsforload(ctx core.ServerContex
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-
 	}
 
 	/*
@@ -127,6 +129,7 @@ func (modMgr *moduleManager) loadPluginWithMod(ctx core.ServerContext, modIns *s
 		Mod:             modIns.userModule,
 		ModConf:         modIns.modConf,
 		ModSettings:     modIns.modSettings,
+		Configurations:  modIns.impl.GetConfigurations(),
 		ModProps:        modIns.properties,
 		IsExtended:      modIns.isExtended,
 		ExtendedModName: modIns.extendedMod,

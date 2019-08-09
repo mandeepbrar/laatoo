@@ -81,7 +81,10 @@ func (entity *EntityModule) createName(ctx core.ServerContext, svc string) strin
 	}
 }
 
-func (entity *EntityModule) GetRegistry(ctx core.ServerContext) config.Config {
+func (entity *EntityModule) LoadingComplete(ctx core.ServerContext) map[string]config.Config {
+	return nil
+}
+func (entity *EntityModule) UILoad(ctx core.ServerContext) map[string]config.Config {
 	reg := ctx.CreateConfig()
 	forms := entity.createForms(ctx)
 	reg.Set(ctx, "Forms", forms)
@@ -90,7 +93,7 @@ func (entity *EntityModule) GetRegistry(ctx core.ServerContext) config.Config {
 		log.Error(ctx, "Error createing entity registry", "Error", err)
 	}
 	reg.Set(ctx, "Blocks", blocks)
-	return reg
+	return map[string]config.Config{"registry": reg}
 }
 
 func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
@@ -123,7 +126,21 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 			//fieldToBeAdded := ctx.CreateConfig()
 			fieldConf, _ := fields.GetSubConfig(ctx, field)
 			fieldToBeAdded := fieldConf.Clone()
-			fieldToBeAdded.Set(ctx, "className", " entityformfield "+field)
+			widgetConf, ok := fieldToBeAdded.GetSubConfig(ctx, "widget")
+			if !ok {
+				widgetConf = ctx.CreateConfig()
+				fieldToBeAdded.Set(ctx, "widget", widgetConf)
+			}
+			fieldProps, ok := widgetConf.GetSubConfig(ctx, "props")
+			if ok {
+				fieldProps = fieldProps.Clone()
+			} else {
+				fieldProps = ctx.CreateConfig()
+			}
+			className, _ := fieldProps.GetString(ctx, "className")
+			className = fmt.Sprintf(" %s entityformfield ", className)
+			fieldProps.Set(ctx, "className", className)
+			widgetConf.Set(ctx, "props", fieldProps)
 			entityFormFields.Set(ctx, field, fieldToBeAdded)
 		}
 	}

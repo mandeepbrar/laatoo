@@ -6,7 +6,6 @@ class DialogHandler extends React.Component {
     super(props)
     this.state = {open: false, time: props.time}
     this.handleClose = this.handleClose.bind(this)
-    this.uikit = props.uikit
   }
   handleClose() {
     this.setState({open:false})
@@ -27,16 +26,16 @@ class DialogHandler extends React.Component {
       contentStyle = {minWidth:400, maxWidth: 450}
     }
     return (
-        <this.uikit.Dialog actions={this.props.actions}
-          title={<this.uikit.Block className="primaryBGColor1 white row col-xs-between">
+        <_uikit.Dialog actions={this.props.actions}
+          title={<_uikit.Block className="primaryBGColor1 white row col-xs-between">
             <b className="col-xs-10">{this.props.title}</b>
-            <this.uikit.ActionButton className="white" style={{minWidth:25}} label="x" onClick={this.handleClose}/>
-          </this.uikit.Block>}
+            <_uikit.ActionButton className="white" style={{minWidth:25}} label="x" onClick={this.handleClose}/>
+          </_uikit.Block>}
            modal={true} contentStyle={contentStyle} open={this.state.open} onRequestClose={this.handleClose} >
-          <this.uikit.Block className="p10">
+          <_uikit.Block className="p10">
             {this.props.component}
-          </this.uikit.Block>
-        </this.uikit.Dialog>
+          </_uikit.Block>
+        </_uikit.Dialog>
     )
   }
 
@@ -45,12 +44,10 @@ class DialogHandler extends React.Component {
 const mapStateToProps = (state, ownProps) => {
   if(!state.Dialogs.Content) {
     return {
-      uikit: ownProps.uikit,
       time: state.Dialogs.Time
     }
   }
   return {
-    uikit: ownProps.uikit,
     component: state.Dialogs.Content.Component,
     actions: state.Dialogs.Content.Actions,
     contentStyle: state.Dialogs.Content.ContentStyle,

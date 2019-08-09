@@ -10,12 +10,12 @@ class UserBlockUI extends React.Component {
     let modprops = props.module.properties? props.module.properties: {}
     let logout = modprops.logoutText?  modprops.logoutText: "Logout";
     return props.loggedIn?
-      <props.uikit.Block className={"userblock " + props.className}>
-        <props.uikit.Block className="username">
+      <_uikit.Block className={"userblock " + props.className}>
+        <_uikit.Block className="username">
         {Storage.userFullName? Storage.userFullName: Storage.userName}
-        </props.uikit.Block>
+        </_uikit.Block>
         <Action name="logout" method={props.logout} className="logout">{logout}</Action>
-      </props.uikit.Block>
+      </_uikit.Block>
     : null
   }
 }

@@ -45,7 +45,6 @@ class SelectComp extends LoadableComponent {
     console.log("evt", evt, evt.target.value, this.state, this.props)
     let p = this.props
     this.setState(Object.assign({}, this.state, {value: evt.target.value}))
-    console.log("on change handler for select", p, p.onChange)
     if(p.onChange) {
       let val = p.selectItem? this.state.items[evt.target.value]: evt.target.value
       console.log("sendin value*********", p.selectItem, val, event.target.value, this.state)
@@ -55,33 +54,7 @@ class SelectComp extends LoadableComponent {
 
   dataLoaded = (data) => {
     this.loadedData = data
-    /*let comp = this
-    let props = this.props
-    //let data = {}
-    let items=[]
-    data.forEach(function(item) {
-      let text = item[comp.textField];
-      text = text? text: item["Title"]
-      text = text? text: item[comp.valueField]
-      items.push({text: text, value: item[comp.valueField]})
-    })
-    /*let imgField = this.props.config? this.props.config.imgField: null
-    resp.data.forEach((item)=> {
-      if(this.props.qualifier) {
-        if (!this.props.qualifier(item))  {
-          return
-        }
-      }
-      if(imgField) {
-        data[item.Id] = {text: item.Title, image: item[imgField]}
-        console.log("item ", item, data[item.Id])
-      } else {
-        data[item.Id] = item.Title
-      }
-    })
-    let options = this.getItems(this.props, data)*/
     let indexedItems = this.setItems(data)
-    console.log("indexedItems ", indexedItems)
     this.setState(Object.assign({}, this.state, {items: indexedItems}))
   }
 
@@ -98,7 +71,6 @@ class SelectComp extends LoadableComponent {
           let text = item[comp.textField]
           console.log("setting new items val===============================", props.selectItem, val, text, item, comp.textField, comp.valueField)
           if(props.selectItem) {
-
             indexedItems[val] = item
           }
           comp.items.push(

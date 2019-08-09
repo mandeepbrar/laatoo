@@ -19,20 +19,20 @@ class ThemeUI extends React.Component {
     let props = this.props;
     let vertical = module.settings.vertical?true:false
     return (
-      <props.uikit.Block className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
-        <Header uikit={props.uikit} module={module} />
-        <props.uikit.Block className="body">
-          <props.uikit.Block className={vertical?"vertmenu":"horizmenu"}>
-            <props.router.View name="menu" loggedIn={props.loggedIn} />
-          </props.uikit.Block>
-          <props.uikit.Block className={vertical?"vertbody":"horizbody"}>
-            <props.router.View name="main" loggedIn={props.loggedIn}/>
-          </props.uikit.Block>
-        </props.uikit.Block>
-        <props.uikit.Block className="footer">
+      <_uikit.Block className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
+        <Header module={module} />
+        <_uikit.Block className="body">
+          <_uikit.Block className={vertical?"vertmenu":"horizmenu"}>
+            <Application.router.View name="menu" loggedIn={props.loggedIn} />
+          </_uikit.Block>
+          <_uikit.Block className={vertical?"vertbody":"horizbody"}>
+            <Application.router.View name="main" loggedIn={props.loggedIn}/>
+          </_uikit.Block>
+        </_uikit.Block>
+        <_uikit.Block className="footer">
         {props.children}
-        </props.uikit.Block>
-      </props.uikit.Block>)
+        </_uikit.Block>
+      </_uikit.Block>)
   }
 }
 
@@ -41,22 +41,22 @@ class ThemeUI extends React.Component {
 const SiteTheme = (props, st, c) => {
     let vertical = module.settings.vertical?true:false
     return (
-      <props.uikit.UIWrapper>
+      <_uikit.UIWrapper>
         <LoginValidator  validateService="validate">
-          <ThemeUI uikit={props.uikit} router={props.router}/>
+          <ThemeUI />
         </LoginValidator>
-      </props.uikit.UIWrapper>
+      </_uikit.UIWrapper>
     )
 }
   
 
-function PreprocessPageComponents(components, page, pageId, reducers, uikit) {
+function PreprocessPageComponents(components, page, pageId, reducers) {
     if(module.settings.showMenu && !page.hideMenu) {
         console.log("pre processing.......", components, page);
         components.menu = (routerState) => {
           console.log("menu items ", routerState, module.menu)
           return (
-            <uikit.Navbar items={module.menu} vertical={module.settings.vertical}/>
+            <_uikit.Navbar items={module.menu} vertical={module.settings.vertical}/>
           )
         }    
     }

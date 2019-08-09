@@ -1,3 +1,0 @@
-name: uiapp.propsstorage{{var "application" "."}}
-servicemethod: filesystem
-filestoragedir: properties

@@ -31,8 +31,8 @@ class FieldWidget extends React.Component {
     super(props)
     //injectTapEventPlugin()
     let field = props.field
-    if (field) {
-      switch(field.widget) {
+    if (field && field.widget) {
+      switch(field.widget.name) {
         case "TextField":
           this.renderer = this.renderTextField
           break
@@ -64,62 +64,60 @@ class FieldWidget extends React.Component {
           this.renderer = this.renderTextField
           break
         default:
-          if(field.widgetMod) {
-
-          } else {
-            this.renderer = this.renderTextField
-          }
+          this.renderer = this.renderTextField
           break
       }
     }
+    this.state = {value: props.value}
+    this.widgetProps = field.widget && field.widget.props? field.widget.props:{}
+    this.className = (props.className?props.className :"") + " " + field.name +" " + (this.widgetProps.className?this.widgetProps.className:" ") 
+    this.controlClassName= field.name + " " + (this.widgetProps.controlClassName?this.widgetProps.controlClassName:"")
+    console.log("constructing material kit field", field, props)
     /*if(field && field.widget) {
     }*/
   }
 
+  componentWillReceiveProps(nextProps, nextState) {
+    this.setState(Object.assign({}, this.state, {value: nextProps.value}))
+  }    
+
   renderCheckbox = (fld, props) =>  {
-    let {input, meta, className, fieldChange} = props
     return (
-      <FormControlLabel className={(className?className + " ":"") + fld.name + " checkbox "+ (fld.className?fld.className:"")}  label={fld.label}
-          control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={(evt, checked)=>fieldChange(checked, evt.target.name, evt)}
-              className={fld.name + " " + (fld.controlClassName?fld.controlClassName:"")}/> }/>
+      <FormControlLabel className={this.className + " checkbox "}  label={fld.label}
+          control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={(evt, checked)=>props.onChange(checked, evt.target.name, evt)}
+              className={this.controlClassName}/> }/>
     )
   }
 
   renderSelect = (fld, props) =>  {
     console.log("render select ", fld, props)
-    let {input, meta, className, fieldChange} = props
-    let value = props.value? props.value: (input? input.value: null)
-    let et = meta? meta.touched && meta.error: null
-    className= (className?className + " ":"") + " "+ (fld.className?fld.className:"")
     let isEntity = fld.type=="entity"
     let entity= isEntity ? fld.entity: null
-    let items = props.items? props.items: fld.items
-    let textField = fld.textField? fld.textField:isEntity? "Name": "text"
-    let valueField = fld.valueField? fld.valueField: isEntity? "Id" : "value"
-    console.log("field change for select==", fieldChange)
+    let items = props.items? props.items: this.widgetProps.items
+    let textField = this.widgetProps.textField? this.widgetProps.textField:isEntity? "Name": "text"
+    let valueField = this.widgetProps.valueField? this.widgetProps.valueField: isEntity? "Id" : "value"
+    let selectItem = props.selectItem? props.selectItem: this.widgetProps.selectItem
 
-    return <Select items={items} itemClass={fld.itemClass} className={className} onChange={fieldChange} value={value} dataServiceParams={fld.dataServiceParams}
-        label={fld.label} name={fld.name} errorText={et} loader={fld.loader} skipDataLoad={fld.skipDataLoad} dataService={fld.dataService} selectItem={fld.selectItem}
-        isEntity={isEntity} textField={textField} valueField={valueField} entity={entity} controlClassName={fld.name + " select " + (fld.controlClassName?fld.controlClassName:"")} />
+    return <Select items={items} itemClass={this.widgetProps.itemClass} className={this.className + "select"} onChange={props.onChange} value={this.state.value} dataServiceParams={this.widgetProps.dataServiceParams}
+        errorText={props.errorText} loader={this.widgetProps.loader} loadData={this.widgetProps.loadData} dataService={this.widgetProps.dataService} selectItem={selectItem}
+        label={fld.label} name={fld.name} isEntity={isEntity} textField={textField} valueField={valueField} entity={entity} controlClassName={this.controlClassName + " select "} />
   }
 
   renderSwitch = (fld, props) =>  {
-    let {input, meta, className, fieldChange} = props
     return (
       <FormControlLabel control={
-            <Switch name={fld.name} onChange={fieldChange} checked={input.value}
-              className={fld.name + " toggle " + (fld.controlClassName?fld.controlClassName:"")}/>
-          } label={fld.label} className={(className?className + " ":"") + fld.name + " " + (fld.className?fld.className:"")}  />
+            <Switch name={fld.name} onChange={props.onChange} checked={this.state.value} className={this.controlClassName + " toggle "}/>
+          } label={fld.label} className={this.className + " switch"}  />
     )
   }
 
 
   renderTextField = (fld, props) => {
-    let {input, meta, className, fieldChange} = props
+    console.log("rendertext field", props, fld)
     return (
-      <TextField name={fld.name} errorText={meta.touched && meta.error} onChange={(evt)=>fieldChange(evt.target.value, evt.target.name, evt)} onBlur={input.onBlur}
-        onFocus={input.onFocus} floatingLabelText={fld.label} label={fld.label} value={input.value}
-        hintText={fld.label} {...props} className={(className?className + " ":"") + fld.name + " textfield " + (fld.className?fld.className:"")}/>
+      <TextField name={fld.name} errorText={props.errorText} onChange={(evt)=>props.onChange(evt.target.value, evt.target.name, evt)} onBlur={props.onBlur}
+        onFocus={props.onFocus} floatingLabelText={fld.label} label={fld.label} value={this.state.value}
+        hintText={fld.label} {...props} className={this.className + " textfield " }/>
     )
   }
   render() {

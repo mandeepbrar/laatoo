@@ -1,6 +1,0 @@
-loginAction:
-  actiontype: method
-googleAuth:
-  actiontype: method
-logout:
-  actiontype: method

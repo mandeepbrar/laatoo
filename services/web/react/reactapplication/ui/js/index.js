@@ -42,6 +42,7 @@ function StartApplication() {
   if(Uikit.default) {
     Uikit = Uikit.default
   }
+  Application.setUikit(Uikit);
   console.log("theme for application", theme);
   let ThemeMod = this.req(theme)
   console.log("Theme mod", ThemeMod);
@@ -59,12 +60,13 @@ function StartApplication() {
   if(Router.default) {
     Router = Router.default
   }
+  Application.setRouter(Router);
   const store = configureStore();
   createMessageDialogs(store)
   Router.connect(store);
   Uikit.render(
     <Provider store={store}>
-      <App uikit={Uikit} router={Router} theme={Theme}/>
+      <App router={Router} theme={Theme}/>
     </Provider>, document.getElementById('app')
   );
 }

@@ -131,37 +131,38 @@ func (svc *UI) buildEntitySchema(ctx core.ServerContext, entityName string, form
 	return nil
 }
 
-func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType string, required bool, widget, widgetMod string, conf config.Config, fieldMap *bytes.Buffer) error {
+func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType string, required bool, widget, conf config.Config, fieldMap *bytes.Buffer) error {
 	ctx = ctx.SubContext("Create Field: " + fieldName)
 	fieldAttrs := conf.Clone()
 	fieldAttrs.Set(ctx, "name", fieldName)
-	if widget == "" {
+	if widget == nil {
+		widgetConf := ctx.CreateConfig()
+		fieldAttrs.Set(ctx, "widget", widgetConf)
 		switch fieldType {
 		case config.OBJECTTYPE_STRING:
-			fieldAttrs.Set(ctx, "widget", "TextField")
+			widgetConf.Set(ctx, "name", "TextField")
 			break
 		case config.OBJECTTYPE_INT:
-			fieldAttrs.Set(ctx, "widget", "NumberField")
-			widgetMod = ""
+			widgetConf.Set(ctx, "name", "NumberField")
 			break
 		case config.OBJECTTYPE_BOOL:
-			fieldAttrs.Set(ctx, "widget", "Switch")
-			widgetMod = ""
+			widgetConf.Set(ctx, "name", "Switch")
 			break
 		case config.OBJECTTYPE_STRINGARR:
-			fieldAttrs.Set(ctx, "widget", "ListField")
-			widgetMod = ""
+			widgetConf.Set(ctx, "name", "ListField")
 			break
 		case config.OBJECTTYPE_DATETIME:
-			fieldAttrs.Set(ctx, "widget", "DatePicker")
+			widgetConf.Set(ctx, "name", "DatePicker")
 			break
 		case "entity":
-			fieldAttrs.Set(ctx, "widget", "Select")
+			widgetConf.Set(ctx, "name", "Select")
 			break
 		case "image":
-			fieldAttrs.Set(ctx, "widget", "ImagePicker")
+			widgetConf.Set(ctx, "name", "ImagePicker")
 			break
 		}
+	} else {
+		fieldAttrs.Set(ctx, "widget", widget)
 	}
 	fieldsStr, _ := json.Marshal(fieldAttrs)
 	fieldMap.WriteString(fmt.Sprintf("%s:%s", fieldName, fieldsStr))
@@ -192,9 +193,8 @@ func (svc *UI) buildFormSchema(ctx core.ServerContext, itemType string, itemName
 			fieldType = config.OBJECTTYPE_STRING
 		}
 		required, ok := fieldConf.GetBool(ctx, CONF_FIELDREQD)
-		widget, ok := fieldConf.GetString(ctx, CONF_WIDGET)
-		widgetMod, ok := fieldConf.GetString(ctx, CONF_WIDGET_MOD)
-		svc.createField(ctx, fieldName, fieldType, required, widget, widgetMod, fieldConf, fieldMap)
+		widget, ok := fieldConf.GetSubConfig(ctx, CONF_WIDGET)
+		svc.createField(ctx, fieldName, fieldType, required, widget, fieldConf, fieldMap)
 	}
 	//}
 	/*layout, ok := conf.GetString(ctx, CONF_FORM_LAYOUT)

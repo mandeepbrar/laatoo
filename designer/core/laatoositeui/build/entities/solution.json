@@ -20,14 +20,15 @@
     },
     "Modules": {
       "type":"storableref",
-      "entity": "ModuleDefinition",
-      "label": "Solution Modules",
-      "addwidget": "ModuleSelect",
-      "addwidgetmodule": "modulesrepository",
       "list": true,
-      "widget": "SubEntity",
-      "module": "subentity",
-      "entity": "ModuleDefinition"
+      "entity": "ModuleDefinition",
+      "widget": {
+        "label": "Solution Modules",
+        "addwidget": "ModuleSelect",
+        "addwidgetmodule": "modulesrepository",  
+        "name": "SubEntity",
+        "module": "subentity"
+      }
     }
   }
 }

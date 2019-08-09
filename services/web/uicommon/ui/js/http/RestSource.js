@@ -89,7 +89,7 @@ class RestDataSource {
     if(data) {
       if(service.responseField) {
         if(Array.isArray(data)) {
-          data = data.forEach((item)=>{
+          data = data.map((item)=>{
             return item[service.responseField]
           })
         }

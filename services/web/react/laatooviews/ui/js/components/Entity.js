@@ -41,9 +41,9 @@ class ViewEntity extends React.Component {
       if(this.props.children) {
         display = React.cloneElement(React.Children.only(this.props.children), {data: this.props.data})
       } else if(this.props.data) {
-        display = this.props.display(this.props.data, this.props.desc, this.props.uikit, this.props.lastUpdateTime)
+        display = this.props.display(this.props.data, this.props.desc, this.props.lastUpdateTime)
       } else {
-        display = <this.props.uikit.Block/>
+        display = <_uikit.Block/>
       }
     }
     return display
@@ -55,7 +55,6 @@ const mapStateToProps = (state, ownProps) => {
     name: ownProps.name,
     id: ownProps.id,
     desc: ownProps.desc,
-    uikit: ownProps.uikit,
     params: ownProps.params,
     loader: ownProps.loader,
     reducer: ownProps.reducer,

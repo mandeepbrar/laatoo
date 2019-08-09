@@ -13,11 +13,15 @@
     },
     "Values": {
       "type":"subentity",
-      "entity": "KeyValue",
-      "widget": "SubEntity",
-      "mode": "dialog",
       "list": true,
-      "module": "subentity"
+      "entity": "KeyValue",
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity",
+        "props": {
+          "mode": "dialog"
+        }
+      }
     }
   }
 }

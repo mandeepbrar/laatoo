@@ -5,7 +5,7 @@
   "titleField": "Name",
   "form": {
     "tabs": {
-      "General": ["Name", "Module", "Description"],
+      "General": ["Name", "Module", "Description", "LoggingLevel", "LoggingFormat"],
       "Settings": ["Settings"]
     },
     "layout": ["General", "Settings"]
@@ -17,10 +17,44 @@
     "Module": {
       "type":"subentity",
       "entity": "Entitlement",
-      "widget": "SubEntity",
-      "module": "subentity",
-      "mode": "select",
-      "dataService": "entitlementmodule"
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity",
+        "props": {
+          "loadData": true,
+          "mode": "select",
+          "dataService": "entitlementmodule"
+        }
+      }
+    },
+    "LoggingLevel": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Error", "value":"error"},
+            {"text": "Warn", "value":"warn"},
+            {"text": "Info", "value":"info"},
+            {"text": "Debug", "value":"debug"},
+            {"text": "Trace", "value":"trace"}
+          ]
+        }
+      }
+    },
+    "LoggingFormat": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Json ", "value":"json"},
+            {"text": "Json Full", "value":"jsonmax"},
+            {"text": "Formatted", "value":"happy"},
+            {"text": "Formatted Full", "value":"happymax"}
+          ]    
+        }
+      }
     },
     "Description": {
         "type":"string"
@@ -28,8 +62,9 @@
     "Settings": {
       "type":"subentity",
       "entity": "Configuration",
-      "widget": "ModuleSettings",
-      "module": "modulesrepository"
+      "widget": {
+        "name": "Form"
+      }
     }
   }
 }

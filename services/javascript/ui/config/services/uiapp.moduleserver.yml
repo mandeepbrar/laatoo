@@ -1,2 +1,0 @@
-name: uiapp.moduleserver{{var "application" "."}}
-servicemethod: ui

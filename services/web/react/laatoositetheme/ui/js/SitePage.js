@@ -8,14 +8,14 @@ function setModule(mod) {
     module = mod;
 }
 
-function RenderPageComponent(comp, key, pageId, routerState, page, uikit) {
+function RenderPageComponent(comp, key, pageId, routerState, page) {
     console.log("RenderPageComponent", routerState, key, comp, page)
     if(key=="main") {
-      return <SitePage pageComp={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page} uikit={uikit}/>
+      return <SitePage pageComp={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page}/>
     }
     if(key=="menu") {
   //    return null
-        return <SiteMenu menu={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page} uikit={uikit}/>
+        return <SiteMenu menu={comp} pageKey={key} pageId={pageId} routerState={routerState} page={page} />
     }
 }
 
@@ -25,7 +25,7 @@ const SitePage  = (props, context) => {
     if(!needAuthentication || context.loggedIn) {
         return <PageComponent pageId={props.pageId} placeholder={props.pageKey} routerState={props.routerState} description={props.pageComp} />
     } else {
-        return <props.uikit.Block className="dashlogin"><module.logInComp/></props.uikit.Block>
+        return <_uikit.Block className="dashlogin"><module.logInComp/></_uikit.Block>
     }
 }
 

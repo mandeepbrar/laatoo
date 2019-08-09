@@ -39,7 +39,7 @@ const (
 	MERGED_WASM_FILE     = "mergedwasm"
 	MERGED_VENDOR_FILE   = "mergedvendorfile"
 	MERGED_UI_FILE       = "mergeduifile"
-	BOOT_FILE       = "bootfile"
+	BOOT_FILE            = "bootfile"
 )
 
 type UI struct {
@@ -52,7 +52,7 @@ type UI struct {
 	mergeduidescriptor string
 	mergedwasmfile     string
 	mergedcssfile      string
-	bootfile string
+	bootfile           string
 	application        string
 	propsExt           string
 	uiFiles            map[string][]byte
@@ -68,6 +68,7 @@ type UI struct {
 	requiredUIPkgs     utils.StringSet
 	propertyFiles      map[string]interface{}
 	uiRegistry         map[string]map[string]string
+	uiPlugins          map[string]*components.ModInfo
 	watchers           []*fsnotify.Watcher
 	wasmModName        string
 }
@@ -108,7 +109,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.requiredUIPkgs = utils.NewStringSet([]string{})
 	svc.uiRegistry = make(map[string]map[string]string)
 	svc.wasmModName = fmt.Sprintf("wasm_%s", svc.application)
-
+	svc.uiPlugins = make(map[string]*components.ModInfo)
 	//svc.uiDisplays = make(map[string]string)
 	return nil
 }
@@ -201,6 +202,23 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 			return errors.WrapError(ctx, err)
 		}
 	}
+
+	if modInfo.Mod != nil {
+		uiplugin, ok := modInfo.Mod.(UIPlugin)
+		if ok {
+			svc.uiPlugins[modInfo.InstanceName] = modInfo
+			comps := uiplugin.UILoad(ctx)
+			reg, _ := comps["registry"]
+			if reg != nil {
+				registry, _ := reg.(config.Config)
+				err := svc.processRegistryConfig(ctx, registry, modInfo.ModDir)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -303,6 +321,19 @@ func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string
 }
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
+	for _, modInfo := range svc.uiPlugins {
+		compsToProcess := modInfo.Mod.(UIPlugin).LoadingComplete(ctx)
+		if compsToProcess != nil {
+			reg, _ := compsToProcess["registry"]
+			if reg != nil {
+				registry, _ := reg.(config.Config)
+				err := svc.processRegistryConfig(ctx, registry, modInfo.ModDir)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+			}
+		}
+	}
 	return svc.writeOutput(ctx)
 }
 
@@ -359,7 +390,6 @@ func (svc *UI) writeOutput(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
 
 	return nil
 	/*

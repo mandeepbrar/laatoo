@@ -9,7 +9,6 @@ Application.RegisterModule = function(mod) {
   console.log("register module", mod)
   try {
     let m = Application.Modules[mod] = require(mod);
-    console.log("returned module", mod, m)
     return m;
   } catch(ex) {
     console.log("Module could not be registered", ex);
@@ -36,7 +35,12 @@ Application.GetRegistry = function(regName, id) {
   return null;
 }
 Application.Resolve = function(mod, comp) {
-  let moduleObj = _$[mod];
+  let moduleObj
+  if(!mod) {
+    moduleObj = Application.uikit
+  } else {
+    moduleObj = _$[mod];
+  }
   if(moduleObj && comp) {
     return moduleObj[comp]
   }
@@ -50,6 +54,15 @@ var _reg= Application.GetRegistry;
 var _res = Application.Resolve;
 var _re = null;
 var _ce = null;
+var _uikit = null;
+
+Application.setUikit = function(uikit) {
+  Application.uikit = uikit;
+  _uikit = uikit;
+}
+Application.setRouter = function(router) {
+  Application.router = router;
+}
 function createElement(elem, props, children, name) {
   if(elem) {
     return _re.createElement(elem, props, children);

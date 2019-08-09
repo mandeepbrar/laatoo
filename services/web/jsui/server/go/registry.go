@@ -75,9 +75,9 @@ func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType stri
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			proccont,err := utils.ProcessTemplate(ctx, cont, nil)
+			proccont, err := utils.ProcessTemplate(ctx, cont, nil)
 			if err != nil {
-				log.Error(ctx, "Template not correct", "Content", string(cont), "Path",path) 
+				log.Error(ctx, "Template not correct", "Content", string(cont), "Path", path)
 				return errors.WrapError(ctx, err)
 			}
 
@@ -105,42 +105,29 @@ func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType stri
 	return nil
 }
 
-func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Module, modConf config.Config, moddir string) error {
-
-	processRegistryConfig := func(ctx core.ServerContext, registry config.Config) error {
-		confs := registry.AllConfigurations(ctx)
-		for _, itemType := range confs {
-			items, ok := registry.GetSubConfig(ctx, itemType)
-			if ok {
-				err := svc.processMutipleItems(ctx, items, itemType, moddir)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
-			}
-		}
-		return nil
-	}
-
-	ui, ok := modConf.GetSubConfig(ctx, "ui")
-	if ok {
-		registry, ok := ui.GetSubConfig(ctx, "registry")
+func (svc *UI) processRegistryConfig(ctx core.ServerContext, registry config.Config, moddir string) error {
+	confs := registry.AllConfigurations(ctx)
+	for _, itemType := range confs {
+		items, ok := registry.GetSubConfig(ctx, itemType)
 		if ok {
-			err := processRegistryConfig(ctx, registry)
+			err := svc.processMutipleItems(ctx, items, itemType, moddir)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		}
 	}
+	return nil
+}
 
-	if mod != nil {
-		uiplugin, ok := mod.(UIPlugin)
+func (svc *UI) readRegistry(ctx core.ServerContext, modName string, mod core.Module, modConf config.Config, moddir string) error {
+
+	ui, ok := modConf.GetSubConfig(ctx, "ui")
+	if ok {
+		registry, ok := ui.GetSubConfig(ctx, "registry")
 		if ok {
-			registry := uiplugin.GetRegistry(ctx)
-			if registry != nil {
-				err := processRegistryConfig(ctx, registry)
-				if err != nil {
-					return errors.WrapError(ctx, err)
-				}
+			err := svc.processRegistryConfig(ctx, registry, moddir)
+			if err != nil {
+				return errors.WrapError(ctx, err)
 			}
 		}
 	}

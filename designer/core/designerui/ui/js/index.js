@@ -47,13 +47,13 @@ function AbstractServer_Solution_Modules(props, context, callback) {
   }
 }
 
-function AbstractServer_Actions(form, submit, reset, uikit, setData, dispatch) {
+function AbstractServer_Actions(form, submit, reset, setData, dispatch) {
   console.log("my action buttons", dispatch)
   return (
-    <uikit.Block>
-      <uikit.ActionButton onClick={submit()} className="submitBtn">Save</uikit.ActionButton>
-      <uikit.ActionButton onClick={submit(Form_SyncModules(form, submit, setData, dispatch))} className="">Sync Modules</uikit.ActionButton>
-    </uikit.Block>
+    <_uikit.Block>
+      <_uikit.ActionButton onClick={submit()} className="submitBtn">Save</_uikit.ActionButton>
+      <_uikit.ActionButton onClick={submit(Form_SyncModules(form, submit, setData, dispatch))} className="">Sync Modules</_uikit.ActionButton>
+    </_uikit.Block>
   )
 }
 

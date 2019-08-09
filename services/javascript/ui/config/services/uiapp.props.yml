@@ -1,3 +1,0 @@
-name: uiapp.props{{var "application" "."}}
-servicemethod: static_files_service
-storage: uiapp.propsstorage{{var "application" "."}}
