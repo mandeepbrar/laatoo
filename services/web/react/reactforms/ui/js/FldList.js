@@ -58,12 +58,12 @@ class FldList extends React.Component {
   constructor(props) {
     super(props)
     console.log("fld list", props)
-    this.state = {values: this.createState(props.input.value)}
+    this.state = {values: this.createState(props.value)}
     this.field = props.field
   }
   componentWillReceiveProps(nextProps) {
     console.log("componentWillReceiveProps fldlist", nextProps)
-    this.setState(Object.assign({}, this.state, {values: this.createState(nextProps.input.value)}))
+    this.setState(Object.assign({}, this.state, {values: this.createState(nextProps.value)}))
   }
   createState(val) {
     if(val) {
@@ -81,7 +81,7 @@ class FldList extends React.Component {
   }
   onChange = (values) => {
     console.log("onchange fldlist", values)
-    this.props.input.onChange(values)
+    this.props.onChange(values)
   }
   editList = () => {
     console.log("edit list")

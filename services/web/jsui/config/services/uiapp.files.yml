@@ -1,22 +1,22 @@
-name: uiapp.files{{var "application" "."}}
+name: uiapp.files{{var "uiapplication" "."}}
 servicemethod: named_files_service
 files:
   modules.js:
     cache: {{var "cachefiles"}}
-    path: /scripts/modules{{var "application" "."}}.js
+    path: /scripts/modules{{var "uiapplication" "."}}.js
   components.conf.js:
     cache: {{var "cachefiles"}}
-    path: /scripts/components{{var "application" "."}}.conf.js
+    path: /scripts/components{{var "uiapplication" "."}}.conf.js
   boot.js:
     cache: {{var "cachefiles"}}
-    path: /scripts/boot{{var "application" "."}}.js
+    path: /scripts/boot{{var "uiapplication" "."}}.js
   app.css:
     cache: {{var "cachefiles"}}
-    path: /css/app{{var "application" "."}}.css
+    path: /css/app{{var "uiapplication" "."}}.css
   wasm.json:
     cache: {{var "cachefiles"}}
-    path: /wasm/wasm{{var "application" "."}}.json
+    path: /wasm/wasm{{var "uiapplication" "."}}.json
   vendor.js:
     cache: {{var "cachefiles"}}
-    path:  /scripts/vendor{{var "application" "."}}.js
-storage: uiapp.filesstorage{{var "application" "."}}
+    path:  /scripts/vendor{{var "uiapplication" "."}}.js
+storage: uiapp.filesstorage{{var "uiapplication" "."}}

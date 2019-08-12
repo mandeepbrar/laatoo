@@ -28,6 +28,7 @@ type serverObject struct {
 //Create a new server
 func newServer(ctx *serverContext, baseDir string) (*serverObject, error) {
 	ctx.Set(constants.RELATIVE_DIR, constants.CONF_APP_SERVER)
+	ctx.Set(constants.CONF_SVR_PARENT, constants.CONF_APP_SERVER)
 	//set a server type from the standalone/appengine file
 	svr := &serverObject{serverType: SERVER_TYPE}
 	svr.environments = make(map[string]elements.Environment, 5)

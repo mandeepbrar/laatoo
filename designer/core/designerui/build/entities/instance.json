@@ -16,7 +16,7 @@
     },
     "Module": {
       "type":"subentity",
-      "entity": "Entitlement",
+      "entity": "Module",
       "widget": {
         "name": "SubEntity",
         "module": "subentity",
@@ -63,7 +63,8 @@
       "type":"subentity",
       "entity": "Configuration",
       "widget": {
-        "name": "Form"
+        "name": "ModuleConfig",
+        "module": "modulesrepository"
       }
     }
   }

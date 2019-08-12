@@ -1,68 +1,97 @@
 version: "0.0.1"
+object: ui
 dependencies:
 description: "Module provides ui module aggregation services. "
 objects:
- ui:
-  type: service
-  description: "This service is a plugin for module manager and provides aggregation services"
-  request:
-    params:
-        module:
-            type: string
-            required: true
-            description: Module to be served for hot reload
-  configurations:
-   uifile:
+  ui:
+    type: module
+    description: "This service is a plugin for module manager and provides aggregation services"
+    configurations:
+      uifile:
+        description: "Storage service from which files are to be served"
+        type: string
+        default: "index.js"
+      uiapplication:
+        description: "Name of the application being served"
+        type: string
+        default: app
+      descriptor:
+        description: "Operation to perform on a file"
+        type: string
+        default: "webdescriptor.js"
+      properties_ext:
+        description: "Extension to use on properties"
+        type: string
+        default: .{{var "uiapplication"}}.json
+      mergeduifile:
+        description: "Name of the merged ui modules file to be created"
+        type: string
+        default: modules{{var "uiapplication" "."}}.js
+      mergedcssfile:
+        description: "Name of the merged css file to be created"
+        type: string
+        default: app{{var "uiapplication" "."}}.css
+      mergedwasm:
+        description: "Name of the merged wasm file to be created"
+        type: string
+        default: wasm{{var "uiapplication" "."}}.json
+      mergedvendorfile:
+        description: "Name of the merged vendor file to be created"
+        type: string
+        default: vendor{{var "uiapplication" "."}}.js
+      mergeduidescriptor:
+        description: "Name of the merged descriptor file to be created"
+        type: string
+        default: components{{var "uiapplication" "."}}.conf.js
+      bootfile:
+        description: "Name of the boot file to be created"
+        type: string
+        default: boot{{var "uiapplication" "."}}.js
+      cachefiles:
+        type: string
+        description: Cache generated scripts and css files. Set false for hot module support
+        default: true
+params:
+  uiapplication: 
+    type: string
+    description: "Name of the application being served by this instance"
+  uifile:
     description: "Storage service from which files are to be served"
     type: string
     default: "index.js"
-   application:
-    description: "Name of the application being served"
-    type: string
-    default: app
-   descriptor:
+  descriptor:
     description: "Operation to perform on a file"
     type: string
     default: "webdescriptor.js"
-   properties_ext:
+  properties_ext:
     description: "Extension to use on properties"
     type: string
-    default: ".json"
-   mergeduifile:
+    default: .{{var "uiapplication"}}.json
+  mergeduifile:
     description: "Name of the merged ui modules file to be created"
     type: string
-    default: "modules.js"
-   mergedcssfile:
+    default: modules{{var "uiapplication" "."}}.js
+  mergedcssfile:
     description: "Name of the merged css file to be created"
     type: string
-    default: "app.css"
-   mergedwasm:
+    default: app{{var "uiapplication" "."}}.css
+  mergedwasm:
     description: "Name of the merged wasm file to be created"
     type: string
-    default: "wasm.json"
-   mergedvendorfile:
+    default: wasm{{var "uiapplication" "."}}.json
+  mergedvendorfile:
     description: "Name of the merged vendor file to be created"
     type: string
-    default: "vendor.js"
-   mergeduidescriptor:
+    default: vendor{{var "uiapplication" "."}}.js
+  mergeduidescriptor:
     description: "Name of the merged descriptor file to be created"
     type: string
-    default: "components.conf.js"
-   bootfile:
+    default: components{{var "uiapplication" "."}}.conf.js
+  bootfile:
     description: "Name of the boot file to be created"
     type: string
-    default: "boot.js"
-   hotmodules: 
-    type: stringmap
-    description: Hot modules for development
-   cachefiles:
+    default: boot{{var "uiapplication" "."}}.js
+  cachefiles:
     type: string
     description: Cache generated scripts and css files. Set false for hot module support
     default: true
-params:
- application: 
-    type: string
-    description: "Name of the application being served by this instance"
- hotmodules: 
-    type: stringmap
-    description: Hot modules for development

@@ -106,7 +106,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 		modSettings = common.Merge(ctx, modSettings, insSettings)
 	}
 
-	log.Info(ctx, "Creating module instance", "name", moduleInstance, "Conf", modConf, "Settings", modSettings)
+	log.Error(ctx, "Creating module instance", "name", moduleInstance, "Conf", modConf, "Settings", modSettings)
 	if confFound && (modSettings != nil) {
 		//		ctx.SetVals(modSettings.(common.GenericConfig))
 		moduleparams, _ := modConf.GetSubConfig(ctx, constants.CONF_MODULE_PARAMS)
@@ -121,7 +121,6 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 			}
 		}
 	}
-
 	/*if env != nil {
 		envvars := env.AllConfigurations(ctx)
 		for _, varname := range envvars {
@@ -170,6 +169,7 @@ func (modMgr *moduleManager) createModuleInstance(ctx core.ServerContext, module
 			return nil, false, errors.TypeMismatch(ctx, "Module", moduleInstance, "Object", objName)
 		}
 		modu.userModule = usermod
+		modu.userModuleObj = obj
 		modu.objectName = objName
 	}
 

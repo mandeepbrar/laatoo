@@ -1,2 +1,2 @@
-name: uiapp.filesstorage{{var "application" "."}}
+name: uiapp.filesstorage{{var "uiapplication" "."}}
 servicemethod: filesystem

@@ -202,12 +202,14 @@ func (modMgr *moduleManager) loadModuleObjects(ctx core.ServerContext, moduleNam
 }
 
 func (modMgr *moduleManager) buildObjectInfo(ctx core.ServerContext, conf config.Config) error {
+	ctx.Dump()
 	objsconf, ok := conf.GetSubConfig(ctx, OBJECTS)
 	if ok {
 		objs := objsconf.AllConfigurations(ctx)
 		for _, objname := range objs {
 			objconf, _ := objsconf.GetSubConfig(ctx, objname)
 			objtyp, _ := objconf.GetString(ctx, OBJECT_TYPE)
+			log.Error(ctx, "module object loading ", "name", objname, "info", objconf, "cnf", conf)
 			var inf core.Info
 			var err error
 			switch objtyp {

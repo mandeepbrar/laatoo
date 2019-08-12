@@ -14,9 +14,6 @@ objects:
       params:        
         Data:
           type: stringsmap
-  configformsbuilder:
-    type: service
-    description: Creates UI configuration forms for modules. UI plugin
   entitlementcreator:
     type: service
     description: Entitlement service that creates entitlements after a module has been uploaded

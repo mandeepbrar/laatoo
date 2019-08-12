@@ -14,7 +14,7 @@ type ModuleInstance struct {
 	data.SoftDeleteAuditable `bson:",inline"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Module	Entitlement `json:"Module" bson:"Module" datastore: "Module"`
+	Module	Module `json:"Module" bson:"Module" datastore: "Module"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`

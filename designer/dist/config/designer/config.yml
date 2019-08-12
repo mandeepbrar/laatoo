@@ -32,6 +32,9 @@ modules:
     hotmodulepath: designer/core/laatootheme
     hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
   modulesrepository:
+    hotmodule: true
+    hotmodulepath: designer/core/modulesrepository
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
   designerui:
     hotmodule: true
     hotmodulepath: designer/core/designerui
@@ -128,18 +131,18 @@ moduleinstances:
   websiteapplication:
     module: reactapplication
     settings:
-      application: websiteapplication
+      uiapplication: websiteapplication
       router: router
       uikit: reactmaterialkit
       theme: websitetheme
   laatoositeui:
     module: laatoositeui
     settings:
-      application: websiteapplication
+      uiapplication: websiteapplication
   websitetheme:
     module: laatootheme
     settings:
-      application: websiteapplication
+      uiapplication: websiteapplication
       className: laatoosite
 
 
@@ -153,7 +156,7 @@ moduleinstances:
   designerapplication:
     module: reactapplication
     settings:
-      application: designerapplication
+      uiapplication: designerapplication
       router: router
       uikit: reactmaterialkit
       theme: dashboard
@@ -161,11 +164,11 @@ moduleinstances:
     module: laatoositetheme
     settings:
       authenticate: true
-      application: designerapplication
+      uiapplication: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
       showMenu: true
   designerui:
     module: designerui
     settings:
-      application: designerapplication
+      uiapplication: designerapplication

@@ -3,15 +3,14 @@ package core
 import (
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/server/constants"
+	"reflect"
 )
 
 func (modMgr *moduleManager) loadPlugins(ctx core.ServerContext) error {
 
-	svcMgrPrxy := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
+	/*svcMgrPrxy := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
 	svcMgr := svcMgrPrxy.(*serviceManagerProxy).manager
 	for svcName, svcProxy := range svcMgr.servicesStore {
 		svcConf := svcProxy.svc.conf
@@ -29,26 +28,41 @@ func (modMgr *moduleManager) loadPlugins(ctx core.ServerContext) error {
 			}
 			modMgr.modulePlugins[svcName] = plugin
 		}
+	}*/
+
+	log.Error(ctx, "Going to load mod mgr plugins")
+
+	for insName, modIns := range modMgr.moduleInstances {
+		log.Error(ctx, "Testing mods for plugins", "insname", insName, "user module", modIns.userModule)
+		if modIns.userModuleObj != nil {
+			log.Error(ctx, "Testing mods for plugins not nil")
+			plugin, ok := modIns.userModuleObj.(components.ModuleManagerPlugin)
+			if ok {
+				log.Info(ctx, "Module manager plugin registered ", "plugin", plugin)
+				modMgr.modulePlugins[insName] = plugin
+			} else {
+				log.Error(ctx, "Not module manager plugin", "type", reflect.TypeOf(modIns.userModuleObj))
+			}
+		}
 	}
+	log.Error(ctx, "Loaded mod mgr plugins", "plugins", modMgr.modulePlugins)
+
 	return nil
 }
 
 func (modMgr *moduleManager) loadInstancesToPluginsforload(ctx core.ServerContext, instances map[string]*serverModule) error {
-	for svcName, plugin := range modMgr.modulePlugins {
+	for insName, plugin := range modMgr.modulePlugins {
 		for _, modIns := range instances {
-			err := modMgr.loadPluginWithMod(ctx, modIns, svcName, plugin)
+			err := modMgr.loadPluginWithMod(ctx, modIns, insName, plugin)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 		}
 	}
 
-	for svcName, plugin := range modMgr.modulePlugins {
-		svcCtx, err := ctx.GetServiceContext(svcName)
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-		err = plugin.Loaded(svcCtx)
+	for insName, plugin := range modMgr.modulePlugins {
+		pluginMod := modMgr.moduleInstances[insName]
+		err := plugin.Loaded(pluginMod.svrContext)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

@@ -70,19 +70,19 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 			return errors.WrapError(ctx, err)
 		}
 	*/
-/*
-	modsList := new(bytes.Buffer)
-	for insName, settings := range svc.insSettings {
-		settingsStr, err := json.Marshal(settings)
-		if err != nil {
-			return errors.WrapError(ctx, err)
+	/*
+		modsList := new(bytes.Buffer)
+		for insName, settings := range svc.insSettings {
+			settingsStr, err := json.Marshal(settings)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+			_, err = modsList.WriteString(fmt.Sprintf("['%s','%s',%s],", insName, svc.insMods[insName], string(settingsStr)))
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
-		_, err = modsList.WriteString(fmt.Sprintf("['%s','%s',%s],", insName, svc.insMods[insName], string(settingsStr)))
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	}
-*/
+	*/
 	/*wasmMods := make([]string, 0)
 	for modName, _ := range svc.wasmFiles {
 		wasmMods = append(wasmMods, modName)
@@ -106,7 +106,7 @@ func (svc *UI) writeAppFile(ctx core.ServerContext, baseDir string) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
+	log.Error(ctx, "Writing merged ui file", "name", svc.mergeduifile)
 	uifile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.mergeduifile)
 	err = ioutil.WriteFile(uifile, uiFileCont.Bytes(), 0755)
 	if err != nil {
@@ -176,7 +176,6 @@ func (svc *UI) writeBootFile(ctx core.ServerContext, baseDir string) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
 
 	bootfile := path.Join(baseDir, FILES_DIR, SCRIPTS_DIR, svc.bootfile)
 	err = ioutil.WriteFile(bootfile, bootFileCont.Bytes(), 0755)

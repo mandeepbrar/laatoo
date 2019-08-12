@@ -25,7 +25,6 @@ const (
 	CONF_MODULE_DISABLED   = "disabled"
 	CONF_MODULE            = "module"
 	CONF_MODULE_ENV        = "environment"
-	MODULEMGR_PLUGIN       = "ModuleManagerPlugin"
 	CONF_SERVICEFACTORIES  = "factories"
 	CONF_SERVICEFACTORY    = "factory"
 	PROPERTIES_DIR         = "properties"
@@ -33,6 +32,7 @@ const (
 	CONF_MODULES_DEVREPO   = "hotmodulesrepo"
 	CONF_HOT_MODULE        = "hotmodule"
 	CONF_HOT_MODULE_PATH   = "hotmodulepath"
+	CONF_SVR_PARENT        = "svrparent"
 
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"

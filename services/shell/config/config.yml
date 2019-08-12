@@ -12,8 +12,7 @@ modules:
   jsui:
     module: jsui
     settings:
-      application: {{var "uiapplication"}}
-      hotmodules: {{var "hotmodules"}}
+      uiapplication: {{var "uiapplication"}}
 params:
   uiapplication: 
     type: string
@@ -22,6 +21,4 @@ params:
     type: string
     description: Path to be used by the shell
     default: /index
-  hotmodules: 
-    type: stringmap
-    description: Hot modules for development
+

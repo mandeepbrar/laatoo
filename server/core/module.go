@@ -3,7 +3,6 @@ package core
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
@@ -15,6 +14,7 @@ import (
 
 type serverModule struct {
 	userModule      core.Module
+	userModuleObj   interface{}
 	impl            *moduleImpl
 	dir             string
 	name            string
@@ -73,17 +73,26 @@ func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 			return errors.TypeMismatch(ctx, "Module does not inherit from core.Module", mod.name)
 		}
 
-		ldr := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
+		/*ldr := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 		md, _ := ldr.GetMetaData(ctx, mod.objectName)
 		if md != nil {
 			inf, ok := md.(*moduleInfo)
 			if ok {
 				impl.moduleInfo = inf.clone()
 			}
+		}*/
+
+		objectsConf, ok := mod.modConf.GetSubConfig(ctx, constants.CONF_OBJECTLDR_OBJECTS)
+		if ok {
+			objConf, ok := objectsConf.GetSubConfig(ctx, mod.objectName)
+			if ok {
+				impl.moduleInfo = buildModuleInfo(ctx, mod.name, objConf)
+			}
 		}
+
 		mod.userModule.Describe(ctx)
 	}
-	log.Trace(ctx, "Module info ", "Name", mod.name, "Object", mod.objectName, "Info", mod.impl.moduleInfo.configurations)
+	log.Error(ctx, "Module info ", "Name", mod.name, "Object", mod.objectName, "Info", mod.impl.moduleInfo.configurations)
 	return nil
 }
 
@@ -103,7 +112,8 @@ func (mod *serverModule) initialize(ctx core.ServerContext, conf config.Config) 
 
 }
 func (mod *serverModule) initWithConf(ctx core.ServerContext, conf config.Config, dir string) error {
-
+	ctx.Dump()
+	log.Error(ctx, "pressing module info", "conf", conf)
 	if err := mod.impl.processInfo(ctx, conf); err != nil {
 		return err
 	}

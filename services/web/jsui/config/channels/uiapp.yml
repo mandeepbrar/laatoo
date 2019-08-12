@@ -1,7 +1,0 @@
-name:  uiapp{{var "application" "."}}
-parent: root
-method: GET
-service: uiapp{{var "application" "."}}
-path: /uimodule{{var "application" "/"}}/:moduletoserve
-paramvalues:
-  module: moduletoserve

@@ -23,7 +23,8 @@ function Initialize(app, ins, mod, s, def, req) {
       "View Article"
     ]*/
   }
-  if(s.application === app) {
+  console.log("react application initialize", app, s, req)
+  if(s.uiapplication === app) {
     this.appname = app;
     this.settings = s;
     if(s.Backend) {

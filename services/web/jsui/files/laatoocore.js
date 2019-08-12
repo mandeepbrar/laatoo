@@ -42,7 +42,9 @@ Application.Resolve = function(mod, comp) {
     moduleObj = _$[mod];
   }
   if(moduleObj && comp) {
-    return moduleObj[comp]
+    return moduleObj[comp];
+  } else {
+    console.log("could not resolve component", mod, Application);
   }
 }
 

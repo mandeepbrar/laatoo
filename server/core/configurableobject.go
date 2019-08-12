@@ -76,9 +76,11 @@ func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Co
 				conftype, _ := confDesc.GetString(ctx, CONFTYPE)
 				defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
 				co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
+				log.Error(ctx, "configurable object", "confName", confName, "conf", co.configurations[confName])
 			}
 		}
 	}
+	log.Error(ctx, "configurable object", "co", co, "conf", conf)
 	return co
 }
 
@@ -215,12 +217,14 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.Config) error {
 	log.Trace(ctx, "Processing Configurations", "conf", conf)
 	confs := impl.GetConfigurations()
+	log.Trace(ctx, "Processing Configurations", "confs", confs)
 	for name, configObj := range confs {
 		configu := configObj.(*configuration)
 		val, ok := conf.Get(ctx, name)
 		if !ok && configu.required {
 			return errors.MissingConf(ctx, name)
 		}
+		log.Error(ctx, "Processing info", "configu", configu, "val", val)
 		if ok {
 			switch configu.conftype {
 			case "", config.OBJECTTYPE_STRING:

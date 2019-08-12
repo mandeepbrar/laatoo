@@ -1,15 +1,17 @@
 package main
 
+/*
 import (
 	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
 	"strings"
 )
 
 type ConfigFormsBuilder struct {
-	core.Service
+	core.Module
 	objectConfig map[string]map[string]core.Configuration
 }
 
@@ -42,7 +44,7 @@ func (svc *ConfigFormsBuilder) LoadingComplete(ctx core.ServerContext) map[strin
 		formConf := svc.createConfForm(ctx, modName, objConf)
 		forms.Set(ctx, "module_config_"+strings.ToLower(modName), formConf)
 	}
-
+	log.Error(ctx, "returning config forms", "conf", reg)
 	return map[string]config.Config{"registry": reg}
 }
 func (svc *ConfigFormsBuilder) Unloaded(ctx core.ServerContext, insName, modName string) error {
@@ -71,3 +73,4 @@ func (svc *ConfigFormsBuilder) createConfForm(ctx core.ServerContext, modName st
 	configForm.Set(ctx, "fields", configFormFields)
 	return configForm
 }
+*/

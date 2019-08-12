@@ -30,7 +30,7 @@ const (
 	CONF_FILE_UI         = "uifile"
 	CONF_FILE_DESC       = "descriptor"
 	CONF_PROPS_EXTENSION = "properties_ext"
-	CONF_APPLICATION     = "application"
+	CONF_APPLICATION     = "uiapplication"
 	DEPENDENCIES         = "dependencies"
 	UI_DIR               = "ui"
 	REG_DIR              = "registry"
@@ -43,7 +43,7 @@ const (
 )
 
 type UI struct {
-	core.Service
+	core.Module
 	svrCtx             core.ServerContext
 	uifile             string
 	descfile           string
@@ -110,6 +110,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.uiRegistry = make(map[string]map[string]string)
 	svc.wasmModName = fmt.Sprintf("wasm_%s", svc.application)
 	svc.uiPlugins = make(map[string]*components.ModInfo)
+	log.Error(ctx, "UI conf file", "conf", conf, "svc", svc.uifile, "svc", svc)
 	//svc.uiDisplays = make(map[string]string)
 	return nil
 }
@@ -321,7 +322,9 @@ func (svc *UI) getFilesDir(ctx core.ServerContext, modName string, modDir string
 }
 
 func (svc *UI) Loaded(ctx core.ServerContext) error {
+	log.Error(ctx, " UI module loaded", "plugins", svc.uiPlugins)
 	for _, modInfo := range svc.uiPlugins {
+		log.Error(ctx, " UI module loaded", "mod info", modInfo)
 		compsToProcess := modInfo.Mod.(UIPlugin).LoadingComplete(ctx)
 		if compsToProcess != nil {
 			reg, _ := compsToProcess["registry"]
@@ -334,6 +337,7 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 			}
 		}
 	}
+	log.Error(ctx, "going to write output", "service", svc)
 	return svc.writeOutput(ctx)
 }
 

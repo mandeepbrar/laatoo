@@ -1,43 +1,43 @@
 channels:
-- name:  uiapp.app{{var "application" "."}}
+- name:  uiapp.app{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service: uiapp.files{{var "application" "."}}
-  path: /modules{{var "application" "."}}.js
+  service: uiapp.files{{var "uiapplication" "."}}
+  path: /modules{{var "uiapplication" "."}}.js
   staticvalues:
     file: modules.js
-- name: uiapp.services{{var "application" "."}}
+- name: uiapp.services{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service:  uiapp.files{{var "application" "."}}
-  path: /components{{var "application" "."}}.conf.js
+  service:  uiapp.files{{var "uiapplication" "."}}
+  path: /components{{var "uiapplication" "."}}.conf.js
   staticvalues:
     file: components.conf.js
-- name:  uiapp.boot{{var "application" "."}}
+- name:  uiapp.boot{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service: uiapp.files{{var "application" "."}}
-  path: /boot{{var "application" "."}}.js
+  service: uiapp.files{{var "uiapplication" "."}}
+  path: /boot{{var "uiapplication" "."}}.js
   staticvalues:
     file: boot.js
-- name: uiapp.style{{var "application" "."}}
+- name: uiapp.style{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service: uiapp.files{{var "application" "."}}
-  path: /app{{var "application" "."}}.css
+  service: uiapp.files{{var "uiapplication" "."}}
+  path: /app{{var "uiapplication" "."}}.css
   staticvalues:
     file: app.css
-- name: uiapp.wasm{{var "application" "."}}
+- name: uiapp.wasm{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service: uiapp.files{{var "application" "."}}
-  path: /wasm{{var "application" "."}}.json
+  service: uiapp.files{{var "uiapplication" "."}}
+  path: /wasm{{var "uiapplication" "."}}.json
   staticvalues:
     file: wasm.json
-- name: uiapp.vendor{{var "application" "."}}
+- name: uiapp.vendor{{var "uiapplication" "."}}
   parent: root
   method: GET
-  service: uiapp.files{{var "application" "."}}
-  path: /vendor{{var "application" "."}}.js
+  service: uiapp.files{{var "uiapplication" "."}}
+  path: /vendor{{var "uiapplication" "."}}.js
   staticvalues:
     file: vendor.js

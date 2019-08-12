@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"laatoo/sdk/server/core"
 )
@@ -16,3 +17,4 @@ func (svc *UI) Invoke(ctx core.RequestContext) error {
 	}
 	return nil
 }
+*/

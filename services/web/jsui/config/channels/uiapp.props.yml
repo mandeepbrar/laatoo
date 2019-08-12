@@ -1,5 +1,5 @@
 parent: root
-service:  uiapp.props{{var "application" "."}}
+service:  uiapp.props{{var "uiapplication" "."}}
 method: GET
 path: "/properties/*"
 paramvalues:
