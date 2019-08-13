@@ -16,6 +16,7 @@ type RepositoryUpdate struct {
 	core.Service
 	dataStore       data.DataComponent
 	repositoryFiles components.StorageComponent
+	formDataStore   data.DataComponent
 }
 
 const (
@@ -43,6 +44,12 @@ func (svc *RepositoryUpdate) Start(ctx core.ServerContext) error {
 		return errors.MissingService(ctx, repositorySvc)
 	}
 	svc.repositoryFiles = filesSvc.(components.StorageComponent)
+	formDataSvcName := "repository.moduleform.database"
+	dataSvc, err = ctx.GetService(formDataSvcName)
+	if err != nil {
+		return errors.MissingService(ctx, dataSvcName)
+	}
+	svc.formDataStore = dataSvc.(data.DataComponent)
 	return nil
 }
 
@@ -71,6 +78,16 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 			return nil, errors.WrapError(ctx, err)
 		}
 		err = svc.dataStore.Put(ctx, mod, modDef)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		conf, err := writeParamsForm(ctx, modDef)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		modForm := &ModuleForm{Name: modDef.Name, Form: string(conf)}
+		log.Error(ctx, "Process archive", "modForm", modForm)
+		err = svc.formDataStore.Put(ctx, modDef.Name, modForm)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}

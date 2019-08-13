@@ -18,7 +18,7 @@ type ModuleInstance struct {
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Settings	Configuration `json:"Settings" bson:"Settings" datastore: "Settings"`
+	Settings	map[string]interface{} `json:"Settings" bson:"Settings" datastore:"Settings"`
 }
 
 func (ent *ModuleInstance) Config() *data.StorableConfig {

@@ -16,6 +16,7 @@ type EntitlementCreationService struct {
 	dataStore        data.DataComponent
 	repositoryFiles  components.StorageComponent
 	modulesdataStore data.DataComponent
+	formDataStore    data.DataComponent
 }
 
 func (svc *EntitlementCreationService) Start(ctx core.ServerContext) error {
@@ -39,6 +40,12 @@ func (svc *EntitlementCreationService) Start(ctx core.ServerContext) error {
 		return errors.MissingService(ctx, dataSvcName)
 	}
 	svc.modulesdataStore = modulesDataSvc.(data.DataComponent)
+	formDataSvcName := "repository.moduleform.database"
+	dataSvc, err = ctx.GetService(formDataSvcName)
+	if err != nil {
+		return errors.MissingService(ctx, dataSvcName)
+	}
+	svc.formDataStore = dataSvc.(data.DataComponent)
 
 	return nil
 }
@@ -78,6 +85,16 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 						}
 						ent := &Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: *modDef, Local: true}
 						err = svc.dataStore.Save(ctx, ent)
+						if err != nil {
+							return errors.WrapError(ctx, err)
+						}
+						log.Error(ctx, "Imported Module", "Module", modName, "modDef", modDef)
+						conf, err := writeParamsForm(ctx, modDef)
+						if err != nil {
+							return errors.WrapError(ctx, err)
+						}
+						modForm := &ModuleForm{Name: modName, Form: string(conf)}
+						err = svc.formDataStore.Put(ctx, modName, modForm)
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}

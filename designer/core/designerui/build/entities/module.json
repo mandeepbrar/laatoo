@@ -18,11 +18,11 @@
       "list": true
     },
     "Params": {
-      "type": "map",
+      "type": "stringmap",
       "mappedElement": "ModuleParam"
     },    
     "ParamsForm" : {
-      "type":"map"
+      "type":"stringmap"
     }, 
     "Dependencies": {
       "type": "stringmap"

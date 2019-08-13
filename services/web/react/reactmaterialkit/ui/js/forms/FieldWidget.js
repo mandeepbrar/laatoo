@@ -31,6 +31,7 @@ class FieldWidget extends React.Component {
     super(props)
     //injectTapEventPlugin()
     let field = props.field
+    this.renderer = this.renderTextField
     if (field && field.widget) {
       switch(field.widget.name) {
         case "TextField":
@@ -61,9 +62,6 @@ class FieldWidget extends React.Component {
           this.renderer = this.renderTextField
           break
         case "ImagePicker":
-          this.renderer = this.renderTextField
-          break
-        default:
           this.renderer = this.renderTextField
           break
       }
@@ -111,13 +109,18 @@ class FieldWidget extends React.Component {
     )
   }
 
+  textChange = (evt) => {
+    if(this.props.onChange) {
+      console.log("text change ", evt.target.value)
+      this.props.onChange(evt.target.value, evt.target.name, evt)
+    }
+  }
 
   renderTextField = (fld, props) => {
     console.log("rendertext field", props, fld)
     return (
-      <TextField name={fld.name} errorText={props.errorText} onChange={(evt)=>props.onChange(evt.target.value, evt.target.name, evt)} onBlur={props.onBlur}
-        onFocus={props.onFocus} floatingLabelText={fld.label} label={fld.label} value={this.state.value}
-        hintText={fld.label} {...props} className={this.className + " textfield " }/>
+      <TextField name={fld.name} errorText={props.errorText} onChange={this.textChange} onBlur={props.onBlur} onFocus={props.onFocus} 
+        floatingLabelText={fld.label} label={fld.label} value={this.state.value} hintText={fld.label} className={this.className + " textfield " }/>
     )
   }
   render() {

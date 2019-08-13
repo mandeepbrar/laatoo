@@ -14,26 +14,23 @@
       "type":"string"
     },
     "Params": {
-      "type": "map",
+      "type": "stringmap",
       "mappedElement": "ModuleParam"
     },    
     "Dependencies": {
-      "type":"stringmap"
+      "type":"stringsmap"
     },
     "Description": {
       "type":"string"
     },
     "UIDependencies": {
-      "type":"stringmap"
+      "type":"stringsmap"
     },
     "Objects": {
       "type":"subentity",
       "entity": "ObjectDefinition",      
       "list": true
     },
-    "ParamsForm" : {
-      "type":"map"
-    }, 
     "Services": {
       "type":"string",
       "list": true

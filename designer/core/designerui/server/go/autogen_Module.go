@@ -18,7 +18,7 @@ type Module struct {
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
 	Params	map[string]ModuleParam `json:"Params" bson:"Params" datastore:"Params"`
 	ParamsForm	map[string]interface{} `json:"ParamsForm" bson:"ParamsForm" datastore:"ParamsForm"`
-	Dependencies	map[string]string `json:"Dependencies" bson:"Dependencies" datastore:"Dependencies"`
+	Dependencies	map[string]interface{} `json:"Dependencies" bson:"Dependencies" datastore:"Dependencies"`
 	Services	[]string `json:"Services" bson:"Services" datastore:"Services"`
 	Factories	[]string `json:"Factories" bson:"Factories" datastore:"Factories"`
 	Channels	[]string `json:"Channels" bson:"Channels" datastore:"Channels"`

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/components"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/mholt/archiver"
 )
@@ -82,6 +84,7 @@ func readMod(ctx core.RequestContext, modName string) (*ModuleDefinition, error)
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod := &ModuleDefinition{Name: modName}
+	mod.SetId(modName)
 	err = readConf(ctx, mod, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
@@ -121,10 +124,10 @@ func readMod(ctx core.RequestContext, modName string) (*ModuleDefinition, error)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	err = writeParamsForm(ctx, mod)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
+	/*	err = writeParamsForm(ctx, mod)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}*/
 	log.Error(ctx, "Module Conf", "mod", modName, "conf", conf, "mod", mod)
 	return mod, nil
 }
@@ -316,18 +319,23 @@ func readSubModules(ctx core.RequestContext, mod *ModuleDefinition, conf config.
 	return nil
 }
 
-func writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) error {
+func writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) ([]byte, error) {
 	formConf := make(map[string]interface{})
+	formInfo := make(map[string]interface{})
+	//configFormInfo.Set(ctx, "entity", entity.object)
+	formInfo["className"] = " configform " + strings.ToLower(mod.Name)
+	formConf["info"] = formInfo
+
 	formFields := make(map[string]interface{})
 
 	for pname, pConf := range mod.Params {
 		formParam := make(map[string]interface{})
 		formParam["name"] = pname
 		formParam["type"] = pConf.Type
+		formParam["className"] = " configformfield " + pname
 		formFields[pname] = formParam
 	}
 	formConf["fields"] = formFields
 
-	mod.ParamsForm = formConf
-	return nil
+	return json.Marshal(formConf)
 }

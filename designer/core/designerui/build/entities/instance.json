@@ -60,8 +60,7 @@
         "type":"string"
     },
     "Settings": {
-      "type":"subentity",
-      "entity": "Configuration",
+      "type":"stringmap",      
       "widget": {
         "name": "ModuleConfig",
         "module": "modulesrepository"

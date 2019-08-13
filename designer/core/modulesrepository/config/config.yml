@@ -40,6 +40,13 @@ modules:
       parent: root
       instance: ModuleDefinition
       dataservicefactory: mongodatabase
+  moduleform:
+    module: entity
+    settings:
+      object: ModuleForm
+      parent: root
+      instance: ModuleForm
+      dataservicefactory: mongodatabase
   entitlements:
     module: entity
     settings:

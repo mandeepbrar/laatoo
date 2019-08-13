@@ -1,0 +1,17 @@
+{
+    "name":"ModuleForm",
+    "inherits":"",
+    "imports":[],
+    "form": {
+        "layout": ["Name", "Form"]
+      },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Form": {
+            "type":"string"
+        }
+    }
+  }
+  

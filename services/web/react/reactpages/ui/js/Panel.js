@@ -226,6 +226,8 @@ class Panel extends React.Component {
     console.log("processing form+++", desc, module, props)
     this.cfgPanel(desc.info.title, desc.info.overlay)
 
+    let formName=desc.formName? desc.formName : desc.id
+
     var cfg = desc.info
     if(!this.form) {
       console.log("getting form",  module)
@@ -240,7 +242,7 @@ class Panel extends React.Component {
           formCfg = Object.assign({}, cfg, ctx.routeParams)
         }
         console.log("form cfg", formCfg, cfg, props)
-        return <this.form form={desc.id} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
+        return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
           onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}
           autoSubmitOnChange={props.autoSubmitOnChange} actions={props.actions} description={desc} className={className} id={desc.id}/>
       }

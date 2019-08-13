@@ -31,7 +31,7 @@ class FieldsPanel extends React.Component {
                 this.fieldWidgets[fieldName] = _uikit.Forms.FieldWidget
             }
 
-            let cl= props.inline?"inline formfield m10":"formfield m10"
+            let cl= props.inline?" inline formfield m10 ":" formfield m10 "
 
             if(!field.label && !field.skipLabel) {
                 field.label = fieldName
@@ -75,7 +75,7 @@ class FieldsPanel extends React.Component {
                     console.log("set ref value data", myRefObj, data)
                 }
                 console.log("setting fld value", comp, data, name)
-                onChange(data, name)
+                onChange(evt, data)
             }
         }
     }
@@ -126,7 +126,7 @@ class FieldsPanel extends React.Component {
                     tabsToDisp.forEach(function(k) {
                         let tabFlds = desc.info.tabs[k];
                         if(tabFlds) {
-                            let tabArr = comp.layoutFields(tabFlds, flds, "tabfield formfield", comp.state)
+                            let tabArr = comp.layoutFields(tabFlds, flds, " tabfield formfield ", comp.state)
                             tabs.push(
                                 <_uikit.Tab label={k} value={k}>
                                 {tabArr}
@@ -142,7 +142,7 @@ class FieldsPanel extends React.Component {
                     )
                 } else {
                     let fldToDisp = desc.info && desc.info.layout? desc.info.layout: Object.keys(flds)
-                    let className=comp.props.inline?"inline formfield":"formfield"
+                    let className=comp.props.inline?" inline formfield ":" formfield "
                     return this.layoutFields(fldToDisp, flds, className, comp.state)
                 }
             }
