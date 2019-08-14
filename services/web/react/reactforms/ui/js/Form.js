@@ -48,6 +48,8 @@ class BaseForm extends React.Component {
     if(this.loader) {
       console.log('base form: executing loader', this.loader, this.props, this.context)
       this.loader(this.context.routeParams, this.dataLoaded, this.failureCallback)
+    } else if (this.props.formData) {
+      this.setData(this.props.formData)
     }
   }
 
@@ -219,8 +221,7 @@ EntityForm.contextTypes = {
   routeParams: PropTypes.object
 };
 
-
-/** entity needs to be provided to its parent component */
+/*
 class SubEntityForm extends BaseForm {
   constructor(props, context) {
     super(props, context)
@@ -248,7 +249,7 @@ SubEntityForm.contextTypes = {
   getFormValue: PropTypes.func,
   routeParams: PropTypes.object
 };
-
+*/
 /** custom form loading and submission */
 class CustomForm extends BaseForm {
   constructor(props, context) {
@@ -270,16 +271,16 @@ class CustomForm extends BaseForm {
           dispatch(createAction(ActionNames.LOAD_DATA, Object.assign({}, loaderServiceParams, routeParams), {serviceName: loaderService, successCallback:  form.dataLoaded, failureCallback: failureCallback}));
         }
       }
-      if(!this.formSubmit) {
-        this.formSubmit = (data, successCallback, failureCallback) => {
-          data = form.preSubmit(data)
-          console.log("form submit submit form", data)
-          if(form.config) {
-            successCallback = form.config.submitSuccess? _reg('Method', form.config.submitSuccess) : successCallback
-            failureCallback = form.config.submitFailure? _reg('Method', form.config.submitFailure) : failureCallback
-          }
-          dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+    }
+    if(!this.formSubmit) {
+      this.formSubmit = (data, successCallback, failureCallback) => {
+        data = form.preSubmit(data)
+        console.log("form submit submit form", data)
+        if(form.config) {
+          successCallback = form.config.submitSuccess? _reg('Method', form.config.submitSuccess) : successCallback
+          failureCallback = form.config.submitFailure? _reg('Method', form.config.submitFailure) : failureCallback
         }
+        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
       }
     }
   }
@@ -297,8 +298,6 @@ class WebFormUI extends React.Component {
     config = config? config :{}
     if (config.entity && config.entityId){
       this.formType = EntityForm
-    } else if(props.subform || desc.subform) {
-      this.formType = SubEntityForm
     } else {
       this.formType = CustomForm
     }

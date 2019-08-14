@@ -262,9 +262,9 @@ class SubEntity extends LoadableComponent {
     return <_uikit.Forms.FieldWidget className="w100" field={fldDesc} onChange={this.change}  selectItem={true} items={this.state.selectOptions} value={this.state.value}/>
   }
 
-  change = (value) => {
-    console.log("charnging subentity", value, this.props)
-    this.props.onChange(value, this.props.name)
+  change = (value, name, evt) => {
+    console.log("charnging subentity", value, this.props, name, evt)
+    this.props.onChange(value, this.props.name, evt)
     this.setState(Object.assign({}, this.state, {value}))
   }
 

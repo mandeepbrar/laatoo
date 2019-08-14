@@ -74,8 +74,8 @@ class FieldsPanel extends React.Component {
                     data = myRefObj
                     console.log("set ref value data", myRefObj, data)
                 }
-                console.log("setting fld value", comp, data, name)
-                onChange(evt, data)
+                console.log("setting fld value", comp, data, name, evt)
+                onChange(data, name)
             }
         }
     }
