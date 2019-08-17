@@ -436,7 +436,7 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 func (as *abstractserver) newModuleManager(ctx core.ServerContext, name string, parentElem core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
 	mm := &moduleManager{name: name, parent: parentElem, moduleInstances: make(map[string]*serverModule), installedModules: make(map[string]*semver.Version), availableModules: make(map[string]string),
 		loadedModules: make(map[string]*semver.Version), parentModules: make(map[string]*serverModule), modulePlugins: make(map[string]components.ModuleManagerPlugin), moduleConf: make(map[string]config.Config),
-		hotModules: make(map[string]string), svrref: as}
+		hotModules: make(map[string]string), moduleInstallationConf: make(map[string]config.Config), svrref: as}
 	mmElem := &moduleManagerProxy{modMgr: mm}
 	mm.proxy = mmElem
 	return mm, mmElem
@@ -475,7 +475,8 @@ func (as *abstractserver) childModuleManager(ctx core.ServerContext, name string
 	}
 
 	childModMgr := &moduleManager{name: name, parent: parent, moduleInstances: moduleInstances, installedModules: installedModules, parentModules: make(map[string]*serverModule),
-		loadedModules: loadedModules, moduleConf: moduleConf, svrref: as, availableModules: availableModules, modulePlugins: modulePlugins, hotModules: hotModules}
+		loadedModules: loadedModules, moduleConf: moduleConf, svrref: as, availableModules: availableModules, modulePlugins: modulePlugins,
+		moduleInstallationConf: make(map[string]config.Config), hotModules: hotModules}
 	childModMgrProxy := &moduleManagerProxy{modMgr: childModMgr}
 	return childModMgr, childModMgrProxy
 }

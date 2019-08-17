@@ -6,3 +6,9 @@ installModule:
   actiontype: showdialog
   title: Install Module
   id: installmodule
+createModule:
+  actiontype: showdialog
+  title: Create Module
+  id: createmodule
+editModule:
+  url: "/editmodule/:id"

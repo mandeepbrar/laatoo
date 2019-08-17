@@ -12,9 +12,7 @@ component:
       html: <h3>{{default "instance" "object" }} List</h3>
     - type: component
       componentName: ActionBar
-      actions:
-        - name: form_new_{{default "instance" "object" | lower}}
-          label: New
+      id: {{if exists "list_actionbar"}} {{var "list_actionbar"}} {{else}} list_actions_{{default "instance" "object" | lower}} {{end}} 
       module: reactwebcommon
     - type: view
       id: list_{{default "instance" "object" | lower}}

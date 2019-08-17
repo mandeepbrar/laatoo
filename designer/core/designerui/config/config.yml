@@ -53,7 +53,7 @@ modules:
       parent: root
       instance: Module
       dataservicefactory: mongodatabase
-  moduleinstance:
+  moduleinstance: 
     module: entity
     settings:
       object: ModuleInstance

@@ -99,7 +99,7 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	defer connCopy.Close()
 	id := item.GetId()
 	if id == "" {
-		item.Init(ctx, nil)
+		item.Initialize(ctx, nil)
 	}
 	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)

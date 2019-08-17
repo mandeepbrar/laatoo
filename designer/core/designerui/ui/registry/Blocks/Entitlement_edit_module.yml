@@ -1,0 +1,18 @@
+Block:
+  className: edit_module tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Name"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsformat "this is %s" "ctx.data.UpdatedAt"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - Action:
+          name: editModule
+          display: {{jsreplace "ctx.data.Local"}}
+          params:
+            id: {{jsreplace "ctx.data.Module.Id"}}
+          body: Edit Module

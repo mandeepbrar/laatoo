@@ -24,6 +24,15 @@ ui:
       prop-types: "^15.6.0"
       core-js: "^2.5.7"
 params:
-  uikit: Uikit to be used by laatoo react application
-  theme: Theme to be used by laatoo react application
-  router: Router to be used by laatoo react application
+  uikit: 
+    type: string
+    description: Uikit to be used by laatoo react application
+  theme: 
+    type: string
+    description: Theme to be used by laatoo react application
+  router: 
+    type: string
+    description: Router to be used by laatoo react application
+  uiapplication: 
+    type: string
+    description: Ui application for which application is being started

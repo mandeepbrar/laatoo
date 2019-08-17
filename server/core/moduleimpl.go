@@ -25,11 +25,12 @@ func (modInfo *moduleInfo) clone() *moduleInfo {
 
 type moduleImpl struct {
 	*moduleInfo
-	state State
+	state      State
+	svrContext core.ServerContext
 }
 
-func newModuleImpl(name string) *moduleImpl {
-	return &moduleImpl{state: Created, moduleInfo: newModuleInfo(name, "", nil)}
+func newModuleImpl(name string, ctx core.ServerContext) *moduleImpl {
+	return &moduleImpl{state: Created, moduleInfo: newModuleInfo(name, "", nil), svrContext: ctx}
 }
 
 func (impl *moduleImpl) setModuleInfo(inf *moduleInfo) {
@@ -70,4 +71,8 @@ func (impl *moduleImpl) Channels(ctx core.ServerContext) map[string]config.Confi
 
 func (impl *moduleImpl) Tasks(ctx core.ServerContext) map[string]config.Config {
 	return nil
+}
+
+func (impl *moduleImpl) GetContext(ctx core.ServerContext, variable string) (interface{}, bool) {
+	return impl.svrContext.Get(variable)
 }

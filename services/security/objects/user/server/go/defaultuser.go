@@ -66,40 +66,40 @@ type DefaultUser struct {
 }
 
 //Creates object
-func (usr *DefaultUser) Init(ctx ctx.Context, args core.MethodArgs) error {
-	usr.SoftDeleteAuditable.Init(ctx, args)
-	if args != nil {
-		id, ok := args["Id"]
+func (usr *DefaultUser) Initialize(ctx ctx.Context, conf config.Config) error {
+	usr.SoftDeleteAuditable.Initialize(ctx, conf)
+	if conf != nil {
+		id, ok := conf.GetString(ctx, "Id")
 		if ok {
-			usr.SetId(id.(string))
+			usr.SetId(id)
 		}
-		username, ok := args["Username"]
+		username, ok := conf.GetString(ctx, "Username")
 		if ok {
-			usr.Username = username.(string)
+			usr.Username = username
 		}
-		roles, ok := args["Roles"]
+		roles, ok := conf.GetStringArray(ctx, "Roles")
 		if ok {
-			usr.SetRoles(roles.([]string))
+			usr.SetRoles(roles)
 		}
-		realm, ok := args["Realm"]
+		realm, ok := conf.GetString(ctx, "Realm")
 		if ok {
-			usr.Realm = realm.(string)
+			usr.Realm = realm
 		}
-		picture, ok := args["Picture"]
+		picture, ok := conf.GetString(ctx, "Picture")
 		if ok {
-			usr.Picture = picture.(string)
+			usr.Picture = picture
 		}
-		password, ok := args["Password"]
+		password, ok := conf.GetString(ctx, "Password")
 		if ok {
-			usr.Password = password.(string)
+			usr.Password = password
 		}
-		email, ok := args["Email"]
+		email, ok := conf.GetString(ctx, "Email")
 		if ok {
-			usr.Email = email.(string)
+			usr.Email = email
 		}
-		name, ok := args["Name"]
+		name, ok := conf.GetString(ctx, "Name")
 		if ok {
-			usr.Name = name.(string)
+			usr.Name = name
 		}
 
 	}

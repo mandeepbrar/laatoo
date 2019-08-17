@@ -199,7 +199,7 @@ func (svc *UI) getRegistryItemName(ctx core.ServerContext, conf config.Config, i
 
 func (svc *UI) processConfig(ctx core.ServerContext, conf config.Config, itemName, itemType, modDir string) error {
 	ctx = ctx.SubContext("Registry Item: " + itemName)
-	itemApp, ok := conf.GetString(ctx, CONF_APPLICATION)
+	itemApp, ok := conf.GetString(ctx, CONF_UIAPPLICATION)
 	if ok {
 		if itemApp != svc.application {
 			return nil

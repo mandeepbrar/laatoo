@@ -16,7 +16,7 @@ type Entitlement struct {
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Solution	data.StorableRef `json:"Solution" bson:"Solution"  entity:"Solution" datastore: "Solution"`
 	Local	bool `json:"Local" bson:"Local" datastore:"Local"`
-	Module	ModuleDefinition `json:"Module" bson:"Module" datastore: "Module"`
+	Module	data.StorableRef `json:"Module" bson:"Module"  entity:"ModuleDefinition" datastore: "Module"`
 }
 
 func (ent *Entitlement) Config() *data.StorableConfig {
@@ -25,7 +25,7 @@ func (ent *Entitlement) Config() *data.StorableConfig {
     LabelField:      "Title",
 		Type:            "Entitlement",
 		SoftDeleteField: "Deleted",
-		PreSave:         false,
+		PreSave:         true,
 		PostSave:        false,
 		PostLoad:        false,
 		Auditable:       true,

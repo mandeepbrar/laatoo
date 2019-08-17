@@ -10,7 +10,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/utils"
-	"securitycommon"
+	common "securitycommon"
 )
 
 const (
@@ -100,7 +100,7 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 	if !ok {
 		return core.StatusUnauthorizedResponse, nil
 	}
-	 //:= req.GetBody()
+	//:= req.GetBody()
 	data, ok := reqbytes.([]byte)
 	if !ok {
 		return core.StatusUnauthorizedResponse, nil
@@ -118,7 +118,13 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 	//create the user
 	usrInt := ks.userCreator()
 	init := usrInt.(core.Initializable)
-	init.Init(ctx, core.MethodArgs{"Id": fmt.Sprint("system_", id), "Roles": []string{client.role}, "Realm": ks.localRealm})
+
+	userConf := ctx.ServerContext().CreateConfig()
+	userConf.Set(ctx, "Id", fmt.Sprint("system_", id))
+	userConf.Set(ctx, "Roles", []string{client.role})
+	userConf.Set(ctx, "Realm", ks.localRealm)
+
+	init.Initialize(ctx, userConf)
 
 	usr := usrInt.(auth.RbacUser)
 	/*usr.SetId("system")

@@ -61,7 +61,9 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 			if err == nil {
 				modDef, _ := stor.(*ModuleDefinition)
 				log.Error(ctx, "Entitlement creation ", "solution", solution, "module", modDef)
-				ent := &Entitlement{Name: modDef.Name, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: *modDef, Local: false}
+				modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
+
+				ent := &Entitlement{Name: modDef.Name, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: false}
 				err = svc.dataStore.Save(ctx, ent)
 				if err != nil {
 					return errors.WrapError(ctx, err)
@@ -83,7 +85,8 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
-						ent := &Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: *modDef, Local: true}
+						modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
+						ent := &Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: true}
 						err = svc.dataStore.Save(ctx, ent)
 						if err != nil {
 							return errors.WrapError(ctx, err)

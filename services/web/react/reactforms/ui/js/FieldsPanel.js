@@ -20,7 +20,7 @@ class FieldsPanel extends React.Component {
     configureFields = (props) => {
         this.fieldWidgets = {}
         this.fieldProps = {}
-        console.log("configure fields", props, this)
+        console.log("configure fields", props, this, _uikit, _uikit.Field)
         for(let [fieldName, field] of Object.entries(this.fields)) {
             if(field.widget && field.widget.module) {
                 let fldWidget = _res(field.widget.module, field.widget.name);
@@ -28,7 +28,7 @@ class FieldsPanel extends React.Component {
             } else if(field.list) {
                 this.fieldWidgets[fieldName] = FldList
             } else {
-                this.fieldWidgets[fieldName] = _uikit.Forms.FieldWidget
+                this.fieldWidgets[fieldName] = _uikit.Field
             }
 
             let cl= props.inline?" inline formfield m10 ":" formfield m10 "

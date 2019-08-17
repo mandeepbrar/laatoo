@@ -7,7 +7,7 @@ import {Button} from '@material-ui/core';
 import {TextField} from './components/TextField';
 import {Select} from './components/Select';
 import './styles/app.scss';
-import Forms from './forms';
+import {FieldWidget} from './forms/FieldWidget';
 import {Tabset, Tab} from './components/Tabs';
 import {Block} from './components/Block';
 import {Icons} from './components/Icons';
@@ -60,12 +60,12 @@ class Form extends React.Component {
 export {
   Initialize,
   render,
+  FieldWidget as Field,
   Icon,
   Icons,
   ActionButton,
   Tabset,
   Tab,
-  Forms,
   Dialogs,
   Select,
   Block,

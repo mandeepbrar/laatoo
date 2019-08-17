@@ -23,6 +23,9 @@ modulesrepoview:
   method: POST
   url: "/moduledefinition/view"
 entitlementmodule:
-    method: POST
-    url: "/entitlement/view"
-    responseField: Module
+  method: POST
+  url: "/entitlement/view"
+  responseField: Module
+createmodule:
+  method: POST
+  url: "/entitlement"

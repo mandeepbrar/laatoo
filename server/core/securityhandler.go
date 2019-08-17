@@ -128,7 +128,10 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 
 	anonymousUser := userCreator()
 	init := anonymousUser.(core.Initializable)
-	err = init.Init(startCtx, core.MethodArgs{"Id": "Anonymous", "Roles": []string{sh.anonRole}})
+	userConf := ctx.CreateConfig()
+	userConf.Set(ctx, "Id", "Anonymous")
+	userConf.Set(ctx, "Roles", []string{sh.anonRole})
+	err = init.Initialize(startCtx, userConf)
 	if err != nil {
 		return err
 	}

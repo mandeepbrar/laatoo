@@ -137,13 +137,14 @@ moduleinstances:
       theme: websitetheme
   laatoositeui:
     module: laatoositeui
-    settings:
+    environment:
       uiapplication: websiteapplication
   websitetheme:
     module: laatootheme
     settings:
-      uiapplication: websiteapplication
       className: laatoosite
+    environment:
+      uiapplication: websiteapplication
 
 
   designershell:
@@ -156,19 +157,20 @@ moduleinstances:
   designerapplication:
     module: reactapplication
     settings:
-      uiapplication: designerapplication
       router: router
       uikit: reactmaterialkit
       theme: dashboard
+      uiapplication: designerapplication
   dashboard:
     module: laatoositetheme
     settings:
       authenticate: true
-      uiapplication: designerapplication
       className: laatoodashboard
       infoBlock: InfoBlock
       showMenu: true
+    environment:
+      uiapplication: designerapplication
   designerui:
     module: designerui
-    settings:
+    environment:
       uiapplication: designerapplication

@@ -1,0 +1,3 @@
+<Block title="Create Module" className="createModule">
+  <Panel className="userBlock" module="reactpages" type="form" id="new_form_entitlement"></Panel>
+</Block>

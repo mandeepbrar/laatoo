@@ -84,7 +84,7 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 		return errors.WrapError(ruleCtx, err)
 	}
 	init := obj.(core.Initializable)
-	err = init.Init(ruleCtx, map[string]interface{}{"conf": ruleConf})
+	err = init.Initialize(ruleCtx, ruleConf)
 	if err != nil {
 		return errors.WrapError(ruleCtx, err)
 	}

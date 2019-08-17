@@ -25,6 +25,8 @@ class Panel extends React.Component {
         case "block":
           desc = _reg('Blocks', id)
           break;
+        case "component":
+          break;
         default:
           desc = _reg('Panels', id)
       }
@@ -83,6 +85,7 @@ class Panel extends React.Component {
             }
           } else {
             var comp = _res(desc.module, desc.componentName)
+            console.log("component from module", comp, desc)
             this.getView = function(comp) {
               return function(props, context, state, className) {
                 let cl = { description: desc, className: className};
@@ -193,6 +196,7 @@ class Panel extends React.Component {
       this.getView = function(props, ctx, state, className) {
         console.log("calling block func", props, ctx, className)
         let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc)
+        console.log("returning block retval", retval)
         return retval
       }
     } else {
@@ -275,7 +279,7 @@ class Panel extends React.Component {
   processView = (desc, props, ctx) => {
     console.log("processing my view", desc, props, module)
     this.cfgPanel(desc.title, desc.overlay)
-    let viewHeader = desc.header? <Panel description={desc.header}/> :null
+    let viewHeader = desc.header? <Panel id={desc.header} type="block"/> :null
 
     if(!this.view) {
       this.view = _res("laatooviews", "View")

@@ -7,7 +7,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"securitycommon"
+	common "securitycommon"
 	"reflect"
 )
 
@@ -88,7 +88,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 
 	//obj := rs.userCreator()
 	init := ent.(core.Initializable)
-	init.Init(ctx, nil)
+	init.Initialize(ctx, nil)
 	//user := obj.(auth.User)
 
 	username := user.GetUserName()

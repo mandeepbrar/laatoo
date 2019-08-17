@@ -25,7 +25,7 @@ func init() {
 	objects.RegisterObject(CONF_AEROSPIKE_SERVICES, createAerospikeDataServicesFactory, nil)
 }
 
-func createAerospikeDataServicesFactory(ctx core.Context, args core.MethodArgs) (interface{}, error) {
+func createAerospikeDataServicesFactory(ctx core.Context, conf config.Config) (interface{}, error) {
 	return &aerospikeDataServicesFactory{}, nil
 }
 

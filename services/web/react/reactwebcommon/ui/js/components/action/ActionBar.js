@@ -8,8 +8,13 @@ class ActionBar extends React.Component {
   constructor(props) {
     super(props)
     this.actions = []
+    console.log("creating action bar", props)
     var desc = props.description;
-    console.log("action bar", props);
+    if(props.id || desc.id) {
+      let id = props.id? props.id : desc.id
+      desc = _reg('ActionBar', id)
+    }
+    console.log("action bar", props, desc);
     this.description = desc;
     this.className = props.className? props.className: desc.className;
     var comp = this;

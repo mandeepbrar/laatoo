@@ -16,6 +16,15 @@ function cacheable(cacheable) {
 function multitenant(multitenant) {
   return multitenant? multitenant: false
 }
+function postsave(postsave) {
+  return postsave? postsave: false
+}
+function presave(presave) {
+  return presave? presave: false
+}
+function postload(postload) {
+  return postload? postload: false
+}
 
 function imports(imports) {
   var importsStr = ""
@@ -109,6 +118,9 @@ function createEntity(entityJson, autogenFolder, filename) {
   }
   var buf = fs.readFileSync(tplpath);
   Handlebars.registerHelper('cacheable', cacheable);
+  Handlebars.registerHelper('postsave', postsave);
+  Handlebars.registerHelper('presave', presave);
+  Handlebars.registerHelper('postload', postload);
   Handlebars.registerHelper('multitenant', multitenant);
   Handlebars.registerHelper('imports', imports);
   Handlebars.registerHelper('type', type);

@@ -3,8 +3,9 @@
     "inherits":"",
     "imports":[],
     "multitenant": true,
+    "presave": true,
     "form": {
-        "layout": ["Name", "Module"]
+        "layout": ["Name"]
       },
     "fields":{
         "Name": {
@@ -18,11 +19,7 @@
             "type": "bool"
         },
         "Module": {
-            "type":"subentity",
-            "widget": "SubEntity",
-            "module": "subentity",
-            "addwidget": "ModuleSelect",
-            "addwidgetmodule": "modulesrepository",
+            "type":"storableref",
             "entity": "ModuleDefinition"
         }
     }

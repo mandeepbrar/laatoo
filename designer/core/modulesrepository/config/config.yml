@@ -55,10 +55,12 @@ modules:
       instance: Entitlement
       dataservicefactory: mongodatabase
       embedded_doc_search: true
+      list_view_mode: edit_module
       list_view_args: 
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
       form_new_args:
+        Local: true
         Solution: 
           Id: {{jsreplace "Application.Route.Params.solutionId"}}
           Type: Solution

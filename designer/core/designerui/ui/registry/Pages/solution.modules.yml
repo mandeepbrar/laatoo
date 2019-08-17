@@ -1,6 +1,7 @@
 route: "/solutionmodules"
 component:
   type: layout
+  className: entitylist
   layout: 1col
   items:
     - type: html
@@ -13,6 +14,10 @@ component:
           widget: button
         - name: uploadSolutionModule
           label: Upload
+          className: right
+          widget: button
+        - name: createModule
+          label: Creat
           className: right
           widget: button
       module: reactwebcommon

@@ -26,7 +26,7 @@ class SelectEntity extends React.Component {
     let fldDesc = {label: fld.label, name: fld.name, widget: { "name": "Select"}, type: "entity", items: this.state.items}
     return <_uikit.Block  className="row between-xs">
       <_uikit.Block className="left col-xs-10" >
-        <_uikit.Forms.FieldWidget className="w100" field={fldDesc} onChange={this.onChange} selectItem={true} value={this.state.value}/>
+        <_uikit.Field className="w100" field={fldDesc} onChange={this.onChange} selectItem={true} value={this.state.value}/>
       </_uikit.Block>
       <_uikit.Block className="right">
         <Action action={{actiontype:"method"}} className="edit p10" method={this.saveValue}>
@@ -259,7 +259,7 @@ class SubEntity extends LoadableComponent {
   selectSubEntity = () => {
     let fld = this.props.field
     let fldDesc = {label: fld.label, name: fld.name, widget: {"name": "Select"}, type: "entity"}
-    return <_uikit.Forms.FieldWidget className="w100" field={fldDesc} onChange={this.change}  selectItem={true} items={this.state.selectOptions} value={this.state.value}/>
+    return <_uikit.Field className="w100" field={fldDesc} onChange={this.change}  selectItem={true} items={this.state.selectOptions} value={this.state.value}/>
   }
 
   change = (value, name, evt) => {

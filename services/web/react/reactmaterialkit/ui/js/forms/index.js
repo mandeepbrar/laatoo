@@ -1,6 +1,6 @@
 import {FieldWidget} from './FieldWidget';
 
 
-export default {
+export {
   FieldWidget
 }

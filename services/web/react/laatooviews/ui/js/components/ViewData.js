@@ -141,6 +141,7 @@ class ViewData extends React.Component {
   render() {
     this.lastRenderTime = this.props.lastUpdateTime
     let view = this.renderView(this.props.items, this.props.currentPage, this.props.totalPages)
+    console.log("rendering view data", view, this.props.items)
     this.items=this.props.items
     return view
   }

@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
@@ -17,23 +18,24 @@ import (
 )
 
 type moduleManager struct {
-	name                  string
-	svrref                *abstractserver
-	parent                core.ServerElement
-	proxy                 elements.ModuleManager
-	modulesRepo           string
-	hotModulesRepo        string
-	availableModules      map[string]string
-	moduleInstances       map[string]*serverModule
-	installedModules      map[string]*semver.Version
-	moduleConf            map[string]config.Config
-	moduleInstancesConfig map[string]config.Config
-	loadedModules         map[string]*semver.Version
-	modulePlugins         map[string]components.ModuleManagerPlugin
-	parentModules         map[string]*serverModule
-	hotModules            map[string]string
-	objLoader             *objectLoader
-	watchers              []*watcher.Watcher
+	name                   string
+	svrref                 *abstractserver
+	parent                 core.ServerElement
+	proxy                  elements.ModuleManager
+	modulesRepo            string
+	hotModulesRepo         string
+	availableModules       map[string]string
+	moduleInstances        map[string]*serverModule
+	installedModules       map[string]*semver.Version
+	moduleInstallationConf map[string]config.Config
+	moduleConf             map[string]config.Config
+	moduleInstancesConfig  map[string]config.Config
+	loadedModules          map[string]*semver.Version
+	modulePlugins          map[string]components.ModuleManagerPlugin
+	parentModules          map[string]*serverModule
+	hotModules             map[string]string
+	objLoader              *objectLoader
+	watchers               []*watcher.Watcher
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -112,6 +114,16 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	for moduleName, modDir := range modMgr.hotModules {
+		moduleInstallConf := modMgr.moduleInstallationConf[moduleName]
+		log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
+		go modMgr.addWatch(ctx, moduleName, modDir, moduleInstallConf)
+		/*if err != nil {
+			return errors.WrapError(ctx, err)
+		}*/
+	}
+
 	return nil
 }
 

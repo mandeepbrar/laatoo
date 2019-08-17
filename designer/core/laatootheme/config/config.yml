@@ -13,7 +13,7 @@ settings:
     page: account
   - Solutions:
     title: Solutions
-    page: solutions
+    page: list_solution
   - AllModules:
     title: AllModules
     page: modulesrepo

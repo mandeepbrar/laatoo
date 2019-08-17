@@ -29,14 +29,6 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 					modDir = path.Join(modMgr.hotModulesRepo, modDevDir)
 				}
 				modMgr.hotModules[moduleName] = modDir
-				if hot {
-					log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
-					go modMgr.addWatch(ctx, moduleName, modDir, moduleInstallConf)
-					/*if err != nil {
-						return errors.WrapError(ctx, err)
-					}*/
-				}
-
 			}
 		}
 
@@ -57,6 +49,8 @@ func (modMgr *moduleManager) loadAvailableModules(ctx core.ServerContext, module
 			log.Info(ctx, "Module already installed", "Name", moduleName, "Version", installedVer)
 		} else {
 			//path, moduleAlreadyAvailable := modMgr.availableModules[moduleName]
+			modMgr.moduleInstallationConf[moduleName] = moduleInstallConf
+
 			modMgr.availableModules[moduleName] = modDir
 			modMgr.installedModules[moduleName] = nil
 		}

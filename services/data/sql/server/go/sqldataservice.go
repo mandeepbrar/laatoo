@@ -110,7 +110,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 	log.Trace(ctx, "Saving object", "Object", svc.Object)
 	id := item.GetId()
 	if id == "" {
-		item.Init(ctx, nil)
+		item.Initialize(ctx, nil)
 	}
 	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, item)

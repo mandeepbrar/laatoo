@@ -118,7 +118,11 @@ class BaseForm extends React.Component {
   dataLoaded = (data) => {
     this.dataLoading = true
     //let formData = Object.assign({}, data.resp.data)
-    this.setData(data.resp.data)
+    let respData = data.resp.data
+    if(this.desc.info && this.desc.info.preAssigned) {
+      respData = Object.assign({}, respData, this.desc.info.preAssigned)
+    }
+    this.setData(respData)
   }
 
   getFormValue = () => {
@@ -185,10 +189,10 @@ class EntityForm extends BaseForm {
       let svc = this.config.entityService
       let form = this
           //console.log("desc....", entityId, "name", entityName, entityFormCfg)
-      this.loader = (routeParams, dataLoaded, failureCallback) => {
-        if(entityId) {
+      if(entityId) {
+        this.loader = (routeParams, dataLoaded, failureCallback) => {
           dispatch(createAction(ActionNames.ENTITY_GET, { entityId, entityName}, {successCallback:  form.dataLoaded, failureCallback: failureCallback}));
-        }
+        } 
       }
       if(!this.formSubmit) {
         if(entityId) {
@@ -254,6 +258,7 @@ SubEntityForm.contextTypes = {
 class CustomForm extends BaseForm {
   constructor(props, context) {
     super(props, context)
+    console.log("creating custom form", props)
   }
   configureForm = (dispatch, props) => {
     let form = this
@@ -296,7 +301,7 @@ class WebFormUI extends React.Component {
     let desc = props.description
     let config = props.config? props.config: desc.config
     config = config? config :{}
-    if (config.entity && config.entityId){
+    if (config.entity){
       this.formType = EntityForm
     } else {
       this.formType = CustomForm
@@ -322,7 +327,7 @@ const ReduxForm = reduxForm({})(WebFormUI)
 const empty = {}
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
-  console.log("redux form state...........=======", state, ownProps)
+  console.log("redux form state...........=======", state, ownProps, desc, desc.info)
 
   let formData = ownProps.formData
   if (desc.info && desc.info.preAssigned){
@@ -333,7 +338,7 @@ const mapStateToProps = (state, ownProps) => {
   let form  = state.form[ownProps.form]
   console.log("form val", form, ownProps.form, state)
   let formVal = form? form.values: empty
-  console.log("form val", formVal)
+  console.log("form val", formVal, formData)
   return { formVal, formData}
 }
 

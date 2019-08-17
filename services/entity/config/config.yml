@@ -84,3 +84,9 @@ params:
   skipData:
     type: bool
     description: Skip data adapter services for entity
+  list_actionbar:
+    type: string
+    description: Action bar on list page of entity.
+  list_view_mode:
+    type: string
+    description: List view mode 

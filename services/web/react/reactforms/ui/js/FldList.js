@@ -45,7 +45,7 @@ class ListEditor extends React.Component {
       let newProps = Object.assign({}, props, {input:{value: str}})
       if(props.field.widget == "Select") {
         console.log("creating select val", str)
-        comps.push(<_uikit.Forms.FieldWidget className={props.className + " w100"} value={str} onChange={editText} field={props.field} {...props}/>)
+        comps.push(<_uikit.Field className={props.className + " w100"} value={str} onChange={editText} field={props.field} {...props}/>)
       }else {
         comps.push(<_uikit.TextField className={props.className + " w100"} value={str} onChange={editText} />)
       }

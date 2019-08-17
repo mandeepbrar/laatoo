@@ -1,0 +1,4 @@
+list_actions_{{default "instance" "object" | lower}}:
+  actions:
+    - name: form_new_{{default "instance" "object" | lower}}
+      label: New

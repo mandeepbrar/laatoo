@@ -58,7 +58,7 @@ func newServerModule(ctx core.ServerContext, name, moduleName, dirpath string, p
 func (mod *serverModule) loadMetaData(ctx core.ServerContext) error {
 	//inject service implementation into
 	//every service
-	impl := newModuleImpl(mod.name)
+	impl := newModuleImpl(mod.name, mod.svrContext)
 	mod.impl = impl
 	var modval core.Module
 	modval = impl
@@ -277,6 +277,7 @@ func (mod *serverModule) plugins(ctx core.ServerContext) (map[string]components.
 	return retVal, nil
 }
 */
+
 func (mod *serverModule) reload(ctx core.ServerContext) error {
 	return nil
 }

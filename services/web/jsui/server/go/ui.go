@@ -30,7 +30,7 @@ const (
 	CONF_FILE_UI         = "uifile"
 	CONF_FILE_DESC       = "descriptor"
 	CONF_PROPS_EXTENSION = "properties_ext"
-	CONF_APPLICATION     = "uiapplication"
+	CONF_UIAPPLICATION   = "uiapplication"
 	DEPENDENCIES         = "dependencies"
 	UI_DIR               = "ui"
 	REG_DIR              = "registry"
@@ -93,7 +93,7 @@ func (svc *UI) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.mergedcssfile, _ = svc.GetStringConfiguration(ctx, MERGED_CSS_FILE)
 	svc.mergedwasmfile, _ = svc.GetStringConfiguration(ctx, MERGED_WASM_FILE)
 	svc.bootfile, _ = svc.GetStringConfiguration(ctx, BOOT_FILE)
-	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_APPLICATION)
+	svc.application, _ = svc.GetStringConfiguration(ctx, CONF_UIAPPLICATION)
 	svc.propsExt, _ = svc.GetStringConfiguration(ctx, CONF_PROPS_EXTENSION)
 	svc.watchers = make([]*fsnotify.Watcher, 0)
 	svc.uiFiles = make(map[string][]byte)
@@ -124,8 +124,9 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 		return nil
 	}
 
-	app, ok := modInfo.ModSettings.GetString(ctx, CONF_APPLICATION)
-	if app != "" && svc.application != app {
+	app, ok := modInfo.GetContext(ctx, CONF_UIAPPLICATION)
+	log.Info(ctx, "UI process Module", "ins name", modInfo.InstanceName, "mod name", modName, "ok", ok, " ui application", app, " Processed app", svc.application)
+	if ok && svc.application != app.(string) {
 		log.Error(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
 		return nil
 	}
@@ -205,7 +206,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	}
 
 	if modInfo.Mod != nil {
-		uiplugin, ok := modInfo.Mod.(UIPlugin)
+		uiplugin, ok := modInfo.UserObj.(UIPlugin)
 		if ok {
 			svc.uiPlugins[modInfo.InstanceName] = modInfo
 			comps := uiplugin.UILoad(ctx)
@@ -325,7 +326,7 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 	log.Error(ctx, " UI module loaded", "plugins", svc.uiPlugins)
 	for _, modInfo := range svc.uiPlugins {
 		log.Error(ctx, " UI module loaded", "mod info", modInfo)
-		compsToProcess := modInfo.Mod.(UIPlugin).LoadingComplete(ctx)
+		compsToProcess := modInfo.UserObj.(UIPlugin).LoadingComplete(ctx)
 		if compsToProcess != nil {
 			reg, _ := compsToProcess["registry"]
 			if reg != nil {

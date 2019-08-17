@@ -77,44 +77,82 @@ func (svc *UI) createXMLForm(ctx core.ServerContext, itemType string, itemName s
 	return nil
 }
 
-func (svc *UI) processXMLFieldChildItems(ctx core.ServerContext, node Node, name, widget string, conf config.Config) {
-	if widget == "Select" {
-		if len(node.Nodes) > 0 {
-			items := make([]config.Config, 0)
-			for _, childNode := range node.Nodes {
-				if childNode.XMLName.Local == "Item" {
-					item := ctx.CreateConfig()
-					for _, attr := range childNode.Attrs {
-						item.Set(ctx, attr.Name.Local, attr.Value)
-					}
-					items = append(items, item)
+func (svc *UI) processXMLFieldChildItems(ctx core.ServerContext, node Node, conf config.Config) {
+	if len(node.Nodes) > 0 {
+		items := make([]config.Config, 0)
+		for _, childNode := range node.Nodes {
+			if childNode.XMLName.Local == "Item" {
+				item := ctx.CreateConfig()
+				for _, attr := range childNode.Attrs {
+					item.Set(ctx, attr.Name.Local, attr.Value)
 				}
+				items = append(items, item)
 			}
-			conf.Set(ctx, "items", items)
 		}
+		conf.Set(ctx, "items", items)
 	}
 }
 
 func (svc *UI) getFields(ctx core.ServerContext, node Node, conf config.Config) {
 	for _, childNode := range node.Nodes {
 		if childNode.XMLName.Local == "Field" {
-			fieldName := ""
-			widget := ""
 			fieldConf := ctx.CreateConfig()
-			for _, attr := range childNode.Attrs {
-				if attr.Name.Local == "name" {
-					fieldName = attr.Value
-				} else {
-					if attr.Name.Local == "widget" {
-						widget = attr.Value
-					}
-					fieldConf.Set(ctx, attr.Name.Local, attr.Value)
-				}
-			}
-			svc.processXMLFieldChildItems(ctx, childNode, fieldName, widget, fieldConf)
+			fieldName := svc.populateFieldNodeConf(ctx, childNode, fieldConf)
 			conf.Set(ctx, fieldName, fieldConf)
 		} else {
 			svc.getFields(ctx, childNode, conf)
+		}
+	}
+}
+
+func (svc *UI) populateFieldNodeConf(ctx core.ServerContext, node Node, conf config.Config) string {
+	widgetConf := ctx.CreateConfig()
+	propsConf := ctx.CreateConfig()
+	widgetConf.Set(ctx, "props", propsConf)
+	conf.Set(ctx, "widget", widgetConf)
+	widget := ""
+	fieldName := ""
+
+	for _, attr := range node.Attrs {
+		switch attr.Name.Local {
+		case "name":
+			fieldName = attr.Value
+		case "entity":
+			conf.Set(ctx, attr.Name.Local, attr.Value)
+		case "list":
+			conf.Set(ctx, attr.Name.Local, attr.Value)
+		case "type":
+			conf.Set(ctx, attr.Name.Local, attr.Value)
+		case "ref":
+			conf.Set(ctx, attr.Name.Local, attr.Value)
+		case "widget":
+			widget = attr.Value
+			widgetConf.Set(ctx, "name", widget)
+		case "module":
+			widgetConf.Set(ctx, attr.Name.Local, attr.Value)
+		default:
+			propsConf.Set(ctx, attr.Name.Local, attr.Value)
+		}
+	}
+	if widget == "Select" {
+		svc.processXMLFieldChildItems(ctx, node, widgetConf)
+	}
+	return fieldName
+}
+
+func (svc *UI) populateFieldWidgetConf(ctx core.ServerContext, node Node, conf config.Config) {
+	for _, attr := range node.Attrs {
+		set := false
+		switch attr.Name.Local {
+		case "widget":
+			set = true
+		case "module":
+			set = true
+		case "classname":
+			set = true
+		}
+		if set {
+			conf.Set(ctx, attr.Name.Local, attr.Value)
 		}
 	}
 }
