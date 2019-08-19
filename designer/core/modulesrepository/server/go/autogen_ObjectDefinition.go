@@ -16,6 +16,7 @@ type ObjectDefinition struct {
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	Type	string `json:"Type" bson:"Type" datastore:"Type"`
+	Request	[]RequestDefinition `json:"Request" bson:"Request" datastore: "Request"`
 	Configurations	[]ConfigurationDefinition `json:"Configurations" bson:"Configurations" datastore: "Configurations"`
 }
 

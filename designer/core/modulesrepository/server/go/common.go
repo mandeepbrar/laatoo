@@ -171,7 +171,7 @@ func readDependencies(ctx core.RequestContext, mod *ModuleDefinition, conf confi
 }
 
 func readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	params := make(map[string]ModuleParam)
+	params := make([]ModuleParam, 0)
 	log.Error(ctx, "Reading params", "conf", conf)
 	paramsConf, ok := conf.GetSubConfig(ctx, "params")
 	if ok {
@@ -181,7 +181,7 @@ func readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Conf
 			ptype, _ := paramConf.GetString(ctx, "type")
 			desc, _ := paramConf.GetString(ctx, "description")
 			modParam := ModuleParam{Name: paramName, Type: ptype, Description: desc}
-			params[paramName] = modParam
+			params = append(params, modParam)
 		}
 	}
 	log.Error(ctx, "Reading params", "params", params)
@@ -328,10 +328,11 @@ func writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) ([]byte, er
 
 	formFields := make(map[string]interface{})
 
-	for pname, pConf := range mod.Params {
+	for _, param := range mod.Params {
+		pname := param.Name
 		formParam := make(map[string]interface{})
 		formParam["name"] = pname
-		formParam["type"] = pConf.Type
+		formParam["type"] = param.Type
 		formParam["className"] = " configformfield " + pname
 		formFields[pname] = formParam
 	}

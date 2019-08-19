@@ -1,0 +1,11 @@
+route: "/editmodule/:entityId"
+component:
+  type: layout
+  layout: 1col
+  items:
+    - type: html
+      html: <h3>Edit Module</h3>
+    - type: form
+      id: update_form_moduledefinition
+      entityName: ModuleDefinition
+

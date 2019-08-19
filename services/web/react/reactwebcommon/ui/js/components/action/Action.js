@@ -22,7 +22,7 @@ class ActionComp extends React.Component {
       this.action = _reg('Actions', props.name)
     }
     console.log("action", this.action)
-    if(this.action.actiontype == "method") {
+    if(this.action && this.action.actiontype == "method") {
       if(this.props.method) {
         this.actionMethod = this.props.method? this.props.method: _reg("Methods", this.action.method)
       } else {

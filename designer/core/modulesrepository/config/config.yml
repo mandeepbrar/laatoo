@@ -47,6 +47,27 @@ modules:
       parent: root
       instance: ModuleForm
       dataservicefactory: mongodatabase
+  objectdefinition: 
+    module: entity
+    settings:
+      object: ObjectDefinition
+      parent: root
+      instance: ObjectDefinition
+      skipData: true
+  requestdefinition: 
+    module: entity
+    settings:
+      object: RequestDefinition
+      parent: root
+      instance: RequestDefinition
+      skipData: true
+  moduleparam: 
+    module: entity
+    settings:
+      object: ModuleParam
+      parent: root
+      instance: ModuleParam
+      skipData: true
   entitlements:
     module: entity
     settings:

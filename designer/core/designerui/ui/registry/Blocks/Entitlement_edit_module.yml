@@ -14,5 +14,5 @@ Block:
           name: editModule
           display: {{jsreplace "ctx.data.Local"}}
           params:
-            id: {{jsreplace "ctx.data.Module.Id"}}
+            moduleId: {{jsreplace "ctx.data.Module.Id"}}
           body: Edit Module

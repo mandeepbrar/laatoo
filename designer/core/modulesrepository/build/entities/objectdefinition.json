@@ -4,7 +4,14 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "layout": ["Name"]
+    "tabs": {
+      "General": ["Name", "Description", "Type"],
+      "Request": ["Request"],
+      "Configurations": ["Configurations"]
+    },
+    "overlay": true,
+    "submit": "Save",
+    "layout": ["General", "Configurations", "Request"]
   },
   "fields":{
     "Name": {
@@ -14,7 +21,24 @@
       "type":"string"
     },
     "Type": {
-      "type":"string"
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "service", "value":"service"},
+            {"text": "module", "value":"module"},
+            {"text": "factory", "value":"factory"},
+            {"text": "rule", "value":"rule"},
+            {"text": "task", "value":"task"}
+          ]    
+        }
+      }
+    },
+    "Request": {
+      "type":"subentity",
+      "entity": "RequestDefinition",
+      "list": true
     },
     "Configurations": {
       "type":"subentity",

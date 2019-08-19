@@ -11,4 +11,4 @@ createModule:
   title: Create Module
   id: createmodule
 editModule:
-  url: "/editmodule/:id"
+  url: "/editmodule/:moduleId"

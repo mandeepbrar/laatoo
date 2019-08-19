@@ -4,7 +4,23 @@
   "imports":[],
   "titleField": "Name",
   "form": {
-    "layout": ["Name"]
+    "tabs": {
+      "General": ["Name", "Description", "Version", "Params"],
+      "Dependencies": ["Dependencies", "UIDependencies"],
+      "Params": ["Params"],
+      "Channels": ["Channels"],
+      "Engines": ["Engines"],
+      "Services": ["Services"],
+      "Factories": ["Factories"],
+      "Rules": ["Rules"],
+      "Tasks": ["Tasks"],
+      "Objects": ["Objects"]
+    },
+    "verticaltabs": true,
+    "overlay": true,
+    "submit": "Save",
+    "layout": ["General", "Dependencies", "Params", "Factories", "Services", "Engines", "Channels", "Rules", "Tasks", "Objects"]
+
   },
   "fields":{
     "Name": {
@@ -14,8 +30,13 @@
       "type":"string"
     },
     "Params": {
-      "type": "stringmap",
-      "mappedElement": "ModuleParam"
+      "type": "subentity",
+      "entity": "ModuleParam",
+      "list": true,
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity"
+      }
     },    
     "Dependencies": {
       "type":"stringsmap"
@@ -29,7 +50,11 @@
     "Objects": {
       "type":"subentity",
       "entity": "ObjectDefinition",      
-      "list": true
+      "list": true,
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity"
+      }
     },
     "Services": {
       "type":"string",

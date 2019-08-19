@@ -16,6 +16,8 @@ type ModuleParam struct {
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Type	string `json:"Type" bson:"Type" datastore:"Type"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
+	Required	bool `json:"Required" bson:"Required" datastore:"Required"`
+	Default	string `json:"Default" bson:"Default" datastore:"Default"`
 }
 
 func (ent *ModuleParam) Config() *data.StorableConfig {

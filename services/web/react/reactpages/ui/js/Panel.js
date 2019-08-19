@@ -302,7 +302,7 @@ class Panel extends React.Component {
     this.getView = function(props, ctx, state, className) {
       var desc = props.description
       let displayMode = desc.entityDisplay? desc.entityDisplay :"default"
-      console.log("view entity description", desc, displayMode, props)
+      console.log("view entity description", desc, displayMode, props, ctx)
       this.cfgPanel(desc.title, desc.overlay)
       var entityDisplay={type:"block", id: desc.entityName+"_" + displayMode, defaultBlock: desc.entityName+"_default"}
       let id = "", name = ""
@@ -318,7 +318,7 @@ class Panel extends React.Component {
       if(props.index) {
         itemClass = props.index%2 ? "oddindex": "evenindex"
       }
-      console.log("my entity data111", entityData, entityIndex, desc, props)
+      console.log("my entity data", entityData, entityIndex, desc, props, id, ctx)
       return <this.entity id={id} name={name} entityDescription={desc} data={entityData} index={entityIndex}>
         <Panel description={entityDisplay} parent={props.parent} className={itemClass} />
       </this.entity>

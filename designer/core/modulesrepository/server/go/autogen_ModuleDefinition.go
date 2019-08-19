@@ -15,7 +15,7 @@ type ModuleDefinition struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Version	string `json:"Version" bson:"Version" datastore:"Version"`
-	Params	map[string]ModuleParam `json:"Params" bson:"Params" datastore:"Params"`
+	Params	[]ModuleParam `json:"Params" bson:"Params" datastore: "Params"`
 	Dependencies	map[string]string `json:"Dependencies" bson:"Dependencies" datastore:"Dependencies"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	UIDependencies	map[string]string `json:"UIDependencies" bson:"UIDependencies" datastore:"UIDependencies"`
