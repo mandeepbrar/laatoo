@@ -54,6 +54,10 @@ modules:
     hotmodule: true
     hotmodulepath: designer/core/laatoositeui
     hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+  moduledesignerui:
+    hotmodule: true
+    hotmodulepath: designer/core/moduledesignerui
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -145,6 +149,34 @@ moduleinstances:
       className: laatoosite
     environment:
       uiapplication: websiteapplication
+
+
+  moduleshell:
+    module: shell
+    settings:
+      uiapplication: moduledesigner
+      indexpath: /module/:moduleId
+      uidependencies:
+        react: ''
+  moduledesigner:
+    module: reactapplication
+    settings:
+      uiapplication: moduledesigner
+      router: router
+      uikit: reactmaterialkit
+      theme: moduledesignertheme
+  moduledesignerui:
+    module: moduledesignerui
+    environment:
+      uiapplication: moduledesigner
+  moduledesignertheme:
+    module: laatoositetheme
+    settings:
+      authenticate: true
+      className: laatoodashboard
+      infoBlock: InfoBlock
+    environment:
+      uiapplication: moduledesigner
 
 
   designershell:

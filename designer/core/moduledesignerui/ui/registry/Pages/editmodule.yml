@@ -1,4 +1,4 @@
-route: "/editmodule/:entityId"
+route: "/"
 component:
   type: layout
   layout: 1col
@@ -8,4 +8,5 @@ component:
     - type: form
       id: update_form_moduledefinition
       entityName: ModuleDefinition
+      entityId: {{jsreplace "Application.Route.Params.moduleId"}}
 

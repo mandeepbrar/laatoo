@@ -11,4 +11,5 @@ createModule:
   title: Create Module
   id: createmodule
 editModule:
-  url: "/editmodule/:moduleId"
+  url: "/module/:moduleId"
+  actiontype: newwindow

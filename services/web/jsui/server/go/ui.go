@@ -179,7 +179,7 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 		return errors.WrapError(ctx, err)
 	}
 
-	err = svc.appendPropertyFiles(ctx, modName, modInfo.ModProps)
+	err = svc.appendPropertyFiles(ctx, modName, modInfo.InstanceName, modInfo.ModProps)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
