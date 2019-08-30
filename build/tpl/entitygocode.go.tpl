@@ -1,4 +1,8 @@
+{{#if sdkinclude}}
+package {{modulename}}
+{{else}}
 package main
+{{/if}}
 
 import (
   {{#imports imports}}{{/imports}}

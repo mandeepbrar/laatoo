@@ -338,7 +338,6 @@ func (svc *UI) Loaded(ctx core.ServerContext) error {
 			}
 		}
 	}
-	log.Error(ctx, "going to write output", "service", svc)
 	return svc.writeOutput(ctx)
 }
 

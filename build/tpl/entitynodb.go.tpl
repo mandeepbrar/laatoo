@@ -1,4 +1,9 @@
+{{#if sdkinclude}}
+package {{modulename}}
+{{else}}
 package main
+{{/if}}
+
 
 import (
   {{#imports imports}}{{/imports}}
@@ -21,3 +26,7 @@ func (ent *{{#type name}}{{/type}}) Config() *data.StorableConfig {
 		Type:            "{{#type name}}{{/type}}",
 	}
 }
+
+{{#if sdkinclude}}
+{{#fieldFuncs fields name}}{{/fieldFuncs}}
+{{/if}}

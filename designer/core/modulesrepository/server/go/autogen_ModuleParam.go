@@ -35,3 +35,5 @@ func (ent *ModuleParam) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
+
+

@@ -1,5 +1,6 @@
 {
     "name":"Entitlement",
+    "sdkinclude": true,
     "inherits":"",
     "imports":[],
     "multitenant": true,

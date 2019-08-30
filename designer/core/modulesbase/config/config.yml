@@ -1,0 +1,89 @@
+version: 0.0.1
+dependencies:
+  entity: ">=0.0.1"
+description: Module provides base objects for designer
+modules:
+  moduledefinition:
+    module: entity
+    settings:
+      object: ModuleDefinition
+      parent: root
+      instance: ModuleDefinition
+      dataservicefactory: mongodatabase
+  objectdefinition: 
+    module: entity
+    settings:
+      object: ObjectDefinition
+      parent: root
+      instance: ObjectDefinition
+      skipData: true
+  rule: 
+    module: entity
+    settings:
+      object: Rule
+      parent: root
+      instance: Rule
+      skipData: true
+  moduleparam: 
+    module: entity
+    settings:
+      object: Param
+      parent: root
+      instance: Param
+      skipData: true
+  channel: 
+    module: entity
+    settings:
+      object: Channel
+      parent: root
+      instance: Channel
+      skipData: true
+  engine: 
+    module: entity
+    settings:
+      object: Entity
+      parent: root
+      instance: Entity
+      skipData: true
+  factory: 
+    module: entity
+    settings:
+      object: Factory
+      parent: root
+      instance: Factory
+      skipData: true
+  field: 
+    module: entity
+    settings:
+      object: Field
+      parent: root
+      instance: Field
+      skipData: true
+  instance: 
+    module: entity
+    settings:
+      object: ModuleInstance
+      parent: root
+      instance: ModuleInstance
+      skipData: true
+  service: 
+    module: entity
+    settings:
+      object: Service
+      parent: root
+      instance: Service
+      skipData: true
+  task: 
+    module: entity
+    settings:
+      object: Task
+      parent: root
+      instance: Task
+      skipData: true
+  configform: 
+    module: entity
+    settings:
+      object: ConfigForm
+      parent: root
+      instance: ConfigForm
+      skipData: true

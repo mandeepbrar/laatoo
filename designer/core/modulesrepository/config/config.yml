@@ -40,6 +40,14 @@ modules:
       parent: root
       instance: ModuleDefinition
       dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_view: true
   moduleform:
     module: entity
     settings:
@@ -66,7 +74,8 @@ modules:
     settings:
       object: ModuleParam
       parent: root
-      instance: ModuleParam
+      instance: ModuleParam  print 1+1  is   2
+    
       skipData: true
   entitlements:
     module: entity

@@ -3,8 +3,7 @@ module defaultuser
 go 1.12
 
 require (
-	github.com/imdario/mergo v0.3.7 // indirect
-	golang.org/x/crypto v0.0.0-20190510104115-cbcb75029529
+	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
 	laatoo/sdk v0.0.0
 )
 

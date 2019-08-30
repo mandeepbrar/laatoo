@@ -15,7 +15,7 @@ type Entity struct {
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Fields	[]Field `json:"Fields" bson:"Fields" datastore: "Fields"`
+	Fields	[]Field `json:"Fields" bson:"Fields" datastore:"Fields"`
 }
 
 func (ent *Entity) Config() *data.StorableConfig {
@@ -33,3 +33,5 @@ func (ent *Entity) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
+
+

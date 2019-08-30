@@ -2,8 +2,11 @@ var path = require('path');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
 var Handlebars = require('handlebars')
-var {log} = require('./utils');
-var {buildFolder} = require('./buildconfig');
+var {log, listDir} = require('./utils');
+var {buildFolder, name, pluginFolder} = require('./buildconfig');
+var {createGoModule} = require('./utils')
+
+var hasSdk = false;
 
 function collection(collection, name) {
   return collection? collection: name
@@ -25,6 +28,9 @@ function presave(presave) {
 function postload(postload) {
   return postload? postload: false
 }
+function sdkinclude(sdkinclude) {
+  return sdkinclude? sdkinclude: false
+}
 
 function imports(imports) {
   var importsStr = ""
@@ -43,6 +49,9 @@ function type(name) {
 function titleField(titleField) {
   return titleField? titleField: "Title"
 }
+function modulename() {
+  return name
+}
 
 function fields(fields) {
   var fieldsStr = ""
@@ -52,66 +61,50 @@ function fields(fields) {
     let bsonF = field.bson?field.bson:fieldName
     let datastoreF = field.datastore? field.datastore : fieldName
     let refentity = field.entity? field.entity: "";
-    switch (field.type) {
-      case "storable":
-        if(field.list) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.Storable", jsonF, bsonF, datastoreF)
-        } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, "data.Storable", jsonF, bsonF, datastoreF)
-        }
-        break;
-      case "storableref":
-      if(field.list) {
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" entity:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, refentity, datastoreF)
-      } else {
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\"  entity:\"%s\" datastore: \"%s\"`", fieldName, "data.StorableRef", jsonF, bsonF, refentity, datastoreF)
-      }
-      break;
-      case "entity":
-        if(field.list) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, "*" + field.entity, jsonF, bsonF, datastoreF)
-        } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, "*" + field.entity, jsonF, bsonF, datastoreF)
-        }
-        break;
-      case "subentity":
-        if(field.list) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
-        } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore: \"%s\"`", fieldName, field.entity, jsonF, bsonF, datastoreF)
-        }
-        break;
-      case "stringmap":
-        if(field.mappedElement) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.mappedElement, jsonF, bsonF, datastoreF)
-        } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]interface{} `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, jsonF, bsonF, datastoreF)
-        }
-        break;
-      case "stringsmap":
-        fieldsStr = fieldsStr + sprintf("\r\n\t%s\tmap[string]string `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, jsonF, bsonF, datastoreF)
-        break;
-      default:
-        if(field.list) {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t[]%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)
-        } else {
-          fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, field.type, jsonF, bsonF, datastoreF)
-        }
-    }
+    let fieldType = getFieldType(field)    
+    fieldsStr = fieldsStr + sprintf("\r\n\t%s\t%s `json:\"%s\" bson:\"%s\" datastore:\"%s\"`", fieldName, fieldType, jsonF, bsonF, datastoreF)
   });
   return fieldsStr
 }
 
-function autogenFolder(pluginFolder) {
-  return path.join(pluginFolder, "server", "go")
+function goFolder(name) {
+  let autogenFolder = path.join(pluginFolder, "server", "go")
+  if(!fs.existsSync(autogenFolder)) {
+    fs.mkdirsSync(autogenFolder);
+    createGoModule( name , autogenFolder)
+  }
+  return autogenFolder
+}
+
+function sdkFolder(name) {
+  let sdkFolder = path.join(pluginFolder, "sdk", "go")
+  if(!fs.existsSync(sdkFolder)) {
+    fs.mkdirsSync(sdkFolder);
+    createGoModule( name +"/sdk" , sdkFolder)
+  }
+  return sdkFolder
 }
 
 
-function createEntity(entityJson, autogenFolder, filename) {
-  let name = entityJson["name"]
-  name = name? name +".go": filename.substring(0, filename.length-5)+".go"
-  fs.mkdirsSync(autogenFolder)
-  let filepath = path.join(autogenFolder, "autogen_" + name)
+
+function createEntity(entityJson, filename) {
+  let entityname = entityJson["name"];
+  entityname = entityname? entityname: filename.substring(0, filename.length-5);
+  let sdkInclude = entityJson["sdkinclude"];
+  if(sdkInclude) {
+    //copyEntityToSDK(filename);
+    //createEntityImpl(entityJson, entityname, sdkFolder(name));
+    hasSdk = true
+    log("has sdk set to ", hasSdk)
+  } else {
+    createEntityImpl(entityJson, entityname, goFolder(name));
+  }
+}
+
+function createEntityImpl(entityJson, entityname, folder) {
+  entityname = entityname +".go";
+  fs.mkdirsSync(folder);
+  let filepath = path.join(folder, "autogen_" + entityname)
   let tplpath = path.join(buildFolder, 'tpl/entitygocode.go.tpl');
   if(entityJson.collection == "<nocollection>") {
     tplpath = path.join(buildFolder, 'tpl/entitynodb.go.tpl');
@@ -120,6 +113,8 @@ function createEntity(entityJson, autogenFolder, filename) {
   Handlebars.registerHelper('cacheable', cacheable);
   Handlebars.registerHelper('postsave', postsave);
   Handlebars.registerHelper('presave', presave);
+  Handlebars.registerHelper('modulename', modulename);
+  Handlebars.registerHelper('sdkinclude', sdkinclude);  
   Handlebars.registerHelper('postload', postload);
   Handlebars.registerHelper('multitenant', multitenant);
   Handlebars.registerHelper('imports', imports);
@@ -127,6 +122,7 @@ function createEntity(entityJson, autogenFolder, filename) {
   Handlebars.registerHelper('titleField', titleField);
   Handlebars.registerHelper('fields', fields);
   Handlebars.registerHelper('collection', collection);
+  Handlebars.registerHelper('fieldFuncs', fieldFuncs);
   var template = Handlebars.compile(buf.toString());
   let gofile = template(entityJson)
   if (fs.pathExistsSync(filepath)) {
@@ -135,37 +131,125 @@ function createEntity(entityJson, autogenFolder, filename) {
   fs.writeFileSync(filepath, gofile)
 }
 
+
+function createEntityInterface(entityJson, entityname, folder) {
+  let destFile = path.join(folder, "autogen_I" + entityname + ".go")
+  let tplpath = path.join(buildFolder, 'tpl/entityinterface.go.tpl');
+  var buf = fs.readFileSync(tplpath);
+  Handlebars.registerHelper('cacheable', cacheable);
+  Handlebars.registerHelper('postsave', postsave);
+  Handlebars.registerHelper('presave', presave);
+  Handlebars.registerHelper('postload', postload);
+  Handlebars.registerHelper('modulename', modulename);
+  Handlebars.registerHelper('multitenant', multitenant);
+  Handlebars.registerHelper('imports', imports);
+  Handlebars.registerHelper('type', type);
+  Handlebars.registerHelper('titleField', titleField);
+  Handlebars.registerHelper('fields', fields);
+  Handlebars.registerHelper('collection', collection);
+  Handlebars.registerHelper('fieldFuncDefs', fieldFuncDefs);
+  var template = Handlebars.compile(buf.toString());
+  let gofile = template(entityJson)
+  if (fs.pathExistsSync(destFile)) {
+    fs.removeSync(destFile)
+  }
+  fs.writeFileSync(destFile, gofile)
+}
+
+
 function plugins(entities) {
   let str = ""
   Object.keys(entities).forEach(function(entity) {
       let entityJson = entities[entity]
       let entityDesc = JSON.stringify(entityJson).replace(/\"/g,'\\"')
-      str = str + sprintf("core.PluginComponent{Name: \"%s\", Object: %s{}, Metadata: core.NewInfo(\"\",\"%s\", map[string]interface{}{\"descriptor\":\"%s\"})},", entity, entity, entity, entityDesc)
+      let objectName = entityJson.sdkinclude? name + "." + entity: entity
+      str = str + sprintf("core.PluginComponent{Name: \"%s\", Object: %s{}, Metadata: core.NewInfo(\"\",\"%s\", map[string]interface{}{\"descriptor\":\"%s\"})},", entity, objectName, entity, entityDesc)
   });
   return str
 }
 
-function createManifest(entities, autogenFolder, pluginFolder) {
-  let manifestpath = path.join(pluginFolder, "server", "go", "manifest.go")
-  if (!fs.pathExistsSync(manifestpath)) {
+function createManifest(entities, name, pluginFolder) {
+  let manifestpath = goFolder(name)
+  let manifestFile = path.join(manifestpath, "manifest.go")
+  if (!fs.pathExistsSync(manifestFile)) {
+    fs.mkdirsSync(manifestpath)
     var buf = fs.readFileSync(path.join(buildFolder, '/tpl/manifest.go.tpl'));
     var template = Handlebars.compile(buf.toString());
     let gofile = template({})
-    fs.writeFileSync(manifestpath, gofile)
+    fs.writeFileSync(manifestFile, gofile)
   }
-  let objectspath = path.join(autogenFolder, "autogen_objectsmanifest.go")
+
+  let objectspath = path.join(goFolder(name), "autogen_objectsmanifest.go")
   if (!fs.pathExistsSync(objectspath)) {
     fs.removeSync(objectspath)
   }
   var buf = fs.readFileSync(path.join(buildFolder,'/tpl/objects.go.tpl'));
   Handlebars.registerHelper('plugins', plugins);
   var template = Handlebars.compile(buf.toString());
-  let gofile = template({"entities": entities})
+  log("has Sdk in creating manifest", hasSdk)
+  let gofile = template({"entities": entities, "name": name, "hasSDK": hasSdk})
   fs.writeFileSync(objectspath, gofile)
+  listDir("/laatoo/sdk")
+  
+}
+
+function fieldFuncDefs(fields) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let refentity = field.entity? field.entity: "";
+    let fieldType = getFieldType(field)    
+    fieldsStr = fieldsStr + sprintf("\r\n\tGet%s()%s", fieldName, fieldType)
+    fieldsStr = fieldsStr + sprintf("\r\n\tSet%s(%s)", fieldName, fieldType)
+  });
+  return fieldsStr
+}
+
+function fieldFuncs(fields, name) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let fieldType = getFieldType(field)    
+    fieldsStr = fieldsStr + sprintf("\r\nfunc (ent *%s) Get%s()%s {\r\n\treturn ent.%s\r\n}", name, fieldName, fieldType, fieldName)
+    fieldsStr = fieldsStr + sprintf("\r\nfunc (ent *%s) Set%s(val %s) {\r\n\tent.%s=val\r\n}", name, fieldName, fieldType, fieldName)
+  });
+  return fieldsStr
+}
+
+function getFieldType(field) {
+  let fieldType = field.type
+  switch (fieldType) {
+    case "storable":
+      fieldType = "data.Storable"
+      break;
+    case "storableref":
+      fieldType = "data.StorableRef"
+      break;
+    break;
+    case "entity":
+      fieldType = "*"+field.entity
+    break;
+    case "subentity":
+      fieldType = field.entity
+      break;
+    case "stringmap":
+      if(field.mappedElement) {
+        fieldType = "map[string]"+field.mappedElement
+      } else {
+        fieldType = "map[string]interface{}"
+      }
+      break;
+    case "stringsmap":
+      fieldType = "map[string]string"
+    break;
+  }
+  if(field.list) {
+    fieldType = "[]"+fieldType
+  }
+  return fieldType  
 }
 
 module.exports = {
   createEntity: createEntity,
-  createManifest: createManifest,
-  autogenFolder: autogenFolder
+  createManifest: createManifest
 }

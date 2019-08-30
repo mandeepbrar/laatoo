@@ -3,8 +3,8 @@ module gaedatastoreservice
 go 1.12
 
 require (
-	github.com/imdario/mergo v0.3.7 // indirect
-	golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5
+	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	google.golang.org/appengine v1.5.0
 	laatoo/sdk v0.0.0
 )

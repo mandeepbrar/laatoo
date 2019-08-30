@@ -15,6 +15,7 @@ class Panel extends React.Component {
     let id = props.id? props.id : ((desc && desc.id)? desc.id: null);
     let type = props.type? props.type: ((desc && desc.type)? desc.type: "layout");
     if(id) {
+      let panelInfo = desc? desc.info: null;
       switch(type) {
         case "view":
           desc = _reg('Views', id)
@@ -31,7 +32,9 @@ class Panel extends React.Component {
           desc = _reg('Panels', id)
       }
       console.log("desc before assig", desc, props, id, type, Application)
-      desc = Object.assign({type: type, id: id}, desc, props)
+      desc = Object.assign({type: type, id: id}, desc)
+      console.log("desc after assign", desc, desc.info, panelInfo)
+      desc.info = Object.assign({}, desc.info, panelInfo)
     }
 
     this.title = props.title? props.title: (desc && desc.title? desc.title:null)
@@ -246,7 +249,7 @@ class Panel extends React.Component {
           formCfg = Object.assign({}, cfg, ctx.routeParams)
         }
         console.log("form cfg", formCfg, cfg, props)
-        return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} config={formCfg} inline={props.inline}
+        return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} info={formCfg} inline={props.inline}
           onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}
           autoSubmitOnChange={props.autoSubmitOnChange} actions={props.actions} description={desc} className={className} id={desc.id}/>
       }

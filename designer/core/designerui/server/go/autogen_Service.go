@@ -19,7 +19,7 @@ type Service struct {
 	ServiceMethod	string `json:"ServiceMethod" bson:"ServiceMethod" datastore:"ServiceMethod"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
-	Configuration	Configuration `json:"Configuration" bson:"Configuration" datastore: "Configuration"`
+	Configuration	Configuration `json:"Configuration" bson:"Configuration" datastore:"Configuration"`
 }
 
 func (ent *Service) Config() *data.StorableConfig {
@@ -37,3 +37,5 @@ func (ent *Service) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
+
+

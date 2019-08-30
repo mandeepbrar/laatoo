@@ -1,0 +1,3 @@
+servicemethod: filesystem
+filestoragedir: /modulesrepo/global
+forward: repository.import

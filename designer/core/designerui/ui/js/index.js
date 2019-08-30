@@ -22,7 +22,7 @@ function Form_Instance_Modules(props, context, callback) {
 }
 
 function Form_SyncModules(form, submit, setData, dispatch) {
-  let type=  form.config.entity.toLowerCase()
+  let type=  form.info.entity.toLowerCase()
   console.log("form sync", type)
   return (data) => {
     console.log("data", data)

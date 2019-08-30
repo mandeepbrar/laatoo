@@ -7,6 +7,6 @@ import (
 
 func ObjectsManifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{
-    core.PluginComponent{Name: "Solution", Object: Solution{}, Metadata: core.NewInfo("","Solution", map[string]interface{}{"descriptor":"{\"name\":\"Solution\",\"inherits\":\"\",\"imports\":[],\"multitenant\":true,\"form\":{\"overlay\":true,\"layout\":[\"Name\",\"Description\",\"Modules\"]},\"titleField\":\"Name\",\"fields\":{\"Name\":{\"type\":\"string\"},\"Description\":{\"type\":\"string\"},\"User\":{\"type\":\"string\"},\"Modules\":{\"type\":\"storableref\",\"list\":true,\"entity\":\"ModuleDefinition\",\"widget\":{\"label\":\"Solution Modules\",\"addwidget\":\"ModuleSelect\",\"addwidgetmodule\":\"modulesrepository\",\"name\":\"SubEntity\",\"module\":\"subentity\"}}}}"})},
+    core.PluginComponent{Name: "Solution", Object: Solution{}, Metadata: core.NewInfo("","Solution", map[string]interface{}{"descriptor":"{\"name\":\"Solution\",\"inherits\":\"\",\"imports\":[],\"multitenant\":true,\"form\":{\"overlay\":true,\"layout\":[\"Name\",\"Description\"]},\"titleField\":\"Name\",\"fields\":{\"Name\":{\"type\":\"string\"},\"Description\":{\"type\":\"string\"},\"User\":{\"type\":\"string\"}}}"})},
   }
 }

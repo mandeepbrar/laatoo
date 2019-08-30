@@ -5,7 +5,7 @@ var fs = require('fs-extra')
 var {argv, name, pluginFolder, uiFolder, uiBuildFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var entity = require('./entity')
 var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
-var {buildGoObjects} = require('./buildgoserver');
+var {buildGoObjects, cleanGoFolders, copySDK} = require('./buildgoserver');
 var {log, clearDirectory} = require('./utils');
 var {compileDartUI} = require('./builddart');
 var {compileGoWASMUI} = require('./buildgowasm');
@@ -18,7 +18,7 @@ function buildModule() {
   if(!(argv.skipUI || argv.skipObjects)) {
     clearDirectory(tmpFolder)
   }
-  startTask("copyconfig")()
+  startTask("cleango")()
 }
 
 function buildUI(nextTask) {
@@ -115,7 +115,6 @@ function autoGen(nextTask) {
     return
   }
   let entities = {}
-  let autogenFolder = entity.autogenFolder(pluginFolder)
   if (fs.pathExistsSync(path.join(pluginFolder, 'build'))) {
     let entitiesFolder = path.join(pluginFolder, 'build', "entities")
     if (fs.pathExistsSync(entitiesFolder)) {
@@ -129,11 +128,11 @@ function autoGen(nextTask) {
           let jsonF = path.join(entitiesFolder, files[i])
           let jsonContent = require(jsonF)
           entities[jsonContent["name"]] = jsonContent
-          entity.createEntity(jsonContent, autogenFolder, files[i])
+          entity.createEntity(jsonContent, files[i])
         }
       }
       if(entities && Object.keys(entities).length >0) {
-        entity.createManifest(entities, autogenFolder, pluginFolder)
+        entity.createManifest(entities, name, pluginFolder)
       }    
     }
   }
@@ -186,6 +185,10 @@ function deployModule(nextTask) {
 function startTask(taskName) {
   var func = function(nt){}
   var nextTask = ""
+  if (taskName === "cleango") {
+    func = cleanGoFolders
+    nextTask = "copyconfig"    
+  }
   if (taskName === "copyconfig") {
     func = copyConfig
     nextTask = "autogen"
@@ -208,6 +211,10 @@ function startTask(taskName) {
   }
   if (taskName === "uicompile" ){
     func = buildUI
+    nextTask = "copysdk"
+  }
+  if ( taskName === "copysdk" ){
+    func = copySDK
     nextTask = "copyfiles"
   }
   if ( taskName === "copyfiles" ){

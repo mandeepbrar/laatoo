@@ -14,8 +14,8 @@ class BaseForm extends React.Component {
     super(props)
     console.log('base form', props, context)
     this.desc = props.description
-    this.config = props.config? props.config: desc.config
-    this.config = this.config? this.config :{}
+    this.info = props.info? props.info: this.desc.info
+    this.info = this.info? this.info :{}
     this.loader = null
     this.formSubmit = null
     let comp = this
@@ -27,9 +27,9 @@ class BaseForm extends React.Component {
       }
     }   
     this.state={formValue: props.formVal}
-    this.trackChanges = this.config.trackChanges || props.trackChanges
+    this.trackChanges = this.info.trackChanges || props.trackChanges
 
-    this.className = "webform " + (this.config.className? this.config.className :"")
+    this.className = "webform " + (this.info.className? this.info.className :"")
     this.formName="myform"
 
     this.actions = props.actions
@@ -76,8 +76,8 @@ class BaseForm extends React.Component {
   }
   preSubmit= (data) => {
     let presub
-    if(this.config) {
-      presub = _reg('Method', this.config.preSubmit)
+    if(this.info) {
+      presub = _reg('Method', this.info.preSubmit)
     }
     return presub? presub(data): data
   }
@@ -95,19 +95,19 @@ class BaseForm extends React.Component {
   }
 
   submitSuccessCallback = (data) => {
-    if(this.config) {
-      if(this.config.successRedirect) {
-        Window.redirect(this.config.successRedirect);
+    if(this.info) {
+      if(this.info.successRedirect) {
+        Window.redirect(this.info.successRedirect);
       }
-      if(this.config.successRedirectPage) {
-        Window.redirect(this.config.successRedirectPage);
+      if(this.info.successRedirectPage) {
+        Window.redirect(this.info.successRedirectPage);
       }
     }
   }
 
   setData = (formData) => {
-    if(this.config.dataMapper) {
-      let mapper = _reg('Method', this.config.dataMapper)
+    if(this.info.dataMapper) {
+      let mapper = _reg('Method', this.info.dataMapper)
       formData = mapper(formData)
     }
     console.log("setData", this.props.form, formData)
@@ -139,7 +139,7 @@ class BaseForm extends React.Component {
   render() {
     let props = this.props
     console.log("**********************rendering web form****************", props.form, props, this.state)
-    let cfg = this.config
+    let cfg = this.info
     if(_uikit.Form) {
       if(cfg.layout && (typeof(cfg.layout) == "string") ) {
         let display = _reg('Blocks', cfg.layout)
@@ -183,10 +183,10 @@ class EntityForm extends BaseForm {
   }
   configureForm = (dispatch, props) => {
     console.log("configure entity form : props ", props)
-    if(this.config.entity) {
-      let entityId = this.config.entityId
-      let entityName = this.config.entity
-      let svc = this.config.entityService
+    if(this.info.entity) {
+      let entityId = this.info.entityId
+      let entityName = this.info.entity
+      let svc = this.info.entityService
       let form = this
           //console.log("desc....", entityId, "name", entityName, entityFormCfg)
       if(entityId) {
@@ -196,17 +196,17 @@ class EntityForm extends BaseForm {
       }
       if(!this.formSubmit) {
         if(entityId) {
-          if(this.config.put) {
+          if(this.info.put) {
             this.formSubmit = (data, successCallback, failureCallback) => {
               data = form.preSubmit(data)
               console.log("form submit put", data)
-              dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: form.config.reloadOnUpdate, successCallback, failureCallback}));
+              dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: form.info.reloadOnUpdate, successCallback, failureCallback}));
             }
           } else {
             this.formSubmit = (data, successCallback, failureCallback) => {
               data = form.preSubmit(data)
               console.log("form submit update", data)
-              dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: form.config.reloadOnUpdate, successCallback, failureCallback}));
+              dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: form.info.reloadOnUpdate, successCallback, failureCallback}));
             }
           }
         } else {
@@ -262,14 +262,14 @@ class CustomForm extends BaseForm {
   }
   configureForm = (dispatch, props) => {
     let form = this
-    if(this.config.loaderService) {
+    if(this.info.loaderService) {
       let loaderServiceParams = {}
       let loaderService = ""
-      if(typeof(this.config.loaderService) == "string") {
-        loaderService = this.config.loaderService
+      if(typeof(this.info.loaderService) == "string") {
+        loaderService = this.info.loaderService
       } else {
-        loaderService = this.config.loaderService.name
-        loaderServiceParams = this.config.loaderService.params
+        loaderService = this.info.loaderService.name
+        loaderServiceParams = this.info.loaderService.params
       }
       if(loaderService) {
         this.loader = (routeParams, dataLoaded, failureCallback) => {
@@ -281,11 +281,11 @@ class CustomForm extends BaseForm {
       this.formSubmit = (data, successCallback, failureCallback) => {
         data = form.preSubmit(data)
         console.log("form submit submit form", data)
-        if(form.config) {
-          successCallback = form.config.submitSuccess? _reg('Method', form.config.submitSuccess) : successCallback
-          failureCallback = form.config.submitFailure? _reg('Method', form.config.submitFailure) : failureCallback
+        if(form.info) {
+          successCallback = form.info.submitSuccess? _reg('Method', form.info.submitSuccess) : successCallback
+          failureCallback = form.info.submitFailure? _reg('Method', form.info.submitFailure) : failureCallback
         }
-        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.config.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.info.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
       }
     }
   }
@@ -299,9 +299,10 @@ class WebFormUI extends React.Component {
   constructor(props) {
     super(props)
     let desc = props.description
-    let config = props.config? props.config: desc.config
-    config = config? config :{}
-    if (config.entity){
+    let info = props.info? props.info: desc.info
+    info = info? info :{}
+    console.log("info of web form", props.info, desc.info)
+    if (info.entity){
       this.formType = EntityForm
     } else {
       this.formType = CustomForm

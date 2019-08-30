@@ -13,9 +13,13 @@ import (
 )
 
 const (
-	ENTITY_MODULE   = "EntityModule"
-	ENTITY_OBJECT   = "object"
-	ENTITY_INSTANCE = "instance"
+	ENTITY_MODULE           = "EntityModule"
+	ENTITY_OBJECT           = "object"
+	ENTITY_INSTANCE         = "instance"
+	ENTITY_NEW_FORM         = "new_form"
+	ENTITY_UPDATE_FORM      = "update_form"
+	ENTITY_NEW_FORM_PAGE    = "new_form_page"
+	ENTITY_UPDATE_FORM_PAGE = "update_form_page"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -24,10 +28,14 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 type EntityModule struct {
 	core.Module
-	object       string
-	entityConf   config.Config
-	instance     string
-	templatesDir string
+	object         string
+	entityConf     config.Config
+	instance       string
+	templatesDir   string
+	newform        bool
+	updateform     bool
+	newformpage    bool
+	updateformpage bool
 }
 
 /*
@@ -44,6 +52,10 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	ctx = ctx.SubContext("Initializing entity module")
 	entity.object, _ = entity.GetStringConfiguration(ctx, ENTITY_OBJECT)
 	entity.instance, _ = entity.GetStringConfiguration(ctx, ENTITY_INSTANCE)
+	entity.newform, _ = entity.GetBoolConfiguration(ctx, ENTITY_NEW_FORM)
+	entity.updateform, _ = entity.GetBoolConfiguration(ctx, ENTITY_UPDATE_FORM)
+	entity.newformpage, _ = entity.GetBoolConfiguration(ctx, ENTITY_NEW_FORM_PAGE)
+	entity.updateformpage, _ = entity.GetBoolConfiguration(ctx, ENTITY_UPDATE_FORM_PAGE)
 	md, err := ctx.GetObjectMetadata(entity.object)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -98,7 +110,6 @@ func (entity *EntityModule) UILoad(ctx core.ServerContext) map[string]config.Con
 
 func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	forms := ctx.CreateConfig()
-
 	newEntityForm := ctx.CreateConfig()
 	var entityFormInfo config.Config
 	formInfo, ok := entity.entityConf.GetSubConfig(ctx, "form")
@@ -147,7 +158,9 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 
 	newEntityForm.Set(ctx, "fields", entityFormFields)
 
-	forms.Set(ctx, "new_form_"+strings.ToLower(entity.instance), newEntityForm)
+	if entity.newform || entity.newformpage {
+		forms.Set(ctx, "new_form_"+strings.ToLower(entity.instance), newEntityForm)
+	}
 
 	updateEntityForm := ctx.CreateConfig()
 	updateFormInfo := entityFormInfo.Clone()
@@ -155,7 +168,9 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	updateEntityForm.Set(ctx, "info", updateFormInfo)
 	updateEntityForm.Set(ctx, "fields", entityFormFields)
 
-	forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
+	if entity.updateform || entity.updateformpage {
+		forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
+	}
 
 	return forms
 }

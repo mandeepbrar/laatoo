@@ -1,0 +1,25 @@
+{
+  "name":"Task",
+  "sdkinclude": true,
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "layout": ["Name", "Description", "Receiver", "Processor"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Receiver": {
+        "type":"string"
+    },
+    "Processor": {
+        "type":"string",
+        "label": "Message"
+    }
+  }
+}

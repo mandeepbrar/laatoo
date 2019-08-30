@@ -14,10 +14,10 @@ VOLUME /deploy
 
 RUN chown -R laatoo /build /modulesrepo /deploy /nodemodules /go /compiletmp
 
-ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false
+ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false 
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
-#ENV GO111MODULE on
+ENV GO111MODULE on
 
 #RUN mkdir -p /laatoo
 
@@ -60,5 +60,9 @@ RUN chown -R laatoo /go
 USER laatoo
 
 WORKDIR /go
+
+#VOLUME /laatoo/sdk/modules
+
+#RUN go build laatoo/sdk
 
 ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust $norust --nobundle $nobundle 

@@ -39,3 +39,69 @@ objects:
         type: string
         description: Parent channel for APIs
         default: root
+      create_dataservice:
+        type: bool
+        description: Data service for object
+      create_getservice:
+        type: bool
+        description: Get data service
+      create_saveservice:
+        type: bool
+        description: Save data service
+      create_updateservice:
+        type: bool
+        description: Update data service
+      create_selectservice:
+        type: bool
+        description: Select data service
+      create_dataadapterfactory:
+        type: bool
+        description: Create data adapter factory
+      create_objectchannel:
+        type: bool
+        description: Create object primary channel
+params:
+  dataservicefactory:
+    type: string
+    description: Underlying data service factory. Service instance from this factory
+      are passed the identified object
+    required: true
+  object:
+    type: string
+    description: Object for which services are being created
+    required: true
+  instance:
+    type: string
+    description: Discriminator to distinguish multiple services created by multiple
+      instances of the module
+  middleware:
+    type: string
+    description: middleware to be added to the data adapter factory and all services
+  embedded_doc_search:
+    type: bool
+    description: allow embedded document search on select service
+  parent:
+    type: string
+    description: Parent channel for APIs
+    default: root
+  create_dataservice:
+    type: bool
+    description: Create data service
+  create_getservice:
+    type: bool
+    description: Create Get data service
+  create_saveservice:
+    type: bool
+    description: Create Save data service
+  create_updateservice:
+    type: bool
+    description: Create Update data service
+  create_selectservice:
+    type: bool
+    description: Create Select data service
+  create_dataadapterfactory:
+    type: bool
+    description: Create data adapter factory
+  create_objectchannel:
+    type: bool
+    description: Create object primary channel

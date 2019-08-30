@@ -2,6 +2,9 @@ package main
 
 import (
 	"laatoo/sdk/server/core"
+{{#if hasSDK}}
+  "laatoo/sdk/modules/{{name}}"
+{{/if}}  
 )
 
 

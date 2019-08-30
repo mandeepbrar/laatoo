@@ -1,4 +1,4 @@
-config:
+info:
   entity: comment
   entityId: 30e98013-d8ec-4689-a9d3-21a942d777dd
   className: w100

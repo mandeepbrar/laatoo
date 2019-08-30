@@ -23,3 +23,4 @@ func (ent *Field) Config() *data.StorableConfig {
 		Type:            "Field",
 	}
 }
+

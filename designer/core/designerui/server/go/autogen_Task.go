@@ -34,3 +34,5 @@ func (ent *Task) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
+
+

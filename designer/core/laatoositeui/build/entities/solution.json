@@ -5,7 +5,7 @@
   "multitenant": true,
   "form": {
     "overlay": true,
-    "layout": ["Name", "Description", "Modules"]
+    "layout": ["Name", "Description"]
   },
   "titleField": "Name",
   "fields":{
@@ -17,18 +17,6 @@
     },
     "User": {
       "type":"string"
-    },
-    "Modules": {
-      "type":"storableref",
-      "list": true,
-      "entity": "ModuleDefinition",
-      "widget": {
-        "label": "Solution Modules",
-        "addwidget": "ModuleSelect",
-        "addwidgetmodule": "modulesrepository",  
-        "name": "SubEntity",
-        "module": "subentity"
-      }
     }
   }
 }

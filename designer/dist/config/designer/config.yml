@@ -31,14 +31,11 @@ modules:
     hotmodule: true
     hotmodulepath: designer/core/laatootheme
     hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
-  modulesrepository:
-    hotmodule: true
-    hotmodulepath: designer/core/modulesrepository
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
   designerui:
     hotmodule: true
     hotmodulepath: designer/core/designerui
     hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle"
+  modulesbase:
   reactapplication:
   shell:
   publicdirserver:
@@ -58,6 +55,8 @@ modules:
     hotmodule: true
     hotmodulepath: designer/core/moduledesignerui
     hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+
+    
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -103,10 +102,8 @@ moduleinstances:
     module: reactfileupload
   dependencies:
     module: designerdependencies
-  modulesrepository:
-    module: modulesrepository
-    settings:
-      dataservicefactory: mongodatabase
+  modulesbase:
+    module: modulesbase
   publicdirserver:
     module: publicdirserver
     settings:

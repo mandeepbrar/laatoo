@@ -1,0 +1,35 @@
+{
+  "name":"Channel",
+  "sdkinclude": true,
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Factory", "ServiceMethod"],
+      "Settings": ["Settings"]
+    },
+    "layout": ["General", "Settings"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Factory": {
+      "type":"string"
+    },
+    "ServiceMethod": {
+        "type":"string"
+    },
+    "Settings": {
+      "type":"stringmap",      
+      "widget": {
+        "name": "ModuleConfig",
+        "module": "modulesrepository"
+      }
+    }
+  }
+}

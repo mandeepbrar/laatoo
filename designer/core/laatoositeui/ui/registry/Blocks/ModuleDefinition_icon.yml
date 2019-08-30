@@ -1,0 +1,6 @@
+Block:
+  className: moduledefinition_icon
+  children:
+  - Block:
+      className: field
+      body: {{jsreplace "ctx.data.Name"}}

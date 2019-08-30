@@ -6,5 +6,8 @@ import (
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	objects := ObjectsManifest(provider)
-	return append([]core.PluginComponent{}, objects...)
+	services := ServicesManifest(provider)
+	objs := append([]core.PluginComponent{}, objects...)
+	objs = append(objs, services...)
+	return objs
 }

@@ -29,6 +29,18 @@ objects:
         type: string
         description: Object for which services are being created
         required: true
+      new_form: 
+        type: bool
+        description: True if new entity form needs to be created by entity module
+      update_form: 
+        type: bool
+        description: True if new update form needs to be created by entity module
+      new_form_page: 
+        type: bool
+        description: True if new entity page needs to be created by entity module
+      update_form_page: 
+        type: bool
+        description: True if update entity page needs to be created by entity module
       instance:
         type: string
         description: Discriminator to distinguish multiple services created by multiple
@@ -43,6 +55,13 @@ modules:
       instance: {{var "instance"}}
       dataservicefactory: {{var "dataservicefactory"}}
       embedded_doc_search: {{var "embedded_doc_search"}}
+      create_dataservice: {{var "create_dataservice"}}
+      create_getservice: {{var "create_getservice"}}
+      create_saveservice: {{var "create_saveservice"}}
+      create_updateservice: {{var "create_updateservice"}}
+      create_selectservice: {{var "create_selectservice"}}
+      create_dataadapterfactory: {{var "create_dataadapterfactory"}}
+      create_objectchannel: {{var "create_objectchannel"}}
 params:
   object: 
     type: string
@@ -78,9 +97,27 @@ params:
   form_new_args: 
     type: stringmap
     description: State params for new form
-  skipItems: 
-    type: string
-    description: Items to be skipped for an entity. list_page, new_form, update_form, view_page, list_view
+  list_page: 
+    type: bool
+    description: True if list page needs to be created by entity module
+  new_form: 
+    type: bool
+    description: True if new entity form needs to be created by entity module
+  new_form_page: 
+    type: bool
+    description: True if new entity page needs to be created by entity module
+  update_form: 
+    type: bool
+    description: True if update form needs to be created by entity module
+  update_form_page: 
+    type: bool
+    description: True if update form page needs to be created by entity module
+  view_page: 
+    type: bool
+    description: True if entity view page needs to be created by entity module
+  list_view: 
+    type: bool
+    description: True if list view needs to be created by entity module
   skipData:
     type: bool
     description: Skip data adapter services for entity
@@ -90,3 +127,24 @@ params:
   list_view_mode:
     type: string
     description: List view mode 
+  create_dataservice:
+    type: bool
+    description: Data service for object
+  create_getservice:
+    type: bool
+    description: Get data service
+  create_saveservice:
+    type: bool
+    description: Save data service
+  create_updateservice:
+    type: bool
+    description: Update data service
+  create_selectservice:
+    type: bool
+    description: Select data service
+  create_dataadapterfactory:
+    type: bool
+    description: Create data adapter factory
+  create_objectchannel:
+    type: bool
+    description: Create object primary channel

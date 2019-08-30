@@ -35,3 +35,5 @@ func (ent *ConfigurationDefinition) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
+
+

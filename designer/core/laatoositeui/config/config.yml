@@ -3,6 +3,7 @@ dependencies:
   reactwebcommon: ">=0.0.1"
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
+  modulesbase: ">=0.0.1"
 description: Module provides laatoo site ui 
 modules:
   solution:
@@ -14,6 +15,30 @@ modules:
       parent: root
       instance: Solution
       dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      new_form: true
+      new_form_page: true
+      list_view: true
+  moduledefinition:
+    module: entity
+    settings:
+      object: ModuleDefinition
+      parent: root
+      instance: ModuleDefinition
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_view: true 
 ui:
   js:
     externals:
@@ -23,3 +48,4 @@ ui:
       reactwebcommon: reactwebcommon
     packages:
       react: "^16.3.0"
+

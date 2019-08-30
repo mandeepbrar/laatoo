@@ -15,4 +15,4 @@ ENV LAATOO_CONFIGDIR /config
 
 WORKDIR /bin
 
-ENTRYPOINT ["/bin/laatoo"]
+ENTRYPOINT ["/bin/bash"]

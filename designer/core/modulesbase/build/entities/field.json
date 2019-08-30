@@ -1,0 +1,19 @@
+{
+  "name":"Field",
+  "sdkinclude": true,
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "layout": ["Name", "Type"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Type": {
+        "type":"string"
+    }
+  }
+}

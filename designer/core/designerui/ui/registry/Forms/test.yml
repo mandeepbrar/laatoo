@@ -1,4 +1,4 @@
-config:
+info:
   className: w100
   submit: MySubmit
   loaderService: formload

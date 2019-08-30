@@ -23,3 +23,4 @@ func (ent *KeyValue) Config() *data.StorableConfig {
 		Type:            "KeyValue",
 	}
 }
+

@@ -1,10 +1,12 @@
 var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs-extra');
+var rimraf = require('rimraf');
 var {log, listDir} = require('./utils');
 var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var sprintf = require('sprintf-js').sprintf
 var {execSync, execFileSync, spawnSync} = require('child_process');
+var {tidyGoModule} = require('./utils')
 
 function buildGoObjects(nextTask) {
     if(argv.uionly) {
@@ -18,6 +20,7 @@ function buildGoObjects(nextTask) {
       nextTask()
       return
     }
+    tidyGoModule(serverGoSrcFolder)
     var outputFolder;
 
     if(argv.nobundle) {
@@ -69,6 +72,45 @@ function buildGoObjects(nextTask) {
     }) */
 }
 
+function cleanGoFolders(nextTask) {
+  let goSrcFolder = path.join(pluginFolder, "src", "go")
+  if (fs.pathExistsSync(goSrcFolder)) {
+      fs.readdirSync(goSrcFolder).forEach((item)=> {
+          if(item.startsWith("autogen_")) {
+              let fileName = path.join(goSrcFolder, item);
+              fs.removeSync(fileName)
+          }
+      })
+  }
+  let gosdkSrcFolder = path.join(pluginFolder, "sdk", "go")
+  if (fs.pathExistsSync(gosdkSrcFolder)) {
+      fs.readdirSync(gosdkSrcFolder).forEach((item)=> {
+          if(item.startsWith("autogen_")) {
+              let fileName = path.join(gosdkSrcFolder, item);
+              fs.removeSync(fileName)
+          }
+      })
+  }
+  nextTask()
+}
+
+
+function copySDK(nextTask) {
+  let sdkSrcFolder = path.join(pluginFolder, "sdk")
+  let filesFolder = path.join(pluginFolder, "files")
+  let sdkDestFolder = path.join(filesFolder, "sdk")
+  if (fs.pathExistsSync(sdkDestFolder)) {
+      rimraf.sync(sdkDestFolder)
+  }
+  fs.copySync(sdkSrcFolder, sdkDestFolder)
+  nextTask()
+}
+
+
+
+
 module.exports = {
-    buildGoObjects: buildGoObjects
+  cleanGoFolders: cleanGoFolders,
+  copySDK: copySDK,
+  buildGoObjects: buildGoObjects
 }

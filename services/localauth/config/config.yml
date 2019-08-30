@@ -18,6 +18,11 @@ modules:
     settings:
       object: {{var "userobject"}}
       dataservicefactory: {{var "dataservicefactory"}}
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_saveservice: true
+      create_objectchannel: true
 params:
   userobject: 
     type: string

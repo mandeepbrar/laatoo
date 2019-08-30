@@ -1,4 +1,5 @@
 nodeModulesFolder=/home/mandeep/goprogs/src/laatoo/ui/nodemodules
 deploy=/home/mandeep/goprogs/src/laatoo/designer/modules
+goModulesRepo=/home/mandeep/goprogs/gomodulesrepo
 modulesRepo=/home/mandeep/goprogs/src
 tmpFolder=/home/mandeep/goprogs/tmp
