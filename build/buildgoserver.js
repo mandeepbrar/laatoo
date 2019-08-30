@@ -1,9 +1,11 @@
 var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs-extra');
+var tar = require('tar-stream');
+var zlib = require('zlib');
 var rimraf = require('rimraf');
 var {log, listDir} = require('./utils');
-var {argv, name, pluginFolder, packageFolder,  uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
+var {argv, name, pluginFolder, goModulesRepo, modulesRepo, uiFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var sprintf = require('sprintf-js').sprintf
 var {execSync, execFileSync, spawnSync} = require('child_process');
 var {tidyGoModule} = require('./utils')
@@ -94,6 +96,71 @@ function cleanGoFolders(nextTask) {
   nextTask()
 }
 
+function installGoDependencies(nextTask) {
+  if(modConfig.dependencies) {
+    Object.keys(modConfig.dependencies).forEach(function(modName) {
+      log("Analysing module", modName)
+      let modSDK = path.join(goModulesRepo, modName)
+      if (fs.pathExistsSync(modSDK)) {
+        log("Mod SDK exists", modName)
+      } else {
+        var modtar = path.join(modulesRepo, modName + ".tar.gz")
+        if (fs.pathExistsSync(modtar)) {
+          log("Found module file", modtar)
+          var extract = tar.extract();
+          var files={}
+          var pathToExtract = modName+"/files/sdk/go/"
+          extract.on('entry', function(header, stream, cb) {
+              stream.on('data', function(chunk) {
+                var fileinZip = header.name
+                if (fileinZip.startsWith(pathToExtract)) {
+                  var filename = ''
+                  filename = fileinZip.substring(pathToExtract.length - 1)
+                  var data = files[filename]
+                  if(data) {
+                    data += chunk;
+                  } else {
+                    data = ''
+                  }
+                  files[filename] = data
+                }
+              });
+            
+              stream.on('end', function() {
+                  cb();
+              });
+            
+              stream.resume();
+          });
+          
+          extract.on('finish', function() {
+            if(files) {
+              Object.keys(files).forEach(function(file) {         
+                var f = path.parse(file)     
+                var dir = path.join(modSDK, f.dir)
+                fs.mkdirsSync(dir)
+                let fileToWrite = path.join(dir, f.base)
+                log("writing file", fileToWrite)
+                fs.writeFileSync(fileToWrite, files[file])
+              })
+            }
+          });
+          
+          fs.createReadStream(modtar)
+              .pipe(zlib.createGunzip())
+              .pipe(extract);  
+              
+        } else {
+          shell.echo("Err: Could not find dependency ", modName)      
+          shell.exit(1);
+        }
+      }
+    })  
+  }
+  nextTask()
+}
+
+
 
 function copySDK(nextTask) {
   let sdkSrcFolder = path.join(pluginFolder, "sdk")
@@ -102,7 +169,19 @@ function copySDK(nextTask) {
   if (fs.pathExistsSync(sdkDestFolder)) {
       rimraf.sync(sdkDestFolder)
   }
-  fs.copySync(sdkSrcFolder, sdkDestFolder)
+  if(fs.pathExistsSync(sdkSrcFolder)) {
+    fs.mkdirsSync(sdkDestFolder)
+    fs.copySync(sdkSrcFolder, sdkDestFolder)
+    let goModulesSrc = path.join(sdkSrcFolder, "go")
+    if (fs.pathExistsSync(goModulesSrc)) {
+      let goModulesDest = path.join(goModulesRepo, name)
+      if (fs.pathExistsSync(goModulesDest)) {
+        rimraf.sync(goModulesDest)  
+      }
+      log("Copying SDK to go modules Repo", goModulesDest)
+      fs.copySync(goModulesSrc, goModulesDest)
+    }  
+  }
   nextTask()
 }
 
@@ -112,5 +191,6 @@ function copySDK(nextTask) {
 module.exports = {
   cleanGoFolders: cleanGoFolders,
   copySDK: copySDK,
+  installGoDependencies: installGoDependencies,
   buildGoObjects: buildGoObjects
 }

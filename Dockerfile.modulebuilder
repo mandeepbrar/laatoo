@@ -61,7 +61,7 @@ USER laatoo
 
 WORKDIR /go
 
-#VOLUME /laatoo/sdk/modules
+VOLUME /laatoo/sdk/modules
 
 #RUN go build laatoo/sdk
 

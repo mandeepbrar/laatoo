@@ -80,7 +80,7 @@ function sdkFolder(name) {
   let sdkFolder = path.join(pluginFolder, "sdk", "go")
   if(!fs.existsSync(sdkFolder)) {
     fs.mkdirsSync(sdkFolder);
-    createGoModule( name +"/sdk" , sdkFolder)
+    //createGoModule( name +"/sdk" , sdkFolder)
   }
   return sdkFolder
 }
@@ -93,9 +93,8 @@ function createEntity(entityJson, filename) {
   let sdkInclude = entityJson["sdkinclude"];
   if(sdkInclude) {
     //copyEntityToSDK(filename);
-    //createEntityImpl(entityJson, entityname, sdkFolder(name));
+    createEntityImpl(entityJson, entityname, sdkFolder(name));
     hasSdk = true
-    log("has sdk set to ", hasSdk)
   } else {
     createEntityImpl(entityJson, entityname, goFolder(name));
   }
@@ -186,10 +185,8 @@ function createManifest(entities, name, pluginFolder) {
   var buf = fs.readFileSync(path.join(buildFolder,'/tpl/objects.go.tpl'));
   Handlebars.registerHelper('plugins', plugins);
   var template = Handlebars.compile(buf.toString());
-  log("has Sdk in creating manifest", hasSdk)
   let gofile = template({"entities": entities, "name": name, "hasSDK": hasSdk})
   fs.writeFileSync(objectspath, gofile)
-  listDir("/laatoo/sdk")
   
 }
 

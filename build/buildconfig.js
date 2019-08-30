@@ -63,6 +63,8 @@ module.exports = {
     modConfig: modConfig,
     deploymentFolder: deploymentFolder,
     nodeModulesFolder: nodeModulesFolder,
+    modulesRepo: deploymentFolder,
+    goModulesRepo: "/laatoo/sdk/modules", 
     buildFolder: buildFolder,
     tmpFolder: tmpFolder
 }

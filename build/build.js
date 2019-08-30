@@ -5,7 +5,7 @@ var fs = require('fs-extra')
 var {argv, name, pluginFolder, uiFolder, uiBuildFolder, filesFolder, modConfig, deploymentFolder, nodeModulesFolder, buildFolder, tmpFolder} = require('./buildconfig');
 var entity = require('./entity')
 var {compileJSWebUI, getJSUIModules} = require('./buildjsui')
-var {buildGoObjects, cleanGoFolders, copySDK} = require('./buildgoserver');
+var {buildGoObjects, cleanGoFolders, copySDK, installGoDependencies} = require('./buildgoserver');
 var {log, clearDirectory} = require('./utils');
 var {compileDartUI} = require('./builddart');
 var {compileGoWASMUI} = require('./buildgowasm');
@@ -195,6 +195,14 @@ function startTask(taskName) {
   }
   if (taskName === "autogen" ) {
     func = autoGen
+    nextTask = "copysdk"
+  }
+  if ( taskName === "copysdk" ){
+    func = copySDK
+    nextTask = "installGoDependencies"
+  }
+  if ( taskName === "installGoDependencies" ){
+    func = installGoDependencies
     nextTask = "objcompile"
   }
   if ( taskName === "objcompile"){
@@ -211,10 +219,6 @@ function startTask(taskName) {
   }
   if (taskName === "uicompile" ){
     func = buildUI
-    nextTask = "copysdk"
-  }
-  if ( taskName === "copysdk" ){
-    func = copySDK
     nextTask = "copyfiles"
   }
   if ( taskName === "copyfiles" ){
