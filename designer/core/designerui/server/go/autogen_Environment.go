@@ -2,6 +2,7 @@ package main
 
 import (
   
+	"laatoo/sdk/modules/modulesbase" 
   "laatoo/sdk/server/components/data"
 )
 
@@ -20,14 +21,14 @@ type Environment struct {
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`
-	Instances	[]ModuleInstance `json:"Instances" bson:"Instances" datastore:"Instances"`
-	Services	[]Service `json:"Services" bson:"Services" datastore:"Services"`
-	Entities	[]Entity `json:"Entities" bson:"Entities" datastore:"Entities"`
-	Factories	[]Factory `json:"Factories" bson:"Factories" datastore:"Factories"`
-	Channels	[]Channel `json:"Channels" bson:"Channels" datastore:"Channels"`
-	Engines	[]Engine `json:"Engines" bson:"Engines" datastore:"Engines"`
-	Rules	[]Rule `json:"Rules" bson:"Rules" datastore:"Rules"`
-	Tasks	[]Task `json:"Tasks" bson:"Tasks" datastore:"Tasks"`
+	Instances	[]modulesbase.ModuleInstance `json:"Instances" bson:"Instances" datastore:"Instances"`
+	Services	[]modulesbase.Service `json:"Services" bson:"Services" datastore:"Services"`
+	Entities	[]modulesbase.Entity `json:"Entities" bson:"Entities" datastore:"Entities"`
+	Factories	[]modulesbase.Factory `json:"Factories" bson:"Factories" datastore:"Factories"`
+	Channels	[]modulesbase.Channel `json:"Channels" bson:"Channels" datastore:"Channels"`
+	Engines	[]modulesbase.Engine `json:"Engines" bson:"Engines" datastore:"Engines"`
+	Rules	[]modulesbase.Rule `json:"Rules" bson:"Rules" datastore:"Rules"`
+	Tasks	[]modulesbase.Task `json:"Tasks" bson:"Tasks" datastore:"Tasks"`
 	Security	Security `json:"Security" bson:"Security" datastore:"Security"`
 }
 
@@ -46,5 +47,3 @@ func (ent *Environment) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
-
-

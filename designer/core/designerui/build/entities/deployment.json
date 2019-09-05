@@ -3,6 +3,7 @@
   "inherits":"",
   "imports":[],
   "multitenant": true,
+  "collection": "<nocollection>",
   "form": {
     "layout":["Name", "Description", "Solution", "Server", "Environment", "Application"]
   },

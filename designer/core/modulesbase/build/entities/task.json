@@ -4,6 +4,7 @@
   "inherits":"",
   "imports":[],
   "titleField": "Name",
+  "collection": "<nocollection>",
   "form": {
     "layout": ["Name", "Description", "Receiver", "Processor"]
   },

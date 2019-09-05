@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"laatoo/sdk/modules/modulesbase"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
@@ -44,7 +45,7 @@ func (svc *RepositoryUpdate) Start(ctx core.ServerContext) error {
 		return errors.MissingService(ctx, repositorySvc)
 	}
 	svc.repositoryFiles = filesSvc.(components.StorageComponent)
-	formDataSvcName := "repository.moduleform.database"
+	formDataSvcName := "repository.configform.database"
 	dataSvc, err = ctx.GetService(formDataSvcName)
 	if err != nil {
 		return errors.MissingService(ctx, dataSvcName)
@@ -64,7 +65,7 @@ func (svc *RepositoryUpdate) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*ModuleDefinition, error) {
+func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*modulesbase.ModuleDefinition, error) {
 	files, err := svc.repositoryFiles.ListFiles(ctx, fmt.Sprintf("%s.tar.gz", mod))
 	if err != nil {
 		return nil, err
@@ -73,7 +74,7 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 	if len(files) > 0 {
 		_, fileName := filepath.Split(files[0])
 		log.Error(ctx, "Process archive", "fileName", fileName)
-		modDef, err := processArchive(ctx, mod, fileName, svc.repositoryFiles)
+		modDef, err := modulesbase.ProcessArchive(ctx, mod, fileName, TMPPATH, svc.repositoryFiles)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
@@ -81,13 +82,13 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		conf, err := writeParamsForm(ctx, modDef)
+		conf, err := modulesbase.WriteConfigForm(ctx, modDef)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		modForm := &ModuleForm{Name: modDef.Name, Form: string(conf)}
+		modForm := &modulesbase.ConfigForm{Name: "Module_" + modDef.Name, Form: string(conf)}
 		log.Error(ctx, "Process archive", "modForm", modForm)
-		err = svc.formDataStore.Put(ctx, modDef.Name, modForm)
+		err = svc.formDataStore.Put(ctx, "Module_"+modDef.Name, modForm)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}

@@ -330,6 +330,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 		mod := ""
 		attrBuf := new(bytes.Buffer)
 		content := ""
+		visibility := ""
 		allAttributes := root.AllConfigurations(ctx)
 		//attrs := make(map[string]interface{})
 		for _, key := range allAttributes {
@@ -339,6 +340,17 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 
 				break
 			case "children":
+				break
+			case "visibility":
+				str, ok := root.GetString(ctx, key)
+				if ok {
+					visibility = processJS(ctx, str)
+				} else {
+					val, ok := root.GetBool(ctx, key)
+					if ok {
+						visibility = fmt.Sprint(val)
+					}
+				}
 				break
 			case "module":
 				mod, _ = root.GetString(ctx, key)
@@ -373,14 +385,22 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 		attrStr := fmt.Sprintf("{%s}", attrBuf.String())
 		elem, elemName := getModString(ctx, rootelem, mod, itemName)
 
+		output := ""
 		//n.Attrs
 		if content != "" {
-			return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, processJS(ctx, content), elemName), nil
+			output = fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, processJS(ctx, content), elemName)
+		} else if len(childStr) > 0 {
+			output = fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, strings.Join(childStr, ","), elemName)
+		} else {
+			output = fmt.Sprintf("_ce(%s, %s, null, %s)", elem, attrStr, elemName)
 		}
-		if len(childStr) > 0 {
-			return fmt.Sprintf("_ce(%s, %s, [%s], %s)", elem, attrStr, strings.Join(childStr, ","), elemName), nil
+		log.Error(ctx, "visibility condition", "elemname", elemName, "visibility", visibility)
+		if visibility != "" {
+
+			return fmt.Sprintf(" (%s) ? (%s) : null", visibility, output), nil
+		} else {
+			return output, nil
 		}
-		return fmt.Sprintf("_ce(%s, %s, null, %s)", elem, attrStr, elemName), nil
 	}
 	return "", nil
 }

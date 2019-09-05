@@ -2,6 +2,8 @@ package main
 
 import (
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/modules/modulesbase"
+	"laatoo/sdk/modules/modulesrepository"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/components/rules"
 	"laatoo/sdk/server/core"
@@ -28,7 +30,7 @@ func (rule *NewEntitlementRule) Initialize(ctx ctx.Context, conf config.Config) 
 func (rule *NewEntitlementRule) Condition(ctx core.RequestContext, trigger *rules.Trigger) bool {
 
 	if trigger.Message != nil {
-		_, ok := trigger.Message.(*Entitlement)
+		_, ok := trigger.Message.(*modulesrepository.Entitlement)
 		if ok {
 			return true
 		}
@@ -37,9 +39,9 @@ func (rule *NewEntitlementRule) Condition(ctx core.RequestContext, trigger *rule
 }
 
 func (rule *NewEntitlementRule) Action(ctx core.RequestContext, trigger *rules.Trigger) error {
-	ent, _ := trigger.Message.(*Entitlement)
+	ent, _ := trigger.Message.(*modulesrepository.Entitlement)
 	if ent.Module.Id == "" {
-		mod := &ModuleDefinition{Name: ent.Name, Version: "0.0.1"}
+		mod := &modulesbase.ModuleDefinition{Name: ent.Name, Version: "0.0.1"}
 		mod.SetId(ent.Name)
 		err := rule.dataStore.Put(ctx, ent.Name, mod)
 		if err != nil {

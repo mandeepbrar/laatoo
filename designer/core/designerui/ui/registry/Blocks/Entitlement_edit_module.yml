@@ -12,6 +12,7 @@ Block:
       children:
       - Action:
           name: editModule
+          visibility: {{jsreplace "ctx.data.Local"}}
           params:
             moduleId: {{jsreplace "ctx.data.Module.Id"}}
           body: Edit Module

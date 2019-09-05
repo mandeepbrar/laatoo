@@ -1,6 +1,8 @@
 package main
 
 import (
+	"laatoo/sdk/modules/modulesbase"
+	"laatoo/sdk/modules/modulesrepository"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
@@ -40,7 +42,7 @@ func (svc *EntitlementCreationService) Start(ctx core.ServerContext) error {
 		return errors.MissingService(ctx, dataSvcName)
 	}
 	svc.modulesdataStore = modulesDataSvc.(data.DataComponent)
-	formDataSvcName := "repository.moduleform.database"
+	formDataSvcName := "repository.configform.database"
 	dataSvc, err = ctx.GetService(formDataSvcName)
 	if err != nil {
 		return errors.MissingService(ctx, dataSvcName)
@@ -59,11 +61,11 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 			stor, err := svc.modulesdataStore.GetById(ctx, modID)
 			log.Error(ctx, "Entitlement creation. Looking for mod by id ", "modID", modID, "stor", stor, "err", err)
 			if err == nil {
-				modDef, _ := stor.(*ModuleDefinition)
+				modDef, _ := stor.(*modulesbase.ModuleDefinition)
 				log.Error(ctx, "Entitlement creation ", "solution", solution, "module", modDef)
 				modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
 
-				ent := &Entitlement{Name: modDef.Name, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: false}
+				ent := &modulesrepository.Entitlement{Name: modDef.Name, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: false}
 				err = svc.dataStore.Save(ctx, ent)
 				if err != nil {
 					return errors.WrapError(ctx, err)
@@ -81,22 +83,22 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 					modName := strings.TrimSuffix(fileName, ".tar.gz")
 					log.Error(ctx, "Import Module", "Module", modName, "Archive Name", archiveName)
 					if ok {
-						modDef, err := processArchive(ctx, modName, archiveName, svc.repositoryFiles)
+						modDef, err := processArchive(ctx, modName, archiveName, TMPPATH, svc.repositoryFiles)
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
 						modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
-						ent := &Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: true}
+						ent := &modulesrepository.Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: true}
 						err = svc.dataStore.Save(ctx, ent)
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
 						log.Error(ctx, "Imported Module", "Module", modName, "modDef", modDef)
-						conf, err := writeParamsForm(ctx, modDef)
+						conf, err := writeConfigForm(ctx, modDef)
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
-						modForm := &ModuleForm{Name: modName, Form: string(conf)}
+						modForm := &modulesbase.ConfigForm{Name: "Module_" + modName, Form: string(conf)}
 						err = svc.formDataStore.Put(ctx, modName, modForm)
 						if err != nil {
 							return errors.WrapError(ctx, err)

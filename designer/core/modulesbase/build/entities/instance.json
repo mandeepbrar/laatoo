@@ -4,6 +4,7 @@
   "inherits":"",
   "imports":[],
   "titleField": "Name",
+  "collection": "<nocollection>",
   "form": {
     "tabs": {
       "General": ["Name", "Module", "Description", "LoggingLevel", "LoggingFormat"],
@@ -64,7 +65,7 @@
       "type":"stringmap",      
       "widget": {
         "name": "ModuleConfig",
-        "module": "modulesrepository"
+        "module": "modulesbase"
       }
     }
   }

@@ -14,6 +14,13 @@ objects:
       params:        
         Data:
           type: stringsmap
+  repositoryupdate:
+    type: service
+    description: Module update service. Updates files from file name passed to this service
+    request:
+      params:        
+        module:
+          type: string
   entitlementcreator:
     type: service
     description: Entitlement service that creates entitlements after a module has been uploaded
@@ -25,58 +32,7 @@ objects:
           type: string
         moduleId:
           type: string
-  repositoryupdate:
-    type: service
-    description: Module update service. Updates files from file name passed to this service
-    request:
-      params:        
-        module:
-          type: string
 modules:
-  moduledefinition:
-    module: entity
-    settings:
-      object: ModuleDefinition
-      parent: root
-      instance: ModuleDefinition
-      dataservicefactory: mongodatabase
-      create_dataservice: true
-      create_dataadapterfactory: true
-      create_getservice: true
-      create_updateservice: true
-      create_selectservice: true
-      create_saveservice: true
-      create_objectchannel: true
-      list_view: true
-  moduleform:
-    module: entity
-    settings:
-      object: ModuleForm
-      parent: root
-      instance: ModuleForm
-      dataservicefactory: mongodatabase
-  objectdefinition: 
-    module: entity
-    settings:
-      object: ObjectDefinition
-      parent: root
-      instance: ObjectDefinition
-      skipData: true
-  requestdefinition: 
-    module: entity
-    settings:
-      object: RequestDefinition
-      parent: root
-      instance: RequestDefinition
-      skipData: true
-  moduleparam: 
-    module: entity
-    settings:
-      object: ModuleParam
-      parent: root
-      instance: ModuleParam  print 1+1  is   2
-    
-      skipData: true
   entitlements:
     module: entity
     settings:
@@ -84,16 +40,13 @@ modules:
       parent: root
       instance: Entitlement
       dataservicefactory: mongodatabase
+      create_dataadapterfactory: true
+      create_dataservice: true
+      create_saveservice: true
+      create_getservice: true
+      create_selectservice: true
+      create_objectchannel: true
       embedded_doc_search: true
-      list_view_mode: edit_module
-      list_view_args: 
-        Solution: 
-          Id: {{jsreplace "Application.Route.Params.solutionId"}}
-      form_new_args:
-        Local: true
-        Solution: 
-          Id: {{jsreplace "Application.Route.Params.solutionId"}}
-          Type: Solution
 ui:
   js:
     externals:

@@ -5,6 +5,21 @@ dependencies:
   reactpages: ">=0.0.1"
   modulesbase: ">=0.0.1"
 description: Module provides laatoo site ui 
+objects: 
+  repositoryimport:
+    type: service
+    description: Module import service. Uploaded files are passed to this service
+    request:
+      params:        
+        Data:
+          type: stringsmap
+  repositoryupdate:
+    type: service
+    description: Module update service. Updates files from file name passed to this service
+    request:
+      params:        
+        module:
+          type: string
 modules:
   solution:
     module: entity

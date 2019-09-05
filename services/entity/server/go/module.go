@@ -110,6 +110,10 @@ func (entity *EntityModule) UILoad(ctx core.ServerContext) map[string]config.Con
 
 func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	forms := ctx.CreateConfig()
+	entname := entity.instance
+	if entname == "" {
+		entname = entity.object
+	}
 	newEntityForm := ctx.CreateConfig()
 	var entityFormInfo config.Config
 	formInfo, ok := entity.entityConf.GetSubConfig(ctx, "form")
@@ -118,7 +122,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	} else {
 		entityFormInfo = ctx.CreateConfig()
 	}
-	entityFormInfo.Set(ctx, "entity", entity.object)
+	entityFormInfo.Set(ctx, "entity", entname)
 	entityFormInfo.Set(ctx, "className", fmt.Sprint(" entityform ", strings.ToLower(entity.instance+"_form")))
 	entityFormInfo.Set(ctx, "successRedirectPage", fmt.Sprint("list_", strings.ToLower(entity.instance)))
 	formNewArgs, ok := ctx.Get("form_new_args")
@@ -171,6 +175,8 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	if entity.updateform || entity.updateformpage {
 		forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
 	}
+
+	log.Error(ctx, "create entity form ", "forms", forms)
 
 	return forms
 }

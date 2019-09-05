@@ -1,6 +1,7 @@
 package main
 
 import (
+	"laatoo/sdk/modules/modulesbase"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
@@ -32,7 +33,7 @@ func (svc *RepositoryImport) Start(ctx core.ServerContext) error {
 		return errors.MissingService(ctx, repositorySvc)
 	}
 	svc.repositoryFiles = filesSvc.(components.StorageComponent)
-	formDataSvcName := "repository.moduleform.database"
+	formDataSvcName := "repository.configform.database"
 	dataSvc, err = ctx.GetService(formDataSvcName)
 	if err != nil {
 		return errors.MissingService(ctx, dataSvcName)
@@ -48,7 +49,7 @@ func (svc *RepositoryImport) Invoke(ctx core.RequestContext) error {
 		for fileName, archiveName := range uploadedFiles {
 			modName := strings.TrimSuffix(fileName, ".tar.gz")
 			log.Error(ctx, "Import Module", "Module", modName, "Archive Name", archiveName)
-			modDef, err := processArchive(ctx, modName, archiveName, svc.repositoryFiles)
+			modDef, err := processArchive(ctx, modName, archiveName, TMPPATH, svc.repositoryFiles)
 			if err != nil {
 				log.Error(ctx, "Imported Module Err", "Module", modName, "modDef", modDef, "err", err)
 				return errors.WrapError(ctx, err)
@@ -59,12 +60,12 @@ func (svc *RepositoryImport) Invoke(ctx core.RequestContext) error {
 				return errors.WrapError(ctx, err)
 			}
 			log.Error(ctx, "Imported Module", "Module", modName, "modDef", modDef)
-			conf, err := writeParamsForm(ctx, modDef)
+			conf, err := writeConfigForm(ctx, modDef)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
-			modForm := &ModuleForm{Name: modName, Form: string(conf)}
-			err = svc.formDataStore.Put(ctx, modName, modForm)
+			modForm := &modulesbase.ConfigForm{Name: "Module_" + modName, Form: string(conf)}
+			err = svc.formDataStore.Put(ctx, "Module_"+modName, modForm)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}

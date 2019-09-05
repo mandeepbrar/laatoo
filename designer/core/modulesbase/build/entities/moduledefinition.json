@@ -31,6 +31,9 @@
     "Version": {
       "type":"string"
     },
+    "File": {
+      "type":"string"
+    },
     "Params": {
       "type": "subentity",
       "entity": "Param",

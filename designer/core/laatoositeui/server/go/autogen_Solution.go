@@ -33,5 +33,3 @@ func (ent *Solution) Config() *data.StorableConfig {
 		Cacheable:       false,
 	}
 }
-
-

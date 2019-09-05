@@ -1,7 +1,7 @@
 {
   "name":"Server",
   "inherits":"",
-  "imports":[],
+  "imports":["laatoo/sdk/modules/modulesbase"],
   "multitenant": true,
   "form": {
     "tabs": {
@@ -73,7 +73,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "ModuleInstance"
+        "entity": "modulesbase.ModuleInstance"
     },
     "Services": {
         "type":"subentity",
@@ -82,7 +82,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Service"
+        "entity": "modulesbase.Service"
     },
     "Entities": {
         "type":"subentity",
@@ -91,7 +91,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Entity"
+        "entity": "modulesbase.Entity"
     },
     "Factories": {
         "type":"subentity",
@@ -100,7 +100,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Factory"
+        "entity": "modulesbase.Factory"
     },
     "Channels": {
         "type":"subentity",
@@ -109,7 +109,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Channel"
+        "entity": "modulesbase.Channel"
     },
     "Engines": {
         "type":"subentity",
@@ -118,7 +118,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Engine"
+        "entity": "modulesbase.Engine"
     },
     "Rules": {
         "type":"subentity",
@@ -127,7 +127,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Rule"
+        "entity": "modulesbase.Rule"
     },
     "Tasks": {
         "type":"subentity",
@@ -136,7 +136,7 @@
           "name": "SubEntity",
           "module": "subentity"
         },
-        "entity": "Task"
+        "entity": "modulesbase.Task"
     },
     "Security": {
         "type":"subentity",

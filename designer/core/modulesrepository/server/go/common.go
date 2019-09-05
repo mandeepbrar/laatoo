@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/modules/modulesbase"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
@@ -17,16 +18,16 @@ import (
 	"github.com/mholt/archiver"
 )
 
-func processArchive(ctx core.RequestContext, mod, file string, repositoryFiles components.StorageComponent) (*ModuleDefinition, error) {
-	err := extractArchive(ctx, mod, file, repositoryFiles)
+func processArchive(ctx core.RequestContext, mod, file, tmppath string, repositoryFiles components.StorageComponent) (*modulesbase.ModuleDefinition, error) {
+	err := extractArchive(ctx, mod, file, tmppath, repositoryFiles)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	return readMod(ctx, mod)
+	return readMod(ctx, mod, file, tmppath)
 }
 
-func extractArchive(ctx core.RequestContext, mod, file string, repositoryFiles components.StorageComponent) error {
-	modTmpDir := path.Join(TMPPATH, mod)
+func extractArchive(ctx core.RequestContext, mod, file, tmppath string, repositoryFiles components.StorageComponent) error {
+	modTmpDir := path.Join(tmppath, mod)
 	modDirExists, _, _ := utils.FileExists(modTmpDir)
 	log.Error(ctx, "Extracting archive", "Module", modTmpDir, "Dir exists", modDirExists)
 	//ensure latest module directory is present
@@ -45,7 +46,7 @@ func extractArchive(ctx core.RequestContext, mod, file string, repositoryFiles c
 		ctx.SetResponse(core.StatusNotFoundResponse)
 		return nil
 	}
-	localmodFile := path.Join(TMPPATH, mod+".tar.gz")
+	localmodFile := path.Join(tmppath, mod+".tar.gz")
 	fil, err := os.Create(localmodFile)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -55,7 +56,7 @@ func extractArchive(ctx core.RequestContext, mod, file string, repositoryFiles c
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if err := archiver.Unarchive(localmodFile, TMPPATH); err != nil {
+	if err := archiver.Unarchive(localmodFile, tmppath); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	/*	str, err := repositoryFiles.Open(ctx, file)
@@ -76,51 +77,51 @@ func extractArchive(ctx core.RequestContext, mod, file string, repositoryFiles c
 	return nil
 }
 
-func readMod(ctx core.RequestContext, modName string) (*ModuleDefinition, error) {
-	confDir := path.Join(TMPPATH, modName, "config")
+func readMod(ctx core.RequestContext, modName, file, tmppath string) (*modulesbase.ModuleDefinition, error) {
+	confDir := path.Join(tmppath, modName, "config")
 	confPath := path.Join(confDir, "config.yml")
 	conf, err := ctx.ServerContext().ReadConfig(confPath, nil)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	mod := &ModuleDefinition{Name: modName}
+	mod := &modulesbase.ModuleDefinition{Name: modName, File: file}
 	mod.SetId(modName)
 	err = readConf(ctx, mod, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	svcs, err := readElementNames(ctx, confDir, "services", conf)
+	svcs, err := readServices(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Services = svcs
-	channels, err := readElementNames(ctx, confDir, "channels", conf)
+	channels, err := readChannels(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	log.Error(ctx, "Services for mod", "services", svcs)
 	mod.Channels = channels
-	factories, err := readElementNames(ctx, confDir, "factories", conf)
+	factories, err := readFactories(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Factories = factories
-	engines, err := readElementNames(ctx, confDir, "engines", conf)
+	engines, err := readEngines(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Engines = engines
-	rules, err := readElementNames(ctx, confDir, "rules", conf)
+	rules, err := readRules(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Rules = rules
-	tasks, err := readElementNames(ctx, confDir, "tasks", conf)
+	tasks, err := readTasks(ctx, confDir, conf)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
 	mod.Tasks = tasks
-	err = readSubModules(ctx, mod, conf)
+	err = readSubModules(ctx, mod, conf, tmppath)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -132,7 +133,7 @@ func readMod(ctx core.RequestContext, modName string) (*ModuleDefinition, error)
 	return mod, nil
 }
 
-func readConf(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
+func readConf(ctx core.RequestContext, mod *modulesbase.ModuleDefinition, conf config.Config) error {
 	desc, ok := conf.GetString(ctx, "description")
 	if ok {
 		mod.Description = desc
@@ -156,7 +157,7 @@ func readConf(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config
 	return nil
 }
 
-func readDependencies(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
+func readDependencies(ctx core.RequestContext, mod *modulesbase.ModuleDefinition, conf config.Config) error {
 	depVals := make(map[string]string)
 	deps, ok := conf.GetSubConfig(ctx, "dependencies")
 	if ok {
@@ -170,8 +171,8 @@ func readDependencies(ctx core.RequestContext, mod *ModuleDefinition, conf confi
 	return nil
 }
 
-func readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	params := make([]ModuleParam, 0)
+func readParams(ctx core.RequestContext, mod *modulesbase.ModuleDefinition, conf config.Config) error {
+	params := make([]modulesbase.Param, 0)
 	log.Error(ctx, "Reading params", "conf", conf)
 	paramsConf, ok := conf.GetSubConfig(ctx, "params")
 	if ok {
@@ -180,7 +181,7 @@ func readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Conf
 			paramConf, _ := paramsConf.GetSubConfig(ctx, paramName)
 			ptype, _ := paramConf.GetString(ctx, "type")
 			desc, _ := paramConf.GetString(ctx, "description")
-			modParam := ModuleParam{Name: paramName, Type: ptype, Description: desc}
+			modParam := modulesbase.Param{Name: paramName, Type: ptype, Description: desc}
 			params = append(params, modParam)
 		}
 	}
@@ -189,13 +190,13 @@ func readParams(ctx core.RequestContext, mod *ModuleDefinition, conf config.Conf
 	return nil
 }
 
-func readObjects(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	objects := make([]ObjectDefinition, 0)
+func readObjects(ctx core.RequestContext, mod *modulesbase.ModuleDefinition, conf config.Config) error {
+	objects := make([]modulesbase.ObjectDefinition, 0)
 	objsConf, ok := conf.GetSubConfig(ctx, "objects")
 	if ok {
 		objNames := objsConf.AllConfigurations(ctx)
 		for _, objName := range objNames {
-			objDef := ObjectDefinition{Name: objName}
+			objDef := modulesbase.ObjectDefinition{Name: objName}
 			objConf, _ := objsConf.GetSubConfig(ctx, objName)
 			objType, _ := objConf.GetString(ctx, "type")
 			if objType == "module" {
@@ -207,10 +208,10 @@ func readObjects(ctx core.RequestContext, mod *ModuleDefinition, conf config.Con
 			objDef.Type = objType
 			objConfs, ok := objConf.GetSubConfig(ctx, "configurations")
 			if ok {
-				objConfDefs := make([]ConfigurationDefinition, 0)
+				objConfDefs := make([]modulesbase.Param, 0)
 				allConfs := objConfs.AllConfigurations(ctx)
 				for _, confName := range allConfs {
-					confDef := ConfigurationDefinition{Name: confName}
+					confDef := modulesbase.Param{Name: confName}
 					confConf, _ := objConfs.GetSubConfig(ctx, confName)
 					confType, ok := confConf.GetString(ctx, "type")
 					if ok {
@@ -234,7 +235,7 @@ func readObjects(ctx core.RequestContext, mod *ModuleDefinition, conf config.Con
 	return nil
 }
 
-func readModObj(ctx core.RequestContext, objName string, mod *ModuleDefinition, conf config.Config) error {
+func readModObj(ctx core.RequestContext, objName string, mod *modulesbase.ModuleDefinition, conf config.Config) error {
 	log.Error(ctx, "Creating obj", "objName", objName)
 	obj, err := ctx.ServerContext().CreateObject(objName)
 	if err != nil {
@@ -247,18 +248,45 @@ func readModObj(ctx core.RequestContext, objName string, mod *ModuleDefinition, 
 		log.Error(ctx, "Meta Info", "inf", inf)
 		if inf != nil {
 			svcs := inf["services"]
-			svcsArr, ok := svcs.([]string)
+			svcsConf, ok := svcs.([]config.Config)
 			if ok {
+				svcsArr := make([]modulesbase.Service, len(svcsConf))
+				for i, conf := range svcsConf {
+					name, _ := conf.GetString(ctx, "name")
+					svc, err := readServiceConf(ctx, name, conf)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
+					svcsArr[i] = svc
+				}
 				mod.Services = svcsArr
 			}
 			facs := inf["factories"]
-			facsArr, ok := facs.([]string)
+			facsConf, ok := facs.([]config.Config)
 			if ok {
+				facsArr := make([]modulesbase.Factory, len(facsConf))
+				for i, conf := range facsConf {
+					name, _ := conf.GetString(ctx, "name")
+					fac, err := readFactoryConf(ctx, name, conf)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
+					facsArr[i] = fac
+				}
 				mod.Factories = facsArr
 			}
 			chns := inf["channels"]
-			chnsArr, ok := chns.([]string)
+			chansConf, ok := chns.([]config.Config)
 			if ok {
+				chnsArr := make([]modulesbase.Channel, len(chansConf))
+				for i, conf := range chansConf {
+					name, _ := conf.GetString(ctx, "name")
+					svc, err := readChannelConf(ctx, name, conf)
+					if err != nil {
+						return errors.WrapError(ctx, err)
+					}
+					chnsArr[i] = svc
+				}
 				mod.Channels = chnsArr
 			}
 		}
@@ -266,15 +294,16 @@ func readModObj(ctx core.RequestContext, objName string, mod *ModuleDefinition, 
 	return nil
 }
 
-func readElementNames(ctx core.RequestContext, modDir, element string, conf config.Config) ([]string, error) {
-	elems := make([]string, 0)
+func readElementConfs(ctx core.RequestContext, modDir, element string) ([]config.Config, []string, error) {
+	elems := make([]config.Config, 0)
+	elemNames := make([]string, 0)
 	elementDir := path.Join(modDir, element)
 	ok, fi, _ := utils.FileExists(elementDir)
 	log.Trace(ctx, "Mod dir exists", "dir", elementDir, "ok", ok, "modDir", modDir, "element", element)
 	if ok && fi.IsDir() {
 		files, err := ioutil.ReadDir(elementDir)
 		if err != nil {
-			return elems, err
+			return nil, nil, err
 		}
 		for _, info := range files {
 			elemfileName := info.Name()
@@ -284,21 +313,145 @@ func readElementNames(ctx core.RequestContext, modDir, element string, conf conf
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
 				elemConf, err := ctx.ServerContext().ReadConfig(file, nil)
 				if err != nil {
-					return elems, errors.WrapError(ctx, err)
+					return nil, nil, errors.WrapError(ctx, err)
 				}
 				name, ok := elemConf.GetString(ctx, "name")
 				if ok {
 					elemName = name
 				}
-				elems = append(elems, elemName)
+				elems = append(elems, elemConf)
+				elemNames = append(elemNames, elemName)
 			}
 		}
 	}
+	return elems, elemNames, nil
+}
+
+func readServices(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Service, error) {
+
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "services")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Service, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		svcName := elemNames[i]
+		svc, err := readServiceConf(ctx, svcName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = svc
+	}
+
 	return elems, nil
 }
 
-func readSubModules(ctx core.RequestContext, mod *ModuleDefinition, conf config.Config) error {
-	modsConf, ok := conf.GetSubConfig(ctx, "modules")
+func readFactories(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Factory, error) {
+
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "factories")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Factory, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		facName := elemNames[i]
+		fac, err := readFactoryConf(ctx, facName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = fac
+	}
+
+	return elems, nil
+}
+
+func readChannels(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Channel, error) {
+
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "channels")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Channel, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		chnName := elemNames[i]
+		chn, err := readChannelConf(ctx, chnName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = chn
+	}
+
+	return elems, nil
+}
+
+func readEngines(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Engine, error) {
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "engines")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Engine, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		engName := elemNames[i]
+		eng, err := readEngineConf(ctx, engName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = eng
+	}
+
+	return elems, nil
+}
+
+func readRules(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Rule, error) {
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "rules")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Rule, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		ruleName := elemNames[i]
+		rul, err := readRuleConf(ctx, ruleName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = rul
+	}
+
+	return elems, nil
+}
+
+func readTasks(ctx core.RequestContext, modDir string, conf config.Config) ([]modulesbase.Task, error) {
+	elemConfs, elemNames, err := readElementConfs(ctx, modDir, "tasks")
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	elems := make([]modulesbase.Task, len(elemConfs))
+
+	for i, ec := range elemConfs {
+		taskName := elemNames[i]
+		tsk, err := readTaskConf(ctx, taskName, ec)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		elems[i] = tsk
+	}
+
+	return elems, nil
+}
+
+func readSubModules(ctx core.RequestContext, mod *modulesbase.ModuleDefinition, conf config.Config, tmppath string) error {
+	/*modsConf, ok := conf.GetSubConfig(ctx, "modules")
 	if ok {
 		allSubMods := modsConf.AllConfigurations(ctx)
 		for _, subMod := range allSubMods {
@@ -309,17 +462,41 @@ func readSubModules(ctx core.RequestContext, mod *ModuleDefinition, conf config.
 				subModName = name
 			}
 			log.Error(ctx, "SubMod found", "submod", subModName, "conf", subModConf)
-			subModDef, err := readMod(ctx, subModName)
+			subModDef, err := readMod(ctx, subModName, tmppath)
 			if err != nil {
 				return errors.WrapError(ctx, err)
 			}
 			log.Error(ctx, "SubMod def", "subModDef", subModDef)
 		}
-	}
+	}*/
 	return nil
 }
 
-func writeParamsForm(ctx core.RequestContext, mod *ModuleDefinition) ([]byte, error) {
+func readServiceConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Service, error) {
+	return modulesbase.Service{}, nil
+}
+
+func readFactoryConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Factory, error) {
+	return modulesbase.Factory{}, nil
+}
+
+func readChannelConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Channel, error) {
+	return modulesbase.Channel{}, nil
+}
+
+func readRuleConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Rule, error) {
+	return modulesbase.Rule{}, nil
+}
+
+func readTaskConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Task, error) {
+	return modulesbase.Task{}, nil
+}
+
+func readEngineConf(ctx core.RequestContext, name string, conf config.Config) (modulesbase.Engine, error) {
+	return modulesbase.Engine{}, nil
+}
+
+func writeConfigForm(ctx core.RequestContext, mod *modulesbase.ModuleDefinition) ([]byte, error) {
 	formConf := make(map[string]interface{})
 	formInfo := make(map[string]interface{})
 	//configFormInfo.Set(ctx, "entity", entity.object)

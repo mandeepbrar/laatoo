@@ -1,0 +1,2 @@
+method: GET
+url: /configform/:id

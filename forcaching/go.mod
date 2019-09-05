@@ -16,7 +16,6 @@ require (
 	github.com/kr/pretty v0.1.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/tools v0.0.0-20190606124116-d0a3d012864b
-	golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
 	golang.org/x/net v0.0.0-20190603091049-60506f45cf65
 	github.com/ugorji/go v1.1.7
 	github.com/kr/text v0.1.0

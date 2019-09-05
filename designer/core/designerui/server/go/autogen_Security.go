@@ -1,5 +1,6 @@
 package main
 
+
 import (
   
   "laatoo/sdk/server/components/data"
@@ -7,11 +8,10 @@ import (
 
 type Security_Ref struct {
   Id    string
-  Name string
 }
 
 type Security struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+  Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Mode	string `json:"Mode" bson:"Mode" datastore:"Mode"`
 	RoleSvc	string `json:"RoleSvc" bson:"RoleSvc" datastore:"RoleSvc"`
@@ -28,15 +28,6 @@ func (ent *Security) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "Security",
-		SoftDeleteField: "Deleted",
-		PreSave:         false,
-		PostSave:        false,
-		PostLoad:        false,
-		Auditable:       true,
-		Multitenant:     false,
-		Collection:      "Security",
-		Cacheable:       false,
 	}
 }
-
 

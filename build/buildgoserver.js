@@ -75,7 +75,7 @@ function buildGoObjects(nextTask) {
 }
 
 function cleanGoFolders(nextTask) {
-  let goSrcFolder = path.join(pluginFolder, "src", "go")
+  let goSrcFolder = path.join(pluginFolder, "server", "go")
   if (fs.pathExistsSync(goSrcFolder)) {
       fs.readdirSync(goSrcFolder).forEach((item)=> {
           if(item.startsWith("autogen_")) {

@@ -1,6 +1,0 @@
-parent: root
-method: GET
-service: repository.update
-path: "repository/update/:module"
-paramvalues:
-  module: module

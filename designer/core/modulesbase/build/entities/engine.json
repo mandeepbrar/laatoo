@@ -4,6 +4,7 @@
   "inherits":"",
   "imports":[],
   "titleField": "Name",
+  "collection": "<nocollection>",
   "form": {
     "tabs": {
       "General": ["Name", "Description", "EngineType", "Address", "SSL" ],

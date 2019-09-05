@@ -1,6 +1,6 @@
 name: list_{{default "instance" "object" | lower}}
 config:
-  skip: {{var "list_view" | not}}
+  skip:  {{if exists "list_view"}} {{var "list_view" | not }} {{else}} true {{end}}
 postArgs: {{if exists "list_view_args"}} {{var "list_view_args"}} {{else}} {} {{end}}
 urlparams: {{if exists "list_view_params"}} {{var "list_view_params"}} {{else}} {} {{end}}
 serviceName: {{default "instance" "object"}}_view_service

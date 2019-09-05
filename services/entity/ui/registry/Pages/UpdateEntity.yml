@@ -1,7 +1,7 @@
 name: update_form_{{default "instance" "object" | lower}}
 authenticate: {{if exists "authenticate_update"}} {{var "authenticate_update"}} {{else}} true {{end}} 
 config:
-  skip: {{var "update_form_page" | not}}
+  skip: {{if exists "update_form_page"}} {{var "update_form_page" | not }} {{else}} true {{end}}
 route: {{if exists "update_form_route"}} {{var "update_form_route"}} {{else}} /update_form_{{default "instance" "object" | lower}}/:entityId {{end}}
 component:
   type: form

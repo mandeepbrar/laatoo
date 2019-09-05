@@ -8,7 +8,8 @@ require (
 	github.com/tdewolff/minify v2.3.6+incompatible
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tdewolff/test v1.0.3 // indirect
-	golang.org/x/sys v0.0.0-20190509141414-a5b02f93d862 // indirect
+	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
+
 	laatoo/sdk v0.0.0
 )
 

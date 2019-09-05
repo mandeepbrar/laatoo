@@ -1,5 +1,6 @@
 package main
 
+
 import (
   
   "laatoo/sdk/server/components/data"
@@ -7,11 +8,10 @@ import (
 
 type Deployment_Ref struct {
   Id    string
-  Name string
 }
 
 type Deployment struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+  Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
@@ -26,15 +26,6 @@ func (ent *Deployment) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "Deployment",
-		SoftDeleteField: "Deleted",
-		PreSave:         false,
-		PostSave:        false,
-		PostLoad:        false,
-		Auditable:       true,
-		Multitenant:     true,
-		Collection:      "Deployment",
-		Cacheable:       false,
 	}
 }
-
 

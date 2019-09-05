@@ -3,6 +3,7 @@
   "inherits":"",
   "imports":[],
   "titleField": "Name",
+  "collection": "<nocollection>",
   "form": {
     "layout": ["Mode", "RoleSvc", "Publickey", "Privatekey", "Realm", "Supportedrealms", "Authservices", "Permissions"]
   },
