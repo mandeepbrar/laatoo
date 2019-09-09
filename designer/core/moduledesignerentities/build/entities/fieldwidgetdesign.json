@@ -1,0 +1,22 @@
+{
+    "name":"FieldWidgetDesign",
+    "inherits":"",
+    "imports":[],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "layout": ["Name", "Module", "Props"]
+    },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Module": {
+            "type":"string"
+        },
+        "Props": {
+            "type":"stringmap"
+        }
+    }
+  }
+  

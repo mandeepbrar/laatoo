@@ -19,22 +19,22 @@ modules:
   fontawesome:
   uicommon:
   reactpages:
-    hotmodule: true
-    hotmodulepath: services/web/react/reactpages
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+    #hotmodule: true
+    #hotmodulepath: services/web/react/reactpages
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
   reactwebcommon:
   laatooviews:
   authui:
   reactforms:
   laatoositetheme:
   laatootheme:
-    hotmodule: true
-    hotmodulepath: designer/core/laatootheme
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+    #hotmodule: true
+    #hotmodulepath: designer/core/laatootheme
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
   designerui:
-    hotmodule: true
-    hotmodulepath: designer/core/designerui
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle"
+    #hotmodule: true
+    #hotmodulepath: designer/core/designerui
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle"
   modulesbase:
   modulesrepository:
   reactapplication:
@@ -46,18 +46,18 @@ modules:
   dblogin:
   entity:
   user:
+  moduledesignerserver:
+  moduledesignerentities:
   jsui:
     cachefiles: false
   laatoositeui:
-    hotmodule: true
-    hotmodulepath: designer/core/laatoositeui
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+    #hotmodule: true
+    #hotmodulepath: designer/core/laatoositeui
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
   moduledesignerui:
-    hotmodule: true
-    hotmodulepath: designer/core/moduledesignerui
-    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
-
-    
+    #hotmodule: true
+    #hotmodulepath: designer/core/moduledesignerui
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
 moduleinstances:
   filesystemstorage:
     module: filesystemstorage
@@ -144,9 +144,21 @@ moduleinstances:
     environment:
       uiapplication: websiteapplication
   websitetheme:
-    module: laatootheme
+    module: laatoositetheme
     settings:
       className: laatoosite
+      infoBlock: designerlink
+      showMenu: true
+      menu:
+      - homepage:
+        title: Account
+        page: account
+      - Solutions:
+        title: Solutions
+        page: list_solution
+      - AllModules:
+        title: AllModules
+        page: modulesrepo    
     environment:
       uiapplication: websiteapplication
 
@@ -173,12 +185,29 @@ moduleinstances:
     module: laatoositetheme
     settings:
       authenticate: true
+      showMenu: true
       className: laatoodashboard
       infoBlock: InfoBlock
+      menu:
+      - homepage:
+        title: General
+        page: home
+      - Server:
+        title: Server
+        page: serversettings
+      - Entities:
+        title: Entities
+        page: entities
     environment:
       uiapplication: moduledesigner
-
-
+  moduledesignerserver:
+    module: moduledesignerserver
+    environment:
+      uiapplication: moduledesigner
+  moduledesignerentities:
+    module: moduledesignerentities
+    environment:
+      uiapplication: moduledesigner
   designershell:
     module: shell
     settings:
@@ -200,6 +229,22 @@ moduleinstances:
       className: laatoodashboard
       infoBlock: InfoBlock
       showMenu: true
+      menu:
+        - homepage:
+          title: My Home
+          page: home
+        - servers:
+          title: Servers
+          page: list_server
+        - environments:
+          title: Environments
+          page: list_environment
+        - applications:
+          title: Applications
+          page: list_application
+        - modules:
+          title: Solution Modules
+          page: solution.modules
     environment:
       uiapplication: designerapplication
   designerui:

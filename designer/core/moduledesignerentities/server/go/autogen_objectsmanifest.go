@@ -1,0 +1,12 @@
+package main
+
+import (
+	"laatoo/sdk/server/core"
+)
+
+
+func ObjectsManifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{
+    core.PluginComponent{Name: "EntityDesign", Object: EntityDesign{}, Metadata: core.NewInfo("","EntityDesign", map[string]interface{}{"descriptor":"{\"name\":\"EntityDesign\",\"inherits\":\"\",\"imports\":[],\"titleField\":\"Name\",\"collection\":\"<nocollection>\",\"form\":{\"tabs\":{\"General\":[\"Name\",\"Description\"],\"Fields\":[\"Fields\"]},\"submit\":\"Save\",\"overlay\":true,\"layout\":[\"General\",\"Fields\"]},\"fields\":{\"Name\":{\"type\":\"string\"},\"Description\":{\"type\":\"string\"},\"Fields\":{\"type\":\"subentity\",\"list\":true,\"entity\":\"FieldDesign\",\"widget\":{\"name\":\"SubEntity\",\"module\":\"subentity\",\"props\":{\"mode\":\"dialog\"}}}}}"})},core.PluginComponent{Name: "FieldDesign", Object: FieldDesign{}, Metadata: core.NewInfo("","FieldDesign", map[string]interface{}{"descriptor":"{\"name\":\"FieldDesign\",\"inherits\":\"\",\"imports\":[],\"titleField\":\"Name\",\"collection\":\"<nocollection>\",\"form\":{\"tabs\":{\"General\":[\"Name\",\"Type\",\"List\",\"Reference\",\"Imports\",\"Titlefield\",\"Collection\"],\"Widget\":[\"Widget\"]},\"layout\":[\"General\",\"Widget\"]},\"fields\":{\"Name\":{\"type\":\"string\"},\"Type\":{\"type\":\"string\"},\"List\":{\"type\":\"bool\"},\"Reference\":{\"type\":\"bool\"},\"Imports\":{\"type\":\"string\",\"list\":true},\"Titlefield\":{\"type\":\"string\"},\"Collection\":{\"type\":\"string\"},\"Widget\":{\"type\":\"subentity\",\"entity\":\"FieldWidgetDesign\"}}}"})},core.PluginComponent{Name: "FieldWidgetDesign", Object: FieldWidgetDesign{}, Metadata: core.NewInfo("","FieldWidgetDesign", map[string]interface{}{"descriptor":"{\"name\":\"FieldWidgetDesign\",\"inherits\":\"\",\"imports\":[],\"titleField\":\"Name\",\"collection\":\"<nocollection>\",\"form\":{\"layout\":[\"Name\",\"Module\",\"Props\"]},\"fields\":{\"Name\":{\"type\":\"string\"},\"Module\":{\"type\":\"string\"},\"Props\":{\"type\":\"stringmap\"}}}"})},core.PluginComponent{Name: "ModuleDesignEntities", Object: ModuleDesignEntities{}, Metadata: core.NewInfo("","ModuleDesignEntities", map[string]interface{}{"descriptor":"{\"name\":\"ModuleDesignEntities\",\"inherits\":\"\",\"multitenant\":true,\"form\":{\"overlay\":true,\"layout\":[\"Entities\"]},\"fields\":{\"Name\":{\"type\":\"string\"},\"Entities\":{\"type\":\"subentity\",\"entity\":\"EntityDesign\",\"list\":true,\"widget\":{\"name\":\"SubEntity\",\"module\":\"subentity\"}}}}"})},
+  }
+}

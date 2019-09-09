@@ -1,0 +1,29 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides module server design ui 
+modules:
+  moduledesignserver:
+    module: entity
+    settings:
+      object: ModuleDesignServer
+      parent: root
+      instance: ModuleDesignServer
+      dataservicefactory: mongodatabase
+      create_dataadapterfactory: true
+      create_dataservice: true
+      create_updateservice: true
+      create_objectchannel: true
+      create_getservice: true
+      update_form: true
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+    packages:
+      react: "^16.3.0"

@@ -1,0 +1,36 @@
+{
+  "name":"EntityDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description"],
+      "Fields": ["Fields"]
+    },
+    "submit": "Save",
+    "overlay": true,
+    "layout": ["General", "Fields"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Fields": {
+      "type":"subentity",
+      "list": true,
+      "entity": "FieldDesign",
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity",
+        "props": {
+          "mode": "dialog"
+        }
+      }
+    }
+  }
+}

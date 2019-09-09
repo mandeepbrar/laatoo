@@ -6,7 +6,7 @@ component:
     - type: html
       html: <h3>Edit Module</h3>
     - type: form
-      id: update_form_moduledefinition
+      id: update_form_moduledesigngeneral
       info:
         entityId: {{jsreplace "Application.Route.Params.moduleId"}}
 

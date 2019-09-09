@@ -1,0 +1,3 @@
+messagetype: storable_presave
+rule: newmoduledesignrule
+trigger: synchronousmessage

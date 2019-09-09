@@ -1,0 +1,25 @@
+{
+  "name":"TaskDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "layout": ["Name", "Description", "Receiver", "Processor"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Receiver": {
+        "type":"string"
+    },
+    "Processor": {
+        "type":"string",
+        "label": "Message"
+    }
+  }
+}

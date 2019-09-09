@@ -1,0 +1,65 @@
+{
+  "name":"ServiceDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Factory", "ServiceMethod", "LoggingLevel", "LoggingFormat"],
+      "Configuration": [ "Configuration"]
+    },
+    "layout": ["General", "Configuration"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Factory": {
+        "type":"string"
+    },
+    "ServiceMethod": {
+        "type":"string",
+        "label": "Service Method"
+    },
+    "LoggingLevel": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Error", "value":"error"},
+            {"text": "Warn", "value":"warn"},
+            {"text": "Info", "value":"info"},
+            {"text": "Debug", "value":"debug"},
+            {"text": "Trace", "value":"trace"}
+          ]
+        }
+      }
+    },
+    "LoggingFormat": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Json ", "value":"json"},
+            {"text": "Json Full", "value":"jsonmax"},
+            {"text": "Formatted", "value":"happy"},
+            {"text": "Formatted Full", "value":"happymax"}
+          ]    
+        }
+      }
+    },
+    "Settings": {
+      "type":"stringmap",      
+      "widget": {
+        "name": "ModuleConfig",
+        "module": "modulesrepository"
+      }
+    }
+  }
+}

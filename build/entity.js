@@ -34,11 +34,13 @@ function sdkinclude(sdkinclude) {
 
 function imports(imports) {
   var importsStr = ""
-  imports.forEach(function(pkg) {
-    if(pkg) {
-      importsStr = importsStr + "\r\n\t\""+ pkg +"\" "
-    }
-  });
+  if(imports) {
+    imports.forEach(function(pkg) {
+      if(pkg) {
+        importsStr = importsStr + "\r\n\t\""+ pkg +"\" "
+      }
+    });  
+  }
   return importsStr
 }
 

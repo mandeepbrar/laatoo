@@ -1,0 +1,42 @@
+{
+  "name":"FieldDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Type", "List", "Reference", "Imports", "Titlefield", "Collection"],
+      "Widget": ["Widget"]
+    },
+    "layout": ["General", "Widget"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Type": {
+        "type":"string"
+    },
+    "List": {
+      "type":"bool"
+    },
+    "Reference": {
+      "type":"bool"
+    },
+    "Imports": {
+      "type":"string",
+      "list":true
+    },
+    "Titlefield": {
+      "type":"string"
+    },
+    "Collection": {
+      "type":"string"
+    },
+    "Widget": {
+      "type":"subentity",
+      "entity": "FieldWidgetDesign"
+    }
+  }
+}

@@ -125,12 +125,12 @@ func (svc *UI) Load(ctx core.ServerContext, modInfo *components.ModInfo) error {
 	}
 
 	app, ok := modInfo.GetContext(ctx, CONF_UIAPPLICATION)
-	log.Info(ctx, "UI process Module", "ins name", modInfo.InstanceName, "mod name", modName, "ok", ok, " ui application", app, " Processed app", svc.application)
 	if ok && svc.application != app.(string) {
-		log.Error(ctx, "Skipping module from ui", "module", modName, "application", svc.application)
+		log.Error(ctx, "Skipping module from ui", "module", modName, "application", svc.application, "app", app)
 		return nil
+	} else {
+		log.Info(ctx, "UI process Module", "ins name", modInfo.InstanceName, "mod name", modName, " ui application", app, " Processed app", svc.application)
 	}
-	log.Info(ctx, "Module read", "mod name", modName)
 
 	modFilesDir := svc.getFilesDir(ctx, modName, modInfo.ModDir, modInfo)
 

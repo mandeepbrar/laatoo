@@ -1,0 +1,36 @@
+{
+    "name":"Dependency",
+    "sdkinclude": true,
+    "inherits":"",
+    "imports":[],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "layout": ["Name", "Version", "Comparison", "Description"]
+    },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Description": {
+            "type":"string"
+        },
+        "Version": {
+            "type":"string"
+        },
+        "Comparison": {
+            "type":"string",
+            "widget": {
+                "name": "Select",
+                "props": {
+                    "items": [
+                        {"text": "=", "value":"="},
+                        {"text": "<=", "value":"<="},
+                        {"text": ">=", "value":">="}
+                    ]    
+                }
+            }        
+        }
+    }
+  }
+  

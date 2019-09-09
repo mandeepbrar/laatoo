@@ -1,0 +1,39 @@
+{
+  "name":"RuleDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Trigger", "MessageType", "Rule"],
+      "Settings": ["Settings"]
+    },
+    "layout": ["General", "Settings"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Trigger": {
+        "type":"string"
+    },
+    "MessageType": {
+        "type":"string",
+        "label": "Message"
+    },
+    "Rule": {
+        "type":"string"
+    },
+    "Settings": {
+      "type":"stringmap",      
+      "widget": {
+        "name": "ModuleConfig",
+        "module": "modulesrepository"
+      }
+    }
+  }
+}

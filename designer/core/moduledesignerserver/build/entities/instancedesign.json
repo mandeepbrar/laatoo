@@ -1,0 +1,42 @@
+{
+  "name":"ModuleInstanceDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Module", "Description"],
+      "Settings": ["Settings"]
+    },
+    "layout": ["General", "Settings"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Module": {
+      "type":"storableref",
+      "entity": "Module",
+      "widget": {
+        "name": "SubEntity",
+        "module": "subentity",
+        "props": {
+          "loadData": true,
+          "mode": "select",
+          "dataService": "entitlementmodule"
+        }
+      }
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Settings": {
+      "type":"stringmap",      
+      "widget": {
+        "name": "ModuleConfig",
+        "module": "modulesbase"
+      }
+    }
+  }
+}

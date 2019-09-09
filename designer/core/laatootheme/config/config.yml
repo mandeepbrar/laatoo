@@ -2,7 +2,7 @@ version: 0.0.1
 dependencies:
   reactwebcommon: ">=0.0.1"
   laatoositetheme: ">=0.0.1"
-description: Module provides laatoo theme
+description: Module provides module designer theme
 extends: laatoositetheme
 settings:
   infoBlock: designerlink

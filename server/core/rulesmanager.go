@@ -12,7 +12,7 @@ import (
 
 type rulesManager struct {
 	name            string
-	registeredRules map[string][]rules.Rule
+	registeredRules map[string]map[string]rules.Rule
 	rulesStore      map[string]rules.Rule
 	proxy           *rulesManagerProxy
 }
@@ -120,19 +120,19 @@ func (rm *rulesManager) processRuleConf(ruleCtx core.ServerContext, ruleConf con
 		if !ok {
 			return errors.ThrowError(ruleCtx, errors.CORE_ERROR_MISSING_CONF, "Conf", constants.CONF_RULE_MSGTYPE)
 		}
-		rm.subscribeSynchronousMessage(ruleCtx, msgType, rule)
+		rm.subscribeSynchronousMessage(ruleCtx, msgType, rule, ruleName)
 	default:
 		return errors.ThrowError(ruleCtx, errors.CORE_ERROR_BAD_CONF, "Conf", constants.CONF_RULE_TRIGGER)
 	}
 	return nil
 }
 
-func (rm *rulesManager) subscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule) {
+func (rm *rulesManager) subscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule, ruleName string) {
 	regrules, prs := rm.registeredRules[msgType]
 	if !prs {
-		regrules = []rules.Rule{}
+		regrules = make(map[string]rules.Rule)
 	}
-	regrules = append(regrules, rule)
+	regrules[ruleName] = rule
 	rm.registeredRules[msgType] = regrules
 }
 
@@ -140,8 +140,8 @@ func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType 
 	tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.SynchronousMessage, Message: data}
 	regrules, present := rm.registeredRules[msgType]
 	if present {
-		for _, rule := range regrules {
-			log.Debug(ctx, "Executing rule")
+		for ruleName, rule := range regrules {
+			log.Debug(ctx, "Executing rule. Checking condition", "name", ruleName, "rule", rule)
 			if rule.Condition(ctx, tr) {
 				log.Debug(ctx, "Executing rule", "message", msgType)
 				err := rule.Action(ctx, tr)
@@ -179,7 +179,7 @@ func (rm *rulesManager) unloadRule(ctx core.ServerContext, ruleConf config.Confi
 			if prs {
 				for idx, existingrule := range regrules {
 					if existingrule == rule {
-						regrules[idx] = nil
+						delete(regrules, idx)
 					}
 				}
 			}

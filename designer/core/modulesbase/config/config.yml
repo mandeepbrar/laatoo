@@ -31,6 +31,13 @@ modules:
       parent: root
       instance: Param
       skipData: true
+  dependency: 
+    module: entity
+    settings:
+      object: Dependency
+      parent: root
+      instance: Dependency
+      skipData: true
   channel: 
     module: entity
     settings:

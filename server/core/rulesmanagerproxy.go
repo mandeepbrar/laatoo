@@ -9,8 +9,8 @@ type rulesManagerProxy struct {
 	manager *rulesManager
 }
 
-func (rm *rulesManagerProxy) SubscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule) {
-	rm.manager.subscribeSynchronousMessage(ctx, msgType, rule)
+func (rm *rulesManagerProxy) SubscribeSynchronousMessage(ctx core.ServerContext, msgType string, rule rules.Rule, ruleName string) {
+	rm.manager.subscribeSynchronousMessage(ctx, msgType, rule, ruleName)
 }
 
 func (rm *rulesManagerProxy) SendSynchronousMessage(ctx core.RequestContext, msgType string, data interface{}) error {

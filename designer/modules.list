@@ -5,3 +5,5 @@ designerdependencies laatoo/designer/core/designerdependencies
 laatootheme laatoo/designer/core/laatootheme
 laatoositeui laatoo/designer/core/laatoositeui
 moduledesignerui laatoo/designer/core/moduledesignerui
+moduledesignerserver laatoo/designer/core/moduledesignerserver
+moduledesignerentities laatoo/designer/core/moduledesignerentities

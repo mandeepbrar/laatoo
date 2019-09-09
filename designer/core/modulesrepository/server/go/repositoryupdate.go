@@ -74,7 +74,7 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 	if len(files) > 0 {
 		_, fileName := filepath.Split(files[0])
 		log.Error(ctx, "Process archive", "fileName", fileName)
-		modDef, err := modulesbase.ProcessArchive(ctx, mod, fileName, TMPPATH, svc.repositoryFiles)
+		modDef, err := processArchive(ctx, mod, fileName, TMPPATH, svc.repositoryFiles)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
@@ -82,7 +82,7 @@ func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) 
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
-		conf, err := modulesbase.WriteConfigForm(ctx, modDef)
+		conf, err := writeConfigForm(ctx, modDef)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}

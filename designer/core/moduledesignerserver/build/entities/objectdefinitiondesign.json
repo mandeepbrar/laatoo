@@ -1,0 +1,67 @@
+{
+  "name":"ObjectDefinitionDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Type"],
+      "Request": ["Request"],
+      "Configurations": ["Configurations"]
+    },
+    "overlay": true,
+    "submit": "Save",
+    "layout": ["General", "Configurations", "Request"]
+  },
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    },
+    "Type": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "service", "value":"service"},
+            {"text": "module", "value":"module"},
+            {"text": "factory", "value":"factory"},
+            {"text": "rule", "value":"rule"},
+            {"text": "task", "value":"task"}
+          ]    
+        }
+      }
+    },
+    "RequestType": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+              {"text": "string", "value":"string"},
+              {"text": "int", "value":"int"},
+              {"text": "bool", "value":"bool"},
+              {"text": "stringmap", "value":"stringmap"},
+              {"text": "stringsmap", "value":"stringsmap"},
+              {"text": "stringarray", "value":"stringarray"},
+              {"text": "config", "value":"config"}
+          ]    
+        }
+      }
+    },
+    "RequestParams": {
+      "type":"subentity",
+      "entity": "ParamDesign",
+      "list": true
+    },
+    "Configurations": {
+      "type":"subentity",
+      "entity": "ParamDesign",
+      "list": true
+    }
+  }
+}

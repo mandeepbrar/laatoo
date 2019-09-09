@@ -1,0 +1,24 @@
+{
+    "name":"ModuleDesignEntities",
+    "inherits":"",
+    "multitenant": true,
+    "form": {
+      "overlay": true,
+      "layout": ["Entities"]
+    },
+    "fields":{
+      "Name": {
+        "type": "string"
+      },
+      "Entities": {
+        "type":"subentity",
+        "entity": "EntityDesign",      
+        "list": true,
+        "widget": {
+          "name": "SubEntity",
+          "module": "subentity"
+        }
+      }
+    }
+  }
+  

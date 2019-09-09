@@ -1,0 +1,32 @@
+{
+  "name":"FactoryDesign",
+  "inherits":"",
+  "imports":[],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Description", "Object"],
+      "Settings": ["Settings"]
+    },
+    "layout": ["General", "Settings"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Object": {
+        "type":"string"
+    },
+    "Settings": {
+      "type":"stringmap",      
+      "widget": {
+        "name": "ModuleConfig",
+        "module": "modulesrepository"
+      }
+    }
+  }
+}
