@@ -45,11 +45,11 @@ class BaseForm extends React.Component {
   componentWillMount() {
     this.configureForm(this.props.dispatch, this.props)
     console.log("base form mount", this)
-    if(this.loader) {
+    if (this.props.formData) {
+      this.setData(this.props.formData)
+    } else if(this.loader) {
       console.log('base form: executing loader', this.loader, this.props, this.context)
       this.loader(this.context.routeParams, this.dataLoaded, this.failureCallback)
-    } else if (this.props.formData) {
-      this.setData(this.props.formData)
     }
   }
 
@@ -106,6 +106,9 @@ class BaseForm extends React.Component {
   }
 
   setData = (formData) => {
+    if(this.desc.info && this.desc.info.preAssigned) {
+      formData = Object.assign({}, formData, this.desc.info.preAssigned)
+    }
     if(this.info.dataMapper) {
       let mapper = _reg('Method', this.info.dataMapper)
       formData = mapper(formData)
@@ -118,11 +121,7 @@ class BaseForm extends React.Component {
   dataLoaded = (data) => {
     this.dataLoading = true
     //let formData = Object.assign({}, data.resp.data)
-    let respData = data.resp.data
-    if(this.desc.info && this.desc.info.preAssigned) {
-      respData = Object.assign({}, respData, this.desc.info.preAssigned)
-    }
-    this.setData(respData)
+    this.setData(data.resp.data)
   }
 
   getFormValue = () => {
@@ -331,11 +330,6 @@ const mapStateToProps = (state, ownProps) => {
   console.log("redux form state...........=======", state, ownProps, desc, desc.info)
 
   let formData = ownProps.formData
-  if (desc.info && desc.info.preAssigned){
-    formData = Object.assign({}, formData, desc.info.preAssigned)
-  }
-
-
   let form  = state.form[ownProps.form]
   console.log("form val", form, ownProps.form, state)
   let formVal = form? form.values: empty
