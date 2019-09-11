@@ -58,12 +58,11 @@ class SubEntity extends LoadableComponent {
     console.log("subentity ", this.state, this.props)
     let field = this.props.field
     let title = field.skipLabel? null: this.label
-    let autoSubmit = null
     return (
       <_uikit.Block className={"subentity "+this.label}>
         {this.list?
         <EntityList field={field} onChange={this.change} label={this.label} formRef={this.props.formRef} selectOptions= {this.state.selectOptions} 
-          overlayComponent={this.context.overlayComponent}  formDesc={this.formDesc} title={title} value={this.state.value}/>
+          overlayComponent={this.context.overlayComponent} mode={this.props.mode} formDesc={this.formDesc} title={title} value={this.state.value}/>
         : ((this.widgetMode=="select")?
         this.selectSubEntity()
         :

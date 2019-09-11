@@ -16,7 +16,10 @@
         "list": true,
         "widget": {
           "name": "SubEntity",
-          "module": "subentity"
+          "module": "subentity",
+          "props": {
+            "mode": "panes"
+          }
         }
       }
     }

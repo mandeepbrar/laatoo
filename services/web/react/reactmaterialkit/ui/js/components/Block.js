@@ -24,7 +24,7 @@ const Block=(props) =>  {
   }
   else {
     return (
-      <div style={Object.assign({}, props.contentStyle, props.style)} className={"block "+contentClass+" "+cl}>
+      <div style={Object.assign({}, props.contentStyle, props.style)} onClick={props.onClick} className={"block "+contentClass+" "+cl}>
        {props.children}
       </div>
     )

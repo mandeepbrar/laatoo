@@ -10,6 +10,7 @@ class Item extends React.Component {
     console.log("entity list field ", props)
     let title = this.getTitle(props)
     this.state = {value: props.value, index: props.index, title: title}
+    this.titleClick = (props.mode == "panes")? this.edit: null;
   }
 
   getTitle = (props) => {
@@ -41,22 +42,37 @@ class Item extends React.Component {
     this.props.removeItem(this.state.index)
   }
 
+  actions = () => {
+    return (
+      <_uikit.Block className="right">
+        <Action action={{actiontype:"method"}} className="edit p10" method={this.edit}>
+            <_uikit.Icons.EditIcon />
+        </Action>
+        <Action action={{actiontype:"method"}} className="remove p10" method={this.removeItem}>
+            <_uikit.Icons.DeleteIcon />
+        </Action>
+      </_uikit.Block>
+    )
+  }
+
+  title = () => {
+    return (
+      <_uikit.Block className="left" onClick={this.titleClick}>
+      {this.state.title}
+      </_uikit.Block>  
+    )
+  }
 
   render() {
     console.log("rendering items in entity list", this.props, this.state)
     return (
         <_uikit.Block  className="row between-xs">
-            <_uikit.Block className="left" >
-            {this.state.title}
-            </_uikit.Block>
-            <_uikit.Block className="right">
-                <Action action={{actiontype:"method"}} className="edit p10" method={this.edit}>
-                    <_uikit.Icons.EditIcon />
-                </Action>
-                <Action action={{actiontype:"method"}} className="remove p10" method={this.removeItem}>
-                    <_uikit.Icons.DeleteIcon />
-                </Action>
-            </_uikit.Block>
+          {this.title()}
+          {
+            (this.props.mode != "panes")?
+            this.actions():
+            null
+          }
         </_uikit.Block>
     )
   }
