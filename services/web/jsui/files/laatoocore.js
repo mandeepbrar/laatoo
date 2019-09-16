@@ -47,7 +47,9 @@ Application.Resolve = function(mod, comp) {
     console.log("could not resolve component", mod, Application);
   }
 }
-
+function testnull(test, def) {
+  return test? test: def
+}
 
 var _$=Application.Modules;
 var _rm = Application.RegisterModule;
@@ -57,7 +59,7 @@ var _res = Application.Resolve;
 var _re = null;
 var _ce = null;
 var _uikit = null;
-
+var _tn = testnull;
 Application.setUikit = function(uikit) {
   Application.uikit = uikit;
   _uikit = uikit;

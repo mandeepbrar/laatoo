@@ -41,7 +41,7 @@ class ModuleConfig extends React.Component {
     }
     getModuleName=(props)=> {
         console.log("props", props)
-        if(props.formValue.Module) {
+        if(props.formValue && props.formValue.Module) {
             return props.formValue.Module.Id
         } else {
             return ""

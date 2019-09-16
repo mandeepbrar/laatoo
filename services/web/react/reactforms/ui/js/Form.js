@@ -14,16 +14,16 @@ class BaseForm extends React.Component {
     super(props)
     console.log('base form', props, context)
     this.desc = props.description
-    this.info = props.info? props.info: this.desc.info
-    this.info = this.info? this.info :{}
+    this.info = props.info? props.info: null
+    if(!this.info) {
+      this.info = this.desc && this.desc.info ? this.desc.info : {}
+    }
     this.loader = null
     this.formSubmit = null
     let comp = this
-    if(props.onSubmit) {
+    if(props.onFormSubmit) {
       this.formSubmit = (data, successCallback, failureCallback) => {
-        data = comp.preSubmit(data)
-        console.log("data ", data)
-        props.onSubmit(data, {successCallback, failureCallback});
+        props.onFormSubmit(data, successCallback, failureCallback);
       }
     }   
     this.state={formValue: props.formVal}
@@ -33,13 +33,10 @@ class BaseForm extends React.Component {
     this.formName="myform"
 
     this.actions = props.actions
-    if(!this.actions && this.desc.info.actions) {
-      this.actions = _reg('Methods', this.desc.info.actions)
+    if(!this.actions && this.info.actions) {
+      this.actions = _reg('Methods', this.info.actions)
     }
     console.log("webform ", props, context, this.state)
-    
-    let f = this.uiformSubmit(this.submitSuccessCallback, this.failureCallback)
-    this.submitFunc = (customFunc) => { return customFunc? props.handleSubmit(customFunc): props.handleSubmit(f) }
   }
 
   componentWillMount() {
@@ -76,9 +73,18 @@ class BaseForm extends React.Component {
   }
   preSubmit= (data) => {
     let presub
-    if(this.info) {
-      presub = _reg('Method', this.info.preSubmit)
+    let methodName = this.info && this.info.preSubmit? this.info.preSubmit: ""
+    if(this.props.preSubmit) {
+      if(typeof this.props.preSubmit === 'string') {
+        methodName = this.props.preSubmit
+      } else {
+        presub = this.props.preSubmit
+      }
     }
+    if(methodName) {
+      presub = _reg('Methods', methodName)
+    }
+    console.log("presubmit called ", presub, data, this.info, this.props, methodName)
     return presub? presub(data): data
   }
 
@@ -95,24 +101,36 @@ class BaseForm extends React.Component {
   }
 
   submitSuccessCallback = (data) => {
-    if(this.info) {
-      if(this.info.successRedirect) {
-        Window.redirect(this.info.successRedirect);
-      }
-      if(this.info.successRedirectPage) {
-        Window.redirect(this.info.successRedirectPage);
-      }
+    if(this.info.successRedirect) {
+      Window.redirect(this.info.successRedirect);
+    }
+    if(this.info.successRedirectPage) {
+      Window.redirect(this.info.successRedirectPage);
     }
   }
 
+  preprocessData = (data) => {
+    let beforeValueSet
+    let methodName = this.info && this.info.beforeValueSet? this.info.beforeValueSet: ""
+    if(this.props.beforeValueSet) {
+      if(typeof this.props.beforeValueSet === 'string') {
+        methodName = this.props.beforeValueSet
+      } else {
+        beforeValueSet = this.props.beforeValueSet
+      }
+    }
+    if(methodName) {
+      beforeValueSet = _reg('Methods', methodName)
+    }
+    console.log("beforeValueSet called ", beforeValueSet, data)
+    return beforeValueSet? beforeValueSet(data): data
+  }
+
   setData = (formData) => {
-    if(this.desc.info && this.desc.info.preAssigned) {
-      formData = Object.assign({}, formData, this.desc.info.preAssigned)
+    if(this.info.preAssigned) {
+      formData = Object.assign({}, formData, this.info.preAssigned)
     }
-    if(this.info.dataMapper) {
-      let mapper = _reg('Method', this.info.dataMapper)
-      formData = mapper(formData)
-    }
+    formData = this.preprocessData(formData)
     console.log("setData", this.props.form, formData)
     let x = this.props.initialize( formData)
     this.props.dispatch(x)
@@ -128,29 +146,51 @@ class BaseForm extends React.Component {
     return this.state.formValue
   }
 
-  uiformSubmit = (success, failure) => {
+  submitFunc = (customFunc) => {
+    console.log("invoked", customFunc)
     let comp = this
-    return (data) => {
-      comp.formSubmit(data, success, failure)
-    }
+    let mySubmitFunc = (data) => {
+      console.log("ui form submit called", data)
+      data = comp.preSubmit(data)
+      //let subToCall = _tn(method, comp.formSubmit)    
+      console.log("data submit", data)
+      if(customFunc) {
+        return customFunc(data, comp.submitSuccessCallback, comp.failureCallback)
+      } else {
+        return comp.formSubmit(data, comp.submitSuccessCallback, comp.failureCallback)
+      }
+    };
+    return this.props.handleSubmit(mySubmitFunc);
   }
 
   render() {
     let props = this.props
-    console.log("**********************rendering web form****************", props.form, props, this.state)
     let cfg = this.info
+    console.log("**********************rendering web form****************", props.form, props, this.state, cfg)
     if(_uikit.Form) {
-      if(cfg.layout && (typeof(cfg.layout) == "string") ) {
+      let formComp = null
+      if(cfg && cfg.layout && (typeof(cfg.layout) == "string") ) {
         let display = _reg('Blocks', cfg.layout)
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(props.formContext, props.description)
-          return React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: this.className})
+          formComp = React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: this.className})
         }
       } else {
-        return (
-          <_uikit.Form onSubmit={this.submitFunc} className={this.className}>
-            <FieldsPanel description={props.description} formRef={this} autoSubmitOnChange={props.autoSubmitOnChange} formValue={this.state.formValue} />
+        formComp = (
+          <_uikit.Form onSubmit={this.submitFunc}>
+            {
+              props.children?
+              props.children
+              :
+              <FieldsPanel description={props.description} formRef={this} formValue={this.state.formValue} />
+            }
+          </_uikit.Form>
+        )
+      }
+      return (
+        <_uikit.Block className={this.className}>
+            {formComp}
             <_uikit.Block className="actionbar p20 right">
               {
                 this.actions?
@@ -158,9 +198,8 @@ class BaseForm extends React.Component {
                 <_uikit.ActionButton onClick={this.submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</_uikit.ActionButton>
               }
             </_uikit.Block>
-          </_uikit.Form>
-        )
-      }
+        </_uikit.Block>
+      )
     } else {
       return <_uikit.Block/>
     }
@@ -197,26 +236,21 @@ class EntityForm extends BaseForm {
         if(entityId) {
           if(this.info.put) {
             this.formSubmit = (data, successCallback, failureCallback) => {
-              data = form.preSubmit(data)
-              console.log("form submit put", data)
               dispatch(createAction(ActionNames.ENTITY_PUT, {data, entityId, entityName}, {reload: form.info.reloadOnUpdate, successCallback, failureCallback}));
             }
           } else {
             this.formSubmit = (data, successCallback, failureCallback) => {
-              data = form.preSubmit(data)
-              console.log("form submit update", data)
               dispatch(createAction(ActionNames.ENTITY_UPDATE, {data, entityId, entityName}, {reload: form.info.reloadOnUpdate, successCallback, failureCallback}));
             }
           }
         } else {
           this.formSubmit = (data, successCallback, failureCallback) => {
-            data = form.preSubmit(data)
-            console.log("form submit save", data)
             dispatch(createAction(ActionNames.ENTITY_SAVE, {data, entityName}, {successCallback, failureCallback}));
           }
         }
       }
     }
+    console.log("after entity form configuration", this)
   }
 }
 EntityForm.contextTypes = {
@@ -224,35 +258,6 @@ EntityForm.contextTypes = {
   routeParams: PropTypes.object
 };
 
-/*
-class SubEntityForm extends BaseForm {
-  constructor(props, context) {
-    super(props, context)
-  }
-
-  getParentForm = () => {
-    return this.parentFormRef
-  }
-
-  getParentFormValue = () => {
-    return this.parentFormValue
-  }
-
-  configureForm = (dispatch, props) => {
-    this.setData(this.props.formData)
-    let form = this
-    this.formSubmit = (data, successCallback, failureCallback) => {
-      data = form.preSubmit(data)
-      console.log("form submit update", data, props)
-
-    }
-  }
-}
-SubEntityForm.contextTypes = {
-  getFormValue: PropTypes.func,
-  routeParams: PropTypes.object
-};
-*/
 /** custom form loading and submission */
 class CustomForm extends BaseForm {
   constructor(props, context) {
@@ -278,11 +283,10 @@ class CustomForm extends BaseForm {
     }
     if(!this.formSubmit) {
       this.formSubmit = (data, successCallback, failureCallback) => {
-        data = form.preSubmit(data)
-        console.log("form submit submit form", data)
+        console.log("form submit custom form", data)
         if(form.info) {
-          successCallback = form.info.submitSuccess? _reg('Method', form.info.submitSuccess) : successCallback
-          failureCallback = form.info.submitFailure? _reg('Method', form.info.submitFailure) : failureCallback
+          successCallback = form.info.submitSuccess? _reg('Methods', form.info.submitSuccess) : successCallback
+          failureCallback = form.info.submitFailure? _reg('Methods', form.info.submitFailure) : failureCallback
         }
         dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.info.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
       }
@@ -298,9 +302,8 @@ class WebFormUI extends React.Component {
   constructor(props) {
     super(props)
     let desc = props.description
-    let info = props.info? props.info: desc.info
-    info = info? info :{}
-    console.log("info of web form", props.info, desc.info)
+    let info = props.info? props.info: null
+    info = desc && desc.info ? desc.info : {}
     if (info.entity){
       this.formType = EntityForm
     } else {
@@ -327,7 +330,7 @@ const ReduxForm = reduxForm({})(WebFormUI)
 const empty = {}
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
-  console.log("redux form state...........=======", state, ownProps, desc, desc.info)
+  console.log("redux form state...........=======", state, ownProps, desc)
 
   let formData = ownProps.formData
   let form  = state.form[ownProps.form]

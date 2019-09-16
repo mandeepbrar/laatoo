@@ -25,76 +25,43 @@
       "Objects": {
         "type":"subentity",
         "entity": "ObjectDefinitionDesign",      
-        "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        }
+        "list": true
       },
       "Modules": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "ModuleInstanceDesign"
       },
       "Services": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "ServiceDesign"
       },
       "Factories": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "FactoryDesign"
       },
       "Channels": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "ChannelDesign"
       },
       "Engines": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "EngineDesign"
       },
       "Rules": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "RuleDesign"
       },
       "Tasks": {
           "type":"subentity",
           "list": true,
-          "widget": {
-            "name": "SubEntity",
-            "module": "subentity"
-          },
           "entity": "TaskDesign"
       }
-
     }
   }
   

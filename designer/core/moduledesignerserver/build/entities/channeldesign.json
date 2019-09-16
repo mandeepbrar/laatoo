@@ -54,11 +54,7 @@
       }
     },
     "Settings": {
-      "type":"stringmap",      
-      "widget": {
-        "name": "ModuleConfig",
-        "module": "modulesrepository"
-      }
+      "type":"stringmap"
     }
   }
 }

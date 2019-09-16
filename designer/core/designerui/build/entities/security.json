@@ -37,11 +37,21 @@
     "Supportedrealms": {
         "type":"string",
         "label": "Supported Realms",
+        "widget": {
+          "props": {
+            "mode": "summary"
+          }
+        },
         "list": true
     },
     "Authservices": {
         "label": "Authentication Services",
         "type":"string",
+        "widget": {
+          "props": {
+            "mode": "summary"
+          }
+        },
         "list": true
     },
     "Permissions": {

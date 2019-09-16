@@ -3,6 +3,7 @@ dependencies:
   reactwebcommon: ">=0.0.1"
   uicommon: ">=0.0.1"
   authui: ">=0.0.1"
+  reactpages: ">=0.0.1"
 description: Module provides laatoo forms for applications
 ui:
   js:
@@ -16,6 +17,7 @@ ui:
       authui: authui
       redux-saga: redux-saga
       reactwebcommon: reactwebcommon
+      reactpages: reactpages
       uicommon: uicommon
       prop-types: prop-types
       core-js: core-js

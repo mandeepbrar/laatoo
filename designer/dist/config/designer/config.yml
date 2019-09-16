@@ -15,7 +15,6 @@ modules:
   reactwebrouter:
   reactfileupload:
   reactmaterialkit:
-  subentity:
   fontawesome:
   uicommon:
   reactpages:
@@ -26,6 +25,9 @@ modules:
   laatooviews:
   authui:
   reactforms:
+    hotmodule: true
+    hotmodulepath: services/web/react/reactforms
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
   laatoositetheme:
   laatootheme:
     #hotmodule: true
@@ -54,6 +56,7 @@ modules:
     #hotmodule: true
     #hotmodulepath: designer/core/laatoositeui
     #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+  moduledesignergeneral:
   moduledesignerui:
     #hotmodule: true
     #hotmodulepath: designer/core/moduledesignerui
@@ -81,8 +84,6 @@ moduleinstances:
     module: reactwebrouter
   reactmaterialkit:
     module: reactmaterialkit
-  subentity:
-    module: subentity
   fontawesome:
     module: fontawesome
   uicommon:
@@ -177,6 +178,10 @@ moduleinstances:
       router: router
       uikit: reactmaterialkit
       theme: moduledesignertheme
+  moduledesignergeneral:
+    module: moduledesignergeneral
+    environment:
+      uiapplication: moduledesigner
   moduledesignerui:
     module: moduledesignerui
     environment:
@@ -198,6 +203,9 @@ moduleinstances:
       - Entities:
         title: Entities
         page: entities
+      - UIGeneral:
+        title: UI General
+        page: uigeneral
     environment:
       uiapplication: moduledesigner
   moduledesignerserver:
@@ -208,6 +216,7 @@ moduleinstances:
     module: moduledesignerentities
     environment:
       uiapplication: moduledesigner
+
   designershell:
     module: shell
     settings:

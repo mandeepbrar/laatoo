@@ -36,7 +36,12 @@
     },
     "Widget": {
       "type":"subentity",
-      "entity": "FieldWidgetDesign"
+      "entity": "FieldWidgetDesign",
+      "widget": {
+        "props": {
+          "label": "Widget"
+        }
+      }
     }
   }
 }

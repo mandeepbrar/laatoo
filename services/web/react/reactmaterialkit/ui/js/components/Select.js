@@ -1,6 +1,5 @@
 import React from 'react';
 import { FormControl, InputLabel, MenuItem, Select} from '@material-ui/core';
-import {RequestBuilder, DataSource, EntityData} from 'uicommon';
 import PropTypes from 'prop-types';
 import {LoadableComponent} from 'reactwebcommon'
 
@@ -46,9 +45,9 @@ class SelectComp extends LoadableComponent {
     let p = this.props
     this.setState(Object.assign({}, this.state, {value: evt.target.value}))
     if(p.onChange) {
-      let val = p.selectItem? this.state.items[evt.target.value]: evt.target.value
-      console.log("sendin value*********", p.selectItem, val, event.target.value, this.state)
-      p.onChange(val, evt.target.name, evt)
+    //  let val = p.selectItem? this.state.items[evt.target.value]: evt.target.value
+      //console.log("sendin value*********", p.selectItem, val, event.target.value, this.state)
+      p.onChange(evt)
     }
   }
 

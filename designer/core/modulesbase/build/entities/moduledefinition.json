@@ -37,11 +37,7 @@
     "Params": {
       "type": "subentity",
       "entity": "Param",
-      "list": true,
-      "widget": {
-        "name": "SubEntity",
-        "module": "subentity"
-      }
+      "list": true
     },    
     "Dependencies": {
       "type":"stringsmap"
@@ -55,82 +51,46 @@
     "Objects": {
       "type":"subentity",
       "entity": "ObjectDefinition",      
-      "list": true,
-      "widget": {
-        "name": "SubEntity",
-        "module": "subentity"
-      }
+      "list": true
     },
     "Modules": {
       "type":"subentity",
       "list": true,
-      "widget": {
-        "name": "SubEntity",
-        "module": "subentity"
-      },
       "entity": "ModuleInstance"
     },
     "Services": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Service"
     },
     "Entities": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Entity"
     },
     "Factories": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Factory"
     },
     "Channels": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Channel"
     },
     "Engines": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Engine"
     },
     "Rules": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Rule"
     },
     "Tasks": {
         "type":"subentity",
         "list": true,
-        "widget": {
-          "name": "SubEntity",
-          "module": "subentity"
-        },
         "entity": "Task"
     }
   }

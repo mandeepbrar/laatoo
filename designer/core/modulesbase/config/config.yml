@@ -1,6 +1,8 @@
 version: 0.0.1
 dependencies:
   entity: ">=0.0.1"
+  reactpages: ">=0.0.1"
+  uicommon: ">=0.0.1"
 description: Module provides base objects for designer
 modules:
   moduledefinition:
@@ -94,3 +96,12 @@ modules:
       parent: root
       instance: ConfigForm
       skipData: true
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+    packages:
+      react: "^16.3.0"      

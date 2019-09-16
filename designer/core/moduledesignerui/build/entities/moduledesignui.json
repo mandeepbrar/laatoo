@@ -1,0 +1,30 @@
+{
+    "name":"ModuleDesignUI",
+    "imports": ["laatoo/sdk/modules/modulesbase"],
+    "inherits":"",
+    "multitenant": true,
+    "form": {
+      "tabs": {
+        "UIDependencies": ["UIDependencies"],
+        "Externals": ["Externals"]
+      },
+      "verticaltabs": true,
+      "overlay": true,
+      "submit": "Save",
+      "layout": ["UIDependencies", "Externals"]
+    },
+    "fields":{
+      "Name": {
+          "type":"string"
+      },  
+      "Externals": {
+        "type":"stringmap"
+      },  
+      "UIDependencies": {
+        "type": "subentity",
+        "entity": "modulesbase.Dependency",
+        "list": true
+      }
+    }
+  }
+  

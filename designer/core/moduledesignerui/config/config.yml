@@ -5,12 +5,12 @@ dependencies:
   reactpages: ">=0.0.1"
 description: Module provides module designer ui 
 modules:
-  moduledesigngeneral:
+  moduledesignui:
     module: entity
     settings:
-      object: ModuleDesignGeneral
+      object: ModuleDesignUI
       parent: root
-      instance: ModuleDesignGeneral
+      instance: ModuleDesignUI
       dataservicefactory: mongodatabase
       create_dataadapterfactory: true
       create_dataservice: true
@@ -18,17 +18,7 @@ modules:
       create_objectchannel: true
       create_getservice: true
       update_form: true
-  param:
-    module: entity
-    settings:
-      object: Param
-      parent: root
-      instance: Param
-      skipData: true
-      list_view: true
-      new_form: true
-      new_form_page: true
-  dependency:
+  uidependency:
     module: entity
     settings:
       object: Dependency

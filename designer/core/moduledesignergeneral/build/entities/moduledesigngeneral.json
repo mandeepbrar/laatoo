@@ -1,0 +1,48 @@
+{
+    "name":"ModuleDesignGeneral",
+    "imports": ["laatoo/sdk/modules/modulesbase"],
+    "inherits":"",
+    "multitenant": true,
+    "form": {
+      "tabs": {
+        "Info": ["Name", "Description"],
+        "Params": ["Params"],
+        "Dependencies": ["Dependencies"]
+      },
+      "verticaltabs": true,
+      "overlay": true,
+      "submit": "Save",
+      "layout": ["Info", "Params", "Dependencies"]
+    },
+    "fields":{
+      "Name": {
+          "type":"string"
+      },
+      "Description": {
+          "type":"string"
+      },
+      "Params": {
+        "type": "subentity",
+        "entity": "modulesbase.Param",
+        "widget": {
+          "props": {
+            "label": "Parameters",
+            "itemLabel": "Parameter"
+          }
+        },
+        "list": true
+      },    
+      "Dependencies": {
+        "type": "subentity",
+        "entity": "modulesbase.Dependency",
+        "widget": {
+          "props": {
+            "label": "Dependencies",
+            "itemLabel": "Dependency"
+          }
+        },
+        "list": true
+      }
+    }
+  }
+  

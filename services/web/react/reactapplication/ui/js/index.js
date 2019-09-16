@@ -62,11 +62,11 @@ function StartApplication() {
     Router = Router.default
   }
   Application.setRouter(Router);
-  const store = configureStore();
-  createMessageDialogs(store)
-  Router.connect(store);
+  Application.store = configureStore();
+  createMessageDialogs(Application.store)
+  Router.connect(Application.store);
   Uikit.render(
-    <Provider store={store}>
+    <Provider store={Application.store}>
       <App router={Router} theme={Theme}/>
     </Provider>, document.getElementById('app')
   );

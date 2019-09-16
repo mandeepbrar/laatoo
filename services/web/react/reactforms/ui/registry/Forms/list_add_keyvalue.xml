@@ -1,0 +1,4 @@
+<Form>
+    <Field type="string" name="mapkey" module="reactforms"/>
+    <Field type="string" name="mapvalue"  module="reactforms"/>
+</Form>

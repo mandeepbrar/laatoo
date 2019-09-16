@@ -23,10 +23,11 @@
         "type":"string"
     },
     "Settings": {
-      "type":"stringmap",      
+      "type":"stringmap",
       "widget": {
-        "name": "ModuleConfig",
-        "module": "modulesrepository"
+        "props": {
+          "mode": "dialog"
+        }
       }
     }
   }

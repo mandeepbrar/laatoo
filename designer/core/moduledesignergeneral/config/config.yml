@@ -1,0 +1,49 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides module designer ui 
+modules:
+  moduledesigngeneral:
+    module: entity
+    settings:
+      object: ModuleDesignGeneral
+      parent: root
+      instance: ModuleDesignGeneral
+      dataservicefactory: mongodatabase
+      create_dataadapterfactory: true
+      create_dataservice: true
+      create_updateservice: true
+      create_objectchannel: true
+      create_getservice: true
+      update_form: true
+  param:
+    module: entity
+    settings:
+      object: Param
+      parent: root
+      instance: Param
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+  dependency:
+    module: entity
+    settings:
+      object: Dependency
+      parent: root
+      instance: Dependency
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+    packages:
+      react: "^16.3.0"

@@ -25,9 +25,9 @@
       "list": true,
       "entity": "FieldDesign",
       "widget": {
-        "name": "SubEntity",
-        "module": "subentity",
         "props": {
+          "label": "Fields",
+          "itemLabel": "Field",
           "mode": "dialog"
         }
       }

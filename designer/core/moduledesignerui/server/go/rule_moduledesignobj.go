@@ -11,12 +11,12 @@ import (
 	"laatoo/sdk/server/log"
 )
 
-type NewModuleDesignRule struct {
+type ModuleDesignUIRule struct {
 	dataStore data.DataComponent
 }
 
-func (rule *NewModuleDesignRule) Initialize(ctx ctx.Context, conf config.Config) error {
-	dataSvcName := "dataadapter.dataservice.ModuleDesignGeneral"
+func (rule *ModuleDesignUIRule) Initialize(ctx ctx.Context, conf config.Config) error {
+	dataSvcName := "dataadapter.dataservice.ModuleDesignUI"
 	dataSvc, err := ctx.(core.ServerContext).GetService(dataSvcName)
 	if err != nil {
 		return errors.MissingService(ctx, dataSvcName)
@@ -26,7 +26,7 @@ func (rule *NewModuleDesignRule) Initialize(ctx ctx.Context, conf config.Config)
 	return nil
 }
 
-func (rule *NewModuleDesignRule) Condition(ctx core.RequestContext, trigger *rules.Trigger) bool {
+func (rule *ModuleDesignUIRule) Condition(ctx core.RequestContext, trigger *rules.Trigger) bool {
 
 	if trigger.Message != nil {
 		_, ok := trigger.Message.(*modulesrepository.Entitlement)
@@ -37,10 +37,10 @@ func (rule *NewModuleDesignRule) Condition(ctx core.RequestContext, trigger *rul
 	return false
 }
 
-func (rule *NewModuleDesignRule) Action(ctx core.RequestContext, trigger *rules.Trigger) error {
+func (rule *ModuleDesignUIRule) Action(ctx core.RequestContext, trigger *rules.Trigger) error {
 	ent, _ := trigger.Message.(*modulesrepository.Entitlement)
 	if ent.Local == true {
-		mod := &ModuleDesignGeneral{Name: ent.Name}
+		mod := &ModuleDesignUI{Name: ent.Name}
 		mod.SetId(ent.Name)
 		mod.SetTenant(ctx.GetUser().GetTenant())
 		err := rule.dataStore.Put(ctx, ent.Name, mod)

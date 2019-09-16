@@ -15,10 +15,10 @@
         "entity": "EntityDesign",      
         "list": true,
         "widget": {
-          "name": "SubEntity",
-          "module": "subentity",
           "props": {
-            "mode": "panes"
+            "mode": "panes",
+            "label": "Entities",
+            "itemLabel": "Entity"
           }
         }
       }

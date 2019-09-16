@@ -230,10 +230,10 @@ class Panel extends React.Component {
     if(!desc || !desc.info) {
       return
     }
-    console.log("processing form+++", desc, module, props)
     this.cfgPanel(desc.info.title, desc.info.overlay)
 
     let formName=desc.formName? desc.formName : desc.id
+    console.log("processing form+++", desc, formName, props, desc.formName, desc.id)
 
     var cfg = desc.info
     if(!this.form) {
@@ -248,10 +248,10 @@ class Panel extends React.Component {
         if(!props.subform) {
           formCfg = Object.assign({}, cfg, ctx.routeParams)
         }
-        console.log("form cfg", formCfg, cfg, props)
-        return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}} info={formCfg} inline={props.inline}
-          onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} onSubmit={props.onSubmit} subform={props.subform} title={props.title}
-          autoSubmitOnChange={props.autoSubmitOnChange} actions={props.actions} description={desc} className={className} id={desc.id}/>
+        console.log("form cfg", formCfg, cfg, props, formName)
+        return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}}
+           info={formCfg} inline={props.inline} onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData}
+           onFormSubmit={props.onFormSubmit} title={props.title} actions={props.actions} description={desc} className={className} id={desc.id}/>
       }
     } else {
       this.getView = function(props, ctx, state, className) {

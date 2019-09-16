@@ -30,47 +30,45 @@ class FieldWidget extends React.Component {
   constructor(props) {
     super(props)
     //injectTapEventPlugin()
-    let field = props.field
-    this.renderer = this.renderTextField
-    if (field && field.widget) {
-      switch(field.widget.name) {
-        case "TextField":
-          this.renderer = this.renderTextField
-          break
-        case "NumberField":
-          this.renderer = this.renderTextField
-          break
-        case "Radio":
-          this.renderer = this.renderTextField
-          break
-        case "Checkbox":
-          this.renderer = this.renderCheckbox
-          break
-        case "Switch":
-          this.renderer = this.renderSwitch
-          break
-        case "Select":
-          this.renderer = this.renderSelect
-          break
-        case "ListField":
-          this.renderer = this.renderTextField
-          break
-        case "DatePicker":
-          this.renderer = this.renderTextField
-          break
-        case "TimePicker":
-          this.renderer = this.renderTextField
-          break
-        case "ImagePicker":
-          this.renderer = this.renderTextField
-          break
-      }
+    let widgetName = _tn(props.widgetName, "TextField")
+    switch(widgetName) {
+      case "TextField":
+        this.renderer = this.renderTextField
+        break
+      case "NumberField":
+        this.renderer = this.renderTextField
+        break
+      case "Radio":
+        this.renderer = this.renderTextField
+        break
+      case "Checkbox":
+        this.renderer = this.renderCheckbox
+        break
+      case "Switch":
+        this.renderer = this.renderSwitch
+        break
+      case "Select":
+        this.renderer = this.renderSelect
+        break
+      case "ListField":
+        this.renderer = this.renderTextField
+        break
+      case "DatePicker":
+        this.renderer = this.renderTextField
+        break
+      case "TimePicker":
+        this.renderer = this.renderTextField
+        break
+      case "ImagePicker":
+        this.renderer = this.renderTextField
+        break
+      default:
+        this.renderer = this.renderTextField
     }
     this.state = {value: props.value}
-    this.widgetProps = field.widget && field.widget.props? field.widget.props:{}
-    this.className = (props.className?props.className :"") + " " + field.name +" " + (this.widgetProps.className?this.widgetProps.className:" ") 
-    this.controlClassName= field.name + " " + (this.widgetProps.controlClassName?this.widgetProps.controlClassName:"")
-    console.log("constructing material kit field", field, props)
+    this.label = _tn(props.label, props.name)
+    this.className = _tn(props.className, "") + widgetName
+    this.controlClassName= _tn(props.controlClassName, "")
     /*if(field && field.widget) {
     }*/
   }
@@ -79,53 +77,49 @@ class FieldWidget extends React.Component {
     this.setState(Object.assign({}, this.state, {value: nextProps.value}))
   }    
 
-  renderCheckbox = (fld, props) =>  {
+  renderCheckbox = (props) =>  {
     return (
-      <FormControlLabel className={this.className + " checkbox "}  label={fld.label}
-          control={ <Checkbox name={fld.name} checked={props.value ? true : false} onCheck={(evt, checked)=>props.onChange(checked, evt.target.name, evt)}
+      <FormControlLabel className={this.className + " checkbox "}  label={this.label}
+          control={ <Checkbox name={this.name} checked={this.state.value ? true : false} onCheck={this.change}
               className={this.controlClassName}/> }/>
     )
   }
 
-  renderSelect = (fld, props) =>  {
-    console.log("render select ", fld, props)
-    let isEntity = fld.type=="entity"
-    let entity= isEntity ? fld.entity: null
-    let items = props.items? props.items: this.widgetProps.items
-    let textField = this.widgetProps.textField? this.widgetProps.textField:isEntity? "Name": "text"
-    let valueField = this.widgetProps.valueField? this.widgetProps.valueField: isEntity? "Id" : "value"
-    let selectItem = props.selectItem? props.selectItem: this.widgetProps.selectItem
+  renderSelect = (props) =>  {
+    console.log("render select ", props)
+    let textField = _tn(props.textField, "text")
+    let valueField = _tn(props.valueField, "value") 
 
-    return <Select items={items} itemClass={this.widgetProps.itemClass} className={this.className + "select"} onChange={props.onChange} value={this.state.value} dataServiceParams={this.widgetProps.dataServiceParams}
-        errorText={props.errorText} loader={this.widgetProps.loader} loadData={this.widgetProps.loadData} dataService={this.widgetProps.dataService} selectItem={selectItem}
-        label={fld.label} name={fld.name} isEntity={isEntity} textField={textField} valueField={valueField} entity={entity} controlClassName={this.controlClassName + " select "} />
+    return <Select items={props.items} itemClass={props.itemClass} className={this.className + " select "} onChange={this.change} value={this.state.value} dataServiceParams={props.dataServiceParams}
+        errorText={props.errorText} loader={props.loader} loadData={props.loadData} dataService={props.dataService} selectItem={props.selectItem}
+        label={this.label} name={props.name} textField={textField} valueField={valueField} controlClassName={this.controlClassName + " select "} />
   }
 
-  renderSwitch = (fld, props) =>  {
+  renderSwitch = (props) =>  {
     return (
       <FormControlLabel control={
-            <Switch name={fld.name} onChange={props.onChange} checked={this.state.value} className={this.controlClassName + " toggle "}/>
-          } label={fld.label} className={this.className + " switch"}  />
+            <Switch name={props.name} onChange={this.change} checked={this.state.value} className={props.controlClassName + " toggle "}/>
+          } label={this.label} className={this.className + " switch "}  />
     )
   }
 
-  textChange = (evt) => {
+  change = (evt) => {
     if(this.props.onChange) {
-      console.log("text change ", evt.target.value)
-      this.props.onChange(evt.target.value, evt.target.name, evt)
+      console.log("change ", evt, evt.target.value)
+      this.props.onChange(evt.target.value, this.props.name, evt)
     }
   }
 
-  renderTextField = (fld, props) => {
-    console.log("rendertext field", props, fld)
+  renderTextField = (props) => {
+    console.log("rendertext field", props)
     return (
-      <TextField name={fld.name} errorText={props.errorText} onChange={this.textChange} onBlur={props.onBlur} onFocus={props.onFocus} 
-        floatingLabelText={fld.label} label={fld.label} value={this.state.value} hintText={fld.label} className={this.className + " textfield " }/>
+      <TextField name={this.name} errorText={props.errorText} onChange={this.change} onBlur={props.onBlur} onFocus={props.onFocus} 
+        floatingLabelText={this.label} label={this.label} value={this.state.value} hintText={this.label} className={this.className + " textfield " }/>
     )
   }
   render() {
     if(this.renderer) {
-      return this.renderer(this.props.field, this.props)
+      return this.renderer(this.props)
     } else {
       return(
         <div>

@@ -24,8 +24,6 @@
       "list": true,
       "entity": "Field",
       "widget": {
-        "name": "SubEntity",
-        "module": "subentity",
         "props": {
           "mode": "dialog"
         }

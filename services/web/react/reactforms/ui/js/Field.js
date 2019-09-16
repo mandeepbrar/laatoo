@@ -1,105 +1,224 @@
-/*'use strict';
-
 import React from 'react';
-import { Field } from 'redux-form'
-const PropTypes = require('prop-types');
-import {FldList} from './FldList';
+import { Field as RFField } from 'redux-form'
+import {Entity} from './entity';
+import {List} from './list';
+import PropTypes from 'prop-types';
 
 
-class FieldWrapper extends React.Component {
-  constructor(props, context) {
+class FieldWidget extends React.Component {
+  constructor(props) {
     super(props)
-    let field = props.fields[props.name]
-    this.field = field
-    console.log("fields created", props, this.field, context)
-    if(!this.field.label && !this.field.skipLabel) {
-      this.field.label = props.name
-    }
-    let additionalProperties = {entity: field.entity, dataService: field.dataService, dataServiceParams: field.dataServiceParams, loader: field.loader, skipDataLoad: field.skipDataLoad}
+    //injectTapEventPlugin()
+    console.log("creating field widget", props)
+    let cfg = null
+    let field = props.field
+    if(field) {
+      cfg = this.processEntityField(field)
+    } 
+    cfg = _tn(cfg, {})
+    this.processProps(props, cfg)    
 
-    this.state = {time: props.time? props.time: Date.now(), additionalProperties}
-
-    if(this.field.transformer) {
-      let method = _reg("Methods", this.field.transformer)
-      this.transformer = method;
-    }
-    if(this.field.type == "storableref") [
-      this.isRef = true
-    ]
-    if(this.field.module) {
-      this.fldWidget = _res(this.field.module, this.field.widget);
-    }
+    this.state = {formValue: props.formValue}
+    this.getWidget(cfg)
+    this.cfg = cfg
+    console.log("constructing material kit field", this.cfg, props)
+    /*if(field && field.widget) {
+    }*/
   }
 
   componentWillReceiveProps(nextProps, nextState) {
-    console.log("receive props field wrapper", nextProps, nextState)
-    if(nextProps.time > this.state.time) {
-      this.setState(Object.assign({}, this.state, {time: nextProps.time}))
+    console.log("field component of react forms", nextProps)
+    this.setState({formValue: nextProps.formValue})
+  }    
+
+
+  getWidget=(cfg)=> {
+    console.log("get widget for cfg", cfg.name, cfg)
+    if(cfg.widgetModule) {
+      console.log("chosing custom component for ", cfg.name)
+      this.widgetComp = _res(cfg.widgetModule, cfg.widgetName);
+    } else if(cfg.list) {
+      console.log("chosing listfor ", cfg.name)
+      this.widgetComp = List
+    } else if(cfg.entity) {
+      console.log("chosing entityfor ", cfg.name)
+      this.widgetComp = Entity
+    } else {
+      this.processTypes(cfg)
+//      console.log("chosing uikit field for ", cfg.name)
     }
   }
 
-  fieldChange = (fldProps) => {
-    let comp=this
-    return (data, name, evt)=> {
-      console.log("fld change", data, name, evt, this.props, this.context, fldProps, fldProps.input.onChange, comp.isRef)
-      if(fldProps.input.onChange) {
-        if(comp.isRef) {
+  processTypes = (cfg) => {
+    this.widgetComp = _uikit.Field
+    if(!cfg.widgetName) {
+      switch(cfg.type) {
+        case "string":
+          cfg.widgetName = "TextField"
+        break;
+        case "int":
+        case "float":
+          cfg.widgetName = "NumberField"
+        break;
+        case "storableref": 
+          cfg.isRef = true
+          break
+        case "stringmap":
+          this.widgetComp = List
+          cfg.itemForm = "list_add_keyvalue"
+          cfg.titleField = "mapkey"
+          cfg.isMap = true
+        break;
+        case "bool":
+          cfg.widgetName = "Checkbox"
+        break;
+        case "date":
+          cfg.widgetName = "DatePicker"
+        break;
+      }
+    }
+  }
+
+  processEntityField = (fld) => {
+    let cfg = {}
+    if(fld.widget) {
+      let widgetProps = fld.widget.props
+      cfg = Object.assign({}, widgetProps)
+      cfg.widgetProps = widgetProps
+      cfg.label = _tn(cfg.label, fld.name)
+      cfg.widgetName = fld.widget.name
+      cfg.widgetModule = fld.widget.module
+/*      cfg.className = widgetProps.className
+      cfg.selectItem = widgetProps.selectItem
+      cfg.dataServiceParams = widgetProps.dataServiceParams
+      cfg.loader = widgetProps.loader
+      cfg.loadData = widgetProps.loadData
+      cfg.dataService = widgetProps.dataService
+      cfg.controlClassName = widgetProps.controlClassName
+      cfg.items = widgetProps.items
+      cfg.itemClass = widgetProps.itemClass
+      */
+
+      //text and value used by select
+      cfg.textField = _tn(cfg.textField, "text")
+      cfg.valueField = _tn(cfg.valueField, "value")
+    }
+    cfg.name = fld.name
+    cfg.type = fld.type
+    if(fld.list) {
+      cfg.list = fld.list
+    }
+    if(fld.entity) {
+      cfg.entity = fld.entity
+    }
+    return cfg
+  }
+
+  processProps= (props, cfg) => {
+    let fldProps = ["name", "label", "items", "textField", "valueField", "widgetName", "widgetModule", "selectItem", "itemClass", 
+      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode" ]
+    fldProps.map((item)=>{
+      cfg[item] = _tn(props[item], cfg[item])
+    })
+    cfg.titleField = _tn(cfg.titleField, "Name")
+    cfg.className = _tn(props.className, "") + " " + cfg.name +" " + _tn(cfg.className, " ") 
+    cfg.controlClassName= cfg.name + " " + _tn(cfg.controlClassName, "")
+  }
+
+  fieldChange = (onChange) => {
+    let cfg = this.cfg
+    return (data, name, evt) => {
+      console.log("field change", onChange, data, name)
+      if(onChange) {
+        if(cfg.isRef) {
           let myRefObj = {}
-          myRefObj[comp.field.name] = {"Id": data, "Type": comp.field.entity}
+          myRefObj[cfg.name] = {"Id": data, "Type": cfg.entity}
           data = myRefObj
           console.log("set ref value data", myRefObj, data)
         }
-        console.log("setting fld value", comp, data, name)
-        fldProps.input.onChange(data, name)
+        if(cfg.isMap) {
+          if(data) {
+            let changedObj = {}
+            data.forEach((item)=> {
+              changedObj[item.mapkey] = item.mapvalue  
+            })
+            console.log("changed obj for map", changedObj, data)
+            data = changedObj
+          }
+        }
+        console.log(" field change ", data, name)
+        onChange(data, name, evt)
       }
     }
   }
 
+
   component = (fieldProps) => {
-    console.log("component", this.state, fieldProps, this.props)
-    let newProps = fieldProps
-    if(this.transformer) {
-      newProps = this.transformer(fieldProps, this.props.formValue, this.field, this.context.fields, this.props, this.state,  this)
-    }
-    if(this.isRef) {
-      let ref = newProps.input.value[this.field.name]
-      if(ref) {
-        newProps.input.value = ref.Id
-      }
-      console.log("ref props", newProps)
-    }
-    let comp = null
-    let baseComp = null
-    if(this.fldWidget) {
-      return <this.fldWidget name={this.props.name} className={this.props.className} {...this.state.additionalProperties} time={this.state.time}
-          formValue={this.props.formValue} field={this.field} fieldChange={this.fieldChange(fieldProps)} subFormChange={this.props.subFormChange} autoSubmitOnChange={this.props.autoSubmitOnChange}
-          subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} {...newProps}/>
+    let {input, meta, className} = fieldProps
+    let errorText = meta.touched && meta.error
+    let cfg = this.cfg
+    let value = null
+    if(cfg.isRef) {
+      console.log("changing value of storable ref", value, input )
+      value = input.value.Id
     } else {
-      if(this.field.list) {
-        return <FldList name={this.props.name} baseComponent={this.context.uikit.Forms.FieldWidget} className={this.props.className} ap={this.state.additionalProperties}
-         time={this.state.time}  formValue={this.props.formValue} field={this.field}  fieldChange={this.fieldChange(fieldProps)} autoSubmitOnChange={this.props.autoSubmitOnChange}
-         subFormChange={this.props.subFormChange} subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} baseProps={newProps}/>
-      } else {
-        return <this.context.uikit.Forms.FieldWidget  name={this.props.name} className={this.props.className} {...this.state.additionalProperties}
-          time={this.state.time}  formValue={this.props.formValue} field={this.field}  fieldChange={this.fieldChange(fieldProps)} subFormChange={this.props.subFormChange} autoSubmitOnChange={this.props.autoSubmitOnChange}
-          subform={this.props.subform} formRef={this.props.formRef} parentFormRef={this.props.parentFormRef} {...newProps}/>
-      }
+      value = input.value
     }
+
+    if(value && cfg.isMap) {
+      value = Object.keys(value).map((item)=>{
+          return {mapkey: item, mapvalue: value[item]}
+      })
+    }
+
+    let rfieldProps ={onChange: this.fieldChange(input.onChange), errorText: errorText, formValue: this.state.formValue, 
+      onFocus: input.onFocus, onBlur: input.onBlur, value: value}            
+
+    console.log("field component", this.state, rfieldProps, cfg)
+    let newProps = Object.assign({}, cfg, rfieldProps)
+    if(this.cfg.transformer) {
+        let transformerMethod = _reg("Methods", cfg.transformer)
+        newProps = transformerMethod(newProps, cfg, this.props)
+    }
+    console.log("creating widget for field:", this.cfg.name, " newProps:", newProps, " widget:", this.widgetComp)
+    return React.createElement(this.widgetComp, newProps, null)
+/*
+    if(field) {
+        let widget = this.fieldWidgets[fieldName]
+        let fprops = this.fieldProps[fieldName]
+        let fieldChange= this.fieldChange(input.onChange)
+        let errorText = meta.touched && meta.error
+        let cl = className + (fprops.className? fprops.className: "")
+        
+        let newProps = Object.assign({}, fprops, {onChange: fieldChange, errorText: errorText, formValue: this.state.formValue, className: cl,
+            onFocus: input.onFocus, onBlur: input.onBlur, value: input.value})            
+        if(field.transformer) {
+            let transformerMethod = _reg("Methods", field.transformer)
+            newProps = transformerMethod(newProps, this.props.formValue, field, this.fields, this.props, this.state,  this)
+        }
+        if(field.type == "storableref") {
+            let isRef = true
+            let ref = input.value[fieldName]
+            if(ref) {
+              newprops.value = input.value = ref.Id
+            }
+            console.log("ref props", newProps)
+        }
+        console.log("creating widget, state:", this.state, " props:", newProps, " widget:", widget)
+        return React.createElement(widget, newProps, null)
+    }
+    return null*/
   }
 
   render() {
-    console.log("changing state", this.state)
-    return (
-      <Field key={this.props.name} name={this.props.name} time={this.state.time} component={this.component}/>
-    )
+    return <RFField name={this.cfg.name} component={this.component}/>
   }
-
 }
 
-FieldWrapper.contextTypes = {
-  fields: PropTypes.object,
-  uikit:  PropTypes.object
+FieldWidget.propTypes = {
+  classes: PropTypes.object.isRequired,
 };
 
-export { FieldWrapper as Field}
-*/
+export {
+  FieldWidget as Field
+}
