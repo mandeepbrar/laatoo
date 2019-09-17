@@ -8,9 +8,9 @@
   "form": {
     "tabs": {
       "General": ["Name", "Description", "Factory", "ServiceMethod", "LoggingLevel", "LoggingFormat"],
-      "Configuration": [ "Configuration"]
+      "Settings": [ "Settings"]
     },
-    "layout": ["General", "Configuration"]
+    "layout": ["General", "Settings"]
   },
   "fields":{
     "Name": {

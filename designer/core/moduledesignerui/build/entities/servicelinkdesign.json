@@ -1,0 +1,33 @@
+{
+    "name":"ServiceLinkDesign",
+    "inherits":"",
+    "imports":[],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "layout": ["Name", "URL", "Method"]
+    },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "URL": {
+            "type":"string"
+        },
+        "Method": {
+            "type":"string",
+            "widget": {
+                "name": "Select",
+                "props": {
+                    "items": [
+                        {"text": "GET", "value":"GET"},
+                        {"text": "POST", "value":"POST"},
+                        {"text": "PUT", "value":"PUT"},
+                        {"text": "DELETE", "value":"DELETE"}
+                    ]
+                }
+            }
+        }
+    }
+}
+  

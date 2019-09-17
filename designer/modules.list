@@ -4,6 +4,7 @@ modulesrepository laatoo/designer/core/modulesrepository
 designerdependencies laatoo/designer/core/designerdependencies
 laatootheme laatoo/designer/core/laatootheme
 laatoositeui laatoo/designer/core/laatoositeui
+moduledesignerbase laatoo/designer/core/moduledesignerbase
 moduledesignergeneral laatoo/designer/core/moduledesignergeneral
 moduledesignerui laatoo/designer/core/moduledesignerui
 moduledesignerserver laatoo/designer/core/moduledesignerserver

@@ -1,7 +1,7 @@
 {
   "name":"ObjectDefinitionDesign",
   "inherits":"",
-  "imports":[],
+  "imports":["laatoo/sdk/modules/moduledesignerbase"],
   "titleField": "Name",
   "collection": "<nocollection>",
   "form": {
@@ -55,12 +55,12 @@
     },
     "RequestParams": {
       "type":"subentity",
-      "entity": "ParamDesign",
+      "entity": "moduledesignerbase.ParamDesign",
       "list": true
     },
     "Configurations": {
       "type":"subentity",
-      "entity": "ParamDesign",
+      "entity": "moduledesignerbase.ParamDesign",
       "list": true
     }
   }

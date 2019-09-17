@@ -28,6 +28,56 @@ modules:
       list_view: true
       new_form: true
       new_form_page: true
+  page:
+    module: entity
+    settings:
+      object: PageDesign
+      parent: root
+      instance: PageDesign
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+  action:
+    module: entity
+    settings:
+      object: ActionDesign
+      parent: root
+      instance: ActionDesign
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+  view:
+    module: entity
+    settings:
+      object: ViewDesign
+      parent: root
+      instance: ViewDesign
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+  viewitem:
+    module: entity
+    settings:
+      object: ViewItemDesign
+      parent: root
+      instance: ViewItemDesign
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
+  servicelink:
+    module: entity
+    settings:
+      object: ServiceLinkDesign
+      parent: root
+      instance: ServiceLinkDesign
+      skipData: true
+      list_view: true
+      new_form: true
+      new_form_page: true
 ui:
   js:
     externals:

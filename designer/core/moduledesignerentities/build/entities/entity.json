@@ -6,7 +6,7 @@
   "collection": "<nocollection>",
   "form": {
     "tabs": {
-      "General": ["Name", "Description"],
+      "General": ["Name", "Description","Collection", "SkipStorage", "TitleField", "Imports"],
       "Fields": ["Fields"]
     },
     "submit": "Save",
@@ -19,6 +19,24 @@
     },
     "Description": {
         "type":"string"
+    },
+    "Imports": {
+      "type":"string",
+      "list": true,
+      "widget": {
+        "props": {
+          "mode":"summary"
+        }
+      }
+    },
+    "TitleField": {
+      "type":"string"
+    },
+    "Collection": {
+      "type":"string"
+    },
+    "SkipStorage": {
+      "type":"bool"
     },
     "Fields": {
       "type":"subentity",

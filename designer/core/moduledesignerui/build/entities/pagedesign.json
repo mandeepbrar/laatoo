@@ -1,0 +1,30 @@
+{
+  "name":"PageDesign",
+  "inherits":"",
+  "imports":["laatoo/sdk/modules/moduledesignerbase"],
+  "titleField": "Name",
+  "collection": "<nocollection>",
+  "form": {
+    "tabs": {
+      "General": ["Name", "Route", "Block"],
+      "Params": ["Params"]
+    },
+    "layout": ["General", "Params"]
+  },
+  "fields":{
+    "Name": {
+        "type":"string"
+    },
+    "Route": {
+        "type":"string"
+    },
+    "Block": {
+      "type":"string"
+    },
+    "Params": {
+        "type":"subentity",
+        "entity": "moduledesignerbase.ParamDesign",
+        "list": true
+    }
+  }
+}

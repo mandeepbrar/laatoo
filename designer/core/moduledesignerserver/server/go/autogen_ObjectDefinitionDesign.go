@@ -3,6 +3,7 @@ package main
 
 import (
   
+	"laatoo/sdk/modules/moduledesignerbase" 
   "laatoo/sdk/server/components/data"
 )
 
@@ -17,8 +18,8 @@ type ObjectDefinitionDesign struct {
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
 	Type	string `json:"Type" bson:"Type" datastore:"Type"`
 	RequestType	string `json:"RequestType" bson:"RequestType" datastore:"RequestType"`
-	RequestParams	[]ParamDesign `json:"RequestParams" bson:"RequestParams" datastore:"RequestParams"`
-	Configurations	[]ParamDesign `json:"Configurations" bson:"Configurations" datastore:"Configurations"`
+	RequestParams	[]moduledesignerbase.ParamDesign `json:"RequestParams" bson:"RequestParams" datastore:"RequestParams"`
+	Configurations	[]moduledesignerbase.ParamDesign `json:"Configurations" bson:"Configurations" datastore:"Configurations"`
 }
 
 func (ent *ObjectDefinitionDesign) Config() *data.StorableConfig {

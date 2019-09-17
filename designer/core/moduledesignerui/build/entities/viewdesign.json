@@ -1,0 +1,35 @@
+{
+    "name":"ViewDesign",
+    "inherits":"",
+    "imports":[""],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "tabs": {
+        "General": ["Name", "Service"],
+        "URLParams": ["URLParams"],
+        "PostArgs": ["PostArgs"],
+        "Item": ["ItemType"]
+      },
+      "layout": ["General", "URLParams", "PostArgs", "Item"]
+    },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Service": {
+            "type":"string"
+        },
+        "PostArgs": {
+            "type":"stringmap"
+        },
+        "URLParams": {
+            "type":"stringmap"
+        },
+        "ItemType": {
+            "type":"subentity",
+            "entity": "ViewItemDesign"
+        }
+    }
+}
+  

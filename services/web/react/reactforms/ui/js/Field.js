@@ -20,6 +20,13 @@ class FieldWidget extends React.Component {
 
     this.state = {formValue: props.formValue}
     this.getWidget(cfg)
+    if(cfg.visibility) {
+      if(typeof(cfg.visibility) == "string") {
+        this.isVisible = _reg("Methods", cfg.visibility)
+      } else {
+        this.isVisible = cfg.visibility
+      }  
+    }
     this.cfg = cfg
     console.log("constructing material kit field", this.cfg, props)
     /*if(field && field.widget) {
@@ -63,10 +70,13 @@ class FieldWidget extends React.Component {
         case "storableref": 
           cfg.isRef = true
           break
-        case "stringmap":
+          case "map":
+          case "stringsmap":
+          case "stringmap":
           this.widgetComp = List
           cfg.itemForm = "list_add_keyvalue"
           cfg.titleField = "mapkey"
+          cfg.mode = _tn(cfg.mode, "dialog")
           cfg.isMap = true
         break;
         case "bool":
@@ -155,6 +165,7 @@ class FieldWidget extends React.Component {
 
   component = (fieldProps) => {
     let {input, meta, className} = fieldProps
+    
     let errorText = meta.touched && meta.error
     let cfg = this.cfg
     let value = null
@@ -173,6 +184,11 @@ class FieldWidget extends React.Component {
 
     let rfieldProps ={onChange: this.fieldChange(input.onChange), errorText: errorText, formValue: this.state.formValue, 
       onFocus: input.onFocus, onBlur: input.onBlur, value: value}            
+
+    let visible = this.cfg.isVisible? this.cfg.isVisible(this.state.formValue, this.cfg, visible): true
+    if(!visible) {
+      return null
+    }
 
     console.log("field component", this.state, rfieldProps, cfg)
     let newProps = Object.assign({}, cfg, rfieldProps)

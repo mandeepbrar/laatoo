@@ -48,6 +48,7 @@ modules:
   dblogin:
   entity:
   user:
+  moduledesignerbase:
   moduledesignerserver:
   moduledesignerentities:
   jsui:
@@ -104,6 +105,8 @@ moduleinstances:
     module: reactfileupload
   dependencies:
     module: designerdependencies
+  moduledesignerbase:
+    module: moduledesignerbase
   modulesbase:
     module: modulesbase
   modulesrepository:

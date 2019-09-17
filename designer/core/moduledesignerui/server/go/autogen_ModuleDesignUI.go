@@ -17,6 +17,10 @@ type ModuleDesignUI struct {
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Externals	map[string]interface{} `json:"Externals" bson:"Externals" datastore:"Externals"`
 	UIDependencies	[]modulesbase.Dependency `json:"UIDependencies" bson:"UIDependencies" datastore:"UIDependencies"`
+	ServiceLinks	[]ServiceLinkDesign `json:"ServiceLinks" bson:"ServiceLinks" datastore:"ServiceLinks"`
+	Actions	[]ActionDesign `json:"Actions" bson:"Actions" datastore:"Actions"`
+	Views	[]ViewDesign `json:"Views" bson:"Views" datastore:"Views"`
+	Pages	[]PageDesign `json:"Pages" bson:"Pages" datastore:"Pages"`
 }
 
 func (ent *ModuleDesignUI) Config() *data.StorableConfig {

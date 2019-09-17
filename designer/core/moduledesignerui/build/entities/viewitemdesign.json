@@ -1,0 +1,22 @@
+{
+    "name":"ViewItemDesign",
+    "inherits":"",
+    "imports":[""],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "layout": ["Type", "EntityName", "EntityDisplay"]
+    },
+    "fields":{
+        "Type": {
+            "type":"string"
+        },
+        "EntityName": {
+            "type":"string"
+        },
+        "EntityDisplay": {
+            "type":"string"
+        }
+    }
+}
+  

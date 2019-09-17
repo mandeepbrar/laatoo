@@ -1,0 +1,37 @@
+{
+    "name":"ActionDesign",
+    "inherits":"",
+    "imports":[""],
+    "titleField": "Name",
+    "collection": "<nocollection>",
+    "form": {
+      "layout": ["Name", "Type", "BlockID", "URL"]
+    },
+    "fields":{
+        "Name": {
+            "type":"string"
+        },
+        "Type": {
+            "type":"string",
+            "widget": {
+                "name": "Select",
+                "props": {
+                    "items": [
+                        {"text": "Dispatch", "value":"dispatch"},
+                        {"text": "Method", "value":"method"},
+                        {"text": "Show Dialog", "value":"showDialog"},
+                        {"text": "New Window", "value":"newwindow"},
+                        {"text": "Open URL", "value":"url"}
+                    ]
+                }
+            }        
+        },
+        "BlockID": {
+            "type":"string"
+        },
+        "URL": {
+            "type":"string"
+        }
+    }
+  }
+  

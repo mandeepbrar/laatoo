@@ -1,5 +1,6 @@
 {
     "name":"ParamDesign",
+    "sdkinclude": true,
     "inherits":"",
     "imports":[],
     "titleField": "Name",

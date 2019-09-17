@@ -6,12 +6,16 @@
     "form": {
       "tabs": {
         "UIDependencies": ["UIDependencies"],
-        "Externals": ["Externals"]
+        "Externals": ["Externals"],
+        "Pages": ["Pages"],
+        "Actions": ["Actions"],
+        "Views": ["Views"],
+        "ServiceLinks": ["ServiceLinks"]
       },
       "verticaltabs": true,
       "overlay": true,
       "submit": "Save",
-      "layout": ["UIDependencies", "Externals"]
+      "layout": ["UIDependencies", "Externals", "Pages", "ServiceLinks", "Views", "Actions"]
     },
     "fields":{
       "Name": {
@@ -24,7 +28,27 @@
         "type": "subentity",
         "entity": "modulesbase.Dependency",
         "list": true
-      }
+      },
+      "ServiceLinks": {
+        "type":"subentity",
+        "entity": "ServiceLinkDesign",
+        "list": true
+      },
+      "Actions": {
+        "type":"subentity",
+        "entity": "ActionDesign",
+        "list": true
+      },
+      "Views": {
+        "type":"subentity",
+        "entity": "ViewDesign",
+        "list": true
+      },
+      "Pages": {
+        "type":"subentity",
+        "entity": "PageDesign",
+        "list": true
+      }  
     }
   }
   

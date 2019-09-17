@@ -1,0 +1,12 @@
+route: "/server"
+component:
+  type: layout
+  layout: 1col
+  items:
+    - type: html
+      html: <h3>Edit Module</h3>
+    - type: form
+      id: update_form_moduledesignserver
+      info:
+        entityId: {{jsreplace "Application.Route.Params.moduleId"}}
+
