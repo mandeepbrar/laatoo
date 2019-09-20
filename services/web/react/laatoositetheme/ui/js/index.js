@@ -37,8 +37,8 @@ function Initialize(appName, ins, mod, settings, def, req) {
 }
 
 function processMenu(){
-  var menuItems=[]
-  let menu = []
+  //var menuItems=[]
+  let menu
   console.log("Menu process", module.settings, Application)
   if(module.settings && module.settings.menu) {
     menu = module.settings.menu
@@ -46,19 +46,18 @@ function processMenu(){
     menu = Application.Properties.menu
   }
   console.log("dashboard menu", menu)
-  if(menu) {
+  if(menu && menu.length > 0) {
     menu.forEach(function(menuItem){
       //let menuItem=menuConfig[menuItem]
       if(menuItem.page) {
-        menuItems.push({title:menuItem.title, action: "Page_" + menuItem.page})
-      } else {
-        menuItems.push({title:menuItem.title, action: menuItem.action})
+        menuItem.action = "Page_" + menuItem.page
       }
     })
   } else {
-    menuItems.push({title:'Home', action:'Page_home'})
+    menu = []
+    menu.push({title:'Home', action:'Page_home'})
   }
-  module.menu = menuItems
+  module.menu = menu
 }
 
 

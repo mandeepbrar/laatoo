@@ -1,7 +1,7 @@
 @import 'reactwebcommon/css/app';
 
 .dashboard {
-  @extend .w100;
+  @extend .fd, .fdcol, .fdgrow;
   .header {
     @extend .row, .m0, .p20, .between-xs;
     .title {
@@ -22,19 +22,15 @@
     @extend .ps20, .m20;
   }
   .body {
-    @extend .row;
-    .vertmenu{
-      @extend .col-xs-2, .bg-lgrey, .ma20;
-    }
+    @extend .fd, .fdgrow;
     .horizmenu{
       @extend .w100;
-      @extend .bg-lgrey;
     }
     .vertbody{
-      @extend .col-xs,.p10;
+      @extend .fdgrow;
     }
     .horizbody{
-      @extend .w100, .p10;
+      @extend .w100, .fdgrow;
     }
   }
 }

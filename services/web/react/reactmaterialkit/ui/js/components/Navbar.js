@@ -1,10 +1,15 @@
 import React from 'react';
 import {Action} from'reactwebcommon';
 import Button from '@material-ui/core/Button';
+import Icon from '@material-ui/core/Icon';
 
-const Navbutton=(props)=>(
-    <Button className={props.vertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</Button>
-  )
+function getNavButton(isVertical) {
+  return function(props) {
+    return (
+      <Button className={isVertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</Button>
+    )
+  }
+}
 
 
 class Navbar extends React.Component {
@@ -15,10 +20,11 @@ class Navbar extends React.Component {
     let items=[]
     if(this.props.items) {
       this.props.items.forEach(function(item){
-        items.push(
-          <div className={className}>
-            <Action widget="component" vertical={isVertical} name={item.action} component={Navbutton}>{item.title}</Action>
-          </div>
+        let icon
+        let iconStyle = item.iconSize? {fontSize: item.iconSize}: null
+        icon = item.icon || item.iconClass?<Icon className={item.iconClass} style={iconStyle}>{item.icon}</Icon>: null
+        items.push(          
+          <Action widget="component" vertical={isVertical} name={item.action} component={getNavButton(isVertical)}><div className={className}><div className="icon">{icon?icon:null}</div><div>{item.title}</div></div></Action>
         )
       });
     }

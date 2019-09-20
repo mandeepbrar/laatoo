@@ -21,7 +21,7 @@ class ThemeUI extends React.Component {
     return (
       <_uikit.Block className={module.settings.className?module.settings.className + ' dashboard':'dashboard'}>
         <Header module={module} />
-        <_uikit.Block className="body">
+        <_uikit.Block className={"body " + (vertical?"fdrow":"fdcol")}>
           <_uikit.Block className={vertical?"vertmenu":"horizmenu"}>
             <Application.router.View name="menu" loggedIn={props.loggedIn} />
           </_uikit.Block>

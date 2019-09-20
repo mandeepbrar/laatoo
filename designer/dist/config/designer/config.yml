@@ -153,10 +153,13 @@ moduleinstances:
       className: laatoosite
       infoBlock: designerlink
       showMenu: true
+      vertical: true
       menu:
       - homepage:
         title: Account
         page: account
+        iconClass: fa fa-home
+        iconSize: 36
       - Solutions:
         title: Solutions
         page: list_solution

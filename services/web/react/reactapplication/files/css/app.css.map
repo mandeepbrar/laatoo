@@ -1,0 +1,1 @@
+{"version":3,"file":"css/app.css","sources":["webpack://reactapplication/./js/styles/app.scss"],"sourcesContent":["html{display:flex;flex-direction:column;height:100%}#app,body{display:flex;flex-direction:column;flex-grow:1;width:100%}\n"],"mappings":"AAAA","sourceRoot":""}

@@ -5,6 +5,7 @@ import configureStore from './stores';
 import React from 'react';
 import {App} from './App';
 import {ProcessPages} from 'reactpages';
+import "styles/app.scss";
 
 var module;
 

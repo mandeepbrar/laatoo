@@ -28,3 +28,10 @@ ui:
     headertitle: Title used in header
     headerclass: Style to be used in header
     vertical: Vertical/Horizontal menus
+params:
+  authenticate:
+    type: bool
+    description: If authentication is required for this template
+  vertical:
+    type: bool
+    description: Menu orientation

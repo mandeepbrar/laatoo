@@ -1,0 +1,6 @@
+version: 0.0.1
+description: Module provides font awesome icons
+ui:
+  js:
+    packages:
+      "@material-ui/icons": "^4.4.0"

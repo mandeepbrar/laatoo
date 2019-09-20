@@ -40,6 +40,7 @@ reactpages laatoo/services/web/react/reactpages
 reactforms laatoo/services/web/react/reactforms
 reactfileupload laatoo/services/web/react/reactfileupload
 fontawesome laatoo/services/fontawesome
+materialicons laatoo/services/materialicons
 itemdetailview laatoo/services/web/react/itemdetailview
 testsocket laatoo/services/web/testsocket
 laatoobrowser laatoo/services/web/laatoobrowser

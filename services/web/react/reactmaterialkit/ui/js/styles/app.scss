@@ -1,13 +1,8 @@
 @import 'reactwebcommon/css/app';
 
-.vertnavbar {
-  @extend .w100;
-  .vertnavbutton {
-    @extend .w100;
-  }
-}
+
 .horiznavbar {
-  @extend .row;
+  @extend .fd, .fdrow;
 }
 
 .tab, .dialog {
@@ -27,4 +22,8 @@
   .blockcontent {
     @extend .p10;
   }
+}
+
+.vertnavbar {
+  @extend .fd, .fdcol;
 }
