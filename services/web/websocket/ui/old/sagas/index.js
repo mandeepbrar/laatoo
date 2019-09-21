@@ -44,9 +44,7 @@ function* sendMessage(action) {
 
 
 function* entityViewSaga() {
-  yield [
-    takeEvery(Actions.SEND_SOCKET_MESSAGE, sendMessage)
-  ]
+  yield takeEvery(Actions.SEND_SOCKET_MESSAGE, sendMessage)
 }
 
 //export {entitySaga as entitySaga};

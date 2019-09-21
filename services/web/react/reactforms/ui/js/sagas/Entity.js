@@ -1,5 +1,4 @@
-import { takeEvery, takeLatest } from 'redux-saga'
-import { call, put } from 'redux-saga/effects'
+import { takeEvery, call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../Actions';
 import {  createAction, Response, RequestBuilder, DataSource, EntityData } from 'uicommon';
 
@@ -156,14 +155,12 @@ function* loadData(action) {
 
 //console.log("Action names ", ActionNames)
 function* formsSaga() {
-  yield [
-    takeEvery(ActionNames.LOAD_DATA, loadData),
-    takeEvery(ActionNames.SUBMIT_FORM, submitForm),
-    takeEvery(ActionNames.ENTITY_GET, getEntityData),
-    takeEvery(ActionNames.ENTITY_SAVE, saveEntityData),
-    takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData),
-    takeEvery(ActionNames.ENTITY_PUT, putEntityData),
-  ]
+  yield takeEvery(ActionNames.LOAD_DATA, loadData)
+  yield takeEvery(ActionNames.SUBMIT_FORM, submitForm)
+  yield takeEvery(ActionNames.ENTITY_GET, getEntityData)
+  yield takeEvery(ActionNames.ENTITY_SAVE, saveEntityData)
+  yield takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData)
+  yield takeEvery(ActionNames.ENTITY_PUT, putEntityData)
 }
 //takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
 

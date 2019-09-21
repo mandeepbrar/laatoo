@@ -152,6 +152,7 @@ moduleinstances:
     settings:
       className: laatoosite
       infoBlock: designerlink
+      menuEnd: bottombar
       showMenu: true
       vertical: true
       menu:
@@ -159,13 +160,27 @@ moduleinstances:
         title: Account
         page: account
         iconClass: fa fa-home
-        iconSize: 36
+        iconSize: 30
+      - Applications:
+        title: Applications
+        page: list_solution
+        iconClass: fa fa-archive
+        iconSize: 30
+      - AllModules:
+        title: Modules
+        page: modulesrepo    
+        iconClass: fa fa-plug
+        iconSize: 30
+      - Users:
+        title: Users
+        page: modulesrepo    
+        iconClass: fa fa-users
+        iconSize: 30
       - Solutions:
         title: Solutions
         page: list_solution
-      - AllModules:
-        title: AllModules
-        page: modulesrepo    
+        iconClass: fa fa-th-large
+        iconSize: 30
     environment:
       uiapplication: websiteapplication
 

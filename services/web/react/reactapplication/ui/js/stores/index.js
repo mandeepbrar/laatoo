@@ -27,12 +27,13 @@ function configureStore() {
   const sagaMiddleware = createSagaMiddleware();
   enhancers = redux.compose(redux.applyMiddleware(sagaMiddleware, ...middleware), ...enhancers);
 
-
   // mount it on the Store
   const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
+  console.log("created store", store)
 
   // then run the saga
   runSagas(sagaMiddleware, Application.AllRegItems("Sagas"));
+  console.log("running sagas")
   return store;
 }
 

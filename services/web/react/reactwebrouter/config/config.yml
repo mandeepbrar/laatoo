@@ -10,4 +10,4 @@ ui:
     packages:
       react: "^16.1.0"
       director: "^1.2.8"
-      redux-director: "^0.2.6"
+      redux-director: "^0.2.9"

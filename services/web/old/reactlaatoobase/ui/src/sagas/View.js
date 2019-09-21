@@ -22,7 +22,7 @@ function* fetchViewData(action) {
 }
 
 function* viewSaga() {
-  yield* takeEvery(ActionNames.VIEW_FETCH, fetchViewData);
+  yield takeEvery(ActionNames.VIEW_FETCH, fetchViewData);
 }
 
 //export {viewSaga as viewSaga};

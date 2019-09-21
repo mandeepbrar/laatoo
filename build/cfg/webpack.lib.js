@@ -4,9 +4,10 @@ const path = require('path');
 const webpack = require('webpack');
 var sprintf = require('sprintf-js').sprintf
 var fs = require('fs-extra')
+var {log} = require('../utils')
 
 module.exports = function(env) {
-  console.log(config.resolve.extensions);
+  log(config.resolve.extensions);
   conf=[]
   let conf1 = merge(config, {
     context: env.uifolder,
@@ -31,9 +32,10 @@ module.exports = function(env) {
     let str = ""
     var rules=[]
     var initStr = ""
+    log("dependencies", env.dependencies)
     Object.keys(env.dependencies).forEach(function(k, index){
       let modName = "m"+index
-        str= sprintf("%svar %s=require('%s');", str, modName, k)
+      str= sprintf("%svar %s=require('%s');", str, modName, k)
       initStr = sprintf("%s; console.log('Initializing %s', %s); f('%s',[], function(){return %s;});", initStr, k, modName, k, modName)
       //str= str + " console.log('found module "+ k + " "+modName+"', " +modName+" );"
     });

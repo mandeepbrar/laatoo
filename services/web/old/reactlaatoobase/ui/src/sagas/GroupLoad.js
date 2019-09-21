@@ -88,9 +88,7 @@ function* loadGroup(action) {
 }
 
 function* groupLoadSaga() {
-  yield [
-    takeEvery(ActionNames.GROUP_LOAD, loadGroup)
-  ]
+  yield takeEvery(ActionNames.GROUP_LOAD, loadGroup)
 }
 
 Application.Register('Sagas', "groupLoadSaga", groupLoadSaga)

@@ -26,8 +26,15 @@
     .horizmenu{
       @extend .w100;
     }
+    .menu {
+      @extend .fd, .fdcol;
+      justify-content: space-between;
+    }
     .vertbody{
       @extend .fdgrow;
+    }
+    .vertmenu {
+      @extend .fd;
     }
     .horizbody{
       @extend .w100, .fdgrow;

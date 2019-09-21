@@ -1,5 +1,4 @@
-import { takeEvery, takeLatest } from 'redux-saga'
-import { call, put } from 'redux-saga/effects'
+import { takeEvery, call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../Actions';
 import {  createAction, Response,  EntityData } from 'uicommon';
 
@@ -27,9 +26,7 @@ function* getEntityViewData(action) {
 
 
 function* entityViewSaga() {
-  yield [
-    takeEvery(ActionNames.ENTITY_VIEW_FETCH, getEntityViewData)
-  ]
+  yield takeEvery(ActionNames.ENTITY_VIEW_FETCH, getEntityViewData)
 }
 
 //export {entitySaga as entitySaga};

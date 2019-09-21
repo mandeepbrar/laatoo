@@ -1,5 +1,4 @@
-import { takeEvery, takeLatest } from 'redux-saga'
-import { call, put } from 'redux-saga/effects'
+import { takeEvery, call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../Actions';
 import { createAction, Response,  EntityData, DataSource, RequestBuilder } from 'uicommon';
 
@@ -88,9 +87,7 @@ function* loadGroup(action) {
 }
 
 function* groupLoadSaga() {
-  yield [
-    takeEvery(ActionNames.GROUP_LOAD, loadGroup)
-  ]
+  yield takeEvery(ActionNames.GROUP_LOAD, loadGroup)
 }
 
 Application.Register('Sagas', "groupLoadSaga", groupLoadSaga)

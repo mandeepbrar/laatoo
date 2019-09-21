@@ -1,5 +1,4 @@
-import { takeEvery, takeLatest } from 'redux-saga'
-import { call, put } from 'redux-saga/effects'
+import { takeEvery, takeLatest, call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions';
 import {  createAction, Response,  DataSource,  RequestBuilder } from 'uicommon';
 
@@ -21,6 +20,7 @@ function* signup(action) {
 
 function* login(action) {
   try {
+    console.log("received login action", action)
     yield put(createAction(ActionNames.LOGGING_IN));
     let req = RequestBuilder.DefaultRequest(null, action.payload);
     const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
@@ -43,11 +43,9 @@ function* logout(action) {
 }
 
 function* authSaga() {
-  yield [
-    takeLatest(ActionNames.LOGIN, login),
-    takeLatest(ActionNames.SIGN_UP, signup),
-    takeLatest(ActionNames.LOGOUT, logout)
-  ];
+  yield takeLatest(ActionNames.LOGIN, login)
+  yield takeLatest(ActionNames.SIGN_UP, signup)
+  yield takeLatest(ActionNames.LOGOUT, logout)  
 }
 
 //export {loginSaga as loginSaga};

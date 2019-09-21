@@ -112,13 +112,11 @@ function* updateEntityData(action) {
 
 
 function* entitySaga() {
-  yield [
-    takeEvery(ActionNames.ENTITY_GET, getEntityData),
-    takeEvery(ActionNames.ENTITY_SAVE, saveEntityData),
-    takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData),
-    takeEvery(ActionNames.ENTITY_PUT, putEntityData),
-    takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
-  ]
+  yield takeEvery(ActionNames.ENTITY_GET, getEntityData)
+  yield takeEvery(ActionNames.ENTITY_SAVE, saveEntityData)
+  yield takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData)
+  yield takeEvery(ActionNames.ENTITY_PUT, putEntityData)
+  yield takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
 }
 
 //export {entitySaga as entitySaga};
