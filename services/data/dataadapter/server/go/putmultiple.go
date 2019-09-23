@@ -30,7 +30,7 @@ func (es *putmultiple) Invoke(ctx core.RequestContext) error {
 	log.Trace(ctx, "Collection ", "arr", arr)
 	storables, _, err := data.CastToStorableCollection(arr)
 	if err != nil {
-		ctx.SetResponse(core.StatusInternalErrorResponse)
+		ctx.SetResponse(core.InternalErrorResponse("Could not case to storables array " + err.Error()))
 		return err
 	}
 	err = es.DataStore.PutMulti(ctx, storables)

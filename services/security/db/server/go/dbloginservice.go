@@ -1,14 +1,13 @@
 package main
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components/data"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"securitycommon"
-
+	common "securitycommon"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -119,7 +118,14 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 			ctx.SetResponse(core.StatusUnauthorizedResponse)
 			return nil
 		}
-		ctx.SetResponse(core.SuccessResponseWithInfo(user, map[string]interface{}{ls.authHeader: token}))
+
+		info := map[string]interface{}{ls.authHeader: token}
+
+		err = ctx.SendSynchronousMessage(common.EVT_LOGIN_SUCCESS, map[string]interface{}{"Data": user, "info": info})
+		if err != nil {
+			log.Error(ctx, "Encountered Error in sending event", "error", err)
+		}
+		ctx.SetResponse(core.SuccessResponseWithInfo(user, info))
 	}
 	return nil
 }

@@ -38,25 +38,33 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 function processMenu(){
   //var menuItems=[]
+  let menuName
   let menu
   console.log("Menu process", module.settings, Application)
   if(module.settings && module.settings.menu) {
-    menu = module.settings.menu
+    menuName = module.settings.menu
   } else {
-    menu = Application.Properties.menu
+    menuName = Application.Properties.menu
   }
-  console.log("dashboard menu", menu)
-  if(menu && menu.length > 0) {
-    menu.forEach(function(menuItem){
-      //let menuItem=menuConfig[menuItem]
-      if(menuItem.page) {
-        menuItem.action = "Page_" + menuItem.page
-      }
-    })
+  console.log("dashboard menu", menuName)
+  if(menuName) {
+    menu = _reg("Menus", menuName)
+    console.log("received menu ", menuName, menu)
+    if(menu && menu.items) {
+      console.log("iterating menu items ", menu.items)
+      menu.items.forEach(function(menuItem){
+        console.log("iterating menu ", menuItem)
+        //let menuItem=menuConfig[menuItem]
+        if(menuItem.page) {
+          menuItem.action = "Page_" + menuItem.page
+        }
+      })  
+    }
   } else {
-    menu = []
-    menu.push({title:'Home', action:'Page_home'})
+    menu = {items: []}
+    menu.items.push({title:'Home', action:'Page_home'})
   }
+  console.log("setting module menu", module, menu)
   module.menu = menu
 }
 

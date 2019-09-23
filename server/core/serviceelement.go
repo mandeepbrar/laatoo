@@ -181,16 +181,19 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 		return nil, errors.WrapError(ctx, err)
 	}
 	resp := ctx.GetResponse()
-	var data map[string]interface{}
+	var data interface{}
+	var inf map[string]interface{}
 	if resp != nil {
 		data = resp.Data
+		inf = resp.MetaInfo
 	}
 	log.Error(ctx, "handle request", "vals", vals, " data", data)
 	if svc.forward {
 		if resp.Status == core.StatusSuccess {
-			params := utils.ShallowMergeMaps(vals, data)
+			params := utils.ShallowMergeMaps(vals, inf)
 			//dat := resp.Data
 			params["encoding"] = ""
+			params["Data"] = data
 			log.Error(ctx, "handle request", "params", params)
 
 			err := ctx.Forward(svc.serviceToForward, params)

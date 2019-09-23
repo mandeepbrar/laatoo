@@ -6,3 +6,6 @@ uploadmodule:
   actiontype: showdialog
   title: Upload Module
   id: uploadblock
+selectSolution:
+  actiontype: method
+  method: selectSolution

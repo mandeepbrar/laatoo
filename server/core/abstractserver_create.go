@@ -513,7 +513,7 @@ func childLoader(ctx core.ServerContext, name string, parentLdr core.ServerEleme
 }
 
 func newRulesManager(ctx core.ServerContext, name string) (*rulesManager, *rulesManagerProxy) {
-	rulesMgr := &rulesManager{registeredRules: make(map[string][]rules.Rule, 10), rulesStore: make(map[string]rules.Rule, 10), name: name}
+	rulesMgr := &rulesManager{registeredRules: make(map[string]map[string]rules.Rule, 10), rulesStore: make(map[string]rules.Rule, 10), name: name}
 	rulesElem := &rulesManagerProxy{manager: rulesMgr}
 	rulesMgr.proxy = rulesElem
 	return rulesMgr, rulesElem

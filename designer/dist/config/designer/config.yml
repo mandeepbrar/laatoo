@@ -155,32 +155,7 @@ moduleinstances:
       menuEnd: bottombar
       showMenu: true
       vertical: true
-      menu:
-      - homepage:
-        title: Account
-        page: account
-        iconClass: fa fa-home
-        iconSize: 30
-      - Applications:
-        title: Applications
-        page: list_solution
-        iconClass: fa fa-archive
-        iconSize: 30
-      - AllModules:
-        title: Modules
-        page: modulesrepo    
-        iconClass: fa fa-plug
-        iconSize: 30
-      - Users:
-        title: Users
-        page: modulesrepo    
-        iconClass: fa fa-users
-        iconSize: 30
-      - Solutions:
-        title: Solutions
-        page: list_solution
-        iconClass: fa fa-th-large
-        iconSize: 30
+      menu: main
     environment:
       uiapplication: websiteapplication
 
@@ -214,19 +189,7 @@ moduleinstances:
       showMenu: true
       className: laatoodashboard
       infoBlock: InfoBlock
-      menu:
-      - homepage:
-        title: General
-        page: home
-      - Server:
-        title: Server
-        page: serversettings
-      - Entities:
-        title: Entities
-        page: entities
-      - UIGeneral:
-        title: UI General
-        page: uigeneral
+      menu: main
     environment:
       uiapplication: moduledesigner
   moduledesignerserver:
@@ -259,22 +222,7 @@ moduleinstances:
       className: laatoodashboard
       infoBlock: InfoBlock
       showMenu: true
-      menu:
-        - homepage:
-          title: My Home
-          page: home
-        - servers:
-          title: Servers
-          page: list_server
-        - environments:
-          title: Environments
-          page: list_environment
-        - applications:
-          title: Applications
-          page: list_application
-        - modules:
-          title: Solution Modules
-          page: solution.modules
+      menu: main
     environment:
       uiapplication: designerapplication
   designerui:

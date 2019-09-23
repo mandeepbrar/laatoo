@@ -34,6 +34,7 @@ const (
 	CONF_HOT_MODULE_PATH   = "hotmodulepath"
 	CONF_SVR_PARENT        = "svrparent"
 
+	CONF_SERVICE_RH         = "responsehandler"
 	CONF_ENVIRONMENTS       = "environments"
 	CONF_APP_ENVIRONMENT    = "environment"
 	CONF_LOGGING            = "logging"

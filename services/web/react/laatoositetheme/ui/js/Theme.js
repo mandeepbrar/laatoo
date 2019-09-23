@@ -51,18 +51,22 @@ const SiteTheme = (props, st, c) => {
   
 
 function PreprocessPageComponents(components, page, pageId, reducers) {
-    if(module.settings.showMenu && !page.hideMenu) {
+    if(module.menu && module.settings.showMenu && !page.hideMenu) {
       let comp = module.settings.menuLagger      
       console.log("pre processing.......", components, page);
       components.menu = (routerState) => {
         console.log("menu items ", routerState, module.menu)
         return (
           <_uikit.Block className="menu">
-              <_uikit.Navbar items={module.menu} vertical={module.settings.vertical}/>
-              {module.settings.menuEnd?
-              <Panel id={module.settings.menuEnd} type="block" className="menuEnd"/>
+            {
+              module.menu?
+              <_uikit.Navbar items={module.menu.items} vertical={module.settings.vertical}/>
               :null
-              }              
+            }            
+            {module.settings.menuEnd?
+            <Panel id={module.settings.menuEnd} type="block" className="menuEnd"/>
+            :null
+            }              
           </_uikit.Block>
         )
       }    

@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	common "securitycommon"
 )
@@ -87,23 +88,26 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 	return nil
 }
 
-func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
+func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) error {
 	idparam, ok := req.GetParam(CONF_KEYAUTH_CLIENT_IDENTIFIER)
 	id := idparam.GetValue().(string)
 	client, ok := ks.clients[id]
 
 	if !ok {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 	bodyParam := "Data"
 	reqbytes, ok := ctx.GetParamValue(bodyParam)
 	if !ok {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 	//:= req.GetBody()
 	data, ok := reqbytes.([]byte)
 	if !ok {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 
 	// compute the sha1
@@ -112,7 +116,8 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 
 	err := rsa.VerifyPKCS1v15(client.key, crypto.SHA256, h.Sum(nil), data)
 	if err != nil {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
 
 	//create the user
@@ -131,9 +136,18 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) (*co
 	usr.SetRoles([]string{client.role})*/
 	token, user, err := ks.tokenGenerator(usr, ks.localRealm)
 	if err != nil {
-		return core.StatusUnauthorizedResponse, nil
+		ctx.SetResponse(core.StatusUnauthorizedResponse)
+		return nil
 	}
-	return core.NewServiceResponseWithInfo(core.StatusSuccess, user, map[string]interface{}{ks.authHeader: token}), nil
+
+	info := map[string]interface{}{ks.authHeader: token}
+
+	err = ctx.SendSynchronousMessage(common.EVT_LOGIN_SUCCESS, map[string]interface{}{"Data": user, "info": info})
+	if err != nil {
+		log.Error(ctx, "Encountered Error in sending event", "error", err)
+	}
+	ctx.SetResponse(core.SuccessResponseWithInfo(user, info))
+	return nil
 }
 
 func (ks *KeyAuthService) SetTokenGenerator(ctx core.ServerContext, gen func(auth.User, string) (string, auth.User, error)) {

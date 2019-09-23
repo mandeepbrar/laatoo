@@ -11,6 +11,7 @@ const (
 	CONF_PVTKEYPATH                   = "pvtkey"
 	CONF_PUBLICKEYPATH                = "pvtkey"
 	CONF_SECURITY_REALM               = "realm"
+	EVT_LOGIN_SUCCESS                 = "login_success"
 	CONF_LOGINSERVICE_USERDATASERVICE = "user_data_svc"
 )
 

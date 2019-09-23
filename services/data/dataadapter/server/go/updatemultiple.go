@@ -29,13 +29,13 @@ func (es *updatemultiple) Invoke(ctx core.RequestContext) error {
 	ids, ok := vals["ids"]
 	if !ok {
 		log.Error(ctx, "Missing argument", "Name", "ids")
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Missing ids in args map"))
 		return nil
 	}
 	idsArr, ok := ids.([]interface{})
 	if !ok {
 		log.Error(ctx, "Bad argument", "Name", "ids")
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Ids should be an array of strings"))
 		return nil
 	}
 	stringIds := make([]string, len(idsArr))
@@ -43,20 +43,20 @@ func (es *updatemultiple) Invoke(ctx core.RequestContext) error {
 		stringIds[i], ok = val.(string)
 		if !ok {
 			log.Error(ctx, "Bad argument")
-			ctx.SetResponse(core.StatusBadRequestResponse)
+			ctx.SetResponse(core.BadRequestResponse("Ids should be an array of strings"))
 			return nil
 		}
 	}
 	data, ok := vals["data"]
 	if !ok {
 		log.Error(ctx, "Missing argument", "Name", "data")
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Missing Argument data in args map"))
 		return nil
 	}
 	updatesMap, ok := data.(map[string]interface{})
 	if !ok {
 		log.Error(ctx, "Bad argument", "Name", "data")
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Argument data should be map"))
 		return nil
 	}
 	err := es.DataStore.UpdateMulti(ctx, stringIds, updatesMap)

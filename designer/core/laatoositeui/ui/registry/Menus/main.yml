@@ -1,0 +1,21 @@
+items:
+  - homepage:
+    title: Account
+    page: account
+    iconClass: fa fa-home
+  - Applications:
+    title: Applications
+    page: list_solution
+    iconClass: fa fa-archive
+  - AllModules:
+    title: Modules
+    page: modulesrepo    
+    iconClass: fa fa-plug
+  - Deployment:
+    title: Deployment
+    page: list_solution
+    iconClass: fa fa-server
+  - Users:
+    title: Users
+    page: modulesrepo    
+    iconClass: fa fa-users

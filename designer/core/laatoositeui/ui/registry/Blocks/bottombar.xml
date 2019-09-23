@@ -1,3 +1,10 @@
-<h3 module="html">
-hello
-</h3>
+<Action widget="button" name="Page_list_solution">
+    <Block className="vertnavbutton">
+        <Block className="icon">
+            <Icon className="fa fa-th-large"/>
+        </Block>
+        <Block>
+        Solutions
+        </Block>
+    </Block>
+</Action>

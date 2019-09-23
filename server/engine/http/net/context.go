@@ -18,6 +18,7 @@ type WebContext interface {
 	NoContent(status int) error
 	File(file string) error
 	SetHeader(headerName string, headerVal string)
+	SetCookie(cookie *http.Cookie)
 	Write(bytes []byte) (int, error)
 	Redirect(status int, path string) error
 	GetRequestStream() (io.Reader, error)

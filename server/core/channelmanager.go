@@ -185,6 +185,27 @@ func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName str
 		proxy := svcProxy.(*serviceProxy)
 		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
 
+		respHandlerName, rhpresent := chanCtx.GetString(constants.CONF_SERVICE_RH)
+		if !rhpresent {
+			respHandlerName, rhpresent = svcServeCtx.GetString(constants.CONF_SERVICE_RH)
+		}
+
+		if rhpresent {
+			respHandler, err := svcServeCtx.CreateObject(respHandlerName)
+			if err != nil {
+				return errors.BadConf(ctx, "Response handler object not found", "constants.CONF_SERVICE_RH", respHandlerName)
+			}
+			rh, ok := respHandler.(elements.ServiceResponseHandler)
+			if !ok {
+				return errors.BadConf(ctx, "Provided objects is not response handler ", "constants.CONF_SERVICE_RH", respHandlerName)
+			}
+			err = rh.Initialize(svcServeCtx, nil)
+			if(err!=nil) {
+				return errors.WrapError(svcServeCtx, err)
+			}
+			svcServeCtx.setElements(core.ContextMap{core.ServerElementServiceResponseHandler: rh})
+		}
+
 		chanConf := chanMgr.channelConfs[chanName]
 
 		if err := processLogging(svcServeCtx, chanConf, chanName); err != nil {
@@ -248,6 +269,12 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 
 	createCtx := ctx.SubContext("Create Channel: " + channelName)
 	log.Info(createCtx, "Creating channel with conf ", "channelName", channelName, "conf", channelConf)
+
+	respHandlerName, ok := channelConf.GetString(ctx, constants.CONF_SERVICE_RH)
+	if ok {
+		ctx.Set(constants.CONF_SERVICE_RH, respHandlerName)
+	}
+
 	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)
 	if !ok {
 		return nil, errors.ThrowError(createCtx, errors.CORE_ERROR_MISSING_CONF, "channelname", channelName, "channelConf", channelConf, "conf", constants.CONF_ENGINE_PARENTCHANNEL)

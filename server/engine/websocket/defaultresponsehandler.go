@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/log"
 
 	"github.com/gorilla/websocket"
@@ -14,6 +15,11 @@ type defaultResponseHandler struct {
 func DefaultResponseHandler(ctx core.ServerContext, codec core.Codec) *defaultResponseHandler {
 	return &defaultResponseHandler{codec}
 }
+
+func (rh *defaultResponseHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
+	return nil
+}
+
 
 func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response) error {
 	conn := ctx.EngineRequestContext().(*websocket.Conn)

@@ -367,6 +367,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 					attrconf, ok := root.GetSubConfig(ctx, key)
 					if ok {
 						attrStr = processHierarchicalAttr(ctx, attrconf)
+						log.Error(ctx, "attrStr for ", "itemName", itemName, "key", key, "attrStr", attrStr)
 					} else {
 						val, _ := root.Get(ctx, key)
 						strval, err := json.Marshal(val)

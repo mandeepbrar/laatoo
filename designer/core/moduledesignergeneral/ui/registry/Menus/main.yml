@@ -1,0 +1,13 @@
+items:
+  - homepage:
+    title: General
+    page: home
+  - Server:
+    title: Server
+    page: serversettings
+  - Entities:
+    title: Entities
+    page: entities
+  - UIGeneral:
+    title: UI General
+    page: uigeneral

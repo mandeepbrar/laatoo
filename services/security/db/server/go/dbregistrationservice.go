@@ -78,7 +78,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 	user, ok := ent.(auth.RbacUser)
 	if !ok {
 		log.Trace(ctx, "Not user", "type", reflect.TypeOf(ent))
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Credentials user is not an RBAC User "))
 		return nil
 	}
 	//fieldMap := *body
@@ -109,7 +109,7 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 
 	cond, err := rs.UserDataService.CreateCondition(ctx, data.FIELDVALUE, argsMap)
 	if err != nil {
-		ctx.SetResponse(core.StatusInternalErrorResponse)
+		ctx.SetResponse(core.InternalErrorResponse("Could not create condition for comparison"))
 		return err
 	}
 
@@ -120,13 +120,13 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
 		return nil
 	}
 	if err != nil {
-		ctx.SetResponse(core.StatusInternalErrorResponse)
+		ctx.SetResponse(core.InternalErrorResponse("could not get the user" + err.Error()))
 		return err
 	}
 
 	err = rs.UserDataService.Save(ctx, ent.(data.Storable))
 	if err != nil {
-		ctx.SetResponse(core.StatusInternalErrorResponse)
+		ctx.SetResponse(core.InternalErrorResponse("Could not save user"))
 		return err
 	}
 	log.Trace(ctx, "Saved user")

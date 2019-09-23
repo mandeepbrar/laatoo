@@ -25,6 +25,10 @@ func (echctx *EchoContext) File(file string) error {
 func (echctx *EchoContext) SetHeader(headerName string, headerVal string) {
 	echctx.baseCtx.Response().Header().Set(headerName, headerVal)
 }
+func (echctx *EchoContext) SetCookie(cookie *http.Cookie) {
+	echctx.SetCookie(cookie)
+}
+
 func (echctx *EchoContext) WriteHeader(status int) {
 	echctx.baseCtx.Response().WriteHeader(status)
 }

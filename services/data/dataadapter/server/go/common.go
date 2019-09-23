@@ -23,7 +23,7 @@ func selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataTo
 func updateVals(ctx core.RequestContext, id string, vals map[string]interface{}, datastore data.DataComponent) (*core.Response, error) {
 	err := datastore.Update(ctx, id, vals)
 	if err != nil {
-		return core.StatusInternalErrorResponse, errors.WrapError(ctx, err)
+		return core.InternalErrorResponse("Could not update values"), errors.WrapError(ctx, err)
 	}
 	return nil, nil
 }

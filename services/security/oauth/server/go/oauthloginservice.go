@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components/data"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"securitycommon"
+	common "securitycommon"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
@@ -108,7 +108,7 @@ func (os *OAuthLoginService) initialRequest(ctx core.RequestContext) (*core.Resp
 	st := &stateInfo{Url: returl, State: stateVal, Realm: realm}
 	state, err := json.Marshal(st)
 	if err != nil {
-		return core.StatusInternalErrorResponse, errors.WrapError(ctx, err)
+		return core.InternalErrorResponse("Could not marshal to json" + err.Error()), errors.WrapError(ctx, err)
 	}
 	log.Trace(ctx, "redirecting to url", "state", state)
 	encodedState := base64.StdEncoding.EncodeToString(state)
@@ -210,7 +210,15 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 		script := []byte(fmt.Sprintf("<html><body onload='var data = {message:\"LoginSuccess\", token:\"%s\", id:\"%s\", permissions:%s}; window.opener.postMessage(data, \"*\"); window.close();'></body></html>", tokenstr, testedUser.GetId(), string(permissionsArr)))
 		return core.NewServiceResponseWithInfo(core.StatusServeBytes, &script, map[string]interface{}{core.ContentType: "text/html"}), nil
 	}
-	return core.NewServiceResponseWithInfo(core.StatusRedirect, st.Url, map[string]interface{}{os.authHeader: tokenstr}), nil
+
+	info := map[string]interface{}{os.authHeader: tokenstr}
+
+	err = ctx.SendSynchronousMessage(common.EVT_LOGIN_SUCCESS, map[string]interface{}{"Data": testedUser, "info": info})
+	if err != nil {
+		log.Error(ctx, "Encountered Error in sending event", "error", err)
+	}
+
+	return core.NewServiceResponseWithInfo(core.StatusRedirect, st.Url, info), nil
 }
 
 //Expects Local user to be provided inside the request

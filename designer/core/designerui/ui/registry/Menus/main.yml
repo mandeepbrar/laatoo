@@ -1,0 +1,16 @@
+items:
+  - homepage:
+    title: My Home
+    page: home
+  - servers:
+    title: Servers
+    page: list_server
+  - environments:
+    title: Environments
+    page: list_environment
+  - applications:
+    title: Applications
+    page: list_application
+  - modules:
+    title: Solution Modules
+    page: solution.modules

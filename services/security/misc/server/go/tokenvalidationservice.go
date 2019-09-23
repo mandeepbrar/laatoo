@@ -6,7 +6,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"securitycommon"
+	common "securitycommon"
 )
 
 const (

@@ -29,12 +29,12 @@ func (es *upsert) Invoke(ctx core.RequestContext) error {
 	vals, _ := ctx.GetStringMapParam("argsMap")
 	condition, err := es.DataStore.CreateCondition(ctx, data.FIELDVALUE, vals["condition"].(map[string]interface{}))
 	if err != nil {
-		ctx.SetResponse(core.StatusBadRequestResponse)
+		ctx.SetResponse(core.BadRequestResponse("Could not create condition" + err.Error()))
 		return errors.WrapError(ctx, err)
 	}
 	_, err = es.DataStore.Upsert(ctx, condition, vals["value"].(map[string]interface{}))
 	if err != nil {
-		ctx.SetResponse(core.StatusInternalErrorResponse)
+		ctx.SetResponse(core.InternalErrorResponse("Could not upsert values with condition to datastore"))
 		return errors.WrapError(ctx, err)
 	}
 	return nil

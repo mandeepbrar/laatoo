@@ -72,6 +72,10 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 		return err
 	}
 
+	loader := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
+
+	loader.Register(ctx, "CookiesResponseHandler", cookiesResponseHandler{}, nil)
+
 	log.Trace(ctx, "Setting root channel", "root", eng.rootChannel)
 
 	/*eng.loadBalanced, _ := eng.conf.GetBool(constants.CONF_LOAD_BALANCED)
