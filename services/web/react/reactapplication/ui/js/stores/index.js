@@ -2,6 +2,7 @@ const redux = require('redux');
 //import { createAction, createStore, Sagas} from 'uicommon'
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
+import {all, fork, spawn} from 'redux-saga/effects';
 import '../reducers/Dialogs'
 import '../reducers/Messages'
 
@@ -14,6 +15,33 @@ function runSagas(sagaMiddleware, sagas) {
   }
 }
 
+
+function* rootSaga () {
+  let sagas = Application.AllRegItems("Sagas")  
+  console.log("running sagas", sagas)
+  /*yield all(Object.entries(sagas).map(function(name, saga) {
+    spawn(function*() {
+      console.log("saga", name)
+      while (true) {
+        try {
+          console.log("while loop ", name)
+          yield call(saga)
+          break
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    })
+    console.log("running saga", name)
+  }))*/
+  for (let saga of Object.values(sagas)) {
+    console.log("saga", saga)
+    yield spawn(saga)
+  }
+  
+}
+
+
 function configureStore() {
   let reducers = Application.AllRegItems("Reducers")
   if(!reducers) {
@@ -25,15 +53,17 @@ function configureStore() {
 
 
   const sagaMiddleware = createSagaMiddleware();
-  enhancers = redux.compose(redux.applyMiddleware(sagaMiddleware, ...middleware), ...enhancers);
+  //enhancers = redux.compose(redux.applyMiddleware(sagaMiddleware, ...middleware), ...enhancers);
 
   // mount it on the Store
-  const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
+  const store = redux.createStore(redux.combineReducers(reducers), redux.applyMiddleware(sagaMiddleware, ...middleware), ...enhancers);
   console.log("created store", store)
 
   // then run the saga
-  runSagas(sagaMiddleware, Application.AllRegItems("Sagas"));
-  console.log("running sagas")
+
+
+  sagaMiddleware.run(rootSaga);
+  console.log("run sagas complete")
   return store;
 }
 

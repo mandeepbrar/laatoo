@@ -1,18 +1,18 @@
 package http
 
 import (
-	"laatoo/sdk/server/core"
+	"fmt"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/log"
 	"laatoo/server/engine/http/net"
 	"net/http"
-	"fmt"
 )
 
 type cookiesResponseHandler struct {
 }
 
-func (rh *cookiesResponseHandler) Initialize(conf config.Config) error {
+func (rh *cookiesResponseHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
@@ -37,18 +37,16 @@ func (rh *cookiesResponseHandler) GetType() core.ServerElementType {
 	return core.ServerElementServiceResponseHandler
 }
 
-
-func(rh *cookiesResponseHandler) handleMetaInfo(ctx net.WebContext, info map[string]interface{}) error {
-	if(info != nil) {
+func (rh *cookiesResponseHandler) handleMetaInfo(ctx net.WebContext, info map[string]interface{}) error {
+	if info != nil {
 		for key, val := range info {
 			cookie := new(http.Cookie)
 			cookie.Name = key
 			cookie.Value = fmt.Sprint(val)
 			cookie.HttpOnly = true
-			//cookie.Expires = time.Now().Add(24 * time.Hour)		
+			//cookie.Expires = time.Now().Add(24 * time.Hour)
 			ctx.SetCookie(cookie)
 		}
 	}
 	return nil
 }
-

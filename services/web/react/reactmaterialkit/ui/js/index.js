@@ -22,7 +22,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
 
 
 const ActionButton=(props)=> (
-  <Button raised onClick={props.onClick} {...props.btnProps} className={props.className} style={props.style}>{props.children}</Button>
+  <Button variant="contained" onClick={props.onClick} {...props.btnProps} className={props.className} style={props.style}>{props.children}</Button>
 )
 
 

@@ -79,6 +79,7 @@ moduleinstances:
       userobject: User
       dataservicefactory: mongodatabase
       defaultrole: Admin
+      setcookie: true
   staticfileserver:
     module: staticfileserver
   router:
@@ -99,6 +100,8 @@ moduleinstances:
     module: itemdetailview
   authui:
     module: authui
+    settings:
+      cookies: true
   reactforms:
     module: reactforms
   reactfileupload:

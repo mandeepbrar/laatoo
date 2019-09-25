@@ -26,6 +26,7 @@ function* fetchViewData(action) {
 }
 
 function* viewSaga() {
+  console.log("views saga start")
   yield takeEvery(ActionNames.VIEW_FETCH, fetchViewData);
 }
 

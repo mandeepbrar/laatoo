@@ -76,6 +76,6 @@ func (svc *RepositoryImport) Invoke(ctx core.RequestContext) error {
 		ctx.SetResponse(core.SuccessResponse(uploadedModules))
 		return nil
 	}
-	ctx.SetResponse(core.StatusBadRequestResponse)
+	ctx.SetResponse(core.BadRequestResponse("Data of uploaded files not provided"))
 	return nil
 }

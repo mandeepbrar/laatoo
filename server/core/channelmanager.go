@@ -185,22 +185,30 @@ func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName str
 		proxy := svcProxy.(*serviceProxy)
 		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
 
-		respHandlerName, rhpresent := chanCtx.GetString(constants.CONF_SERVICE_RH)
+		respHandlerConf, rhpresent := chanCtx.Get(constants.CONF_SERVICE_RH)
 		if !rhpresent {
-			respHandlerName, rhpresent = svcServeCtx.GetString(constants.CONF_SERVICE_RH)
+			respHandlerConf, rhpresent = svcServeCtx.Get(constants.CONF_SERVICE_RH)
 		}
 
 		if rhpresent {
+			rhConf, ok := respHandlerConf.(config.Config)
+			if !ok {
+				return errors.BadConf(ctx, constants.CONF_SERVICE_RH, "Info", "Config object required")
+			}
+			respHandlerName, ok := rhConf.GetString(ctx, constants.CONF_OBJECT_NAME)
+			if !ok {
+				return errors.MissingConf(ctx, constants.CONF_OBJECT_NAME, "Config", constants.CONF_SERVICE_RH)
+			}
 			respHandler, err := svcServeCtx.CreateObject(respHandlerName)
 			if err != nil {
-				return errors.BadConf(ctx, "Response handler object not found", "constants.CONF_SERVICE_RH", respHandlerName)
+				return errors.BadConf(ctx, "Response handler object not found", constants.CONF_SERVICE_RH, respHandlerName)
 			}
 			rh, ok := respHandler.(elements.ServiceResponseHandler)
 			if !ok {
-				return errors.BadConf(ctx, "Provided objects is not response handler ", "constants.CONF_SERVICE_RH", respHandlerName)
+				return errors.BadConf(ctx, "Provided objects is not response handler ", constants.CONF_SERVICE_RH, respHandlerName)
 			}
-			err = rh.Initialize(svcServeCtx, nil)
-			if(err!=nil) {
+			err = rh.Initialize(svcServeCtx, rhConf)
+			if err != nil {
 				return errors.WrapError(svcServeCtx, err)
 			}
 			svcServeCtx.setElements(core.ContextMap{core.ServerElementServiceResponseHandler: rh})
@@ -270,9 +278,9 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 	createCtx := ctx.SubContext("Create Channel: " + channelName)
 	log.Info(createCtx, "Creating channel with conf ", "channelName", channelName, "conf", channelConf)
 
-	respHandlerName, ok := channelConf.GetString(ctx, constants.CONF_SERVICE_RH)
+	respHandlerConf, ok := channelConf.GetSubConfig(ctx, constants.CONF_SERVICE_RH)
 	if ok {
-		ctx.Set(constants.CONF_SERVICE_RH, respHandlerName)
+		ctx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
 	}
 
 	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)

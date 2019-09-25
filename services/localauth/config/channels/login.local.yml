@@ -3,3 +3,5 @@ service: login.local
 method: POST
 path: "/login"
 bodyparamname: credentials
+responsehandler:
+  name: {{if is "setcookie"}} CookiesResponseHandler {{else}} DefaultResponseHandler{{end}}

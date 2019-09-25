@@ -5,12 +5,19 @@ import {ActionNames} from './actions';
 import {createAction, DataSource, RequestBuilder } from 'uicommon';
 const PropTypes = require('prop-types');
 
+var module;
+
+function setModule(mod) {
+  module = mod
+}
+
 /* Populated by react-webpack-redux:reducer */
 class Login extends React.Component {
   constructor(props) {
     super(props)
     this.validatetoken = this.validatetoken.bind(this)
     this.state= {loggedIn: props.loggedIn, validation: props.validation}
+    console.log("login component", props)
     if(props.validation) {
       this.validatetoken()
     }
@@ -25,12 +32,13 @@ class Login extends React.Component {
     let logout = this.props.logout
     let login = this.props.login
     let failure = (resp) => {
-      logout()
+      logout(true)
       this.setState({loggedIn: false, validation: false})
     }
     let success=(resp) => {
       login(resp.data.Id, resp.data.Permissions);
     }
+    console.log("sending validation request")
     let req = RequestBuilder.DefaultRequest({},{} )
     DataSource.ExecuteService(this.props.validateService, req).then(success, failure);
   }
@@ -51,12 +59,17 @@ Login.childContextTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => {
-  if(Storage.auth == null) {
-    return {
+  console.log("Login validator ", state, ownProps, module, Storage)
+  if(Storage.auth == "" ) {
+    let props = {
       validation: false,
       loggedIn: false,
       validateService: ownProps.validateService
     }
+    if(module.settings.cookies && state.Security.status != "ValidationFailed") {
+      props.validation = true
+    } 
+    return props
   }
   else if (Storage.auth != "") {
     if(state.Security.status != "LoggedIn") {
@@ -80,8 +93,12 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     login: (userId, permissions) => {
       dispatch(createAction(ActionNames.LOGIN_SUCCESS, {userId: userId, token: Storage.auth, user: Storage.user, permissions: permissions}));
     },
-    logout: () => {
-      dispatch(createAction(ActionNames.LOGOUT, null, null));
+    logout: (validationFailed) => {
+      if(validationFailed) {
+        dispatch(createAction(ActionNames.VALIDATIONFAILED, null, null));
+      } else {
+        dispatch(createAction(ActionNames.LOGOUT, null, null));
+      }
     }
   };
 }
@@ -89,4 +106,4 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 const LoginValidator = connect(mapStateToProps, mapDispatchToProps)(Login);
 
 
-export {LoginValidator}
+export {LoginValidator, setModule}

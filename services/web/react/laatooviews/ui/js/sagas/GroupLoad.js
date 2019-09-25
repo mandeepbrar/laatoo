@@ -87,6 +87,7 @@ function* loadGroup(action) {
 }
 
 function* groupLoadSaga() {
+  console.log("group load saga start")
   yield takeEvery(ActionNames.GROUP_LOAD, loadGroup)
 }
 

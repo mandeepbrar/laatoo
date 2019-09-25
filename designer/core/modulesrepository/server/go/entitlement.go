@@ -113,6 +113,6 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 			}
 		}
 	}
-	ctx.SetResponse(core.StatusBadRequestResponse)
+	ctx.SetResponse(core.BadRequestResponse("Solution Id not provided"))
 	return nil
 }

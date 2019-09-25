@@ -30,9 +30,8 @@ func (ginctx *GinContext) SetHeader(headerName string, headerVal string) {
 }
 
 func (ginctx *GinContext) SetCookie(cookie *http.Cookie) {
-	ginctx.SetCookie(cookie)
+	ginctx.baseCtx.SetCookie(cookie.Name, cookie.Value, cookie.MaxAge, cookie.Path, cookie.Domain, cookie.Secure, cookie.HttpOnly)
 }
-
 
 func (ginctx *GinContext) Write(bytes []byte) (int, error) {
 	return ginctx.baseCtx.Writer.Write(bytes)

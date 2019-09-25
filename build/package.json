@@ -40,6 +40,7 @@
     "style-loader": "^0.18.2",
     "expose-loader": "^0.7.0",
     "url-loader": "^0.5.9",
+    "file-loader": "*",
     "webpack": "^3.5.5",
     "webpack-dashboard": "^0.4.0",
     "webpack-dev-middleware": "^1.12.0",

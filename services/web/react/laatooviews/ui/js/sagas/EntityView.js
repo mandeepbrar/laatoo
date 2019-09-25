@@ -26,6 +26,7 @@ function* getEntityViewData(action) {
 
 
 function* entityViewSaga() {
+  console.log("entity view saga start")
   yield takeEvery(ActionNames.ENTITY_VIEW_FETCH, getEntityViewData)
 }
 

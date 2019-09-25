@@ -1,4 +1,4 @@
-import { takeEvery, takeLatest, call, put } from 'redux-saga/effects'
+import { takeEvery, takeLatest, fork, call, put } from 'redux-saga/effects'
 import  {ActionNames} from '../actions';
 import {  createAction, Response,  DataSource,  RequestBuilder } from 'uicommon';
 
@@ -42,10 +42,23 @@ function* logout(action) {
   yield put(createAction(ActionNames.LOGOUT_SUCCESS, {}));
 }
 
-function* authSaga() {
+function* loginSaga() {
   yield takeLatest(ActionNames.LOGIN, login)
+}
+
+function* signupSaga() {
   yield takeLatest(ActionNames.SIGN_UP, signup)
+}
+
+function* logoutSaga() {
   yield takeLatest(ActionNames.LOGOUT, logout)  
+}
+
+function* authSaga() {
+  console.log("take latest in auth saga", takeLatest, ActionNames, signup)
+  yield fork(loginSaga)
+  yield fork(signupSaga)
+  yield fork(logoutSaga)
 }
 
 //export {loginSaga as loginSaga};

@@ -1,4 +1,4 @@
-import { takeEvery, call, put } from 'redux-saga/effects'
+import { takeEvery, call, put, fork } from 'redux-saga/effects'
 import  {ActionNames} from '../Actions';
 import {  createAction, Response, RequestBuilder, DataSource, EntityData } from 'uicommon';
 
@@ -153,14 +153,38 @@ function* loadData(action) {
   }
 }
 
+function* loadDataSaga() {
+  yield takeEvery(ActionNames.LOAD_DATA, loadData)
+}
+
+function* formSubmitSaga() {
+  yield takeEvery(ActionNames.SUBMIT_FORM, submitForm)
+}
+
+function* entityGetSaga() {
+  yield takeEvery(ActionNames.ENTITY_GET, getEntityData)
+}
+
+function* entitySaveSaga() {
+  yield takeEvery(ActionNames.ENTITY_SAVE, saveEntityData)
+}
+
+function* entityUpdateSaga() {
+  yield takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData)
+}
+
+function* entityPutSaga() {
+  yield takeEvery(ActionNames.ENTITY_PUT, putEntityData)
+}
+
 //console.log("Action names ", ActionNames)
 function* formsSaga() {
-  yield takeEvery(ActionNames.LOAD_DATA, loadData)
-  yield takeEvery(ActionNames.SUBMIT_FORM, submitForm)
-  yield takeEvery(ActionNames.ENTITY_GET, getEntityData)
-  yield takeEvery(ActionNames.ENTITY_SAVE, saveEntityData)
-  yield takeEvery(ActionNames.ENTITY_UPDATE, updateEntityData)
-  yield takeEvery(ActionNames.ENTITY_PUT, putEntityData)
+  yield fork(loadDataSaga)
+  yield fork(formSubmitSaga)
+  yield fork(entityGetSaga)
+  yield fork(entitySaveSaga)
+  yield fork(entityUpdateSaga)
+  yield fork(entityPutSaga)
 }
 //takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
 

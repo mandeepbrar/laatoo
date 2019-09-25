@@ -17,10 +17,10 @@ ui:
       prop-types: prop-types
       core-js: core-js
     packages:
-      react: "^16.1.0"
-      react-redux: "^5.0.6"
+      react: "^16.8.0"
+      react-redux: "^7.0.0"
       redux: "^3.7.2"
-      redux-saga: "^0.16.0"
+      redux-saga: "^1.1.0"
       prop-types: "^15.6.0"
       core-js: "^2.5.7"
 params:

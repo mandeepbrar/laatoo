@@ -221,9 +221,9 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 		svcCtx.setElementReferences(cmap, true)
 	}
 
-	respHandlerName, ok := conf.GetString(ctx, constants.CONF_SERVICE_RH)
+	respHandlerConf, ok := conf.GetSubConfig(ctx, constants.CONF_SERVICE_RH)
 	if ok {
-		ctx.Set(constants.CONF_SERVICE_RH, respHandlerName)
+		ctx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
 	}
 
 	factory := svcfactoryProxy.Factory()

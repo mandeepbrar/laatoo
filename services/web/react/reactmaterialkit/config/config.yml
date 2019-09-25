@@ -17,11 +17,12 @@ ui:
       uicommon: uicommon
       prop-types: prop-types
     packages:
-      react: "^16.1.0"
-      react-dom: "^16.1.0"
-      react-redux: "^5.0.6"
-      "@material-ui/core": "latest"
-      redux-form: "^7.1.1"
+      react: "^16.8.0"
+      react-dom: "^16.8.0"
+      react-redux: "^7.1.0"
+      "@material-ui/core": "3.9.0"
+      redux-form: "^8.2.6"
       react-tap-event-plugin: "*"
-      prop-types: "^15.6.0"
+      prop-types: "^15.7.0"
       babel-runtime: "latest"
+      hoist-non-react-statics: "^3.3.0"
