@@ -7,18 +7,14 @@ ui:
   js:
     packages:
       axios: "^0.16.2"
-      babel-polyfill: "^6.26.0"
-      babel-runtime: "^6.26.0"
       prop-types: "^15.6.0"
       md5: "^2.2.1"
       react-redux: "^7.0.0"
-      redux: "^3.7.2"
+      redux: "^4.0.4"
       redux-saga: "^1.1.0"
       core-js: "^2.5.7"
     externals:
       axios: axios
-      babel-polyfill: babel-polyfill
-      babel-runtime: babel-runtime
       prop-types: prop-types
       react: react
       uicommon: uicommon

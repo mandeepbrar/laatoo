@@ -97,16 +97,24 @@ function compileJSWebUI(jsUIconfig, nextTask) {
     log("Removed directory dist")
   
     fs.mkdirsSync(path.join(uiBuildFolder,'scripts'))
-  
+    
+    //hack
+    fs.copyFileSync("/build/babel.config.js", "/nodemodules/babel.config.js")
+
+    process.chdir('/nodemodules')
     log("Starting compilation", __dirname)
     compiler.run(function(err, stats) {
       if(stats && stats.compilation && stats.compilation.errors && stats.compilation.errors.length !=0 ) {
         console.log("Errors: ", stats.compilation.errors);
         //console.log(stats.compilation)
+        shell.exit(1);
       } else {
         if(stats.stats && stats.stats.length !=0 ) {
           stats.stats.forEach(function(stat) {
-            console.log("Errors: ", stat.compilation.errors);
+            if(stat.compilation.errors && stat.compilation.errors.length!=0) {
+              console.log("Errors: ", stat.compilation.errors);
+              shell.exit(1)
+            }
           })
         }
       }

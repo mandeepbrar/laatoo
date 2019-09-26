@@ -6,8 +6,6 @@ description: 'Module provides laatoo view components. '
 ui:
   js:
     externals:
-      babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       react: react
       redux-actions: redux-actions
       react-redux: react-redux

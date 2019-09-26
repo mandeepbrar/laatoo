@@ -30,7 +30,7 @@ class LoadableComponent extends React.Component {
 
   errorMethod = (resp) => {
     console.log("could not load data", resp)
-  };
+  }
 
   response = (resp) => {
     console.log("loadable component:---------response", resp)

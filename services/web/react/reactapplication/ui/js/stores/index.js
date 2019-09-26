@@ -2,7 +2,7 @@ const redux = require('redux');
 //import { createAction, createStore, Sagas} from 'uicommon'
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
-import {all, fork, spawn} from 'redux-saga/effects';
+import {all, call, fork, spawn} from 'redux-saga/effects';
 import '../reducers/Dialogs'
 import '../reducers/Messages'
 
@@ -34,10 +34,31 @@ function* rootSaga () {
     })
     console.log("running saga", name)
   }))*/
-  for (let saga of Object.values(sagas)) {
+  /*for (let saga of Object.values(sagas)) {
     console.log("saga", saga)
-    yield spawn(saga)
-  }
+    spawn(function*() {
+      console.log("saga", saga)
+      while (true) {
+        try {
+          console.log("while loop ", saga)
+          yield call(saga)
+          break
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    })
+  }*/
+/*  while (true) {
+    try {
+      console.log("while loop ")
+      let arr = Object.values(sagas).map(saga=>fork(saga))
+      yield arr;
+    }catch (e) {
+      console.log(e)
+    }
+  }*/
+  console.log("exitting saga")
   
 }
 
@@ -61,8 +82,8 @@ function configureStore() {
 
   // then run the saga
 
-
-  sagaMiddleware.run(rootSaga);
+  Object.values(Application.AllRegItems("Sagas")).map(saga=>sagaMiddleware.run(saga))
+//  sagaMiddleware.run(rootSaga);
   console.log("run sagas complete")
   return store;
 }

@@ -27,7 +27,7 @@ const Account = (state, action) => {
             status: "ValidationFailed"
           });
         case ActionNames.LOGIN_SUCCESS:
-          if (state.authToken === action.payload.token) {
+          if (state.userId === action.payload.userId) {
             return state
           }
           Storage.auth = action.payload.token;

@@ -6,10 +6,7 @@ description: Module provides file upload ui component
 ui:
   js:
     externals:
-      babel-runtime: babel-runtime
-      reactwebcommon: reactwebcommon
       uicommon: uicommon
-      babel-polyfill: babel-polyfill
       redux-form: redux-form
       react: react
       react-redux: react-redux

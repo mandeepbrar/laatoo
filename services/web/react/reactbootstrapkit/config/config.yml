@@ -6,8 +6,6 @@ description: Module provides bootstrap ui kit for laatoo applications
 ui:
   js:
     externals:
-      babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       reactwebcommon: reactwebcommon
       react: react
       react-redux: react-redux

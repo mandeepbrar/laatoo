@@ -53,8 +53,6 @@ COPY build/ /build
 
 WORKDIR /build
 
-COPY /build/.babelrc /
-
 RUN chown -R laatoo /go
 
 USER laatoo

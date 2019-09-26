@@ -13,12 +13,11 @@ ui:
       uicommon: uicommon
       reactwebcommon: reactwebcommon
       babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       react: react
       prop-types: prop-types
       core-js: core-js
     packages:
-      react: "^16.1.0"
+      react: "^16.8.0"
       prop-types: "^15.6.0"
       core-js: "^2.5.7"
 objects:

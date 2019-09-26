@@ -4,6 +4,18 @@ const path = require('path');
 const webpack = require('webpack');
 //const autoprefixer = require('autoprefixer');
 const dependencies = require('./DependenciesPlugin');
+require("@babel/plugin-transform-runtime");
+
+
+const presets = [
+  ["@babel/preset-env", { "modules": false }],
+  "@babel/preset-react"
+];
+const plugins = [
+  "@babel/plugin-transform-runtime",
+  "@babel/plugin-transform-flow-strip-types",
+  "@babel/plugin-proposal-class-properties"
+];
 
 module.exports = {
   resolve: {
@@ -27,8 +39,13 @@ module.exports = {
       // JavaScript / ES6
       {
         test: /\.(js|jsx)$/,         // Match both .js and .jsx files
-         exclude: /node_modules/,
-         loader: "babel-loader"
+        exclude: /node_modules/,
+        loader: "babel-loader",
+        options: {
+          configFile: "/nodemodules/babel.config.js"
+          /*config: presets,
+          plugins: plugins*/
+        }
       },
       // Images
       // Inline base64 URLs for <=8k images, direct URLs for the rest

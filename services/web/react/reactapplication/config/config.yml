@@ -6,8 +6,6 @@ description: Module provides base for react based applications of laatoo.
 ui:
   js:
     externals:
-      babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       react: react
       react-redux: react-redux
       reactpages: reactpages
@@ -19,8 +17,8 @@ ui:
     packages:
       react: "^16.8.0"
       react-redux: "^7.0.0"
-      redux: "^3.7.2"
-      redux-saga: "^1.1.0"
+      redux: "^4.0.4"
+      redux-saga: "^1.1.1"
       prop-types: "^15.6.0"
       core-js: "^2.5.7"
 params:

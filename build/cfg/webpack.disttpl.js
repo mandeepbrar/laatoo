@@ -15,11 +15,11 @@ let cssaliases = {
   "common": "/nodemodules/node_modules/reactwebcommon/files/app"
 }
 let cssoptions = {
-  includePaths: [
+ /* includePaths: [
     path.resolve("/nodemodules/node_modules/")
-  ],
-  alias: cssaliases,
-  url: false
+  ],*/
+  //alias: cssaliases,
+  //url: false
 }
 module.exports = merge(config, {
   devtool: 'cheap-module-source-map',
@@ -46,7 +46,8 @@ module.exports = merge(config, {
           fallback: 'style-loader',
           use: [
             { loader: 'css-loader', options: merge({ sourceMap: true }, cssoptions) },
-            { loader: 'sass-loader', options: merge({ outputStyle: 'compressed'}, cssoptions ) }
+            //{ loader: 'sass-loader', options: merge({ outputStyle: 'compressed'}, cssoptions ) }
+            { loader: 'sass-loader' }
           ]
         })
       },
@@ -56,7 +57,7 @@ module.exports = merge(config, {
           fallback: 'style-loader',
           use: [
             { loader: 'css-loader', options: merge( { sourceMap: true }, cssoptions) },
-            { loader: 'sass-loader', options: merge( { outputStyle: 'compressed' }, cssoptions) }
+            { loader: 'sass-loader' }
           ]
         })
       },

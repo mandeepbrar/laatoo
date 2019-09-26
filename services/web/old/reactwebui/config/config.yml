@@ -9,8 +9,6 @@ ui:
     externals:
       autoprefixer: autoprefixer
       axios: axios
-      babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       react: react
       react-dom: react-dom
       redux-actions: redux-actions

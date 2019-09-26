@@ -8,8 +8,6 @@ description: 'Module provides item detail view.'
 ui:
   js:
     externals:
-      babel-runtime: babel-runtime
-      babel-polyfill: babel-polyfill
       react: react
       redux-actions: redux-actions
       react-redux: react-redux
@@ -28,5 +26,4 @@ ui:
       redux: "^3.7.2"
       redux-saga: "^0.16.0"
       prop-types: "^15.6.0"
-      babel-runtime: "latest"
       core-js: "^2.5.7"

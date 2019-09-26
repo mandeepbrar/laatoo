@@ -55,7 +55,7 @@ function* logoutSaga() {
 }
 
 function* authSaga() {
-  console.log("take latest in auth saga", takeLatest, ActionNames, signup)
+  console.log("take latest in auth saga", fork)
   yield fork(loginSaga)
   yield fork(signupSaga)
   yield fork(logoutSaga)
