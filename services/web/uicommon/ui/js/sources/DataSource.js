@@ -1,5 +1,3 @@
-'use strict';
-
 import { RequestBuilderService } from './RequestBuilder';
 import { EntityDataService } from './EntityData';
 

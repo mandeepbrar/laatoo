@@ -1,5 +1,3 @@
-'use strict';
-
 export class EntityDataService {
     constructor(DataSource, RequestBuilder) {
         this.DataSource = DataSource;

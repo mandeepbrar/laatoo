@@ -14,7 +14,8 @@ ui:
       core-js: core-js
     packages:
       react: "^16.1.0"
-      sanitize-html: "^1.14.1"
+      htmlparser2: "^4.0.0"
+      sanitize-html: "^1.20.1"
       redux: "^3.7.2"
       react-redux: "^5.0.6"
       core-js: "^2.5.7"

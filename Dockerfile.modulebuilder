@@ -49,11 +49,13 @@ COPY makelaatoomodule.sh /make.sh
 
 ENV USER=laatoo
 
+RUN chown -R laatoo /go
+
 COPY build/ /build
 
 WORKDIR /build
 
-RUN chown -R laatoo /go
+#RUN npm i
 
 USER laatoo
 

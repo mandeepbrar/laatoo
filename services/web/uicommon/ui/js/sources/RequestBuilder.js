@@ -1,5 +1,3 @@
-'use strict';
-
 export class RequestBuilderService {
   constructor() {
     this.ParameterSeparatorRequest = this.ParameterSeparatorRequest.bind(this);
