@@ -15,7 +15,7 @@ const Account = (state, action) => {
           status: "LoggingIn"
         })
 
-        case ActionNames.VALIDATIONFAILED:
+      case ActionNames.VALIDATIONFAILED:
           Storage.auth = "";
           Storage.permissions = [];
           Storage.userId = "";
@@ -26,13 +26,13 @@ const Account = (state, action) => {
           return Object.assign({}, initialSecState, {
             status: "ValidationFailed"
           });
-        case ActionNames.LOGIN_SUCCESS:
+      case ActionNames.LOGIN_SUCCESS:
           if (state.userId === action.payload.userId) {
             return state
           }
           Storage.auth = action.payload.token;
           Storage.permissions = action.payload.permissions;
-          Storage.userId = action.payload.userId;
+          Storage.userId = action.payload.user.Id;
           Storage.userFullName = action.payload.user.Name;
           Storage.userName = action.payload.user.Username;
           Storage.email = action.payload.user.Email;

@@ -58,34 +58,58 @@ Login.childContextTypes = {
   user: PropTypes.object
 };
 
-const mapStateToProps = (state, ownProps) => {
-  console.log("Login validator ", state, ownProps, module, Storage)
-  if(Storage.auth == "" ) {
-    let props = {
-      validation: false,
+function getPropsCookieMode(state, ownProps) {
+  switch (state.Security.status) {
+    case "NotLogged":
+    return {
+      validation: true,
       loggedIn: false,
       validateService: ownProps.validateService
     }
-    if(module.settings.cookies && state.Security.status != "ValidationFailed") {
-      props.validation = true
-    } 
-    return props
+    case "LoggedIn": 
+    return {
+      validation: false,
+      loggedIn: true
+    }
+    default:
+    return {
+      loggedIn: false
+    }
   }
-  else if (Storage.auth != "") {
-    if(state.Security.status != "LoggedIn") {
+}
+
+function getPropsNonCookieMode(state, ownProps) {
+  switch (state.Security.status) {
+    case "NotLogged":
+    console.log("get props non cookie, Storage.auth = ", Storage.auth)
+    if(Storage.auth) {
       return {
         validation: true,
         loggedIn: false,
         validateService: ownProps.validateService
-      }
+      }  
     } else {
-      return {
-        validation: false,
-        loggedIn: true,
-        validateService: ownProps.validateService
-      }
+      return {loggedIn: false}
+    }
+    case "LoggedIn": 
+    return {
+      loggedIn: true
+    }
+    default:
+    return {
+      loggedIn: false
     }
   }
+}
+
+
+const mapStateToProps = (state, ownProps) => {
+  console.log("Login validator ", state, ownProps, module, Storage)
+  if (module.settings.cookies) {
+    return getPropsCookieMode(state, ownProps)
+  } else {
+    return getPropsNonCookieMode(state, ownProps)
+  }  
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
