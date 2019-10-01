@@ -33,6 +33,15 @@ func (ginctx *GinContext) SetCookie(cookie *http.Cookie) {
 	ginctx.baseCtx.SetCookie(cookie.Name, cookie.Value, cookie.MaxAge, cookie.Path, cookie.Domain, cookie.Secure, cookie.HttpOnly)
 }
 
+func (ginctx *GinContext) GetCookie(name string) (*http.Cookie, error) {
+	val, err := ginctx.baseCtx.Cookie(name)
+	if err!=nil {
+		return nil, err
+	}
+	return &http.Cookie{Name: name, Value: val}, nil
+}
+
+
 func (ginctx *GinContext) Write(bytes []byte) (int, error) {
 	return ginctx.baseCtx.Writer.Write(bytes)
 }

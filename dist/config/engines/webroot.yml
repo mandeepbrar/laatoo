@@ -9,6 +9,10 @@ usecors: true
 queryparams:
 - pagesize
 - pagenum
+headers:
+- X-Auth-Token
+allowedcookies:
+- X-Auth-Token
 corshosts:
 - http://localhost:8000
 path: "/"

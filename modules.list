@@ -4,7 +4,7 @@ role laatoo/services/security/objects/role
 user laatoo/services/security/objects/user
 dblogin laatoo/services/security/db
 oauthlogin laatoo/services/security/oauth
-miscsecurity laatoo/services/security/misc
+tokenvalidation laatoo/services/security/tokenvalidation
 keyauthlogin laatoo/services/security/keyauth
 memorycache laatoo/services/cache/memory
 appenginecache laatoo/services/cache/appengine

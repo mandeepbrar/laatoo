@@ -40,7 +40,9 @@ func (gojictx *GojiContext) SetHeader(headerName string, headerVal string) {
 func (gojictx *GojiContext) SetCookie(cookie *http.Cookie) {
 	gojictx.res.SetCookie(cookie)
 }
-
+func (gojictx *GojiContext) GetCookie(name string) (*http.Cookie, error) {
+	return gojictx.req.Cookie(name)
+}
 
 func (gojictx *GojiContext) Write(bytes []byte) (int, error) {
 	return gojictx.res.Write(bytes)

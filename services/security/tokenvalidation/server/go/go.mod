@@ -1,4 +1,4 @@
-module miscsecurityservice
+module tokenvalidation
 
 go 1.12
 

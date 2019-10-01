@@ -26,7 +26,10 @@ func (echctx *EchoContext) SetHeader(headerName string, headerVal string) {
 	echctx.baseCtx.Response().Header().Set(headerName, headerVal)
 }
 func (echctx *EchoContext) SetCookie(cookie *http.Cookie) {
-	echctx.SetCookie(cookie)
+	echctx.baseCtx.SetCookie(cookie)
+}
+func (echctx *EchoContext) GetCookie(name string) (*http.Cookie, error) {
+	return echctx.baseCtx.Cookie(name)
 }
 
 func (echctx *EchoContext) WriteHeader(status int) {

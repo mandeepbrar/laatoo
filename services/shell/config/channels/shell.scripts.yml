@@ -2,5 +2,6 @@ parent: root
 service: shell.scripts
 method: GET
 path: "/scripts/*"
+skipauth: {{is "authenticatescripts" | not}}
 paramvalues:
   file: __0

@@ -33,6 +33,6 @@ params:
   defaultrole: 
     type: string
     description: Default role for the registered user
-  setcookie:
+  setcookies:
     type: bool
     description: Set cookie for auth header

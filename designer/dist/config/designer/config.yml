@@ -43,6 +43,7 @@ modules:
   shell:
   publicdirserver:
   publicfilesserver:
+  tokenvalidation:
   itemdetailview:
   dataadapter:
   dblogin:
@@ -79,8 +80,11 @@ moduleinstances:
       userobject: User
       dataservicefactory: mongodatabase
       defaultrole: Admin
+      setcookies: true
   staticfileserver:
     module: staticfileserver
+  tokenvalidation:
+    module: tokenvalidation
   router:
     module: reactwebrouter
   reactmaterialkit:
@@ -100,6 +104,7 @@ moduleinstances:
   authui:
     module: authui
     settings:
+      cookies: true
   reactforms:
     module: reactforms
   reactfileupload:
@@ -135,6 +140,7 @@ moduleinstances:
     settings:
       uiapplication: websiteapplication
       indexpath: /index
+      authenticateshell: false
       uidependencies:
         react: ''
   websiteapplication:

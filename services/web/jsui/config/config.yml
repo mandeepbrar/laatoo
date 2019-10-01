@@ -95,3 +95,7 @@ params:
     type: string
     description: Cache generated scripts and css files. Set false for hot module support
     default: true
+  authenticateui:
+    type: bool
+    description: Authentication files needed for rendering UI
+    default: false

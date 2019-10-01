@@ -10,6 +10,10 @@ import (
 )
 
 func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(net.WebContext, map[string]interface{}) error) error {
+	if ctx == nil {
+		return errors.BadRequest(ctx)
+	}
+	ctx = ctx.SubContext("Response Handler")
 	if resp == nil {
 		resp = core.StatusSuccessResponse
 	}
@@ -20,7 +24,7 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 		case core.StatusSuccess:
 			if resp.Data != nil {
 				err := handleMetaInfo(engineContext, resp.MetaInfo)
-				if err!=nil {
+				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
 				return engineContext.JSON(http.StatusOK, resp.Data)

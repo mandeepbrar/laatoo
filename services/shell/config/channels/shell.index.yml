@@ -3,5 +3,6 @@ parent: root
 method: GET
 service: shell.index{{var "module" "."}}
 path: {{var "indexpath"}}
+skipauth: {{is "authenticateshell" | not}}
 staticvalues:
   file: index.html

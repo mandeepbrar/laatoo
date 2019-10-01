@@ -2,5 +2,6 @@ parent: root
 service:  uiapp.props{{var "uiapplication" "."}}
 method: GET
 path: "/properties/*"
+skipauth: {{is "authenticateui" | not}}
 paramvalues:
   file: __0

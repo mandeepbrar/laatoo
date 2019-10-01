@@ -43,12 +43,13 @@ func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerE
 func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
 	if conf == nil {
 		sh.skipSecurity = true
-		log.Trace(ctx, "Skipping security handler start")
+		log.Warn(ctx, "Skipping security handler start")
 		return nil
 	}
 
 	initCtx := ctx.SubContext("Initialize Security Handler")
 	sh.securityConf = conf
+	log.Info(ctx, "Initializing security handler", "conf", conf)
 
 	realm, _ := conf.GetString(ctx, config.REALM)
 	sh.realm = realm
@@ -169,6 +170,7 @@ func (sh *securityHandler) onServerReady(ctx core.ServerContext) error {
 
 func (sh *securityHandler) authenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
 	if sh.skipSecurity {
+		log.Error(ctx, "skipping security", "skip security", sh.skipSecurity)
 		return "", nil
 	}
 	usr, isadmin, token, err := sh.getUserFromToken(ctx, loadFresh)
@@ -212,13 +214,13 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh b
 		token, err := jwt.Parse(tokenVal, func(token *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
 			if method, ok := token.Method.(*jwt.SigningMethodRSA); !ok || method != jwt.SigningMethodRS512 {
-				log.Trace(ctx, "Invalid Token", "method", method)
+				log.Error(ctx, "Invalid Token", "method", method)
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
 			}
 			return sh.publicKey, nil
 		})
 		if err == nil && token.Valid {
-			log.Trace(ctx, "Token validated")
+			log.Error(ctx, "Token validated")
 			userInt := sh.userCreator()
 			user, ok := userInt.(auth.RbacUser)
 			if !ok {

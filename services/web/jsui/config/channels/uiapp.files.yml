@@ -4,6 +4,7 @@ channels:
   method: GET
   service: uiapp.files{{var "uiapplication" "."}}
   path: /modules{{var "uiapplication" "."}}.js
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: modules.js
 - name: uiapp.services{{var "uiapplication" "."}}
@@ -11,6 +12,7 @@ channels:
   method: GET
   service:  uiapp.files{{var "uiapplication" "."}}
   path: /components{{var "uiapplication" "."}}.conf.js
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: components.conf.js
 - name:  uiapp.boot{{var "uiapplication" "."}}
@@ -18,6 +20,7 @@ channels:
   method: GET
   service: uiapp.files{{var "uiapplication" "."}}
   path: /boot{{var "uiapplication" "."}}.js
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: boot.js
 - name: uiapp.style{{var "uiapplication" "."}}
@@ -25,6 +28,7 @@ channels:
   method: GET
   service: uiapp.files{{var "uiapplication" "."}}
   path: /app{{var "uiapplication" "."}}.css
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: app.css
 - name: uiapp.wasm{{var "uiapplication" "."}}
@@ -32,6 +36,7 @@ channels:
   method: GET
   service: uiapp.files{{var "uiapplication" "."}}
   path: /wasm{{var "uiapplication" "."}}.json
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: wasm.json
 - name: uiapp.vendor{{var "uiapplication" "."}}
@@ -39,5 +44,6 @@ channels:
   method: GET
   service: uiapp.files{{var "uiapplication" "."}}
   path: /vendor{{var "uiapplication" "."}}.js
+  skipauth: {{is "authenticateui" | not}}
   staticvalues:
     file: vendor.js

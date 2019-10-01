@@ -21,4 +21,11 @@ params:
     type: string
     description: Path to be used by the shell
     default: /index
-
+  authenticateshell: 
+    type: bool
+    description: Authentication needed for shell 
+    default: false
+  authenticatescripts:
+    type: bool
+    description: Authentication needed for shell 
+    default: false

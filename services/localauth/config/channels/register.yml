@@ -2,4 +2,5 @@ parent: root
 service: register
 method: POST
 path: "/register"
+skipauth: true
 bodyparamname: credentials

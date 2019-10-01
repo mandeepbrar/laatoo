@@ -2,5 +2,6 @@ parent: root
 service: ui.images
 method: GET
 path: "/images/*"
+skipauth: {{is "authenticateui" | not}}
 paramvalues:
   file: __0

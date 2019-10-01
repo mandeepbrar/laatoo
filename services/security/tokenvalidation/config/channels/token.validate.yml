@@ -1,0 +1,4 @@
+parent: root
+service: token.validate
+method: POST
+path: /validate

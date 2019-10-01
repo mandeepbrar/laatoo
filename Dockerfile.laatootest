@@ -3,7 +3,7 @@ FROM laatoomodulebuilder:latest
 
 COPY list /
 
-VOLUME /bin
+VOLUME /laatoobin
 
 COPY cpplibs/* /usr/lib/
 
@@ -13,6 +13,6 @@ COPY dist/config /config
 
 ENV LAATOO_CONFIGDIR /config
 
-WORKDIR /bin
+WORKDIR /laatoobin
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["/laatoobin/laatoo"]

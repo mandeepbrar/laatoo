@@ -2,5 +2,6 @@ parent: root
 service: ui.fonts
 method: GET
 path: "/fonts/*"
+skipauth: {{is "authenticateui" | not}}
 paramvalues:
   file: __0

@@ -2,6 +2,7 @@ parent: root
 service: login.local
 method: POST
 path: "/login"
+skipauth: true
 bodyparamname: credentials
 responsehandler:
-  name: {{if is "setcookie"}} CookiesResponseHandler {{else}} DefaultResponseHandler{{end}}
+  name: {{if is "setcookies"}} CookiesResponseHandler {{else}} DefaultResponseHandler{{end}}

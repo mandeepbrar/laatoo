@@ -82,31 +82,20 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 		}
 	}
 
-	//build header param mappings
-	headers := make(map[string]string, 0)
-	headersConf, ok := channel.config.GetSubConfig(ctx, constants.CONF_HTTPENGINE_HEADERSTOINCLUDE)
-	if ok {
-		headersToInclude := headersConf.AllConfigurations(ctx)
-		for _, paramName := range headersToInclude {
-			header, _ := headersConf.GetString(ctx, paramName)
-			headers[paramName] = header
-		}
-	}
-
-	webReqHandler, err := channel.processServiceRequest(ctx, channel.method, channel.name, svc, routeParams, staticValues, headers, allowedQueryParams, bodyParamName, bodyParamType)
+	reqBuilder, err := channel.getRequestBuilder(ctx, channel.method, channel.name, svc, routeParams, staticValues, allowedQueryParams, bodyParamName, bodyParamType)
 	if err != nil {
 		return err
 	}
 
 	switch channel.method {
 	case "GET":
-		err = channel.get(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.get(ctx, channel.path, svc.GetName(), reqBuilder, respHandler, svc)
 	case "POST":
-		err = channel.post(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.post(ctx, channel.path, svc.GetName(), reqBuilder, respHandler, svc)
 	case "PUT":
-		err = channel.put(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.put(ctx, channel.path, svc.GetName(), reqBuilder, respHandler, svc)
 	case "DELETE":
-		err = channel.delete(ctx, channel.path, svc.GetName(), webReqHandler, respHandler, svc)
+		err = channel.delete(ctx, channel.path, svc.GetName(), reqBuilder, respHandler, svc)
 		/*	case CONF_ROUTE_METHOD_INVOKE:
 					router.Post(ctx, path, router.processServiceRequest(ctx, respHandler, method, router.name, svc, serverElement, dataObjectName, isdataObject, isdataCollection, dataObjectCreator, dataObjectCollectionCreator, routeParams, staticValues, headers))
 			case CONF_ROUTE_METHOD_GETSTREAM:

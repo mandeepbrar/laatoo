@@ -4,34 +4,44 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/server/engine/http/net"
 )
 
-type ServiceInvoker func(webctx core.RequestContext, vals map[string]interface{}) (*core.Response, error)
+type RequestBuilder func(engineContext net.WebContext) (core.RequestContext, map[string]interface{}, error)
 
-func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method string, routename string, svc elements.Service,
-	routeParams map[string]string, staticValues map[string]interface{}, headers map[string]string, allowedQParams map[string]bool,
-	bodyParamName, bodyParamType string) (ServiceInvoker, error) {
+func (channel *httpChannel) getRequestBuilder(ctx core.ServerContext, method string, routename string, svc elements.Service,
+	routeParams map[string]string, staticValues map[string]interface{}, allowedQParams map[string]bool,
+	bodyParamName, bodyParamType string) (RequestBuilder, error) {
 	includeBody := bodyParamType != ""
 	multipart := bodyParamType == config.OBJECTTYPE_FILES
-	return func(webctx core.RequestContext, vals map[string]interface{}) (*core.Response, error) {
-		engineContext := webctx.EngineRequestContext().(net.WebContext)
-		log.Error(webctx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "headers", headers, "allowedQParams", allowedQParams)
-		reqctx := webctx.SubContext(svc.GetName())
-		defer reqctx.CompleteRequest()
+	return func(engineContext net.WebContext) (core.RequestContext, map[string]interface{}, error) {
+
+		reqCtx, err := ctx.CreateNewRequest(channel.svcName, channel.engine.proxy, engineContext, "")
+		if err != nil {
+			return nil, nil, errors.WrapError(ctx, err)
+		}
+
+		httpreq := engineContext.GetRequest()
+		reqCtx.SetGaeReq(httpreq)
+		log.Info(reqCtx, "Got request", "Path", httpreq.URL.RequestURI(), "channel", channel.name, "method", httpreq.Method)
+
+		vals := make(map[string]interface{})
+
+		log.Trace(reqCtx, "Invoking service ", "router", routename, "routeParams", routeParams, "staticValues", staticValues, "allowedQParams", allowedQParams)
 
 		if includeBody {
 			if multipart {
 				files, err := engineContext.GetFiles()
 				if err != nil {
-					return core.BadRequestResponse(err.Error()), err
+					return reqCtx, vals, err
 				}
 				vals[bodyParamName] = files
 			} else {
 				bytes, err := engineContext.GetBody()
 				if err != nil {
-					return core.BadRequestResponse(err.Error()), err
+					return reqCtx, vals, err
 				}
 				vals[bodyParamName] = bytes
 			}
@@ -43,11 +53,21 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[param] = paramVal
 			}
 		}
-		if headers != nil {
-			for param, header := range headers {
-				headerVal := engineContext.GetHeader(header)
-				vals[param] = headerVal
-				log.Trace(webctx, "Setting header param ", "headers", param, "value ", headerVal)
+
+		if channel.allowedHeaders != nil {
+			for _, headerName := range channel.allowedHeaders {
+				headerVal := engineContext.GetHeader(headerName)
+				vals[headerName] = headerVal
+			}
+		}
+
+		if channel.allowedCookies != nil {
+			for _, cookieName := range channel.allowedCookies {
+				cookie, _ := engineContext.GetCookie(cookieName)
+				if cookie != nil {
+					log.Trace(reqCtx, "Found cookies", "cookieName", cookie)
+					vals[cookieName] = cookie.Value
+				}
 			}
 		}
 
@@ -57,7 +77,7 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 			if found {
 				vals[param] = engineContext.GetQueryParam(param)
 			} else {
-				log.Info(webctx, "Parameter not allowed in request", "parameter", param)
+				log.Info(reqCtx, "Parameter not allowed in request", "parameter", param)
 			}
 		}
 
@@ -66,8 +86,8 @@ func (channel *httpChannel) processServiceRequest(ctx core.ServerContext, method
 				vals[name] = val
 			}
 		}
-		log.Error(webctx, "Handle Request", "info", vals)
-		return svc.HandleRequest(reqctx, vals)
+
+		return reqCtx, vals, nil
 	}, nil
 }
 
