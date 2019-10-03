@@ -18,6 +18,7 @@ type wsChannel struct {
 	engine       *wsEngine
 	staticValues map[string]interface{}
 	respHandler  elements.ServiceResponseHandler
+	svrContext   core.ServerContext
 }
 
 func (channel *wsChannel) configure(ctx core.ServerContext) error {

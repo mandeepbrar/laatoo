@@ -20,6 +20,7 @@ type objectLoader struct {
 	name                   string
 	parentElem             core.ServerElement
 	provider               *metadataProvider
+	svrContext             core.ServerContext
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {

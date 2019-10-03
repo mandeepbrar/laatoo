@@ -18,3 +18,6 @@ func (proxy *serverProxy) GetName() string {
 func (proxy *serverProxy) GetType() core.ServerElementType {
 	return core.ServerElementServer
 }
+func (proxy *serverProxy) GetContext() core.ServerContext {
+	return proxy.server.svrContext
+}

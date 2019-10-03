@@ -29,3 +29,6 @@ func (proxy *cacheManagerProxy) GetName() string {
 func (proxy *cacheManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementCacheManager
 }
+func (proxy *cacheManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

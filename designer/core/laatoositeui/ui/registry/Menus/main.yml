@@ -3,16 +3,16 @@ items:
     title: Account
     page: account
     iconClass: fa fa-home
-  - Applications:
-    title: Applications
-    page: list_solution
-    iconClass: fa fa-archive
-  - AllModules:
+  - Solutions:
+    title: Solutions
+    page: list_solution    
+    iconClass: fa fa-th-large
+  - MyModules:
     title: Modules
     page: modulesrepo    
     iconClass: fa fa-plug
-  - Deployment:
-    title: Deployment
+  - Infrastructure:
+    title: Infrastructure
     page: list_solution
     iconClass: fa fa-server
   - Users:

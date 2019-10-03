@@ -8,11 +8,16 @@ ui:
     externals:
       reactwebcommon: reactwebcommon
       react: react
+      redux: redux
       react-redux: react-redux
       uicommon: uicommon
       react-dom: react-dom
+      core-js: core-js
     packages:
-      react: "^16.1.0"
-      react-dom: "^16.1.0"
-      react-redux: "^5.0.6"
-      react-bootstrap: "^0.31.0"
+      react: "^16.9.0"
+      react-dom: "^16.9.0"
+      redux: "^4.0.4"
+      react-redux: "^7.1.0"
+      core-js: "^3.2.1"
+      react-bootstrap: "^1.0.0-beta.12"
+      bootstrap: "^4.3.0"

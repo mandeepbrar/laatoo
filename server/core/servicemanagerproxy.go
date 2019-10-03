@@ -33,3 +33,6 @@ func (proxy *serviceManagerProxy) GetName() string {
 func (proxy *serviceManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementServiceManager
 }
+func (proxy *serviceManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

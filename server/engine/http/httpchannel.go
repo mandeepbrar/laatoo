@@ -50,6 +50,7 @@ type httpChannel struct {
 	skipAuth       bool
 	path           string
 	parentChannel  *httpChannel
+	svrContext     core.ServerContext
 }
 
 func (channel *httpChannel) initialize(ctx core.ServerContext) error {
@@ -143,7 +144,8 @@ func (channel *httpChannel) child(ctx core.ServerContext, name string, channelCo
 	}
 
 	log.Trace(ctx, "Creating child channel ", "Parent", channel.name, "Name", name, "Service", svc, "Path", path)
-	childChannel := &httpChannel{name: routername, parentChannel: channel, Router: router, adapter: channel.adapter, config: channelConfig, group: group, engine: channel.engine, svcName: svc, path: path, disabled: false}
+	childChannel := &httpChannel{name: routername, parentChannel: channel, Router: router, adapter: channel.adapter,
+		config: channelConfig, group: group, engine: channel.engine, svcName: svc, path: path, disabled: false, svrContext: ctx}
 	err := childChannel.initialize(ctx)
 	if err != nil {
 		return nil, err
@@ -168,7 +170,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 			if !found {
 				return errors.Unauthorized(reqctx)
 			} else {
-				ctx.Set(authtoken, token)
+				reqctx.Set(authtoken, token)
 			}
 			_, err := shandler.AuthenticateRequest(reqctx, false)
 			if err != nil {

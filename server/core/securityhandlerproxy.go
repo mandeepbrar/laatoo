@@ -34,6 +34,9 @@ func (proxy *securityHandlerProxy) GetName() string {
 func (proxy *securityHandlerProxy) GetType() core.ServerElementType {
 	return core.ServerElementSecurityHandler
 }
+func (proxy *securityHandlerProxy) GetContext() core.ServerContext {
+	return proxy.secHandler.svrContext
+}
 
 func (sh *securityHandlerProxy) AuthenticateRequest(ctx core.RequestContext, loadFresh bool) (string, error) {
 	return sh.secHandler.authenticateRequest(ctx, loadFresh)

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import {Button, Snackbar, Dialog,  DialogActions,  DialogContent,  DialogContentText,  DialogTitle} from '@material-ui/core';
-import {Block} from './Block';
+import {Block} from 'reactwebcommon';
 
 
 class DialogHandler extends React.Component {

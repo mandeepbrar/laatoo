@@ -19,3 +19,6 @@ func (proxy *moduleManagerProxy) GetName() string {
 func (proxy *moduleManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementModuleManager
 }
+func (proxy *moduleManagerProxy) GetContext() core.ServerContext {
+	return proxy.modMgr.svrContext
+}

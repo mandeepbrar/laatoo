@@ -62,5 +62,5 @@ ui:
       reactpages: reactpages
       reactwebcommon: reactwebcommon
     packages:
-      react: "^16.3.0"
+      react: "^16.8.0"
 

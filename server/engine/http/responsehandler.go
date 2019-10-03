@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(net.WebContext, map[string]interface{}) error) error {
+func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(core.RequestContext, net.WebContext, map[string]interface{}) error) error {
 	if ctx == nil {
 		return errors.BadRequest(ctx)
 	}
@@ -22,11 +22,13 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 		log.Trace(ctx, "Returning request with status", "Status", resp.Status)
 		switch resp.Status {
 		case core.StatusSuccess:
-			if resp.Data != nil {
-				err := handleMetaInfo(engineContext, resp.MetaInfo)
+			if resp.MetaInfo != nil {
+				err := handleMetaInfo(ctx, engineContext, resp.MetaInfo)
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
+			}
+			if resp.Data != nil {
 				return engineContext.JSON(http.StatusOK, resp.Data)
 			} else {
 				log.Debug(ctx, "Returning request without content")
@@ -39,7 +41,7 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 				return engineContext.File(fil)
 			}
 		case core.StatusServeBytes:
-			if resp.Data != nil {
+			if resp.MetaInfo != nil {
 				log.Trace(ctx, " service returning bytes")
 				val, ok := resp.MetaInfo[core.ContentType]
 				if ok {
@@ -53,6 +55,8 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 				if ok {
 					engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
 				}
+			}
+			if resp.Data != nil {
 				bytestoreturn := *resp.Data.(*[]byte)
 				log.Debug(ctx, "Returning bytes", "length", len(bytestoreturn))
 				_, err := engineContext.Write(bytestoreturn)

@@ -17,6 +17,7 @@ type messagingManager struct {
 	commSvc     components.PubSubComponent
 	proxy       elements.MessagingManager
 	topicStore  map[string][]*messagingListenerHolder
+	svrContext  core.ServerContext
 }
 
 type messagingListenerHolder struct {

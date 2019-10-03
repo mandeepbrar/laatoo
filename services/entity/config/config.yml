@@ -12,14 +12,13 @@ ui:
       dataadapter: dataadapter
       uicommon: uicommon
       reactwebcommon: reactwebcommon
-      babel-runtime: babel-runtime
       react: react
       prop-types: prop-types
       core-js: core-js
     packages:
       react: "^16.8.0"
       prop-types: "^15.6.0"
-      core-js: "^2.5.7"
+      core-js: "^3.1.0"
 objects:
   EntityModule:
     type: module

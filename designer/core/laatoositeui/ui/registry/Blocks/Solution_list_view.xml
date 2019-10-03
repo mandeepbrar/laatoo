@@ -1,9 +1,10 @@
 <Block className="tablerow">
     <Block className="tablecell">{{jsreplace "ctx.data.Name"}}</Block>
     <Block className="tablecell">{{jsreplace "ctx.data.UpdatedAt"}}</Block>
-    <Action name="selectSolution" className="tablecell" body="Select">
+    <Block className="tablecell"><a href="{{jsformat "/designer/%s" "ctx.data.Id"}}" module="html">View</a></Block>
+<!--    <Action name="selectSolution" className="tablecell" body="Select">
         <Attr name="params">            
             <Attr name="solution">{{jsreplace "ctx.data.Id"}}</Attr>
         </Attr>        
-    </Action>
+    </Action>-->
 </Block>

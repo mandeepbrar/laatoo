@@ -22,6 +22,7 @@ type taskManager struct {
 	taskConsumerNames  map[string]string
 	taskProcessorNames map[string]string
 	taskProcessors     map[string]elements.Service
+	svrContext         core.ServerContext
 }
 
 func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config) error {

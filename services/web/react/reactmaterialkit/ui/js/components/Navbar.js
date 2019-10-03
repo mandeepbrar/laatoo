@@ -1,5 +1,5 @@
 import React from 'react';
-import {Action} from'reactwebcommon';
+import {Action, Block} from'reactwebcommon';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 
@@ -29,9 +29,9 @@ class Navbar extends React.Component {
       });
     }
     return(
-      <div className={navClass}>
+      <Block className={navClass}>
         {items}
-      </div>
+      </Block>
     )
   }
 }

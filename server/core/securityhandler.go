@@ -32,6 +32,7 @@ type securityHandler struct {
 	publicKey     *rsa.PublicKey
 	realm         string
 	skipSecurity  bool
+	svrContext    core.ServerContext
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {

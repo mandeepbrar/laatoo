@@ -29,3 +29,6 @@ func (proxy *rulesManagerProxy) GetName() string {
 func (proxy *rulesManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementRulesManager
 }
+func (proxy *rulesManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Field as RFField } from 'redux-form'
 import {
   Checkbox,
   RadioButtonGroup,

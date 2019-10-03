@@ -26,3 +26,6 @@ func (proxy *applicationProxy) GetName() string {
 func (proxy *applicationProxy) GetType() core.ServerElementType {
 	return core.ServerElementApplication
 }
+func (proxy *applicationProxy) GetContext() core.ServerContext {
+	return proxy.app.svrContext
+}

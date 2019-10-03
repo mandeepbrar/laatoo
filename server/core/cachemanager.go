@@ -15,6 +15,7 @@ type cacheManager struct {
 	registeredCacheNames map[string]string
 	registeredCaches     map[string]components.CacheComponent
 	proxy                *cacheManagerProxy
+	svrContext           core.ServerContext
 }
 
 func (cm *cacheManager) Initialize(ctx core.ServerContext, conf config.Config) error {

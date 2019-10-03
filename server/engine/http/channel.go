@@ -45,3 +45,6 @@ func (proxy *httpChannelProxy) GetType() core.ServerElementType {
 func (proxy *httpChannelProxy) Destruct(ctx core.ServerContext, parentChannel elements.Channel) error {
 	return proxy.channel.destruct(ctx, parentChannel.(*httpChannelProxy).channel)
 }
+func (proxy *httpChannelProxy) GetContext() core.ServerContext {
+	return proxy.channel.svrContext
+}

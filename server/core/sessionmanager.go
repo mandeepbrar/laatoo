@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/server/components"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
@@ -16,6 +16,7 @@ type sessionManager struct {
 	sessionCacheSvc string
 	sessionsBucket  string
 	proxy           *sessionManagerProxy
+	svrContext      core.ServerContext
 }
 
 func (sm *sessionManager) Initialize(ctx core.ServerContext, conf config.Config) error {

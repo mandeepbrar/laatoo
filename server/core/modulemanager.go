@@ -36,6 +36,7 @@ type moduleManager struct {
 	hotModules             map[string]string
 	objLoader              *objectLoader
 	watchers               []*watcher.Watcher
+	svrContext             core.ServerContext
 }
 
 func (modMgr *moduleManager) Initialize(ctx core.ServerContext, conf config.Config) error {

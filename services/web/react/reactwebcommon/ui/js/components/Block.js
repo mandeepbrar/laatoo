@@ -1,6 +1,4 @@
 import React from 'react';
-import {Icons} from './Icons';
-import {IconButton} from '@material-ui/core';
 
 const Block=(props) =>  {
   let cl = props.className? props.className:""
@@ -13,7 +11,7 @@ const Block=(props) =>  {
           {props.title}
           </div>
           {
-            props.titleBarActions? <div className="right">{props.titleBarActions}</div>: (props.closeBlock?  <IconButton className="right close fa fa-close" onClick={props.closeBlock}/>  : null)
+            props.titleBarActions? <div className="right">{props.titleBarActions}</div>: (props.closeBlock?  <_uikit.Icon className="right close fa fa-close" onClick={props.closeBlock}/>  : null)
           }
         </div>
         <div style={props.contentStyle} className={"blockcontent "+contentClass}>

@@ -22,3 +22,6 @@ func (proxy *serviceFactoryProxy) GetName() string {
 func (proxy *serviceFactoryProxy) GetType() core.ServerElementType {
 	return core.ServerElementServiceFactory
 }
+func (proxy *serviceFactoryProxy) GetContext() core.ServerContext {
+	return proxy.fac.svrContext
+}

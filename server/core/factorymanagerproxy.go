@@ -29,3 +29,6 @@ func (proxy *factoryManagerProxy) GetName() string {
 func (proxy *factoryManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementFactoryManager
 }
+func (proxy *factoryManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

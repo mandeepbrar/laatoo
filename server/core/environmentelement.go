@@ -18,3 +18,6 @@ func (proxy *environmentProxy) GetName() string {
 func (proxy *environmentProxy) GetType() core.ServerElementType {
 	return core.ServerElementEnvironment
 }
+func (proxy *environmentProxy) GetContext() core.ServerContext {
+	return proxy.env.svrContext
+}

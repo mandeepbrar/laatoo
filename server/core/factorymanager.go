@@ -23,6 +23,7 @@ type factoryManager struct {
 	proxy  elements.FactoryManager
 	//store for service factory in an application
 	serviceFactoryStore map[string]*serviceFactoryProxy
+	svrContext          core.ServerContext
 }
 
 func (facMgr *factoryManager) Initialize(ctx core.ServerContext, conf config.Config) error {

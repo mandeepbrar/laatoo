@@ -14,11 +14,13 @@ import (
 const (
 	//login path to be used for local and oauth authentication
 	CONF_SECURITYSERVICE_REGISTRATIONSERVICE = "REGISTRATION"
+	CONF_SECURITYSERVICE_LOGOUT                  = "DB_LOGOUT"
 	CONF_SECURITYSERVICE_DB                  = "DB_LOGIN"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}},
+		core.PluginComponent{Name: CONF_SECURITYSERVICE_LOGOUT, Object: LogoutService{}},
 		core.PluginComponent{Name: CONF_SECURITYSERVICE_DB, Object: LoginService{}}}
 }
 

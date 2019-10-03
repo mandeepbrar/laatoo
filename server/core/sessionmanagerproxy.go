@@ -32,3 +32,6 @@ func (proxy *sessionManagerProxy) GetName() string {
 func (proxy *sessionManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementSessionManager
 }
+func (proxy *sessionManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

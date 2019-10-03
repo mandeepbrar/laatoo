@@ -22,6 +22,10 @@ func (proxy *messagingManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementMessagingManager
 }
 
+func (proxy *messagingManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}
+
 //subscribe to a topic
 func (mgr *messagingManagerProxy) Subscribe(ctx core.ServerContext, topics []string, handler core.MessageListener, lsnrid string) error {
 	return mgr.manager.subscribeTopic(ctx, topics, handler, lsnrid)

@@ -34,6 +34,7 @@ type logger struct {
 	proxy          elements.Logger
 	loggerInstance components.Logger
 	name           string
+	svrContext     core.ServerContext
 }
 
 func (lgr *logger) Initialize(ctx core.ServerContext, conf config.Config) error {

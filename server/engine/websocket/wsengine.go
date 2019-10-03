@@ -24,6 +24,7 @@ type wsEngine struct {
 	conf        config.Config
 	codec       core.Codec
 	upgrader    websocket.Upgrader
+	svrContext  core.ServerContext
 }
 
 func (eng *wsEngine) Initialize(ctx core.ServerContext, conf config.Config) error {

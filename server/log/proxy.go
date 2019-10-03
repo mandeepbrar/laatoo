@@ -21,6 +21,9 @@ func (proxy *loggerProxy) GetName() string {
 func (proxy *loggerProxy) GetType() core.ServerElementType {
 	return core.ServerElementLogger
 }
+func (proxy *loggerProxy) GetContext() core.ServerContext {
+	return proxy.logger.svrContext
+}
 
 func (lgr *loggerProxy) Trace(reqContext ctx.Context, msg string, args ...interface{}) {
 	lgr.logger.loggerInstance.Trace(reqContext, msg, args...)

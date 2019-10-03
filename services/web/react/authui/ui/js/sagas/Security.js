@@ -39,6 +39,9 @@ function* login(action) {
 }
 
 function* logout(action) {
+  let req = RequestBuilder.DefaultRequest(null, null);
+  const resp = yield call(DataSource.ExecuteService, action.meta.serviceName, req);
+  console.log("Logout response", resp)
   yield put(createAction(ActionNames.LOGOUT_SUCCESS, {}));
 }
 

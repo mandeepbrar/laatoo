@@ -9,10 +9,9 @@ import {Select} from './components/Select';
 import './styles/app.scss';
 import {FieldWidget} from './forms/FieldWidget';
 import {Tabset, Tab} from './components/Tabs';
-import {Block} from './components/Block';
 import {Icons} from './components/Icons';
 import Icon from '@material-ui/core/Icon';
-import {ScrollListener, Action, Html, ActionBar, LoadableComponent, Image} from 'reactwebcommon';
+import {Block, ScrollListener, Action, Html, ActionBar, LoadableComponent, Image} from 'reactwebcommon';
 //import injectTapEventPlugin from "react-tap-event-plugin";
 
 

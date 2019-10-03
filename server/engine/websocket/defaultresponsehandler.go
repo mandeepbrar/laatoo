@@ -1,25 +1,26 @@
 package websocket
 
 import (
-	"laatoo/sdk/server/core"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/log"
 
 	"github.com/gorilla/websocket"
 )
 
 type defaultResponseHandler struct {
-	codec core.Codec
+	codec      core.Codec
+	svrContext core.ServerContext
 }
 
 func DefaultResponseHandler(ctx core.ServerContext, codec core.Codec) *defaultResponseHandler {
-	return &defaultResponseHandler{codec}
+	return &defaultResponseHandler{codec: codec}
 }
 
 func (rh *defaultResponseHandler) Initialize(ctx core.ServerContext, conf config.Config) error {
+	rh.svrContext = ctx
 	return nil
 }
-
 
 func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response) error {
 	conn := ctx.EngineRequestContext().(*websocket.Conn)
@@ -66,4 +67,7 @@ func (proxy *defaultResponseHandler) GetName() string {
 }
 func (proxy *defaultResponseHandler) GetType() core.ServerElementType {
 	return core.ServerElementServiceResponseHandler
+}
+func (proxy *defaultResponseHandler) GetContext() core.ServerContext {
+	return proxy.svrContext
 }

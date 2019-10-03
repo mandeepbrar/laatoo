@@ -18,6 +18,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
   setModule(module);
   Application.Security = Object.assign({
     loginService: "login",
+    logoutService: "logout",
     signupService: "signup",
     validateService: "validate",
     AuthToken: "X-Auth-Token",

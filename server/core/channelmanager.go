@@ -24,6 +24,7 @@ type channelManager struct {
 	channelConfs   map[string]config.Config
 	parentChannels map[string]string
 	serviceManager elements.ServiceManager
+	svrContext     core.ServerContext
 }
 
 func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -185,7 +186,7 @@ func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName str
 		proxy := svcProxy.(*serviceProxy)
 		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
 
-		respHandlerConf, rhpresent := chanCtx.Get(constants.CONF_SERVICE_RH)
+		respHandlerConf, rhpresent := channel.GetContext().Get(constants.CONF_SERVICE_RH)
 		if !rhpresent {
 			respHandlerConf, rhpresent = svcServeCtx.Get(constants.CONF_SERVICE_RH)
 		}
@@ -211,6 +212,7 @@ func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName str
 			if err != nil {
 				return errors.WrapError(svcServeCtx, err)
 			}
+			log.Trace(ctx, "Setting response handler ", "respHandlerName", respHandlerName, "svc", svcName)
 			svcServeCtx.setElements(core.ContextMap{core.ServerElementServiceResponseHandler: rh})
 		}
 
@@ -275,12 +277,13 @@ func (chanMgr *channelManager) createChannel(ctx core.ServerContext, channelConf
 		return chann, nil
 	}
 
-	createCtx := ctx.SubContext("Create Channel: " + channelName)
+	createCtx := ctx.(*serverContext).newContext("Channel: " + channelName)
 	log.Info(createCtx, "Creating channel with conf ", "channelName", channelName, "conf", channelConf)
 
 	respHandlerConf, ok := channelConf.GetSubConfig(ctx, constants.CONF_SERVICE_RH)
 	if ok {
-		ctx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
+		log.Trace(ctx, "Found response handler for channel", "name", channelName, "resphandler", respHandlerConf)
+		createCtx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
 	}
 
 	parentChannelName, ok := channelConf.GetString(ctx, constants.CONF_ENGINE_PARENTCHANNEL)

@@ -22,6 +22,10 @@ func (proxy *objectLoaderProxy) GetType() core.ServerElementType {
 	return core.ServerElementLoader
 }
 
+func (proxy *objectLoaderProxy) GetContext() core.ServerContext {
+	return proxy.loader.svrContext
+}
+
 func (ldr *objectLoaderProxy) Register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) {
 	ldr.loader.register(ctx, objectName, object, metadata)
 }

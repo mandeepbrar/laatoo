@@ -30,6 +30,7 @@ type httpEngine struct {
 	proxy       elements.Engine
 	rootChannel *httpChannel
 	conf        config.Config
+	svrContext  core.ServerContext
 }
 
 func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -66,7 +67,8 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	//eng.authHeader = ctx.GetServerVariable(core.AUTHHEADER).(string)
 
-	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), adapter: eng.framework, group: true, config: eng.conf, engine: eng, disabled: false}
+	eng.rootChannel = &httpChannel{name: eng.name, Router: eng.framework.GetParentRouter(""), adapter: eng.framework, group: true,
+		config: eng.conf, engine: eng, disabled: false, svrContext: ctx}
 	err = eng.rootChannel.initialize(ctx)
 	if err != nil {
 		return err

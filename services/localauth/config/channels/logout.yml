@@ -1,0 +1,7 @@
+parent: root
+service: logout.local
+method: GET
+path: /logout
+skipauth: true
+responsehandler:
+  name: CookiesResponseHandler

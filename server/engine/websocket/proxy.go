@@ -30,3 +30,6 @@ func (proxy *wsEngineProxy) GetType() core.ServerElementType {
 func (proxy *wsEngineProxy) GetRequestParams(ctx core.RequestContext) map[string]interface{} {
 	return nil
 }
+func (proxy *wsEngineProxy) GetContext() core.ServerContext {
+	return proxy.engine.svrContext
+}

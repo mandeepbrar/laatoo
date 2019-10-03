@@ -28,6 +28,11 @@ func (proxy *httpEngineProxy) GetName() string {
 func (proxy *httpEngineProxy) GetType() core.ServerElementType {
 	return core.ServerElementEngine
 }
+
+func (proxy *httpEngineProxy) GetContext() core.ServerContext {
+	return proxy.engine.svrContext
+}
+
 func (proxy *httpEngineProxy) GetRequestParams(ctx core.RequestContext) map[string]interface{} {
 	params := make(map[string]interface{})
 	webCtx := ctx.EngineRequestContext().(net.WebContext)

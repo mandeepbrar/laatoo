@@ -18,11 +18,9 @@ class Login extends React.Component {
     this.validatetoken = this.validatetoken.bind(this)
     this.state= {loggedIn: props.loggedIn, validation: props.validation}
     console.log("login component", props)
-    if(props.validation) {
-      this.validatetoken()
-    }
   }
   componentWillReceiveProps(nextprops) {
+    console.log("Login validator componentWillReceiveProps", nextprops)
     if(nextprops.loggedIn != this.state.loggedIn || nextprops.validation != this.state.validation) {
       this.setState({loggedIn: nextprops.loggedIn, validation: nextprops.validation})
     }
@@ -46,7 +44,9 @@ class Login extends React.Component {
     return {loggedIn: this.state.loggedIn};
   }
   render() {
+    console.log("rendering login validator", this.state)
     if(this.state.validation) {
+      this.validatetoken()
       return null
     }
     return this.props.children? React.cloneElement(this.props.children, {loggedIn: this.state.loggedIn, validation: this.state.validation}) : null
@@ -73,6 +73,7 @@ function getPropsCookieMode(state, ownProps) {
     }
     default:
     return {
+      validation: false,
       loggedIn: false
     }
   }
@@ -93,10 +94,12 @@ function getPropsNonCookieMode(state, ownProps) {
     }
     case "LoggedIn": 
     return {
+      validation: false,
       loggedIn: true
     }
     default:
     return {
+      validation: false,
       loggedIn: false
     }
   }

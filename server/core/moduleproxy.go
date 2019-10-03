@@ -26,3 +26,6 @@ func (mod *moduleProxy) GetObject() core.Module {
 func (mod *moduleProxy) GetModuleProperties() map[string]interface{} {
 	return mod.mod.properties
 }
+func (proxy *moduleProxy) GetContext() core.ServerContext {
+	return proxy.mod.svrContext
+}

@@ -23,6 +23,7 @@ type serviceManager struct {
 	//store for service factory in an application
 	servicesStore  map[string]*serviceProxy
 	factoryManager elements.FactoryManager
+	svrContext     core.ServerContext
 }
 
 func (svcMgr *serviceManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -223,7 +224,7 @@ func (svcMgr *serviceManager) createService(ctx core.ServerContext, conf config.
 
 	respHandlerConf, ok := conf.GetSubConfig(ctx, constants.CONF_SERVICE_RH)
 	if ok {
-		ctx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
+		svcCtx.Set(constants.CONF_SERVICE_RH, respHandlerConf)
 	}
 
 	factory := svcfactoryProxy.Factory()

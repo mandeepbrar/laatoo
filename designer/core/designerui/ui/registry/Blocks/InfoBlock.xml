@@ -1,4 +1,3 @@
 <Block className="infoBlock">
-  <h2 module="html">Welcome</h2>
   <Panel className="userBlock" module="reactpages" type="block" id="userBlock"></Panel>
 </Block>

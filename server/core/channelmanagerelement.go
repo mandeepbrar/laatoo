@@ -18,3 +18,6 @@ func (proxy *channelManagerProxy) GetName() string {
 func (proxy *channelManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementChannelManager
 }
+func (proxy *channelManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

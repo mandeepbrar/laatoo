@@ -29,3 +29,6 @@ func (proxy *taskManagerProxy) GetName() string {
 func (proxy *taskManagerProxy) GetType() core.ServerElementType {
 	return core.ServerElementTaskManager
 }
+func (proxy *taskManagerProxy) GetContext() core.ServerContext {
+	return proxy.manager.svrContext
+}

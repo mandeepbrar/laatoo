@@ -36,7 +36,9 @@ func (proxy *wsChannelProxy) RemoveChild(ctx core.ServerContext, name string, ch
 func (proxy *wsChannelProxy) Reference() core.ServerElement {
 	return &wsChannelProxy{channel: proxy.channel}
 }
-
+func (proxy *wsChannelProxy) GetContext() core.ServerContext {
+	return proxy.channel.svrContext
+}
 func (proxy *wsChannelProxy) GetProperty(name string) interface{} {
 	return nil
 }

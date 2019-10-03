@@ -15,6 +15,7 @@ type rulesManager struct {
 	registeredRules map[string]map[string]rules.Rule
 	rulesStore      map[string]rules.Rule
 	proxy           *rulesManagerProxy
+	svrContext      core.ServerContext
 }
 
 func (rm *rulesManager) Initialize(ctx core.ServerContext, conf config.Config) error {

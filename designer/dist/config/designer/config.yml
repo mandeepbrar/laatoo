@@ -14,6 +14,7 @@ modules:
   designerdependencies:
   reactwebrouter:
   reactfileupload:
+  reactbootstrapkit:
   reactmaterialkit:
   fontawesome:
   uicommon:
@@ -89,6 +90,8 @@ moduleinstances:
     module: reactwebrouter
   reactmaterialkit:
     module: reactmaterialkit
+  reactbootstrapkit:
+    module: reactbootstrapkit
   fontawesome:
     module: fontawesome
   uicommon:
@@ -148,7 +151,7 @@ moduleinstances:
     settings:
       uiapplication: websiteapplication
       router: router
-      uikit: reactmaterialkit
+      uikit: reactbootstrapkit
       theme: websitetheme
   laatoositeui:
     module: laatoositeui
@@ -219,7 +222,7 @@ moduleinstances:
     module: reactapplication
     settings:
       router: router
-      uikit: reactmaterialkit
+      uikit: reactbootstrapkit
       theme: dashboard
       uiapplication: designerapplication
   dashboard:

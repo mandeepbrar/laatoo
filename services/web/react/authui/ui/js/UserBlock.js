@@ -29,7 +29,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     logout: () => {
-      dispatch(createAction(ActionNames.LOGOUT, null, null));
+      dispatch(createAction(ActionNames.LOGOUT, null, {serviceName: Application.Security.logoutService}));
     }
   };
 }

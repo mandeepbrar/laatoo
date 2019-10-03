@@ -54,15 +54,17 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 
 type DefaultUser struct {
 	data.SoftDeleteAuditable `bson:",inline"`
-	Username                 string   `json:"Username" form:"Username" bson:"Username"`
-	Password                 string   `json:"Password" form:"Password" bson:"Password"`
-	Roles                    []string `json:"Roles" bson:"Roles"`
-	Permissions              []string `json:"Permissions" bson:"Permissions"`
-	Email                    string   `json:"Email" bson:"Email"`
-	Name                     string   `json:"Name" bson:"Name"`
-	Picture                  string   `json:"Picture" bson:"Picture"`
-	Realm                    string   `json:"Realm" bson:"Realm"`
-	Tenant                   string   `json:"Tenant" bson:"Tenant"`
+	Username                 string           `json:"Username" form:"Username" bson:"Username"`
+	Password                 string           `json:"Password" form:"Password" bson:"Password"`
+	Roles                    []string         `json:"Roles" bson:"Roles"`
+	Permissions              []string         `json:"Permissions" bson:"Permissions"`
+	Email                    string           `json:"Email" bson:"Email"`
+	Name                     string           `json:"Name" bson:"Name"`
+	Picture                  string           `json:"Picture" bson:"Picture"`
+	Account                  data.StorableRef `json:"Account" bson:"Account"`
+	Realm                    string           `json:"Realm" bson:"Realm"`
+	Tenant                   string           `json:"Tenant" bson:"Tenant"`
+	Status                   int              `json:"Status" bson:"Status"`
 }
 
 //Creates object
@@ -153,6 +155,15 @@ func (usr *DefaultUser) GetRealm() string {
 	return usr.Realm
 }
 
+func (usr *DefaultUser) SetAccount(data data.StorableRef) error {
+	usr.Account = data
+	return nil
+}
+
+func (usr *DefaultUser) GetAccount() data.StorableRef {
+	return usr.Account
+}
+
 func (usr *DefaultUser) GetPermissions() (permissions []string, err error) {
 	return usr.Permissions, nil
 }
@@ -188,6 +199,14 @@ func (usr *DefaultUser) GetUserName() string {
 
 func (usr *DefaultUser) GetPicture() string {
 	return usr.Picture
+}
+
+func (usr *DefaultUser) GetStatus() int {
+	return usr.Status
+}
+
+func (usr *DefaultUser) SetStatus(val int) {
+	usr.Status = val
 }
 
 func (usr *DefaultUser) GetTenant() string {
