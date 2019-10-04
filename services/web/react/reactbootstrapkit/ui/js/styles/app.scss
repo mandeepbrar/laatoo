@@ -1,0 +1,9 @@
+@import 'reactwebcommon/css/app';
+
+.vertnavbar {
+    @extend .fd, .fdcol;
+}
+  
+.horiznavbar {
+    @extend .fd, .fdrow;
+}
