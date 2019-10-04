@@ -88,7 +88,8 @@ class SelectComp extends LoadableComponent {
       return (
         <Form.Group controlId={p.name} className={(p.className?p.className + " ":"") + p.name + " formcontrol "}>
           <Form.Label>{p.label}</Form.Label>
-          <Form.Control as="select" onChange={this.optionChanged} value={v} className={p.name + " select " + (p.controlClassName?p.controlClassName:"")}>
+          <Form.Control as="select" onChange={this.optionChanged} value={v}  name={p.name} 
+            className={p.name + " select " + (p.controlClassName?p.controlClassName:"")}>
             {this.items}
           </Form.Control>
           {p.errorText?<Form.Text className="text-muted">{p.errorText}</Form.Text>:null}

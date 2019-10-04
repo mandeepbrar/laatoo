@@ -1,11 +1,13 @@
 import React from 'react';
 import {Block, Action} from'reactwebcommon';
-import {Nav, NavItem} from 'react-bootstrap'
+import {Navbar as BSNavBar, Nav} from 'react-bootstrap'
 
 function getNavButton(isVertical) {
   return function(props) {
     return (
-      <NavItem className={isVertical?"vertnavbutton":"horiznavbutton"} onClick={props.actionFunc}>{props.actionchildren}</NavItem>
+      <Nav className={isVertical?"vertnavbutton":"horiznavbutton"}>
+        <Nav.Link onClick={props.actionFunc}>{props.actionchildren}</Nav.Link>
+      </Nav>
     )
   }
 }
@@ -29,9 +31,9 @@ class Navbar extends React.Component {
     }
     let stacked=this.props.vertical?["stacked"]:[""]
     return(
-      <Nav bsStyle="pills" className={navClass} {...stacked}>
+      <BSNavBar bsStyle="pills" className={navClass} {...stacked}>
         {items}
-      </Nav>
+      </BSNavBar>
     )
   }
 }

@@ -1,4 +1,4 @@
-import { takeEvery, call, put } from 'redux-saga/effects'
+import { takeEvery, call, fork } from 'redux-saga/effects'
 import Actions from '../actions';
 import {  createAction, Response, RequestBuilder, DataSource, EntityData } from 'uicommon';
 
@@ -16,9 +16,13 @@ function* syncObjects(action) {
   }
 }
 
+function* syncObjectsSaga() {
+  yield takeEvery(Actions.SYNC_OBJECTS, syncObjects)
+}
+
 //console.log("Action names ", ActionNames)
 function* designerSaga() {
-  yield takeEvery(Actions.SYNC_OBJECTS, syncObjects)
+  yield fork(syncObjectsSaga)
 }
 //takeEvery(ActionNames.ENTITY_DELETE, deleteEntityData)
 

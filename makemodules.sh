@@ -16,6 +16,7 @@ verbose=false
 getBuildPackages=false
 nobundle=false
 norust=false
+overwriteJSMods=false
 
 while [[ "$#" -gt 0 ]]; 
 do case $1 in
@@ -24,12 +25,13 @@ do case $1 in
   --nobundle) nobundle=true; shift;;
   --norust) norust=true; shift;;
   --getBuildPackages) getBuildPackages=true; shift;;
+  --overwriteJSMods) overwriteJSMods=true; shift;;
   *) break;;
 esac; 
 done
 
 compile_module() {
-  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $modulesRepo:/modulesrepo -v $goModulesRepo:/laatoo/sdk/modules -v $tmpFolder:/compiletmp -v $deploy:/deploy -e name=$1 -e release=false -e norust=$norust -e uionly=$uionly -e packageFolder=$2 -e verbose=$verbose  -e nobundle=$nobundle -e overwriteJSMods=false -e getBuildPackages=$getBuildPackages laatoomodulebuilder
+  docker run --rm -it -v $nodeModulesFolder:/nodemodules -v $modulesRepo:/modulesrepo -v $goModulesRepo:/laatoo/sdk/modules -v $tmpFolder:/compiletmp -v $deploy:/deploy -e name=$1 -e release=false -e norust=$norust -e uionly=$uionly -e packageFolder=$2 -e verbose=$verbose  -e nobundle=$nobundle -e overwriteJSMods=$overwriteJSMods -e getBuildPackages=$getBuildPackages laatoomodulebuilder
   echo '================================================================'
 }
 

@@ -107,7 +107,6 @@ function getPropsNonCookieMode(state, ownProps) {
 
 
 const mapStateToProps = (state, ownProps) => {
-  console.log("Login validator ", state, ownProps, module, Storage)
   if (module.settings.cookies) {
     return getPropsCookieMode(state, ownProps)
   } else {

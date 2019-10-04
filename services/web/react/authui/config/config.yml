@@ -6,7 +6,6 @@ description: This module provides authentication ui components
 ui:
   js:
     packages:
-      axios: "^0.19.0"
       prop-types: "^15.6.0"
       md5: "^2.2.1"
       react-redux: "^7.0.0"
@@ -14,7 +13,6 @@ ui:
       redux-saga: "^1.1.0"
       core-js: "^2.5.7"
     externals:
-      axios: axios
       prop-types: prop-types
       react: react
       uicommon: uicommon

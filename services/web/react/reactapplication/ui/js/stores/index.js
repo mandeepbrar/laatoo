@@ -82,9 +82,16 @@ function configureStore() {
 
   // then run the saga
 
-  Object.values(Application.AllRegItems("Sagas")).map(saga=>sagaMiddleware.run(saga))
+  for (let [sagaName, saga] of Object.entries(Application.AllRegItems("Sagas"))) {
+    try {
+      console.log("running saga", sagaName)
+      sagaMiddleware.run(saga)
+    }catch(ex) {
+      console.log("Couldnt run saga", sagaName)
+    }
+  }
 //  sagaMiddleware.run(rootSaga);
-  console.log("run sagas complete")
+  console.log("run sagas complete", Application.AllRegItems("Sagas"))
   return store;
 }
 

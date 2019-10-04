@@ -41,16 +41,16 @@ class BaseForm extends React.Component {
 
   componentWillMount() {
     this.configureForm(this.props.dispatch, this.props)
-    console.log("base form mount", this)
-    if (this.props.formData) {
-      this.setData(this.props.formData)
-    } else if(this.loader) {
+    console.log("base form mount", this)    
+    if(this.loader) {
       console.log('base form: executing loader', this.loader, this.props, this.context)
       this.loader(this.context.routeParams, this.dataLoaded, this.failureCallback)
+    } else {
+      this.setData(this.props.formData)      
     }
   }
 
-  componentWillReceiveProps(nextProps, nextState) {
+  /*componentWillReceiveProps(nextProps, nextState) {
     this.dataLoading = false
     let formValue = nextProps.formVal
     let oldFormValue = this.state.formValue
@@ -62,7 +62,7 @@ class BaseForm extends React.Component {
       }
     }
     console.log("webform: next props of componentWillReceiveProps", this.props.form, nextProps, nextState, this.state)
-  }
+  }*/
 
   getDescription = () => {
     return this.props.description
@@ -132,8 +132,10 @@ class BaseForm extends React.Component {
     }
     formData = this.preprocessData(formData)
     console.log("setData", this.props.form, formData)
-    let x = this.props.initialize( formData)
-    this.props.dispatch(x)
+    if(formData) {
+      let x = this.props.initialize( formData)
+      this.props.dispatch(x)  
+    }
   }
 
   dataLoaded = (data) => {
@@ -305,9 +307,9 @@ class WebFormUI extends React.Component {
     let info = props.info? props.info: null
     info = desc && desc.info ? desc.info : {}
     if (info.entity){
-      this.formType = EntityForm
+      this.formType = reduxForm({form: props.form})(EntityForm)
     } else {
-      this.formType = CustomForm
+      this.formType = reduxForm({form: props.form})(CustomForm)
     }
   }
 
@@ -328,6 +330,8 @@ class WebFormUI extends React.Component {
 
 const ReduxForm = reduxForm({})(WebFormUI)
 const empty = {}
+
+
 const mapStateToProps = (state, ownProps) => {
   let desc = ownProps.description
   console.log("redux form state...........=======", state, ownProps, desc)
@@ -348,7 +352,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 const Form = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ReduxForm);
+)(WebFormUI);
 
 
 export {Form } ;

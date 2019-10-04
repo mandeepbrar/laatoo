@@ -88,7 +88,6 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     }
   }
 }
-console.log("react-redux connect in laatooviews", connect, require('react-redux'));
 const ViewComponent = connect(
   mapStateToProps,
   mapDispatchToProps

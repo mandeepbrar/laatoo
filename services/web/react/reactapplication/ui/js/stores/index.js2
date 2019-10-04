@@ -1,0 +1,41 @@
+const redux = require('redux');
+//import { createAction, createStore, Sagas} from 'uicommon'
+//import {Errors} from '../messages'
+import createSagaMiddleware from 'redux-saga';
+import '../reducers/Dialogs'
+import '../reducers/Messages'
+
+function runSagas(sagaMiddleware, sagas) {
+  if(sagas) {
+    Object.keys(sagas).forEach(function(sagaId){
+      let saga = sagas[sagaId];
+      sagaMiddleware.run(saga);
+    });
+  }
+}
+
+function configureStore() {
+  let reducers = Application.AllRegItems("Reducers")
+  if(!reducers) {
+    reducers = {};
+  }
+  console.log("reducers in store", reducers);
+  let middleware = [];
+  let enhancers = [];
+
+
+  const sagaMiddleware = createSagaMiddleware();
+  enhancers = redux.compose(redux.applyMiddleware(sagaMiddleware, ...middleware), ...enhancers);
+
+  // mount it on the Store
+  const store = redux.createStore(redux.combineReducers(reducers), {}, enhancers);
+  console.log("created store", store)
+
+  // then run the saga
+  runSagas(sagaMiddleware, Application.AllRegItems("Sagas"));
+  console.log("running sagas")
+  return store;
+}
+
+
+export default configureStore
