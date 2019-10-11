@@ -1,0 +1,3 @@
+messagetype: storable_postsave
+rule: accountuser_createrule
+trigger: synchronousmessage

@@ -18,7 +18,7 @@ function Initialize(appName, ins, mod, settings, def, req) {
 }
 
 const UIWrapper=(props)=>(
-  <div>{props.children}</div>
+  props.children
 )
 
 const ActionButton=(props)=> (

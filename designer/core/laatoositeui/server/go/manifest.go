@@ -6,6 +6,9 @@ import (
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	objects := ObjectsManifest(provider)
-	objs := append([]core.PluginComponent{}, objects...)
+	objs := []core.PluginComponent{
+		core.PluginComponent{Name: "accountuser_createrule", Object: AccountUserCreateRule{}},
+	}
+	objs = append(objs, objects...)
 	return objs
 }

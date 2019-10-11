@@ -1,0 +1,42 @@
+{
+    "name":"AccountUser",
+    "inherits":"",
+    "imports":[],
+    "multitenant": true,
+    "postsave": true,
+    "form": {
+      "overlay": true,
+      "layout": ["FName", "LName", "User", "Email", "Tenant", "Picture"]
+    },
+    "titleField": "Name",
+    "fields":{
+        "FName": {
+            "type":"string"
+        },
+        "LName": {
+            "type":"string"
+        },
+        "Name": {
+            "type":"string"
+        },
+        "Picture": {
+            "type":"string"
+        },
+        "User": {
+            "type":"string"
+        },
+        "Email": {
+            "type":"string"
+        },
+        "Disabled": {
+            "type":"bool"
+        },
+        "Account": {
+            "type":"string"
+        },
+        "Tenant": {
+            "type":"string"
+        }
+    }
+  }
+  

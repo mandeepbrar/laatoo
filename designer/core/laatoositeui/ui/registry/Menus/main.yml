@@ -17,5 +17,5 @@ items:
     iconClass: fa fa-server
   - Users:
     title: Users
-    page: modulesrepo    
+    page: list_accountuser    
     iconClass: fa fa-users
