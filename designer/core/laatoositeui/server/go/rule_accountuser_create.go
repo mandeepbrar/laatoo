@@ -1,12 +1,15 @@
 package main
 
 import (
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/modules/user"
+
 	//"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/components/rules"
 	"laatoo/sdk/server/core"
-	/*"laatoo/sdk/server/ctx"
-	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/ctx"
+
+	/*"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"*/
 	"fmt"
 )
@@ -14,6 +17,9 @@ import (
 type AccountUserCreateRule struct {
 }
 
+func (rule *AccountUserCreateRule) Initialize(ctx ctx.Context, conf config.Config) error {
+	return nil
+}
 
 func (rule *AccountUserCreateRule) Condition(ctx core.RequestContext, trigger *rules.Trigger) bool {
 

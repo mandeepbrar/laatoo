@@ -56,9 +56,9 @@ modules:
   jsui:
     cachefiles: false
   laatoositeui:
-    #hotmodule: true
-    #hotmodulepath: designer/core/laatoositeui
-    #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
+    hotmodule: true
+    hotmodulepath: designer/core/laatoositeui
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
   moduledesignergeneral:
   moduledesignerui:
     #hotmodule: true
@@ -161,7 +161,7 @@ moduleinstances:
     module: laatoositetheme
     settings:
       className: laatoosite
-      infoBlock: designerlink
+      infoBlock: signin
       menuEnd: bottombar
       showMenu: true
       vertical: true

@@ -1,0 +1,59 @@
+<Block className="mw960 ma m20">
+    <h2 module="html">
+        Getting started
+    </h2>
+    <Block  className="w100 row fd fdrow m30">
+        <Block className="col-xs-6 col-sm-3 p10">
+            <Block className="w100 p20">
+                <Block className="w100">
+                    <Image src="images/caution.jpg" className="spintopimg"/>
+                </Block>
+            </Block>
+            <h3 module="html" className="p10 sitecolorfg">
+                Signup 
+            </h3>
+            <Block  className="p20">
+                my test content
+            </Block>
+        </Block>
+        <Block className="col-xs-6 col-sm-3 p10">
+            <Block className="w100 p20">
+                <Block className="w100">
+                    <Image src="images/edit.jpg" className="spintopimg"/>
+                </Block>
+            </Block>
+            <h3 module="html" className="p10 sitecolorfg">
+                Build 
+            </h3>
+            <Block  className="p20">
+                my test content
+            </Block>
+        </Block>
+        <Block className="col-xs-6 col-sm-3 p10">
+            <Block className="w100 p20">
+                <Block className="w100">
+                    <Image src="images/magic.jpg" className="spintopimg"/>
+                </Block>
+            </Block>
+            <h3 module="html" className="p10 sitecolorfg">
+                Deploy 
+            </h3>
+            <Block  className="p20">
+                my test content
+            </Block>
+        </Block>
+        <Block className="col-xs-6 col-sm-3 p10">
+            <Block className="w100 p20">
+                <Block className="w100">
+                    <Image src="images/monitoring.jpg" className="spintopimg"/>
+                </Block>
+            </Block>
+            <h3 module="html" className="p10 sitecolorfg">
+                Monitor 
+            </h3>
+            <Block  className="p20">
+                my test content
+            </Block>
+        </Block>
+    </Block>
+</Block>    

@@ -29,7 +29,7 @@ class BaseForm extends React.Component {
     this.state={formValue: props.formVal}
     this.trackChanges = this.info.trackChanges || props.trackChanges
 
-    this.className = "webform " + (this.info.className? this.info.className :"")
+    this.className = "webform " + (this.info.className? this.info.className :props.id)
     this.formName="myform"
 
     this.actions = props.actions

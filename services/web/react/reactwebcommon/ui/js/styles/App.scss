@@ -19,6 +19,9 @@
 .centered {
 	text-align:center !important;
 }
+.left {
+  text-align: left !important;
+}
 .right {
   text-align: right !important;
 }
@@ -416,6 +419,10 @@
   flex-direction: row !important;
 }
 
+.fdbetween {
+  justify-content: space-between !important;
+}
+
 .fdcenter {
   justify-content: center !important;
 }
@@ -425,7 +432,7 @@
 }
 
 .fdgrow {
-  flex: 2 0 auto;
+  flex: 1;
 }
 
 .stretch {

@@ -49,23 +49,22 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }*/
 
 type DefaultUser struct {
-	data.SoftDeleteAuditable `bson:",inline"`
-	Username                 string           `json:"Username" form:"Username" bson:"Username"`
-	Password                 string           `json:"Password" form:"Password" bson:"Password"`
-	Roles                    []string         `json:"Roles" bson:"Roles"`
-	Permissions              []string         `json:"Permissions" bson:"Permissions"`
-	Email                    string           `json:"Email" bson:"Email"`
-	Name                     string           `json:"Name" bson:"Name"`
-	Picture                  string           `json:"Picture" bson:"Picture"`
-	Account                  data.StorableRef `json:"Account" bson:"Account"`
-	Realm                    string           `json:"Realm" bson:"Realm"`
-	Tenant                   string           `json:"Tenant" bson:"Tenant"`
-	Status                   int              `json:"Status" bson:"Status"`
+	data.SoftDeleteAuditableMT `bson:",inline"`
+	Username                   string           `json:"Username" form:"Username" bson:"Username"`
+	Password                   string           `json:"Password" form:"Password" bson:"Password"`
+	Roles                      []string         `json:"Roles" bson:"Roles"`
+	Permissions                []string         `json:"Permissions" bson:"Permissions"`
+	Email                      string           `json:"Email" bson:"Email"`
+	Name                       string           `json:"Name" bson:"Name"`
+	Picture                    string           `json:"Picture" bson:"Picture"`
+	Account                    data.StorableRef `json:"Account" bson:"Account"`
+	Realm                      string           `json:"Realm" bson:"Realm"`
+	Status                     int              `json:"Status" bson:"Status"`
 }
 
 //Creates object
 func (usr *DefaultUser) Initialize(ctx ctx.Context, conf config.Config) error {
-	usr.SoftDeleteAuditable.Initialize(ctx, conf)
+	usr.SoftDeleteAuditableMT.Initialize(ctx, conf)
 	if conf != nil {
 		id, ok := conf.GetString(ctx, "Id")
 		if ok {
@@ -112,7 +111,7 @@ func (usr *DefaultUser) GetUsernameField() string {
 	return "Username"
 }
 func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
-	ent.SoftDeleteAuditable.PreSave(ctx)
+	ent.SoftDeleteAuditableMT.PreSave(ctx)
 	err := ent.encryptPassword()
 	if err != nil {
 		return errors.WrapError(ctx, err)

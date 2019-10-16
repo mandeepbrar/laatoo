@@ -22,9 +22,28 @@ body {
 }
 
 .siteleader {
-
+  background-image: url('images/background.png');
 }
 
+.sitecolor {
+  background-color: #4e101b;
+}
+
+.sitecolorfg {
+  color: #4e101b;
+}
+
+.header {
+  .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+    @extend .sitecolor;
+    border-color: #4e101b !important;
+  }
+}
+
+.spintopimg {
+  @extend .mw100;
+  max-height: 150px;
+}
 
 /*.vertnavitem .icon {
   clear: both;
@@ -34,3 +53,19 @@ body {
   display: block!important;
   text-align: center;
 }
+
+.signin {
+  button, a {
+    @extend .ma10
+  }
+}
+
+.demo {
+  @extend .shadowbox, .p10, .left, .white, .sitecolor;
+  //background-color: #4e4910 !important;
+  .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+    background-color: #e28633 !important;
+    border-color: #e28633 !important;
+  }
+}
+

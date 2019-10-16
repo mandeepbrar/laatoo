@@ -6,7 +6,7 @@
     "postsave": true,
     "form": {
       "overlay": true,
-      "layout": ["FName", "LName", "User", "Email", "Tenant", "Picture"]
+      "layout": ["FName", "LName", "User", "Email", "Picture"]
     },
     "titleField": "Name",
     "fields":{
@@ -32,9 +32,6 @@
             "type":"bool"
         },
         "Account": {
-            "type":"string"
-        },
-        "Tenant": {
             "type":"string"
         }
     }

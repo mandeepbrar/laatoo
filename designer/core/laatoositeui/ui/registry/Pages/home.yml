@@ -7,4 +7,9 @@ component:
     - type: block
       id: siteleader
     - type: block
+      id: works
+      className: m20
+    - type: block
+      id: why
+    - type: block
       id: sitefooter

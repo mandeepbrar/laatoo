@@ -1,0 +1,10 @@
+<Block className="mw960 ma">
+    <h2 module="html">
+        Why Laatoo?
+    </h2>
+    <Block  className="w100 row fd fdrow m30">
+        <Block className="col-xs-12 col-sm-8">
+            <Image src="images/spintop.png"/>
+        </Block>
+    </Block>
+</Block>    

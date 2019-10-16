@@ -94,7 +94,8 @@ class ActionComp extends React.Component {
     }
     let children= this.props.children? this.props.children: this.props.label
     let actionF = this.actionFunc;
-    switch(this.props.widget) {
+    let widget = _tn(this.props.widget, this.action.widget)
+    switch(widget) {
       case 'button': {
         return (
           <ActionButton className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={children}>

@@ -1,0 +1,11 @@
+
+info:
+  actions: demoActionButtons
+  layout: demoform
+fields:
+  name:
+    type: string
+    label: Name
+  email:
+    type: string
+    label: Email

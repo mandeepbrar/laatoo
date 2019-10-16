@@ -1,18 +1,20 @@
 <Block className="siteleader w100">
-    <Block className="row w960 ma">
-        <Block  className="w100 row m50">
-            <Block className="col-xs-6">
-                <Image src="images/spintop.jpg"/>
+    <Block className="mw960 ptb20 ma m20">
+        <Block  className="w100 row fd fdrow m30">
+            <Block className="col-xs-12 col-sm-8">
+                <Image src="images/spintop.png"/>
             </Block>
-            <Block className="col-xs-6 fd fdmiddle">
-                <Block className="right">
-                    <h2 className="m50" module="html">
+            <Block className="col-xs-12 col-sm-4 content fd right fdgrow fdcol fdbetween">
+                <Block className="fdgrow left">
+                    <h2 module="html" className="m10">
                         Rapid application development
                     </h2>
-                    <br module="html"/>
-                    <h3 className="m20" module="html">
-                        Modular, Configurable, Cloud Ready
+                    <h3 module="html" className="m10 f14">
+                        Build cloud ready backend services quickly. Security, database, caching, entities, tasks and much more.
                     </h3>
+                </Block>
+                <Block className="m30 fd fdcol">
+                    <Panel type="form" id="demo" module="reactpages" />
                 </Block>
             </Block>
         </Block>

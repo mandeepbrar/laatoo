@@ -1,5 +1,6 @@
 import React from 'react';
 import {Select} from '../components/Select';
+import {TextField} from '../components/TextField';
 import PropTypes from 'prop-types';
 import Form from 'react-bootstrap/Form'
 
@@ -55,7 +56,6 @@ class FieldWidget extends React.Component {
         this.renderer = this.renderTextField
     }
     this.state = {value: props.value}
-    this.label = _tn(props.label, props.name)
     this.className = _tn(props.className, "") + widgetName
     this.controlClassName= _tn(props.controlClassName, "")
     /*if(field && field.widget) {
@@ -70,7 +70,7 @@ class FieldWidget extends React.Component {
     return (
 
       <Form.Group controlId={this.name} className={this.className + " checkbox "} >
-        <Form.Check type="checkbox" label={this.label}  onCheck={this.change} className={this.controlClassName} />
+        <Form.Check type="checkbox" label={props.label}  onCheck={this.change} className={this.controlClassName} />
       </Form.Group>
     )
   }
@@ -80,9 +80,9 @@ class FieldWidget extends React.Component {
     let textField = _tn(props.textField, "text")
     let valueField = _tn(props.valueField, "value") 
 
-    return <Select items={props.items} itemClass={props.itemClass} className={this.className + " select "} onChange={this.change} value={this.state.value} dataServiceParams={props.dataServiceParams}
+    return <Select items={props.items} itemClass={props.itemClass} className={this.className} onChange={this.change} value={this.state.value} dataServiceParams={props.dataServiceParams}
         errorText={props.errorText} loader={props.loader} loadData={props.loadData} dataService={props.dataService} selectItem={props.selectItem}
-        label={this.label} name={props.name} textField={textField} valueField={valueField} controlClassName={this.controlClassName + " select "} />
+        label={props.label} name={props.name} textField={textField} valueField={valueField} controlClassName={this.controlClassName + " select "} />
   }
 
   renderSwitch = (props) =>  {
@@ -99,12 +99,8 @@ class FieldWidget extends React.Component {
   renderTextField = (props) => {
     console.log("rendertext field", props)
     return (
-      <Form.Group controlId={this.name} className={this.className + " textfield " }>
-        <Form.Label>{this.label}</Form.Label>
-        <Form.Control type="text" placeholder={this.label} onChange={this.change} 
-        onBlur={props.onBlur} onFocus={props.onFocus} value={this.state.value}/>
-        {props.errorText?<Form.Text className="text-muted">{props.errorText}</Form.Text>:null}
-      </Form.Group>
+      <TextField label={props.label} name={props.name} placeholder={props.placeholder} onChange={this.change} className={this.className}
+        onBlur={props.onBlur} onFocus={props.onFocus} value={this.state.value} errorText={props.errorText}/>
     )
   }
   render() {

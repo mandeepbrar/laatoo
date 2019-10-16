@@ -5,7 +5,7 @@ dependencies:
 description: Module provides module designer theme
 extends: laatoositetheme
 settings:
-  infoBlock: designerlink
+  infoBlock: signin
   showMenu: true
   menu:
   - homepage:

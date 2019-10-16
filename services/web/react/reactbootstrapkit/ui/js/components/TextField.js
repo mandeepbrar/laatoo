@@ -10,7 +10,7 @@ const TextFieldComp = (props)=> {
   console.log("props of text field", props)
   return(
     <Form.Group controlId={props.name} className={props.className + " textfield " }>
-      <Form.Label>{props.label}</Form.Label>
+      {props.label?<Form.Label>{props.label}</Form.Label>:null}
       <Form.Control name={props.name} type={props.type} placeholder={props.placeholder} onChange={onChange} 
         onBlur={props.onBlur} onFocus={props.onFocus} value={props.value}/>
       {props.errorText?<Form.Text className="text-muted">{props.errorText}</Form.Text>:null}

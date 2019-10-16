@@ -2,6 +2,7 @@ signin:
   url: "/account"
 signup:
   url: "/signup"
+  widget: button
 uploadmodule:
   actiontype: showdialog
   title: Upload Module
