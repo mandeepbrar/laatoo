@@ -15,9 +15,12 @@ function buildModule() {
   if(argv.verbose) {
     console.log(argv)
   }
+
+  /*
   if(!(argv.skipUI || argv.skipObjects)) {
     clearDirectory(tmpFolder)
-  }
+  }*/
+  fs.mkdirsSync(tmpFolder)
   startTask("cleango")()
 }
 

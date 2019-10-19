@@ -29,8 +29,16 @@ body {
   background-color: #4e101b;
 }
 
+.architecture {
+  @extend .bg-lgrey;
+}
+
 .sitecolorfg {
   color: #4e101b;
+}
+
+.footer {
+  @extend .bg-black;
 }
 
 .header {
@@ -60,10 +68,15 @@ body {
   }
 }
 
+.googleAuthAction {
+  background-color: #DD4B39!important;
+  border-color: #DD4B39!important;
+}
+
 .demo {
   @extend .shadowbox, .p10, .left, .white, .sitecolor;
   //background-color: #4e4910 !important;
-  .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+  .submitBtn {
     background-color: #e28633 !important;
     border-color: #e28633 !important;
   }

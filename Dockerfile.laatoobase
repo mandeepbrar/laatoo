@@ -4,7 +4,9 @@ COPY getpackages.sh .
 
 RUN ./getpackages.sh
 
-RUN useradd -u 1000 -ms /bin/bash -g root -G sudo -p laatoo laatoo
+RUN groupadd -r laatoo -g 1000
+
+RUN useradd -u 1000 -ms /bin/bash -g laatoo -G sudo -p laatoo laatoo
 
 RUN mkdir -p /laatoo
 

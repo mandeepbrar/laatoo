@@ -46,6 +46,7 @@ modules:
   publicfilesserver:
   tokenvalidation:
   itemdetailview:
+  oauthui:
   dataadapter:
   dblogin:
   entity:
@@ -166,6 +167,10 @@ moduleinstances:
       showMenu: true
       vertical: true
       menu: main
+    environment:
+      uiapplication: websiteapplication
+  oauthui:
+    module: oauthui
     environment:
       uiapplication: websiteapplication
 

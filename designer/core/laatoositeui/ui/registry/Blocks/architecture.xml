@@ -1,0 +1,24 @@
+<Block className="architecture w100 m50">
+    <Block className="mw960 ptb20 ma ">        
+        <h2 module="html" className="m10">
+            How does it work?
+        </h2>
+        <Block  className="w100 row fd fdrow m30">
+            <Block className="col-xs-12 col-sm-4">
+                <Block className="w100 p20">
+                    <Image src="images/modules.png" className="mw100"/>
+                </Block>
+            </Block>
+            <Block className="col-xs-12 col-sm-4">
+                <Block className="w100 p20">
+                    <Image src="images/application.png" className="mw100"/>
+                </Block>
+            </Block>
+            <Block className="col-xs-12 col-sm-4">
+                <Block className="w100 p20">
+                    <Image src="images/deployment.png" className="mw100"/>
+                </Block>
+            </Block>
+        </Block>
+    </Block>
+</Block>

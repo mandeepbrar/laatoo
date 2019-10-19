@@ -17,10 +17,10 @@ class HeaderUI extends React.Component {
     console.log("header properties", hs, props, settings)
     return (
       <_uikit.Block className={hs.className?hs.className:'header'}>
-        <_uikit.Block className="logo">
+        <_uikit.Action className="logo" action={{url:"/"}}>
           {hs.image?<_uikit.Block className="image"><Image src={hs.image}/></_uikit.Block>:null}
           {hs.title?<_uikit.Block className="title">{hs.title}</_uikit.Block>:null}
-        </_uikit.Block>
+        </_uikit.Action>
         <Panel id={infoBlock} type="block" className="infoBlock"/>
       </_uikit.Block>
     )

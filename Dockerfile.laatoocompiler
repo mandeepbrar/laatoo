@@ -8,6 +8,6 @@ WORKDIR /laatooserver
 
 COPY build.sh /
 
-USER laatoo
+USER laatoo:laatoo
 
 ENTRYPOINT ["sh", "/build.sh"]

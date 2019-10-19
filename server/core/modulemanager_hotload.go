@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -17,20 +16,25 @@ import (
 	//"github.com/fsnotify/fsnotify"
 )
 
-func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, modDir string, modInsConf config.Config) error {
+func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, modDir string) error {
 	ctx = ctx.SubContext("Watch " + modName)
-	hotmodcompiler, compilerok := modInsConf.GetString(ctx, "hotmodcompiler")
+
+	moduleInstallConf := modMgr.moduleInstallationConf[modName]
+
+	hotmodcompiler, compilerok := moduleInstallConf.GetString(ctx, "hotmodcompiler")
 
 	if compilerok {
 		log.Info(ctx, "Add compile watcher", "modName", modName)
-		err := modMgr.watchFilesToCompile(ctx, modName, modDir, hotmodcompiler, modInsConf)
+		err := modMgr.watchFilesToCompile(ctx, modName, modDir, hotmodcompiler)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
+	} else {
+		log.Info(ctx, "Skipping compile watcher", "hotmodcompiler", hotmodcompiler, "modName", modName, "moduleInstallConf", moduleInstallConf)
 	}
 
 	log.Info(ctx, "Add nonCompile watcher", "modName", modName)
-	err := modMgr.watchNonCompileFileChanges(ctx, modName, modDir, modInsConf)
+	err := modMgr.watchNonCompileFileChanges(ctx, modName, modDir)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -42,7 +46,7 @@ func (modMgr *moduleManager) addWatch(ctx core.ServerContext, modName string, mo
 	return nil
 }
 
-func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, modName string, modDir string, modInsConf config.Config) error {
+func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, modName string, modDir string) error {
 	w := watcher.New()
 	w.SetMaxEvents(1)
 	log.Info(ctx, "Add nonCompileFileChanges", "modName", modName)
@@ -100,7 +104,7 @@ func (modMgr *moduleManager) startWatcher(ctx core.ServerContext, w *watcher.Wat
 		}
 	}(ctx, w, ms)
 }
-func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName string, modDir, compilerCommand string, modInsConf config.Config) error {
+func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName string, modDir, compilerCommand string) error {
 	compileWatcher := watcher.New()
 	compileWatcher.SetMaxEvents(1)
 
@@ -239,7 +243,7 @@ func (modMgr *moduleManager) ReloadModule(ctx core.ServerContext, modName string
 		return errors.WrapError(ctx, err)
 	}
 
-	go modMgr.addWatch(ctx, modName, modDir, modconf)
+	go modMgr.addWatch(ctx, modName, modDir)
 
 	return nil
 }

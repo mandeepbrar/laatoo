@@ -1,3 +1,7 @@
-<h2 module="html">
-Footer
-</h2>
+<Block className="footer w100">
+    <Block className="mw960  ma center white">
+        <h4 module="html">
+        Please contact us at admin@virsainfomedia.com for any queries
+        </h4>
+    </Block>
+</Block>    

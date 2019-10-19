@@ -44,3 +44,4 @@ materialicons laatoo/services/materialicons
 itemdetailview laatoo/services/web/react/itemdetailview
 testsocket laatoo/services/web/testsocket
 laatoobrowser laatoo/services/web/laatoobrowser
+oauthui laatoo/services/web/react/oauthui

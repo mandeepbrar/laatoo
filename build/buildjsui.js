@@ -55,7 +55,7 @@ function compileJSWebUI(jsUIconfig, nextTask) {
           found = true
         }*/
         if (!found && fs.pathExistsSync(laatooModulePath + '.tar.gz')) {
-          let command = sprintf("cd %s && tar %s -xzf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
+          let command = sprintf("whoami && cd %s && ls -al && tar %s -xzf %s", tmpFolder, verbose, laatooModulePath + '.tar.gz')
           log("Extracting pkg", command)
           if (shell.exec(command).code !== 0) {
             shell.echo('Package extraction failed');

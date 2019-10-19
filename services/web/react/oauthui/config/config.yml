@@ -1,0 +1,24 @@
+version: 0.0.1
+dependencies:
+  uicommon: ">=0.0.1"
+  reactwebcommon: ">=0.0.1"
+description: This module provides authentication ui components
+ui:
+  js:
+    packages:
+      prop-types: "^15.6.0"
+      md5: "^2.2.1"
+      react-redux: "^7.0.0"
+      redux: "^4.0.4"
+      redux-saga: "^1.1.0"
+      core-js: "^2.5.7"
+    externals:
+      prop-types: prop-types
+      react: react
+      uicommon: uicommon
+      md5: md5
+      react-redux: react-redux
+      redux: redux
+      redux-saga: redux-saga
+      reactwebcommon: reactwebcommon
+      core-js: core-js

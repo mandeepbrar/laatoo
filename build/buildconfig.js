@@ -50,7 +50,7 @@ var nodeModulesFolder = "/nodemodules"
 
 var buildFolder = argv.buildFolder? argv.buildFolder: "/build"
 
-var tmpFolder = "/compiletmp"
+var tmpFolder = "/tmp/compiletmp"
 
 module.exports = {
     argv: argv,

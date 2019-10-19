@@ -3,6 +3,7 @@ dependencies:
   reactwebcommon: ">=0.0.1"
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
+  oauthui: ">=0.0.1"
   user: ">=0.0.1"
 description: Module provides laatoo site ui 
 objects: 
@@ -79,6 +80,7 @@ ui:
       uicommon: uicommon
       reactpages: reactpages
       reactwebcommon: reactwebcommon
+      oauthui: oauthui
     packages:
       react: "^16.8.0"
 

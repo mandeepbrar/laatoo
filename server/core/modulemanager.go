@@ -117,9 +117,8 @@ func (modMgr *moduleManager) Start(ctx core.ServerContext) error {
 	}
 
 	for moduleName, modDir := range modMgr.hotModules {
-		moduleInstallConf := modMgr.moduleInstallationConf[moduleName]
 		log.Info(ctx, "*************hot module directory being watched**********", "modDir", modDir)
-		go modMgr.addWatch(ctx, moduleName, modDir, moduleInstallConf)
+		go modMgr.addWatch(ctx, moduleName, modDir)
 		/*if err != nil {
 			return errors.WrapError(ctx, err)
 		}*/

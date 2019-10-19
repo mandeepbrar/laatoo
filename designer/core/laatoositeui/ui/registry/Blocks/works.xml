@@ -3,56 +3,68 @@
         Getting started
     </h2>
     <Block  className="w100 row fd fdrow m30">
-        <Block className="col-xs-6 col-sm-3 p10">
+        <Block className="col-xs-12 col-sm-6 col-md-3 p10">
             <Block className="w100 p20">
                 <Block className="w100">
-                    <Image src="images/caution.jpg" className="spintopimg"/>
+                    <Image src="images/caution_med.png" className="spintopimg"/>
                 </Block>
             </Block>
             <h3 module="html" className="p10 sitecolorfg">
                 Signup 
             </h3>
             <Block  className="p20">
-                my test content
+                <Block>
+                Sign up for a trial version free or sign in using Google account
+                </Block>
+                <Action name="signin" className=" fr">Learn More</Action>
             </Block>
         </Block>
-        <Block className="col-xs-6 col-sm-3 p10">
+        <Block className="col-xs-12 col-sm-6 col-md-3 p10">
             <Block className="w100 p20">
                 <Block className="w100">
-                    <Image src="images/edit.jpg" className="spintopimg"/>
+                    <Image src="images/edit_med.png" className="spintopimg"/>
                 </Block>
             </Block>
             <h3 module="html" className="p10 sitecolorfg">
                 Build 
             </h3>
             <Block  className="p20">
-                my test content
+                <Block>
+                Build a solution and back end apps using easy to use designer. Extend services using golang. 
+                </Block>
+                <Action name="signin" className=" fr">Learn More</Action>
             </Block>
         </Block>
-        <Block className="col-xs-6 col-sm-3 p10">
+        <Block className="col-xs-12 col-sm-6 col-md-3 p10">
             <Block className="w100 p20">
                 <Block className="w100">
-                    <Image src="images/magic.jpg" className="spintopimg"/>
+                    <Image src="images/magic_med.png" className="spintopimg"/>
                 </Block>
             </Block>
             <h3 module="html" className="p10 sitecolorfg">
                 Deploy 
             </h3>
             <Block  className="p20">
-                my test content
+                <Block>
+                Easily Deploy applications to cloud service of your choice using containers
+                </Block>
+                <Action name="signin" className=" fr">Learn More</Action>
             </Block>
         </Block>
-        <Block className="col-xs-6 col-sm-3 p10">
+        <Block className="col-xs-12 col-sm-6 col-md-3 p10">
             <Block className="w100 p20">
                 <Block className="w100">
-                    <Image src="images/monitoring.jpg" className="spintopimg"/>
+                    <Image src="images/monitoring_med.png" className="spintopimg"/>
                 </Block>
             </Block>
             <h3 module="html" className="p10 sitecolorfg">
                 Monitor 
             </h3>
             <Block  className="p20">
-                my test content
+                <Block>
+                Monitor applications using integrated dashboard and log aggregation console
+                </Block>
+                <Action name="signin" className=" fr">Learn More</Action>
             </Block>
         </Block>
     </Block>

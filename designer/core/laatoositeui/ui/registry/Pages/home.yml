@@ -8,7 +8,8 @@ component:
       id: siteleader
     - type: block
       id: works
-      className: m20
+    - type: block
+      id: architecture
     - type: block
       id: why
     - type: block

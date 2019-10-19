@@ -57,7 +57,7 @@ WORKDIR /build
 
 #RUN npm i
 
-USER laatoo
+USER laatoo:laatoo
 
 WORKDIR /go
 
