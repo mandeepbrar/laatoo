@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
@@ -175,6 +176,9 @@ func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
 }
 
 func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName string, channel elements.Channel) error {
+	if channel == nil {
+		return errors.WrapError(ctx, fmt.Errorf("channel not present"))
+	}
 	chanCtx := ctx.SubContext(chanName)
 	log.Info(chanCtx, "Starting channels ", "chanName", chanName)
 	svcName := channel.GetServiceName()

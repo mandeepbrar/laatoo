@@ -126,7 +126,7 @@ class FieldWidget extends React.Component {
 
   processProps= (props, cfg) => {
     let fldProps = ["name", "label", "items", "textField", "valueField", "widgetName", "widgetModule", "selectItem", "itemClass", 
-      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode" ]
+      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode", "placeholder" ]
     fldProps.map((item)=>{
       cfg[item] = _tn(props[item], cfg[item])
     })

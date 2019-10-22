@@ -1,0 +1,6 @@
+servicemethod: cadence_worker
+TaskListName: testworkflow
+Host: localhost:7933
+Domain: testdomain
+ClientName: testclient
+CadenceService: cadence-frontend

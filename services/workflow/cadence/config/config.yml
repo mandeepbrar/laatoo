@@ -1,0 +1,59 @@
+version: 0.0.1
+description: 'Module provides email communication service'
+objects:
+  cadence_worker:
+    type: service
+    description: Worker for cadence workflow software
+    configurations:
+      Host:
+        description: Host where cadence is running
+        type: string
+        required: true
+      Domain:
+        description: Cadence domain
+        type: string
+        required: true
+      TaskListName:
+        description: Workflow processed by worker
+        type: string
+        required: true
+      ClientName:
+        description: Client name
+        type: string
+        required: true
+      CadenceService:
+        description: Cadence service
+        type: string
+        required: true
+  cadence_simpleworkflow:
+    type: service
+    description: Simple sequential workflow for cadence
+    configurations:
+      TaskListName:
+        description: Workflow name
+        type: string
+        required: true
+      Tasks:
+        description: Array of tasks in the sequential workflow
+        type: stringarray
+        required: true
+  cadence_workflowinitiator:
+    type: service
+    description: Service to initiate workflows
+    configurations:
+      Host:
+        description: Host where cadence is running
+        type: string
+        required: true
+      Domain:
+        description: Cadence domain
+        type: string
+        required: true
+      ClientName:
+        description: Client name
+        type: string
+        required: true
+      CadenceService:
+        description: Cadence service
+        type: string
+        required: true

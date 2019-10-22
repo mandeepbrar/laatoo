@@ -3,6 +3,7 @@ dependencies:
   reactwebcommon: ">=0.0.1"
   uicommon: ">=0.0.1"
   reactpages: ">=0.0.1"
+  modulesbase: ">=0.0.1"
 description: Module provides module server design ui 
 modules:
   moduledesignserver:

@@ -1,0 +1,19 @@
+version: 0.0.1
+description: 'Module provides email communication service'
+objects:
+  email_service:
+    type: service
+    component: true
+    description: Email service
+    configurations:
+      mailserver:
+        description: mail server to use for sending emails
+        type: string
+        required: true
+      mailuser:
+        description: user to use for sending emails
+        type: string
+        required: true
+      mailpass:
+        description: password to use for sending emails
+        type: string

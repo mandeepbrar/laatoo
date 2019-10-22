@@ -50,6 +50,7 @@ modules:
   dataadapter:
   dblogin:
   entity:
+  cadence:
   user:
   moduledesignerbase:
   moduledesignerserver:
@@ -117,6 +118,8 @@ moduleinstances:
     module: designerdependencies
   moduledesignerbase:
     module: moduledesignerbase
+  cadence:
+    module: cadence
   modulesbase:
     module: modulesbase
   modulesrepository:

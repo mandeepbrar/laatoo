@@ -96,7 +96,61 @@ function cleanGoFolders(nextTask) {
   nextTask()
 }
 
+function extractFile(modName, modtar, modSDK) {
+  log("Extracting module file", modtar)
+  var extract = tar.extract();
+  var files={}
+  var pathToExtract = modName+"/files/sdk/go/"
+
+  extract.on('entry', function(header, stream, cb) {
+    stream.on('data', function(chunk) {
+        var fileinZip = header.name
+        if (fileinZip.startsWith(pathToExtract)) {
+          var filename = ''
+          filename = fileinZip.substring(pathToExtract.length - 1)
+          var data = files[filename]
+          if(data) {
+            data += chunk;
+          } else {
+            if(chunk) {
+              data = chunk
+            } else {
+              data = ''
+            }
+          }
+          files[filename] = data
+        }
+      });
+    
+      stream.on('end', function() {
+          cb();
+      });
+    
+      stream.resume();
+  });
+  
+  return new Promise(function(resolve, reject) {
+    extract.on('finish', function() {
+
+      if(files) {
+        Object.keys(files).forEach(function(file) {         
+          var f = path.parse(file)     
+          var dir = path.join(modSDK, f.dir)
+          fs.mkdirsSync(dir)
+          let fileToWrite = path.join(dir, f.base)
+          fs.writeFileSync(fileToWrite, files[file])
+        })
+      }
+      resolve()
+    });
+    fs.createReadStream(modtar)
+      .pipe(zlib.createGunzip())
+      .pipe(extract);        
+  });
+}
+
 function installGoDependencies(nextTask) {
+  var depPromises = new Array()
   if(modConfig.dependencies) {
     Object.keys(modConfig.dependencies).forEach(function(modName) {
       log("Analysing module", modName)
@@ -106,50 +160,8 @@ function installGoDependencies(nextTask) {
       } else {
         var modtar = path.join(modulesRepo, modName + ".tar.gz")
         if (fs.pathExistsSync(modtar)) {
-          log("Found module file", modtar)
-          var extract = tar.extract();
-          var files={}
-          var pathToExtract = modName+"/files/sdk/go/"
-          extract.on('entry', function(header, stream, cb) {
-              stream.on('data', function(chunk) {
-                var fileinZip = header.name
-                if (fileinZip.startsWith(pathToExtract)) {
-                  var filename = ''
-                  filename = fileinZip.substring(pathToExtract.length - 1)
-                  var data = files[filename]
-                  if(data) {
-                    data += chunk;
-                  } else {
-                    data = ''
-                  }
-                  files[filename] = data
-                }
-              });
-            
-              stream.on('end', function() {
-                  cb();
-              });
-            
-              stream.resume();
-          });
-          
-          extract.on('finish', function() {
-            if(files) {
-              Object.keys(files).forEach(function(file) {         
-                var f = path.parse(file)     
-                var dir = path.join(modSDK, f.dir)
-                fs.mkdirsSync(dir)
-                let fileToWrite = path.join(dir, f.base)
-                log("writing file", fileToWrite)
-                fs.writeFileSync(fileToWrite, files[file])
-              })
-            }
-          });
-          
-          fs.createReadStream(modtar)
-              .pipe(zlib.createGunzip())
-              .pipe(extract);  
-              
+          let pr = extractFile(modName, modtar, modSDK)            
+          depPromises.push(pr);
         } else {
           shell.echo("Err: Could not find dependency ", modName)      
           shell.exit(1);
@@ -157,7 +169,9 @@ function installGoDependencies(nextTask) {
       }
     })  
   }
-  nextTask()
+  Promise.all(depPromises).then(function(vals) {
+    nextTask()
+  })
 }
 
 

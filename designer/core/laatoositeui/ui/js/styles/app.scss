@@ -68,17 +68,12 @@ body {
   }
 }
 
-.googleAuthAction {
-  background-color: #DD4B39!important;
-  border-color: #DD4B39!important;
-}
-
 .demo {
-  @extend .shadowbox, .p10, .left, .white, .sitecolor;
+  @extend .shadowbox, .p10, .left, .sitecolorfg, .bg-lgrey;
   //background-color: #4e4910 !important;
   .submitBtn {
-    background-color: #e28633 !important;
-    border-color: #e28633 !important;
+    background-color: #4e101b !important;
+    border-color: #4e101b !important;
   }
 }
 

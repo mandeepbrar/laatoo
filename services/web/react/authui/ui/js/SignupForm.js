@@ -12,6 +12,10 @@ function renderSignup(settings, properties) {
           </div>
           <div className="main">
             <_uikit.Form role="form">
+              <div className="username">
+                <label htmlFor="name">{properties.signupForm.userlabel}</label>
+                <_uikit.TextField className="text" name="name" value={state.name} placeholder={properties.signupForm.nameplaceholder} onChange={handleChange} />
+              </div>
               <div className="userfield">
                 <label htmlFor="email">{properties.signupForm.userlabel}</label>
                 <_uikit.TextField className="text" name="email" value={state.email} placeholder={properties.signupForm.userplaceholder} onChange={handleChange} />

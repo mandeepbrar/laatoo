@@ -79,6 +79,7 @@ func (facMgr *factoryManager) startModuleInstanceFactories(ctx core.ServerContex
 }
 
 func (facMgr *factoryManager) startFactory(ctx core.ServerContext, facProxy *serviceFactoryProxy) error {
+	log.Error(ctx, "Starting factory ", "factory name", facProxy.fac.name, "svr context", facProxy.fac.svrContext)
 	facStartCtx := facProxy.fac.svrContext.subContext("Start " + facProxy.fac.name)
 	log.Debug(facStartCtx, "Starting factory ", "factory name", facProxy.fac.name)
 	err := facProxy.fac.start(facStartCtx)

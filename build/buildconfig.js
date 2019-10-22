@@ -31,7 +31,7 @@ var yamlConfigName = path.join(pluginFolder, "config", "config.yml")
 var modConfig = null
 
 if (fs.pathExistsSync(jsonConfigName)) {
-  let modConfig = require(jsonConfigName);
+  modConfig = require(jsonConfigName);
 } else {
   if (fs.pathExistsSync(yamlConfigName)) {
     try {

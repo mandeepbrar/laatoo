@@ -176,7 +176,7 @@ class BaseForm extends React.Component {
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(props.formContext, props.description)
-          formComp = React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: this.className})
+          formComp = React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: " form "})
         }
       } else {
         formComp = (
@@ -193,7 +193,7 @@ class BaseForm extends React.Component {
       return (
         <_uikit.Block className={this.className}>
             {formComp}
-            <_uikit.Block className="actionbar p20 right">
+            <_uikit.Block className="actionbar ptb20 right">
               {
                 this.actions?
                 this.actions(this, this.submitFunc, this.reset, this.setData, this.props.dispatch):

@@ -5,6 +5,7 @@ dependencies:
   reactpages: ">=0.0.1"
   oauthui: ">=0.0.1"
   user: ">=0.0.1"
+  modulesbase: ">=0.0.1"
 description: Module provides laatoo site ui 
 objects: 
   repositoryimport:

@@ -37,7 +37,7 @@ RUN go mod download -json
 
 #ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
-COPY --chown=laatoo:root sdk $LAATOO_SDK
+COPY --chown=laatoo:laatoo sdk $LAATOO_SDK
 
 #WORKDIR /laatoo/sdk/client/rust/laatoocore
 
@@ -49,7 +49,7 @@ COPY makelaatoomodule.sh /make.sh
 
 ENV USER=laatoo
 
-RUN chown -R laatoo /go
+RUN chown -R laatoo:laatoo /go /laatoo/sdk
 
 COPY build/ /build
 
@@ -61,7 +61,7 @@ USER laatoo:laatoo
 
 WORKDIR /go
 
-VOLUME /laatoo/sdk/modules
+#VOLUME /laatoo/sdk/modules
 
 #RUN go build laatoo/sdk
 

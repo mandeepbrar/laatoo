@@ -23,10 +23,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 	   realm = Application.Security.realm
   }
   return {
-    handleSignup: (email, password, confirmpassword) => {
+    handleSignup: (name, email, password, confirmpassword) => {
       console.log("load", email, password, confirmpassword)
       if (confirmpassword == password) {
-        let signupPayload = {"Username": email, "Password": md5(password), "Realm" : realm };
+        let signupPayload = {"Name": name, "Username": email, "Password": md5(password), "Realm" : realm };
         console.log(signupPayload)
         
         let signupMeta = {serviceName: Application.Security.signupService};

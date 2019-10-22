@@ -1,11 +1,13 @@
 
 info:
   actions: demoActionButtons
+  submissionService: signup
   layout: demoform
+  preSubmit: demoPreSubmit
 fields:
-  name:
+  Name:
     type: string
     label: Name
-  email:
+  Email:
     type: string
     label: Email

@@ -1,7 +1,8 @@
 <Block className=" left white p20 ma10">
-    <h3 className="left" className="ma10" module="html">
+    <h3 className="left" className="tb10" module="html">
     Try Now !
     </h3>
-    <Field name="name" type="string" placeholder="Name" className="w100"/>
-    <Field name="email" type="string" placeholder="Email" className="w100"/>
+    <Field name="Name" type="string" placeholder="Name" module="reactforms" className="w100"/>
+    <Field name="Email" type="string" placeholder="Email" module="reactforms" className="w100"/>
 </Block>
+                                                             
