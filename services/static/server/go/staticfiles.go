@@ -1,15 +1,16 @@
 package main
 
 import (
+	"image"
 	"io"
-	"github.com/disintegration/imaging"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"strconv"
-	"image"
 	"strings"
+
+	"github.com/disintegration/imaging"
 )
 
 const (
@@ -34,6 +35,7 @@ type StaticFiles struct {
 	storage                         components.StorageComponent
 	defaultImage                    string
 	hasDefault                      bool
+	wf                              components.WorkflowInitiator
 }
 
 /*
@@ -47,6 +49,11 @@ func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 }*/
 
 func (svc *StaticFiles) Invoke(ctx core.RequestContext) error {
+	/*	err := svc.wf.StartWorkflow(ctx, "testworkflow", "someparam")
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	*/
 	fn, ok := ctx.GetParam(CONF_STATIC_FILEPARAM)
 	log.Trace(ctx, "Received request for file", "filename", fn)
 	if ok {
@@ -115,6 +122,13 @@ func (svc *StaticFiles) Start(ctx core.ServerContext) error {
 		}
 		svc.transformedFilesStorage = tstgSvc.(components.StorageComponent)
 	}
+
+	/*wfsvc, err := ctx.GetService("laatoo.workflowinitiator")
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	svc.wf = wfsvc.(components.WorkflowInitiator)
+	*/
 	return nil
 }
 
@@ -169,7 +183,6 @@ func (svc *StaticFiles) getImageTransformationMethod(ctx core.ServerContext, ope
 		}
 	}
 }
-
 
 func decode(reader io.Reader) (image.Image, string, error) {
 	//img, format, err := imaging.Decode(reader)

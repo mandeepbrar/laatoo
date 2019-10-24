@@ -248,17 +248,31 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 	if svc.Auditable {
 		data.Audit(ctx, newVals)
 	}
+
+	var err error
 	if svc.PreSave {
-		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+		err = svc.updateWithPresave(ctx, id, newVals, upsert)
+	} else {
+		err = svc.updateWithoutPresave(ctx, id, newVals, upsert)
+	}
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	if svc.PostUpdate {
+		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
 		if err != nil {
-			return err
+			return errors.WrapError(ctx, err)
 		}
 	}
+	return nil
+}
+
+func (svc *sqlDataService) updateWithoutPresave(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
 	if upsert {
 		newVals[svc.ObjectId] = id
 	}
 	query := svc.getMultitenantQuery(ctx, svc.db)
-
 	var err error
 	if upsert {
 		err = query.Where([]string{id}).FirstOrCreate(newVals).Error
@@ -266,13 +280,43 @@ func (svc *sqlDataService) update(ctx core.RequestContext, id string, newVals ma
 		err = query.Where([]string{id}).Updates(newVals).Error
 	}
 	if err != nil {
+		errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (svc *sqlDataService) updateWithPresave(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
+	err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
+	if err != nil {
 		return err
 	}
-	if svc.PostUpdate {
-		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": svc.Object, "data": newVals})
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
+	if upsert {
+		newVals[svc.ObjectId] = id
+	}
+	query := svc.getMultitenantQuery(ctx, svc.db)
+
+	object := svc.ObjectCreator()
+
+	err = query.First(object, id).Error
+
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	stor := object.(data.Storable)
+
+	if svc.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", id)
+	}
+
+	log.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
+	stor.SetValues(object, newVals)
+	if upsert {
+		err = svc.Save(ctx, stor)
+	} else {
+		err = svc.Put(ctx, stor.GetId(), stor)
+	}
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }

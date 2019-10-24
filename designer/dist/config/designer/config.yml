@@ -11,7 +11,7 @@ modules:
   localauth:
   role:
   staticfileserver:
-  designerdependencies:
+  platformdependencies:
   reactwebrouter:
   reactfileupload:
   reactbootstrapkit:
@@ -115,7 +115,7 @@ moduleinstances:
   reactfileupload:
     module: reactfileupload
   dependencies:
-    module: designerdependencies
+    module: platformdependencies
   moduledesignerbase:
     module: moduledesignerbase
   cadence:

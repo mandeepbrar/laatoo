@@ -240,12 +240,26 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 	if ms.Auditable {
 		data.Audit(ctx, newVals)
 	}
+	var err error
 	if ms.PreSave {
-		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
+		err = ms.updateWithPresave(ctx, id, newVals, upsert)
+	} else {
+		err = ms.updateWithoutPresave(ctx, id, newVals, upsert)
+	}
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	if ms.PostUpdate {
+		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 		if err != nil {
-			return err
+			return errors.WrapError(ctx, err)
 		}
 	}
+	return nil
+}
+
+func (ms *mongoDataService) updateWithoutPresave(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
 	if upsert {
 		newVals[ms.ObjectId] = id
 	}
@@ -264,16 +278,42 @@ func (ms *mongoDataService) update(ctx core.RequestContext, id string, newVals m
 		updateInterface := map[string]interface{}{"$set": newVals}
 		err = connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
 	}
+	return errors.WrapError(ctx, err)
+}
+
+func (ms *mongoDataService) updateWithPresave(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
+	err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 	if err != nil {
-		return err
+		return errors.WrapError(ctx, err)
 	}
-	if ms.PostUpdate {
-		err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
+	if upsert {
+		newVals[ms.ObjectId] = id
 	}
-	return nil
+	condition := bson.M{}
+	condition[ms.ObjectId] = id
+	if ms.Multitenant {
+		condition["Tenant"] = ctx.GetUser().GetTenant()
+	}
+	connCopy := ms.factory.connection.Copy()
+	defer connCopy.Close()
+	object := ms.ObjectCreator()
+
+	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	stor := object.(data.Storable)
+	if ms.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", id)
+	}
+
+	log.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
+	stor.SetValues(object, newVals)
+	if upsert {
+		return ms.Save(ctx, stor)
+	} else {
+		return ms.Put(ctx, stor.GetId(), stor)
+	}
 }
 
 func (ms *mongoDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {

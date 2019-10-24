@@ -14,7 +14,7 @@ objects:
         type: string
         required: true
       TaskListName:
-        description: Workflow processed by worker
+        description: Tasklist processed by worker
         type: string
         required: true
       ClientName:
@@ -30,6 +30,10 @@ objects:
     description: Simple sequential workflow for cadence
     configurations:
       TaskListName:
+        description: Tasklist name
+        type: string
+        required: true
+      WorkflowName:
         description: Workflow name
         type: string
         required: true

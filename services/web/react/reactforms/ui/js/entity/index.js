@@ -27,7 +27,7 @@ class Entity extends LoadableComponent {
     let value=_tn(this.state.value, {})
     let title = props.skipLabel? null: props.label
     return (
-      <Panel actions={props.actions} formData={value} closePanel={props.closePanel} title={title} onChange={this.change} onFormSubmit={props.onFormSubmit} description={this.formDesc} />
+      <Panel actions={props.actions} formData={value} subform={props.subform} closePanel={props.closePanel} title={title} onChange={this.change} onFormSubmit={props.onFormSubmit} description={this.formDesc} />
     )
   }
 }

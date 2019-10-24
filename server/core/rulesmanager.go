@@ -138,11 +138,12 @@ func (rm *rulesManager) subscribeSynchronousMessage(ctx core.ServerContext, msgT
 }
 
 func (rm *rulesManager) sendSynchronousMessage(ctx core.RequestContext, msgType string, data interface{}) error {
+	log.Error(ctx, "sending synchronous message", "msgtype", msgType)
 	tr := &rules.Trigger{MessageType: msgType, TriggerType: rules.SynchronousMessage, Message: data}
 	regrules, present := rm.registeredRules[msgType]
 	if present {
 		for ruleName, rule := range regrules {
-			log.Debug(ctx, "Executing rule. Checking condition", "name", ruleName, "rule", rule)
+			log.Error(ctx, "Executing rule. Checking condition", "name", ruleName, "rule", rule)
 			if rule.Condition(ctx, tr) {
 				log.Debug(ctx, "Executing rule", "message", msgType)
 				err := rule.Action(ctx, tr)

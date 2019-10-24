@@ -3,7 +3,7 @@ Block:
     children:
         - Block:
             className: tablecell
-            body: Name
+            body: <<.LabelField>>
         - Block:
             className: tablecell
             body: Last Updated

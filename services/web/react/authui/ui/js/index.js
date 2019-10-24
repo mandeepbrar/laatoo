@@ -7,7 +7,7 @@ import {SignupComponent} from './SignupComponent';
 const PropTypes = require('prop-types');
 import './reducers/Security';
 import './sagas/Security';
-import {UserBlock} from './UserBlock';
+import {UserBlock, LogoutButton} from './UserBlock';
 
 var module;
 function Initialize(appName, ins, mod, settings, def, req) {
@@ -54,6 +54,7 @@ Application.Register('Blocks', "userBlock", userBlockDisplay)
 export {
   Initialize,
   LoginComponent,
+  LogoutButton,
   renderWebLogin,
   renderSignup,
   SignupComponent,

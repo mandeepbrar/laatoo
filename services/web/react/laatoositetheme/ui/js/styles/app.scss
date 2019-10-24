@@ -3,7 +3,7 @@
 .dashboard {
   @extend .fd, .fdcol, .fdgrow;
   .header {
-    @extend .row, .m0, .p20, .between-xs, .fdcol;
+    @extend .row, .m0, .p10, .between-xs, .fdrow;
     .title {
       @extend .start-xs;
     }

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/radovskyb/watcher"
@@ -131,6 +132,27 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		}
 		return nil
 	}
+
+	compile := func(compileCtx core.ServerContext, modname, modDir, compilerCommand string) {
+		compilerCmdArr := strings.Split(compilerCommand, " ")
+		command := compilerCmdArr[0]
+		compilerCmdArr = append(compilerCmdArr[1:], "--name", modname, "--packageFolder", modDir)
+
+		cmd := exec.Command(command, compilerCmdArr...)
+		//cmd.Env = env
+		stdoutStderr, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Error(compileCtx, "Error executing command ***********", "err", err, "stdoutStderr", string(stdoutStderr))
+		} else {
+			log.Error(compileCtx, "Compile success ***********", "stdoutStderr", string(stdoutStderr))
+			reloadCtx := compileCtx.SubContext("Reload module " + modName)
+			err = modMgr.ReloadModule(reloadCtx, modName, modDir)
+			if err != nil {
+				log.Error(reloadCtx, "Error while reloading module", "err", err)
+			}
+		}
+
+	}
 	/*
 		removedFoldersFromWatcher := func(ctx core.ServerContext, modDir string, w *watcher.Watcher) error {
 			log.Error(ctx, "removed folders", "moddir", modDir)
@@ -143,31 +165,19 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 			return nil
 		}*/
 
+	var once sync.Once
 	go func(ctx core.ServerContext, modname, modDir, compilerCommand string) {
-		compilerCmdArr := strings.Split(compilerCommand, " ")
-		command := compilerCmdArr[0]
-		compilerCmdArr = append(compilerCmdArr[1:], "--name", modname, "--packageFolder", modDir)
 		for {
 			select {
 			case event := <-compileWatcher.Event:
 				compileCtx := ctx.SubContext("Module Compile" + modName)
-				log.Info(compileCtx, "Compile required", "modName", modName, " file ", event.Path, "event", event, "compilerCommand", command, "args", compilerCmdArr)
 				compileWatcher.Close()
+				log.Info(compileCtx, "Compile required", "modName", modName, " file ", event.Path, "event", event)
+				once.Do(func() {
+					compile(compileCtx, modname, modDir, compilerCommand)
+				})
 				//env := os.Environ()
 				//log.Error(compileCtx, "Environment", "env", env)
-				cmd := exec.Command(command, compilerCmdArr...)
-				//cmd.Env = env
-				stdoutStderr, err := cmd.CombinedOutput()
-				if err != nil {
-					log.Error(compileCtx, "Error executing command ***********", "err", err, "stdoutStderr", string(stdoutStderr))
-				} else {
-					log.Error(compileCtx, "Compile success ***********", "stdoutStderr", string(stdoutStderr))
-					reloadCtx := compileCtx.SubContext("Reload module " + modName)
-					err = modMgr.ReloadModule(reloadCtx, modName, modDir)
-					if err != nil {
-						log.Error(reloadCtx, "Error while reloading module", "err", err)
-					}
-				}
 				/*err = removedFoldersFromWatcher(ctx, modDir, compileWatcher)
 				if err != nil {
 					log.Error(compileCtx, "Error reloading watchers", "err", err)

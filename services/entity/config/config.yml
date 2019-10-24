@@ -39,6 +39,9 @@ objects:
       update_form_page: 
         type: bool
         description: True if update entity page needs to be created by entity module
+      update_success_route:
+        type: string
+        description: Route for update success
       instance:
         type: string
         description: Discriminator to distinguish multiple services created by multiple
@@ -110,6 +113,9 @@ params:
   update_form_page: 
     type: bool
     description: True if update form page needs to be created by entity module
+  update_success_route: 
+    type: string
+    description: Route to go to after success of update form. Goes to list page by default
   view_page: 
     type: bool
     description: True if entity view page needs to be created by entity module

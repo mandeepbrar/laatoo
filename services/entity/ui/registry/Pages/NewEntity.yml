@@ -4,6 +4,10 @@ config:
   skip: {{if exists "new_form_page"}} {{var "new_form_page" | not }} {{else}} true {{end}}
 route: {{if exists "new_form_route"}} {{var "new_form_route"}} {{else}} /new_form_{{default "instance" "object" | lower}} {{end}}
 component:
-  type: form
-  title: New {{default "instance" "object" }}
-  id: new_form_{{default "instance" "object" | lower}}
+  type: layout
+  layout: 1col
+  items:
+    - type: html
+      html: <h3>New {{default "instance" "object" }}</h3>
+    - type: form
+      id: new_form_{{default "instance" "object" | lower}}

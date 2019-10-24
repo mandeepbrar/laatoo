@@ -250,7 +250,7 @@ class Panel extends React.Component {
         }
         console.log("form cfg", formCfg, cfg, props, formName)
         return <this.form form={formName} parentFormRef={props.parentFormRef} formContext={{data: props.data, routeParams: ctx.routeParams, storage: Storage}}
-           info={formCfg} inline={props.inline} onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData}
+           info={formCfg} inline={props.inline} onChange={props.onChange} trackChanges={props.trackChanges} formData={props.formData} subform={props.subform}
            onFormSubmit={props.onFormSubmit} title={props.title} actions={props.actions} description={desc} className={className} id={desc.id}/>
       }
     } else {
@@ -292,7 +292,7 @@ class Panel extends React.Component {
     this.getView = function(props, context, state, className) {
       console.log("rendering view", this.view, props, desc, className)
       return <this.view params={props.params} description={desc} getItem={props.getItem} editable={props.editable} className={className} header={viewHeader}
-        viewRef={props.viewRef} id={desc.id}>
+        viewRef={props.viewRef} postArgs={props.postArgs} urlParams={props.urlParams} id={desc.id}>
         <Panel parent={props.parent} description={desc.item} />
       </this.view>
     }

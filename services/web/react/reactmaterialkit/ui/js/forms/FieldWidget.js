@@ -11,6 +11,7 @@ import {
   Switch,
   TimePicker
 } from '@material-ui/core';
+import Slider from '@material-ui/lab/Slider';
 import {Select} from '../components/Select';
 import PropTypes from 'prop-types';
 
@@ -30,11 +31,13 @@ class FieldWidget extends React.Component {
     super(props)
     //injectTapEventPlugin()
     let widgetName = _tn(props.widgetName, "TextField")
+    this.controlProps = {}
     switch(widgetName) {
       case "TextField":
         this.renderer = this.renderTextField
         break
       case "NumberField":
+        this.controlProps = {type: "number"}
         this.renderer = this.renderTextField
         break
       case "Radio":
@@ -61,6 +64,9 @@ class FieldWidget extends React.Component {
       case "ImagePicker":
         this.renderer = this.renderTextField
         break
+      case "Slider":
+        this.renderer = this.renderSlider
+        break
       default:
         this.renderer = this.renderTextField
     }
@@ -68,6 +74,7 @@ class FieldWidget extends React.Component {
     this.label = _tn(props.label, props.name)
     this.className = _tn(props.className, "") + widgetName
     this.controlClassName= _tn(props.controlClassName, "")
+    console.log("material kit field widget", props)
     /*if(field && field.widget) {
     }*/
   }
@@ -102,6 +109,16 @@ class FieldWidget extends React.Component {
     )
   }
 
+  renderSlider = (props) =>  {
+    console.log("rendering slider", Slider, this.state.value)
+    return (
+      <FormControlLabel control={
+        <Slider name={props.name} onChange={(evt, val)=> {console.log(val);this.props.onChange(val, this.props.name, evt)}} value={this.state.value} 
+          {...props.widgetProps} className={props.controlClassName + " slider "}/>
+      } label={this.label} className={this.className + " slider "}  />
+    )
+  }
+
   change = (evt) => {
     if(this.props.onChange) {
       console.log("change ", evt, evt.target.value)
@@ -112,7 +129,7 @@ class FieldWidget extends React.Component {
   renderTextField = (props) => {
     console.log("rendertext field", props)
     return (
-      <TextField name={this.name} errorText={props.errorText} onChange={this.change} onBlur={props.onBlur} onFocus={props.onFocus} 
+      <TextField name={this.name} errorText={props.errorText} onChange={this.change} onBlur={props.onBlur} onFocus={props.onFocus} {...this.controlProps}
         floatingLabelText={this.label} label={this.label} value={this.state.value} hintText={this.label} className={this.className + " textfield " }/>
     )
   }

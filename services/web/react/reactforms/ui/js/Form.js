@@ -176,7 +176,7 @@ class BaseForm extends React.Component {
         if(display) {
           console.log("form context", this.props.formContext);
           let root = display(props.formContext, props.description)
-          formComp = React.cloneElement(root, { formValue: this.state.formValue, onSubmit: this.submitFunc, className: " form "})
+          formComp = React.cloneElement(root, { onSubmit: this.submitFunc, className: " form "})
         }
       } else {
         formComp = (
@@ -185,7 +185,7 @@ class BaseForm extends React.Component {
               props.children?
               props.children
               :
-              <FieldsPanel description={props.description} formRef={this} formValue={this.state.formValue} />
+              <FieldsPanel description={props.description} formRef={this}  />
             }
           </_uikit.Form>
         )
@@ -193,13 +193,16 @@ class BaseForm extends React.Component {
       return (
         <_uikit.Block className={this.className}>
             {formComp}
-            <_uikit.Block className="actionbar ptb20 right">
+            {
+              props.subform? null :
+              <_uikit.Block className="actionbar ptb20 right">
               {
                 this.actions?
                 this.actions(this, this.submitFunc, this.reset, this.setData, this.props.dispatch):
                 <_uikit.ActionButton onClick={this.submitFunc()} className="submitBtn">{cfg.submit? cfg.submit: "Submit"}</_uikit.ActionButton>
               }
             </_uikit.Block>
+          }
         </_uikit.Block>
       )
     } else {
@@ -229,7 +232,7 @@ class EntityForm extends BaseForm {
       let svc = this.info.entityService
       let form = this
           //console.log("desc....", entityId, "name", entityName, entityFormCfg)
-      if(entityId) {
+      if(entityId && !props.subform) {
         this.loader = (routeParams, dataLoaded, failureCallback) => {
           dispatch(createAction(ActionNames.ENTITY_GET, { entityId, entityName}, {successCallback:  form.dataLoaded, failureCallback: failureCallback}));
         } 
@@ -306,6 +309,7 @@ class WebFormUI extends React.Component {
     let desc = props.description
     let info = props.info? props.info: null
     info = desc && desc.info ? desc.info : {}
+    console.log("web form info ", info)
     if (info.entity){
       this.formType = reduxForm({form: props.form})(EntityForm)
     } else {

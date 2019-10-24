@@ -50,6 +50,7 @@ class FieldWidget extends React.Component {
     } else if(cfg.entity) {
       console.log("chosing entityfor ", cfg.name)
       this.widgetComp = Entity
+      cfg.subform = true
     } else {
       this.processTypes(cfg)
 //      console.log("chosing uikit field for ", cfg.name)
@@ -65,6 +66,7 @@ class FieldWidget extends React.Component {
         break;
         case "int":
         case "float":
+          this.parser = this.intParse
           cfg.widgetName = "NumberField"
         break;
         case "storableref": 
@@ -87,6 +89,11 @@ class FieldWidget extends React.Component {
         break;
       }
     }
+  }
+
+  intParse = (value, name) => {
+    let val = Number(value)
+    return this.cfg.type == "int"? Math.round(val): val
   }
 
   processEntityField = (fld) => {
@@ -126,7 +133,7 @@ class FieldWidget extends React.Component {
 
   processProps= (props, cfg) => {
     let fldProps = ["name", "label", "items", "textField", "valueField", "widgetName", "widgetModule", "selectItem", "itemClass", 
-      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode", "placeholder" ]
+      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode", "placeholder", "skipLabel" ]
     fldProps.map((item)=>{
       cfg[item] = _tn(props[item], cfg[item])
     })
@@ -227,7 +234,7 @@ class FieldWidget extends React.Component {
   }
 
   render() {
-    return <RFField name={this.cfg.name} component={this.component}/>
+    return <RFField name={this.cfg.name} parse={this.parser} component={this.component}/>
   }
 }
 

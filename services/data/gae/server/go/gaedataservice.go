@@ -266,25 +266,12 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	}
 	log.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
 	stor.SetValues(object, newVals)
-	if err != nil {
-		if upsert {
-			return svc.Save(ctx, stor)
-		}
-		return err
+	if upsert {
+		err = svc.Save(ctx, stor)
+	} else {
+		err = svc.Put(ctx, stor.GetId(), stor)
 	}
-	log.Info(ctx, "Set values", "object", object)
-	if svc.PreSave {
-		err := ctx.SendSynchronousMessage(data.CONF_PRESAVE_MSG, stor)
-		if err != nil {
-			return err
-		}
-		err = stor.PreSave(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	log.Info(ctx, "Going to put object", "id", id, "object", object)
-	_, err = datastore.Put(appEngineContext, key, object)
+
 	if err != nil {
 		return err
 	}

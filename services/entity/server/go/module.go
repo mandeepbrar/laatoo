@@ -20,6 +20,7 @@ const (
 	ENTITY_UPDATE_FORM      = "update_form"
 	ENTITY_NEW_FORM_PAGE    = "new_form_page"
 	ENTITY_UPDATE_FORM_PAGE = "update_form_page"
+	ENTITY_UPDATE_SUCCESS   = "update_success_route"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
@@ -28,14 +29,15 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 type EntityModule struct {
 	core.Module
-	object         string
-	entityConf     config.Config
-	instance       string
-	templatesDir   string
-	newform        bool
-	updateform     bool
-	newformpage    bool
-	updateformpage bool
+	object             string
+	entityConf         config.Config
+	instance           string
+	templatesDir       string
+	newform            bool
+	updateform         bool
+	newformpage        bool
+	updateformpage     bool
+	updateSuccessRoute string
 }
 
 /*
@@ -56,6 +58,12 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	entity.updateform, _ = entity.GetBoolConfiguration(ctx, ENTITY_UPDATE_FORM)
 	entity.newformpage, _ = entity.GetBoolConfiguration(ctx, ENTITY_NEW_FORM_PAGE)
 	entity.updateformpage, _ = entity.GetBoolConfiguration(ctx, ENTITY_UPDATE_FORM_PAGE)
+	updateSuccessRoute, ok := entity.GetStringConfiguration(ctx, ENTITY_UPDATE_SUCCESS)
+	if !ok {
+		entity.updateSuccessRoute = fmt.Sprint("list_", strings.ToLower(entity.instance))
+	} else {
+		entity.updateSuccessRoute = updateSuccessRoute
+	}
 	md, err := ctx.GetObjectMetadata(entity.object)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -124,7 +132,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	}
 	entityFormInfo.Set(ctx, "entity", entname)
 	entityFormInfo.Set(ctx, "className", fmt.Sprint(" entityform ", strings.ToLower(entity.instance+"_form")))
-	entityFormInfo.Set(ctx, "successRedirectPage", fmt.Sprint("list_", strings.ToLower(entity.instance)))
+	entityFormInfo.Set(ctx, "successRedirectPage", entity.updateSuccessRoute)
 	formNewArgs, ok := ctx.Get("form_new_args")
 	if ok {
 		log.Error(ctx, " Setting pre assigned params for new form", "form_new_args", formNewArgs)
@@ -199,7 +207,11 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 		return nil, errors.WrapError(ctx, err)
 	}
 	tableHeaderStr := new(bytes.Buffer)
-	data := TemplateData{entity.object, "Name"}
+	title, ok := entity.entityConf.GetString(ctx, "titleField")
+	if !ok {
+		title = "Name"
+	}
+	data := TemplateData{entity.object, title}
 
 	err = viewtableHeaderTemp.Execute(tableHeaderStr, data)
 	if err != nil {

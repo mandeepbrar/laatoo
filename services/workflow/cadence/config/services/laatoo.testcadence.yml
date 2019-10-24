@@ -1,4 +1,6 @@
 servicemethod: cadence_simpleworkflow
 TaskListName: testworkflow
+WorkflowName: testworkflow
 Tasks:
   - Sometask
+  - Sometask1  

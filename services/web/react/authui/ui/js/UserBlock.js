@@ -36,4 +36,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 
 const UserBlock = connect(mapStateToProps, mapDispatchToProps)(UserBlockUI)
 
-export {UserBlock}
+const LogoutButtonUI = (props) => (
+  <Action name="logout" widget="button" method={props.logout} className={_tn(props.className, "") + " logout"}>{props.children}</Action>
+)
+
+const LogoutButton = connect(mapStateToProps, mapDispatchToProps)(LogoutButtonUI)
+
+export {UserBlock, LogoutButton}

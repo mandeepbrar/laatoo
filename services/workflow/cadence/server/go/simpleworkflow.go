@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"time"
 
 	"go.uber.org/cadence/activity"
@@ -22,6 +24,7 @@ type SimpleActivity func(ctx context.Context, value input) (interface{}, error)
 type SimpleWorkflow struct {
 	core.Service
 	TaskListName string
+	WorkflowName string
 	Tasks        []string
 	activities   []SimpleActivity
 }
@@ -32,13 +35,21 @@ func (svc *SimpleWorkflow) Initialize(ctx core.ServerContext, conf config.Config
 
 func (svc *SimpleWorkflow) Start(ctx core.ServerContext) error {
 	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
+	svc.WorkflowName, _ = svc.GetStringConfiguration(ctx, "WorkflowName")
 	svc.Tasks, _ = svc.GetStringArrayConfiguration(ctx, "Tasks")
-	workflow.Register(svc.Workflow)
+	err := svc.createActivities(ctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	workflow.RegisterWithOptions(svc.Workflow, workflow.RegisterOptions{Name: svc.WorkflowName})
+
 	return nil
 }
 
-func actCreator(taskName string) SimpleActivity {
+func actCreator(ctx core.ServerContext, taskName string) SimpleActivity {
+	log.Error(ctx, "Creating workflow task", "taskName", taskName)
 	return func(actctx context.Context, value input) (interface{}, error) {
+		log.Error(ctx, "Completing workflow task", "taskName", taskName)
 		activity.GetLogger(actctx).Info("Done", zap.String("taskName", taskName))
 		return nil, nil
 	}
@@ -46,9 +57,10 @@ func actCreator(taskName string) SimpleActivity {
 
 func (svc *SimpleWorkflow) createActivities(ctx core.ServerContext) error {
 	svc.activities = make([]SimpleActivity, len(svc.Tasks))
+	log.Error(ctx, "creating activities", "tasks", svc.Tasks)
 	for idx, taskName := range svc.Tasks {
-		act := actCreator(taskName)
-		activity.Register(act)
+		act := actCreator(ctx, taskName)
+		activity.RegisterWithOptions(act, activity.RegisterOptions{Name: taskName})
 		svc.activities[idx] = act
 	}
 	return nil

@@ -16,3 +16,7 @@ permissions:
   - View Role
   - Create Role
   - Delete Role
+
+
+#ssh-keygen -t rsa -b 2048
+#openssl rsa -in raminderapp.pem -pubout > raminderapp.pub
