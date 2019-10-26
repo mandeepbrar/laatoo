@@ -4,3 +4,4 @@ Host: cadence:7933
 Domain: testdomain
 ClientName: testclient
 CadenceService: cadence-frontend
+WorkflowDefinition: '{"variables":{"arg1":"value1","arg2":"value2"}, "root":{"sequence":{"elements":[{"activity":{"name": "Sometask1"}}, {"activity":{"name": "Sometask"}}]}}}'

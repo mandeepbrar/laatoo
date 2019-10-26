@@ -223,11 +223,16 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		req.SetBody(t.Data)
 		req.AddParam(tskMgr.authHeader, t.Token)*/
 		/****TODO****error handling****/
-		tskMgr.shandler.AuthenticateRequest(ctx, true)
+		_, err := tskMgr.shandler.AuthenticateRequest(ctx, true)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 		log.Trace(ctx, "Processing background task")
 		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token, "Task": t.Data})
 		ctx.SetResponse(res)
 		return err
+	} else {
+		return errors.BadConf(ctx, "No processor assigned to queue for processing task ", "queue", queue)
 	}
 	return nil
 }

@@ -13,17 +13,19 @@ import (
 	"go.uber.org/cadence/client"
 	"go.uber.org/yarpc"
 	"go.uber.org/yarpc/transport/tchannel"
+	"gopkg.in/yaml.v2"
 )
 
 type WorkflowInitiator struct {
 	core.Service
-	Host           string
-	Domain         string
-	ClientName     string
-	CadenceService string
-	TaskListName   string
-	dispatcher     *yarpc.Dispatcher
-	client         client.Client
+	Host               string
+	Domain             string
+	ClientName         string
+	CadenceService     string
+	TaskListName       string
+	WorkflowDefinition string
+	dispatcher         *yarpc.Dispatcher
+	client             client.Client
 }
 
 func (svc *WorkflowInitiator) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -36,6 +38,7 @@ func (svc *WorkflowInitiator) Start(ctx core.ServerContext) error {
 	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
 	svc.ClientName, _ = svc.GetStringConfiguration(ctx, "ClientName")
 	svc.CadenceService, _ = svc.GetStringConfiguration(ctx, "CadenceService")
+	svc.WorkflowDefinition, _ = svc.GetStringConfiguration(ctx, "WorkflowDefinition")
 	workflowClient, err := svc.buildCadenceClient(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -59,8 +62,13 @@ func (svc *WorkflowInitiator) StartWorkflow(ctx core.RequestContext, workflowNam
 		DecisionTaskStartToCloseTimeout: time.Minute,
 	}
 
-	ctx = ctx.SubContext("Workflow" + workflowName)
-	we, err := svc.client.StartWorkflow(context.Background(), workflowoptions, workflowName, ctx, initVal)
+	var dslworkflow Workflow
+
+	if err := yaml.Unmarshal([]byte(svc.WorkflowDefinition), &dslworkflow); err != nil {
+		return errors.BadConf(ctx, "WorkflowDefinition", "err", err)
+	}
+
+	we, err := svc.client.StartWorkflow(context.Background(), workflowoptions, workflowName, dslworkflow, svc.TaskListName)
 	if err != nil {
 		log.Error(ctx, "Failed to create workflow", "workflow", workflowName)
 		return errors.WrapError(ctx, err)

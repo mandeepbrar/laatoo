@@ -61,3 +61,11 @@ objects:
         description: Cadence service
         type: string
         required: true
+      TaskListName:
+        description: Tasklist name
+        type: string
+        required: true
+      WorkflowDefinition:
+        description: Workflow Definition
+        type: string
+        required: true

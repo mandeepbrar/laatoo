@@ -8,61 +8,40 @@ VOLUME /compiletmp
 
 VOLUME /modulesrepo
 
-#RUN mkdir -p /plugins/src
-
 VOLUME /deploy
 
-RUN chown -R laatoo /build /modulesrepo /deploy /nodemodules /go /compiletmp
+ENV LAATOO_SDK=/laatoo/sdk GO111MODULE=on
 
 ENV skipObjects=false overwriteJSMods=false skipUI=false printUIConfig=false name=plugin release=false norust=false verbose=false packageFolder=. getBuildPackages=true forceUIModules=false uionly=false nobundle=false 
 
 ENV NODE_PATH /usr/local/lib/node_modules:/nodemodules/node_modules:.
-ENV GO111MODULE on
 
-#RUN mkdir -p /laatoo
+COPY makelaatoomodule.sh /make.sh
 
-#RUN chown -R laatoo.root /laatoo
+RUN chown -R laatoo /build /modulesrepo /deploy /nodemodules /go /compiletmp
 
 COPY forcaching /go/forcaching
-
-#RUN chown -R laatoo /go
-
-#USER laatoo
 
 WORKDIR /go/forcaching
 
 RUN go mod download -json 
 
-#ENV LAATOO_SDK=/laatoo/sdk
-
-#ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
+WORKDIR /go
 
 COPY --chown=laatoo:laatoo sdk $LAATOO_SDK
+
+RUN chown -R laatoo:laatoo /go $LAATOO_SDK
+
+#ENV LAATOO_RUST_CLIENT_SDK=$LAATOO_SDK/client/rust
 
 #WORKDIR /laatoo/sdk/client/rust/laatoocore
 
 #RUN cargo build --target wasm32-unknown-unknown
 
-COPY makelaatoomodule.sh /make.sh
-
-#ENV GOPATH=$GOPATH:/plugins
-
-ENV USER=laatoo
-
-RUN chown -R laatoo:laatoo /go /laatoo/sdk
-
 COPY build/ /build
-
-WORKDIR /build
-
-#RUN npm i
 
 USER laatoo:laatoo
 
 WORKDIR /go
-
-#VOLUME /laatoo/sdk/modules
-
-#RUN go build laatoo/sdk
 
 ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust $norust --nobundle $nobundle 

@@ -3,7 +3,15 @@
 .dashboard {
   @extend .fd, .fdcol, .fdgrow;
   .header {
-    @extend .row, .m0, .p10, .between-xs, .fdrow;
+    @extend .row, .m0, .p10, .fdrow, .between-xs;
+    .logo {
+      a {
+        display: flex;
+        img {
+          display: block;
+        }
+      }  
+    }
     .title {
       @extend .start-xs;
     }

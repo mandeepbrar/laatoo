@@ -49,11 +49,11 @@ func (svc *StaticFiles) Initialize(ctx core.ServerContext) error {
 }*/
 
 func (svc *StaticFiles) Invoke(ctx core.RequestContext) error {
-	/*	err := svc.wf.StartWorkflow(ctx, "testworkflow", "someparam")
-		if err != nil {
-			return errors.WrapError(ctx, err)
-		}
-	*/
+	err := svc.wf.StartWorkflow(ctx, "testworkflow", "someparam")
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
 	fn, ok := ctx.GetParam(CONF_STATIC_FILEPARAM)
 	log.Trace(ctx, "Received request for file", "filename", fn)
 	if ok {
@@ -123,12 +123,12 @@ func (svc *StaticFiles) Start(ctx core.ServerContext) error {
 		svc.transformedFilesStorage = tstgSvc.(components.StorageComponent)
 	}
 
-	/*wfsvc, err := ctx.GetService("laatoo.workflowinitiator")
+	wfsvc, err := ctx.GetService("laatoo.workflowinitiator")
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	svc.wf = wfsvc.(components.WorkflowInitiator)
-	*/
+
 	return nil
 }
 

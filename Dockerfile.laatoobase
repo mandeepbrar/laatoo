@@ -1,9 +1,5 @@
 FROM golang:latest
 
-COPY getpackages.sh .
-
-RUN ./getpackages.sh
-
 RUN groupadd -r laatoo -g 1000
 
 RUN useradd -u 1000 -ms /bin/bash -g laatoo -G sudo -p laatoo laatoo
