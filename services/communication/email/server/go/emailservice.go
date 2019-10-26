@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"net/smtp"
 )
 
@@ -21,13 +22,24 @@ type EmailService struct {
 	mailServer string
 	mailUser   string
 	mailPass   string
+	sender     string
 }
 
 func (svc *EmailService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (svc *EmailService) SendMessage(ctx ctx.Context, recipients []string, sender string, msg interface{}) error {
+func (svc *EmailService) SendCommunication(ctx ctx.Context, communication map[interface{}]interface{}) error {
+	for recipients, msg := range communication {
+		err := svc.sendMessage(ctx, recipients.([]string), svc.sender, msg)
+		if err != nil {
+			log.Error(ctx, "Could not send email to recepients", "recepients", recipients)
+		}
+	}
+	return nil
+}
+
+func (svc *EmailService) sendMessage(ctx ctx.Context, recipients []string, sender string, msg interface{}) error {
 	auth := smtp.PlainAuth("", svc.mailUser, svc.mailPass, svc.mailServer)
 
 	// Connect to the server, authenticate, set the sender and recipient,
@@ -43,5 +55,6 @@ func (svc *EmailService) Start(ctx core.ServerContext) error {
 	svc.mailServer, _ = svc.GetStringConfiguration(ctx, "server")
 	svc.mailUser, _ = svc.GetStringConfiguration(ctx, "user")
 	svc.mailPass, _ = svc.GetStringConfiguration(ctx, "password")
+	svc.sender, _ = svc.GetStringConfiguration(ctx, "mailsender")
 	return nil
 }

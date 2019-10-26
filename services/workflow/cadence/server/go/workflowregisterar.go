@@ -29,10 +29,6 @@ type SimpleWorkflow struct {
 }
 
 func (svc *SimpleWorkflow) Initialize(ctx core.ServerContext, conf config.Config) error {
-	return nil
-}
-
-func (svc *SimpleWorkflow) Start(ctx core.ServerContext) error {
 	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(elements.TaskManager)
 	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
 	svc.WorkflowName, _ = svc.GetStringConfiguration(ctx, "WorkflowName")
@@ -45,53 +41,54 @@ func (svc *SimpleWorkflow) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *SimpleWorkflow) RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister cadence.CadenceWorkflow) {
+func (svc *SimpleWorkflow) RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister cadence.Workflow) {
 	workflow.RegisterWithOptions(workflowToRegister, workflow.RegisterOptions{Name: svc.WorkflowName})
 }
 
 func (svc *SimpleWorkflow) taskActivityCreator(ctx core.ServerContext, taskName string) {
 	log.Info(ctx, "Creating workflow task", "taskName", taskName)
-
+	errType := reflect.TypeOf((*error)(nil)).Elem()
+	interfaceType := reflect.TypeOf((*interface{})(nil)).Elem()
 	myFunc := func(args []reflect.Value) (results []reflect.Value) {
-
-		reqctx := args[0].Interface().(core.RequestContext)
-		actCtxInterface, _ := reqctx.Get("WorkflowCtx")
-		actctx := actCtxInterface.(context.Context)
-
-		inputTask := args[1].Interface().(*components.Task)
-
-		log.Info(ctx, "Posting workflow task", "input", inputTask)
-
-		var err error
-
 		var result interface{}
 
-		err = svc.taskManager.ProcessTask(reqctx, inputTask)
+		log.Error(ctx, "Decoding workflow task", "taskName", taskName)
+		actctx := args[0].Interface().(context.Context)
+		activity.GetLogger(actctx).Info("Starting task")
+
+		reqctx, err := ctx.CreateNewRequest("Cadence workflow task "+svc.WorkflowName, nil, nil, "")
 		if err == nil {
-			res := reqctx.GetResponse()
-			activity.GetLogger(actctx).Info("Task complete", zap.String("taskName", inputTask.Queue))
-			result = res.Data
+			inputTask := args[1].Interface().(*components.Task)
+
+			log.Info(ctx, "Posting workflow task", "input", inputTask)
+
+			err = svc.taskManager.ProcessTask(reqctx, inputTask)
+			if err == nil {
+				res := reqctx.GetResponse()
+				activity.GetLogger(actctx).Info("Task complete", zap.String("taskName", inputTask.Queue))
+				result = res.Data
+			}
 		}
 
 		var resVal reflect.Value
 		if result != nil {
 			resVal = reflect.ValueOf(result)
 		} else {
-			resVal = reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem())
+			resVal = reflect.Zero(interfaceType)
 		}
 
 		var errVal reflect.Value
 		if err != nil {
-			errVal = reflect.ValueOf(err)
+			errVal = reflect.ValueOf(err).Convert(errType)
 		} else {
-			errVal = reflect.Zero(reflect.TypeOf((*error)(nil)).Elem())
+			errVal = reflect.Zero(errType)
 		}
 
 		return []reflect.Value{resVal, errVal}
 	}
 
-	var k components.TaskProcessor
-	act := reflect.MakeFunc(reflect.TypeOf(k), myFunc).Interface().(components.TaskProcessor)
+	var k cadence.TaskProcessor
+	act := reflect.MakeFunc(reflect.TypeOf(k), myFunc).Interface().(cadence.TaskProcessor)
 
 	activity.RegisterWithOptions(act, activity.RegisterOptions{Name: taskName})
 }
@@ -107,7 +104,7 @@ func (svc *SimpleWorkflow) createActivities(ctx core.ServerContext) error {
 	return nil
 }
 
-func (svc *SimpleWorkflow) Workflow(ctx workflow.Context, reqCtx core.RequestContext, value interface{}) error {
+func (svc *SimpleWorkflow) Workflow(ctx workflow.Context, value interface{}) error {
 	ao := workflow.ActivityOptions{
 		TaskList:               svc.TaskListName,
 		ScheduleToCloseTimeout: time.Second * 60,
@@ -136,9 +133,7 @@ func (svc *SimpleWorkflow) Workflow(ctx workflow.Context, reqCtx core.RequestCon
 
 		tsk := &components.Task{Queue: taskName, Data: data, Token: ""}
 
-		reqCtx.Set("WorkflowCtx", ctx)
-
-		future := workflow.ExecuteActivity(ctx, taskName, reqCtx, tsk)
+		future := workflow.ExecuteActivity(ctx, taskName, tsk)
 
 		var result interface{}
 		if err := future.Get(ctx, &result); err != nil {

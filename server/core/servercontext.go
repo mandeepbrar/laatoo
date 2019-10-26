@@ -82,6 +82,7 @@ type contextElements struct {
 	moduleManager  elements.ModuleManager
 	sessionManager elements.SessionManager
 	module         elements.Module
+	communicator   elements.Communicator
 
 	//open element for client applications
 	open1 core.ServerElement
@@ -167,6 +168,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.svrElements.module
 	case core.ServerElementLogger:
 		return ctx.svrElements.logger
+	case core.ServerElementCommunicator:
+		return ctx.svrElements.communicator
 	case core.ServerElementOpen1:
 		return ctx.svrElements.open1
 	case core.ServerElementOpen2:
@@ -218,7 +221,7 @@ func (ctx *serverContext) getElementsContextMap() core.ContextMap {
 		core.ServerElementChannel: ctx.svrElements.channel, core.ServerElementChannelManager: ctx.svrElements.channelManager, core.ServerElementSecurityHandler: ctx.svrElements.securityHandler,
 		core.ServerElementMessagingManager: ctx.svrElements.msgManager, core.ServerElementServiceResponseHandler: ctx.svrElements.serviceResponseHandler, core.ServerElementRulesManager: ctx.svrElements.rulesManager,
 		core.ServerElementCacheManager: ctx.svrElements.cacheManager, core.ServerElementTaskManager: ctx.svrElements.taskManager, core.ServerElementLogger: ctx.svrElements.logger,
-		core.ServerElementModuleManager: ctx.svrElements.moduleManager, core.ServerElementModule: ctx.svrElements.module,
+		core.ServerElementModuleManager: ctx.svrElements.moduleManager, core.ServerElementModule: ctx.svrElements.module, core.ServerElementCommunicator: ctx.svrElements.communicator,
 		core.ServerElementOpen1: ctx.svrElements.open1, core.ServerElementOpen2: ctx.svrElements.open2, core.ServerElementOpen3: ctx.svrElements.open3}
 }
 
@@ -359,6 +362,12 @@ func (ctx *serverContext) setElementReferences(svrelements core.ContextMap, ref 
 			} else {
 				ctxElems.module = element.(elements.Module)
 			}
+		case core.ServerElementCommunicator:
+			if element == nil {
+				ctxElems.communicator = nil
+			} else {
+				ctxElems.communicator = element.(elements.Communicator)
+			}
 		case core.ServerElementOpen1:
 			ctxElems.open1 = element
 		case core.ServerElementOpen2:
@@ -388,7 +397,11 @@ func (ctx *serverContext) CreateNewRequest(name string, engine interface{}, engi
 	if ctx.svrElements.service == nil {
 		return nil, errors.MissingService(ctx, name)
 	}
-	reqCtx, err := ctx.createNewRequest(name, engine.(elements.Engine), engineCtx, sessionId)
+	var eng elements.Engine
+	if engine != nil {
+		eng = engine.(elements.Engine)
+	}
+	reqCtx, err := ctx.createNewRequest(name, eng, engineCtx, sessionId)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
@@ -477,6 +490,13 @@ func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {
 	} else {
 		deflog.Println(msg)
 	}
+}
+
+func (ctx *serverContext) SendCommunication(communication map[interface{}]interface{}) error {
+	if ctx.svrElements.communicator != nil {
+		return ctx.svrElements.communicator.SendCommunication(ctx, communication)
+	}
+	return errors.BadConf(ctx, "No communicator service has been configured")
 }
 
 func (ctx *serverContext) LogDebug(msg string, args ...interface{}) {

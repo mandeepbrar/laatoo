@@ -153,6 +153,12 @@ func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf con
 	}
 	ctx.setElements(core.ContextMap{core.ServerElementMessagingManager: as.messagingManager})
 
+	createcommctx := ctx.subContext("Create Communicator: " + as.name)
+	if err := as.createCommunicator(createcommctx, conf); err != nil {
+		return errors.WrapError(createmsgctx, err)
+	}
+	ctx.setElements(core.ContextMap{core.ServerElementCommunicator: as.communicator})
+
 	return nil
 }
 
@@ -340,6 +346,27 @@ func (as *abstractserver) createSessionManager(ctx *serverContext, conf config.C
 		if as.parent != nil {
 			as.sessionManager = as.parent.sessionManager
 			as.sessionManagerHandle = as.parent.sessionManagerHandle
+		}
+	}
+	return nil
+}
+
+func (as *abstractserver) createCommunicator(ctx *serverContext, conf config.Config) error {
+	commSvcConfig, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_COMMUNICATION)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if ok {
+		commSvc, ok := commSvcConfig.GetString(ctx, constants.CONF_COMMUNICATION_SVC)
+		if ok {
+			cmElem, cm := newCommunicator(ctx, "Communicator:"+as.name, commSvc)
+			as.communicatorHandle = cmElem
+			as.communicator = cm
+		}
+	} else {
+		if as.parent != nil {
+			as.communicator = as.parent.communicator
+			as.communicatorHandle = as.parent.communicatorHandle
 		}
 	}
 	return nil
@@ -546,6 +573,13 @@ func newSessionManager(ctx core.ServerContext, name string, conf config.Config) 
 	sessElem := &sessionManagerProxy{manager: sessionMgr}
 	sessionMgr.proxy = sessElem
 	return sessionMgr, sessElem
+}
+
+func newCommunicator(ctx core.ServerContext, name string, commSvc string) (*communicator, *communicatorProxy) {
+	commMgr := &communicator{name: name, svrContext: ctx, commSvcName: commSvc}
+	commElem := &communicatorProxy{manager: commMgr}
+	commMgr.proxy = commElem
+	return commMgr, commElem
 }
 
 func childCacheManager(ctx core.ServerContext, name string, parentCacheManager core.ServerElement, filters ...elements.Filter) (*cacheManager, *cacheManagerProxy) {

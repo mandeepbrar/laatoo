@@ -63,6 +63,8 @@ const (
 	CONF_APPL_OBJECT         = "object"
 	CONF_APPLETS             = "applets"
 	CONF_SERVER_ADDRESS      = "address"
+	CONF_COMMUNICATION_SVC   = "communicationservice"
+	CONF_COMMUNICATION       = "communication"
 	CONF_MESSAGING_SVC       = "messagingservice"
 	CONF_MESSAGING           = "messaging"
 	CONF_MESSAGE_TOPICS      = "topics"

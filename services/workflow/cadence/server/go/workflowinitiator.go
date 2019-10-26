@@ -60,7 +60,7 @@ func (svc *WorkflowInitiator) StartWorkflow(ctx core.RequestContext, workflowNam
 	}
 
 	ctx = ctx.SubContext("Workflow" + workflowName)
-	we, err := svc.client.StartWorkflow(context.Background(), workflowoptions, workflowName, ctx, initVal)
+	we, err := svc.client.StartWorkflow(context.Background(), workflowoptions, workflowName, initVal)
 	if err != nil {
 		log.Error(ctx, "Failed to create workflow", "workflow", workflowName)
 		return errors.WrapError(ctx, err)

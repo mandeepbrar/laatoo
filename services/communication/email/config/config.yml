@@ -14,6 +14,10 @@ objects:
         description: user to use for sending emails
         type: string
         required: true
+      mailsender:
+        description: email to use for sending emails
+        type: string
+        required: true
       mailpass:
         description: password to use for sending emails
         type: string

@@ -48,6 +48,9 @@ type abstractserver struct {
 	sessionManager       elements.SessionManager
 	sessionManagerHandle elements.ServerElementHandle
 
+	communicator       elements.Communicator
+	communicatorHandle elements.ServerElementHandle
+
 	//engines configured on the abstract server
 	engineHandles map[string]elements.ServerElementHandle
 	engineConf    map[string]config.Config

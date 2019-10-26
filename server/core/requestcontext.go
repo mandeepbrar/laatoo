@@ -253,6 +253,10 @@ func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) er
 	return nil
 }
 
+func (ctx *requestContext) SendCommunication(communication map[interface{}]interface{}) error {
+	return ctx.serverContext.SendCommunication(communication)
+}
+
 func (ctx *requestContext) ForwardToService(svc core.Service, vals map[string]interface{}) error {
 	return ctx.Forward(svc.GetName(), vals)
 }
