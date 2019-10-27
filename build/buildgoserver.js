@@ -15,14 +15,14 @@ function buildGoObjects(nextTask) {
       nextTask()
       return
     }
-    log("Compiling golang")
+    log("Beginning golang compile")
 
     let serverGoSrcFolder = path.join(pluginFolder, "server", "go")
     if(!fs.pathExistsSync(serverGoSrcFolder)) {
       nextTask()
       return
     }
-    tidyGoModule(serverGoSrcFolder)
+    //tidyGoModule(serverGoSrcFolder)
     var outputFolder;
 
     if(argv.nobundle) {
@@ -43,6 +43,7 @@ function buildGoObjects(nextTask) {
       optionsArr.push(path.join(serverGoSrcFolder, file));
     })*/
     //optionsArr.push();
+    log("running go compile command")
     let res = spawnSync("go", optionsArr, {cwd: serverGoSrcFolder})
     if(res.status !== 0) {
       shell.echo('Golang build unsuccessful');

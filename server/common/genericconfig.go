@@ -50,6 +50,10 @@ func (conf GenericConfig) Clone() config.Config {
 	return res
 }
 
+func (conf GenericConfig) ToMap() map[string]interface{} {
+	return map[string]interface{}(conf)
+}
+
 func (conf GenericConfig) GetRoot(ctx ctx.Context) (string, config.Config, bool) {
 	confNames := conf.AllConfigurations(ctx)
 	if len(confNames) == 1 {

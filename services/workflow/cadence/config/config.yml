@@ -43,6 +43,25 @@ objects:
         description: Array of tasks in the sequential workflow
         type: stringarray
         required: true
+        variable: Tasks
+  cadence_dslworkflow:
+    type: service
+    description: DSL workflow for cadence. Refer cadence samples. Support parallelization
+    configurations:
+      TaskListName:
+        description: Tasklist name
+        type: string
+        required: true
+        variable: TaskListName
+      WorkflowName:
+        description: Workflow name
+        type: string
+        required: true
+        variable: WorkflowName
+      Workflow:
+        description: Task structure for workflow
+        type: config
+        required: true
   cadence_workflowinitiator:
     type: service
     description: Service to initiate workflows

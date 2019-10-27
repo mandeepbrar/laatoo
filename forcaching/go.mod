@@ -75,6 +75,21 @@ require (
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a // indirect
+	github.com/mitchellh/mapstructure v1.1.2
+
+
+	go.uber.org/thriftrw v1.20.2
+	go.uber.org/multierr v1.2.0
+	github.com/opentracing/opentracing-go v1.1.0
+	github.com/uber/tchannel-go v1.16.0
+	go.uber.org/atomic v1.4.0
+	go.uber.org/net/metrics v1.2.0
+	github.com/pborman/uuid v1.2.0
+	github.com/robfig/cron v1.2.0
+	github.com/google/uuid v1.0.0
+	github.com/stretchr/objx v0.1.1
+	github.com/uber-go/mapdecode v1.0.0
+	github.com/cespare/xxhash/v2 v2.1.0	
 )
 
 //go mod download -json gopkg.in/mgo.v2/bson gopkg.in/mgo.v2 google.golang.org/appengine/taskqueue google.golang.org/appengine/datastore google.golang.org/appengine/search  google.golang.org/appengine/cloudsql golang.org/x/oauth2/google golang.org/x/oauth2/facebook golang.org/x/oauth2 golang.org/x/net/context golang.org/x/image/tiff golang.org/x/image/bmp github.com/ugorji/go/codec golang.org/x/crypto/bcrypt github.com/twinj/uuid github.com/tdewolff/minify github.com/rs/cors github.com/prep/beanstalk github.com/pmylund/go-cache github.com/labstack/echo github.com/labstack/echo/middleware github.com/jinzhu/gorm github.com/jinzhu/gorm/dialects/mysql github.com/gin-gonic/gin github.com/garyburd/redigo/redis github.com/fatih/color github.com/dgrijalva/jwt-go github.com/dyatlov/go-opengraph/opengraph github.com/blevesearch/bleve/search github.com/blevesearch/bleve cloud.google.com/go/storage github.com/lib/pq google.golang.org/appengine golang.org/x/net/html github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql github.com/lib/pq  google.golang.org/grpc cloud.google.com/go  github.com/jinzhu/gorm/dialects/postgres github.com/tdewolff/minify/html/ github.com/golang/protobuf/protoc-gen-go github.com/blang/semver github.com/mholt/archiver github.com/imdario/mergo gopkg.in/yaml.v2 github.com/fsnotify/fsnotify github.com/gorilla/websocket github.com/zpencerq/godux github.com/olivere/elastic github.com/influxdata/go-syslog github.com/crewjam/rfc5424 github.com/radovskyb/watcher

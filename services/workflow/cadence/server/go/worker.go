@@ -18,12 +18,14 @@ const (
 	CONF_CADENCE_WORKER            = "cadence_worker"
 	CONF_CADENCE_SIMPLEWORKFLOW    = "cadence_simpleworkflow"
 	CONF_CADENCE_WORKFLOWINITIATOR = "cadence_workflowinitiator"
+	CONF_CADENCE_DSLWORKFLOW       = "cadence_dslworkflow"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_CADENCE_WORKER, Object: CadenceWorkerService{}},
 		core.PluginComponent{Name: CONF_CADENCE_SIMPLEWORKFLOW, Object: SimpleWorkflow{}},
 		core.PluginComponent{Name: CONF_CADENCE_WORKFLOWINITIATOR, Object: WorkflowInitiator{}},
+		core.PluginComponent{Name: CONF_CADENCE_DSLWORKFLOW, Object: DSLWorkflow{}},
 	}
 }
 

@@ -1,35 +1,62 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"laatoo/sdk/modules/cadence"
+	"laatoo/sdk/server/components"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/log"
+	"reflect"
+
+	"go.uber.org/cadence/activity"
+	"go.uber.org/zap"
 )
 
-func sampleActivity1(input []string) (string, error) {
-	name := "sampleActivity1"
-	fmt.Printf("Run %s with input %v \n", name, input)
-	return "Result_" + name, nil
-}
+func taskActivityCreator(ctx core.ServerContext, taskName string, workflowName string, taskManager elements.TaskManager) {
+	log.Info(ctx, "Creating workflow task", "taskName", taskName)
+	errType := reflect.TypeOf((*error)(nil)).Elem()
+	interfaceType := reflect.TypeOf((*interface{})(nil)).Elem()
+	myFunc := func(args []reflect.Value) (results []reflect.Value) {
+		var result interface{}
 
-func sampleActivity2(input []string) (string, error) {
-	name := "sampleActivity2"
-	fmt.Printf("Run %s with input %v \n", name, input)
-	return "Result_" + name, nil
-}
+		log.Error(ctx, "Decoding workflow task", "taskName", taskName)
+		actctx := args[0].Interface().(context.Context)
+		activity.GetLogger(actctx).Info("Starting task")
 
-func sampleActivity3(input []string) (string, error) {
-	name := "sampleActivity3"
-	fmt.Printf("Run %s with input %v \n", name, input)
-	return "Result_" + name, nil
-}
+		reqctx, err := ctx.CreateNewRequest("Cadence workflow task "+workflowName, nil, nil, "")
+		if err == nil {
+			inputTask := args[1].Interface().(*components.Task)
 
-func sampleActivity4(input []string) (string, error) {
-	name := "sampleActivity4"
-	fmt.Printf("Run %s with input %v \n", name, input)
-	return "Result_" + name, nil
-}
+			log.Info(ctx, "Posting workflow task", "input", inputTask)
 
-func sampleActivity5(input []string) (string, error) {
-	name := "sampleActivity5"
-	fmt.Printf("Run %s with input %v \n", name, input)
-	return "Result_" + name, nil
+			err = taskManager.ProcessTask(reqctx, inputTask)
+			if err == nil {
+				res := reqctx.GetResponse()
+				activity.GetLogger(actctx).Info("Task complete", zap.String("taskName", inputTask.Queue))
+				result = res.Data
+			}
+		}
+
+		var resVal reflect.Value
+		if result != nil {
+			resVal = reflect.ValueOf(result)
+		} else {
+			resVal = reflect.Zero(interfaceType)
+		}
+
+		var errVal reflect.Value
+		if err != nil {
+			errVal = reflect.ValueOf(err).Convert(errType)
+		} else {
+			errVal = reflect.Zero(errType)
+		}
+
+		return []reflect.Value{resVal, errVal}
+	}
+
+	var k cadence.TaskProcessor
+	act := reflect.MakeFunc(reflect.TypeOf(k), myFunc).Interface().(cadence.TaskProcessor)
+
+	activity.RegisterWithOptions(act, activity.RegisterOptions{Name: taskName})
 }

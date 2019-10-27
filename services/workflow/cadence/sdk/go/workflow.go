@@ -10,8 +10,8 @@ import (
 
 type Workflow func(ctx workflow.Context, input interface{}) error
 
-type WorkflowRegisterar interface {
-	RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Workflow)
+func RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Workflow) {
+	workflow.RegisterWithOptions(workflowToRegister, workflow.RegisterOptions{Name: name})
 }
 
 type TaskProcessor func(ctx context.Context, value *components.Task) (interface{}, error)
