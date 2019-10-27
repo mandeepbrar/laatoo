@@ -43,11 +43,13 @@ func buildServiceInfo(ctx core.ServerContext, name string, conf config.Config) (
 	if err != nil {
 		return nil, err
 	}
-	return &serviceInfo{configurableObject: buildConfigurableObject(ctx, name, conf),
+	si := &serviceInfo{configurableObject: buildConfigurableObject(ctx, name, conf),
 		component:    comp,
 		request:      reqInfo,
 		response:     resInfo,
-		svcsToInject: make(map[string]string)}, nil
+		svcsToInject: make(map[string]string)}
+	si.buildInjectionServices(ctx)
+	return si, nil
 }
 
 func (svcinfo *serviceInfo) clone() *serviceInfo {
@@ -56,8 +58,8 @@ func (svcinfo *serviceInfo) clone() *serviceInfo {
 		request:   svcinfo.request.clone(),
 		response:  svcinfo.response.clone()}
 	inf.svcsToInject = make(map[string]string, len(svcinfo.svcsToInject))
-	for k, v := range svcinfo.svcsToInject {
-		inf.svcsToInject[k] = v
+	for field, configName := range svcinfo.svcsToInject {
+		inf.svcsToInject[field] = configName
 	}
 	return inf
 }
@@ -78,8 +80,30 @@ func (svcinfo *serviceInfo) IsComponent() bool {
 	return svcinfo.component
 }
 
-func (svcinfo *serviceInfo) GetRequiredServices() map[string]string {
+func (svcinfo *serviceInfo) getServicesToInject() map[string]string {
 	return svcinfo.svcsToInject
+}
+
+func (svcinfo *serviceInfo) buildInjectionServices(ctx core.ServerContext) {
+	for _, c := range svcinfo.configurations {
+		conf := c.(*configuration)
+		if conf.conf != nil {
+			injectionField, ok := conf.conf.GetString(ctx, SVCINJECT)
+			if ok {
+				svcinfo.svcsToInject[injectionField] = conf.GetName()
+			}
+		}
+	}
+
+}
+
+func (svcinfo *serviceInfo) processInfo(ctx core.ServerContext, conf config.Config) error {
+	err := svcinfo.configurableObject.processInfo(ctx, conf)
+	if err != nil {
+		return err
+	}
+	svcinfo.buildInjectionServices(ctx)
+	return nil
 }
 
 type requestInfo struct {
@@ -108,6 +132,7 @@ const (
 	SVCPARAMTYPE       = "type"
 	SVCPARAMCOLLECTION = "collection"
 	SVCPARAMREQD       = "required"
+	SVCINJECT          = "inject"
 )
 
 func buildRequestInfo(ctx core.ServerContext, conf config.Config) (*requestInfo, error) {

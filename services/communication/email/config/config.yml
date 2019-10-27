@@ -21,3 +21,9 @@ objects:
       mailpass:
         description: password to use for sending emails
         type: string
+      queuetasks:
+        description: send communication directly or queue them if received through communicator interface
+        type: bool
+      emailqueue:
+        description: queue to use for sending emails if queueing of tasks is to be done
+        type: string

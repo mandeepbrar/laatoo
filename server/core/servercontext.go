@@ -492,13 +492,6 @@ func (ctx *serverContext) LogTrace(msg string, args ...interface{}) {
 	}
 }
 
-func (ctx *serverContext) SendCommunication(communication map[interface{}]interface{}) error {
-	if ctx.svrElements.communicator != nil {
-		return ctx.svrElements.communicator.SendCommunication(ctx, communication)
-	}
-	return errors.BadConf(ctx, "No communicator service has been configured")
-}
-
 func (ctx *serverContext) LogDebug(msg string, args ...interface{}) {
 	if ctx.svrElements.logger != nil {
 		ctx.svrElements.logger.Debug(ctx, msg, args...)

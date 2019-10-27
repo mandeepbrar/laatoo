@@ -74,8 +74,8 @@ func (provider *metadataProvider) CreateResponseInfo(params map[string]core.Para
 	return newResponseInfo(params)
 }
 
-func (provider *metadataProvider) CreateConfiguration(name, conftype string, required bool, defaultValue interface{}) core.Configuration {
-	return newConfiguration(name, conftype, required, defaultValue)
+func (provider *metadataProvider) CreateConfiguration(name, conftype string, required bool, defaultValue interface{}, varToSet string) core.Configuration {
+	return newConfiguration(name, conftype, required, defaultValue, varToSet)
 }
 
 func (provider *metadataProvider) CreateParam(ctx core.ServerContext, name, paramtype string, collection, isStream bool, required bool) (core.Param, error) {

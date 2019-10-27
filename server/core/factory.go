@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/sdk/utils"
 	"reflect"
 )
 
@@ -52,6 +53,10 @@ func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config
 	if err := fac.impl.processInfo(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	//inject configuration values
+	confsToInject := fac.impl.getConfigurationsToInject()
+	utils.SetObjectFields(fac.factory, confsToInject)
 
 	err := fac.factory.Initialize(ctx, conf)
 	if err != nil {

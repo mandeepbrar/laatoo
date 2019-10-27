@@ -33,10 +33,12 @@ objects:
         description: Tasklist name
         type: string
         required: true
+        variable: TaskListName
       WorkflowName:
         description: Workflow name
         type: string
         required: true
+        variable: WorkflowName
       Tasks:
         description: Array of tasks in the sequential workflow
         type: stringarray

@@ -2,14 +2,13 @@ package core
 
 import (
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/ctx"
 )
 
 type communicatorProxy struct {
 	manager *communicator
 }
 
-func (comm *communicatorProxy) SendCommunication(ctx ctx.Context, communication map[interface{}]interface{}) error {
+func (comm *communicatorProxy) SendCommunication(ctx core.RequestContext, communication map[interface{}]interface{}) error {
 	return comm.manager.sendCommunication(ctx, communication)
 }
 

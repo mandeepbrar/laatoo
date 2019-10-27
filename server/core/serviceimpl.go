@@ -52,10 +52,6 @@ func (impl *serviceImpl) ConfigureService(ctx core.ServerContext, params []strin
 	impl.SetDescription(ctx, description)
 }
 
-func (impl *serviceImpl) InjectServices(ctx core.ServerContext, services map[string]string) {
-	impl.serviceInfo.svcsToInject = services
-}
-
 func (impl *serviceImpl) AddParams(ctx core.ServerContext, params map[string]string, required bool) error {
 	for name, typ := range params {
 		err := impl.AddParam(ctx, name, typ, false, required, false)

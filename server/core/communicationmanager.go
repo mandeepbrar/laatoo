@@ -4,7 +4,6 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -37,7 +36,7 @@ func (comm *communicator) Start(ctx core.ServerContext) error {
 	return nil
 }
 
-func (comm *communicator) sendCommunication(ctx ctx.Context, communication map[interface{}]interface{}) error {
+func (comm *communicator) sendCommunication(ctx core.RequestContext, communication map[interface{}]interface{}) error {
 	if comm.commSvc != nil {
 		err := comm.commSvc.SendCommunication(ctx, communication)
 		if err != nil {

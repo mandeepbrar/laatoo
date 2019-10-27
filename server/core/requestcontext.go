@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
+	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 )
@@ -254,7 +255,10 @@ func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) er
 }
 
 func (ctx *requestContext) SendCommunication(communication map[interface{}]interface{}) error {
-	return ctx.serverContext.SendCommunication(communication)
+	if ctx.serverContext.svrElements.communicator != nil {
+		return ctx.serverContext.svrElements.communicator.SendCommunication(ctx, communication)
+	}
+	return errors.BadConf(ctx, "No communicator service has been configured")
 }
 
 func (ctx *requestContext) ForwardToService(svc core.Service, vals map[string]interface{}) error {

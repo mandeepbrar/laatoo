@@ -68,9 +68,13 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config) error {
 
 	log.Error(ctx, "initializing service with conf", "conf", conf)
-	if err := svc.processInfo(ctx, conf, svc.impl); err != nil {
+	if err := svc.processInfo(ctx, conf); err != nil {
 		return err
 	}
+
+	//inject configurations
+	confsToInject := svc.impl.getConfigurationsToInject()
+	utils.SetObjectFields(svc.service, confsToInject)
 
 	svc.serviceToForward, svc.forward = conf.GetString(ctx, constants.CONF_SERVICE_FORWARD)
 
@@ -86,6 +90,12 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 
 func (svc *serverService) start(ctx core.ServerContext) error {
 	ctx = ctx.SubContext("Service Start")
+
+	svcs := svc.impl.getServicesToInject()
+	log.Debug(ctx, "Services to inject", "svcs", svcs)
+	if err := svc.injectServices(ctx, svcs); err != nil {
+		return err
+	}
 
 	err := svc.service.Start(ctx)
 	if err != nil {
@@ -113,12 +123,7 @@ func (svc *serverService) start(ctx core.ServerContext) error {
 	return err
 }
 
-func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config, info core.ServiceInfo) error {
-
-	svcs := info.GetRequiredServices()
-	if err := svc.injectServices(ctx, svcconf, svcs); err != nil {
-		return err
-	}
+func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Config) error {
 
 	if err := svc.impl.processInfo(ctx, svcconf); err != nil {
 		return err
@@ -128,29 +133,25 @@ func (svc *serverService) processInfo(ctx core.ServerContext, svcconf config.Con
 	return nil
 }
 
-func (svc *serverService) injectServices(ctx core.ServerContext, svcconf config.Config, svcsToInject map[string]string) error {
+func (svc *serverService) injectServices(ctx core.ServerContext, svcsToInject map[string]string) error {
 	if svcsToInject == nil {
 		return nil
 	}
-	for confName, fieldName := range svcsToInject {
-		svcName, ok := svcconf.GetString(ctx, confName)
-		if !ok {
-			errors.MissingConf(ctx, confName)
+
+	svcs := make(map[string]interface{})
+	for fieldName, confName := range svcsToInject {
+		svcName, _ := svc.service.GetStringConfiguration(ctx, confName)
+		if svcName == "" {
+			continue
 		}
-		svrsvc, err := svc.owner.getService(ctx, svcName)
+		svrsvc, err := ctx.GetService(svcName)
 		if err != nil {
 			errors.MissingService(ctx, svcName)
 		}
-		svctoinject := svrsvc.Service()
-		svcval := reflect.ValueOf(svc.service)
-		fld := svcval.FieldByName(fieldName)
-		if fld.IsNil() {
-			errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Field", fieldName)
-		}
-		if fld.CanSet() {
-			fld.Set(reflect.ValueOf(svctoinject))
-		}
+		svcs[fieldName] = svrsvc
 	}
+	log.Trace(ctx, "Injecting services", "svcs", svcs)
+	utils.SetObjectFields(svc.service, svcs)
 	return nil
 }
 

@@ -13,13 +13,15 @@ type configuration struct {
 	required     bool
 	value        interface{}
 	defaultValue interface{}
+	variable     string
+	conf         config.Config
 }
 
-func newConfiguration(name, conftype string, required bool, defaultValue interface{}) *configuration {
-	return &configuration{name, conftype, required, nil, defaultValue}
+func newConfiguration(name, conftype string, required bool, defaultValue interface{}, variable string) *configuration {
+	return &configuration{name, conftype, required, nil, defaultValue, variable, nil}
 }
 func (conf *configuration) clone() *configuration {
-	c := newConfiguration(conf.name, conf.conftype, conf.required, conf.defaultValue)
+	c := newConfiguration(conf.name, conf.conftype, conf.required, conf.defaultValue, conf.variable)
 	c.value = conf.value
 	return c
 }
@@ -62,6 +64,7 @@ const (
 	CONFTYPE         = "type"
 	CONFDEFAULTVALUE = "default"
 	CONFREQ          = "required"
+	CONFVARTOSET     = "variable"
 )
 
 func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Config) *configurableObject {
@@ -75,7 +78,10 @@ func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Co
 				required, _ := confDesc.GetBool(ctx, CONFREQ)
 				conftype, _ := confDesc.GetString(ctx, CONFTYPE)
 				defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
-				co.configurations[confName] = newConfiguration(confName, conftype, required, defaultValue)
+				variable, _ := confDesc.GetString(ctx, CONFVARTOSET)
+				configObj := newConfiguration(confName, conftype, required, defaultValue, variable)
+				configObj.conf = confDesc
+				co.configurations[confName] = configObj
 				log.Error(ctx, "configurable object", "confName", confName, "conf", co.configurations[confName])
 			}
 		}
@@ -96,6 +102,19 @@ func (impl *configurableObject) setConfigurations(confs []core.Configuration) {
 	}
 }
 
+func (impl *configurableObject) getConfigurationsToInject() map[string]interface{} {
+	confsToInject := make(map[string]interface{})
+	if impl.configurations != nil {
+		for _, c := range impl.configurations {
+			conf := c.(*configuration)
+			if conf.variable != "" {
+				confsToInject[conf.variable] = conf.GetValue()
+			}
+		}
+	}
+	return confsToInject
+}
+
 func (impl *configurableObject) GetConfigurations() map[string]core.Configuration {
 	return impl.configurations
 }
@@ -113,7 +132,7 @@ func (impl *configurableObject) AddStringConfigurations(ctx core.ServerContext, 
 		if defaultValues != nil {
 			defaultValue = defaultValues[index]
 		}
-		impl.configurations[name] = newConfiguration(name, config.OBJECTTYPE_STRING, required, defaultValue)
+		impl.configurations[name] = newConfiguration(name, config.OBJECTTYPE_STRING, required, defaultValue, "")
 	}
 }
 
@@ -123,7 +142,7 @@ func (impl *configurableObject) AddStringConfiguration(ctx core.ServerContext, n
 
 func (impl *configurableObject) AddConfigurations(ctx core.ServerContext, configs map[string]string) {
 	for name, typ := range configs {
-		impl.configurations[name] = newConfiguration(name, typ, true, nil)
+		impl.configurations[name] = newConfiguration(name, typ, true, nil, "")
 	}
 }
 
@@ -133,7 +152,7 @@ func (impl *configurableObject) AddOptionalConfigurations(ctx core.ServerContext
 		if defaultValues != nil {
 			defaultValue = defaultValues[name]
 		}
-		impl.configurations[name] = newConfiguration(name, typ, false, defaultValue)
+		impl.configurations[name] = newConfiguration(name, typ, false, defaultValue, "")
 	}
 }
 
@@ -156,7 +175,6 @@ func (impl *configurableObject) GetConfiguration(ctx core.ServerContext, name st
 
 func (impl *configurableObject) GetStringConfiguration(ctx core.ServerContext, name string) (string, bool) {
 	c, ok := impl.GetConfiguration(ctx, name)
-	log.Trace(ctx, "Config", "name", name, "val", c)
 	if !ok && c == nil {
 		return "", ok
 	}
@@ -224,7 +242,6 @@ func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.
 		if !ok && configu.required {
 			return errors.MissingConf(ctx, name)
 		}
-		log.Error(ctx, "Processing info", "configu", configu, "val", val)
 		if ok {
 			switch configu.conftype {
 			case "", config.OBJECTTYPE_STRING:

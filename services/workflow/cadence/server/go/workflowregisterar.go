@@ -30,8 +30,9 @@ type SimpleWorkflow struct {
 
 func (svc *SimpleWorkflow) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.taskManager = ctx.GetServerElement(core.ServerElementTaskManager).(elements.TaskManager)
-	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
-	svc.WorkflowName, _ = svc.GetStringConfiguration(ctx, "WorkflowName")
+	//svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
+	log.Error(ctx, "******* Injected configuration", "TaskListName", svc.TaskListName)
+	log.Error(ctx, "******* Injected configuration", "WorkflowName", svc.WorkflowName)
 	svc.Tasks, _ = svc.GetStringArrayConfiguration(ctx, "Tasks")
 	err := svc.createActivities(ctx)
 	if err != nil {
