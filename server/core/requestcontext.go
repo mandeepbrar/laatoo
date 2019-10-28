@@ -214,31 +214,31 @@ func (ctx *requestContext) GetSession() core.Session {
 }
 
 func (ctx *requestContext) GetParam(name string) (core.Param, bool) {
-	return ctx.req.GetParam(name)
+	return ctx.req.GetParam(ctx, name)
 }
 
 func (ctx *requestContext) GetParamValue(name string) (interface{}, bool) {
-	return ctx.req.GetParamValue(name)
+	return ctx.req.GetParamValue(ctx, name)
 }
 
 func (ctx *requestContext) GetParams() map[string]core.Param {
-	return ctx.req.GetParams()
+	return ctx.req.GetParams(ctx)
 }
 
 func (ctx *requestContext) GetIntParam(name string) (int, bool) {
-	return ctx.req.GetIntParam(name)
+	return ctx.req.GetIntParam(ctx, name)
 }
 
 func (ctx *requestContext) GetStringParam(name string) (string, bool) {
-	return ctx.req.GetStringParam(name)
+	return ctx.req.GetStringParam(ctx, name)
 }
 
 func (ctx *requestContext) GetStringMapParam(name string) (map[string]interface{}, bool) {
-	return ctx.req.GetStringMapParam(name)
+	return ctx.req.GetStringMapParam(ctx, name)
 }
 
 func (ctx *requestContext) GetStringsMapParam(name string) (map[string]string, bool) {
-	return ctx.req.GetStringsMapParam(name)
+	return ctx.req.GetStringsMapParam(ctx, name)
 }
 
 func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) error {

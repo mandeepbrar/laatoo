@@ -40,7 +40,7 @@ func (svc *ServiceAggregator) Start(ctx core.ServerContext) error {
 
 func (svc *ServiceAggregator) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
 	ctx = ctx.SubContext("Aggregator Service")
-	argsMap, ok := req.GetStringMapParam("argsMap")
+	argsMap, ok := req.GetStringMapParam(ctx, "argsMap")
 	if !ok {
 		return core.BadRequestResponse("Argsmap not provided"), nil
 	}

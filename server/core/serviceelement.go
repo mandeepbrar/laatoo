@@ -232,7 +232,7 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 	}
 
 	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params, "reqInfo", reqInfo)
-	req.setParams(reqParams)
+	req.setParams(ctx, reqParams)
 	return nil
 }
 

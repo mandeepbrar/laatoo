@@ -89,7 +89,7 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 }
 
 func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) error {
-	idparam, ok := req.GetParam(CONF_KEYAUTH_CLIENT_IDENTIFIER)
+	idparam, ok := req.GetParam(ctx, CONF_KEYAUTH_CLIENT_IDENTIFIER)
 	id := idparam.GetValue().(string)
 	client, ok := ks.clients[id]
 

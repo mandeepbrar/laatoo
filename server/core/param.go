@@ -5,7 +5,6 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
-	"laatoo/sdk/server/log"
 	"time"
 )
 
@@ -223,7 +222,17 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 				} else {
 					err = codec.Unmarshal(ctx, reqBytes, &reqData)
 				}
-				log.Trace(ctx, "unmarshalling bytes", "val", reqData, " err", err)
+				//bug filed in golang for this. https://github.com/golang/go/issues/35214
+				if p.oDataType == __stringsmap {
+					changedMap, ok := reqData.(map[string]interface{})
+					if ok {
+						smap := make(map[string]string)
+						for k, v := range changedMap {
+							smap[k] = v.(string)
+						}
+						reqData = smap
+					}
+				}
 				if err != nil {
 					return err
 				} else {

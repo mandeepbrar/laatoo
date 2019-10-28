@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	searchsdk "laatoo/sdk/server/components/search"
 	"laatoo/sdk/common/config"
+	searchsdk "laatoo/sdk/server/components/search"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -46,7 +46,7 @@ func (bs *BleveSearchService) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (bs *BleveSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	query, _ := req.GetStringParam("query")
+	query, _ := req.GetStringParam(ctx, "query")
 	res, err := bs.Search(ctx, query)
 	if err != nil {
 		return nil, err

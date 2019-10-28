@@ -45,6 +45,7 @@ type CadenceWorkerService struct {
 }
 
 func (svc *CadenceWorkerService) Initialize(ctx core.ServerContext, conf config.Config) error {
+	log.Error(ctx, "Workers to start for Cadence", "tasklists ", svc.TaskLists)
 	return nil
 }
 

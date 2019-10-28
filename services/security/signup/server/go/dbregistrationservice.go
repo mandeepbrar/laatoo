@@ -67,9 +67,16 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 	}
 	rs.userCreator = userCreator
 
-	err = rs.AddParamWithType(ctx, "credentials", rs.userObject)
-	if err != nil {
-		return errors.WrapError(ctx, err)
+	if rs.WorkflowSupport {
+		err = rs.AddParamWithType(ctx, "credentials", config.OBJECTTYPE_STRINGSMAP)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	} else {
+		err = rs.AddParamWithType(ctx, "credentials", rs.userObject)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	}
 
 	log.Error(ctx, "registration service", "WorkflowSupport", rs.WorkflowSupport, "Workflow initiator service", rs.WorkflowInitiator)
@@ -95,11 +102,11 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) (err error) {
 }
 
 func (rs *RegistrationService) registerWithWorkflowSupport(ctx core.RequestContext) error {
-	emailMap, _ := ctx.GetStringsMapParam("email")
+	emailMap, _ := ctx.GetStringsMapParam("credentials")
 	log.Trace(ctx, "param value ", "ent", emailMap)
 	email := emailMap["email"]
 	if email != "" {
-		rs.WorkflowInitiator.StartWorkflow(ctx, rs.WorkflowName, emailMap)
+		go rs.WorkflowInitiator.StartWorkflow(ctx, rs.WorkflowName, emailMap)
 	} else {
 		return errors.BadRequest(ctx, "Missing email in request map", "email")
 	}

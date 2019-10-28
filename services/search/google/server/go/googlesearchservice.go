@@ -52,7 +52,7 @@ func (gs *GoogleSearchService) Initialize(ctx core.ServerContext, conf config.Co
 }
 
 func (gs *GoogleSearchService) Invoke(ctx core.RequestContext, req core.Request) (*core.Response, error) {
-	query, _ := req.GetStringParam("query")
+	query, _ := req.GetStringParam(ctx, "query")
 	res, err := gs.Search(ctx, query)
 	if err != nil {
 		return nil, err

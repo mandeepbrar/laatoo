@@ -18,26 +18,26 @@ func (req *request) setBody(body interface{}) {
 	req.Body = body
 }*/
 
-func (req *request) GetParams() map[string]core.Param {
+func (req *request) GetParams(ctx core.RequestContext) map[string]core.Param {
 	return req.Params
 }
 
-func (req *request) setParams(params map[string]core.Param) {
+func (req *request) setParams(ctx core.RequestContext, params map[string]core.Param) {
 	req.Params = params
 }
 
-func (req *request) GetParam(name string) (core.Param, bool) {
+func (req *request) GetParam(ctx core.RequestContext, name string) (core.Param, bool) {
 	val, ok := req.Params[name]
 	return val, ok
 }
-func (req *request) GetParamValue(name string) (interface{}, bool) {
+func (req *request) GetParamValue(ctx core.RequestContext, name string) (interface{}, bool) {
 	val, ok := req.Params[name]
 	if ok {
 		return val.GetValue(), true
 	}
 	return nil, ok
 }
-func (req *request) GetStringParam(name string) (string, bool) {
+func (req *request) GetStringParam(ctx core.RequestContext, name string) (string, bool) {
 	val, ok := req.Params[name]
 	if ok {
 		pval, ok := val.GetValue().(string)
@@ -49,7 +49,7 @@ func (req *request) GetStringParam(name string) (string, bool) {
 	return "", ok
 }
 
-func (req *request) GetIntParam(name string) (int, bool) {
+func (req *request) GetIntParam(ctx core.RequestContext, name string) (int, bool) {
 	val, ok := req.Params[name]
 	if ok {
 		pval, ok := val.GetValue().(int)
@@ -61,7 +61,7 @@ func (req *request) GetIntParam(name string) (int, bool) {
 	return -1, ok
 }
 
-func (req *request) GetStringMapParam(name string) (map[string]interface{}, bool) {
+func (req *request) GetStringMapParam(ctx core.RequestContext, name string) (map[string]interface{}, bool) {
 	val, ok := req.Params[name]
 	if ok {
 		pval, ok := val.GetValue().(map[string]interface{})
@@ -73,10 +73,11 @@ func (req *request) GetStringMapParam(name string) (map[string]interface{}, bool
 	return nil, ok
 }
 
-func (req *request) GetStringsMapParam(name string) (map[string]string, bool) {
+func (req *request) GetStringsMapParam(ctx core.RequestContext, name string) (map[string]string, bool) {
 	val, ok := req.Params[name]
 	if ok {
-		pval, ok := val.GetValue().(map[string]string)
+		storedVal := val.GetValue()
+		pval, ok := storedVal.(map[string]string)
 		if ok {
 			return pval, ok
 		}
