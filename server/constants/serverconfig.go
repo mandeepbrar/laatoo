@@ -54,6 +54,8 @@ const (
 	CONF_CHANNEL_SERVICE    = "service"
 	CONF_SERVICE_FORWARD    = "forward"
 
+	CONF_ITEM_SKIP = "skip"
+
 	CONF_CACHE_SVC           = "service"
 	CONF_SESSION             = "session"
 	CONF_SESSIONCACHE_SVC    = "sessionscache"

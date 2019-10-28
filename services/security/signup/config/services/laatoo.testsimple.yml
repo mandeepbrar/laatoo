@@ -1,6 +1,0 @@
-servicemethod: cadence_simpleworkflow
-TaskListName: testworkflow
-WorkflowName: testworkflow1
-Tasks:
-  - Sometask
-  - Sometask1  

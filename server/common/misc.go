@@ -7,7 +7,7 @@ import (
 	"laatoo/server/constants"
 )
 
-func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
+/*func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 	cond, ok := conf.GetSubConfig(ctx, constants.CONF_CONDITION)
 	if ok {
 		keys := cond.AllConfigurations(ctx)
@@ -23,7 +23,7 @@ func CheckContextCondition(ctx core.ServerContext, conf config.Config) bool {
 	}
 	return true
 }
-
+*/
 func SetupMiddleware(ctx core.ServerContext, conf config.Config) {
 	parentMw, pok := ctx.GetStringArray(constants.CONF_MIDDLEWARE)
 	middleware, ok := conf.GetStringArray(ctx, constants.CONF_MIDDLEWARE)

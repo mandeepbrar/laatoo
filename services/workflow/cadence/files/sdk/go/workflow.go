@@ -15,3 +15,8 @@ func RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Wo
 }
 
 type TaskProcessor func(ctx context.Context, value *components.Task) (interface{}, error)
+
+type CadenceWorkflowInitiator interface {
+	StartWorkflow(ctx core.RequestContext, workflowName string, initVal interface{}) error
+	StartWorkflowOnTasklist(ctx core.RequestContext, workflowName, tasklistName string, initVal interface{}) error
+}

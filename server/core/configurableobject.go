@@ -107,8 +107,9 @@ func (impl *configurableObject) getConfigurationsToInject() map[string]interface
 	if impl.configurations != nil {
 		for _, c := range impl.configurations {
 			conf := c.(*configuration)
-			if conf.variable != "" {
-				confsToInject[conf.variable] = conf.GetValue()
+			val := conf.GetValue()
+			if conf.variable != "" && val != nil {
+				confsToInject[conf.variable] = val
 			}
 		}
 	}

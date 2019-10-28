@@ -20,7 +20,6 @@ services:
       - "6061:6061"
     depends_on:
       - mongo
-      - cadence
     environment:
       - LAATOO_mongoconnectionstring=mongo
     logging:
@@ -31,39 +30,6 @@ services:
       - "27017:27017"
     volumes:
       - /backups/punjabimehfilmongo:/data/db
-  cassandra:
-    image: cassandra:3.11
-    ports:
-      - "9042:9042"
-  statsd:
-    image: hopsoft/graphite-statsd
-    ports:
-      - "8080:80"
-      - "2003:2003"
-      - "8125:8125"
-      - "8126:8126"
-  cadence:
-    image: ubercadence/server:master-auto-setup
-    ports:
-      - "7933:7933"
-      - "7934:7934"
-      - "7935:7935"
-      - "7939:7939"
-    environment:
-      - "CASSANDRA_SEEDS=cassandra"
-      - "STATSD_ENDPOINT=statsd:8125"
-      - "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml"
-    depends_on:
-      - cassandra
-      - statsd
-  cadence-web:
-    image: ubercadence/web:3.4.1
-    environment:
-      - "CADENCE_TCHANNEL_PEERS=cadence:7933"
-    ports:
-      - "8088:8088"
-    depends_on:
-      - cadence    
 volumes:
   logvolume01: {}
 

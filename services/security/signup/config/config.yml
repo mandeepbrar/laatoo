@@ -1,0 +1,33 @@
+version: 0.0.1
+description: 'Module provides sign up support for laatoo. Registration with and without workflow support is supported'
+objects:
+  REGISTRATION:
+    type: service
+    description: This service allows registration of users in the database.
+    request:
+      type: stringmap
+    configurations:
+      user_data_svc:
+        type: string
+        required: true
+        description: User data service for registration service
+      def_role:
+        type: string
+        required: true
+        description: Default role to be assigned to a new user
+      workflowname:
+        type: string
+        description: Workflow name to start for signup process
+        variable: WorkflowName
+      workflowsupport:
+        type: bool
+        description: Workflow support required for signup process
+        variable: WorkflowSupport
+      workflowinitiator:
+        type: string
+        description: Workflow initiator service
+        inject: WorkflowInitiator
+params:
+  workflowname: 
+    type: string
+    description: Workflow to be invoked on registration

@@ -14,17 +14,3 @@ objects:
   DB_LOGOUT:
     type: service
     description: This service allows logouts for users in the database.
-  REGISTRATION:
-    type: service
-    description: This service allows registration of users in the database.
-    request:
-      type: stringmap
-    configurations:
-      user_data_svc:
-        type: string
-        required: true
-        description: User data service for registration service
-      def_role:
-        type: string
-        required: true
-        description: Default role to be assigned to a new user

@@ -52,6 +52,10 @@ func (svc *DSLWorkflow) Initialize(ctx core.ServerContext, conf config.Config) e
 		return errors.WrapError(ctx, err)
 	}
 
+	if svc.TaskListName == "" {
+		svc.TaskListName = svc.WorkflowName
+	}
+
 	cadence.RegisterWorkflow(ctx, svc.WorkflowName, svc.Workflow)
 	return nil
 }

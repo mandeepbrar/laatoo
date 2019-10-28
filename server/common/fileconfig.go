@@ -7,6 +7,7 @@ import (
 	context "laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"laatoo/server/constants"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -24,7 +25,7 @@ func NewConfigFromFile(ctx context.Context, file string, funcs map[string]interf
 func NewConfig(ctx context.Context, data []byte, funcs map[string]interface{}) (config.Config, error) {
 	fileData, err := utils.ProcessTemplate(ctx, data, funcs)
 	if err != nil {
-		return nil, fmt.Errorf("Error processing data",  err.Error())
+		return nil, fmt.Errorf("Error processing data", err.Error())
 	}
 	return newConfig(ctx, fileData, funcs)
 }
@@ -40,6 +41,12 @@ func newConfig(ctx context.Context, data []byte, funcs map[string]interface{}) (
 		log.Error(ctx, "marshal error", "err", err)
 	}
 	log.Trace(ctx, "Conf loaded ", "conf", conf)
+	checkSkip, _ := conf.GetBool(ctx, constants.CONF_ITEM_SKIP)
+
+	if checkSkip {
+		return nil, nil
+	}
+
 	return conf, nil
 }
 

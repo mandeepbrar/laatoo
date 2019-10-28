@@ -74,6 +74,7 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 
 	//inject configurations
 	confsToInject := svc.impl.getConfigurationsToInject()
+	log.Error(ctx, "Setting configurations", "confs", confsToInject)
 	utils.SetObjectFields(svc.service, confsToInject)
 
 	svc.serviceToForward, svc.forward = conf.GetString(ctx, constants.CONF_SERVICE_FORWARD)

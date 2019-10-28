@@ -3,6 +3,7 @@ package main
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/auth"
+	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
@@ -13,9 +14,14 @@ import (
 
 const (
 	//login path to be used for local and oauth authentication
+	CONF_SECURITYSERVICE_REGISTRATIONSERVICE = "REGISTRATION"
 	CONF_REGISTRATIONSERVICE_USERDATASERVICE = "user_data_svc"
 	CONF_DEF_ROLE                            = "def_role"
 )
+
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}}}
+}
 
 // SecurityService contains a configuration and other details for running.
 type RegistrationService struct {
@@ -30,8 +36,12 @@ type RegistrationService struct {
 	//user data service name
 	userDataSvcName string
 	//data service to use for users
-	UserDataService data.DataComponent
-	realm           string
+	UserDataService   data.DataComponent
+	WorkflowName      string
+	WorkflowInitiator components.WorkflowInitiator
+	WorkflowSupport   bool
+
+	realm string
 }
 
 func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -62,6 +72,7 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
+	log.Error(ctx, "registration service", "WorkflowSupport", rs.WorkflowSupport, "Workflow initiator service", rs.WorkflowInitiator)
 	/*
 		rs.SetDescription("Db Registration service")
 		rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
@@ -71,7 +82,30 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 }
 
 //Expects Rbac user to be provided inside the request
-func (rs *RegistrationService) Invoke(ctx core.RequestContext) error {
+func (rs *RegistrationService) Invoke(ctx core.RequestContext) (err error) {
+	if rs.WorkflowSupport {
+		err = rs.registerWithWorkflowSupport(ctx)
+	} else {
+		err = rs.registerWithoutWorkflowSupport(ctx)
+	}
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (rs *RegistrationService) registerWithWorkflowSupport(ctx core.RequestContext) error {
+	emailMap, _ := ctx.GetStringsMapParam("email")
+	log.Trace(ctx, "param value ", "ent", emailMap)
+	email := emailMap["email"]
+	if email != "" {
+		rs.WorkflowInitiator.StartWorkflow(ctx, rs.WorkflowName, emailMap)
+	} else {
+		return errors.BadRequest(ctx, "Missing email in request map", "email")
+	}
+	return nil
+}
+func (rs *RegistrationService) registerWithoutWorkflowSupport(ctx core.RequestContext) error {
 	ent, _ := ctx.GetParamValue("credentials")
 	log.Trace(ctx, "param value ", "ent", ent)
 	//ent := ctx.GetBody()

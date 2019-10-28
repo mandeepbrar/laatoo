@@ -39,7 +39,7 @@ type CadenceWorkerService struct {
 	core.Service
 	Host           string
 	Domain         string
-	TaskListName   string
+	TaskLists      []string
 	ClientName     string
 	CadenceService string
 }
@@ -78,31 +78,26 @@ func buildLogger() (*zap.Logger, error) {
 }
 
 func (svc *CadenceWorkerService) Start(ctx core.ServerContext) error {
-	svc.Host, _ = svc.GetStringConfiguration(ctx, "Host")
-	svc.Domain, _ = svc.GetStringConfiguration(ctx, "Domain")
-	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
-	svc.ClientName, _ = svc.GetStringConfiguration(ctx, "ClientName")
-	svc.CadenceService, _ = svc.GetStringConfiguration(ctx, "CadenceService")
-
 	log.Error(ctx, "config ", "svc", svc, "svc host", svc.Host)
 
 	logger, err := buildLogger()
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	worker := worker.New(
-		svc.buildCadenceClient(ctx),
-		svc.Domain,
-		svc.TaskListName,
-		worker.Options{
-			Logger: logger,
-		})
+	for _, tasklistName := range svc.TaskLists {
+		worker := worker.New(
+			svc.buildCadenceClient(ctx),
+			svc.Domain,
+			tasklistName,
+			worker.Options{
+				Logger: logger,
+			})
 
-	err = worker.Start()
-	if err != nil {
-		return errors.WrapError(ctx, err)
+		err = worker.Start()
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		log.Info(ctx, "Started Worker", "worker", tasklistName)
 	}
-
-	log.Info(ctx, "Started Worker", "worker", svc.TaskListName)
 	return nil
 }

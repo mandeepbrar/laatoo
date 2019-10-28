@@ -9,37 +9,41 @@ objects:
         description: Host where cadence is running
         type: string
         required: true
+        variable: Host
       Domain:
         description: Cadence domain
         type: string
         required: true
-      TaskListName:
-        description: Tasklist processed by worker
-        type: string
+        variable: Domain
+      TaskLists:
+        description: Tasklists for which workers are to be created
+        type: stringarray
         required: true
+        variable: TaskLists
       ClientName:
         description: Client name
         type: string
         required: true
+        variable: ClientName
       CadenceService:
         description: Cadence service
         type: string
         required: true
+        variable: CadenceService
   cadence_simpleworkflow:
     type: service
     description: Simple sequential workflow for cadence
     configurations:
-      TaskListName:
+      taskListName:
         description: Tasklist name
         type: string
-        required: true
         variable: TaskListName
-      WorkflowName:
+      workflowname:
         description: Workflow name
         type: string
         required: true
         variable: WorkflowName
-      Tasks:
+      workflow:
         description: Array of tasks in the sequential workflow
         type: stringarray
         required: true
@@ -48,17 +52,16 @@ objects:
     type: service
     description: DSL workflow for cadence. Refer cadence samples. Support parallelization
     configurations:
-      TaskListName:
+      taskListName:
         description: Tasklist name
         type: string
-        required: true
         variable: TaskListName
-      WorkflowName:
+      workflowname:
         description: Workflow name
         type: string
         required: true
         variable: WorkflowName
-      Workflow:
+      workflow:
         description: Task structure for workflow
         type: config
         required: true
@@ -70,23 +73,38 @@ objects:
         description: Host where cadence is running
         type: string
         required: true
+        variable: Host
       Domain:
         description: Cadence domain
         type: string
         required: true
+        variable: Domain
       ClientName:
         description: Client name
         type: string
         required: true
+        variable: ClientName
       CadenceService:
         description: Cadence service
         type: string
         required: true
-      TaskListName:
-        description: Tasklist name
-        type: string
-        required: true
-      WorkflowDefinition:
-        description: Workflow Definition
-        type: string
-        required: true
+        variable: CadenceService
+params:
+  workflowdomain: 
+    type: string
+    description: Domain to use for workflow support
+  workflowhost: 
+    type: string
+    description: Host for workflow
+  workflowtasklists: 
+    type: stringarray
+    description: Tasklists for workers need to be started
+  workflowclient:
+    type: string
+    description: Client name to be used for workers
+  workflowservicename:
+    type: string
+    description: Name of workflow service
+  workerservicename:
+    type: string
+    description: Name of worker service

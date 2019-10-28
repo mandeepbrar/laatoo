@@ -21,7 +21,6 @@ type WorkflowInitiator struct {
 	Domain         string
 	ClientName     string
 	CadenceService string
-	TaskListName   string
 	dispatcher     *yarpc.Dispatcher
 	client         client.Client
 }
@@ -31,30 +30,22 @@ func (svc *WorkflowInitiator) Initialize(ctx core.ServerContext, conf config.Con
 }
 
 func (svc *WorkflowInitiator) Start(ctx core.ServerContext) error {
-	svc.Host, _ = svc.GetStringConfiguration(ctx, "Host")
-	svc.Domain, _ = svc.GetStringConfiguration(ctx, "Domain")
-	svc.TaskListName, _ = svc.GetStringConfiguration(ctx, "TaskListName")
-	svc.ClientName, _ = svc.GetStringConfiguration(ctx, "ClientName")
-	svc.CadenceService, _ = svc.GetStringConfiguration(ctx, "CadenceService")
 	workflowClient, err := svc.buildCadenceClient(ctx)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	/*h.Builder = NewBuilder(logger).
-	SetHostPort(h.Config.HostNameAndPort).
-	SetDomain(h.Config.DomainName).
-	SetMetricsScope(h.Scope).
-	SetDataConverter(h.DataConverter).
-	SetContextPropagators(h.CtxPropagators)*/
-
 	svc.client = workflowClient
 	return nil
 }
 
 func (svc *WorkflowInitiator) StartWorkflow(ctx core.RequestContext, workflowName string, initVal interface{}) error {
+	return svc.StartWorkflowOnTasklist(ctx, workflowName, workflowName, initVal)
+}
+
+func (svc *WorkflowInitiator) StartWorkflowOnTasklist(ctx core.RequestContext, workflowName, tasklistName string, initVal interface{}) error {
 	workflowoptions := client.StartWorkflowOptions{
 		ID:                              workflowName + "_" + uuid.NewV1().String(),
-		TaskList:                        svc.TaskListName,
+		TaskList:                        tasklistName,
 		ExecutionStartToCloseTimeout:    time.Minute,
 		DecisionTaskStartToCloseTimeout: time.Minute,
 	}

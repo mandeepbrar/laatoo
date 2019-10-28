@@ -15,6 +15,7 @@ googlesearch laatoo/services/search/google
 beanstalktasks laatoo/services/tasks/beanstalk
 gaetasks laatoo/services/tasks/gae
 cadence laatoo/services/workflow/cadence
+signup laatoo/services/security/signup
 filesystemstorage laatoo/services/storage/filesystem
 googlestorage laatoo/services/storage/googlestorage
 staticfileserver laatoo/services/static

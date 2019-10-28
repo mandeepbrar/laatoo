@@ -4,6 +4,7 @@ dependencies:
   role: ">=0.0.1"
   dataadapter: ">=0.0.1"
   dblogin: ">=0.0.1"
+  signup: ">=0.0.1"
 description: This module provides local database authentication system. Two services
   'login.local' and 'register' are provided along with http channels '/login' and
   '/register'
@@ -36,3 +37,15 @@ params:
   setcookies:
     type: bool
     description: Set cookie for auth header
+  signup_support:
+    type: string
+    description: support for registration of users
+  workflowsupport:
+    type: string
+    description: Workflow support for registration process
+  workflowname:
+    type: string
+    description: Workflow name to invoke on registration
+  workflowinitator:
+    type: string
+    description: Workflow initiator service to use for initiating workflow

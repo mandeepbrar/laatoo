@@ -21,6 +21,7 @@ type objectLoader struct {
 	parentElem             core.ServerElement
 	provider               *metadataProvider
 	svrContext             core.ServerContext
+	loadedPlugins          map[string]string
 }
 
 func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -83,12 +84,22 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 		if err != nil {
 			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
 		}
+
+		_, ok := objLoader.loadedPlugins[path]
+		if ok {
+			return nil
+		}
+
 		if !info.IsDir() {
 			log.Trace(ctx, "Loading plugin", "path", path)
 			p, err := plugin.Open(path)
 			if err != nil {
-				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
+				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path, "loaded plugins", objLoader.loadedPlugins)
 			}
+
+			mod, _ := ctx.GetString("module")
+			objLoader.loadedPlugins[path] = mod
+
 			sym, err := p.Lookup("Manifest")
 			if err != nil {
 				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)

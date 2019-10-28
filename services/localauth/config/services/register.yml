@@ -1,4 +1,8 @@
 servicemethod: REGISTRATION
+skip: {{if exists "signup_support"}} {{var "signup_support" | not}} {{else}} true {{end}}
 dataobject: stringmap
 user_data_svc: dataadapter.dataservice.User
 def_role: {{var "defaultrole"}}
+workflowname: {{if exists "workflowname"}} {{var "workflowname"}} {{else}} laatoo.signup {{end}}
+workflowsupport: {{if exists "workflowsupport"}} {{var "workflowsupport"}} {{else}} false {{end}}
+workflowinitiator: {{if exists "workflowinitiator"}} {{var "workflowinitiator"}} {{else}} laatoo.workflowinitiator {{end}}

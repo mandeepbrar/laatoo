@@ -22,19 +22,45 @@ const (
 )
 
 func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName string) (config.Config, error, bool) {
+	var retconf config.Config
+	var err error
 	retconf, ok := conf.GetSubConfig(ctx, configName)
-	if ok {
-		return retconf, nil, ok
-	}
-	confFileName, ok := conf.GetString(ctx, configName)
-	if ok {
+	if !ok {
+		confFileName, ok := conf.GetString(ctx, configName)
+		if !ok {
+			return nil, nil, false
+		}
 		log.Debug(ctx, "Reading config from file "+confFileName)
-		return FileAdapter(ctx, conf, configName)
-	} else {
+		retconf, err = NewConfigFromFile(ctx, confFileName, nil)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
+		}
+	}
+	checkSkip, _ := retconf.GetBool(ctx, constants.CONF_ITEM_SKIP)
+	if checkSkip {
 		return nil, nil, false
 	}
+	return retconf, nil, true
 }
 
+/*func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config.Config, error, bool) {
+	var configToRet config.Config
+	var err error
+	confFileName, ok := conf.GetString(ctx, configName)
+	if ok {
+		configToRet, err = NewConfigFromFile(ctx, confFileName, nil)
+		if err != nil {
+			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
+		}
+	} else {
+		configToRet, ok = conf.GetSubConfig(ctx, configName)
+		if !ok {
+			return nil, nil, false
+		}
+	}
+	return configToRet, nil, true
+}
+*/
 func ProcessObjects(ctx core.ServerContext, objs map[string]config.Config, processor func(core.ServerContext, config.Config, string) error) error {
 	for elemName, elemConf := range objs {
 		elemCtx := ctx.SubContext(elemName)
@@ -63,9 +89,12 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 				if err != nil {
 					return errors.WrapError(ctx, err)
 				}
-				if !CheckContextCondition(ctx, elemConf) {
-					continue
+				if elemConf == nil {
+					return nil
 				}
+				/*if !CheckContextCondition(ctx, elemConf) {
+					continue
+				}*/
 				name, ok := elemConf.GetString(ctx, constants.CONF_OBJECT_NAME)
 				if ok {
 					elemName = name
@@ -105,24 +134,6 @@ func ProcessDirectoryFiles(ctx core.ServerContext, baseDir string, object string
 		return nil, err
 	}
 	return objs, nil
-}
-
-func FileAdapter(ctx ctx.Context, conf config.Config, configName string) (config.Config, error, bool) {
-	var configToRet config.Config
-	var err error
-	confFileName, ok := conf.GetString(ctx, configName)
-	if ok {
-		configToRet, err = NewConfigFromFile(ctx, confFileName, nil)
-		if err != nil {
-			return nil, fmt.Errorf("Could not read from file %s. Error:%s", confFileName, err), true
-		}
-	} else {
-		configToRet, ok = conf.GetSubConfig(ctx, configName)
-		if !ok {
-			return nil, nil, false
-		}
-	}
-	return configToRet, nil, true
 }
 
 func CastToConfig(conf interface{}) (config.Config, bool) {
