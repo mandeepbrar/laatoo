@@ -27,7 +27,48 @@ objects:
         type: string
         description: Workflow initiator service
         inject: WorkflowInitiator
+  SignupEmailTask:
+    type: service
+    description: Task processor for signup email tasks.
+    configurations:
+      SiteName: 
+        type: string
+        description: Site name to use in email body
+        variable: SiteName
+        required: true
+      SiteLink: 
+        type: string
+        description: Link to use for verifying email
+        required: true
+        variable: SiteLink
+      MailBody: 
+        type: string
+        description: Mail body to use for emails
+        required: true
+        variable: MailBody
+      KeyPath: 
+        type: string
+        required: true
+        description: Private key path to use for creating verification token
+        variable: KeyPath
+    request:
+      params:
+        Task: 
+          type: bytes
+          description: Bytes containing string map for signup task
 params:
   workflowname: 
     type: string
     description: Workflow to be invoked on registration
+  sitename: 
+    type: string
+    description: Site name to use in email body
+  sitelink: 
+    type: string
+    description: Link to use for verifying email
+  mailbody: 
+    type: string
+    description: Mail body to use for emails
+  keypath: 
+    type: string
+    description: Private key path to use for creating verification token

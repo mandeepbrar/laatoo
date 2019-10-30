@@ -20,3 +20,4 @@ permissions:
 
 #ssh-keygen -t rsa -b 2048
 #openssl rsa -in raminderapp.pem -pubout > raminderapp.pub
+#openssl genrsa -out signupkey.pem 1024

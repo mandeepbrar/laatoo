@@ -147,6 +147,89 @@ func convertDataType(dtype string) objectDataType {
 }
 
 func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, encoded bool) error {
+	//var reqData interface{}
+	var err error
+	ok := false
+	var reqBytes []byte
+	if encoded {
+		reqBytes, ok = val.([]byte)
+		if !ok {
+			return errors.BadArg(ctx, p.name)
+		}
+	}
+	//resPtr := false
+	switch p.oDataType {
+	case __stringmap:
+		if encoded {
+			mapval := make(map[string]interface{}, 10)
+			err = codec.Unmarshal(ctx, reqBytes, mapval)
+			p.value = mapval
+		} else {
+			p.value, ok = val.(map[string]interface{})
+		}
+	case __stringsmap:
+		if encoded {
+			mapval := make(map[string]string, 10)
+			err = codec.Unmarshal(ctx, reqBytes, &mapval)
+			p.value = mapval
+		} else {
+			p.value, ok = val.(map[string]string)
+		}
+	case __bytes:
+		p.value, ok = val.([]byte)
+	case __inttype:
+		p.value, ok = val.(int)
+	case __datetime:
+		if encoded {
+			t, ok := val.(string)
+			if ok {
+				tvalue, err := time.Parse(time.RFC1123, t)
+				if err != nil {
+					return err
+				} else {
+					p.value = tvalue
+				}
+			}
+		} else {
+			p.value, ok = val.(time.Time)
+		}
+	case __stringtype:
+		p.value = string(reqBytes)
+	case __files:
+		p.value, ok = val.(map[string]*core.MultipartFile)
+	case __stringarr:
+		p.value, ok = val.([]string)
+	case __booltype:
+		p.value, ok = val.(bool)
+	default:
+		if encoded {
+			if p.IsCollection() {
+				p.value = p.dataObjectCollectionCreator(5)
+			} else {
+				p.value = p.dataObjectCreator()
+			}
+			err = codec.Unmarshal(ctx, reqBytes, p.value)
+		} else {
+			p.value = val
+			ok = true
+		}
+	}
+
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	if ok {
+		return nil
+	}
+
+	return errors.BadArg(ctx, p.name)
+}
+
+/*
+
+
+func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, encoded bool) error {
 	var reqData interface{}
 	resPtr := false
 	ok := false
@@ -207,7 +290,6 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 		return nil
 	}
 
-	/** decode encoded objects**/
 	if encoded {
 		var reqBytes []byte
 		reqBytes, ok = val.([]byte)
@@ -244,3 +326,4 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	}
 	return errors.BadArg(ctx, p.name)
 }
+*/

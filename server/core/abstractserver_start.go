@@ -71,6 +71,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Trace(chanstart, "Started channel managers")
 
+	if as.communicatorHandle != nil {
+		commstart := ctx.SubContext("Start communicator")
+		err := as.communicatorHandle.Start(commstart)
+		if err != nil {
+			return errors.WrapError(commstart, err)
+		}
+	}
+
 	if as.messagingManagerHandle != nil {
 		msgstart := ctx.SubContext("Start messaging manager")
 		err := as.messagingManagerHandle.Start(msgstart)

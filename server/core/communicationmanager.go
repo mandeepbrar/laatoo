@@ -32,11 +32,12 @@ func (comm *communicator) Start(ctx core.ServerContext) error {
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
 	}
+	log.Info(ctx, "Communication service configured")
 	comm.commSvc = svc
 	return nil
 }
 
-func (comm *communicator) sendCommunication(ctx core.RequestContext, communication map[interface{}]interface{}) error {
+func (comm *communicator) sendCommunication(ctx core.RequestContext, communication *components.Communication) error {
 	if comm.commSvc != nil {
 		err := comm.commSvc.SendCommunication(ctx, communication)
 		if err != nil {

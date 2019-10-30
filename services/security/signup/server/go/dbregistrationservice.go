@@ -15,12 +15,15 @@ import (
 const (
 	//login path to be used for local and oauth authentication
 	CONF_SECURITYSERVICE_REGISTRATIONSERVICE = "REGISTRATION"
+	CONF_EMAIL_TASKPROCESSOR                 = "SignupEmailTask"
 	CONF_REGISTRATIONSERVICE_USERDATASERVICE = "user_data_svc"
 	CONF_DEF_ROLE                            = "def_role"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}}}
+	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}},
+		core.PluginComponent{Name: CONF_EMAIL_TASKPROCESSOR, Object: SignupEmailTask{}},
+	}
 }
 
 // SecurityService contains a configuration and other details for running.

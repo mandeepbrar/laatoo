@@ -1,0 +1,5 @@
+servicemethod: SignupEmailTask
+SiteName: {{var "sitename"}}
+SiteLink: {{var "sitelink"}}
+MailBody: {{if exists "mailbody"}} {{var "mailbody"}} {{else}} '<html><body>Hi <<.Name>><br/><p> This is a verification email from <<.SiteName>>. Please click on this link to verify your email Id <a href="<<.SiteLink>>/<<.Token>>" style="color: green;">Click here</a></p></body></html>' {{end}}
+KeyPath: {{var "keypath"}}

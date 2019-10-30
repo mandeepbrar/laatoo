@@ -10,10 +10,10 @@ objects:
         description: mail server to use for sending emails
         type: string
         required: true
-      mailuser:
-        description: user to use for sending emails
+      mailport:
+        description: mail port to use for sending emails. Colon to be included by user
         type: string
-        required: true
+        variable: MailPort
       mailsender:
         description: email to use for sending emails
         type: string
@@ -24,6 +24,27 @@ objects:
       queuetasks:
         description: send communication directly or queue them if received through communicator interface
         type: bool
+        default: false
       emailqueue:
         description: queue to use for sending emails if queueing of tasks is to be done
         type: string
+params:
+  mailserver:
+    description: mail server to use for sending emails
+    type: string
+  mailport:
+    description: mail port to use for sending emails. Colon to be included by user
+    type: string
+  mailsender:
+    description: email to use for sending emails
+    type: string
+  mailpass:
+    description: password to use for sending emails
+    type: string
+  queuetasks:
+    description: send communication directly or queue them if received through communicator interface
+    type: bool
+    default: false
+  emailqueue:
+    description: queue to use for sending emails if queueing of tasks is to be done
+    type: string

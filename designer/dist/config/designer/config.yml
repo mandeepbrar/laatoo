@@ -1,4 +1,6 @@
 modulesrepo: "/modules"
+communication:
+  communicationservice: laatoo.email
 logging:
   level: trace
   format: happymax
@@ -52,6 +54,7 @@ modules:
   dblogin:
   entity:
   cadence:
+  email:
   user:
   moduledesignerbase:
   moduledesignerserver:
@@ -80,6 +83,10 @@ moduleinstances:
       mongodatabase: PunjabiMehfil
   signup:
     module: signup
+    settings:
+      sitename: Laatoo
+      sitelink: http://localhost:6060/verifyemail
+      keypath: /keys/signupkey.pem
   localauth:
     module: localauth
     settings:
@@ -123,6 +130,14 @@ moduleinstances:
     module: platformdependencies
   moduledesignerbase:
     module: moduledesignerbase
+  email:
+    module: email
+    settings:
+      mailserver: smtp-mail.outlook.com
+      mailport: '587'
+      mailsender: mandeep.junk.11@outlook.com
+      mailpass: Msbrar-99
+      queuetasks: false
   cadence:
     module: cadence
     settings:

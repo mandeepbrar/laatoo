@@ -8,7 +8,8 @@ import (
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"net/smtp"
+
+	mailsender "github.com/go-mail/mail"
 )
 
 const (
@@ -22,7 +23,7 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 type EmailService struct {
 	core.Service
 	mailServer string
-	mailUser   string
+	MailPort   string
 	mailPass   string
 	sender     string
 	queueComm  bool
@@ -31,9 +32,8 @@ type EmailService struct {
 
 func (svc *EmailService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	var ok bool
-	svc.mailServer, _ = svc.GetStringConfiguration(ctx, "server")
-	svc.mailUser, _ = svc.GetStringConfiguration(ctx, "user")
-	svc.mailPass, _ = svc.GetStringConfiguration(ctx, "password")
+	svc.mailServer, _ = svc.GetStringConfiguration(ctx, "mailserver")
+	svc.mailPass, _ = svc.GetStringConfiguration(ctx, "mailpass")
 	svc.sender, _ = svc.GetStringConfiguration(ctx, "mailsender")
 	svc.queueComm, _ = svc.GetBoolConfiguration(ctx, "queuetasks")
 	svc.emailqueue, ok = svc.GetStringConfiguration(ctx, "emailqueue")
@@ -48,8 +48,8 @@ func (svc *EmailService) Invoke(ctx core.RequestContext) error {
 	taskI, _ := ctx.GetParamValue("Task")
 	task, ok := taskI.(*components.Task)
 	if ok {
-		communication := make(map[interface{}]interface{})
-		err := json.Unmarshal(task.Data, &communication)
+		communication := &components.Communication{}
+		err := json.Unmarshal(task.Data, communication)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -60,7 +60,7 @@ func (svc *EmailService) Invoke(ctx core.RequestContext) error {
 	return nil
 }
 
-func (svc *EmailService) SendCommunication(ctx core.RequestContext, communication map[interface{}]interface{}) (err error) {
+func (svc *EmailService) SendCommunication(ctx core.RequestContext, communication *components.Communication) (err error) {
 	if svc.queueComm {
 		err = ctx.PushTask(svc.emailqueue, communication)
 	} else {
@@ -69,27 +69,103 @@ func (svc *EmailService) SendCommunication(ctx core.RequestContext, communicatio
 	if err != nil {
 		err = errors.WrapError(ctx, err)
 	}
+	log.Debug(ctx, "Sent email to recipients", "recipients", communication.Recipients)
+
 	return err
 }
 
-func (svc *EmailService) sendCommunication(ctx ctx.Context, communication map[interface{}]interface{}) error {
-	for recipients, msg := range communication {
-		err := svc.sendMessage(ctx, recipients.([]string), svc.sender, msg)
+func (svc *EmailService) sendCommunication(ctx ctx.Context, communication *components.Communication) error {
+	msg := string(communication.Message)
+	for mail, name := range communication.Recipients {
+		err := svc.sendMessage(ctx, mail, name, svc.sender, communication.Subject, communication.Mime, msg, communication.Attachments)
 		if err != nil {
-			log.Error(ctx, "Could not send email to recepients", "recepients", recipients)
+			log.Error(ctx, "Could not send email to recepients", "recipients", communication.Recipients)
 		}
 	}
 	return nil
 }
 
-func (svc *EmailService) sendMessage(ctx ctx.Context, recipients []string, sender string, msg interface{}) error {
-	auth := smtp.PlainAuth("", svc.mailUser, svc.mailPass, svc.mailServer)
+func (svc *EmailService) sendMessage(ctx ctx.Context, mail, name, sender, subject, mime, msg string, attachments []string) error {
 
-	// Connect to the server, authenticate, set the sender and recipient,
-	// and send the email all in one step.
-	err := smtp.SendMail(svc.mailServer+":25", auth, sender, recipients, msg.([]byte))
-	if err != nil {
+	m := mailsender.NewMessage()
+	m.SetHeader("From", sender)
+	m.SetHeader("To", mail)
+	//m.SetAddressHeader("Cc", "dan@example.com", "Dan")
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", string(msg))
+	//	m.Attach("/home/Alex/lolcat.jpg")
+
+	d := mailsender.NewDialer(svc.mailServer, 587, sender, svc.mailPass)
+	d.StartTLSPolicy = mailsender.MandatoryStartTLS
+
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	return nil
 }
+
+/*
+
+func (svc *EmailService) sendMessage(ctx ctx.Context, recipients []string, sender string, msg interface{}) error {
+	auth := smtp.PlainAuth("", sender, svc.mailPass, svc.mailServer)
+
+	// Connect to the server, authenticate, set the sender and recipient,
+	// and send the email all in one step.
+
+	// TLS config
+	tlsconfig := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         svc.mailServer,
+	}
+
+	// Here is the key, you need to call tls.Dial instead of smtp.Dial
+	// for smtp servers running on 465 that require an ssl connection
+	// from the very beginning (no starttls)
+	c, err := smtp.Dial(svc.mailServer + svc.MailPort)
+	if nil != err {
+		return errors.WrapError(ctx, err)
+	}
+	defer c.Close()
+	if err = c.StartTLS(tlsconfig); err != nil {
+		log.Error(ctx, "tls error "+err.Error())
+		return errors.WrapError(ctx, err)
+	}
+
+	// Auth
+	if err = c.Auth(auth); err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+	for _, recipient := range recipients {
+
+		// To && From
+		if err = c.Mail(sender); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		if err = c.Rcpt(recipient); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		// Data
+		w, err := c.Data()
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		_, err = w.Write(msg.([]byte))
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		err = w.Close()
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+
+		c.Quit()
+	}
+	return nil
+}
+*/

@@ -77,7 +77,7 @@ require (
 	honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 
-
+	github.com/go-mail/mail v2.3.1
 	go.uber.org/thriftrw v1.20.2
 	go.uber.org/multierr v1.2.0
 	github.com/opentracing/opentracing-go v1.1.0

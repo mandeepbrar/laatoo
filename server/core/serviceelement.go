@@ -217,7 +217,6 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 	for name, svcParam := range params {
 		reqParam := svcParam.(*param).clone()
 		val, ok := vals[name]
-		log.Error(ctx, "populate params", "param", svcParam, "val", val, "encoded", encoded)
 		if (val != nil) && ok {
 			err := reqParam.setValue(ctx, val, codec, encoded)
 			if err != nil {
@@ -231,8 +230,8 @@ func (svc *serverService) populateParams(ctx *requestContext, vals map[string]in
 		reqParams[name] = reqParam
 	}
 
-	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params, "reqInfo", reqInfo)
 	req.setParams(ctx, reqParams)
+	log.Trace(ctx, "Populated params", "reqParams", reqParams, "params", params, "reqInfo", reqInfo)
 	return nil
 }
 

@@ -1,1 +1,7 @@
 servicemethod: email_service
+mailserver: {{var "mailserver"}}
+mailport: {{var "mailport"}}
+mailsender: {{var "mailsender"}}
+mailpass: {{var "mailpass"}}
+queuetasks: {{var "queuetasks"}}
+emailqueue: {{var "emailqueue"}}

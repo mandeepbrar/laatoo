@@ -90,6 +90,15 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	}
 	log.Debug(chaninit, "Initialized channel manager")
 
+	if as.communicatorHandle != nil {
+		comminit := ctx.SubContext("Initialize communicator")
+		err := as.initializeCommunicator(comminit, as.name, conf, as.parent)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		log.Debug(comminit, "Initialized communicator")
+	}
+
 	if as.messagingManagerHandle != nil {
 		msginit := ctx.SubContext("Initialize messaging manager")
 		err := as.initializeMessagingManager(msginit, as.name, conf, as.parent)
@@ -161,6 +170,35 @@ func initializeChannelManager(ctx core.ServerContext, conf config.Config, channe
 	err = channelManagerHandle.Initialize(ctx, chmgrconf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (as *abstractserver) initializeCommunicator(ctx core.ServerContext, name string, conf config.Config, parent *abstractserver) error {
+	commConf, err, found := common.ConfigFileAdapter(ctx, conf, constants.CONF_COMMUNICATION)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	if !found {
+		basedir, _ := ctx.GetString(config.BASEDIR)
+		confFile := path.Join(basedir, constants.CONF_COMMUNICATION, constants.CONF_CONFIG_FILE)
+		found, _, _ = utils.FileExists(confFile)
+		if found {
+			var err error
+			if commConf, err = common.NewConfigFromFile(ctx, confFile, nil); err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		} else {
+			commConf = ctx.CreateConfig()
+		}
+	}
+	if as.communicatorHandle != nil {
+		comminit := ctx.SubContext("Initialize communicator")
+		err := as.communicatorHandle.Initialize(comminit, commConf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		log.Debug(comminit, "Initialized communicator")
 	}
 	return nil
 }

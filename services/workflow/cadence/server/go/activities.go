@@ -34,7 +34,9 @@ func taskActivityCreator(ctx core.ServerContext, taskName string, workflowName s
 			if err == nil {
 				res := reqctx.GetResponse()
 				activity.GetLogger(actctx).Info("Task complete", zap.String("taskName", inputTask.Queue))
-				result = res.Data
+				if res != nil {
+					result = res.Data
+				}
 			}
 		}
 

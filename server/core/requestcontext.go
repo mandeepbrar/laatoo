@@ -254,11 +254,14 @@ func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) er
 	return nil
 }
 
-func (ctx *requestContext) SendCommunication(communication map[interface{}]interface{}) error {
-	if ctx.serverContext.svrElements.communicator != nil {
-		return ctx.serverContext.svrElements.communicator.SendCommunication(ctx, communication)
+func (ctx *requestContext) SendCommunication(communication interface{}) error {
+	comm, ok := communication.(*components.Communication)
+	if ok {
+		if ctx.serverContext.svrElements.communicator != nil {
+			return ctx.serverContext.svrElements.communicator.SendCommunication(ctx, comm)
+		}
 	}
-	return errors.BadConf(ctx, "No communicator service has been configured")
+	return errors.BadConf(ctx, "No communicator service has been configured or bad communication structure")
 }
 
 func (ctx *requestContext) ForwardToService(svc core.Service, vals map[string]interface{}) error {

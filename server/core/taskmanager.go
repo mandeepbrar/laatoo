@@ -143,6 +143,12 @@ func (tskMgr *taskManager) Start(ctx core.ServerContext) error {
 		}
 	}
 
+	for queueName, processorName := range tskMgr.taskProcessorNames {
+		if err := tskMgr.startProcessor(tskmgrStartCtx, queueName, processorName); err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
 	return nil
 }
 
@@ -176,12 +182,17 @@ func (tskMgr *taskManager) startConsumer(ctx core.ServerContext, queueName, cons
 		return errors.WrapError(ctx, err)
 	}
 
+	return nil
+}
+
+func (tskMgr *taskManager) startProcessor(ctx core.ServerContext, queueName, processorName string) error {
 	svcMgr := ctx.GetServerElement(core.ServerElementServiceManager).(elements.ServiceManager)
-	procSvc, err := svcMgr.GetService(ctx, tskMgr.taskProcessorNames[queueName])
+	procSvc, err := svcMgr.GetService(ctx, processorName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
 	tskMgr.taskProcessors[queueName] = procSvc
+	log.Debug(ctx, "Processor assigned to queue", "queue", queueName)
 	return nil
 }
 
@@ -227,7 +238,7 @@ func (tskMgr *taskManager) processTask(ctx core.RequestContext, t *components.Ta
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		log.Trace(ctx, "Processing background task")
+		log.Error(ctx, "Processing background task", "Task", t)
 		res, err := processor.HandleRequest(ctx, map[string]interface{}{tskMgr.authHeader: t.Token, "Task": t.Data})
 		ctx.SetResponse(res)
 		return err
@@ -266,11 +277,13 @@ func (tskMgr *taskManager) loadTask(ctx core.ServerContext, conf config.Config, 
 		return errors.MissingConf(ctx, constants.CONF_TASKS_QUEUE, "Task Name", taskName)
 	}
 
-	consumer, ok := conf.GetString(ctx, constants.CONF_TASK_CONSUMER)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
+	consumer, consumerConfigured := conf.GetString(ctx, constants.CONF_TASK_CONSUMER)
+	if !consumerConfigured {
+		log.Warn(ctx, "Task  consumer not configured for task", "Task Name", taskName)
+		//return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
+	} else {
+		tskMgr.taskConsumerNames[queueName] = consumer
 	}
-	tskMgr.taskConsumerNames[queueName] = consumer
 
 	processor, ok := conf.GetString(ctx, constants.CONF_TASK_PROCESSOR)
 	if !ok {
@@ -278,19 +291,24 @@ func (tskMgr *taskManager) loadTask(ctx core.ServerContext, conf config.Config, 
 	}
 	tskMgr.taskProcessorNames[queueName] = processor
 
-	publisher, ok := conf.GetString(ctx, constants.CONF_TASK_PUBLISHER)
-	if !ok {
-		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
+	publisher, publisherConfigured := conf.GetString(ctx, constants.CONF_TASK_PUBLISHER)
+	if !publisherConfigured {
+		log.Warn(ctx, "Task publisher not configured for task.", "Task Name", taskName)
+		//		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
+	} else {
+		tskMgr.taskPublishers[queueName] = publisher
 	}
-	tskMgr.taskPublishers[queueName] = publisher
 	if start {
-		if err := tskMgr.startPublisher(ctx, queueName, publisher); err != nil {
-			return errors.WrapError(ctx, err)
+		if publisherConfigured {
+			if err := tskMgr.startPublisher(ctx, queueName, publisher); err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
-		if err := tskMgr.startConsumer(ctx, queueName, consumer); err != nil {
-			return errors.WrapError(ctx, err)
+		if consumerConfigured {
+			if err := tskMgr.startConsumer(ctx, queueName, consumer); err != nil {
+				return errors.WrapError(ctx, err)
+			}
 		}
-
 	}
 	return nil
 }
