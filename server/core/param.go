@@ -5,6 +5,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 	"time"
 )
 
@@ -176,15 +177,26 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 			p.value, ok = val.(map[string]string)
 		}
 	case __bytes:
-		p.value, ok = val.([]byte)
+		if encoded {
+			p.value = reqBytes
+		} else {
+			p.value, ok = val.([]byte)
+		}
 	case __inttype:
-		p.value, ok = val.(int)
+		if encoded {
+			var intVal int
+			err = codec.Unmarshal(ctx, reqBytes, &intVal)
+			p.value = intVal
+		} else {
+			p.value, ok = val.(int)
+		}
 	case __datetime:
 		if encoded {
-			t, ok := val.(string)
-			if ok {
-				tvalue, err := time.Parse(time.RFC1123, t)
-				if err != nil {
+			var strVal string
+			err = codec.Unmarshal(ctx, reqBytes, &strVal)
+			if err == nil {
+				tvalue, err := time.Parse(time.RFC1123, strVal)
+				if err == nil {
 					return err
 				} else {
 					p.value = tvalue
@@ -194,13 +206,32 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 			p.value, ok = val.(time.Time)
 		}
 	case __stringtype:
-		p.value = string(reqBytes)
+		if encoded {
+			var strVal string
+			err = codec.Unmarshal(ctx, reqBytes, &strVal)
+			log.Error(ctx, "decoded string", "str", strVal, "reqbytes", reqBytes)
+			p.value = strVal
+		} else {
+			p.value = string(reqBytes)
+		}
 	case __files:
 		p.value, ok = val.(map[string]*core.MultipartFile)
 	case __stringarr:
-		p.value, ok = val.([]string)
+		if encoded {
+			strVal := []string{}
+			err = codec.Unmarshal(ctx, reqBytes, &strVal)
+			p.value = strVal
+		} else {
+			p.value, ok = val.([]string)
+		}
 	case __booltype:
-		p.value, ok = val.(bool)
+		if encoded {
+			var bVal bool
+			err = codec.Unmarshal(ctx, reqBytes, &bVal)
+			p.value = bVal
+		} else {
+			p.value, ok = val.(bool)
+		}
 	default:
 		if encoded {
 			if p.IsCollection() {

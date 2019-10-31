@@ -1,4 +1,4 @@
-skip: {{if exists "signup_support"}} {{var "signup_support" | not}} {{else}} true {{end}}
+#skip: {{if exists "signup_support"}} {{var "signup_support" | not}} {{else}} true {{end}}
 parent: root
 service: register
 method: POST

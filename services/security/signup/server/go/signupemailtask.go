@@ -2,41 +2,63 @@ package main
 
 import (
 	"bytes"
-	"crypto/rsa"
 	"encoding/json"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/sdk/utils"
 	"text/template"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+/*
+
+  SignupEmailTask:
+    type: service
+    description: Task processor for signup email tasks.
+    configurations:
+      SiteName:
+        type: string
+        description: Site name to use in email body
+        variable: SiteName
+        required: true
+      SiteLink:
+        type: string
+        description: Link to use for verifying email
+        required: true
+        variable: SiteLink
+      MailBody:
+        type: string
+        description: Mail body to use for emails
+        required: true
+        variable: MailBody
+      Key:
+        type: string
+        required: true
+        description: Key path to use for signing token
+        variable: KeyPath
+    request:
+      params:
+        Task:
+          type: bytes
+          description: Bytes containing string map for signup task
+
+*/
+
 type SignupEmailTask struct {
 	core.Service
 	SiteName string
 	SiteLink string
 	MailBody string
-	KeyPath  string
-	pvtKey   *rsa.PrivateKey
+	key      string
 }
 
 func (signup *SignupEmailTask) Initialize(ctx core.ServerContext, conf config.Config) error {
-	log.Error(ctx, "loading key from path", "path", signup, "conf", conf)
-	ctx.Dump()
-	pvtKey, err := utils.LoadPrivateKey(signup.KeyPath)
-	if err != nil {
-		return errors.BadConf(ctx, "KeyPath", "err", err)
-	}
-	signup.pvtKey = pvtKey
-	return nil
-}
-func (signup *SignupEmailTask) Start(ctx core.ServerContext) error {
-	log.Error(ctx, "loading key from path", "path", signup)
+	key, _ := conf.GetString(ctx, "Key")
+	signup.key = key
 	return nil
 }
 func (signup *SignupEmailTask) Invoke(ctx core.RequestContext) error {
@@ -112,8 +134,8 @@ func (signup *SignupEmailTask) createToken(ctx core.RequestContext, mail string)
 	claims := make(jwt.MapClaims)
 	claims["email"] = mail
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claims)
-	tokenString, err := token.SignedString(signup.pvtKey)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	tokenString, err := token.SignedString(signup.key)
 	if err != nil {
 		return "", errors.WrapError(ctx, err)
 	}

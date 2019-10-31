@@ -15,22 +15,10 @@ objects:
         type: string
         required: true
         description: Default role to be assigned to a new user
-      workflowname:
-        type: string
-        description: Workflow name to start for signup process
-        variable: WorkflowName
-      workflowsupport:
+      emailverification:
         type: bool
-        description: Workflow support required for signup process
-        variable: WorkflowSupport
-      workflowinitiator:
-        type: string
-        description: Workflow initiator service
-        inject: WorkflowInitiator
-  SignupEmailTask:
-    type: service
-    description: Task processor for signup email tasks.
-    configurations:
+        description: Verify email
+        variable: VerifyEmail
       SiteName: 
         type: string
         description: Site name to use in email body
@@ -46,29 +34,36 @@ objects:
         description: Mail body to use for emails
         required: true
         variable: MailBody
-      KeyPath: 
+      Key: 
         type: string
         required: true
-        description: Private key path to use for creating verification token
-        variable: KeyPath
+        description: Key to use for signing token
+  VerifyEmailService:
+    type: service
+    description: Task processor for signup email tasks.
+    configurations:
+      Key: 
+        type: string
+        required: true
+        description: Key to use for signing token
     request:
       params:
-        Task: 
-          type: bytes
-          description: Bytes containing string map for signup task
+        token: 
+          type: string
+          description: Token for verifying email
 params:
-  workflowname: 
-    type: string
-    description: Workflow to be invoked on registration
   sitename: 
     type: string
     description: Site name to use in email body
   sitelink: 
     type: string
-    description: Link to use for verifying email
+    description: Link for the main site
   mailbody: 
     type: string
     description: Mail body to use for emails
-  keypath: 
+  key: 
     type: string
-    description: Private key path to use for creating verification token
+    description: Key to use for signing token
+  emailverification:
+    type: bool
+    description: Workflow support for registration process

@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http/common"
 	"laatoo/server/engine/http/net"
@@ -49,6 +50,7 @@ type httpChannel struct {
 	allowedHeaders []string
 	skipAuth       bool
 	path           string
+	codec          core.Codec
 	parentChannel  *httpChannel
 	svrContext     core.ServerContext
 }
@@ -118,6 +120,16 @@ func (channel *httpChannel) initialize(ctx core.ServerContext) error {
 			}
 			log.Info(ctx, "CORS enabled for hosts ", "hosts", allowedOrigins)
 		}
+	}
+
+	codecname := "json"
+	/*co, ok := vals["encoding"]
+	if ok {
+		codecname = co.(string)
+	}*/
+	channel.codec, ok = codecs.GetCodec(codecname)
+	if !ok {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
 	}
 
 	return nil

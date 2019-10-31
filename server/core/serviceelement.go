@@ -23,7 +23,6 @@ type serverService struct {
 	paramValues      map[string]interface{}
 	impl             *serviceImpl
 	svrContext       *serverContext
-	codecs           map[string]core.Codec
 	serviceToForward string
 	forward          bool
 }
@@ -43,8 +42,6 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 	} else {
 		return errors.TypeMismatch(ctx, "Service does not inherit from core.Service", svc.name)
 	}
-
-	svc.codecs = map[string]core.Codec{"json": codecs.NewJsonCodec(), "fastjson": codecs.NewFastJsonCodec(), "bin": codecs.NewBinaryCodec(), "proto": codecs.NewProtobufCodec()}
 
 	ldr := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 	md, _ := ldr.GetMetaData(ctx, svc.objectName)
@@ -165,7 +162,7 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 	}
 	var codec core.Codec
 	if codecname != "" {
-		codec, ok = svc.codecs[codecname]
+		codec, ok = codecs.GetCodec(codecname)
 		if !ok {
 			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
 		}

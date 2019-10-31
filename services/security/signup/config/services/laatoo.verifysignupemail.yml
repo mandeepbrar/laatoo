@@ -1,0 +1,2 @@
+servicemethod: VerifyEmailService
+Key: {{var "key"}}

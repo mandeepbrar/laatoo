@@ -84,6 +84,11 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 			file := path.Join(subDir, elemfileName)
 			if !info.IsDir() {
 				extension := filepath.Ext(elemfileName)
+				log.Error(ctx, "Extension of file", "ext", extension)
+				if extension != ".json" && extension != ".yml" {
+					continue
+				}
+
 				elemName := elemfileName[0 : len(elemfileName)-len(extension)]
 				elemConf, err := NewConfigFromFile(ctx, file, nil)
 				if err != nil {

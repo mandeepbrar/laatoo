@@ -78,7 +78,13 @@ func (channel *httpChannel) serve(ctx core.ServerContext) error {
 	if ok {
 		values := staticValuesConf.AllConfigurations(ctx)
 		for _, paramname := range values {
-			staticValues[paramname], _ = staticValuesConf.Get(ctx, paramname)
+			val, _ := staticValuesConf.Get(ctx, paramname)
+
+			byts, err := channel.codec.Marshal(ctx, val)
+			if err != nil {
+				return err
+			}
+			staticValues[paramname] = byts
 		}
 	}
 

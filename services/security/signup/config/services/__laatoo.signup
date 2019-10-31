@@ -2,4 +2,3 @@ servicemethod: cadence_simpleworkflow
 workflowname: {{if exists "workflowname"}} {{var "workflowname"}} {{else}} laatoo.signup {{end}}
 workflow:
   - laatoo.signup.email
-  - laatoo.signup.verifyemail

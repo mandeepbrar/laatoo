@@ -1,0 +1,6 @@
+parent: root
+service: laatoo.verifysignupemail
+method: GET
+path: "/verifyemail/:token"
+paramvalues:
+  token: token

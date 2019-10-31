@@ -50,14 +50,14 @@ func (channel *httpChannel) getRequestBuilder(ctx core.ServerContext, method str
 		if routeParams != nil {
 			for param, routeParamName := range routeParams {
 				paramVal := engineContext.GetRouteParam(routeParamName)
-				vals[param] = paramVal
+				vals[param] = channel.encodeString(ctx, paramVal)
 			}
 		}
 
 		if channel.allowedHeaders != nil {
 			for _, headerName := range channel.allowedHeaders {
 				headerVal := engineContext.GetHeader(headerName)
-				vals[headerName] = headerVal
+				vals[headerName] = channel.encodeString(ctx, headerVal)
 			}
 		}
 
@@ -66,7 +66,7 @@ func (channel *httpChannel) getRequestBuilder(ctx core.ServerContext, method str
 				cookie, _ := engineContext.GetCookie(cookieName)
 				if cookie != nil {
 					log.Trace(reqCtx, "Found cookies", "cookieName", cookie)
-					vals[cookieName] = cookie.Value
+					vals[cookieName] = channel.encodeString(ctx, cookie.Value)
 				}
 			}
 		}
@@ -75,7 +75,7 @@ func (channel *httpChannel) getRequestBuilder(ctx core.ServerContext, method str
 		for param, _ := range queryParams {
 			_, found := allowedQParams[param]
 			if found {
-				vals[param] = engineContext.GetQueryParam(param)
+				vals[param] = channel.encodeString(ctx, engineContext.GetQueryParam(param))
 			} else {
 				log.Info(reqCtx, "Parameter not allowed in request", "parameter", param)
 			}
@@ -83,12 +83,21 @@ func (channel *httpChannel) getRequestBuilder(ctx core.ServerContext, method str
 
 		if staticValues != nil {
 			for name, val := range staticValues {
+				//already encoded by codec
 				vals[name] = val
 			}
 		}
 
 		return reqCtx, vals, nil
 	}, nil
+}
+
+func (channel *httpChannel) encodeString(ctx core.ServerContext, val string) []byte {
+	encVal, err := channel.codec.Marshal(ctx, val)
+	if err != nil {
+		log.Error(ctx, "Codec could not encode string", "val", val, "err", err)
+	}
+	return encVal
 }
 
 /*

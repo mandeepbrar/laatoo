@@ -85,8 +85,9 @@ moduleinstances:
     module: signup
     settings:
       sitename: Laatoo
-      sitelink: http://localhost:6060/verifyemail
-      keypath: /keys/signupkey.pem
+      sitelink: http://localhost:6060
+      key: Mysecret#!@#4
+      emailverification: true
   localauth:
     module: localauth
     settings:

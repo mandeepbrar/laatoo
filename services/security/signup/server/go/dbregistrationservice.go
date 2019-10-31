@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components"
@@ -8,21 +9,28 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"net/url"
 	"reflect"
 	common "securitycommon"
+	"text/template"
+	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 const (
 	//login path to be used for local and oauth authentication
 	CONF_SECURITYSERVICE_REGISTRATIONSERVICE = "REGISTRATION"
-	CONF_EMAIL_TASKPROCESSOR                 = "SignupEmailTask"
+	//CONF_EMAIL_TASKPROCESSOR                 = "SignupEmailTask"
+	CONF_VERIFY_EMAIL                        = "VerifyEmailService"
 	CONF_REGISTRATIONSERVICE_USERDATASERVICE = "user_data_svc"
 	CONF_DEF_ROLE                            = "def_role"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 	return []core.PluginComponent{core.PluginComponent{Name: CONF_SECURITYSERVICE_REGISTRATIONSERVICE, Object: RegistrationService{}},
-		core.PluginComponent{Name: CONF_EMAIL_TASKPROCESSOR, Object: SignupEmailTask{}},
+		//core.PluginComponent{Name: CONF_EMAIL_TASKPROCESSOR, Object: SignupEmailTask{}},
+		core.PluginComponent{Name: CONF_VERIFY_EMAIL, Object: VerifyEmailService{}},
 	}
 }
 
@@ -39,12 +47,14 @@ type RegistrationService struct {
 	//user data service name
 	userDataSvcName string
 	//data service to use for users
-	UserDataService   data.DataComponent
-	WorkflowName      string
-	WorkflowInitiator components.WorkflowInitiator
-	WorkflowSupport   bool
+	UserDataService data.DataComponent
+	VerifyEmail     bool
 
-	realm string
+	realm    string
+	SiteName string
+	SiteLink string
+	MailBody string
+	key      string
 }
 
 func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -70,7 +80,7 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 	}
 	rs.userCreator = userCreator
 
-	if rs.WorkflowSupport {
+	if rs.VerifyEmail {
 		err = rs.AddParamWithType(ctx, "credentials", config.OBJECTTYPE_STRINGSMAP)
 		if err != nil {
 			return errors.WrapError(ctx, err)
@@ -82,7 +92,10 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 		}
 	}
 
-	log.Error(ctx, "registration service", "WorkflowSupport", rs.WorkflowSupport, "Workflow initiator service", rs.WorkflowInitiator)
+	key, _ := conf.GetString(ctx, "Key")
+	rs.key = key
+
+	log.Error(ctx, "registration service", "VerifyEmail", rs.VerifyEmail)
 	/*
 		rs.SetDescription("Db Registration service")
 		rs.SetRequestType(config.CONF_OBJECT_STRINGMAP, false, false)
@@ -93,10 +106,10 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 
 //Expects Rbac user to be provided inside the request
 func (rs *RegistrationService) Invoke(ctx core.RequestContext) (err error) {
-	if rs.WorkflowSupport {
-		err = rs.registerWithWorkflowSupport(ctx)
+	if rs.VerifyEmail {
+		err = rs.registerWithVerificationSupport(ctx)
 	} else {
-		err = rs.registerWithoutWorkflowSupport(ctx)
+		err = rs.register(ctx)
 	}
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -104,18 +117,36 @@ func (rs *RegistrationService) Invoke(ctx core.RequestContext) (err error) {
 	return nil
 }
 
-func (rs *RegistrationService) registerWithWorkflowSupport(ctx core.RequestContext) error {
-	emailMap, _ := ctx.GetStringsMapParam("credentials")
-	log.Trace(ctx, "param value ", "ent", emailMap)
-	email := emailMap["email"]
+func (rs *RegistrationService) registerWithVerificationSupport(ctx core.RequestContext) error {
+	credMap, _ := ctx.GetStringsMapParam("credentials")
+	log.Trace(ctx, "param value ", "ent", credMap)
+	email := credMap["email"]
+	name := credMap["name"]
 	if email != "" {
-		go rs.WorkflowInitiator.StartWorkflow(ctx, rs.WorkflowName, emailMap)
+		token, err := rs.createToken(ctx, email)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		mail, err := rs.createEmail(ctx, name, email, token)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		recipients := map[string]string{email: name}
+		log.Error(ctx, "Communication created", "mail", mail, "recipients", recipients)
+		mailPack := &components.Communication{Recipients: recipients, Message: []byte(mail), Subject: "Verify your Laatoo account"}
+
+		log.Error(ctx, "Communication created", "mailPack", mailPack)
+
+		err = ctx.SendCommunication(mailPack)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 	} else {
 		return errors.BadRequest(ctx, "Missing email in request map", "email")
 	}
 	return nil
 }
-func (rs *RegistrationService) registerWithoutWorkflowSupport(ctx core.RequestContext) error {
+func (rs *RegistrationService) register(ctx core.RequestContext) error {
 	ent, _ := ctx.GetParamValue("credentials")
 	log.Trace(ctx, "param value ", "ent", ent)
 	//ent := ctx.GetBody()
@@ -198,4 +229,38 @@ func (rs *RegistrationService) Start(ctx core.ServerContext) error {
 	//get and set the data service for accessing users
 	rs.UserDataService = userDataService
 	return nil
+}
+
+func (rs *RegistrationService) createEmail(ctx core.RequestContext, name, mailId, token string) (string, error) {
+	email, err := template.New("Mail").Delims("<<", ">>").Parse(rs.MailBody)
+	if err != nil {
+		return "", errors.WrapError(ctx, err)
+	}
+	var tpl bytes.Buffer
+
+	data := struct {
+		Name     string
+		Mail     string
+		SiteLink string
+		Token    string
+		SiteName string
+	}{
+		name, mailId, rs.SiteLink, url.PathEscape(token), rs.SiteName,
+	}
+	if err := email.Execute(&tpl, data); err != nil {
+		return "", err
+	}
+	return tpl.String(), nil
+}
+
+func (rs *RegistrationService) createToken(ctx core.RequestContext, mail string) (string, error) {
+	claims := make(jwt.MapClaims)
+	claims["email"] = mail
+	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	tokenString, err := token.SignedString([]byte(rs.key))
+	if err != nil {
+		return "", errors.WrapError(ctx, err)
+	}
+	return tokenString, nil
 }
