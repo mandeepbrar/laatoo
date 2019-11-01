@@ -163,7 +163,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	case __stringmap:
 		if encoded {
 			mapval := make(map[string]interface{}, 10)
-			err = codec.Unmarshal(ctx, reqBytes, mapval)
+			err = codec.Unmarshal(ctx, reqBytes, &mapval)
 			p.value = mapval
 		} else {
 			p.value, ok = val.(map[string]interface{})

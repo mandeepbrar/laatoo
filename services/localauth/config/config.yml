@@ -4,7 +4,6 @@ dependencies:
   role: ">=0.0.1"
   dataadapter: ">=0.0.1"
   dblogin: ">=0.0.1"
-  signup: ">=0.0.1"
 description: This module provides local database authentication system. Two services
   'login.local' and 'register' are provided along with http channels '/login' and
   '/register'

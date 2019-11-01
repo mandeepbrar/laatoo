@@ -9,9 +9,9 @@ import {
   FormControl, FormControlLabel, FormGroup,
   InputLabel, 
   Switch,
+  Slider,
   TimePicker
 } from '@material-ui/core';
-import Slider from '@material-ui/lab/Slider';
 import {Select} from '../components/Select';
 import PropTypes from 'prop-types';
 

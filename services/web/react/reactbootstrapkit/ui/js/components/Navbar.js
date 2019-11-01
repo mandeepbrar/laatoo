@@ -19,6 +19,7 @@ class Navbar extends React.Component {
     let className=isVertical?"vertnavitem":"horiznavitem"
     let navClass=isVertical?"vertnavbar":"horiznavbar"
     let items=[]
+    console.log("navbar items", items, this.props.items)
     if(this.props.items) {
       this.props.items.forEach(function(item){
         let icon
@@ -28,6 +29,7 @@ class Navbar extends React.Component {
           <Action widget="component" vertical={isVertical} name={item.action} component={getNavButton(isVertical)}><Block className={className}><Block className="icon">{icon?icon:null}</Block><Block>{item.title}</Block></Block></Action>
         )
       });
+      console.log("navbar items", items, this.props.items)
     }
     let stacked=this.props.vertical?["stacked"]:[""]
     return(

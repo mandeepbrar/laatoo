@@ -50,9 +50,21 @@ class Tabset extends React.Component {
           </_uikit.Block>
         </BSTab.Container>
         :
-        <Tabs activeKey={this.state.value}  className={this.props.className}>
+        <BSTab.Container> 
+          <_uikit.Block>
+            <_uikit.Block >
+              <Nav variant="pills">
+              {this.props.children}
+              </Nav>
+            </_uikit.Block>
+            <BSTab.Content>
+              {this.state.tabs}
+            </BSTab.Content>
+          </_uikit.Block>
+        </BSTab.Container>
+/*        <Tabs activeKey={this.state.value} id="tab"  className={this.props.className}>
         {this.props.children}
-        </Tabs>
+        </Tabs>*/
     )
   }
 }
@@ -85,13 +97,11 @@ class Tab extends React.Component {
     this.context.tabset.handleChange(null, this.value)
   }*/
   render() {
+      console.log("bootstrap tab", this.props, this.vertical)
     return (
-        this.vertical?
-        <Nav.Item className="tab w100">
+        <Nav.Item className="tab ">
           <Nav.Link eventKey={this.props.label}>{this.props.label}</Nav.Link>
         </Nav.Item>
-        :
-        <BSTab title={this.props.label} eventKey={this.props.label} className={this.props.className? this.props.className + " tab " : "tab"}>{this.props.children}</BSTab>
     )
   }
 }
