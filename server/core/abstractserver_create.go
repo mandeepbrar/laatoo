@@ -59,6 +59,14 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		}
 		svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
 
+		taskCreateCtx := svrCtx.SubContext("Create Task Manager")
+		taskMgrHandle, taskMgr := newTaskManager(taskCreateCtx, name)
+		if taskMgr != nil {
+			as.taskManager = taskMgr
+			as.taskManagerHandle = taskMgrHandle
+		}
+		svrCtx.setElements(core.ContextMap{core.ServerElementTaskManager: taskMgr})
+
 	} else {
 
 		logger := parent.logger
@@ -67,6 +75,7 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 		serviceManager := parent.serviceManager
 		channelMgr := parent.channelManager
 		moduleMgr := parent.moduleManager
+		parentTaskMgr := parent.taskManager
 
 		loggerHandle, logger := slog.ChildLogger(svrCtx, name, logger)
 		as.logger = logger
@@ -104,15 +113,15 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 			as.moduleManagerHandle = modMgrHandle
 		}
 		svrCtx.setElements(core.ContextMap{core.ServerElementModuleManager: modMgr})
-	}
 
-	taskCreateCtx := svrCtx.SubContext("Create Task Manager")
-	taskMgrHandle, taskMgr := newTaskManager(taskCreateCtx, name)
-	if taskMgr != nil {
-		as.taskManager = taskMgr
-		as.taskManagerHandle = taskMgrHandle
+		taskCreateCtx := svrCtx.SubContext("Create Task Manager")
+		taskMgrHandle, taskMgr := as.childTaskManager(taskCreateCtx, name, parentTaskMgr, proxy)
+		if taskMgr != nil {
+			as.taskManager = taskMgr.(elements.TaskManager)
+			as.taskManagerHandle = taskMgrHandle
+		}
+		svrCtx.setElements(core.ContextMap{core.ServerElementTaskManager: taskMgr})
 	}
-	svrCtx.setElements(core.ContextMap{core.ServerElementTaskManager: taskMgr})
 
 	rulesCreateCtx := svrCtx.SubContext("Create Rules Manager")
 	rulesMgrHandle, rulesMgr := newRulesManager(rulesCreateCtx, name)
@@ -559,6 +568,20 @@ func newTaskManager(ctx core.ServerContext, name string) (*taskManager, *taskMan
 	tskMgr := &taskManager{name: name, taskPublisherSvcs: make(map[string]components.TaskQueue, 10),
 		taskProcessors: make(map[string]elements.Service, 10),
 		taskPublishers: make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10),
+		taskProcessorNames: make(map[string]string, 10), svrContext: ctx}
+	tskElem := &taskManagerProxy{manager: tskMgr}
+	tskMgr.proxy = tskElem
+	return tskMgr, tskElem
+}
+
+func (as *abstractserver) childTaskManager(ctx core.ServerContext, name string, parentTaskMgrElement core.ServerElement, parent core.ServerElement, filters ...elements.Filter) (elements.ServerElementHandle, core.ServerElement) {
+	taskMgrProxy := parentTaskMgrElement.(*taskManagerProxy)
+	parentTaskMgr := taskMgrProxy.manager
+	tskMgr := &taskManager{name: name, taskPublisherSvcs: make(map[string]components.TaskQueue, 10),
+		taskProcessors:              make(map[string]elements.Service, 10),
+		defaultTaskPublisherSvcName: parentTaskMgr.defaultTaskPublisherSvcName,
+		defaultTaskConsumerSvcName:  parentTaskMgr.defaultTaskConsumerSvcName,
+		taskPublishers:              make(map[string]string, 10), taskConsumerNames: make(map[string]string, 10),
 		taskProcessorNames: make(map[string]string, 10), svrContext: ctx}
 	tskElem := &taskManagerProxy{manager: tskMgr}
 	tskMgr.proxy = tskElem

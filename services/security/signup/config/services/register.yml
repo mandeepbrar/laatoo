@@ -4,7 +4,7 @@ servicemethod: REGISTRATION
 user_data_svc: dataadapter.dataservice.User
 def_role: {{var "defaultrole"}}
 emailverification: {{if exists "emailverification"}} {{var "emailverification"}} {{else}} false {{end}}
-SiteName: {{var "sitename"}}
-SiteLink: {{var "sitelink"}}/verifyemail
-MailBody: {{if exists "mailbody"}} {{var "mailbody"}} {{else}} '<html><body>Hi <<.Name>><br/><p> This is a verification email from <<.SiteName>>. Please click on this link to verify your email Id <a href="<<.SiteLink>>/<<.Token>>" style="color: green;">Click here</a></p></body></html>' {{end}}
-Key: {{var "key"}}
+emailqueue: laatoo.signup.email
+emailworkflowsupport: {{if exists "emailworkflowsupport"}} {{var "emailworkflowsupport"}} {{else}} false {{end}}
+emailverificationworkflow: {{if exists "emailverificationworkflow"}} {{var "emailverificationworkflow"}} {{else}} laatoo.signup {{end}}
+workflowinitiator: {{if exists "workflowinitiator"}} {{var "workflowinitiator"}} {{else}} laatoo.workflowinitiator {{end}}

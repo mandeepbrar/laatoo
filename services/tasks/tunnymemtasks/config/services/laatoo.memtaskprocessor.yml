@@ -1,0 +1,2 @@
+servicemethod: tunnytasks
+poolsize: {{if exists "poolsize"}} {{var "poolsize"}} {{else}} 10 {{end}}

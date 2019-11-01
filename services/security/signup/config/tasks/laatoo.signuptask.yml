@@ -1,0 +1,4 @@
+queue: laatoo.signup.email
+processor: laatoo.signgupemailsprocessor
+consumer: {{if exists "emailqueueconsumer"}} {{var "emailqueueconsumer"}} {{else}} {{end}}
+publisher: {{if exists "emailqueuepublisher"}} {{var "emailqueuepublisher"}} {{else}} {{end}}

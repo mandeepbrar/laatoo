@@ -1,4 +1,0 @@
-queue: laatoo.signup.email
-processor: laatoo.signgupemailsprocessor
-#consumer:
-#publisher:  

@@ -19,6 +19,26 @@ objects:
         type: bool
         description: Verify email
         variable: VerifyEmail
+      emailqueue:
+        type: string
+        description: Queue to use for sending emails incase a workflow is not configured
+        variable: Queue
+      emailworkflowsupport:
+        type: bool
+        description: Verify email using workflow
+        variable: VerifyWithWorkflow
+      emailverificationworkflow:
+        type: string
+        description: Verify email using provided workflow
+        variable: WorkflowName
+      workflowinitiator:
+        type: string
+        description: Verify email using provided workflow
+        inject: WorkflowInitiator
+  SignupEmailTask:
+    type: service
+    description: Task processor for signup email tasks.
+    configurations:
       SiteName: 
         type: string
         description: Site name to use in email body
@@ -38,14 +58,23 @@ objects:
         type: string
         required: true
         description: Key to use for signing token
+    request:
+      params:
+        Task:
+          type: bytes
+          description: Bytes containing string map for signup task
   VerifyEmailService:
     type: service
-    description: Task processor for signup email tasks.
+    description: Service providing verification of email tokens.
     configurations:
       Key: 
         type: string
         required: true
         description: Key to use for signing token
+      emailworkflowsupport:
+        type: bool
+        description: Verify email using workflow
+        variable: VerifyWithWorkflow
     request:
       params:
         token: 
@@ -67,3 +96,18 @@ params:
   emailverification:
     type: bool
     description: Workflow support for registration process
+  emailqueueconsumer:
+    type: string
+    description: Email queue consumer service. Not required unless override the system default queue consumer
+  emailqueuepublisher:
+    type: string
+    description: Email queue consumer service. Not required unless override the system default queue publisher
+  emailworkflowsupport:
+    type: string
+    description: Use workflow for email verification
+  workflowinitiator:
+    type: string
+    description: Workflow initiator service to use for starting workflow if workflow support for email verification is required
+  emailverificationworkflow:
+    type: string
+    description: Workflow to be used for email verification

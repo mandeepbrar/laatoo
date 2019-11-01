@@ -3,6 +3,8 @@ package adapters
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/log"
+
 	//	"laatoo/sdk/server/log"
 	"laatoo/sdk/server/errors"
 )
@@ -17,9 +19,10 @@ func (mi *DefaultFactory) CreateService(ctx core.ServerContext, name string, met
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+	log.Error(ctx, "Created service object", "obj", obj)
 	svc, ok := obj.(core.Service)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", method)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", method, "obj", obj)
 	}
 	return svc, nil
 }

@@ -1,6 +1,9 @@
 modulesrepo: "/modules"
 communication:
   communicationservice: laatoo.email
+tasks:
+  defaultpublisher: laatoo.memtaskprocessor
+  defaultconsumer: laatoo.memtaskprocessor
 logging:
   level: trace
   format: happymax
@@ -56,6 +59,7 @@ modules:
   cadence:
   email:
   user:
+  tunnymemtasks:
   moduledesignerbase:
   moduledesignerserver:
   moduledesignerentities:
@@ -131,6 +135,8 @@ moduleinstances:
     module: platformdependencies
   moduledesignerbase:
     module: moduledesignerbase
+  tunnymemtasks:
+    module: tunnymemtasks
   email:
     module: email
     settings:

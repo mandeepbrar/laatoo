@@ -62,7 +62,7 @@ func (ctx *Context) GetElapsedTime() time.Duration {
 }
 
 func (ctx *Context) SubCtx(name string) ctx.Context {
-	return &Context{Name: name, Path: fmt.Sprintf("%s  -> @%s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id,
+	return &Context{Name: name, Path: fmt.Sprintf("%s  -> %s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id,
 		creationTime: ctx.creationTime, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
@@ -71,7 +71,7 @@ func (ctx *Context) NewCtx(name string) ctx.Context {
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: name, Path: name, Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV1().String(),
+	return &Context{Name: name, Path: fmt.Sprintf("%s  :: @@%s", ctx.Path, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV1().String(),
 		creationTime: time.Now(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 

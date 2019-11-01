@@ -1,2 +1,3 @@
 servicemethod: VerifyEmailService
 Key: {{var "key"}}
+emailworkflowsupport: {{if exists "emailworkflowsupport"}} {{var "emailworkflowsupport"}} {{else}} false {{end}}

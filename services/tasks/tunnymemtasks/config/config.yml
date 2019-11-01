@@ -1,0 +1,16 @@
+version: 0.0.1
+description: This module provides in memory task processing service
+objects: 
+  tunnytasks:
+    description: Publisher as well as consumer object for tunny tasks
+    type: service
+    configurations:
+      poolsize:
+        type: int
+        required: true
+        description: Pool size for tunny task pool
+        variable: PoolSize
+params:
+  poolsize: 
+    type: int
+    description: Poolsize for default mem queue

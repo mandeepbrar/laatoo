@@ -1,0 +1,6 @@
+servicemethod: cadence_simpleworkflow
+workflowname: laatoo.signup
+workflow:
+  - laatoo.signup.email
+  - laatoo.signup.verify
+  - laatoo.signup.approve

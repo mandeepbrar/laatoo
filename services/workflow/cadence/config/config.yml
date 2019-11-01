@@ -108,3 +108,7 @@ params:
   workerservicename:
     type: string
     description: Name of worker service
+
+#create domain on cadence using this command docker run --network=host --rm ubercadence/cli:master --do laatoo.defaultdomain domain register -rd 1
+#docker run --network=host --rm ubercadence/cli:master --domain laatoo.defaultdomain domain describe
+

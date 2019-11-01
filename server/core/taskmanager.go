@@ -13,16 +13,18 @@ import (
 )
 
 type taskManager struct {
-	name               string
-	proxy              elements.TaskManager
-	authHeader         string
-	shandler           elements.SecurityHandler
-	taskPublishers     map[string]string
-	taskPublisherSvcs  map[string]components.TaskQueue
-	taskConsumerNames  map[string]string
-	taskProcessorNames map[string]string
-	taskProcessors     map[string]elements.Service
-	svrContext         core.ServerContext
+	name                        string
+	proxy                       elements.TaskManager
+	authHeader                  string
+	shandler                    elements.SecurityHandler
+	taskPublishers              map[string]string
+	taskPublisherSvcs           map[string]components.TaskQueue
+	taskConsumerNames           map[string]string
+	taskProcessorNames          map[string]string
+	taskProcessors              map[string]elements.Service
+	svrContext                  core.ServerContext
+	defaultTaskPublisherSvcName string
+	defaultTaskConsumerSvcName  string
 }
 
 func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -40,25 +42,37 @@ func (tskMgr *taskManager) Initialize(ctx core.ServerContext, conf config.Config
 		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Resource", config.AUTHHEADER)
 	}
 
-	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
-
-	if err := modManager.loadTasks(ctx, tskMgr.processTaskConf); err != nil {
-		return err
-	}
-
 	tskmgrInitializeCtx := ctx.SubContext("Initialize task manager")
 	log.Trace(tskmgrInitializeCtx, "Create Task Manager queues")
-	taskMgrConf, err, ok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
+
+	taskMgrConf, err, taskConfok := common.ConfigFileAdapter(tskmgrInitializeCtx, conf, constants.CONF_TASKS)
 	if err != nil {
 		return errors.WrapError(tskmgrInitializeCtx, err)
 	}
-	if ok {
-		taskNames := taskMgrConf.AllConfigurations(tskmgrInitializeCtx)
-		for _, taskName := range taskNames {
-			taskConf, _ := taskMgrConf.GetSubConfig(tskmgrInitializeCtx, taskName)
-			tskCtx := tskmgrInitializeCtx.SubContext(taskName)
-			if err := tskMgr.processTaskConf(tskCtx, taskConf, taskName); err != nil {
-				return errors.WrapError(tskCtx, err)
+	log.Trace(tskmgrInitializeCtx, "Create Task Manager queues", "taskMgrConf", taskMgrConf, "conf", conf)
+
+	if taskConfok {
+		tskMgr.defaultTaskPublisherSvcName, _ = taskMgrConf.GetString(ctx, constants.CONF_TASK_DEFAULTPUBLISHER)
+
+		tskMgr.defaultTaskConsumerSvcName, _ = taskMgrConf.GetString(ctx, constants.CONF_TASK_DEFAULTCONSUMER)
+	}
+
+	modManager := ctx.GetServerElement(core.ServerElementModuleManager).(*moduleManagerProxy).modMgr
+
+	if err := modManager.loadTasks(tskmgrInitializeCtx, tskMgr.processTaskConf); err != nil {
+		return err
+	}
+
+	if taskConfok {
+		tasksConf, ok := taskMgrConf.GetSubConfig(ctx, constants.CONF_TASKS)
+		if ok {
+			taskNames := tasksConf.AllConfigurations(tskmgrInitializeCtx)
+			for _, taskName := range taskNames {
+				taskConf, _ := tasksConf.GetSubConfig(tskmgrInitializeCtx, taskName)
+				tskCtx := tskmgrInitializeCtx.SubContext(taskName)
+				if err := tskMgr.processTaskConf(tskCtx, taskConf, taskName); err != nil {
+					return errors.WrapError(tskCtx, err)
+				}
 			}
 		}
 	}
@@ -158,16 +172,20 @@ func (tskMgr *taskManager) startPublisher(ctx core.ServerContext, queueName, svc
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	log.Trace(ctx, "Got service for producer ", "queue", queueName, "svc", tqSvc)
 	tq, ok := tqSvc.(components.TaskQueue)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF)
 	}
+	log.Trace(ctx, "Got task queue for producer ", "queue", queueName, "tq", tq)
 	tskMgr.taskPublisherSvcs[queueName] = tq
+	log.Trace(ctx, "Got task queue for producer ", "queue", queueName, "tskMgr.taskPublisherSvcs", tskMgr.taskPublisherSvcs)
 	return nil
 }
 
 func (tskMgr *taskManager) startConsumer(ctx core.ServerContext, queueName, consumerName string) error {
 	log.Trace(ctx, "Starting task consumer ", "queue", queueName)
+
 	consumerSvc, err := ctx.GetService(consumerName)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -177,9 +195,12 @@ func (tskMgr *taskManager) startConsumer(ctx core.ServerContext, queueName, cons
 		return errors.BadConf(ctx, constants.CONF_TASK_PROCESSOR, "queue", queueName)
 	}
 
-	err = ts.SubsribeQueue(ctx, queueName)
+	//start task subscription in context of service context
+	svcContext, _ := ctx.GetServiceContext(consumerName)
+	consumerContext := svcContext.SubContext("Task Consumer: " + queueName)
+	err = ts.SubsribeQueue(consumerContext, queueName)
 	if err != nil {
-		return errors.WrapError(ctx, err)
+		return errors.WrapError(consumerContext, err)
 	}
 
 	return nil
@@ -199,7 +220,7 @@ func (tskMgr *taskManager) startProcessor(ctx core.ServerContext, queueName, pro
 func (tskMgr *taskManager) pushTask(ctx core.RequestContext, queue string, taskData interface{}) error {
 	tq, ok := tskMgr.taskPublisherSvcs[queue]
 	if !ok {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Missing Queue", queue)
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_ARG, "Missing Queue", queue, "svcs", tskMgr.taskPublisherSvcs)
 	}
 	log.Trace(ctx, "Pushing task to queue", "queue", queue)
 	token, _ := ctx.GetString(tskMgr.authHeader)
@@ -281,6 +302,9 @@ func (tskMgr *taskManager) loadTask(ctx core.ServerContext, conf config.Config, 
 	if !consumerConfigured {
 		log.Warn(ctx, "Task  consumer not configured for task", "Task Name", taskName)
 		//return errors.MissingConf(ctx, constants.CONF_TASK_CONSUMER, "Task Name", taskName)
+		if tskMgr.defaultTaskConsumerSvcName != "" {
+			tskMgr.taskConsumerNames[queueName] = tskMgr.defaultTaskConsumerSvcName
+		}
 	} else {
 		tskMgr.taskConsumerNames[queueName] = consumer
 	}
@@ -295,6 +319,9 @@ func (tskMgr *taskManager) loadTask(ctx core.ServerContext, conf config.Config, 
 	if !publisherConfigured {
 		log.Warn(ctx, "Task publisher not configured for task.", "Task Name", taskName)
 		//		return errors.MissingConf(ctx, constants.CONF_TASK_PUBLISHER, "Task Name", taskName)
+		if tskMgr.defaultTaskPublisherSvcName != "" {
+			tskMgr.taskPublishers[queueName] = tskMgr.defaultTaskPublisherSvcName
+		}
 	} else {
 		tskMgr.taskPublishers[queueName] = publisher
 	}

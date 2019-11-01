@@ -85,6 +85,8 @@ func (svc *CadenceWorkerService) Start(ctx core.ServerContext) error {
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
+	errc := make(chan error)
 	for _, tasklistName := range svc.TaskLists {
 		worker := worker.New(
 			svc.buildCadenceClient(ctx),
@@ -93,12 +95,19 @@ func (svc *CadenceWorkerService) Start(ctx core.ServerContext) error {
 			worker.Options{
 				Logger: logger,
 			})
+		go func() {
+			err = worker.Start()
+			errc <- err
+		}()
+		log.Info(ctx, "Started Worker", "worker", tasklistName)
+	}
 
-		err = worker.Start()
+	for i := 0; i < len(svc.TaskLists); i++ {
+		err := <-errc
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		log.Info(ctx, "Started Worker", "worker", tasklistName)
 	}
+
 	return nil
 }
