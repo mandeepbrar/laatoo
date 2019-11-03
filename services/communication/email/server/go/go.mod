@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/go-mail/mail v2.3.1+incompatible
+	github.com/google/btree v1.0.0 // indirect
 	laatoo/sdk v0.0.0
 )
 

@@ -38,6 +38,10 @@ func (echctx *EchoContext) WriteHeader(status int) {
 func (echctx *EchoContext) Write(bytes []byte) (int, error) {
 	return echctx.baseCtx.Response().Write(bytes)
 }
+func (echctx *EchoContext) CopyStream(strType string, stream io.ReadCloser) error {
+	return echctx.baseCtx.Stream(http.StatusOK, strType, stream)
+}
+
 func (echctx *EchoContext) Redirect(status int, path string) error {
 	return echctx.baseCtx.Redirect(status, path)
 }

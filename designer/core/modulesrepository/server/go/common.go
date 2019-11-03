@@ -40,7 +40,7 @@ func extractArchive(ctx core.RequestContext, mod, file, tmppath string, reposito
 		}
 	}
 	//	os.MkdirAll(modTmpDir, os.ModeTemporary)
-	archiveExists := repositoryFiles.Exists(ctx, file)
+	archiveExists := repositoryFiles.Exists(ctx, "", file)
 	if !archiveExists {
 		log.Info(ctx, "Archive does not exist", "file", file)
 		ctx.SetResponse(core.StatusNotFoundResponse)
@@ -52,7 +52,7 @@ func extractArchive(ctx core.RequestContext, mod, file, tmppath string, reposito
 		return errors.WrapError(ctx, err)
 	}
 	log.Error(ctx, "Archive exists", "file", file)
-	err = repositoryFiles.CopyFile(ctx, file, fil)
+	err = repositoryFiles.CopyFile(ctx, "", file, fil)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

@@ -58,6 +58,7 @@ objects:
         type: string
         required: true
         description: Key to use for signing token
+        variable: Key
     request:
       params:
         Task:
@@ -71,6 +72,7 @@ objects:
         type: string
         required: true
         description: Key to use for signing token
+        variable: Key
       emailworkflowsupport:
         type: bool
         description: Verify email using workflow

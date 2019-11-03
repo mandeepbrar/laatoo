@@ -172,7 +172,7 @@ function getJSUIModules(jsUIconfig) {
         log("Getting package " + pkg)
         let ver = jsUIconfig.packages[pkg]
         let existingPkg = path.join(nodeModulesFolder, "node_modules", pkg)
-        if(!fs.pathExistsSync(existingPkg) || argv.overwriteJSMods) {
+        if(!fs.pathExistsSync(existingPkg) || argv.overwriteJSMods || jsUIconfig.overwriteJSMods) {
             let command = sprintf('npm i %s --prefix %s %s@%s', silent, nodeModulesFolder, pkg, ver)
             console.log(command)
             if (shell.exec(command).code !== 0) {

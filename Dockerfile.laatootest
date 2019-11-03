@@ -13,6 +13,10 @@ COPY dist/config /config
 
 ENV LAATOO_CONFIGDIR /config
 
+ARG seedpass
+
+ENV LAATOO_seedpass $seedpass
+
 WORKDIR /laatoobin
 
-ENTRYPOINT ["/laatoobin/laatoo"]
+ENTRYPOINT ["/laatoobin/laatooserver"]

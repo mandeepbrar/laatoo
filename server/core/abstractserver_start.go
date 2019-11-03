@@ -25,6 +25,14 @@ func (as *abstractserver) start(ctx *serverContext) error {
 	}
 	log.Trace(objldrCtx, "Started Object Loader")
 
+	if (as.secretsManagerHandle != nil) && ((as.parent == nil) || (as.secretsManagerHandle != as.parent.secretsManagerHandle)) {
+		smCtx := ctx.SubContext("Start Secrets Manager")
+		err = as.secretsManagerHandle.Start(smCtx)
+		if err != nil {
+			return errors.WrapError(smCtx, err)
+		}
+	}
+
 	//module manager must be started before service manager and factory manager initializations
 	//module manager is used during init of other managers
 	modstart := ctx.SubContext("Start module manager")

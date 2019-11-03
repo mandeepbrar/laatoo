@@ -7,9 +7,9 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	common "storagecommon"
 
 	"cloud.google.com/go/storage"
-	"github.com/twinj/uuid"
 )
 
 //"golang.org/x/oauth2"
@@ -29,12 +29,12 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 
 type GoogleStorageSvc struct {
 	core.Service
-	bucket string
-	public bool
+	defaultBucket string
+	public        bool
 }
 
 func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
-	svc.bucket, _ = svc.GetStringConfiguration(ctx, CONF_GS_FILESBUCKET)
+	svc.defaultBucket, _ = svc.GetStringConfiguration(ctx, CONF_GS_FILESBUCKET)
 	svc.public, _ = svc.GetBoolConfiguration(ctx, CONF_GS_PUBLICFILE)
 	/*
 		svc.SetDescription(ctx, "Google storage service")
@@ -45,28 +45,23 @@ func (svc *GoogleStorageSvc) Initialize(ctx core.ServerContext, conf config.Conf
 }
 
 func (svc *GoogleStorageSvc) Invoke(ctx core.RequestContext) error {
-	val, _ := ctx.GetParamValue("Data")
-	files := *val.(*map[string]*core.MultipartFile)
-	urls := map[string]string{}
-	i := 0
-	for filNam, fil := range files {
-		defer fil.File.Close()
-		fileName := uuid.NewV4().String()
-		log.Debug(ctx, "writing file", "name", fileName, "MimeType", fil.MimeType)
-		url, err := svc.SaveFile(ctx, fil.File, fileName, fil.MimeType)
-		if err != nil {
-			log.Debug(ctx, "Error while invoking upload", "err", err)
-			return errors.WrapError(ctx, err)
-		}
-		urls[filNam] = url
-		i++
+	bucket, _ := ctx.GetStringParam("bucket")
+	err := common.SaveFiles(ctx, svc, svc.bucket(bucket))
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
-	ctx.SetResponse(core.SuccessResponse(urls))
 	return nil
 }
 
-func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string, contentType string) (io.WriteCloser, error) {
-	log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
+func (svc *GoogleStorageSvc) bucket(bucketName string) string {
+	if bucketName == "" {
+		return svc.defaultBucket
+	}
+	return bucketName
+}
+
+func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, bucket, fileName string, contentType string) (io.WriteCloser, error) {
+	log.Debug(ctx, "Creating file", "name", fileName)
 
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
@@ -75,7 +70,7 @@ func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string
 		return nil, errors.WrapError(ctx, err)
 	}
 
-	dst := client.Bucket(svc.bucket).Object(fileName).NewWriter(appengineCtx)
+	dst := client.Bucket(svc.bucket(bucket)).Object(fileName).NewWriter(appengineCtx)
 	if contentType != "" {
 		dst.ContentType = contentType
 	}
@@ -84,7 +79,7 @@ func (svc *GoogleStorageSvc) CreateFile(ctx core.RequestContext, fileName string
 	return dst, nil
 }
 
-func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bool {
+func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, bucket, fileName string) bool {
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
@@ -93,49 +88,53 @@ func (svc *GoogleStorageSvc) Exists(ctx core.RequestContext, fileName string) bo
 	}
 	defer client.Close()
 
-	_, err = client.Bucket(svc.bucket).Object(fileName).Attrs(appengineCtx)
+	_, err = client.Bucket(svc.bucket(bucket)).Object(fileName).Attrs(appengineCtx)
 	if err == nil {
 		return true
 	}
 	return false
 }
-func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, fileName string) (io.ReadCloser, error) {
+func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, bucket, fileName string) (io.ReadCloser, error) {
 	appengineCtx := ctx.GetAppengineContext()
 	client, err := storage.NewClient(appengineCtx)
 	if err != nil {
 		log.Debug(ctx, "Error while opening", "err", err)
 		return nil, errors.WrapError(ctx, err)
 	}
-	return client.Bucket(svc.bucket).Object(fileName).NewReader(appengineCtx)
+	return client.Bucket(svc.bucket(bucket)).Object(fileName).NewReader(appengineCtx)
 }
 
-func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, fileName string) error {
-	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusRedirect, svc.GetFullPath(ctx, fileName), nil))
+func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, bucket, fileName string) error {
+	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusRedirect, svc.GetFullPath(ctx, svc.bucket(bucket), fileName), nil))
 	return nil
 }
 
-func (svc *GoogleStorageSvc) CopyFile(ctx core.RequestContext, fileName string, dest io.WriteCloser) error {
-	// Source file
-	src, err := svc.Open(ctx, fileName)
+func (svc *GoogleStorageSvc) CopyFile(ctx core.RequestContext, bucket, fileName string, dest io.WriteCloser) error {
+	err := common.CopyFile(ctx, svc, bucket, fileName, dest)
 	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	if _, err = io.Copy(dest, src); err != nil {
-		return err
+		return errors.WrapError(ctx, err)
 	}
 	return nil
 }
 
-func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, fileName string) string {
+func (svc *GoogleStorageSvc) GetFullPath(ctx core.RequestContext, bucket, fileName string) string {
 	if svc.public {
 		return fmt.Sprintf("https://storage.googleapis.com/%s/%s", svc.bucket, fileName)
 	}
 	return fmt.Sprintf("https://storage.cloud.google.com/%s/%s", svc.bucket, fileName)
 }
 
-func (svc *GoogleStorageSvc) ListFiles(ctx core.RequestContext, pattern string) ([]string, error) {
+func (svc *GoogleStorageSvc) CreateBucket(ctx core.RequestContext, bucket string) error {
+	/******TODO**********/
+	return nil
+}
+
+func (svc *GoogleStorageSvc) DeleteBucket(ctx core.RequestContext, bucket string) error {
+	/******TODO**********/
+	return nil
+}
+
+func (svc *GoogleStorageSvc) ListFiles(ctx core.RequestContext, bucket, pattern string) ([]string, error) {
 	/******TODO**********/
 	//log.Debug(ctx, "Creating file", "name", fileName, "bucket", svc.bucket)
 	/*
@@ -156,10 +155,14 @@ func (svc *GoogleStorageSvc) ListFiles(ctx core.RequestContext, pattern string) 
 
 }
 
-func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
+func (svc *GoogleStorageSvc) DeleteFiles(ctx core.RequestContext, bucket string, fileName string) (bool, error) {
+	return false, nil
+}
+
+func (svc *GoogleStorageSvc) SaveFile(ctx core.RequestContext, bucket string, inpStr io.ReadCloser, fileName string, contentType string) (string, error) {
 	log.Debug(ctx, "Saving file", "name", fileName)
 	// Destination file
-	dst, err := svc.CreateFile(ctx, fileName, contentType)
+	dst, err := svc.CreateFile(ctx, svc.bucket(bucket), fileName, contentType)
 	if err != nil {
 		log.Debug(ctx, "Error while opening", "err", err)
 		return "", errors.WrapError(ctx, err)

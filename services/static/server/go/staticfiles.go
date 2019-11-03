@@ -14,12 +14,13 @@ import (
 )
 
 const (
-	CONF_FILE_OPER          = "operation"
-	CONF_FILE_TRANSFORM_STG = "transformedstorage"
-	CONF_FILE_STORAGE       = "storage"
-	CONF_FILE_DEFAULT       = "default"
-	CONF_IMAGE_WIDTH        = "width"
-	CONF_IMAGE_HEIGHT       = "height"
+	CONF_FILE_OPER             = "operation"
+	CONF_FILE_TRANSFORM_STG    = "transformedstorage"
+	CONF_FILE_STORAGE          = "storage"
+	CONF_FILE_DEFAULT          = "default"
+	CONF_IMAGE_WIDTH           = "width"
+	CONF_IMAGE_HEIGHT          = "height"
+	CONF_STATICFILE_FILEBUCKET = "bucket"
 )
 
 type FileTransform func(io.Reader, io.Writer) error
@@ -35,6 +36,7 @@ type StaticFiles struct {
 	storage                         components.StorageComponent
 	defaultImage                    string
 	hasDefault                      bool
+	bucket                          string
 }
 
 /*
@@ -53,17 +55,17 @@ func (svc *StaticFiles) Invoke(ctx core.RequestContext) error {
 	if ok {
 		filename := strings.TrimLeft(fn.GetValue().(string), "/")
 		if !svc.transformFile {
-			return svc.storage.ServeFile(ctx, filename)
+			return svc.storage.ServeFile(ctx, svc.bucket, filename)
 		} else {
-			if svc.transformedFilesStorage.Exists(ctx, filename) {
-				return svc.transformedFilesStorage.ServeFile(ctx, filename)
+			if svc.transformedFilesStorage.Exists(ctx, svc.bucket, filename) {
+				return svc.transformedFilesStorage.ServeFile(ctx, svc.bucket, filename)
 			} else {
 				created := svc.createFile(ctx, filename)
 				if created {
-					return svc.transformedFilesStorage.ServeFile(ctx, filename)
+					return svc.transformedFilesStorage.ServeFile(ctx, svc.bucket, filename)
 				} else {
 					if svc.hasDefault {
-						return svc.transformedFilesStorage.ServeFile(ctx, svc.defaultImage)
+						return svc.transformedFilesStorage.ServeFile(ctx, svc.bucket, svc.defaultImage)
 					} else {
 						ctx.SetResponse(core.StatusNotFoundResponse)
 					}
@@ -77,7 +79,7 @@ func (svc *StaticFiles) Invoke(ctx core.RequestContext) error {
 }
 
 func (svc *StaticFiles) Start(ctx core.ServerContext) error {
-
+	svc.bucket, _ = svc.GetStringConfiguration(ctx, CONF_STATICFILE_FILEBUCKET)
 	stg, _ := svc.GetConfiguration(ctx, CONF_FILE_STORAGE)
 	svc.storageComponentName = stg.(string)
 
@@ -193,14 +195,14 @@ func getFormat(format string) imaging.Format {
 
 func (svc *StaticFiles) createFile(ctx core.RequestContext, filename string) bool {
 	log.Trace(ctx, "Opening file", "filename", filename)
-	inStr, err := svc.storage.Open(ctx, filename)
+	inStr, err := svc.storage.Open(ctx, svc.bucket, filename)
 	if err != nil {
 		log.Trace(ctx, "File does not exist", "sourcefile", filename, "err", err)
 		return false
 	}
 	defer inStr.Close()
 
-	writer, err := svc.transformedFilesStorage.CreateFile(ctx, filename, "")
+	writer, err := svc.transformedFilesStorage.CreateFile(ctx, svc.bucket, filename, "")
 	if err != nil {
 		log.Trace(ctx, "Error opening source file", "destfile", filename, "err", err)
 		return false

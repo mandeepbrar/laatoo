@@ -1,0 +1,72 @@
+version: 0.0.1
+description: This module provides access to Amazon S3 protocol enabled storage backends. By default a service
+   server.s3storage is created.
+objects:
+  s3storage:
+    type: service
+    description: S3 storage service
+    request:
+      params:        
+        Data:
+          type: files
+        bucket:
+          type: string
+    configurations:
+      s3storagedefaultbucket:
+        description: Default Bucket to be used by the storage component
+        type: string
+      public:
+        description: If the bucket is public
+        type: bool
+      host:
+        description: Host to be used for getting full URIs
+        type: string
+        required: true
+      endpoint:
+        description: Endpoint for connecting to s3 storage
+        type: string
+        required: true
+      ssl:
+        description: SSL usage for connecting to s3 storage
+        type: bool
+        required: true
+      accesskey:
+        description: Access key for connecting to s3 storage
+        type: string
+        required: true
+      accessid:
+        description: Access id for connecting to s3 storage
+        type: string
+        required: true
+      location:
+        description: Location for s3 storage
+        type: string
+params:
+  s3storagebucket: 
+    type: string
+    description: Bucket to be used by s3 storage service
+  public:
+    description: If the default bucket is public
+    type: bool
+  host:
+    description: Host to be used for getting full URIs
+    type: string
+    required: true
+  endpoint:
+    description: Endpoint for connecting to s3 storage
+    type: string
+    required: true
+  ssl:
+    description: SSL usage for connecting to s3 storage
+    type: bool
+  accesskey:
+    description: Access key for connecting to s3 storage
+    type: string
+    required: true
+  accessid:
+    description: Access id for connecting to s3 storage
+    type: string
+    required: true
+  location:
+    description: Location for s3 storage
+    type: string

@@ -13,8 +13,8 @@ import (
 )
 
 //initialize application with object loader, factory manager, service manager
-func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) error {
-	ctx = ctx.subContext("initialize components: " + as.name)
+func (as *abstractserver) initialize(ctx core.ServerContext, conf config.Config) error {
+	ctx = ctx.SubContext("initialize components: " + as.name)
 
 	if err := as.loggerHandle.Initialize(ctx, conf); err != nil {
 		return errors.WrapError(ctx, err)
@@ -38,12 +38,20 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 		return err
 	}
 
-	createctx := ctx.subContext("Create Conf components")
+	createctx := ctx.SubContext("Create Conf components")
 	if err := as.createConfBasedComponents(createctx, conf); err != nil {
 		return err
 	}
+
+	if as.secretsManagerHandle != nil {
+		err := as.initializeSecretsManager(ctx, conf)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+
 	log.Info(ctx, "Initializing security handler")
-	secinit := ctx.subContext("Initialize security handleer")
+	secinit := ctx.SubContext("Initialize security handleer")
 	err := as.initializeSecurityHandler(secinit, conf)
 	if err != nil {
 		return errors.WrapError(secinit, err)
@@ -73,7 +81,7 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	log.Debug(modpluginsctx, "Initialized module plugins")
 
 	if err := as.initializeCacheManager(ctx, conf); err != nil {
-		return err
+		return errors.WrapError(ctx, err)
 	}
 
 	enginit := ctx.SubContext("Initialize engines")
@@ -133,9 +141,9 @@ func (as *abstractserver) initialize(ctx *serverContext, conf config.Config) err
 	return nil
 }
 
-func (as *abstractserver) initializeServicesCore(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) initializeServicesCore(ctx core.ServerContext, conf config.Config) error {
 
-	objinit := ctx.subContext("Initialize object loader")
+	objinit := ctx.SubContext("Initialize object loader")
 	err := as.objectLoaderHandle.Initialize(objinit, conf)
 	if err != nil {
 		return errors.WrapError(objinit, err)
@@ -299,7 +307,7 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 	return nil
 }
 
-func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) initializeSecurityHandler(ctx core.ServerContext, conf config.Config) error {
 	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SECURITY)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -320,8 +328,8 @@ func (as *abstractserver) initializeSecurityHandler(ctx *serverContext, conf con
 		initializeHandler = false
 	}
 	if initializeHandler {
-		secInitCtx := ctx.newContext("Initialize Security Handler")
-		secInitCtx.setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
+		secInitCtx := ctx.SubContext("Initialize Security Handler")
+		secInitCtx.(*serverContext).setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
 		err := as.securityHandlerHandle.Initialize(secInitCtx, secConf)
 		if err != nil {
 			return errors.WrapError(secInitCtx, err)
@@ -344,6 +352,16 @@ func (as *abstractserver) initializeCacheManager(ctx core.ServerContext, conf co
 	}
 
 	log.Trace(cacheMgrInitCtx, "Cache Manager Initialized")
+	return nil
+}
+
+func (as *abstractserver) initializeSecretsManager(ctx core.ServerContext, conf config.Config) error {
+	secretsMgrInitCtx := ctx.SubContext("Initialize Secrets Manager: " + as.name)
+	err := as.secretsManagerHandle.Initialize(secretsMgrInitCtx, conf)
+	if err != nil {
+		return errors.WrapError(secretsMgrInitCtx, err)
+	}
+	log.Trace(secretsMgrInitCtx, "Secrets Manager Initialized")
 	return nil
 }
 

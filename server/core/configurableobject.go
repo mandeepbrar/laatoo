@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 )
@@ -86,7 +87,6 @@ func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Co
 			}
 		}
 	}
-	log.Error(ctx, "configurable object", "co", co, "conf", conf)
 	return co
 }
 
@@ -233,10 +233,17 @@ func (impl *configurableObject) GetMapConfiguration(ctx core.ServerContext, name
 	}
 }
 
+func (impl *configurableObject) GetSecretConfiguration(ctx core.ServerContext, name string) ([]byte, bool) {
+	secretsManager := ctx.GetServerElement(core.ServerElementSecretsManager).(elements.SecretsManager)
+	if secretsManager != nil {
+		return secretsManager.Get(ctx, name)
+	}
+	log.Warn(ctx, "Secrets manager not found")
+	return nil, false
+}
+
 func (impl *configurableObject) processInfo(ctx core.ServerContext, conf config.Config) error {
-	log.Trace(ctx, "Processing Configurations", "conf", conf)
 	confs := impl.GetConfigurations()
-	log.Trace(ctx, "Processing Configurations", "confs", confs)
 	for name, configObj := range confs {
 		configu := configObj.(*configuration)
 		val, ok := conf.Get(ctx, name)

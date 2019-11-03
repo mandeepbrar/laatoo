@@ -9,6 +9,9 @@ objects:
         description: Storage service from which files are to be served
         type: string
         required: true
+      bucket:
+        description: Bucket in storage service from where files are to be served
+        type: string
       operation:
         description: Operation to perform on a file
         type: string

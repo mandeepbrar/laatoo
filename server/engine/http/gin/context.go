@@ -1,6 +1,7 @@
 package gin
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"laatoo/sdk/server/core"
@@ -35,16 +36,31 @@ func (ginctx *GinContext) SetCookie(cookie *http.Cookie) {
 
 func (ginctx *GinContext) GetCookie(name string) (*http.Cookie, error) {
 	val, err := ginctx.baseCtx.Cookie(name)
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 	return &http.Cookie{Name: name, Value: val}, nil
 }
 
-
 func (ginctx *GinContext) Write(bytes []byte) (int, error) {
 	return ginctx.baseCtx.Writer.Write(bytes)
 }
+
+func (ginctx *GinContext) CopyStream(strType string, str io.ReadCloser) error {
+	broken := ginctx.baseCtx.Stream(func(w io.Writer) bool {
+		_, err := io.Copy(w, str)
+		if err != nil {
+			fmt.Println(err)
+			return false
+		}
+		return true
+	})
+	if broken {
+		return fmt.Errorf("Client went away")
+	}
+	return nil
+}
+
 func (ginctx *GinContext) Redirect(status int, path string) error {
 	ginctx.baseCtx.Redirect(status, path)
 	return nil

@@ -2,12 +2,10 @@ FROM laatoomodulebuilder:latest
 
 VOLUME /laatooserver
 
-#RUN chown -R laatoo /laatooserver /go
+VOLUME /laatoobin
 
 WORKDIR /laatooserver
 
-COPY build.sh /
-
 USER laatoo:laatoo
 
-ENTRYPOINT ["sh", "/build.sh"]
+ENTRYPOINT ["go", "build", "-o", "/laatoobin/laatooserver"]

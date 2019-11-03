@@ -17,8 +17,10 @@ gaetasks laatoo/services/tasks/gae
 tunnymemtasks laatoo/services/tasks/tunnymemtasks
 cadence laatoo/services/workflow/cadence
 signup laatoo/services/security/signup
+vaultsecrets laatoo/services/secrets/vault
 filesystemstorage laatoo/services/storage/filesystem
 googlestorage laatoo/services/storage/googlestorage
+s3storage laatoo/services/storage/s3storage
 staticfileserver laatoo/services/static
 publicdirserver laatoo/services/publicdir
 publicfilesserver laatoo/services/publicfiles

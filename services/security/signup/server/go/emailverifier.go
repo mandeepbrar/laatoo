@@ -17,7 +17,7 @@ type EmailVerifier struct {
 	SiteName string
 	SiteLink string
 	MailBody string
-	key      string
+	key      []byte
 }
 
 func (verifier *EmailVerifier) sendCommunication(ctx core.RequestContext, name, mailId string) error {
@@ -85,7 +85,7 @@ func (verifier *EmailVerifier) verifyToken(ctx core.RequestContext, tokenVal str
 			log.Error(ctx, "Invalid Token", "method", method)
 			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_REQUEST)
 		}
-		return []byte(verifier.key), nil
+		return verifier.key, nil
 	})
 	if err == nil && token.Valid {
 		log.Error(ctx, "Token validated")

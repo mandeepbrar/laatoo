@@ -1,0 +1,8 @@
+servicemethod: s3storage
+s3storagedefaultbucket: {{var "s3storagedefaultbucket"}}
+public: {{if exists "public"}} {{var "public"}} {{else}} false {{end}} 
+endpoint: {{var "endpoint"}}
+ssl: {{if exists "ssl"}} {{var "ssl"}} {{else}} true {{end}} 
+accesskey: {{var "accesskey"}}
+accessid: {{var "accessid"}}
+location: {{var "location"}}

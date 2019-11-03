@@ -133,40 +133,48 @@ func (as *abstractserver) createNonConfComponents(svrCtx *serverContext, name st
 
 }
 
-func (as *abstractserver) createConfBasedComponents(ctx *serverContext, conf config.Config) error {
-	createsecctx := ctx.subContext("Create Security Manager: " + as.name)
+func (as *abstractserver) createConfBasedComponents(ctx core.ServerContext, conf config.Config) error {
+	svcCtx := ctx.(*serverContext)
+
+	createsecretsctx := ctx.SubContext("Create Secrets manager: " + as.name)
+	if err := as.createSecretsManager(createsecretsctx, conf); err != nil {
+		return errors.WrapError(createsecretsctx, err)
+	}
+	svcCtx.setElements(core.ContextMap{core.ServerElementSecretsManager: as.secretsManager})
+
+	createsecctx := ctx.SubContext("Create Security Manager: " + as.name)
 	if err := as.createSecurityHandler(createsecctx, conf); err != nil {
 		return errors.WrapError(createsecctx, err)
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
+	svcCtx.setElements(core.ContextMap{core.ServerElementSecurityHandler: as.securityHandler})
 
-	createcachectx := ctx.subContext("Create Cache manager: " + as.name)
+	createcachectx := ctx.SubContext("Create Cache manager: " + as.name)
 	if err := as.createCacheManager(createcachectx, conf); err != nil {
 		return errors.WrapError(createcachectx, err)
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementCacheManager: as.cacheManager})
+	svcCtx.setElements(core.ContextMap{core.ServerElementCacheManager: as.cacheManager})
 
 	createenginectx := ctx.SubContext("Create Engines: " + as.name)
 	if err := as.createEngines(createenginectx, conf); err != nil {
 		return errors.WrapError(createenginectx, err)
 	}
 
-	createsessionctx := ctx.subContext("Create Session Manager " + as.name)
+	createsessionctx := ctx.SubContext("Create Session Manager " + as.name)
 	if err := as.createSessionManager(createsessionctx, conf); err != nil {
 		return errors.WrapError(createsessionctx, err)
 	}
 
-	createmsgctx := ctx.subContext("Create Messaging Manager: " + as.name)
+	createmsgctx := ctx.SubContext("Create Messaging Manager: " + as.name)
 	if err := as.createMessagingManager(createmsgctx, conf, as.parent); err != nil {
 		return errors.WrapError(createmsgctx, err)
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementMessagingManager: as.messagingManager})
+	svcCtx.setElements(core.ContextMap{core.ServerElementMessagingManager: as.messagingManager})
 
-	createcommctx := ctx.subContext("Create Communicator: " + as.name)
+	createcommctx := ctx.SubContext("Create Communicator: " + as.name)
 	if err := as.createCommunicator(createcommctx, conf); err != nil {
 		return errors.WrapError(createmsgctx, err)
 	}
-	ctx.setElements(core.ContextMap{core.ServerElementCommunicator: as.communicator})
+	svcCtx.setElements(core.ContextMap{core.ServerElementCommunicator: as.communicator})
 
 	return nil
 }
@@ -264,7 +272,7 @@ func childChannelManager(ctx core.ServerContext, name string, parentChannelMgr c
 /*
 Messaging manager needs communication service
 */
-func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config.Config, parent *abstractserver) error {
+func (as *abstractserver) createMessagingManager(ctx core.ServerContext, conf config.Config, parent *abstractserver) error {
 	msgConf, err, found := common.ConfigFileAdapter(ctx, conf, constants.CONF_MESSAGING)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -305,7 +313,7 @@ func (as *abstractserver) createMessagingManager(ctx *serverContext, conf config
 /*
 override security handler depending upon the conf existence
 */
-func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) createSecurityHandler(ctx core.ServerContext, conf config.Config) error {
 	secConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SECURITY)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -341,7 +349,7 @@ func (as *abstractserver) createSecurityHandler(ctx *serverContext, conf config.
 	return nil
 }
 
-func (as *abstractserver) createSessionManager(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) createSessionManager(ctx core.ServerContext, conf config.Config) error {
 	sesConf, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_SESSION)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -360,7 +368,7 @@ func (as *abstractserver) createSessionManager(ctx *serverContext, conf config.C
 	return nil
 }
 
-func (as *abstractserver) createCommunicator(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) createCommunicator(ctx core.ServerContext, conf config.Config) error {
 	commSvcConfig, err, ok := common.ConfigFileAdapter(ctx, conf, constants.CONF_COMMUNICATION)
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -431,7 +439,7 @@ func (as *abstractserver) processEngineConf(ctx core.ServerContext, conf config.
 	return nil
 }
 
-func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Config) error {
+func (as *abstractserver) createCacheManager(ctx core.ServerContext, conf config.Config) error {
 	cacheMgrCreateCtx := ctx.SubContext("Create Cache Manager")
 	var cacheMgrHandle elements.ServerElementHandle
 	var cacheMgr elements.CacheManager
@@ -443,11 +451,33 @@ func (as *abstractserver) createCacheManager(ctx *serverContext, conf config.Con
 
 	if cacheMgr == nil && as.parent != nil {
 		as.cacheManager = as.parent.cacheManager
+		as.cacheManagerHandle = as.parent.cacheManagerHandle
 	} else {
 		as.cacheManager = cacheMgr
 		as.cacheManagerHandle = cacheMgrHandle
 	}
 	log.Trace(cacheMgrCreateCtx, "Cache Manager Created")
+	return nil
+}
+
+func (as *abstractserver) createSecretsManager(ctx core.ServerContext, conf config.Config) error {
+	secretsMgrCreateCtx := ctx.SubContext("Create Secrets Manager")
+	var secretsMgrHandle elements.ServerElementHandle
+	var secretsMgr elements.SecretsManager
+	if as.parent == nil || as.parent.secretsManager == nil {
+		secretsMgrHandle, secretsMgr = newSecretsManager(secretsMgrCreateCtx, "Root")
+	} else {
+		secretsMgrHandle, secretsMgr = childSecretsManager(secretsMgrCreateCtx, as.name, as.parent.secretsManager)
+	}
+
+	if secretsMgr == nil && as.parent != nil {
+		as.secretsManager = as.parent.secretsManager
+		as.secretsManagerHandle = as.parent.secretsManagerHandle
+	} else {
+		as.secretsManager = secretsMgr
+		as.secretsManagerHandle = secretsMgrHandle
+	}
+	log.Trace(secretsMgrCreateCtx, "Secrets Manager Created")
 	return nil
 }
 
@@ -596,6 +626,13 @@ func newCacheManager(ctx core.ServerContext, name string) (*cacheManager, *cache
 	return cacheMgr, cacheElem
 }
 
+func newSecretsManager(ctx core.ServerContext, name string) (*secretsManager, *secretsManagerProxy) {
+	secretsMgr := &secretsManager{name: name, svrContext: ctx}
+	secretsElem := &secretsManagerProxy{manager: secretsMgr}
+	secretsMgr.proxy = secretsElem
+	return secretsMgr, secretsElem
+}
+
 func newSessionManager(ctx core.ServerContext, name string, conf config.Config) (*sessionManager, *sessionManagerProxy) {
 	sessionMgr := &sessionManager{name: name, svrContext: ctx}
 	sessElem := &sessionManagerProxy{manager: sessionMgr}
@@ -643,4 +680,13 @@ func childCacheManager(ctx core.ServerContext, name string, parentCacheManager c
 	childcacheMgrElem := &cacheManagerProxy{manager: childcacheMgr}
 	childcacheMgr.proxy = childcacheMgrElem
 	return childcacheMgr, childcacheMgrElem
+}
+
+func childSecretsManager(ctx core.ServerContext, name string, parentSecretsManager core.ServerElement, filters ...elements.Filter) (*secretsManager, *secretsManagerProxy) {
+	parentProxy := parentSecretsManager.(*secretsManagerProxy)
+	parentMgr := parentProxy.manager
+	childSecretsMgr := &secretsManager{name: name, svrContext: ctx, parentSecretsManager: parentMgr}
+	childSecretsMgrElem := &secretsManagerProxy{manager: childSecretsMgr}
+	childSecretsMgr.proxy = childSecretsMgrElem
+	return childSecretsMgr, childSecretsMgrElem
 }

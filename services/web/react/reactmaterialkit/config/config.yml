@@ -6,6 +6,7 @@ description: Module provides material ui kit for laatoo applications
 objects: {}
 ui:
   js:    
+    overwriteJSMods: true
     externals:
       react: react
       reactwebcommon: reactwebcommon

@@ -45,6 +45,9 @@ type abstractserver struct {
 	cacheManager       elements.CacheManager
 	cacheManagerHandle elements.ServerElementHandle
 
+	secretsManager       elements.SecretsManager
+	secretsManagerHandle elements.ServerElementHandle
+
 	sessionManager       elements.SessionManager
 	sessionManagerHandle elements.ServerElementHandle
 

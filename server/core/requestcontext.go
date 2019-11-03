@@ -1,13 +1,16 @@
 package core
 
 import (
+	googleContext "context"
 	"laatoo/sdk/server/auth"
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/server/common"
+	"time"
 )
 
 //request context is passed while executing a request
@@ -45,6 +48,58 @@ type requestContext struct {
 	logger components.Logger
 }
 
+func (ctx *requestContext) Deadline() (deadline time.Time, ok bool) {
+	return ctx.Context.Deadline()
+}
+
+func (ctx *requestContext) Done() <-chan struct{} {
+	return ctx.Context.Done()
+}
+
+func (ctx *requestContext) Err() error {
+	return ctx.Context.Err()
+}
+
+func (ctx *requestContext) Value(key interface{}) interface{} {
+	return ctx.Context.Value(key)
+}
+
+func (ctx *requestContext) WithCancel() (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithCancel(ctx)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *requestContext) WithDeadline(timeout time.Time) (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithDeadline(ctx, timeout)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *requestContext) WithTimeout(timeout time.Duration) (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithTimeout(ctx, timeout)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *requestContext) WithValue(key, val interface{}) ctx.Context {
+	newgooglectx := googleContext.WithValue(ctx, key, val)
+	return ctx.WithContext(newgooglectx)
+}
+
+func (ctx *requestContext) WithContext(parent googleContext.Context) ctx.Context {
+	return ctx.subContext(ctx.Name, ctx.Context.WithContext(googleContext.WithValue(parent, "tId", ctx.GetId())).(*common.Context))
+}
+
+//subcontext of the request
+//retains id and tracks flow along with variables
+func (ctx *requestContext) SubContext(name string) core.RequestContext {
+	return ctx.subContext(name, ctx.SubCtx(name).(*common.Context))
+}
+
+func (ctx *requestContext) subContext(name string, newContext *common.Context) *requestContext {
+	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
+	return &requestContext{Context: newContext, serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req, sessionId: ctx.sessionId,
+		engine: ctx.engine, engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, session: ctx.session, subRequest: true}
+}
+
 // context of the engine that received a request
 func (ctx *requestContext) EngineRequestContext() interface{} {
 	return ctx.engineContext
@@ -67,15 +122,6 @@ func (ctx *requestContext) GetServerElement(elemType core.ServerElementType) cor
 
 func (ctx *requestContext) createRequest() *request {
 	return &request{Params: make(map[string]core.Param)}
-}
-
-//subcontext of the request
-//retains id and tracks flow along with variables
-func (ctx *requestContext) SubContext(name string) core.RequestContext {
-	log.Info(ctx, "Entering new request subcontext ", "Name", name, "Elapsed Time ", ctx.GetElapsedTime())
-	newctx := ctx.SubCtx(name)
-	return &requestContext{Context: newctx.(*common.Context), serverContext: ctx.serverContext, user: ctx.user, admin: ctx.admin, req: ctx.req, sessionId: ctx.sessionId,
-		engine: ctx.engine, engineContext: ctx.engineContext, parent: ctx, cache: ctx.cache, logger: ctx.logger, session: ctx.session, subRequest: true}
 }
 
 //new context from the request if a part of the request needs to be tracked separately

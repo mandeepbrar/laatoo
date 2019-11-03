@@ -90,7 +90,7 @@ moduleinstances:
     settings:
       sitename: Laatoo
       sitelink: http://localhost:6060
-      key: Mysecret#!@#4
+      key: signupemailkey
       emailverification: true
   localauth:
     module: localauth

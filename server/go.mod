@@ -11,6 +11,7 @@ require (
 	github.com/gin-gonic/gin v1.4.0
 	github.com/golang/protobuf v1.3.2
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/influxdata/go-syslog v1.0.1
 	github.com/labstack/echo v3.3.10+incompatible

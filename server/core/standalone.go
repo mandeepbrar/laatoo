@@ -20,12 +20,16 @@ const (
 	SERVER_TYPE = core.CONF_SERVERTYPE_STANDALONE
 )
 
+var seedPass string
+
 func Main(configFile string) error {
 	rootctx := newServerContext()
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
 		name := pair[0]
-		if strings.HasPrefix(name, "LAATOO_") {
+		if name == "LAATOO_seedpass" {
+			seedPass = pair[1]
+		} else if strings.HasPrefix(name, "LAATOO_") {
 			rootctx.Set(name[7:], pair[1])
 		}
 	}

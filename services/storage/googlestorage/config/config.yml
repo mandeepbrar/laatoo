@@ -9,6 +9,8 @@ objects:
       params:        
         Data:
           type: files
+        bucket:
+          type: string
     configurations:
       googlestoragebucket:
         description: Bucket to be used by the storage component

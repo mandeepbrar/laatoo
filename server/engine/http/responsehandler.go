@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"io"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -40,6 +41,32 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 				log.Debug(ctx, "Returning serve file", "file", fil)
 				return engineContext.File(fil)
 			}
+		case core.StatusServeStream:
+			var strType string
+			if resp.MetaInfo != nil {
+				log.Trace(ctx, " service returning stream")
+				val, ok := resp.MetaInfo[core.ContentType]
+				if ok {
+					strType = fmt.Sprint(val)
+					engineContext.SetHeader(core.ContentType, strType)
+				}
+				val, ok = resp.MetaInfo[core.ContentEncoding]
+				if ok {
+					engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
+				}
+				val, ok = resp.MetaInfo[core.LastModified]
+				if ok {
+					engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
+				}
+			}
+			if resp.Data != nil {
+				streamToServe := resp.Data.(io.ReadCloser)
+				err := engineContext.CopyStream(strType, streamToServe)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		case core.StatusServeBytes:
 			if resp.MetaInfo != nil {
 				log.Trace(ctx, " service returning bytes")

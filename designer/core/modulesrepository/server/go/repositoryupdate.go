@@ -66,7 +66,7 @@ func (svc *RepositoryUpdate) Invoke(ctx core.RequestContext) error {
 }
 
 func (svc *RepositoryUpdate) processModule(ctx core.RequestContext, mod string) (*modulesbase.ModuleDefinition, error) {
-	files, err := svc.repositoryFiles.ListFiles(ctx, fmt.Sprintf("%s.tar.gz", mod))
+	files, err := svc.repositoryFiles.ListFiles(ctx, "", fmt.Sprintf("%s.tar.gz", mod))
 	if err != nil {
 		return nil, err
 	}

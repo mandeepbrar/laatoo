@@ -1,14 +1,17 @@
 package core
 
 import (
+	googleContext "context"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/server/common"
 	slog "laatoo/server/log"
 	deflog "log"
+	"time"
 )
 
 /*
@@ -83,6 +86,7 @@ type contextElements struct {
 	sessionManager elements.SessionManager
 	module         elements.Module
 	communicator   elements.Communicator
+	secretsManager elements.SecretsManager
 
 	//open element for client applications
 	open1 core.ServerElement
@@ -107,6 +111,46 @@ func newServerContext() *serverContext {
 	_, logger := slog.NewLogger(ctx, "Default")
 	ctx.setElements(core.ContextMap{core.ServerElementLogger: logger})
 	return ctx
+}
+
+func (ctx *serverContext) Deadline() (deadline time.Time, ok bool) {
+	return ctx.Context.Deadline()
+}
+
+func (ctx *serverContext) Done() <-chan struct{} {
+	return ctx.Context.Done()
+}
+
+func (ctx *serverContext) Err() error {
+	return ctx.Context.Err()
+}
+
+func (ctx *serverContext) Value(key interface{}) interface{} {
+	return ctx.Context.Value(key)
+}
+
+func (ctx *serverContext) WithCancel() (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithCancel(ctx)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *serverContext) WithDeadline(timeout time.Time) (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithDeadline(ctx, timeout)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *serverContext) WithTimeout(timeout time.Duration) (ctx.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithTimeout(ctx, timeout)
+	return ctx.WithContext(newgooglectx), cancelFunc
+}
+
+func (ctx *serverContext) WithValue(key, val interface{}) ctx.Context {
+	newgooglectx := googleContext.WithValue(ctx, key, val)
+	return ctx.WithContext(newgooglectx)
+}
+
+func (ctx *serverContext) WithContext(parent googleContext.Context) ctx.Context {
+	return ctx.subContext(ctx.Name, ctx.Context.WithContext(googleContext.WithValue(parent, "tId", ctx.GetId())).(*common.Context))
 }
 
 func (ctx *serverContext) GetService(alias string) (core.Service, error) {
@@ -170,6 +214,8 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 		return ctx.svrElements.logger
 	case core.ServerElementCommunicator:
 		return ctx.svrElements.communicator
+	case core.ServerElementSecretsManager:
+		return ctx.svrElements.secretsManager
 	case core.ServerElementOpen1:
 		return ctx.svrElements.open1
 	case core.ServerElementOpen2:
@@ -184,16 +230,15 @@ func (ctx *serverContext) GetServerElement(elemType core.ServerElementType) core
 //changes made to context parameters will be visible on the parent
 //id of the context is also retained.. this can be used to track flow
 func (ctx *serverContext) SubContext(name string) core.ServerContext {
-	return ctx.subContext(name)
+	return ctx.subContext(name, ctx.SubCtx(name).(*common.Context))
 }
 
 //create a new server context; variables in this context be reflected in parent
 //sets a context element
 //id of the context is not changed. flow is updated
-func (ctx *serverContext) subContext(name string) *serverContext {
-	subctx := ctx.SubCtx(name)
+func (ctx *serverContext) subContext(name string, parent *common.Context) *serverContext {
 	log.Debug(ctx, "Entering new subcontext ", "Elapsed Time ", ctx.GetElapsedTime(), "New Context Name", name)
-	return &serverContext{Context: subctx.(*common.Context), svrElements: ctx.svrElements, level: ctx.level, sessionManager: ctx.sessionManager, childContexts: ctx.childContexts}
+	return &serverContext{Context: parent, svrElements: ctx.svrElements, level: ctx.level, sessionManager: ctx.sessionManager, childContexts: ctx.childContexts}
 }
 
 //create a new server context from the parent. variables set in this context will not be reflected in parent
@@ -222,7 +267,7 @@ func (ctx *serverContext) getElementsContextMap() core.ContextMap {
 		core.ServerElementMessagingManager: ctx.svrElements.msgManager, core.ServerElementServiceResponseHandler: ctx.svrElements.serviceResponseHandler, core.ServerElementRulesManager: ctx.svrElements.rulesManager,
 		core.ServerElementCacheManager: ctx.svrElements.cacheManager, core.ServerElementTaskManager: ctx.svrElements.taskManager, core.ServerElementLogger: ctx.svrElements.logger,
 		core.ServerElementModuleManager: ctx.svrElements.moduleManager, core.ServerElementModule: ctx.svrElements.module, core.ServerElementCommunicator: ctx.svrElements.communicator,
-		core.ServerElementOpen1: ctx.svrElements.open1, core.ServerElementOpen2: ctx.svrElements.open2, core.ServerElementOpen3: ctx.svrElements.open3}
+		core.ServerElementSecretsManager: ctx.svrElements.secretsManager, core.ServerElementOpen1: ctx.svrElements.open1, core.ServerElementOpen2: ctx.svrElements.open2, core.ServerElementOpen3: ctx.svrElements.open3}
 }
 
 func (ctx *serverContext) addChild(child *serverContext) {
@@ -367,6 +412,12 @@ func (ctx *serverContext) setElementReferences(svrelements core.ContextMap, ref 
 				ctxElems.communicator = nil
 			} else {
 				ctxElems.communicator = element.(elements.Communicator)
+			}
+		case core.ServerElementSecretsManager:
+			if element == nil {
+				ctxElems.secretsManager = nil
+			} else {
+				ctxElems.secretsManager = element.(elements.SecretsManager)
 			}
 		case core.ServerElementOpen1:
 			ctxElems.open1 = element

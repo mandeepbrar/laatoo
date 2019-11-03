@@ -78,7 +78,7 @@ func (svcMgr *serviceManager) startModuleInstanceServices(ctx core.ServerContext
 
 func (svcMgr *serviceManager) startService(ctx core.ServerContext, svcProxy *serviceProxy) error {
 	log.Error(ctx, "Starting service ", "service name", svcProxy.svc.name, "svr context", svcProxy.svc.svrContext)
-	svcStartCtx := svcProxy.svc.svrContext.subContext("Start " + svcProxy.svc.name)
+	svcStartCtx := svcProxy.svc.svrContext.SubContext("Start " + svcProxy.svc.name)
 	log.Debug(svcStartCtx, "Starting service ", "service name", svcProxy.svc.name)
 	//, core.ContextMap{core.ServerElementService: svcProxy, core.ServerElementServiceFactory: svcProxy.svc.factory}, core.ServerElementService
 	err := svcProxy.svc.start(svcStartCtx)

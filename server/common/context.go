@@ -1,22 +1,21 @@
 package common
 
 import (
+	googleContext "context"
 	"fmt"
-	"laatoo/sdk/server/ctx"
+	laatooContext "laatoo/sdk/server/ctx"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	glctx "golang.org/x/net/context"
-
 	"github.com/twinj/uuid"
 )
 
 type Context struct {
+	googleContext.Context
 	gaeReq       *http.Request
-	appengineCtx glctx.Context
-	Id           string
+	appengineCtx googleContext.Context
 	Name         string
 	Path         string
 	ParamsStore  map[string]interface{}
@@ -25,14 +24,54 @@ type Context struct {
 }
 
 func NewContext(name string) *Context {
-	return &Context{Name: name, Path: name, Id: uuid.NewV1().String(), ParamsStore: make(map[string]interface{}), creationTime: time.Now()}
+	return &Context{Context: googleContext.WithValue(googleContext.Background(), "tId", uuid.NewV1().String()), Name: name, Path: name, ParamsStore: make(map[string]interface{}), creationTime: time.Now()}
+}
+
+func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
+	return ctx.Context.Deadline()
+}
+
+func (ctx *Context) Done() <-chan struct{} {
+	return ctx.Context.Done()
+}
+
+func (ctx *Context) Err() error {
+	return ctx.Context.Err()
+}
+
+func (ctx *Context) Value(key interface{}) interface{} {
+	return ctx.Context.Value(key)
+}
+
+func (ctx *Context) WithCancel() (laatooContext.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithCancel(ctx)
+	return ctx.withNewContext(newgooglectx), cancelFunc
+}
+
+func (ctx *Context) WithDeadline(timeout time.Time) (laatooContext.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithDeadline(ctx, timeout)
+	return ctx.withNewContext(newgooglectx), cancelFunc
+}
+
+func (ctx *Context) WithTimeout(timeout time.Duration) (laatooContext.Context, googleContext.CancelFunc) {
+	newgooglectx, cancelFunc := googleContext.WithTimeout(ctx, timeout)
+	return ctx.withNewContext(newgooglectx), cancelFunc
+}
+
+func (ctx *Context) WithValue(key, val interface{}) laatooContext.Context {
+	newgooglectx := googleContext.WithValue(ctx, key, val)
+	return ctx.withNewContext(newgooglectx)
+}
+
+func (ctx *Context) WithContext(parent googleContext.Context) laatooContext.Context {
+	return ctx.withNewContext(parent)
 }
 
 func (ctx *Context) GetId() string {
-	return ctx.Id
+	return ctx.Value("tId").(string)
 }
 
-func (ctx *Context) GetParent() ctx.Context {
+func (ctx *Context) GetParent() laatooContext.Context {
 	return ctx.Parent
 }
 
@@ -61,18 +100,26 @@ func (ctx *Context) GetElapsedTime() time.Duration {
 	return time.Now().Sub(ctx.creationTime)
 }
 
-func (ctx *Context) SubCtx(name string) ctx.Context {
-	return &Context{Name: name, Path: fmt.Sprintf("%s  -> %s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore, Id: ctx.Id,
+func (ctx *Context) SubCtx(name string) laatooContext.Context {
+	return ctx.subCtx(name, ctx.Context)
+}
+
+func (ctx *Context) withNewContext(googleCtx googleContext.Context) *Context {
+	return ctx.subCtx(ctx.Name, googleCtx)
+}
+
+func (ctx *Context) subCtx(name string, googleCtx googleContext.Context) *Context {
+	return &Context{Context: googleCtx, Name: name, Path: fmt.Sprintf("%s  -> %s", ctx.Path, name), Parent: ctx, ParamsStore: ctx.ParamsStore,
 		creationTime: ctx.creationTime, gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
-func (ctx *Context) NewCtx(name string) ctx.Context {
+func (ctx *Context) NewCtx(name string) laatooContext.Context {
 	duplicateMap := make(map[string]interface{}, len(ctx.ParamsStore))
 	for k, v := range ctx.ParamsStore {
 		duplicateMap[k] = v
 	}
-	return &Context{Name: name, Path: fmt.Sprintf("%s  :: @@%s", ctx.Path, name), Parent: ctx, ParamsStore: duplicateMap, Id: uuid.NewV1().String(),
-		creationTime: time.Now(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
+	return &Context{Context: googleContext.WithValue(googleContext.Background(), "tId", uuid.NewV1().String()), Name: name, Path: fmt.Sprintf("%s  :: @@%s", ctx.Path, name),
+		Parent: ctx, ParamsStore: duplicateMap, creationTime: time.Now(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
 func (ctx *Context) Get(key string) (interface{}, bool) {
@@ -144,13 +191,13 @@ func (ctx *Context) SetVals(vals map[string]interface{}) {
 	}
 }
 
-func (ctx *Context) GetAppengineContext() glctx.Context {
+func (ctx *Context) GetAppengineContext() googleContext.Context {
 	return ctx.appengineCtx
 }
 func (ctx *Context) HttpClient() *http.Client {
 	return HttpClient(ctx)
 }
-func (ctx *Context) GetOAuthContext() glctx.Context {
+func (ctx *Context) GetOAuthContext() googleContext.Context {
 	return GetOAuthContext(ctx)
 }
 func (ctx *Context) Dump() {

@@ -1,1 +1,2 @@
 servicemethod: googlestorage
+googlestoragebucket: {{var "googlestoragebucket"}}

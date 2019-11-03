@@ -19,6 +19,7 @@ import (
 
 const (
 	CONF_STATIC_FILEPARAM          = "file"
+	CONF_STATIC_FILEBUCKET         = "bucket"
 	CONF_STATIC_REPLACEMENTS       = "replacements"
 	CONF_STATIC_SEARCHSTRING       = "search"
 	CONF_STATIC_REPLACEMENT_METHOD = "method"
@@ -36,6 +37,7 @@ type File struct {
 	info                map[string]interface{}
 	runtimereplacements bool
 	replacements        []*replacement
+	bucket              string
 }
 
 type replacement struct {
@@ -48,6 +50,7 @@ type FileService struct {
 	filesMap map[string]*File
 	storage  components.StorageComponent
 	name     string
+	bucket   string
 }
 
 func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -55,6 +58,7 @@ func (fs *FileService) Initialize(ctx core.ServerContext, conf config.Config) er
 	fs.AddStringConfigurations(ctx, []string{CONF_FILE_STORAGE}, nil)
 	fs.AddConfigurations(ctx, map[string]string{CONF_STATIC_FILES: config.OBJECTTYPE_CONFIG})
 	fs.AddStringParams(ctx, []string{CONF_STATIC_FILEPARAM}, nil)*/
+	fs.bucket, _ = fs.GetStringConfiguration(ctx, CONF_STATIC_FILEBUCKET)
 	fs.filesMap = make(map[string]*File, 10)
 	return nil
 }
@@ -130,7 +134,7 @@ func (fs *FileService) Start(ctx core.ServerContext) error {
 			}
 
 			req := ctx.CreateSystemRequest("GetFilePath")
-			path = fs.storage.GetFullPath(req, path)
+			path = fs.storage.GetFullPath(req, fs.bucket, path)
 
 			fil, err := os.Stat(path)
 			if err != nil {

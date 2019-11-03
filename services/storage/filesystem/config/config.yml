@@ -8,11 +8,19 @@ objects:
       params:        
         Data:
           type: files
+        bucket:
+          type: string
     configurations:
       filestoragedir:
         description: Directory to be used by the storage component
+        type: string
+      defaultbucket:
+        description: Default Bucket to be used by the storage component
         type: string
 params:
   filestoragedir: 
     type: string
     description: Directory to be used for storing files
+  defaultbucket:
+    description: Default Bucket to be used by the storage component
+    type: string

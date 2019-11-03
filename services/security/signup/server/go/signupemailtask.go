@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -13,12 +12,16 @@ type SignupEmailTask struct {
 	SiteName string
 	SiteLink string
 	MailBody string
+	Key      string
 	verifier *EmailVerifier
 }
 
-func (signup *SignupEmailTask) Initialize(ctx core.ServerContext, conf config.Config) error {
-	key, _ := conf.GetString(ctx, "Key")
-	signup.verifier = &EmailVerifier{SiteName: signup.SiteName, SiteLink: signup.SiteLink, MailBody: signup.MailBody, key: key}
+func (signup *SignupEmailTask) Start(ctx core.ServerContext) error {
+	secret, ok := signup.GetSecretConfiguration(ctx, signup.Key)
+	if !ok {
+		return errors.BadConf(ctx, "Key", "Error", "Key not found for creating email tokens in secrets store")
+	}
+	signup.verifier = &EmailVerifier{SiteName: signup.SiteName, SiteLink: signup.SiteLink, MailBody: signup.MailBody, key: secret}
 	return nil
 }
 

@@ -5,6 +5,7 @@ dependencies:
 description: Module provides bootstrap ui kit for laatoo applications
 ui:
   js:
+    overwriteJSMods: true
     externals:
       reactwebcommon: reactwebcommon
       react: react

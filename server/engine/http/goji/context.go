@@ -48,6 +48,11 @@ func (gojictx *GojiContext) Write(bytes []byte) (int, error) {
 	return gojictx.res.Write(bytes)
 }
 
+func (gojictx *GojiContext) CopyStream(strType string, str io.ReadCloser) error {
+	_, err := io.Copy(gojictx.res, str)
+	return err
+}
+
 func (gojictx *GojiContext) Redirect(status int, path string) error {
 	http.Redirect(gojictx.res, gojictx.req, path, status)
 	return nil

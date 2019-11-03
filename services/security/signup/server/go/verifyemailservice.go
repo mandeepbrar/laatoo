@@ -11,11 +11,15 @@ type VerifyEmailService struct {
 	core.Service
 	verifier           *EmailVerifier
 	VerifyWithWorkflow bool
+	Key                string
 }
 
 func (svc *VerifyEmailService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	key, _ := conf.GetString(ctx, "Key")
-	svc.verifier = &EmailVerifier{key: key}
+	secret, ok := svc.GetSecretConfiguration(ctx, svc.Key)
+	if !ok {
+		return errors.BadConf(ctx, "Key", "Error", "Key not found for creating email tokens in secrets store")
+	}
+	svc.verifier = &EmailVerifier{key: secret}
 	return nil
 }
 
