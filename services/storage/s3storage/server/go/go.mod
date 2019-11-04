@@ -1,12 +1,13 @@
 module s3storageservice
 
-go 1.12
+go 1.13
 
 require (
 	github.com/google/btree v1.0.0 // indirect
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/minio/minio-go/v6 v6.0.40
 	github.com/twinj/uuid v1.0.0
+	golang.org/x/text v0.3.2
 	laatoo/sdk v0.0.0
 	storagecommon v0.0.0
 )

@@ -31,17 +31,20 @@ objects:
         type: bool
         required: true
       accesskey:
-        description: Access key for connecting to s3 storage
+        description: Secret store key pointing to access key for connecting to s3 storage
         type: string
         required: true
       accessid:
-        description: Access id for connecting to s3 storage
+        description: Secret store key pointing to access id for connecting to s3 storage
         type: string
         required: true
       location:
         description: Location for s3 storage
         type: string
 params:
+  instance: 
+    type: string
+    description: Used to create multiple instances of the module service
   s3storagebucket: 
     type: string
     description: Bucket to be used by s3 storage service
@@ -60,11 +63,11 @@ params:
     description: SSL usage for connecting to s3 storage
     type: bool
   accesskey:
-    description: Access key for connecting to s3 storage
+    description: Secret store key pointing to access key for connecting to s3 storage
     type: string
     required: true
   accessid:
-    description: Access id for connecting to s3 storage
+    description: Secret store key pointing to access id for connecting to s3 storage
     type: string
     required: true
   location:

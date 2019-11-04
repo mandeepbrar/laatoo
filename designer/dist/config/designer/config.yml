@@ -47,6 +47,7 @@ modules:
   modulesrepository:
   reactapplication:
   shell:
+  s3storage:
   signup:
   publicdirserver:
   publicfilesserver:
@@ -62,6 +63,7 @@ modules:
   tunnymemtasks:
   moduledesignerbase:
   moduledesignerserver:
+  helloworld:
   moduledesignerentities:
   jsui:
     cachefiles: false
@@ -75,6 +77,8 @@ modules:
     #hotmodulepath: designer/core/moduledesignerui
     #hotmodcompiler: "/usr/local/bin/node /build/build.js --verbose --nobundle --uionly"
 moduleinstances:
+  helloworld:
+    module: helloworld
   filesystemstorage:
     module: filesystemstorage
   securityhandler.role:
@@ -127,6 +131,14 @@ moduleinstances:
     module: authui
     settings:
       cookies: true
+  s3storage:
+    module: s3storage
+    settings:
+      host: http://172.17.0.2:9000
+      accesskey: minioaccesskey
+      accessid: minioaccessid
+      ssl: false
+      endpoint: 172.17.0.2:9000
   reactforms:
     module: reactforms
   reactfileupload:

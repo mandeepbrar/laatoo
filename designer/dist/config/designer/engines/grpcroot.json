@@ -1,0 +1,8 @@
+{
+    "name":"grpcroot",
+    "path": "laatoo",
+    "enginetype":"grpc",
+    "address":":7070",
+    "ssl":false
+}
+  

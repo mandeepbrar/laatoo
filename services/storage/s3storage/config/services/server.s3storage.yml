@@ -1,3 +1,4 @@
+name: s3storage{{if exists "instance"}} .{{var "instance"}} {{end}}
 servicemethod: s3storage
 s3storagedefaultbucket: {{var "s3storagedefaultbucket"}}
 public: {{if exists "public"}} {{var "public"}} {{else}} false {{end}} 
@@ -6,3 +7,4 @@ ssl: {{if exists "ssl"}} {{var "ssl"}} {{else}} true {{end}}
 accesskey: {{var "accesskey"}}
 accessid: {{var "accessid"}}
 location: {{var "location"}}
+host: {{var "host"}}

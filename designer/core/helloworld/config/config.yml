@@ -1,0 +1,12 @@
+version: 0.0.1
+dependencies:
+description: Hello World service
+objects: 
+  helloworld:
+    type: service
+    description: Hello world service.
+    request:
+      params:        
+        Data:
+          type: bytes
+          description: bytes data

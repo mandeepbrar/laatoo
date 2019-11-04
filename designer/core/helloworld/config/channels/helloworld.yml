@@ -1,0 +1,3 @@
+service: helloworld
+parent: grpcroot
+path: HelloWorld

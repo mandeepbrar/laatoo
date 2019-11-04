@@ -3,16 +3,11 @@
 package core
 
 import (
-	"fmt"
-	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/server/constants"
-	"net"
 	"os"
+	"os/signal"
 	"strings"
-	"time"
 )
 
 const (
@@ -36,6 +31,23 @@ func Main(configFile string) error {
 	return main(rootctx, configFile)
 }
 
+func startListening(ctx core.ServerContext, server *serverObject) error {
+	c := make(chan os.Signal)
+
+	// Relay os.Interrupt to our channel (os.Interrupt = CTRL+C)
+	// Ignore other incoming signals
+	signal.Notify(c, os.Interrupt)
+
+	// Block main routine until a signal is received
+	// As long as user doesn't press CTRL+C a message is not passed and our main routine keeps running
+	<-c
+
+	log.Error(ctx, "Shutting down ")
+
+	return nil
+}
+
+/*
 func startListening(ctx core.ServerContext, conf config.Config) error {
 	//find the address to bind from the server
 	address, ok := conf.GetString(ctx, constants.CONF_SERVER_ADDRESS)
@@ -85,3 +97,4 @@ func dialServer(ctx core.ServerContext, address string) error {
 	}
 	panic("Server could not be started")
 }
+*/

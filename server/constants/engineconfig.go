@@ -5,6 +5,7 @@ const (
 	CONF_ENGINE_TYPE          = "enginetype"
 	CONF_ENGINETYPE_HTTP      = "http"
 	CONF_ENGINETYPE_WS        = "websocket"
+	CONF_ENGINETYPE_GRPC      = "grpc"
 	CONF_ENG_SSL              = "ssl"
 	CONF_ENG_SSLCERT          = "sslcert"
 	CONF_ENG_SSLKEY           = "sslkey"

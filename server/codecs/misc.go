@@ -10,7 +10,7 @@ func GetCodec(encoding string) (core.Codec, bool) {
 		return NewFastJsonCodec(), true
 	case "bin":
 		return NewBinaryCodec(), true
-	case "proto":
+	case "protobuf":
 		return NewProtobufCodec(), true
 	}
 	return nil, false

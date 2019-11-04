@@ -298,8 +298,10 @@ func (as *abstractserver) initializeEngines(ctx core.ServerContext, conf config.
 		//register engines root channel
 		eng := as.engines[name]
 		rootChannel := eng.GetRootChannel(engInitCtx)
-		//get a root channel and assign it to server channel manager
-		as.channelManagerHandle.(*channelManager).channelStore[name] = rootChannel
+		if rootChannel != nil {
+			//get a root channel and assign it to server channel manager
+			as.channelManagerHandle.(*channelManager).channelStore[name] = rootChannel
+		}
 
 		log.Trace(engInitCtx, "Initialized engine", "Engine", name)
 	}

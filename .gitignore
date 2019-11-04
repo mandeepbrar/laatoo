@@ -3,7 +3,7 @@ designer/dist/config/designer/modules
 modules
 dist/lib
 dist/bin
-laatoo
+laatooserver
 log.txt
 tmp
 **/*.deb

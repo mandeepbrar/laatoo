@@ -50,10 +50,24 @@ type S3StorageSvc struct {
 func (svc *S3StorageSvc) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svc.defaultBucket, _ = svc.GetStringConfiguration(ctx, CONF_S3S_FILESDEFAULTBUCKET)
 	svc.public, _ = svc.GetBoolConfiguration(ctx, CONF_S3S_PUBLICFILE)
+	svc.endpoint, _ = svc.GetStringConfiguration(ctx, CONF_S3S_ENDPOINT)
 	svc.host, _ = svc.GetStringConfiguration(ctx, CONF_S3S_HOST)
 	svc.ssl, _ = svc.GetBoolConfiguration(ctx, CONF_S3S_SSL)
-	svc.accessid, _ = svc.GetStringConfiguration(ctx, CONF_S3S_ACCESSID)
-	svc.accesskey, _ = svc.GetStringConfiguration(ctx, CONF_S3S_ACCESSKEY)
+
+	accessid, _ := svc.GetStringConfiguration(ctx, CONF_S3S_ACCESSID)
+	accID, ok := svc.GetSecretConfiguration(ctx, accessid)
+	if !ok {
+		return errors.BadConf(ctx, CONF_S3S_ACCESSID, "Error", "Value not found in secret store", "key", accessid)
+	}
+	svc.accessid = string(accID)
+
+	accesskey, _ := svc.GetStringConfiguration(ctx, CONF_S3S_ACCESSKEY)
+	accKey, ok := svc.GetSecretConfiguration(ctx, accesskey)
+	if !ok {
+		return errors.BadConf(ctx, CONF_S3S_ACCESSID, "Error", "Value not found in secret store", "key", accesskey)
+	}
+	svc.accesskey = string(accKey)
+
 	svc.location, _ = svc.GetStringConfiguration(ctx, CONF_S3S_LOCATION)
 	var err error
 	svc.minioClient, err = svc.createClient(ctx)

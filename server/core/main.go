@@ -62,7 +62,7 @@ func main(rootctx *serverContext, configDir string) error {
 	}
 
 	ctx = rootctx.SubContext("Listening")
-	err = startListening(ctx, conf)
+	err = startListening(ctx, serverHandle)
 	if err != nil {
 		return err
 	}

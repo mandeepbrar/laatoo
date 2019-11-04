@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/frankban/quicktest v1.4.2 // indirect
+	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/btree v1.0.0 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible

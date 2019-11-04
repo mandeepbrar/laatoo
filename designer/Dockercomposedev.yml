@@ -18,10 +18,13 @@ services:
     ports:
       - "6060:6060"
       - "6061:6061"
+      - "7070:7070"
     depends_on:
       - mongo
     environment:
       - LAATOO_mongoconnectionstring=mongo
+      - GRPC_GO_LOG_VERBOSITY_LEVEL=99 
+      - GRPC_GO_LOG_SEVERITY_LEVEL=info
     logging:
       driver: syslog
   mongo:

@@ -110,3 +110,7 @@ func (svr *serverObject) createEnvironment(ctx core.ServerContext, baseDir strin
 	svr.environments[name] = envElem
 	return nil
 }
+
+func (svr *serverObject) Stop(ctx core.ServerContext) error {
+	return nil
+}

@@ -11,6 +11,7 @@ import (
 	"laatoo/sdk/utils"
 	"laatoo/server/common"
 	"laatoo/server/constants"
+	"laatoo/server/engine/grpc"
 	"laatoo/server/engine/http"
 	"laatoo/server/engine/websocket"
 	slog "laatoo/server/log"
@@ -493,6 +494,8 @@ func (as *abstractserver) createEngine(ctx core.ServerContext, engConf config.Co
 		engineHandle, engine = http.NewEngine(ctx, engName, engConf)
 	case constants.CONF_ENGINETYPE_WS:
 		engineHandle, engine = websocket.NewEngine(ctx, engName, engConf)
+	case constants.CONF_ENGINETYPE_GRPC:
+		engineHandle, engine = grpc.NewEngine(ctx, engName, engConf)
 	case core.CONF_ENGINE_TCP:
 	default:
 		return nil, nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Config Name", constants.CONF_ENGINE_TYPE)
