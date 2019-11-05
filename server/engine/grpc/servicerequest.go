@@ -51,7 +51,7 @@ func (channel *grpcChannel) getHandler(ctx core.ServerContext) func(core.ServerC
 
 		reqCtx, vals, err := reqBuilder(serverStream)
 		if err != nil {
-			err = channel.respHandler.HandleResponse(reqCtx, core.BadRequestResponse(err.Error()))
+			err = channel.respHandler.HandleResponse(reqCtx, core.BadRequestResponse(err.Error()), err)
 			return err
 		}
 		defer reqCtx.CompleteRequest()
@@ -68,11 +68,10 @@ func (channel *grpcChannel) getHandler(ctx core.ServerContext) func(core.ServerC
 		resp, err := channel.svc.HandleRequest(reqCtx, vals)
 		log.Trace(reqCtx, "Completed request for service. Handling Response")
 
-		if err == nil {
-			err = channel.respHandler.HandleResponse(reqCtx, resp)
-			return err
-		} else {
-			return errors.BadRequest(reqCtx, err.Error())
+		err = channel.respHandler.HandleResponse(reqCtx, resp, err)
+		log.Error(reqCtx, "Done with response handling ", "err", err)
+		if err != nil {
+			return errors.BadRequest(reqCtx, "err", err)
 		}
 		return nil
 	}

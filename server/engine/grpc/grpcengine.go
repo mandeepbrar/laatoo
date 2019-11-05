@@ -99,13 +99,13 @@ func (eng *grpcEngine) getHandler(serverctx core.ServerContext) grpc.StreamHandl
 		if !ok {
 			return fmt.Errorf("Invalid GRPC stream")
 		}
-		log.Error(serverctx, "got request for method", "method", streamMethod)
+		log.Info(serverctx, "Got grpc request for method", "method", streamMethod)
 
 		channel, ok := eng.getChannel(serverctx, streamMethod)
 		if !ok {
 			return errors.ThrowError(serverctx, errors.CORE_ERROR_RES_NOT_FOUND, "Method", streamMethod)
 		}
-		log.Error(serverctx, "Found channel for method", "route", streamMethod)
+		log.Debug(serverctx, "Found channel for method", "route", streamMethod)
 
 		if channel.disabled {
 			return errors.ThrowError(serverctx, errors.CORE_ERROR_RES_NOT_FOUND, "Method", streamMethod)
@@ -113,8 +113,9 @@ func (eng *grpcEngine) getHandler(serverctx core.ServerContext) grpc.StreamHandl
 
 		if channel.handleRequest != nil {
 			err := channel.handleRequest(serverctx, serverStream)
-			if err != nil {
-				return err
+			grpcErr := eng.processErrors(serverctx, serverStream, err)
+			if grpcErr != nil {
+				return grpcErr
 			}
 		} else {
 			return errors.InternalError(serverctx, "Error", "Request handler not configured")
@@ -123,13 +124,17 @@ func (eng *grpcEngine) getHandler(serverctx core.ServerContext) grpc.StreamHandl
 	}
 }
 
+func (eng *grpcEngine) processErrors(serverctx core.ServerContext, serverStream grpc.ServerStream, err error) error {
+	log.Debug(serverctx, "Processing errors ")
+	return err
+}
+
 // customCodec pass bytes to/from the wire without modification.
 
 type bytesCodec struct{}
 
 // Marshal takes a []byte and passes it through as a []byte.
 func (bytesCodec) Marshal(obj interface{}) ([]byte, error) {
-	fmt.Printf("Got object for marshalling %T", obj)
 	switch value := obj.(type) {
 	case []byte:
 		return value, nil
@@ -140,7 +145,6 @@ func (bytesCodec) Marshal(obj interface{}) ([]byte, error) {
 
 // Unmarshal takes a []byte pointer as obj and points it to data.
 func (bytesCodec) Unmarshal(data []byte, obj interface{}) error {
-	fmt.Printf("Got object for unmarshalling ", data)
 	switch value := obj.(type) {
 	case *[]byte:
 		*value = data

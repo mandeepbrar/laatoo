@@ -5,9 +5,9 @@ import (
 	"laatoo/sdk/server/log"
 )
 
-func (channel *wsChannel) handleMessage(ctx core.RequestContext, msg *rpcRequest) {
+func (channel *wsChannel) handleMessage(ctx core.RequestContext, msg *rpcRequest) error {
 	if channel.disabled {
-		return
+		return nil
 	}
 	vals := msg.Params
 	if channel.staticValues != nil {
@@ -17,9 +17,6 @@ func (channel *wsChannel) handleMessage(ctx core.RequestContext, msg *rpcRequest
 	}
 	log.Trace(ctx, "Handle Request", "info", vals)
 	res, err := channel.svc.HandleRequest(ctx, vals)
-	if err != nil {
-		channel.respHandler.HandleResponse(ctx, core.FunctionalErrorResponse(err))
-	} else {
-		err = channel.respHandler.HandleResponse(ctx, res)
-	}
+	err = channel.respHandler.HandleResponse(ctx, res, err)
+	return err
 }

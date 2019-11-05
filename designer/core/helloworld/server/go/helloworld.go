@@ -10,6 +10,7 @@ type HelloWorld struct {
 }
 
 func (hw *HelloWorld) Invoke(ctx core.RequestContext) error {
-	log.Error(ctx, "Hello world invoked")
+	inter, ok := ctx.GetParamValue("Data")
+	log.Error(ctx, "Hello world invoked", "data", inter, "found", ok)
 	return nil
 }

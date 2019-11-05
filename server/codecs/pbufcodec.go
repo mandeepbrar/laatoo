@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"laatoo/sdk/server/ctx"
 
+	//"github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/proto"
+	//"github.com/gogo/protobuf/proto"
+	//"github.com/golang/protobuf/proto"
 )
 
 var (
@@ -32,5 +35,6 @@ func (codec *ProtobufCodec) Marshal(c ctx.Context, obj interface{}) ([]byte, err
 	if !ok {
 		return nil, marshellingError
 	}
+
 	return proto.Marshal(msg)
 }

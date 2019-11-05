@@ -21,7 +21,7 @@ func (rh *defaultResponseHandler) Initialize(ctx core.ServerContext, conf config
 	return nil
 }
 
-func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response) error {
+func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response, handlingError error) error {
 	log.Trace(ctx, "Returning request with default response handler", "resp", resp)
 	return handleResponse(ctx, resp, rh.handleMetaInfo)
 }

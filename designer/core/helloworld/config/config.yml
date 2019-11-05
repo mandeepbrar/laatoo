@@ -8,5 +8,5 @@ objects:
     request:
       params:        
         Data:
-          type: bytes
+          type: Name
           description: bytes data

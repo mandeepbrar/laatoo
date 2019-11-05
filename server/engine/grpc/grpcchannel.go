@@ -62,7 +62,7 @@ func (channel *grpcChannel) child(ctx core.ServerContext, name string, channelCo
 
 	route := fmt.Sprintf("%s/%s", channel.path, path)
 
-	log.Error(ctx, "Adding grpc channel", "route", route)
+	log.Info(ctx, "Adding grpc channel", "route", route)
 
 	childChannel := &grpcChannel{name: name, config: channelConfig, engine: channel.engine, svcName: svc, path: path, svrContext: ctx}
 	err := childChannel.configure(ctx)

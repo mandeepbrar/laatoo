@@ -204,23 +204,23 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 		go func(pathCtx net.WebContext) {
 			reqCtx, vals, err := reqBuilder(pathCtx)
 			if err != nil {
-				err = respHandler.HandleResponse(reqCtx, core.BadRequestResponse(err.Error()))
+				err = respHandler.HandleResponse(reqCtx, core.BadRequestResponse(err.Error()), err)
 				errChannel <- err
 				return
 			}
 			defer reqCtx.CompleteRequest()
 			err = authRequest(reqCtx, vals)
 			if err != nil {
-				err = respHandler.HandleResponse(reqCtx, core.StatusUnauthorizedResponse)
+				err = respHandler.HandleResponse(reqCtx, core.StatusUnauthorizedResponse, err)
 				errChannel <- err
 				return
 			}
 			log.Trace(reqCtx, "Invoking service ", "vals", vals)
 			resp, err := svc.HandleRequest(reqCtx, vals)
+
 			log.Trace(reqCtx, "Completed request for service. Handling Response")
-			if err == nil {
-				err = respHandler.HandleResponse(reqCtx, resp)
-			}
+			err = respHandler.HandleResponse(reqCtx, resp, err)
+
 			errChannel <- err
 		}(pathCtx)
 		err := <-errChannel

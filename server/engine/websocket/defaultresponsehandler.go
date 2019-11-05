@@ -22,7 +22,7 @@ func (rh *defaultResponseHandler) Initialize(ctx core.ServerContext, conf config
 	return nil
 }
 
-func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response) error {
+func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response, handlingError error) error {
 	conn := ctx.EngineRequestContext().(*websocket.Conn)
 	log.Trace(ctx, "Returning request with default response handler")
 	if resp != nil {
@@ -45,7 +45,7 @@ func (rh *defaultResponseHandler) sendResponse(ctx core.RequestContext, conn *we
 	resp := &rpcResponse{"2.0", dat, wsid}
 	byts, err := rh.codec.Marshal(ctx, resp)
 	if err != nil {
-		rh.HandleResponse(ctx, core.InternalErrorResponse(err.Error()))
+		err = rh.HandleResponse(ctx, core.InternalErrorResponse(err.Error()), err)
 	}
 	err = conn.WriteMessage(websocket.TextMessage, byts)
 	if err != nil {
