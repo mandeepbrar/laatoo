@@ -15,6 +15,7 @@ type {{#type name}}{{/type}}_Ref struct {
 }
 
 type {{#type name}}{{/type}} struct {
+	*data.SerializableBase `initialize:"SerializableBase"`
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   {{#fields fields}}{{/fields}}
 }

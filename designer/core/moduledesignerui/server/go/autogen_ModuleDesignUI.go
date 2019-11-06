@@ -12,7 +12,7 @@ type ModuleDesignUI_Ref struct {
 }
 
 type ModuleDesignUI struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Externals	map[string]interface{} `json:"Externals" bson:"Externals" datastore:"Externals"`

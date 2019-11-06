@@ -35,7 +35,6 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 type KeyAuthService struct {
 	core.Service
 	clients        map[string]*client
-	userCreator    core.ObjectCreator
 	tokenGenerator func(auth.User, string) (string, auth.User, error)
 	adminRole      string
 	jwtSecret      string
@@ -80,11 +79,6 @@ func (ks *KeyAuthService) Initialize(ctx core.ServerContext, conf config.Config)
 	}
 	ks.adminRole = adminRole.(string)
 
-	userCreator, err := ctx.GetObjectCreator(ks.userObject)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	ks.userCreator = userCreator
 	return nil
 }
 
@@ -121,7 +115,8 @@ func (ks *KeyAuthService) Invoke(ctx core.RequestContext, req core.Request) erro
 	}
 
 	//create the user
-	usrInt := ks.userCreator()
+	usrInt, _ := ctx.CreateObject(ks.userObject)
+
 	init := usrInt.(core.Initializable)
 
 	userConf := ctx.ServerContext().CreateConfig()

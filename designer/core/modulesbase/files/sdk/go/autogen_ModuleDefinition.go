@@ -11,7 +11,7 @@ type ModuleDefinition_Ref struct {
 }
 
 type ModuleDefinition struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Version	string `json:"Version" bson:"Version" datastore:"Version"`

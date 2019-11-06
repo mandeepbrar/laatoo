@@ -95,7 +95,7 @@ func processDirectoryFiles(ctx core.ServerContext, subDir string, objs map[strin
 					return errors.WrapError(ctx, err)
 				}
 				if elemConf == nil {
-					return nil
+					continue
 				}
 				/*if !CheckContextCondition(ctx, elemConf) {
 					continue

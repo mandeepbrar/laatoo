@@ -1,19 +1,20 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	//"log"
+	"time"
 
-	"gopkg.in/mgo.v2"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type mongoDataServicesFactory struct {
 	core.ServiceFactory
-	connection *mgo.Session
+	connection *mongo.Client
 	database   string
 }
 
@@ -39,17 +40,32 @@ func (ms *mongoDataServicesFactory) CreateService(ctx core.ServerContext, name s
 	return newMongoDataService(ctx, name, ms)
 }
 
+//"mongodb://localhost:27017"
 //The services start serving when this method is called
 func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
 	connectionString, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_CONNECTIONSTRING)
 	database, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_DATABASE)
 
-	sess, err := mgo.Dial(connectionString)
+	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
 		return errors.RethrowError(ctx, data.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}
-	log.Info(ctx, "Connection established to mongo database", "connectionString", connectionString)
-	ms.connection = sess
+
+	timeoutctx, _ := ctx.WithTimeout(5 * time.Second)
+	/*	err = client.Ping(timeoutctx, readpref.Primary())
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}*/
+	err = client.Connect(timeoutctx)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+	log.Info(timeoutctx, "Connection established to mongo database", "connectionString", connectionString)
+	ms.connection = client
 	ms.database = database
 	return nil
+}
+
+func (ms *mongoDataServicesFactory) getConnection(ctx core.RequestContext) *mongo.Client {
+	return ms.connection
 }

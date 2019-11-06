@@ -64,6 +64,7 @@ const (
 	CONFIGURATIONS   = "configurations"
 	CONFTYPE         = "type"
 	CONFDEFAULTVALUE = "default"
+	CONFSKIP         = "skip"
 	CONFREQ          = "required"
 	CONFVARTOSET     = "variable"
 )
@@ -76,14 +77,17 @@ func buildConfigurableObject(ctx core.ServerContext, name string, conf config.Co
 		for _, confName := range confNames {
 			confDesc, ok := confs.GetSubConfig(ctx, confName)
 			if ok {
-				required, _ := confDesc.GetBool(ctx, CONFREQ)
-				conftype, _ := confDesc.GetString(ctx, CONFTYPE)
-				defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
-				variable, _ := confDesc.GetString(ctx, CONFVARTOSET)
-				configObj := newConfiguration(confName, conftype, required, defaultValue, variable)
-				configObj.conf = confDesc
-				co.configurations[confName] = configObj
-				log.Error(ctx, "configurable object", "confName", confName, "conf", co.configurations[confName])
+				skip, _ := confDesc.GetBool(ctx, CONFSKIP)
+				if !skip {
+					required, _ := confDesc.GetBool(ctx, CONFREQ)
+					conftype, _ := confDesc.GetString(ctx, CONFTYPE)
+					defaultValue, _ := confDesc.Get(ctx, CONFDEFAULTVALUE)
+					variable, _ := confDesc.GetString(ctx, CONFVARTOSET)
+					configObj := newConfiguration(confName, conftype, required, defaultValue, variable)
+					configObj.conf = confDesc
+					co.configurations[confName] = configObj
+					log.Error(ctx, "configurable object", "confName", confName, "conf", co.configurations[confName])
+				}
 			}
 		}
 	}

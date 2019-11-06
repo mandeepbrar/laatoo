@@ -16,7 +16,7 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	ctx = ctx.SubContext("GetById")
 	log.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
-	object := svc.ObjectCreator()
+	object, _ := ctx.CreateObject(svc.Object)
 	query := svc.getMultitenantQuery(ctx, svc.db)
 
 	err := query.First(object, id).Error
@@ -70,7 +70,7 @@ func (svc *sqlDataService) GetMultiHash(ctx core.RequestContext, ids []string) (
 }
 
 func (svc *sqlDataService) postArrayGet(ctx core.RequestContext, results interface{}) ([]data.Storable, []string, error) {
-	resultStor, ids, err := data.CastToStorableCollection(results)
+	resultStor, ids, err := data.CastToStorableCollection(ctx, results)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
@@ -94,7 +94,7 @@ func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, order
 	if lenids == 0 {
 		return nil, nil
 	}
-	results := svc.ObjectCollectionCreator(lenids)
+	results, _ := ctx.CreateCollection(svc.Object, lenids)
 
 	query := svc.getMultitenantQuery(ctx, svc.db)
 
@@ -164,7 +164,7 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	totalrecs = -1
 	recsreturned = -1
 	//0 is just a placeholder... mongo provides results of its own
-	results := svc.ObjectCollectionCreator(0)
+	results, _ := ctx.CreateCollection(svc.Object, 0)
 
 	query, err := svc.processCondition(ctx, queryCond, svc.db)
 	if err != nil {

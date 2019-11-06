@@ -1,4 +1,5 @@
 queue: laatoo.signup.email
+skip: {{if exists "emailverification"}} {{var "emailverification" | not}} {{else}} true {{end}}
 processor: laatoo.signgupemailsprocessor
 consumer: {{if exists "emailqueueconsumer"}} {{var "emailqueueconsumer"}} {{else}} {{end}}
 publisher: {{if exists "emailqueuepublisher"}} {{var "emailqueuepublisher"}} {{else}} {{end}}

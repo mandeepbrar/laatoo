@@ -28,6 +28,7 @@ require (
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	golang.org/x/text v0.3.2
 	google.golang.org/appengine v1.6.2
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8 //indirect
 	google.golang.org/grpc v1.24.0

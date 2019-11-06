@@ -31,7 +31,7 @@ func (es *deleteAll) Invoke(ctx core.RequestContext) error {
 		ctx.SetResponse(core.StatusNotFoundResponse)
 		return errors.WrapError(ctx, err)
 	}
-	retval, err := es.DataStore.DeleteAll(ctx, condition)
+	retval, err := es.DataStore.DeleteAll(ctx, condition, false)
 	if err == nil {
 		ctx.SetResponse(core.SuccessResponse(retval))
 		return nil

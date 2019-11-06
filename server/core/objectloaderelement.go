@@ -41,12 +41,21 @@ func (ldr *objectLoaderProxy) CreateCollection(ctx ctx.Context, objectName strin
 func (ldr *objectLoaderProxy) CreateObject(ctx ctx.Context, objectName string) (interface{}, error) {
 	return ldr.loader.createObject(ctx, objectName)
 }
-func (ldr *objectLoaderProxy) GetObjectCollectionCreator(ctx ctx.Context, objectName string) (core.ObjectCollectionCreator, error) {
+
+func (ldr *objectLoaderProxy) GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool) {
+	if ldr.loader.objectsFactoryRegister != nil {
+		fac, ok := ldr.loader.objectsFactoryRegister[name]
+		return fac, ok
+	}
+	return nil, false
+}
+
+/*func (ldr *objectLoaderProxy) GetObjectCollectionCreator(ctx ctx.Context, objectName string) (core.ObjectCollectionCreator, error) {
 	return ldr.loader.getObjectCollectionCreator(ctx, objectName)
 }
 func (ldr *objectLoaderProxy) GetObjectCreator(ctx ctx.Context, objectName string) (core.ObjectCreator, error) {
 	return ldr.loader.getObjectCreator(ctx, objectName)
-}
+}*/
 func (ldr *objectLoaderProxy) GetMetaData(ctx ctx.Context, objectName string) (core.Info, error) {
 	return ldr.loader.getMetaData(ctx, objectName)
 }

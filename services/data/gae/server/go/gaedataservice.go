@@ -16,12 +16,10 @@ import (
 type gaeDataService struct {
 	*data.BaseComponent
 
-	conf                    config.Config
-	name                    string
-	collection              string
-	objectCollectionCreator core.ObjectCollectionCreator
-	objectCreator           core.ObjectCreator
-	serviceType             string
+	conf        config.Config
+	name        string
+	collection  string
+	serviceType string
 }
 
 func newGaeDataService(ctx core.ServerContext, name string) (*gaeDataService, error) {
@@ -254,7 +252,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		data.Audit(ctx, newVals)
 	}
 
-	object := svc.ObjectCreator()
+	object, _ := ctx.CreateObject(svc.Object)
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
 	if err != nil {
@@ -284,17 +282,17 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 	return nil
 }
 
-func (svc *gaeDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (svc *gaeDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("Upsert")
-	return svc.updateAll(ctx, queryCond, newVals, true)
+	return svc.updateAll(ctx, queryCond, newVals, true, getids)
 }
 
-func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (svc *gaeDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("UpdateAll")
-	return svc.updateAll(ctx, queryCond, newVals, false)
+	return svc.updateAll(ctx, queryCond, newVals, false, getids)
 }
 
-func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
+func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool, getids bool) ([]string, error) {
 	appEngineContext := ctx.GetAppengineContext()
 	if svc.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": svc.Object, "data": newVals})
@@ -310,14 +308,14 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 	if err != nil {
 		return nil, err
 	}
-	results := svc.ObjectCollectionCreator(0)
+	results, _ := ctx.CreateCollection(svc.Object, 0)
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.
 	keys, err := query.GetAll(appEngineContext, results)
 	if len(keys) == 0 {
 		if upsert {
-			object := svc.ObjectCreator()
+			object, _ := ctx.CreateObject(svc.Object)
 			stor := object.(data.Storable)
 			if svc.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", stor.GetId())
@@ -331,7 +329,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		}
 		return []string{}, nil
 	}
-	resultStor, ids, err := data.CastToStorableCollection(results)
+	resultStor, ids, err := data.CastToStorableCollection(ctx, results)
 	for ind, item := range resultStor {
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)
 		/*if svc.PreSave {
@@ -383,7 +381,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 		data.Audit(ctx, newVals)
 	}
 	lenids := len(ids)
-	results := svc.ObjectCollectionCreator(lenids)
+	results, _ := ctx.CreateCollection(svc.Object, lenids)
 	keys := make([]*datastore.Key, lenids)
 	for ind, id := range ids {
 		key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
@@ -396,7 +394,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 			return err
 		}
 	}
-	resultStor, ids, err := data.CastToStorableCollection(results)
+	resultStor, ids, err := data.CastToStorableCollection(ctx, results)
 	for ind, item := range resultStor {
 		if svc.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", item.GetId())
@@ -465,14 +463,14 @@ func (svc *gaeDataService) DeleteMulti(ctx core.RequestContext, ids []string) er
 }
 
 //Delete object by condition
-func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+func (svc *gaeDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if svc.SoftDelete {
 		return svc.UpdateAll(ctx, queryCond, map[string]interface{}{svc.SoftDeleteField: true})
 	}
 
 	appEngineContext := ctx.GetAppengineContext()
-	results := svc.ObjectCollectionCreator(0)
+	results, _ := ctx.CreateCollection(svc.Object, 0)
 
 	query := datastore.NewQuery(svc.collection)
 	query, err := svc.processCondition(ctx, appEngineContext, query, queryCond)

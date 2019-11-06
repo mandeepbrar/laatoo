@@ -32,7 +32,7 @@ func (es *upsert) Invoke(ctx core.RequestContext) error {
 		ctx.SetResponse(core.BadRequestResponse("Could not create condition" + err.Error()))
 		return errors.WrapError(ctx, err)
 	}
-	_, err = es.DataStore.Upsert(ctx, condition, vals["value"].(map[string]interface{}))
+	_, err = es.DataStore.Upsert(ctx, condition, vals["value"].(map[string]interface{}), false)
 	if err != nil {
 		ctx.SetResponse(core.InternalErrorResponse("Could not upsert values with condition to datastore"))
 		return errors.WrapError(ctx, err)

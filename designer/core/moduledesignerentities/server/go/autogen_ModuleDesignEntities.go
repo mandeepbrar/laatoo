@@ -11,7 +11,7 @@ type ModuleDesignEntities_Ref struct {
 }
 
 type ModuleDesignEntities struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Entities	[]EntityDesign `json:"Entities" bson:"Entities" datastore:"Entities"`

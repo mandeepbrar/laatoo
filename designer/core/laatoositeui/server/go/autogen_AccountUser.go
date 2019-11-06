@@ -11,7 +11,7 @@ type AccountUser_Ref struct {
 }
 
 type AccountUser struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	FName	string `json:"FName" bson:"FName" datastore:"FName"`
 	LName	string `json:"LName" bson:"LName" datastore:"LName"`

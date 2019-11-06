@@ -43,8 +43,15 @@ func (as *abstractserver) initialize(ctx core.ServerContext, conf config.Config)
 		return err
 	}
 
+	objinit := ctx.SubContext("Initialize object loader")
+	err := as.objectLoaderHandle.Initialize(objinit, conf)
+	if err != nil {
+		return errors.WrapError(objinit, err)
+	}
+	log.Trace(objinit, "Initialized object loader")
+
 	if as.secretsManagerHandle != nil {
-		err := as.initializeSecretsManager(ctx, conf)
+		err = as.initializeSecretsManager(ctx, conf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -52,7 +59,7 @@ func (as *abstractserver) initialize(ctx core.ServerContext, conf config.Config)
 
 	log.Info(ctx, "Initializing security handler")
 	secinit := ctx.SubContext("Initialize security handleer")
-	err := as.initializeSecurityHandler(secinit, conf)
+	err = as.initializeSecurityHandler(secinit, conf)
 	if err != nil {
 		return errors.WrapError(secinit, err)
 	}
@@ -143,15 +150,8 @@ func (as *abstractserver) initialize(ctx core.ServerContext, conf config.Config)
 
 func (as *abstractserver) initializeServicesCore(ctx core.ServerContext, conf config.Config) error {
 
-	objinit := ctx.SubContext("Initialize object loader")
-	err := as.objectLoaderHandle.Initialize(objinit, conf)
-	if err != nil {
-		return errors.WrapError(objinit, err)
-	}
-	log.Trace(objinit, "Initialized object loader")
-
 	facinit := ctx.SubContext("Initialize factory manager")
-	err = initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
+	err := initializeFactoryManager(facinit, conf, as.factoryManagerHandle)
 	if err != nil {
 		return err
 	}

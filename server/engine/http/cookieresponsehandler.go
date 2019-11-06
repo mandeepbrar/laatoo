@@ -20,7 +20,7 @@ func (rh *cookiesResponseHandler) Initialize(ctx core.ServerContext, conf config
 
 func (rh *cookiesResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response, handlererr error) error {
 	log.Trace(ctx, "Returning request with cookies response handler", "resp", resp)
-	return handleResponse(ctx, resp, rh.handleMetaInfo)
+	return handleResponse(ctx, resp, rh.handleMetaInfo, handlererr)
 }
 
 func (rh *cookiesResponseHandler) Reference() core.ServerElement {

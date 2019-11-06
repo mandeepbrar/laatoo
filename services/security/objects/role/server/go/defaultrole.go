@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 )
 
@@ -25,10 +25,10 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 }
 
 type Role struct {
-	data.SoftDeleteAuditable `bson:",inline"`
-	Role                     string   `json:"Role" form:"Role" bson:"Role"`
-	Permissions              []string `json:"Permissions" bson:"Permissions"`
-	Realm                    string   `json:"Realm" bson:"Realm"`
+	*data.SoftDeleteAuditable `json:",inline" initialize:"SoftDeleteAuditable"`
+	Role                      string   `json:"Role" form:"Role" bson:"Role"`
+	Permissions               []string `json:"Permissions" bson:"Permissions"`
+	Realm                     string   `json:"Realm" bson:"Realm"`
 }
 
 func (r *Role) Config() *data.StorableConfig {

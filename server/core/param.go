@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"time"
@@ -28,41 +29,24 @@ const (
 )
 
 type param struct {
-	name                        string
-	ptype                       string
-	oDataType                   objectDataType
-	dataObjectCreator           core.ObjectCreator
-	dataObjectCollectionCreator core.ObjectCollectionCreator
-	collection                  bool
-	isStream                    bool
-	required                    bool
-	value                       interface{}
+	name         string
+	ptype        string
+	oDataType    objectDataType
+	collection   bool
+	isStream     bool
+	required     bool
+	value        interface{}
+	objectLoader elements.ObjectLoader
 }
 
 func newParam(ctx core.ServerContext, name, ptype string, collection, stream, required bool) (*param, error) {
 	dataObjectType := convertDataType(ptype)
-	p := &param{name, ptype, dataObjectType, nil, nil, collection, stream, required, nil}
-	if dataObjectType == __custom {
-		if collection {
-			dataObjectCollectionCreator, err := ctx.GetObjectCollectionCreator(ptype)
-			if err != nil {
-				return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", ptype)
-			}
-			p.dataObjectCollectionCreator = dataObjectCollectionCreator
-		} else {
-			dataObjectCreator, err := ctx.GetObjectCreator(ptype)
-			if err != nil {
-				return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "No such object", ptype)
-			}
-			p.dataObjectCreator = dataObjectCreator
-		}
-	}
-
+	p := &param{name, ptype, dataObjectType, collection, stream, required, nil, ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)}
 	return p, nil
 }
 
 func (p *param) clone() *param {
-	return &param{p.name, p.ptype, p.oDataType, p.dataObjectCreator, p.dataObjectCollectionCreator, p.collection, p.isStream, p.required, p.value}
+	return &param{p.name, p.ptype, p.oDataType, p.collection, p.isStream, p.required, p.value, p.objectLoader}
 }
 
 func (p *param) GetName() string {
@@ -235,11 +219,13 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 	default:
 		if encoded {
 			if p.IsCollection() {
-				p.value = p.dataObjectCollectionCreator(5)
+				p.value, err = p.objectLoader.CreateCollection(ctx, p.ptype, 5)
 			} else {
-				p.value = p.dataObjectCreator()
+				p.value, err = p.objectLoader.CreateObject(ctx, p.ptype)
 			}
-			err = codec.Unmarshal(ctx, reqBytes, p.value)
+			if err == nil {
+				err = codec.Unmarshal(ctx, reqBytes, p.value)
+			}
 		} else {
 			p.value = val
 			ok = true

@@ -1,9 +1,9 @@
 package main
 
 import (
+	common "cachecommon"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
-	"cachecommon"
 
 	"laatoo/sdk/server/log"
 	"time"
@@ -136,24 +136,22 @@ func (svc *RedisCacheService) GetObjects(ctx core.RequestContext, bucket string,
 		args = append(args, common.GetCacheKey(bucket, k))
 	}
 	retval := make(map[string]interface{})
-	svrctx := ctx.ServerContext()
-	objectcreator, err := svrctx.GetObjectCreator(objectType)
-	if err != nil {
-		return retval
-	}
 	conn := svc.pool.Get()
 	defer conn.Close()
 	k, err := redis.Values(conn.Do("MGET", args...))
 	if err != nil {
-		return retval
+		return nil
 	}
 	for index, val := range k {
 		key := keys[index]
 		if val == nil {
 			retval[key] = nil
 		} else {
-			obj := objectcreator()
-			err := svc.cacheEncoder.Decode(val.([]byte), obj)
+			obj, err := ctx.CreateObject(objectType)
+			if err != nil {
+				return nil
+			}
+			err = svc.cacheEncoder.Decode(val.([]byte), obj)
 			if err != nil {
 				retval[key] = nil
 			} else {

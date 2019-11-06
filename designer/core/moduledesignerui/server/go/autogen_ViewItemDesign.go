@@ -11,6 +11,7 @@ type ViewItemDesign_Ref struct {
 }
 
 type ViewItemDesign struct {
+	*data.SerializableBase `initialize:"SerializableBase"`
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Type	string `json:"Type" bson:"Type" datastore:"Type"`

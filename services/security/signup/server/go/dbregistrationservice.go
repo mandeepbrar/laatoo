@@ -37,7 +37,7 @@ type RegistrationService struct {
 	DefaultRole string
 	userObject  string
 	name        string
-	userCreator core.ObjectCreator
+
 	//user data service name
 	userDataSvcName string
 	//data service to use for users
@@ -71,14 +71,8 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 	}
 	rs.userObject = userObject.(string)
 
-	userCreator, err := ctx.GetObjectCreator(rs.userObject)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	rs.userCreator = userCreator
-
 	if rs.VerifyEmail {
-		err = rs.AddParamWithType(ctx, "credentials", config.OBJECTTYPE_STRINGSMAP)
+		err := rs.AddParamWithType(ctx, "credentials", config.OBJECTTYPE_STRINGSMAP)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -91,8 +85,21 @@ func (rs *RegistrationService) Initialize(ctx core.ServerContext, conf config.Co
 				return errors.MissingConf(ctx, "EmailQueue")
 			}
 		}
+		if rs.VerifyWithWorkflow {
+			initiator, ok := rs.GetStringConfiguration(ctx, "workflowinitiator")
+			if ok {
+				svc, err := ctx.GetService(initiator)
+				if err != nil {
+					return errors.BadConf(ctx, "workflowinitiator")
+				}
+				rs.WorkflowInitiator, ok = svc.(components.WorkflowInitiator)
+				if !ok {
+					return errors.BadConf(ctx, "workflowinitiator")
+				}
+			}
+		}
 	} else {
-		err = rs.AddParamWithType(ctx, "credentials", rs.userObject)
+		err := rs.AddParamWithType(ctx, "credentials", rs.userObject)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

@@ -10,9 +10,12 @@ import (
 	"net/http"
 )
 
-func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(core.RequestContext, net.WebContext, map[string]interface{}) error) error {
+func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(core.RequestContext, net.WebContext, map[string]interface{}) error, handlingError error) error {
 	if ctx == nil {
 		return errors.BadRequest(ctx)
+	}
+	if handlingError != nil {
+		resp = core.BadRequestResponse(handlingError.Error())
 	}
 	ctx = ctx.SubContext("Response Handler")
 	if resp == nil {

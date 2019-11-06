@@ -489,14 +489,6 @@ func (ctx *serverContext) CreateObject(objectName string) (interface{}, error) {
 	return ctx.svrElements.objectLoader.CreateObject(ctx, objectName)
 }
 
-func (ctx *serverContext) GetObjectCollectionCreator(objectName string) (core.ObjectCollectionCreator, error) {
-	return ctx.svrElements.objectLoader.GetObjectCollectionCreator(ctx, objectName)
-}
-
-func (ctx *serverContext) GetObjectCreator(objectName string) (core.ObjectCreator, error) {
-	return ctx.svrElements.objectLoader.GetObjectCreator(ctx, objectName)
-}
-
 func (ctx *serverContext) GetObjectMetadata(objectName string) (core.Info, error) {
 	return ctx.svrElements.objectLoader.GetMetaData(ctx, objectName)
 }
@@ -509,6 +501,10 @@ func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	reqCtx.user = nil
 	reqCtx.admin = true
 	return reqCtx
+}
+
+func (ctx *serverContext) GetObjectFactory(name string) (core.ObjectFactory, bool) {
+	return ctx.svrElements.objectLoader.GetObjectFactory(ctx, name)
 }
 
 func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageListener, lsnrID string) error {

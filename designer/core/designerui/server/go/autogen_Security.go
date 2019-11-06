@@ -11,6 +11,7 @@ type Security_Ref struct {
 }
 
 type Security struct {
+	*data.SerializableBase `initialize:"SerializableBase"`
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Mode	string `json:"Mode" bson:"Mode" datastore:"Mode"`

@@ -28,7 +28,7 @@ func (es *putmultiple) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("PUTMULTIPLE")
 	arr, _ := ctx.GetParamValue("object")
 	log.Trace(ctx, "Collection ", "arr", arr)
-	storables, _, err := data.CastToStorableCollection(arr)
+	storables, _, err := data.CastToStorableCollection(ctx, arr)
 	if err != nil {
 		ctx.SetResponse(core.InternalErrorResponse("Could not case to storables array " + err.Error()))
 		return err

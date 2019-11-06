@@ -11,6 +11,7 @@ type Service_Ref struct {
 }
 
 type Service struct {
+	*data.SerializableBase `initialize:"SerializableBase"`
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`

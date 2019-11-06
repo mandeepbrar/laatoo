@@ -23,7 +23,7 @@ func (rh *defaultResponseHandler) Initialize(ctx core.ServerContext, conf config
 
 func (rh *defaultResponseHandler) HandleResponse(ctx core.RequestContext, resp *core.Response, handlingError error) error {
 	log.Trace(ctx, "Returning request with default response handler", "resp", resp)
-	return handleResponse(ctx, resp, rh.handleMetaInfo)
+	return handleResponse(ctx, resp, rh.handleMetaInfo, handlingError)
 }
 
 func (rh *defaultResponseHandler) Reference() core.ServerElement {

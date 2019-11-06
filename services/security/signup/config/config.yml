@@ -34,7 +34,6 @@ objects:
       workflowinitiator:
         type: string
         description: Verify email using provided workflow
-        inject: WorkflowInitiator
   SignupEmailTask:
     type: service
     description: Task processor for signup email tasks.

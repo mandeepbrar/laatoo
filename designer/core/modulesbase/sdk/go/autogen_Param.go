@@ -11,6 +11,7 @@ type Param_Ref struct {
 }
 
 type Param struct {
+	*data.SerializableBase `initialize:"SerializableBase"`
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`

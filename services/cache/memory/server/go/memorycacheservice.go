@@ -1,10 +1,10 @@
 package main
 
 import (
+	common "cachecommon"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/utils"
-	"cachecommon"
 )
 
 const (
@@ -102,18 +102,15 @@ func (svc *MemoryCacheService) GetObjects(ctx core.RequestContext, bucket string
 		return svc.GetMulti(ctx, bucket, keys)
 	}
 	val := make(map[string]interface{})
-	svrctx := ctx.ServerContext()
-	objectcreator, err := svrctx.GetObjectCreator(objectType)
-	if err != nil {
-		return val
-	}
 	for _, key := range keys {
 		cval, err := svc.memoryStorer.GetObject(common.GetCacheKey(bucket, key))
 		if err != nil || cval == nil {
 			val[key] = nil
 		} else {
-			obj := objectcreator()
-			err = svc.cacheEncoder.Decode(cval.([]byte), obj)
+			obj, err := ctx.CreateObject(objectType)
+			if err == nil {
+				err = svc.cacheEncoder.Decode(cval.([]byte), obj)
+			}
 			if err != nil {
 				val[key] = nil
 				continue

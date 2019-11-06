@@ -19,8 +19,6 @@ import (
 type securityHandler struct {
 	name          string
 	handler       security.SecurityPlugin
-	userCreator   core.ObjectCreator
-	roleCreator   core.ObjectCreator
 	anonymousUser auth.User
 	securityMode  string
 	userObject    string
@@ -33,6 +31,7 @@ type securityHandler struct {
 	realm         string
 	skipSecurity  bool
 	svrContext    core.ServerContext
+	objectLoader  elements.ObjectLoader
 }
 
 func newSecurityHandler(ctx core.ServerContext, name string, parent core.ServerElement) (elements.ServerElementHandle, core.ServerElement) {
@@ -94,6 +93,8 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 		sh.publicKey = publicKey
 	}
 
+	sh.objectLoader = ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
+
 	authToken, ok := conf.GetString(ctx, config.AUTHHEADER)
 	if !ok {
 		authToken = config.DEFAULT_AUTHHEADER
@@ -116,19 +117,11 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 		log.Trace(startCtx, "Skipping security handler start")
 		return nil
 	}
-	userCreator, err := startCtx.GetObjectCreator(sh.userObject)
-	if err != nil {
-		return errors.WrapError(startCtx, err)
-	}
-	sh.userCreator = userCreator
 
-	roleCreator, err := startCtx.GetObjectCreator(sh.roleObject)
+	anonymousUser, err := sh.objectLoader.CreateObject(ctx, sh.userObject)
 	if err != nil {
-		return errors.WrapError(startCtx, err)
+		return err
 	}
-	sh.roleCreator = roleCreator
-
-	anonymousUser := userCreator()
 	init := anonymousUser.(core.Initializable)
 	userConf := ctx.CreateConfig()
 	userConf.Set(ctx, "Id", "Anonymous")
@@ -145,7 +138,7 @@ func (sh *securityHandler) Start(ctx core.ServerContext) error {
 
 	switch sh.securityMode {
 	case constants.CONF_SECURITY_LOCAL:
-		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.roleCreator, sh.realm)
+		plugin, err := security.NewLocalSecurityHandler(startCtx, sh.securityConf, sh.adminRole, sh.anonRole, sh.roleObject, sh.realm)
 		if err != nil {
 			return err
 		}
@@ -222,7 +215,7 @@ func (sh *securityHandler) getUserFromToken(ctx core.RequestContext, loadFresh b
 		})
 		if err == nil && token.Valid {
 			log.Error(ctx, "Token validated")
-			userInt := sh.userCreator()
+			userInt, _ := sh.objectLoader.CreateObject(ctx, sh.userObject) //error ignored as this would have been tested already during server start
 			user, ok := userInt.(auth.RbacUser)
 			if !ok {
 				return nil, false, tokenVal, errors.ThrowError(ctx, errors.CORE_ERROR_TYPE_MISMATCH)

@@ -7,7 +7,10 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type mongoDataService struct {
@@ -95,8 +98,7 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
 	log.Trace(ctx, "Saving object", "Object", ms.Object)
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
+	conn := ms.factory.getConnection(ctx)
 	id := item.GetId()
 	if id == "" {
 		item.Initialize(ctx, nil)
@@ -117,10 +119,11 @@ func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) er
 	if ms.Auditable {
 		data.Audit(ctx, item)
 	}
-	err := connCopy.DB(ms.database).C(ms.collection).Insert(item)
+	_, err := conn.Database(ms.database).Collection(ms.collection).InsertOne(ctx, item)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+	//	ctx.Set("NewId", res.InsertedID)
 	if ms.PostSave {
 		err = item.PostSave(ctx)
 		if err != nil {
@@ -148,9 +151,10 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 		}
 	}
 	log.Trace(ctx, "Saving multiple objects", "ObjectType", ms.Object)
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	bulk := connCopy.DB(ms.database).C(ms.collection).Bulk()
+	conn := ms.factory.getConnection(ctx)
+
+	var operations []mongo.WriteModel
+
 	for _, item := range items {
 		if item != nil {
 			if ms.PreSave {
@@ -166,10 +170,22 @@ func (ms *mongoDataService) PutMulti(ctx core.RequestContext, items []data.Stora
 			if ms.Auditable {
 				data.Audit(ctx, item)
 			}
-			bulk.Upsert(bson.M{ms.ObjectId: item.GetId()}, item)
+
+			condition := bson.M{}
+			condition[ms.ObjectId] = item.GetId()
+			if ms.Multitenant {
+				condition["Tenant"] = ctx.GetUser().GetTenant()
+			}
+
+			operation := mongo.NewUpdateOneModel()
+			operation.SetFilter(condition)
+			operation.SetUpdate(item)
+			operation.SetUpsert(true)
+			operations = append(operations, operation)
+
 		}
 	}
-	_, err := bulk.Run()
+	_, err := conn.Database(ms.database).Collection(ms.collection).BulkWrite(ctx, operations)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -193,8 +209,8 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
 	}
 	log.Trace(ctx, "Putting object", "ObjectType", ms.Object, "id", id)
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
+	conn := ms.factory.getConnection(ctx)
+
 	condition := bson.M{}
 	condition[ms.ObjectId] = id
 	item.SetId(id)
@@ -212,7 +228,9 @@ func (ms *mongoDataService) Put(ctx core.RequestContext, id string, item data.St
 	if ms.Auditable {
 		data.Audit(ctx, item)
 	}
-	_, err := connCopy.DB(ms.database).C(ms.collection).Upsert(condition, item)
+
+	_, err := conn.Database(ms.database).Collection(ms.collection).ReplaceOne(ctx, condition, item, options.Replace().SetUpsert(true))
+
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -268,20 +286,21 @@ func (ms *mongoDataService) updateWithoutPresave(ctx core.RequestContext, id str
 	if ms.Multitenant {
 		condition["Tenant"] = ctx.GetUser().GetTenant()
 	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
+	conn := ms.factory.getConnection(ctx)
+
 	var err error
 	if upsert {
-		_, err = connCopy.DB(ms.database).C(ms.collection).Upsert(condition, newVals)
+		_, err = conn.Database(ms.database).Collection(ms.collection).UpdateOne(ctx, condition, newVals, options.Update().SetUpsert(true))
 
 	} else {
 		updateInterface := map[string]interface{}{"$set": newVals}
-		err = connCopy.DB(ms.database).C(ms.collection).Update(condition, updateInterface)
+		_, err = conn.Database(ms.database).Collection(ms.collection).UpdateMany(ctx, condition, updateInterface)
 	}
 	return errors.WrapError(ctx, err)
 }
 
 func (ms *mongoDataService) updateWithPresave(ctx core.RequestContext, id string, newVals map[string]interface{}, upsert bool) error {
+
 	err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -294,14 +313,15 @@ func (ms *mongoDataService) updateWithPresave(ctx core.RequestContext, id string
 	if ms.Multitenant {
 		condition["Tenant"] = ctx.GetUser().GetTenant()
 	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	object := ms.ObjectCreator()
 
-	err = connCopy.DB(ms.database).C(ms.collection).Find(condition).One(object)
+	conn := ms.factory.getConnection(ctx)
+	object, _ := ctx.CreateObject(ms.Object)
+
+	err = conn.Database(ms.database).Collection(ms.collection).FindOne(ctx, condition).Decode(object)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
+
 	stor := object.(data.Storable)
 	if ms.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", id)
@@ -316,70 +336,116 @@ func (ms *mongoDataService) updateWithPresave(ctx core.RequestContext, id string
 	}
 }
 
-func (ms *mongoDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (ms *mongoDataService) Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("Upsert")
-	return ms.updateAll(ctx, queryCond, newVals, true)
+	return ms.updateAll(ctx, queryCond, newVals, true, getids)
 }
 
-func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}) ([]string, error) {
+func (ms *mongoDataService) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("UpdateAll")
-	return ms.updateAll(ctx, queryCond, newVals, false)
+	return ms.updateAll(ctx, queryCond, newVals, false, getids)
 }
 
-func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert bool) ([]string, error) {
-	results := ms.ObjectCollectionCreator(0)
-
+func (ms *mongoDataService) updateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, upsert, getids bool) ([]string, error) {
+	var ids []string
+	var err error
 	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"cond": queryCond, "type": ms.Object, "data": newVals})
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
 	}
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
-	err := query.All(results)
-	if err != nil {
-		return nil, errors.WrapError(ctx, err)
-	}
-	resultStor, ids, err := data.CastToStorableCollection(results)
-	length := len(resultStor)
-	if length == 0 {
-		if upsert {
-			object := ms.ObjectCreator()
-			stor := object.(data.Storable)
-			stor.SetValues(object, newVals)
-			err := ms.Save(ctx, stor)
-			if err != nil {
-				return nil, err
-			}
-			return []string{stor.GetId()}, nil
+
+	conn := ms.factory.getConnection(ctx)
+	if getids || ms.PostUpdate || upsert {
+
+		cursor, err := conn.Database(ms.database).Collection(ms.collection).Find(ctx, queryCond)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
 		}
-		return []string{}, nil
+		defer cursor.Close(ctx)
+
+		countonly := !(getids || ms.PostUpdate)
+
+		var count int
+
+		_, ids, count, err = ms.getResultsFromCursor(ctx, cursor, countonly)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+
+		if count == 0 {
+			if upsert {
+				object := ms.ObjectFactory.CreateObject(ctx)
+				stor := object.(data.Storable)
+				stor.SetValues(object, newVals)
+				err := ms.Save(ctx, stor)
+				if err != nil {
+					return nil, err
+				}
+				return []string{stor.GetId()}, nil
+			}
+			return []string{}, nil
+		}
+
 	}
+
+	/****** TODO audit****/
 	if ms.Auditable {
 		data.Audit(ctx, newVals)
 	}
-	_, err = connCopy.DB(ms.database).C(ms.collection).UpdateAll(queryCond, map[string]interface{}{"$set": newVals})
+
+	_, err = conn.Database(ms.database).Collection(ms.collection).UpdateMany(ctx, queryCond, map[string]interface{}{"$set": newVals})
+
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
+
 	if ms.PostUpdate {
-		for _, id := range ids {
-			err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
-			if err != nil {
-				return nil, errors.WrapError(ctx, err)
+		if ids != nil {
+			for _, id := range ids {
+				err = ctx.SendSynchronousMessage(data.CONF_POSTUPDATE_MSG, map[string]interface{}{"id": id, "type": ms.Object, "data": newVals})
+				if err != nil {
+					return nil, errors.WrapError(ctx, err)
+				}
 			}
 		}
 	}
+
 	return ids, err
 }
+
+/*
+	var operations []mongo.WriteModel
+
+operation := mongo.NewUpdateOneModel()
+operation.Filter(bson.NewDocument(
+    bson.EC.SubDocumentFromElements("qty",
+        bson.EC.Int32("$lt", 50),
+    ),
+))
+operation.Update(bson.NewDocument(
+    bson.EC.SubDocumentFromElements("$set",
+        bson.EC.String("size.uom", "cm"),
+        bson.EC.String("status", "P"),
+    ),
+    bson.EC.SubDocumentFromElements("$currentDate",
+        bson.EC.Boolean("lastModified", true),
+    ),
+))
+
+operations = append(operations, operation)
+
+result, err := coll.BulkWrite(
+    context.Background(),
+    operations,
+)*/
 
 //update objects by ids, fields to be updated should be provided as key value pairs
 func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	ctx = ctx.SubContext("UpdateMulti")
 	if ms.Auditable {
-		data.Audit(ctx, newVals)
+		//data.Audit(ctx, newVals)
 	}
 	if ms.PreSave {
 		err := ctx.SendSynchronousMessage(data.CONF_PREUPDATE_MSG, map[string]interface{}{"ids": ids, "type": ms.Object, "data": newVals})
@@ -387,11 +453,13 @@ func (ms *mongoDataService) UpdateMulti(ctx core.RequestContext, ids []string, n
 			return errors.WrapError(ctx, err)
 		}
 	}
+
 	updateInterface := map[string]interface{}{"$set": newVals}
 	condition, _ := ms.CreateCondition(ctx, data.MATCHMULTIPLEVALUES, ms.ObjectId, ids)
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	_, err := connCopy.DB(ms.database).C(ms.collection).UpdateAll(condition, updateInterface)
+
+	conn := ms.factory.getConnection(ctx)
+	_, err := conn.Database(ms.database).Collection(ms.collection).UpdateMany(ctx, condition, updateInterface)
+
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -417,9 +485,8 @@ func (ms *mongoDataService) Delete(ctx core.RequestContext, id string) error {
 		condition["Tenant"] = ctx.GetUser().GetTenant()
 	}
 	condition[ms.ObjectId] = id
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	err := connCopy.DB(ms.database).C(ms.collection).Remove(condition)
+	conn := ms.factory.getConnection(ctx)
+	_, err := conn.Database(ms.database).Collection(ms.collection).DeleteOne(ctx, condition)
 	return err
 }
 
@@ -436,28 +503,39 @@ func (ms *mongoDataService) DeleteMulti(ctx core.RequestContext, ids []string) e
 		condition["Tenant"] = ctx.GetUser().GetTenant()
 	}
 	condition[ms.ObjectId] = conditionVal
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	_, err := connCopy.DB(ms.database).C(ms.collection).RemoveAll(condition)
+
+	conn := ms.factory.getConnection(ctx)
+	_, err := conn.Database(ms.database).Collection(ms.collection).DeleteMany(ctx, condition)
 	return err
 }
 
 //Delete object by condition
-func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}) ([]string, error) {
+func (ms *mongoDataService) DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error) {
 	ctx = ctx.SubContext("DeleteAll")
 	if ms.SoftDelete {
-		return ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.SoftDeleteField: true})
+		return ms.UpdateAll(ctx, queryCond, map[string]interface{}{ms.SoftDeleteField: true}, getids)
 	}
-	results := ms.ObjectCollectionCreator(0)
-	connCopy := ms.factory.connection.Copy()
-	defer connCopy.Close()
-	query := connCopy.DB(ms.database).C(ms.collection).Find(queryCond)
-	err := query.All(results)
-	resultStor, ids, err := data.CastToStorableCollection(results)
-	length := len(resultStor)
-	if length == 0 {
-		return nil, nil
+	conn := ms.factory.getConnection(ctx)
+	var ids []string
+	var count int
+	var err error
+	if getids {
+		cursor, err := conn.Database(ms.database).Collection(ms.collection).Find(ctx, queryCond)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		defer cursor.Close(ctx)
+
+		_, ids, count, err = ms.getResultsFromCursor(ctx, cursor, false)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		if count == 0 {
+			return nil, nil
+		}
 	}
-	_, err = connCopy.DB(ms.database).C(ms.collection).RemoveAll(queryCond)
+
+	_, err = conn.Database(ms.database).Collection(ms.collection).DeleteMany(ctx, queryCond)
+
 	return ids, err
 }

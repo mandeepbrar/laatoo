@@ -2,6 +2,7 @@ package core
 
 import (
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
@@ -36,6 +37,9 @@ func (objLoader *objectLoader) Initialize(ctx core.ServerContext, conf config.Co
 	if err != nil {
 		return err
 	}
+
+	objLoader.registerInternalObjects(ctx)
+
 	/*
 		if objLoader.parentElem == nil {
 			for objectName, objFactory := range objectsFactoryRegister {
@@ -185,10 +189,10 @@ func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string,
 }
 
 func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectType(object, metadata))
+	objLoader.registerObjectFactory(ctx, objectName, newObjectType(ctx, objLoader, objectName, object, metadata))
 }
 func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(objectCreator, objectCollectionCreator, metadata))
+	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata))
 }
 func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
@@ -210,7 +214,7 @@ func (objLoader *objectLoader) createCollection(ctx ctx.Context, objectName stri
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 
 	}
-	return factory.CreateObjectCollection(length), nil
+	return factory.CreateObjectCollection(ctx, length), nil
 }
 
 //Provides an object with a given name
@@ -221,7 +225,7 @@ func (objLoader *objectLoader) createObject(ctx ctx.Context, objectName string) 
 		log.Trace(ctx, "Objects in the register", "Map", objLoader.objectsFactoryRegister)
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
-	return factory.CreateObject(), nil
+	return factory.CreateObject(ctx), nil
 }
 
 func (objLoader *objectLoader) getObjectCreator(ctx ctx.Context, objectName string) (core.ObjectCreator, error) {
@@ -266,4 +270,16 @@ func (objLoader *objectLoader) unloadModuleObjects(ctx ctx.Context, modName stri
 		}
 	}
 	return nil
+}
+
+func (objLoader *objectLoader) registerInternalObjects(ctx ctx.Context) {
+	objLoader.register(ctx, "SerializableBase", data.SerializableBase{}, nil)
+	objLoader.register(ctx, "AbstractStorable", data.AbstractStorable{}, nil)
+	objLoader.register(ctx, "AbstractStorableMT", data.AbstractStorableMT{}, nil)
+	objLoader.register(ctx, "SoftDeleteStorable", data.SoftDeleteStorable{}, nil)
+	objLoader.register(ctx, "SoftDeleteStorableMT", data.SoftDeleteStorableMT{}, nil)
+	objLoader.register(ctx, "SoftDeleteAuditable", data.SoftDeleteAuditable{}, nil)
+	objLoader.register(ctx, "SoftDeleteAuditableMT", data.SoftDeleteAuditableMT{}, nil)
+	objLoader.register(ctx, "HardDeleteAuditable", data.HardDeleteAuditable{}, nil)
+	objLoader.register(ctx, "HardDeleteAuditableMT", data.HardDeleteAuditableMT{}, nil)
 }

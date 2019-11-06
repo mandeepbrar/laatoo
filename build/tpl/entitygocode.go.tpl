@@ -16,9 +16,9 @@ type {{#type name}}{{/type}}_Ref struct {
 
 type {{#type name}}{{/type}} struct {
   {{#if multitenant}}
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
 	{{else}}
-	data.SoftDeleteAuditable `bson:",inline"`
+	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
   {{/if}}
   {{#fields fields}}{{/fields}}
 }

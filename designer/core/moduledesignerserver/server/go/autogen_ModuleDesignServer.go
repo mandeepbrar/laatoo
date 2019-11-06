@@ -11,7 +11,7 @@ type ModuleDesignServer_Ref struct {
 }
 
 type ModuleDesignServer struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Objects	[]ObjectDefinitionDesign `json:"Objects" bson:"Objects" datastore:"Objects"`

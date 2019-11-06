@@ -49,17 +49,17 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }*/
 
 type DefaultUser struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
-	Username                   string           `json:"Username" form:"Username" bson:"Username"`
-	Password                   string           `json:"Password" form:"Password" bson:"Password"`
-	Roles                      []string         `json:"Roles" bson:"Roles"`
-	Permissions                []string         `json:"Permissions" bson:"Permissions"`
-	Email                      string           `json:"Email" bson:"Email"`
-	Name                       string           `json:"Name" bson:"Name"`
-	Picture                    string           `json:"Picture" bson:"Picture"`
-	Account                    data.StorableRef `json:"Account" bson:"Account"`
-	Realm                      string           `json:"Realm" bson:"Realm"`
-	Status                     int              `json:"Status" bson:"Status"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	Username                    string           `json:"Username" form:"Username" bson:"Username"`
+	Password                    string           `json:"Password" form:"Password" bson:"Password"`
+	Roles                       []string         `json:"Roles" bson:"Roles"`
+	Permissions                 []string         `json:"Permissions" bson:"Permissions"`
+	Email                       string           `json:"Email" bson:"Email"`
+	Name                        string           `json:"Name" bson:"Name"`
+	Picture                     string           `json:"Picture" bson:"Picture"`
+	Account                     data.StorableRef `json:"Account" bson:"Account"`
+	Realm                       string           `json:"Realm" bson:"Realm"`
+	Status                      int              `json:"Status" bson:"Status"`
 }
 
 //Creates object

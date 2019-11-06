@@ -11,7 +11,7 @@ type ConfigForm_Ref struct {
 }
 
 type ConfigForm struct {
-	data.SoftDeleteAuditable `bson:",inline"`
+	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Form	string `json:"Form" bson:"Form" datastore:"Form"`

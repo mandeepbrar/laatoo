@@ -11,7 +11,7 @@ type Entitlement_Ref struct {
 }
 
 type Entitlement struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`

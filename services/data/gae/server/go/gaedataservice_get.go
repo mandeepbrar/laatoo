@@ -27,7 +27,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 	appEngineContext := ctx.GetAppengineContext()
 	log.Trace(ctx, "Getting object by id ", "id", id, "object", svc.Object)
 
-	object := svc.ObjectCreator()
+	object, _ := ctx.CreateObject(svc.Object)
 
 	key := datastore.NewKey(appEngineContext, svc.collection, id, 0, nil)
 	err := datastore.Get(appEngineContext, key, object)
@@ -82,7 +82,7 @@ func (svc *gaeDataService) GetMultiHash(ctx core.RequestContext, ids []string) (
 }
 
 func (svc *gaeDataService) postArrayGet(ctx core.RequestContext, results interface{}) ([]data.Storable, []string, error) {
-	resultStor, ids, err := data.CastToStorableCollection(results)
+	resultStor, ids, err := data.CastToStorableCollection(ctx, results)
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
 	}
@@ -107,7 +107,7 @@ func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, order
 	}
 	appEngineContext := ctx.GetAppengineContext()
 
-	results := svc.ObjectCollectionCreator(lenids)
+	results, _ := ctx.CreateCollection(svc.Object, lenids)
 
 	keys := make([]*datastore.Key, lenids)
 	for ind, id := range ids {
@@ -164,7 +164,7 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 	if len(orderBy) > 0 {
 		query = query.Order(orderBy)
 	}
-	results := svc.ObjectCollectionCreator(0)
+	results, _ := ctx.CreateCollection(svc.Object, 0)
 
 	// To retrieve the results,
 	// you must execute the Query using its GetAll or Run methods.

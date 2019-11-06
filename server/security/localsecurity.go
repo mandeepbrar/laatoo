@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/server/components"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
@@ -31,7 +32,7 @@ type realmObj struct {
 }
 
 type localSecurityHandler struct {
-	roleCreator     core.ObjectCreator
+	roleObject      string
 	adminRole       string
 	anonRole        string
 	pvtKey          *rsa.PrivateKey
@@ -43,10 +44,11 @@ type localSecurityHandler struct {
 	allPermissions  []string
 	realmName       string //local realm name
 	localRealm      *realmObj
+	objectLoader    elements.ObjectLoader
 }
 
-func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, anonRole string, roleCreator core.ObjectCreator, realmName string) (SecurityPlugin, error) {
-	lsh := &localSecurityHandler{adminRole: adminrole, anonRole: anonRole, roleCreator: roleCreator, realmName: realmName}
+func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminrole string, anonRole string, roleObject string, realmName string) (SecurityPlugin, error) {
+	lsh := &localSecurityHandler{adminRole: adminrole, anonRole: anonRole, roleObject: roleObject, realmName: realmName}
 
 	permissions, ok := conf.GetStringArray(ctx, CONF_SECURITY_PERMISSIONS)
 	if ok {
@@ -75,6 +77,8 @@ func NewLocalSecurityHandler(ctx core.ServerContext, conf config.Config, adminro
 		return nil, errors.RethrowError(ctx, errors.CORE_ERROR_BAD_CONF, err, "conf", config.CONF_PVTKEYPATH)
 	}
 	lsh.pvtKey = pvtKey
+
+	lsh.objectLoader = ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 
 	roleDataSvcName, ok := conf.GetString(ctx, CONF_SECURITY_ROLEDATASERVICE)
 	if !ok {
@@ -218,7 +222,10 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExists bool, adminExists bool, realm string) error {
 
 	if !anonExists {
-		ent := lsh.roleCreator()
+		ent, err := lsh.objectLoader.CreateObject(ctx, lsh.roleObject)
+		if err != nil {
+			return err
+		}
 		anonymousRole := ent.(auth.Role)
 		anonymousRole.SetId(lsh.anonRole)
 		anonymousRole.SetRealm(realm)
@@ -229,13 +236,16 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		}
 		anonRolesReq := ctx.CreateSystemRequest("Save Anonymous Role")
 		defer anonRolesReq.CompleteRequest()
-		err := lsh.roleDataService.Save(anonRolesReq, storable)
+		err = lsh.roleDataService.Save(anonRolesReq, storable)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
 	}
 	if !adminExists {
-		ent := lsh.roleCreator()
+		ent, err := lsh.objectLoader.CreateObject(ctx, lsh.roleObject)
+		if err != nil {
+			return err
+		}
 		adminRole := ent.(auth.Role)
 		adminRole.SetPermissions(lsh.allPermissions)
 		adminRole.SetId(lsh.adminRole)
@@ -247,7 +257,7 @@ func (lsh *localSecurityHandler) createInitRoles(ctx core.ServerContext, anonExi
 		}
 		adminRolesReq := ctx.CreateSystemRequest("Create Admin Role")
 		defer adminRolesReq.CompleteRequest()
-		err := lsh.roleDataService.Save(adminRolesReq, storable)
+		err = lsh.roleDataService.Save(adminRolesReq, storable)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

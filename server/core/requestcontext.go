@@ -232,6 +232,17 @@ func (ctx *requestContext) GetResponse() *core.Response {
 	return ctx.responseData
 }
 
+func (ctx *requestContext) CreateCollection(objectName string, length int) (interface{}, error) {
+	return ctx.serverContext.CreateCollection(objectName, length)
+}
+func (ctx *requestContext) CreateObject(objectName string) (interface{}, error) {
+	return ctx.serverContext.CreateObject(objectName)
+}
+
+func (ctx *requestContext) GetObjectFactory(name string) (core.ObjectFactory, bool) {
+	return ctx.serverContext.GetObjectFactory(name)
+}
+
 func (ctx *requestContext) GetRequest() core.Request {
 	return ctx.req
 }

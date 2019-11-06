@@ -1,6 +1,6 @@
 #skip: {{if exists "signup_support"}} {{var "signup_support" | not}} {{else}} true {{end}}
 parent: root
-service: register
+service: signup.register
 method: POST
 path: "/register"
 skipauth: true

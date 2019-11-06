@@ -1,4 +1,5 @@
 parent: root
+skip: {{if exists "emailverification"}} {{var "emailverification" | not}} {{else}} true {{end}}
 service: laatoo.verifysignupemail
 method: GET
 path: "/verifyemail/:token"

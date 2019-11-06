@@ -43,7 +43,7 @@ type OAuthLoginService struct {
 	authHeader      string
 	tokenGenerator  func(auth.User, string) (string, auth.User, error)
 	userDataService data.DataComponent
-	userCreator     core.ObjectCreator
+	userObject      string
 	config          *oauth2.Config
 	sitetype        string
 	systemAuthURL   string
@@ -73,13 +73,7 @@ func (os *OAuthLoginService) Initialize(ctx core.ServerContext) error {
 	}
 	os.authHeader = authHeader.(string)
 
-	userObject := sechandler.GetProperty(config.USER)
-
-	userCreator, err := ctx.GetObjectCreator(userObject.(string))
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	os.userCreator = userCreator
+	os.userObject = sechandler.GetProperty(config.USER).(string)
 
 	return nil
 
@@ -172,7 +166,10 @@ func (os *OAuthLoginService) authenticate(ctx core.RequestContext, code string, 
 	}
 
 	//create the user
-	usr := os.userCreator()
+	usr, err := ctx.CreateObject(os.userObject)
+	if err != nil {
+		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)
+	}
 
 	if err := json.Unmarshal(bits, usr); err != nil {
 		return os.unauthorized(ctx, errors.WrapError(ctx, err), st.Url)

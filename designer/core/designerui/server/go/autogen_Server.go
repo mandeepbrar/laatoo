@@ -12,7 +12,7 @@ type Server_Ref struct {
 }
 
 type Server struct {
-	data.SoftDeleteAuditableMT `bson:",inline"`
+	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
