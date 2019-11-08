@@ -26,14 +26,14 @@ func (proxy *objectLoaderProxy) GetContext() core.ServerContext {
 	return proxy.loader.svrContext
 }
 
-func (ldr *objectLoaderProxy) Register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) {
-	ldr.loader.register(ctx, objectName, object, metadata)
+func (ldr *objectLoaderProxy) Register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) error {
+	return ldr.loader.register(ctx, objectName, object, metadata)
 }
-func (ldr *objectLoaderProxy) RegisterObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) {
-	ldr.loader.registerObjectFactory(ctx, objectName, factory)
+func (ldr *objectLoaderProxy) RegisterObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) error {
+	return ldr.loader.registerObjectFactory(ctx, objectName, factory)
 }
-func (ldr *objectLoaderProxy) RegisterObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
-	ldr.loader.registerObject(ctx, objectName, objectCreator, objectCollectionCreator, metadata)
+func (ldr *objectLoaderProxy) RegisterObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
+	return ldr.loader.registerObject(ctx, objectName, objectCreator, objectCollectionCreator, metadata)
 }
 func (ldr *objectLoaderProxy) CreateCollection(ctx ctx.Context, objectName string, length int) (interface{}, error) {
 	return ldr.loader.createCollection(ctx, objectName, length)

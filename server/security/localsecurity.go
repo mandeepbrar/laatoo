@@ -187,7 +187,7 @@ func (lsh *localSecurityHandler) loadRoles(ctx core.ServerContext) error {
 			return errors.WrapError(ctx, err)
 		}
 
-		roles, _, _, _, err := lsh.roleDataService.Get(loadRolesReq, cond, -1, -1, "", "")
+		roles, _, _, _, err := lsh.roleDataService.Get(loadRolesReq, cond, -1, -1, "", nil)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

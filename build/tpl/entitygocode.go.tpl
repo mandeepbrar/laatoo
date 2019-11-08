@@ -16,9 +16,9 @@ type {{#type name}}{{/type}}_Ref struct {
 
 type {{#type name}}{{/type}} struct {
   {{#if multitenant}}
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
 	{{else}}
-	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
+	data.Storable `laatoo:"auditable, softdelete"`
   {{/if}}
   {{#fields fields}}{{/fields}}
 }
@@ -28,7 +28,6 @@ func (ent *{{#type name}}{{/type}}) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "{{#titleField titleField}}{{/titleField}}",
 		Type:            "{{#type name}}{{/type}}",
-		SoftDeleteField: "Deleted",
 		PreSave:         {{#presave presave}}{{/presave}},
 		PostSave:        {{#postsave postsave}}{{/postsave}},
 		PostLoad:        {{#postload postload}}{{/postload}},

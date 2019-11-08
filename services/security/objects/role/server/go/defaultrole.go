@@ -8,15 +8,14 @@ import (
 
 var (
 	rc = &data.StorableConfig{
-		IdField:         "Id",
-		Type:            config.DEFAULT_ROLE,
-		SoftDeleteField: "Deleted",
-		PreSave:         false,
-		PostSave:        false,
-		PostLoad:        false,
-		Auditable:       true,
-		Collection:      "Role",
-		Cacheable:       false,
+		IdField:    "Id",
+		Type:       config.DEFAULT_ROLE,
+		PreSave:    false,
+		PostSave:   false,
+		PostLoad:   false,
+		Auditable:  true,
+		Collection: "Role",
+		Cacheable:  false,
 	}
 )
 
@@ -25,10 +24,10 @@ func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
 }
 
 type Role struct {
-	*data.SoftDeleteAuditable `json:",inline" initialize:"SoftDeleteAuditable"`
-	Role                      string   `json:"Role" form:"Role" bson:"Role"`
-	Permissions               []string `json:"Permissions" bson:"Permissions"`
-	Realm                     string   `json:"Realm" bson:"Realm"`
+	data.Storable `bson:"-" json:",inline" laatoo:"softdelete, auditable"`
+	Role          string   `json:"Role" form:"Role" bson:"Role"`
+	Permissions   []string `json:"Permissions" bson:"Permissions"`
+	Realm         string   `json:"Realm" bson:"Realm"`
 }
 
 func (r *Role) Config() *data.StorableConfig {

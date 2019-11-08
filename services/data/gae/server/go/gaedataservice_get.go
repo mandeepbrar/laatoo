@@ -48,7 +48,7 @@ func (svc *gaeDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 }
 
 //Get multiple objects by id
-func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+func (svc *gaeDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]data.Storable, error) {
 	ctx = ctx.SubContext("GetMulti")
 	results, err := svc.getMulti(ctx, ids, orderBy)
 	if err != nil {
@@ -100,7 +100,7 @@ func (svc *gaeDataService) postLoad(ctx core.RequestContext, stor data.Storable)
 	return nil
 }
 
-func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, orderBy string) (interface{}, error) {
+func (svc *gaeDataService) getMulti(ctx core.RequestContext, ids []string, orderBy interface{}) (interface{}, error) {
 	lenids := len(ids)
 	if lenids == 0 {
 		return nil, nil
@@ -138,12 +138,12 @@ func (svc *gaeDataService) Count(ctx core.RequestContext, queryCond interface{})
 	return query.Count(appEngineContext)
 }
 
-func (svc *gaeDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *gaeDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("GetList")
 	return svc.Get(ctx, nil, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
-func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("Get")
 	appEngineContext := ctx.GetAppengineContext()
 	totalrecs = -1
@@ -161,8 +161,9 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 		recsToSkip := (pageNum - 1) * pageSize
 		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
-	if len(orderBy) > 0 {
-		query = query.Order(orderBy)
+	if orderBy != nil {
+		query, _ = svc.processCondition(ctx, appEngineContext, query, orderBy)
+		//query = query.Order(orderBy)
 	}
 	results, _ := ctx.CreateCollection(svc.Object, 0)
 
@@ -185,6 +186,20 @@ func (svc *gaeDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 //create condition for passing to data service
 func (svc *gaeDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	switch operation {
+	case data.SORTASC:
+		{
+			if len(args) == 1 {
+				return &gaeDatastoreCondition{operation: operation, arg1: args[0]}, nil
+			}
+			return nil, nil
+		}
+	case data.SORTDESC:
+		{
+			if len(args) == 1 {
+				return &gaeDatastoreCondition{operation: operation, arg1: args[0]}, nil
+			}
+			return nil, nil
+		}
 	case data.MATCHANCESTOR:
 		{
 			if len(args) < 2 {
@@ -212,12 +227,41 @@ func (svc *gaeDataService) CreateCondition(ctx core.RequestContext, operation da
 	return nil, nil
 }
 
+/*
+
+func (svc *gaeDataService) processSort(ctx core.RequestContext, query *datastore.Query, condition interface{}) (*datastore.Query, error) {
+case data.SORTASC:
+	{
+		if len(args) == 1 {
+			return fmt.Sprintf(args[0]), nil
+		}
+		return nil, nil
+	}
+case data.SORTDESC:
+	{
+		if len(args) == 1 {
+			return fmt.Sprintf(args[0]), nil
+		}
+		return nil, nil
+	}
+}*/
 func (svc *gaeDataService) processCondition(ctx core.RequestContext, appEngineContext glctx.Context, query *datastore.Query, condition interface{}) (*datastore.Query, error) {
 	if condition == nil {
 		return query, nil
 	}
 	dqCondition := condition.(*gaeDatastoreCondition)
 	switch dqCondition.operation {
+	case data.SORTASC:
+		{
+			query = query.Order(dqCondition.arg1.(string))
+
+			return query, nil
+		}
+	case data.SORTDESC:
+		{
+			query = query.Order(fmt.Sprintf("%s DESC", dqCondition.arg1.(string)))
+			return query, nil
+		}
 	case data.MATCHANCESTOR:
 		id, ok := dqCondition.arg1.(string)
 		if !ok {

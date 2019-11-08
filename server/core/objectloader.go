@@ -120,13 +120,16 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 				for _, comp := range components {
 					if comp.Name != "" {
 						if comp.ObjectFactory != nil {
-							objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
+							err = objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
 						} else if comp.ObjectCreator != nil {
-							objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
+							err = objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
 						} else if comp.Object != nil {
-							objLoader.register(ctx, comp.Name, comp.Object, comp.Metadata)
+							err = objLoader.register(ctx, comp.Name, comp.Object, comp.Metadata)
 						} else {
 							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
+						}
+						if err != nil {
+							return errors.WrapError(ctx, err)
 						}
 					} else {
 						log.Info(ctx, "No component registered for empty name", "Path", path)
@@ -188,13 +191,23 @@ func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string,
 	}
 }
 
-func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectType(ctx, objLoader, objectName, object, metadata))
+func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) error {
+	objFac, err := newObjectType(ctx, objLoader, objectName, object, metadata)
+	if err != nil {
+		return err
+	}
+	objLoader.registerObjectFactory(ctx, objectName, objFac)
+	return nil
 }
-func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) {
-	objLoader.registerObjectFactory(ctx, objectName, newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata))
+func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
+	objFac, err := newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata)
+	if err != nil {
+		return err
+	}
+	objLoader.registerObjectFactory(ctx, objectName, objFac)
+	return nil
 }
-func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) {
+func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) error {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		log.Info(ctx, "Registering object factory ", "Object Name", objectName)
@@ -204,6 +217,7 @@ func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName
 			objLoader.objModMap[objectName] = mod
 		}
 	}
+	return nil
 }
 
 //returns a collection of the object type

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -140,7 +140,7 @@ func (svc *joinService) GetList(ctx core.RequestContext, pageSize int, pageNum i
 	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }
 
-func (svc *joinService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *joinService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
 }
 

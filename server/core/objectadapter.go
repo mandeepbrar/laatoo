@@ -1,24 +1,30 @@
 package core
 
 import (
+	"fmt"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"reflect"
+	"strings"
 )
 
 //service method for doing various tasks
-func newObjectFactory(ctx ctx.Context, objLoader *objectLoader, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) *objectFactory {
+func newObjectFactory(ctx ctx.Context, objLoader *objectLoader, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) (*objectFactory, error) {
 	if objectCreator != nil {
 		fac := &objectFactory{objectCreator: objectCreator, objectCollectionCreator: objectCollectionCreator, metadata: metadata, objectName: objectName}
-		fac.analyzeObject(ctx, objLoader)
-		return fac
+		err := fac.analyzeObject(ctx, objLoader)
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		return fac, nil
 	} else {
-		panic("Could not register object factory. Creator is nil.")
+		return nil, fmt.Errorf("Nil value of Creator")
 	}
 }
 
-func newObjectType(svrctx ctx.Context, objLoader *objectLoader, objectName string, obj interface{}, metadata core.Info) *objectFactory {
+func newObjectType(svrctx ctx.Context, objLoader *objectLoader, objectName string, obj interface{}, metadata core.Info) (*objectFactory, error) {
 	typ := reflect.TypeOf(obj)
 	slice := reflect.MakeSlice(reflect.SliceOf(typ), 0, 0)
 	slicTyp := slice.Type()
@@ -33,8 +39,11 @@ func newObjectType(svrctx ctx.Context, objLoader *objectLoader, objectName strin
 		return x.Interface()
 	}
 	fac := &objectFactory{objectCreator: objectCreator, objectCollectionCreator: collectCreator, metadata: metadata, objectName: objectName}
-	fac.analyzeObject(svrctx, objLoader)
-	return fac
+	err := fac.analyzeObject(svrctx, objLoader)
+	if err != nil {
+		return nil, errors.WrapError(svrctx, err)
+	}
+	return fac, nil
 }
 
 type objectFactory struct {
@@ -54,6 +63,7 @@ func (factory *objectFactory) CreateObject(ctx ctx.Context) interface{} {
 }
 
 func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
+	log.Error(ctx, "init object", "name", factory.objectName, "fieldsToInit", factory.fieldsToInit)
 	if factory.fieldsToInit != nil {
 		for fieldName, fieldObjFac := range factory.fieldsToInit {
 			entVal := reflect.ValueOf(obj).Elem()
@@ -77,26 +87,81 @@ func (factory *objectFactory) Info() core.Info {
 	return factory.metadata
 }
 
-func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLoader) {
+func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLoader) error {
 	log.Debug(ctx, "Analysing object", "Name", factory.objectName)
 
 	obj := factory.objectCreator(ctx)
 	objType := reflect.TypeOf(obj).Elem()
 	objPtrType := reflect.TypeOf(obj)
-
+	tagName := "laatoo"
 	//typeToAnalyze := factory.objType
 	for i := 0; i < objType.NumField(); i++ {
 		fld := objType.Field(i)
-		if fld.Type.Kind() == reflect.Ptr {
-			objName, ok := fld.Tag.Lookup("initialize")
-			if ok {
-				objfac, ok := objLoader.objectsFactoryRegister[objName]
+		log.Debug(ctx, "Analysing field", "Field", fld.Name)
+		laatooTagVal, ok := fld.Tag.Lookup(tagName)
+		log.Debug(ctx, "Has laatoo tag", "laatooTagVal", laatooTagVal, "ok", ok)
+		if ok {
+			tags := strings.Split(laatooTagVal, ",")
+			var initobj string
+			var audit bool
+			var multitenant bool
+			var softdelete bool
+			for _, tag := range tags {
+				tag = strings.TrimSpace(tag)
+				if strings.HasPrefix(tag, "initialize") {
+					_, err := fmt.Sscanf(tag, "initialize=%s", &initobj)
+					if err != nil {
+						log.Warn(ctx, "Laatoo tag not correctly formatted", "object", factory.objectName, "tag", tag)
+						return err
+					}
+				} else {
+					switch tagName {
+					case "audit":
+						{
+							audit = true
+						}
+					case "softdelete":
+						{
+							softdelete = true
+						}
+					case "multitenant":
+						{
+							softdelete = true
+						}
+					}
+				}
+			}
+
+			if fld.Name == "Storable" {
+				var suffix string
+				if multitenant {
+					suffix = "MT"
+				}
+				if initobj == "" {
+					if audit {
+						if softdelete {
+							initobj = "SoftDeleteAuditable" + suffix
+						} else {
+							initobj = "HardDeleteAuditable" + suffix
+						}
+					} else {
+						if softdelete {
+							initobj = "SoftDeleteStorable" + suffix
+						} else {
+							initobj = "AbstractStorable" + suffix
+						}
+					}
+				}
+			}
+
+			if initobj != "" {
+				objfac, ok := objLoader.objectsFactoryRegister[initobj]
 				if ok {
 					if factory.fieldsToInit == nil {
 						factory.fieldsToInit = make(map[string]*objectFactory)
 					}
-					factory.fieldsToInit[objName] = objfac.(*objectFactory)
-					log.Trace(ctx, "assigning initialization to field ", "Object", factory.objectName, "field", fld.Name, "objName", objName, "fields to init", factory.fieldsToInit)
+					factory.fieldsToInit[fld.Name] = objfac.(*objectFactory)
+					log.Error(ctx, "assigning initialize initialization to field ", "Object", factory.objectName, "field", fld.Name, "assignment", initobj)
 				}
 			}
 		}
@@ -106,4 +171,5 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 		log.Trace(ctx, "assigning constructor to object ", "Object", factory.objectName)
 		factory.constructor = constructor.Func
 	}
+	return nil
 }

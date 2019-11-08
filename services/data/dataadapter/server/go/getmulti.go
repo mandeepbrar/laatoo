@@ -33,8 +33,16 @@ func (es *getMulti) Invoke(ctx core.RequestContext) error {
 		return errors.BadArg(ctx, CONF_DATA_IDS)
 	}
 	ids := strings.Split(idsstr, ",")
-	orderBy, _ := ctx.GetStringParam(CONF_FIELD_ORDERBY)
-	result, err := es.DataStore.GetMulti(ctx, ids, orderBy)
+	orderBy, ok := ctx.GetStringParam(CONF_FIELD_ORDERBY)
+	var orderByCond interface{}
+	var err error
+	if ok {
+		orderByCond, err = es.DataStore.CreateCondition(ctx, data.SORTASC, orderBy)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+	}
+	result, err := es.DataStore.GetMulti(ctx, ids, orderByCond)
 	if err == nil {
 		log.Trace(ctx, "Returning results ", "result", result)
 		ctx.SetResponse(core.SuccessResponse(result))

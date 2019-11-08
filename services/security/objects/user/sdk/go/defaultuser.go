@@ -14,15 +14,14 @@ import (
 
 var (
 	uc = &data.StorableConfig{
-		IdField:         "Id",
-		Type:            config.DEFAULT_USER,
-		SoftDeleteField: "Deleted",
-		PreSave:         true,
-		PostSave:        true,
-		PostLoad:        true,
-		Auditable:       true,
-		Collection:      "User",
-		Cacheable:       true,
+		IdField:    "Id",
+		Type:       config.DEFAULT_USER,
+		PreSave:    true,
+		PostSave:   true,
+		PostLoad:   true,
+		Auditable:  true,
+		Collection: "User",
+		Cacheable:  true,
 	}
 )
 
@@ -49,22 +48,22 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }*/
 
 type DefaultUser struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
-	Username                    string           `json:"Username" form:"Username" bson:"Username"`
-	Password                    string           `json:"Password" form:"Password" bson:"Password"`
-	Roles                       []string         `json:"Roles" bson:"Roles"`
-	Permissions                 []string         `json:"Permissions" bson:"Permissions"`
-	Email                       string           `json:"Email" bson:"Email"`
-	Name                        string           `json:"Name" bson:"Name"`
-	Picture                     string           `json:"Picture" bson:"Picture"`
-	Account                     data.StorableRef `json:"Account" bson:"Account"`
-	Realm                       string           `json:"Realm" bson:"Realm"`
-	Status                      int              `json:"Status" bson:"Status"`
+	data.Storable ` laatoo:"softdelete, auditable, multitenant"`
+	Username      string           `json:"Username" form:"Username" bson:"Username"`
+	Password      string           `json:"Password" form:"Password" bson:"Password"`
+	Roles         []string         `json:"Roles" bson:"Roles"`
+	Permissions   []string         `json:"Permissions" bson:"Permissions"`
+	Email         string           `json:"Email" bson:"Email"`
+	Name          string           `json:"Name" bson:"Name"`
+	Picture       string           `json:"Picture" bson:"Picture"`
+	Account       data.StorableRef `json:"Account" bson:"Account"`
+	Realm         string           `json:"Realm" bson:"Realm"`
+	Status        int              `json:"Status" bson:"Status"`
 }
 
 //Creates object
 func (usr *DefaultUser) Initialize(ctx ctx.Context, conf config.Config) error {
-	usr.SoftDeleteAuditableMT.Initialize(ctx, conf)
+	usr.Storable.Initialize(ctx, conf)
 	if conf != nil {
 		id, ok := conf.GetString(ctx, "Id")
 		if ok {
@@ -111,7 +110,7 @@ func (usr *DefaultUser) GetUsernameField() string {
 	return "Username"
 }
 func (ent *DefaultUser) PreSave(ctx core.RequestContext) error {
-	ent.SoftDeleteAuditableMT.PreSave(ctx)
+	ent.Storable.PreSave(ctx)
 	err := ent.encryptPassword()
 	if err != nil {
 		return errors.WrapError(ctx, err)
@@ -131,9 +130,6 @@ func (usr *DefaultUser) ClearPassword() {
 	usr.Password = ""
 }
 
-func (ent *DefaultUser) IsDeleted() bool {
-	return ent.Deleted
-}
 func (usr *DefaultUser) setPassword(password string) {
 	usr.Password = password
 }
@@ -205,10 +201,11 @@ func (usr *DefaultUser) SetStatus(val int) {
 }
 
 func (usr *DefaultUser) GetTenant() string {
-	if usr.Tenant == "" {
-		return usr.GetId()
-	}
-	return usr.Tenant
+	return usr.Storable.(data.StorableMT).GetTenant()
+	/*	if usr.Storable.(data.StorableMT).GetTenant() == "" {
+			return usr.GetId()
+		}
+		return usr.Tenant*/
 }
 
 func (usr *DefaultUser) LoadClaims(claims map[string]interface{}) {

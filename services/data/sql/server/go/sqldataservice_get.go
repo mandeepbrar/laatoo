@@ -35,7 +35,7 @@ func (svc *sqlDataService) GetById(ctx core.RequestContext, id string) (data.Sto
 }
 
 //Get multiple objects by id
-func (svc *sqlDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+func (svc *sqlDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]data.Storable, error) {
 	ctx = ctx.SubContext("GetMulti")
 	results, err := svc.getMulti(ctx, ids, orderBy)
 	if err != nil {
@@ -89,7 +89,7 @@ func (svc *sqlDataService) postLoad(ctx core.RequestContext, stor data.Storable)
 }
 
 //Get multiple objects by id
-func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, orderBy string) (interface{}, error) {
+func (svc *sqlDataService) getMulti(ctx core.RequestContext, ids []string, orderBy interface{}) (interface{}, error) {
 	lenids := len(ids)
 	if lenids == 0 {
 		return nil, nil
@@ -154,12 +154,12 @@ func (svc *sqlDataService) CountGroups(ctx core.RequestContext, queryCond interf
 	return
 }
 
-func (svc *sqlDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *sqlDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("GetList")
 	return svc.Get(ctx, map[string]interface{}{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
-func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("Get")
 	totalrecs = -1
 	recsreturned = -1
@@ -180,8 +180,9 @@ func (svc *sqlDataService) Get(ctx core.RequestContext, queryCond interface{}, p
 		query = query.Limit(pageSize).Offset(recsToSkip)
 	}
 
-	if len(orderBy) > 0 {
-		query = query.Order(orderBy)
+	if orderBy != nil {
+		query, err = svc.processCondition(ctx, orderBy, query)
+		//query = query.Order(orderBy)
 	}
 
 	err = query.Find(results).Error
@@ -205,6 +206,20 @@ func (svc *sqlDataService) processCondition(ctx core.RequestContext, condition i
 	cond := condition.(*sqlCondition)
 
 	switch cond.operation {
+	case data.SORTASC:
+		{
+			if len(cond.args) == 1 {
+				return input.Order(cond.args[0]), nil
+			}
+			return input, nil
+		}
+	case data.SORTDESC:
+		{
+			if len(cond.args) == 1 {
+				return input.Order(fmt.Sprintf("%s DESC", cond.args[0])), nil
+			}
+			return input, nil
+		}
 	case data.MATCHMULTIPLEVALUES:
 		{
 			if len(cond.args) < 2 {

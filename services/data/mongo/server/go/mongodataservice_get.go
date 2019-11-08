@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
@@ -47,7 +48,7 @@ func (ms *mongoDataService) GetById(ctx core.RequestContext, id string) (data.St
 }
 
 //Get multiple objects by id
-func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, error) {
+func (ms *mongoDataService) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]data.Storable, error) {
 	ctx = ctx.SubContext("GetMulti")
 	results, _, err := ms.getMulti(ctx, ids, orderBy)
 	if err != nil {
@@ -88,7 +89,7 @@ func (ms *mongoDataService) GetMultiHash(ctx core.RequestContext, ids []string) 
 }
 
 //Get multiple objects by id
-func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orderBy string) ([]data.Storable, []string, error) {
+func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]data.Storable, []string, error) {
 
 	log.Trace(ctx, "Getting multiple objects ", "Ids", ids)
 	conn := ms.factory.getConnection(ctx)
@@ -106,8 +107,11 @@ func (ms *mongoDataService) getMulti(ctx core.RequestContext, ids []string, orde
 			query = query.Sort(orderBy)
 		}
 	*/
-
-	cur, err := conn.Database(ms.database).Collection(ms.collection).Find(queryctx, condition, options.Find().SetSort(orderBy))
+	findoptions := options.Find()
+	if orderBy != nil {
+		findoptions.SetSort(orderBy)
+	}
+	cur, err := conn.Database(ms.database).Collection(ms.collection).Find(queryctx, condition, findoptions)
 
 	if err != nil {
 		return nil, nil, errors.WrapError(ctx, err)
@@ -137,12 +141,12 @@ func (ms *mongoDataService) Count(ctx core.RequestContext, queryCond interface{}
 	return count, err
 }
 
-func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("GetList")
 	return ms.Get(ctx, bson.M{}, pageSize, pageNum, mode, orderBy) // resultStor, totalrecs, recsreturned, nil
 }
 
-func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	ctx = ctx.SubContext("Get")
 	totalrecs = -1
 	recsreturned = -1
@@ -151,13 +155,15 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 
 	queryctx, _ := ctx.WithTimeout(10 * time.Second)
 	findoptions := options.Find()
-	findoptions.SetSort(orderBy)
-	findoptions.SetBatchSize(int32(pageSize))
+	if orderBy != nil {
+		findoptions.SetSort(orderBy)
+	}
 	recsToSkip := 0
 	if pageSize > 0 {
+		findoptions.SetBatchSize(int32(pageSize))
 		recsToSkip = (pageNum - 1) * pageSize
+		findoptions.SetSkip(int64(recsToSkip))
 	}
-	findoptions.SetSkip(int64(recsToSkip))
 
 	cur, err := conn.Database(ms.database).Collection(ms.collection).Find(queryctx, queryCond, findoptions)
 
@@ -205,6 +211,20 @@ func (ms *mongoDataService) getResultsFromCursor(ctx core.RequestContext, cursor
 //create condition for passing to data service
 func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation data.ConditionType, args ...interface{}) (interface{}, error) {
 	switch operation {
+	case data.SORTASC:
+		{
+			if len(args) == 1 {
+				return bson.M{fmt.Sprint(args[0]): 1}, nil
+			}
+			return nil, nil
+		}
+	case data.SORTDESC:
+		{
+			if len(args) == 1 {
+				return bson.M{fmt.Sprint(args[0]): -1}, nil
+			}
+			return nil, nil
+		}
 	case data.MATCHMULTIPLEVALUES:
 		{
 			if len(args) < 2 {

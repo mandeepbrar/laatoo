@@ -169,7 +169,7 @@ func (rs *RegistrationService) register(ctx core.RequestContext) error {
 		return err
 	}
 
-	_, _, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", "")
+	_, _, _, recs, err := rs.UserDataService.Get(ctx, cond, -1, -1, "", nil)
 	if err == nil && recs > 0 {
 		log.Trace(ctx, "Tested user found")
 		ctx.SetResponse(core.BadRequestResponse(common.AUTH_ERROR_USER_EXISTS))

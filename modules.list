@@ -1,6 +1,5 @@
 role laatoo/services/security/objects/role
 user laatoo/services/security/objects/user
-email laatoo/services/communication/email
 entity laatoo/services/entity
 dataadapter laatoo/services/data/dataadapter
 mongodatabase laatoo/services/data/mongo
@@ -8,9 +7,10 @@ jsui laatoo/services/web/jsui
 dblogin laatoo/services/security/db
 tokenvalidation laatoo/services/security/tokenvalidation
 memorycache laatoo/services/cache/memory
-tunnymemtasks laatoo/services/tasks/tunnymemtasks
 shell laatoo/services/shell
 signup laatoo/services/security/signup
+email laatoo/services/communication/email
+tunnymemtasks laatoo/services/tasks/tunnymemtasks
 filesystemstorage laatoo/services/storage/filesystem
 staticfileserver laatoo/services/static
 publicdirserver laatoo/services/publicdir

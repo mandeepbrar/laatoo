@@ -6,8 +6,10 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"reflect"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -46,7 +48,20 @@ func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 	connectionString, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_CONNECTIONSTRING)
 	database, _ := ms.GetStringConfiguration(ctx, CONF_MONGO_DATABASE)
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
+	regbuilder := bson.NewRegistryBuilder()
+	timeenc, err := bson.DefaultRegistry.LookupEncoder(reflect.TypeOf(time.Now()))
+	if err != nil {
+		return err
+	}
+	srl := &StorableSerializer{bson.DefaultRegistry, ctx, timeenc}
+	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Struct, srl).RegisterDefaultDecoder(reflect.Struct, srl)
+	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Ptr, srl).RegisterDefaultDecoder(reflect.Ptr, srl)
+	//regbuilder.RegisterEncoder(reflect.TypeOf(val), srl)
+	//regbuilder.RegisterDecoder(reflect.TypeOf(val), srl)
+	reg := regbuilder.Build()
+	//srl.dc =
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString).SetRegistry(reg))
 	if err != nil {
 		return errors.RethrowError(ctx, data.DATA_ERROR_CONNECTION, err, "Connection String", connectionString)
 	}

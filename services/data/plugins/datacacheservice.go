@@ -220,6 +220,6 @@ func (svc *dataCacheService) GetList(ctx core.RequestContext, pageSize int, page
 	return svc.PluginDataComponent.GetList(ctx, pageSize, pageNum, mode, orderBy)
 }
 
-func (svc *dataCacheService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy string) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
+func (svc *dataCacheService) Get(ctx core.RequestContext, queryCond interface{}, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error) {
 	return svc.PluginDataComponent.Get(ctx, queryCond, pageSize, pageNum, mode, orderBy)
 }
