@@ -12,7 +12,7 @@ type ModuleDesignGeneral_Ref struct {
 }
 
 type ModuleDesignGeneral struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
@@ -25,7 +25,6 @@ func (ent *ModuleDesignGeneral) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Title",
 		Type:            "ModuleDesignGeneral",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

@@ -1,7 +1,7 @@
 {
   "name":"Application",
   "inherits":"",
-  "imports":["laatoo/sdk/modules/modulesbase"],
+  "imports":["laatoo/sdk/modules/modulesbase","laatoo/sdk/modules/laatoositeui"],
   "multitenant": true,
   "form": {
     "tabs": {
@@ -31,7 +31,7 @@
     },
     "Solution": {
       "type":"storableref",
-      "entity": "Solution"
+      "entity": "laatoositeui.Solution"
     },
     "ServerTemp": {
       "type":"entity",

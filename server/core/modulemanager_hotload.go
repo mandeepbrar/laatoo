@@ -94,6 +94,8 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 				if err != nil {
 					log.Error(reloadCtx, "Error while reloading module", "Error", err)
 				}
+				log.Error(ctx, "Readding a watcher", "modName", modName)
+				go modMgr.addWatch(ctx, modName, modDir)
 				fmt.Println(event) // Print the event's info.
 			case err := <-w.Error:
 				log.Error(ctx, "Error while watching", err)
@@ -156,11 +158,13 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		} else {
 			log.Error(compileCtx, "Compile success ***********", "stdoutStderr", string(stdoutStderr))
 			reloadCtx := compileCtx.SubContext("Reload module " + modName)
-			err = modMgr.ReloadModule(reloadCtx, modName, modDir)
+			err = modMgr.ReloadModule(reloadCtx, modname, modDir)
 			if err != nil {
 				log.Error(reloadCtx, "Error while reloading module", "err", err)
 			}
 		}
+		log.Error(ctx, "Readding a watcher", "modName", modname)
+		go modMgr.addWatch(ctx, modname, modDir)
 
 	}
 	/*
@@ -256,9 +260,6 @@ func (modMgr *moduleManager) ReloadModule(ctx core.ServerContext, modName string
 	if err = modMgr.loadInstancesToPluginsforload(ctx, createdInstances); err != nil {
 		return errors.WrapError(ctx, err)
 	}
-
-	log.Error(ctx, "Readding a watcher", "modName", modName)
-	go modMgr.addWatch(ctx, modName, modDir)
 
 	return nil
 }

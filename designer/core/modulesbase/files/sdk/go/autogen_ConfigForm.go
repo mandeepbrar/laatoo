@@ -11,7 +11,7 @@ type ConfigForm_Ref struct {
 }
 
 type ConfigForm struct {
-	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
+	data.Storable `laatoo:"auditable, softdelete"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Form	string `json:"Form" bson:"Form" datastore:"Form"`
@@ -22,7 +22,6 @@ func (ent *ConfigForm) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Title",
 		Type:            "ConfigForm",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

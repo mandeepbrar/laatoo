@@ -1,4 +1,4 @@
-package main
+package laatoositeui
 
 import (
   
@@ -11,7 +11,7 @@ type Solution_Ref struct {
 }
 
 type Solution struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
@@ -23,7 +23,6 @@ func (ent *Solution) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "Solution",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

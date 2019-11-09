@@ -218,11 +218,18 @@ function fieldFuncs(fields, name) {
 function getFieldType(field) {
   let fieldType = field.type
   switch (fieldType) {
+    case "any":
+      fieldType = "interface{}"
+      break;
     case "storable":
       fieldType = "data.Storable"
       break;
     case "storableref":
-      fieldType = "data.StorableRef"
+      if(field.entity) {
+        fieldType = field.entity +"_Ref"
+      } else {
+        fieldType = "data.StorableRef"
+      }
       break;
     break;
     case "entity":

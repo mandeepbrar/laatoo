@@ -1,0 +1,8 @@
+# provide ui properties for use in modules here
+# locale files with names of <<locale.yml>> instead of default.yml can be provided 
+# properties are provided as follows
+# moduleinstance:
+#   structprop1:
+#     prop1: propvalue1
+#   prop2: propvalue2
+

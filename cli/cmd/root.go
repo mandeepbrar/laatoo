@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -24,6 +25,8 @@ import (
 )
 
 var cfgFile string
+var verbose bool
+var configHome string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -47,15 +50,18 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.laatoo.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.laatoo/config.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "provides more details of command execution")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	viper.SetConfigType("yaml")
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
+		var err error
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
@@ -63,16 +69,24 @@ func initConfig() {
 			os.Exit(1)
 		}
 
+		configHome = filepath.Join(home, ".laatoo")
 		// Search config in home directory with name ".laatoo" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".laatoo")
+		viper.AddConfigPath(configHome)
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		if verbose {
+			fmt.Println("Using config file: ", viper.ConfigFileUsed())
+		}
+	} else {
+		if verbose {
+			fmt.Println("No config file found ")
+		}
 	}
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"laatoo/sdk/modules/laatoositeui"
 	"laatoo/sdk/modules/modulesbase"
 	"laatoo/sdk/modules/modulesrepository"
 	"laatoo/sdk/server/components"
@@ -63,9 +64,9 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 			if err == nil {
 				modDef, _ := stor.(*modulesbase.ModuleDefinition)
 				log.Error(ctx, "Entitlement creation ", "solution", solution, "module", modDef)
-				modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
+				modRef := modulesbase.ModuleDefinition_Ref{Id: modID, Name: modDef.Name}
 
-				ent := &modulesrepository.Entitlement{Name: modDef.Name, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: false}
+				ent := &modulesrepository.Entitlement{Name: modDef.Name, Solution: laatoositeui.Solution_Ref{Id: solution}, Module: modRef, Local: false}
 				err = svc.dataStore.Save(ctx, ent)
 				if err != nil {
 					return errors.WrapError(ctx, err)
@@ -87,8 +88,8 @@ func (svc *EntitlementCreationService) Invoke(ctx core.RequestContext) error {
 						if err != nil {
 							return errors.WrapError(ctx, err)
 						}
-						modRef := data.StorableRef{Id: modID, Name: modDef.Name, Type: "ModuleDefinition"}
-						ent := &modulesrepository.Entitlement{Name: modName, Solution: data.StorableRef{Id: solution, Type: "Solution"}, Module: modRef, Local: true}
+						modRef := modulesbase.ModuleDefinition_Ref{Id: modID, Name: modDef.Name}
+						ent := &modulesrepository.Entitlement{Name: modName, Solution: laatoositeui.Solution_Ref{Id: solution}, Module: modRef, Local: true}
 						err = svc.dataStore.Save(ctx, ent)
 						if err != nil {
 							return errors.WrapError(ctx, err)

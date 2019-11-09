@@ -1,6 +1,7 @@
 import React from 'react';
 import {Panel} from 'reactpages';
 import {connect} from 'react-redux';
+import {Menu} from 'reactwebcommon';
 import {LoginValidator, LoginForm} from 'authui';
 import Header from './Header'
 
@@ -25,7 +26,7 @@ class ThemeUI extends React.Component {
           <_uikit.Block className={vertical?"vertmenu":"horizmenu"}>
             <Application.router.View name="menu" loggedIn={props.loggedIn} />
           </_uikit.Block>
-          <_uikit.Block className={vertical?"vertbody":"horizbody"}>
+          <_uikit.Block className={vertical?" fd fdcenter vertbody":" fd fdcenter horizbody"}>
             <Application.router.View name="main" loggedIn={props.loggedIn}/>
           </_uikit.Block>
         </_uikit.Block>
@@ -55,12 +56,11 @@ function PreprocessPageComponents(components, page, pageId, reducers) {
       let comp = module.settings.menuLagger      
       console.log("pre processing.......", components, page);
       components.menu = (routerState) => {
-        console.log("menu items ", routerState, module.menu)
         return (
           <_uikit.Block className="menu">
             {
               module.menu?
-              <_uikit.Navbar items={module.menu.items} vertical={module.settings.vertical}/>
+              <Menu id={module.menu} vertical={module.settings.vertical}/>
               :null
             }            
             {module.settings.menuEnd?

@@ -1,7 +1,7 @@
 {
   "name":"ModuleInstanceDesign",
   "inherits":"",
-  "imports":[],
+  "imports":["laatoo/sdk/modules/modulesbase"],
   "titleField": "Name",
   "collection": "<nocollection>",
   "form": {
@@ -17,7 +17,7 @@
     },
     "Module": {
       "type":"storableref",
-      "entity": "Module",
+      "entity": "modulesbase.ModuleDefinition",
       "widget": {
         "name": "SubEntity",
         "module": "subentity",

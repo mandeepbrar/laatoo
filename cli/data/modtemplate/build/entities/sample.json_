@@ -1,0 +1,47 @@
+{
+  "name":"Sample",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "tabs": {
+      "__tab1name__": ["tabfield1", "tabfield2"],
+      "__tab2name__": ["tabfield3", "tabfield4"]      
+    },
+    "overlay": true,
+    "actions": "__save actions__method if custom actions have to be provided on form",
+    "__layout": ["__tab1__", "__tab2"]
+    "__layout": ["__canbefield1__", "__canbefield2_if__there__are__no_tabs__"]
+  },
+  "titleField": "__title field of entity_",
+  "fields":{
+    "fieldnam1": {
+      "type": "__type_of_field", @supported fields string, int, bool, float, entity, subentity, stringmap, stringsmap, storableref, storable
+      "entity": "name of an entity in case an entity or subentity has been used"
+      "list": true, "if the element is a list of items eg list of strings or list of entities"
+      "widget": {
+        "name": "Select", "name of widget to use, By default widgets are used from uikit module specified for application
+        "props": { // props to be passed to the widget
+          "items": [
+            {"text": "2019", "value":"2019"},
+            {"text": "2020", "value":"2020"}
+          ]
+        }
+      }
+    },
+    "field2": {
+      "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "entityfield1": {
+      "type":"entity",
+      "entity": "entityname",
+      "widget": {
+        "props": {
+          "skipLabel": true // skip recording of labels
+        }
+      }
+    }
+  }
+}

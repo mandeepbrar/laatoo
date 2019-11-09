@@ -3,6 +3,7 @@ package main
 
 import (
   
+	"laatoo/sdk/modules/laatoositeui" 
   "laatoo/sdk/server/components/data"
 )
 
@@ -11,12 +12,12 @@ type Deployment_Ref struct {
 }
 
 type Deployment struct {
-	*data.SerializableBase `initialize:"SerializableBase"`
+	data.Storable 
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`
+	Solution	laatoositeui.Solution_Ref `json:"Solution" bson:"Solution" datastore:"Solution"`
 	Environment	*Environment `json:"Environment" bson:"Environment" datastore:"Environment"`
 	Server	*Server `json:"Server" bson:"Server" datastore:"Server"`
 	Application	*Application `json:"Application" bson:"Application" datastore:"Application"`

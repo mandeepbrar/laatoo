@@ -11,7 +11,7 @@ type AccountUser_Ref struct {
 }
 
 type AccountUser struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	FName	string `json:"FName" bson:"FName" datastore:"FName"`
 	LName	string `json:"LName" bson:"LName" datastore:"LName"`
@@ -28,7 +28,6 @@ func (ent *AccountUser) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "AccountUser",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        true,
 		PostLoad:        false,

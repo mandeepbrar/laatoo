@@ -2,7 +2,7 @@
     "name":"Entitlement",
     "sdkinclude": true,
     "inherits":"",
-    "imports":[],
+    "imports":["laatoo/sdk/modules/modulesbase", "laatoo/sdk/modules/laatoositeui"],
     "multitenant": true,
     "presave": true,
     "form": {
@@ -14,14 +14,14 @@
         },
         "Solution": {
             "type":"storableref",
-            "entity": "Solution"
+            "entity": "laatoositeui.Solution"
         },
         "Local": {
             "type": "bool"
         },
         "Module": {
             "type":"storableref",
-            "entity": "ModuleDefinition"
+            "entity": "modulesbase.ModuleDefinition"
         }
     }
   }

@@ -1,0 +1,17 @@
+FROM laatootester:latest
+
+COPY dist/keys /keys
+
+VOLUME /config/environments/raminderapp
+
+VOLUME /modules
+
+VOLUME /bin/publicdir
+
+VOLUME /bin/appfiles
+
+VOLUME /devmodulesrepo
+
+VOLUME /modulesrepo
+
+EXPOSE 6060

@@ -110,7 +110,7 @@ func (svc *gaeDataService) Save(ctx core.RequestContext, item data.Storable) err
 		}
 	}
 	if svc.Multitenant {
-		item.(data.StorableMT).SetTenant(ctx.GetUser().GetTenant())
+		item.SetTenant(ctx.GetUser().GetTenant())
 	}
 	if svc.Auditable {
 		data.Audit(ctx, item)
@@ -147,8 +147,8 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 	ctx = ctx.SubContext("PutMulti")
 	if svc.Multitenant {
 		for _, item := range items {
-			if item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant() {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+			if item.GetTenant() != ctx.GetUser().GetTenant() {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.GetTenant(), "Item", item.GetId())
 			}
 		}
 	}
@@ -196,8 +196,8 @@ func (svc *gaeDataService) PutMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *gaeDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	if svc.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+	if svc.Multitenant && (item.GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.GetTenant(), "Item", item.GetId())
 	}
 	appEngineContext := ctx.GetAppengineContext()
 	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
@@ -259,7 +259,7 @@ func (svc *gaeDataService) update(ctx core.RequestContext, id string, newVals ma
 		return errors.WrapError(ctx, err)
 	}
 	stor := object.(data.Storable)
-	if svc.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+	if svc.Multitenant && (stor.GetTenant() != ctx.GetUser().GetTenant()) {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", id)
 	}
 	log.Info(ctx, "Going to set values", "stor", stor, "newVals", newVals)
@@ -317,7 +317,7 @@ func (svc *gaeDataService) updateAll(ctx core.RequestContext, queryCond interfac
 		if upsert {
 			object, _ := ctx.CreateObject(svc.Object)
 			stor := object.(data.Storable)
-			if svc.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+			if svc.Multitenant && (stor.GetTenant() != ctx.GetUser().GetTenant()) {
 				return nil, errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", stor.GetId())
 			}
 			stor.SetValues(object, newVals)
@@ -396,7 +396,7 @@ func (svc *gaeDataService) UpdateMulti(ctx core.RequestContext, ids []string, ne
 	}
 	resultStor, ids, err := data.CastToStorableCollection(ctx, results)
 	for ind, item := range resultStor {
-		if svc.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+		if svc.Multitenant && (item.GetTenant() != ctx.GetUser().GetTenant()) {
 			return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", item.GetId())
 		}
 		item.SetValues(reflect.ValueOf(results).Index(ind).Interface(), newVals)

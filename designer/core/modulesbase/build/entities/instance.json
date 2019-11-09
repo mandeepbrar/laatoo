@@ -18,7 +18,7 @@
     },
     "Module": {
       "type":"storableref",
-      "entity": "Module",
+      "entity": "ModuleDefinition",
       "widget": {
         "name": "SubEntity",
         "module": "subentity",

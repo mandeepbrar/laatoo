@@ -1,0 +1,134 @@
+name: modulesrepository
+modulesrepo: "/modules"
+logging:
+  level: trace
+  format: happymax
+  settings:
+    protocol: tcp
+    address: logs:5514
+modules:
+  filesystemstorage:
+  mongodatabase:
+  localauth:
+  role:
+  staticfileserver:
+  reactwebrouter:
+  reactfileupload:
+  reactbootstrapkit:
+  reactmaterialkit:
+  fontawesome:
+  uicommon:
+  reactpages:
+    #hotmodule: true
+    #hotmodulepath: services/web/react/reactpages
+    #hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+  reactwebcommon:
+  laatooviews:
+  authui:
+  reactforms:
+  laatoositetheme:
+  modulesbase:
+  modulesrepository:
+  platformdependencies:
+  reactapplication:
+  shell:
+  publicdirserver:
+  publicfilesserver:
+  tokenvalidation:
+  itemdetailview:
+  oauthui:
+  dataadapter:
+  dblogin:
+  entity:
+  user:
+  jsui:
+    cachefiles: false
+moduleinstances:
+  filesystemstorage:
+    module: filesystemstorage
+  securityhandler.role:
+    module: role
+    settings:
+      roledatafactory: mongodatabase
+  mongodatabase:
+    module: mongodatabase
+    environment:
+      mongodatabase: raminderapp
+  localauth:
+    module: localauth
+    settings:
+      userobject: User
+      dataservicefactory: mongodatabase
+      defaultrole: Admin
+      setcookies: true
+  staticfileserver:
+    module: staticfileserver
+  tokenvalidation:
+    module: tokenvalidation
+  router:
+    module: reactwebrouter
+  reactmaterialkit:
+    module: reactmaterialkit
+  reactbootstrapkit:
+    module: reactbootstrapkit
+  fontawesome:
+    module: fontawesome
+  uicommon:
+    module: uicommon
+  reactpages:
+    module: reactpages
+  reactwebcommon:
+    module: reactwebcommon
+  laatooviews:
+    module: laatooviews
+  itemdetailview:
+    module: itemdetailview
+  platformdependencies:
+    module: platformdependencies
+  authui:
+    module: authui
+    settings:
+      cookies: true
+  reactforms:
+    module: reactforms
+  reactfileupload:
+    module: reactfileupload
+  publicdirserver:
+    module: publicdirserver
+    settings:
+      publicfilesdir: "/bin/publicdir"
+      instance: publicdir
+  websiteshell:
+    module: shell
+    settings:
+      uiapplication: websiteapplication
+      indexpath: /index
+      authenticateshell: false
+      uidependencies:
+        react: ''
+  websiteapplication:
+    module: reactapplication
+    settings:
+      uiapplication: websiteapplication
+      router: router
+      uikit: reactbootstrapkit
+      theme: websitetheme
+  laatoositeui:
+    module: laatoositeui
+    environment:
+      uiapplication: websiteapplication
+  websitetheme:
+    module: laatoositetheme
+    settings:
+      className: laatoosite
+      infoBlock: signin
+      menuEnd: bottombar
+      showMenu: true
+      vertical: true
+      menu: main
+    environment:
+      uiapplication: websiteapplication
+  oauthui:
+    module: oauthui
+    environment:
+      uiapplication: websiteapplication

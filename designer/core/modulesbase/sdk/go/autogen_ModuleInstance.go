@@ -11,11 +11,11 @@ type ModuleInstance_Ref struct {
 }
 
 type ModuleInstance struct {
-	*data.SerializableBase `initialize:"SerializableBase"`
+	data.Storable 
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Module	data.StorableRef `json:"Module" bson:"Module" datastore:"Module"`
+	Module	ModuleDefinition_Ref `json:"Module" bson:"Module" datastore:"Module"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
@@ -37,10 +37,10 @@ func (ent *ModuleInstance) GetName()string {
 func (ent *ModuleInstance) SetName(val string) {
 	ent.Name=val
 }
-func (ent *ModuleInstance) GetModule()data.StorableRef {
+func (ent *ModuleInstance) GetModule()ModuleDefinition_Ref {
 	return ent.Module
 }
-func (ent *ModuleInstance) SetModule(val data.StorableRef) {
+func (ent *ModuleInstance) SetModule(val ModuleDefinition_Ref) {
 	ent.Module=val
 }
 func (ent *ModuleInstance) GetLoggingLevel()string {

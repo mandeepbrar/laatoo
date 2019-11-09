@@ -1,0 +1,39 @@
+{
+  "name":"Employee",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "layout":["Consultants", "Contractors"]
+  },
+  "fields":{
+    "FirstName": {
+      "type":"string",
+      "widget": {
+        "props": {
+          "label": "First Name"
+        }
+      }
+    },
+    "LastName": {
+      "type":"string",
+      "widget": {
+        "props": {
+          "label": "Last Name"
+        }
+      }
+    },
+    "EmployeeID": {
+      "type":"string",
+      "list": true,
+      "widget": {
+        "props": {
+          "label": "Employee Id"
+        }
+      }
+    },
+    "Job": {
+      "type":"storableref",
+      "entity": "Job"
+    }
+  }
+}

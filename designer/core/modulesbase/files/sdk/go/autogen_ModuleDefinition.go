@@ -11,7 +11,7 @@ type ModuleDefinition_Ref struct {
 }
 
 type ModuleDefinition struct {
-	*data.SoftDeleteAuditable `initialize:"SoftDeleteAuditable"`
+	data.Storable `laatoo:"auditable, softdelete"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Version	string `json:"Version" bson:"Version" datastore:"Version"`
@@ -36,7 +36,6 @@ func (ent *ModuleDefinition) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Name",
 		Type:            "ModuleDefinition",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

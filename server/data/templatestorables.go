@@ -2,6 +2,7 @@ package data
 
 import (
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/utils"
@@ -107,10 +108,16 @@ func (as *AbstractStorable) IsMultitenant() bool {
 	return false
 }
 
-func (as *AbstractStorable) Join(item Storable) {
+func (as *AbstractStorable) Join(item data.Storable) {
 }
-func (as *AbstractStorable) Config() *StorableConfig {
+func (as *AbstractStorable) Config() *data.StorableConfig {
 	return nil
+}
+func (as *AbstractStorable) GetTenant() string {
+	return ""
+}
+
+func (as *AbstractStorable) SetTenant(tenant string) {
 }
 
 func (b *AbstractStorable) Reset() {
@@ -123,7 +130,7 @@ func (m *AbstractStorable) String() string { return proto.CompactTextString(m) }
 func (*AbstractStorable) ProtoMessage() {}
 
 type SoftDeleteStorable struct {
-	*AbstractStorable `json:",inline" initialize:"AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	Deleted           bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
@@ -138,7 +145,7 @@ func (sds *SoftDeleteStorable) SoftDeleteField() string {
 }
 
 type HardDeleteAuditable struct {
-	*AbstractStorable `json:",inline" initialize:"AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	New               bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy         string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy         string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -186,7 +193,7 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 }
 
 type SoftDeleteAuditable struct {
-	*SoftDeleteStorable `json:",inline" initialize:"SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
+	*SoftDeleteStorable `json:",inline" laatoo:"initialize=SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
 	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`

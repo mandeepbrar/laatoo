@@ -11,7 +11,7 @@ type Factory_Ref struct {
 }
 
 type Factory struct {
-	*data.SerializableBase `initialize:"SerializableBase"`
+	data.Storable 
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`

@@ -11,7 +11,7 @@ type EngineDesign_Ref struct {
 }
 
 type EngineDesign struct {
-	*data.SerializableBase `initialize:"SerializableBase"`
+	data.Storable 
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`

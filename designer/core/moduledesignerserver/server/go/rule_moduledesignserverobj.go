@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/modules/modulesrepository"

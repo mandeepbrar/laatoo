@@ -2,6 +2,8 @@ package modulesrepository
 
 import (
   
+	"laatoo/sdk/modules/modulesbase" 
+	"laatoo/sdk/modules/laatoositeui" 
   "laatoo/sdk/server/components/data"
 )
 
@@ -11,12 +13,12 @@ type Entitlement_Ref struct {
 }
 
 type Entitlement struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`
+	Solution	laatoositeui.Solution_Ref `json:"Solution" bson:"Solution" datastore:"Solution"`
 	Local	bool `json:"Local" bson:"Local" datastore:"Local"`
-	Module	data.StorableRef `json:"Module" bson:"Module" datastore:"Module"`
+	Module	modulesbase.ModuleDefinition_Ref `json:"Module" bson:"Module" datastore:"Module"`
 }
 
 func (ent *Entitlement) Config() *data.StorableConfig {
@@ -24,7 +26,6 @@ func (ent *Entitlement) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Title",
 		Type:            "Entitlement",
-		SoftDeleteField: "Deleted",
 		PreSave:         true,
 		PostSave:        false,
 		PostLoad:        false,

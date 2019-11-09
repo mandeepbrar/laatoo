@@ -3,6 +3,7 @@ package main
 import (
   
 	"laatoo/sdk/modules/modulesbase" 
+	"laatoo/sdk/modules/laatoositeui" 
   "laatoo/sdk/server/components/data"
 )
 
@@ -12,11 +13,11 @@ type Environment_Ref struct {
 }
 
 type Environment struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`
+	Solution	laatoositeui.Solution_Ref `json:"Solution" bson:"Solution" datastore:"Solution"`
 	ServerTemp	Server `json:"ServerTemp" bson:"ServerTemp" datastore:"ServerTemp"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
@@ -37,7 +38,6 @@ func (ent *Environment) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Title",
 		Type:            "Environment",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

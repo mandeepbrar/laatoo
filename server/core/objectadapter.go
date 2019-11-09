@@ -63,17 +63,19 @@ func (factory *objectFactory) CreateObject(ctx ctx.Context) interface{} {
 }
 
 func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
-	log.Error(ctx, "init object", "name", factory.objectName, "fieldsToInit", factory.fieldsToInit)
 	if factory.fieldsToInit != nil {
 		for fieldName, fieldObjFac := range factory.fieldsToInit {
 			entVal := reflect.ValueOf(obj).Elem()
 			f := entVal.FieldByName(fieldName)
 			fieldobj := fieldObjFac.CreateObject(ctx)
 			f.Set(reflect.ValueOf(fieldobj))
+			log.Debug(ctx, "setting field of object ", "Object", factory.objectName)
 		}
 	}
+	log.Debug(ctx, "fields to init of object ", "Object", factory.objectName, "fields", factory.fieldsToInit)
 	if factory.constructor.IsValid() {
 		objVal := reflect.ValueOf(obj)
+		log.Debug(ctx, "calling constructor of object ", "Object", factory.objectName)
 		factory.constructor.Call([]reflect.Value{objVal})
 	}
 }
@@ -97,9 +99,8 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 	//typeToAnalyze := factory.objType
 	for i := 0; i < objType.NumField(); i++ {
 		fld := objType.Field(i)
-		log.Debug(ctx, "Analysing field", "Field", fld.Name)
+		log.Trace(ctx, "Analysing field", "Field", fld.Name)
 		laatooTagVal, ok := fld.Tag.Lookup(tagName)
-		log.Debug(ctx, "Has laatoo tag", "laatooTagVal", laatooTagVal, "ok", ok)
 		if ok {
 			tags := strings.Split(laatooTagVal, ",")
 			var initobj string
@@ -115,8 +116,8 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 						return err
 					}
 				} else {
-					switch tagName {
-					case "audit":
+					switch tag {
+					case "auditable":
 						{
 							audit = true
 						}
@@ -126,7 +127,7 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 						}
 					case "multitenant":
 						{
-							softdelete = true
+							multitenant = true
 						}
 					}
 				}
@@ -161,7 +162,7 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 						factory.fieldsToInit = make(map[string]*objectFactory)
 					}
 					factory.fieldsToInit[fld.Name] = objfac.(*objectFactory)
-					log.Error(ctx, "assigning initialize initialization to field ", "Object", factory.objectName, "field", fld.Name, "assignment", initobj)
+					log.Trace(ctx, "assigning initialize initialization to field ", "Object", factory.objectName, "field", fld.Name, "assignment", initobj)
 				}
 			}
 		}

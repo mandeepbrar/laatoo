@@ -3,6 +3,7 @@ import {Html} from './components/Html';
 import {ScrollListener} from './components/ScrollListener';
 import {Action} from './components/action/Action';
 import {Block} from './components/Block';
+import {Menu} from './components/Menu';
 import {ActionBar} from './components/action/ActionBar';
 import {LoadableComponent} from './components/LoadableComponent';
 import './styles/App.scss';
@@ -14,7 +15,8 @@ export {
     ScrollListener,
     Action,
     Block,
-    Html ,
+    Html,
+    Menu,
     ActionBar,
     LoadableComponent,
     Image

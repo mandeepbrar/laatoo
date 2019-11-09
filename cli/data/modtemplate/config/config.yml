@@ -1,0 +1,107 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  entity: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides budget solution components
+objects: 
+  budgetpublish:
+    type: service
+    description: Budget publish service. Picks budget and publishes gl account entries
+    configurations:
+      GLEntrySVC:
+        description: GL entry service
+        type: string
+        default: dataadapter.dataservice.GLCustomerEntry
+        inject: GlentrySvc
+      BudgetSvc:
+        description: Budget DB service
+        type: string
+        default: dataadapter.dataservice.Budget
+        inject: BudgetSvc        
+    request:
+      params:        
+        budgetId:
+          type: string
+modules:
+  budget:
+    module: entity
+    settings:
+      object: Budget
+      parent: root
+      instance: Budget
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      new_form: true
+      new_form_page: true
+      update_form: true
+      update_form_page: true
+      list_view: true
+  glcustomer:
+    module: entity
+    settings:
+      object: GLCustomer
+      instance: GLCustomer
+      skipData: true
+      new_form: true
+      new_form_page: true
+      list_page: true
+      update_form: true
+      update_form_page: true
+      list_view: true
+  glaccountitems:
+    module: entity
+    settings:
+      object: GLAccountItems
+      instance: GLAccountItems
+      skipData: true
+      new_form: true
+      new_form_page: true
+      list_page: true
+      update_form: true
+      update_form_page: true
+      list_view: true
+  glcustomerentry:
+    module: entity
+    settings:
+      object: GLCustomerEntry
+      parent: root
+      instance: GLCustomerEntry
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      new_form: true
+      new_form_page: true
+      update_form: true
+      update_form_page: true
+      list_view: true
+      update_success_route: /budgetentry
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      redux-saga: redux-saga
+      redux: redux
+      react-redux: react-redux
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+      sanitize-html: sanitize-html
+      prop-types: prop-types
+    packages:
+      react: "^16.8.0"
+      redux-saga: "^1.1.1"

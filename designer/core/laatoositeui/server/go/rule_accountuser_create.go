@@ -40,7 +40,7 @@ func (rule *AccountUserCreateRule) Action(ctx core.RequestContext, trigger *rule
 	usr.Email = ent.Email
 	usr.Name = fmt.Sprintf("%s %s", ent.FName, ent.LName)
 	usr.Picture = ent.Picture
-	usr.Tenant = ent.Tenant
+	usr.SetTenant(ent.GetTenant())
 	usr.Realm = ent.Account
 	params := map[string]interface{}{"credentials": usr}
 	err := ctx.Forward("register", params)

@@ -34,7 +34,7 @@ var addsecretCmd = &cobra.Command{
 	Short: "Add secret key to a keys base",
 	Long: `Add secret key to a keys base for use by laatoo server. 
 
-		Usage: laatoo addsecret [flags] keyname
+		Usage: laatoo security addsecret [flags] keyname
 		Flags:
 		 -d, --directory: Directory where keys base is located
 	`,
@@ -48,7 +48,7 @@ var addsecretCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(addsecretCmd)
+	securityCmd.AddCommand(addsecretCmd)
 
 	addsecretCmd.PersistentFlags().StringP("directory", "d", "", "base directory to use for storing secret keys")
 	addsecretCmd.PersistentFlags().StringP("file", "f", "", "file containing value of key")
@@ -100,8 +100,9 @@ func encryptVal(val []byte) []byte {
 	secret := ""
 
 	getInput("Enter key to be used for encryption of values: ", &secret)
-
-	fmt.Println("lenth of secret", len(secret))
+	if verbose {
+		fmt.Println("Length of secret", len(secret))
+	}
 	if len(secret) != 16 && len(secret) != 32 {
 		exitWithMessage("Invalid secret key specified. Secret should be 8, 16 or 32 characters")
 	}

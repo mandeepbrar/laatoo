@@ -11,7 +11,7 @@ type ModuleDesignServer_Ref struct {
 }
 
 type ModuleDesignServer struct {
-	*data.SoftDeleteAuditableMT `initialize:"SoftDeleteAuditableMT"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Objects	[]ObjectDefinitionDesign `json:"Objects" bson:"Objects" datastore:"Objects"`
@@ -29,7 +29,6 @@ func (ent *ModuleDesignServer) Config() *data.StorableConfig {
 		IdField:         "Id",
     LabelField:      "Title",
 		Type:            "ModuleDesignServer",
-		SoftDeleteField: "Deleted",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,

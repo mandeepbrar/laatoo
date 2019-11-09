@@ -123,7 +123,7 @@ func (svc *sqlDataService) Save(ctx core.RequestContext, item data.Storable) err
 		}
 	}
 	if svc.Multitenant {
-		item.(data.StorableMT).SetTenant(ctx.GetUser().GetTenant())
+		item.SetTenant(ctx.GetUser().GetTenant())
 	}
 	if svc.Auditable {
 		data.Audit(ctx, item)
@@ -155,8 +155,8 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 	ctx = ctx.SubContext("PutMulti")
 	if svc.Multitenant {
 		for _, item := range items {
-			if item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant() {
-				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+			if item.GetTenant() != ctx.GetUser().GetTenant() {
+				return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.GetTenant(), "Item", item.GetId())
 			}
 		}
 	}
@@ -200,8 +200,8 @@ func (svc *sqlDataService) putMulti(ctx core.RequestContext, items []data.Storab
 
 func (svc *sqlDataService) Put(ctx core.RequestContext, id string, item data.Storable) error {
 	ctx = ctx.SubContext("Put")
-	if svc.Multitenant && (item.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.(data.StorableMT).GetTenant(), "Item", item.GetId())
+	if svc.Multitenant && (item.GetTenant() != ctx.GetUser().GetTenant()) {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", item.GetTenant(), "Item", item.GetId())
 	}
 	log.Trace(ctx, "Putting object", "ObjectType", svc.Object, "id", id)
 	item.SetId(id)
@@ -304,7 +304,7 @@ func (svc *sqlDataService) updateWithPresave(ctx core.RequestContext, id string,
 	}
 	stor := object.(data.Storable)
 
-	if svc.Multitenant && (stor.(data.StorableMT).GetTenant() != ctx.GetUser().GetTenant()) {
+	if svc.Multitenant && (stor.GetTenant() != ctx.GetUser().GetTenant()) {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_TENANT_MISMATCH, "Provided tenant", ctx.GetUser().GetTenant(), "Item", id)
 	}
 

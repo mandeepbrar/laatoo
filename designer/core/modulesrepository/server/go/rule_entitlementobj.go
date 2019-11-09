@@ -47,7 +47,7 @@ func (rule *NewEntitlementRule) Action(ctx core.RequestContext, trigger *rules.T
 		if err != nil {
 			return err
 		}
-		modRef := data.StorableRef{Id: ent.Name, Name: ent.Name, Type: "ModuleDefinition"}
+		modRef := modulesbase.ModuleDefinition_Ref{Id: ent.Name, Name: ent.Name}
 		ent.Module = modRef
 	}
 	return nil

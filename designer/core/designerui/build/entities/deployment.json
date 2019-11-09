@@ -1,7 +1,7 @@
 {
   "name":"Deployment",
   "inherits":"",
-  "imports":[],
+  "imports":["laatoo/sdk/modules/laatoositeui"],
   "multitenant": true,
   "collection": "<nocollection>",
   "form": {
@@ -17,7 +17,7 @@
     },
     "Solution": {
       "type":"storableref",
-      "entity": "Solution"
+      "entity": "laatoositeui.Solution"
     },
     "Environment": {
       "type":"entity",

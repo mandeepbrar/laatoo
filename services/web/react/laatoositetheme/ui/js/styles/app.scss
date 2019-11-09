@@ -27,16 +27,22 @@
   .body {
     @extend .fd, .fdgrow;
     .horizmenu{
+      .menu {
+        @extend .fdrow;
+      }
       @extend .w100;
     }
     .menu {
-      @extend .fd, .fdcol;
+      @extend .fd;
       justify-content: space-between;
     }
     .vertbody{
       @extend .fdgrow;
     }
     .vertmenu {
+      .menu {
+        @extend .fdcol;
+      }
       @extend .fd;
     }
     .horizbody{

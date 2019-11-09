@@ -2,6 +2,7 @@
   "name":"Solution",
   "inherits":"",
   "imports":[],
+  "sdkinclude": true,
   "multitenant": true,
   "form": {
     "overlay": true,

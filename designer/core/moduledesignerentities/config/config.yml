@@ -5,6 +5,7 @@ dependencies:
   reactpages: ">=0.0.1"
   modulesbase: ">=0.0.1"
   modulesrepository: ">=0.0.1"
+  laatoositeui: ">=0.0.1"
 description: Module provides module designer entities ui 
 modules:
   moduledesignentities:

@@ -48,7 +48,7 @@ func (rf *UserFactory) CreateObjectCollection(ctx core.Context, length int, args
 }*/
 
 type DefaultUser struct {
-	data.Storable ` laatoo:"softdelete, auditable, multitenant"`
+	data.Storable `laatoo:"softdelete, auditable, multitenant"`
 	Username      string           `json:"Username" form:"Username" bson:"Username"`
 	Password      string           `json:"Password" form:"Password" bson:"Password"`
 	Roles         []string         `json:"Roles" bson:"Roles"`
@@ -201,11 +201,7 @@ func (usr *DefaultUser) SetStatus(val int) {
 }
 
 func (usr *DefaultUser) GetTenant() string {
-	return usr.Storable.(data.StorableMT).GetTenant()
-	/*	if usr.Storable.(data.StorableMT).GetTenant() == "" {
-			return usr.GetId()
-		}
-		return usr.Tenant*/
+	return usr.Storable.GetTenant()
 }
 
 func (usr *DefaultUser) LoadClaims(claims map[string]interface{}) {

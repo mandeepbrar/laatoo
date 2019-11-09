@@ -54,8 +54,8 @@ func (ms *mongoDataServicesFactory) Initialize(ctx core.ServerContext, conf conf
 		return err
 	}
 	srl := &StorableSerializer{bson.DefaultRegistry, ctx, timeenc}
-	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Struct, srl).RegisterDefaultDecoder(reflect.Struct, srl)
-	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Ptr, srl).RegisterDefaultDecoder(reflect.Ptr, srl)
+	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Struct, srl) //.RegisterDefaultDecoder(reflect.Struct, srl)
+	regbuilder = regbuilder.RegisterDefaultEncoder(reflect.Ptr, srl)    //.RegisterDefaultDecoder(reflect.Ptr, srl)
 	//regbuilder.RegisterEncoder(reflect.TypeOf(val), srl)
 	//regbuilder.RegisterDecoder(reflect.TypeOf(val), srl)
 	reg := regbuilder.Build()

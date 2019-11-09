@@ -49,6 +49,7 @@ s3storage laatoo/services/storage/s3storage
 vaultsecrets laatoo/services/secrets/vault
 gaedatastore laatoo/services/data/gae
 sqldatabase laatoo/services/data/sql
+organization laatoo/services/organization
 websocket laatoo/services/web/websocket
 testsocket laatoo/services/web/testsocket
 laatoobrowser laatoo/services/web/laatoobrowser

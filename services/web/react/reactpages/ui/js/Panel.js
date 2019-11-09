@@ -92,7 +92,7 @@ class Panel extends React.Component {
             this.getView = function(comp) {
               return function(props, context, state, className) {
                 let cl = { description: desc, className: className};
-                var compProps = desc.props? Object.assign({}, desc.props, cl): cl
+                var compProps = desc.props? Object.assign({}, desc.props, cl): Object.assign({}, desc, cl)
                 return React.createElement(comp, compProps)
               }
             }(comp)
@@ -149,16 +149,16 @@ class Panel extends React.Component {
       <_uikit.Block className={id}>
         {block.getPanelItems(desc[id])}
       </_uikit.Block>
-      :null
+      :<_uikit.Block/>
     }
 
     this.getView = function (props, ctx, state, className) {
       console.log("getting layout", desc, props)
       switch(desc.layout) {
         case "2col": {
-          layout=( <_uikit.Block className={className + " twocol"}>
+          layout=( <_uikit.Block className={className + " fd fdcol w100 twocol"}>
               {panelComp("header")}
-            <_uikit.Block className="row">
+            <_uikit.Block className=" fd fdgrow fdrow ">
               {panelComp("left")}
               {panelComp("right")}
             </_uikit.Block>
@@ -168,7 +168,7 @@ class Panel extends React.Component {
         }
         break;
         case "3col": {
-          layout=( <_uikit.Block className={className + " threecol"}>
+          layout=( <_uikit.Block className={className + " fd fdcol w100 threecol"}>
               {panelComp("header")}
             <_uikit.Block className="row">
               {panelComp("left")}
@@ -180,7 +180,7 @@ class Panel extends React.Component {
         }
         break;
         default: {
-          layout=( <_uikit.Block className={className}>
+          layout=( <_uikit.Block className={className + " fd fdcol w100 "}>
               {panelComp("items")}
               </_uikit.Block>
           )

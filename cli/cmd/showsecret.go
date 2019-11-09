@@ -30,14 +30,14 @@ var showsecretCmd = &cobra.Command{
 	Short: "Shows the value of secret in a keystore",
 	Long: `Shows secret key in a keys base for use by laatoo server. 
 	
-	Usage: laatoo showsecret [flags] keyname
+	Usage: laatoo secret showsecret [flags] keyname
 	Flags:
 	 -d, --directory: Directory where keys base is located`,
 	Run: showSecretCmdFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(showsecretCmd)
+	securityCmd.AddCommand(showsecretCmd)
 	showsecretCmd.PersistentFlags().StringP("directory", "d", "", "base directory to use for secret keys")
 
 	// Here you will define your flags and configuration settings.

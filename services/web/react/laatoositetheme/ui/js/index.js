@@ -2,7 +2,6 @@ import React from 'react'
 import {SiteTheme, PreprocessPageComponents, setModule as initTheme} from './Theme'
 import {RenderPageComponent, setModule as initPage} from './SitePage'
 import Welcome from './Welcome'
-import {Panel} from 'reactpages'
 import './styles/app.scss'
 
 var module;
@@ -32,42 +31,13 @@ function Initialize(appName, ins, mod, settings, def, req) {
     module.logInComp = loginMod[loginComp]
   }
   if(module.settings.showMenu) {
-    processMenu()
-  }
-}
-
-function processMenu(){
-  //var menuItems=[]
-  let menuName
-  let menu
-  console.log("Menu process", module.settings, Application)
-  if(module.settings && module.settings.menu) {
-    menuName = module.settings.menu
-  } else {
-    menuName = Application.Properties.menu
-  }
-  console.log("dashboard menu", menuName)
-  if(menuName) {
-    menu = _reg("Menus", menuName)
-    console.log("received menu ", menuName, menu)
-    if(menu && menu.items) {
-      console.log("iterating menu items ", menu.items)
-      menu.items.forEach(function(menuItem){
-        console.log("iterating menu ", menuItem)
-        //let menuItem=menuConfig[menuItem]
-        if(menuItem.page) {
-          menuItem.action = "Page_" + menuItem.page
-        }
-      })  
+    if(module.settings.menu) {
+      module.menu = module.settings.menu
+    } else {
+      module.menu = Application.Properties.menu
     }
-  } else {
-    menu = {items: []}
-    menu.items.push({title:'Home', action:'Page_home'})
   }
-  console.log("setting module menu", module, menu)
-  module.menu = menu
 }
-
 
 export {
   Initialize ,

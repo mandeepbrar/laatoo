@@ -1,0 +1,26 @@
+{
+  "name":"Job",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "overlay": true,
+    "layout": ["JobID", "Title", "Description", "OrgUnit"]
+  },
+  "presave": true,
+  "titleField": "Account",
+  "fields":{
+    "JobID": {
+      "type":"string"
+    },
+    "Title": {
+        "type":"string"
+    },
+    "Description": {
+      "type":"string"
+    },
+    "OrgUnit": {
+      "type":"storableref",
+      "entity": "OrgNode"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name":"OrgNode",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "tabs": {
+      "General": ["Title", "Description", "Parent"],
+      "Node Data": ["Data1", "Data2", "Data3"]
+    },
+    "overlay": true,
+    "layout": ["General", "Node Data"]
+  },
+  "titleField": "Title",
+  "fields":{
+    "Title": {
+      "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Parent": {
+      "type": "storableref",
+      "entity": "OrgNode"
+    },
+    "Data1": {
+      "type":"storableref"
+    },
+    "Data2": {
+      "type":"storableref"
+    },
+    "Data3": {
+      "type":"storableref"
+    }
+  }
+}

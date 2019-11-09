@@ -2,13 +2,13 @@ package core
 
 import (
 	"laatoo/sdk/common/config"
-	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
 	"laatoo/server/constants"
+	"laatoo/server/data"
 	"os"
 	"path"
 	"path/filepath"

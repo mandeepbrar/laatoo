@@ -1,0 +1,47 @@
+#security settings for the app
+
+#mode can be local or remote. 
+mode: local
+
+#role data service to be used for fetching app roles. Every app should have admin role and anonymous role. If they are not provided, system creates them
+role_data_svc: securityhandler.roles
+
+#public key to be used for signing tokens
+publickey: "keys/modulesrepository.pub"
+
+#private key to be used for signing tokens
+pvtkey: "keys/modulesrepository.pem"
+
+# default realm to use for this application
+Realm: ''
+
+# login realms supported by this application
+supportedrealms:
+  - ''
+
+# service allowed to create tokens for this application
+authservices:
+  - login.local
+
+# permissions used in this application. Admin by default gets all permissions
+permissions:
+  - View User
+  - Edit User
+  - Delete User
+  - Create User
+  - Edit Role
+  - View Role
+  - Create Role
+  - Delete Role
+
+# rolename to use as admin role
+# __adminrole: rolename
+
+# object to use as user object. object should implement interfaces specified sdk/server/auth
+# __user: userobject
+
+# object to use as role object. object should implement interfaces specified sdk/server/auth
+# __user: userobject
+
+# header to use as auth header. by default X-Auth-Token is used
+#__authheader: authheader

@@ -2,6 +2,7 @@ package data
 
 import (
 	"laatoo/sdk/common/config"
+	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/utils"
@@ -74,9 +75,9 @@ func (as *AbstractStorableMT) SetTenant(tenant string) {
 	as.Tenant = tenant
 }
 
-func (as *AbstractStorableMT) Join(item Storable) {
+func (as *AbstractStorableMT) Join(item data.Storable) {
 }
-func (as *AbstractStorableMT) Config() *StorableConfig {
+func (as *AbstractStorableMT) Config() *data.StorableConfig {
 	return nil
 }
 
@@ -91,7 +92,7 @@ func (b *AbstractStorableMT) Reset() {
 }
 
 type SoftDeleteStorableMT struct {
-	*AbstractStorableMT `json:",inline" initialize:"AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	*AbstractStorableMT `json:",inline"  laatoo:"initialize=AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
 	Deleted             bool `json:"Deleted" bson:"Deleted"`
 }
 
@@ -106,7 +107,7 @@ func (sds *SoftDeleteStorableMT) SoftDeleteField() string {
 }
 
 type HardDeleteAuditableMT struct {
-	*AbstractStorableMT `json:",inline" initialize:"AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	*AbstractStorableMT `json:",inline"  laatoo:"initialize=AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
 	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -154,7 +155,7 @@ func (hda *HardDeleteAuditableMT) GetCreatedBy() string {
 }
 
 type SoftDeleteAuditableMT struct {
-	*SoftDeleteStorableMT `json:",inline" initialize:"SoftDeleteStorableMT" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
+	*SoftDeleteStorableMT `json:",inline"  laatoo:"initialize=SoftDeleteStorableMT" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
 	New                   bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy             string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy             string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`

@@ -6,6 +6,7 @@ dependencies:
   uicommon: ">=0.0.1"
   itemdetailview: ">=0.0.1"
   modulesbase: ">=0.0.1"
+  laatoositeui: ">=0.0.1"
 description: Module provides repository
 objects: 
   repositoryimport:

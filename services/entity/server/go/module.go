@@ -68,23 +68,25 @@ func (entity *EntityModule) Initialize(ctx core.ServerContext, conf config.Confi
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	if md == nil {
-		return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Object metadata not found", entity.object)
-	}
 
 	baseDir, _ := ctx.GetString(config.MODULEDIR)
 	entity.templatesDir = path.Join(baseDir, "files", "templates")
 
-	desc := md.GetProperty("descriptor")
-	if desc != nil {
-		str, ok := desc.(string)
-		if ok {
-			conf, err := ctx.ReadConfigData([]byte(str), nil)
-			if err != nil {
-				return errors.WrapError(ctx, err)
+	if md != nil {
+		desc := md.GetProperty("descriptor")
+		if desc != nil {
+			str, ok := desc.(string)
+			if ok {
+				conf, err := ctx.ReadConfigData([]byte(str), nil)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				entity.entityConf = conf
 			}
-			entity.entityConf = conf
 		}
+		//			return errors.ThrowError(ctx, errors.CORE_ERROR_RES_NOT_FOUND, "Object metadata not found", entity.object)
+	} else {
+		entity.entityConf = ctx.CreateConfig()
 	}
 
 	if entity.instance == "" {

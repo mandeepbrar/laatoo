@@ -3,7 +3,6 @@ package main
 import (
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/ctx"
-	"laatoo/sdk/server/log"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
@@ -17,7 +16,6 @@ type StorableSerializer struct {
 }
 
 func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer bsonrw.ValueWriter, val reflect.Value) error {
-	log.Error(enc.logCtx, "my base encoder", "val", val, "type", val.Type())
 	if val.Kind() == reflect.Struct {
 		storfld := val.FieldByName("Storable")
 		if storfld.IsValid() {
@@ -133,7 +131,6 @@ func (enc *StorableSerializer) writeDefault(ctx bsoncodec.EncodeContext, writer 
 }
 
 func (enc *StorableSerializer) DecodeValue(ctx bsoncodec.DecodeContext, reader bsonrw.ValueReader, val reflect.Value) error {
-	log.Error(enc.logCtx, "my base decoder", "val", val)
 	decoder, err := enc.defaultReg.LookupDecoder(val.Type())
 	if err != nil {
 		return err
