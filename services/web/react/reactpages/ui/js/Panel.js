@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types';
-import {Action} from 'reactwebcommon';
+import {Action, Menu} from 'reactwebcommon';
 
 var module;
 
@@ -25,6 +25,9 @@ class Panel extends React.Component {
           break;
         case "block":
           desc = _reg('Blocks', id)
+          break;
+        case "menu":
+          desc = _reg('Menus', id)
           break;
         case "component":
           break;
@@ -81,6 +84,10 @@ class Panel extends React.Component {
           className = className + " layout "
           this.processLayout(desc, props,  ctx)
           break;
+        case "menu":
+          className = className + " menu "
+          this.processMenu(desc, props,  ctx)
+          break;
         case "component":
           if(desc.component) {
             this.getView = function(props, context, state) {
@@ -102,7 +109,13 @@ class Panel extends React.Component {
           let processor = _reg("PanelTypes", desc.type)
           //let comp = processor.getComponent(desc)
           this.getView = function(props, context, state) {
-            return processor.getComponent(desc, props, context, state)
+            console.log("unknown comp type", desc.type, desc)
+            if(processor != null) {              
+              return processor.getComponent(desc, props, context, state)
+            } else {
+              return <_uikit.Block/>
+            }
+            
           }
           break;
       }
@@ -157,24 +170,24 @@ class Panel extends React.Component {
       switch(desc.layout) {
         case "2col": {
           layout=( <_uikit.Block className={className + " fd fdcol w100 twocol"}>
-              {panelComp("header")}
+              {panelComp("headerrow")}
             <_uikit.Block className=" fd fdgrow fdrow ">
-              {panelComp("left")}
-              {panelComp("right")}
+              {panelComp("leftcol")}
+              {panelComp("rightcol")}
             </_uikit.Block>
-            {panelComp("footer")}
+            {panelComp("footerrow")}
           </_uikit.Block>
           )
         }
         break;
         case "3col": {
           layout=( <_uikit.Block className={className + " fd fdcol w100 threecol"}>
-              {panelComp("header")}
-            <_uikit.Block className="row">
-              {panelComp("left")}
-              {panelComp("right")}
+              {panelComp("headerrow")}
+            <_uikit.Block className=" fd fdgrow fdrow ">
+              {panelComp("leftcol")}
+              {panelComp("rightcol")}
             </_uikit.Block>
-            {panelComp("footer")}
+            {panelComp("footerrow")}
           </_uikit.Block>
           )
         }
@@ -187,6 +200,13 @@ class Panel extends React.Component {
         }
       }
       return layout
+    }
+  }
+
+  processMenu = (desc, props, ctx) => {
+    this.getView = function(props, ctx, state, className) {
+      console.log("rendering menu", desc, props, ctx, className)
+      return <Menu id={desc.id} vertical={desc.vertical} className={className}/>
     }
   }
 

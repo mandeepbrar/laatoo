@@ -1,0 +1,30 @@
+version: 0.0.1
+description: 'Module provides data pipeline factory and service'
+dependencies: {}
+objects:
+  datapipelinefactory:
+    type: factory
+    description: Data pipeline factory. Registers importers, exporters, processors and error processors provided in sdk
+  datapipelineservice:
+    type: service
+    configurations:
+      object:
+        type: string
+        description: Object for which services are being created
+        required: true
+      instance:
+        type: string
+        description: Discriminator to distinguish multiple services created by multiple
+          instances of the module
+      datasourcetype:
+        type: string
+        description: Data source(importer) type to be used for pipeline
+      datadestinationtype:
+        type: string
+        description: Data destination(exporter) type to be used for pipeline
+      processortype:
+        type: string
+        description: Processor type to be used for pipeline
+      errorprocessortype:
+        type: string
+        description: Error processor type to be used for pipeline

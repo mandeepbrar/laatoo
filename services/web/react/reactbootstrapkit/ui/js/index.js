@@ -22,6 +22,7 @@ const UIWrapper=(props)=>(
 )
 
 const ActionButton=(props)=> (
+  //props.flat?
   <Button onClick={props.onClick} {...props.btnProps} className={props.className} style={props.style}>{props.children}</Button>
 )
 

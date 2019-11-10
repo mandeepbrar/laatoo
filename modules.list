@@ -6,6 +6,7 @@ mongodatabase laatoo/services/data/mongo
 jsui laatoo/services/web/jsui
 dblogin laatoo/services/security/db
 tokenvalidation laatoo/services/security/tokenvalidation
+datapipeline laatoo/services/data/datapipeline 
 memorycache laatoo/services/cache/memory
 shell laatoo/services/shell
 signup laatoo/services/security/signup

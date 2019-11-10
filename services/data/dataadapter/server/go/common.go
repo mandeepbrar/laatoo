@@ -14,9 +14,11 @@ func selectMethod(ctx core.RequestContext, datastore data.DataComponent) (dataTo
 	var orderByCond interface{}
 	orderBy, ok := ctx.GetStringParam(CONF_FIELD_ORDERBY)
 	if ok {
-		orderByCond, err = datastore.CreateCondition(ctx, data.SORTASC, orderBy)
-		if err != nil {
-			return nil, nil, -1, -1, errors.WrapError(ctx, err)
+		if orderBy != "" {
+			orderByCond, err = datastore.CreateCondition(ctx, data.SORTASC, orderBy)
+			if err != nil {
+				return nil, nil, -1, -1, errors.WrapError(ctx, err)
+			}
 		}
 	}
 

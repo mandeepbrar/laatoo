@@ -83,19 +83,19 @@ func (objLoader *objectLoader) Start(ctx core.ServerContext) error {
 }
 
 func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder string) error {
-	log.Trace(ctx, "Loading objects", "objects folder", folder)
-	err := filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path)
+	log.Debug(ctx, "Walking through objects folder", "folder", folder)
+	err := filepath.Walk(folder, func(path string, info os.FileInfo, err1 error) error {
+		if err1 != nil {
+			return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err1, "Path", path)
 		}
-
-		_, ok := objLoader.loadedPlugins[path]
-		if ok {
-			return nil
-		}
-
+		/*
+			_, ok := objLoader.loadedPlugins[path]
+			if ok {
+				return nil
+			}
+		*/
 		if !info.IsDir() {
-			log.Trace(ctx, "Loading plugin", "path", path)
+			log.Debug(ctx, "Opening plugin", "path", path)
 			p, err := plugin.Open(path)
 			if err != nil {
 				return errors.RethrowError(ctx, errors.CORE_ERROR_PLUGIN_NOT_LOADED, err, "Path", path, "loaded plugins", objLoader.loadedPlugins)
@@ -103,6 +103,7 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 
 			mod, _ := ctx.GetString("module")
 			objLoader.loadedPlugins[path] = mod
+			log.Debug(ctx, "Looking up manifest", "path", path)
 
 			sym, err := p.Lookup("Manifest")
 			if err != nil {
@@ -149,8 +150,8 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 
 func (objLoader *objectLoader) loadObjectsFolderIfExists(ctx core.ServerContext, folder string) error {
 	exists, _, _ := utils.FileExists(folder)
+	log.Debug(ctx, "Loading Objects from folder", "folder", folder, "exists", exists)
 	if exists {
-		log.Trace(ctx, "Loading objects folder", "Folder", folder)
 		if err := objLoader.loadObjectsFolder(ctx, folder); err != nil {
 			return errors.WrapError(ctx, err)
 		}
@@ -192,14 +193,17 @@ func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string,
 }
 
 func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) error {
+	log.Info(ctx, "Registering object1 ", "Object Name", objectName)
 	objFac, err := newObjectType(ctx, objLoader, objectName, object, metadata)
 	if err != nil {
 		return err
 	}
+	log.Info(ctx, "Registering object2 ", "Object Name", objectName)
 	objLoader.registerObjectFactory(ctx, objectName, objFac)
 	return nil
 }
 func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
+	log.Info(ctx, "Registering object3 ", "Object Name", objectName)
 	objFac, err := newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata)
 	if err != nil {
 		return err
@@ -210,7 +214,7 @@ func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string
 func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) error {
 	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
-		log.Info(ctx, "Registering object factory ", "Object Name", objectName)
+		log.Info(ctx, "Registering object factory4 ", "Object Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
 		mod, modok := ctx.GetString(constants.CONF_MODULE)
 		if modok {

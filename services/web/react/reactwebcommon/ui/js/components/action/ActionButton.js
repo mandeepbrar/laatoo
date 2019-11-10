@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 const ActionButton = (props, context) => {
   if(_uikit.ActionButton) {
     return (
-      <_uikit.ActionButton className={props.className + " actionbutton"} onClick={props.actionFunc} btnProps={props}>
+      <_uikit.ActionButton flat={props.flat} className={props.className + " actionbutton"} onClick={props.actionFunc} btnProps={props}>
       {props.actionchildren}
       </_uikit.ActionButton>
     )

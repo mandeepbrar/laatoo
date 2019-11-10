@@ -156,6 +156,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 	queryctx, _ := ctx.WithTimeout(10 * time.Second)
 	findoptions := options.Find()
 	if orderBy != nil {
+		log.Error(ctx, "Seting sort to ", "condition", orderBy)
 		findoptions.SetSort(orderBy)
 	}
 	recsToSkip := 0
@@ -214,14 +215,14 @@ func (ms *mongoDataService) CreateCondition(ctx core.RequestContext, operation d
 	case data.SORTASC:
 		{
 			if len(args) == 1 {
-				return bson.M{fmt.Sprint(args[0]): 1}, nil
+				return bson.M{"$sort": bson.M{fmt.Sprint(args[0]): 1}}, nil
 			}
 			return nil, nil
 		}
 	case data.SORTDESC:
 		{
 			if len(args) == 1 {
-				return bson.M{fmt.Sprint(args[0]): -1}, nil
+				return bson.M{"$sort": bson.M{fmt.Sprint(args[0]): -1}}, nil
 			}
 			return nil, nil
 		}

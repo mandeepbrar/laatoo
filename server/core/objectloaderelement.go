@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/log"
 )
 
 type objectLoaderProxy struct {
@@ -44,7 +45,9 @@ func (ldr *objectLoaderProxy) CreateObject(ctx ctx.Context, objectName string) (
 
 func (ldr *objectLoaderProxy) GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool) {
 	if ldr.loader.objectsFactoryRegister != nil {
+		log.Error(ctx, "Getting object factory", "object", name)
 		fac, ok := ldr.loader.objectsFactoryRegister[name]
+		log.Error(ctx, "Getting object factory", "ok", ok)
 		return fac, ok
 	}
 	return nil, false

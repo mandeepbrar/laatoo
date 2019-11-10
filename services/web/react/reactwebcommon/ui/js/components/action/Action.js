@@ -98,7 +98,7 @@ class ActionComp extends React.Component {
     switch(widget) {
       case 'button': {
         return (
-          <ActionButton className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={children}>
+          <ActionButton flat={_tn(this.props.flat, this.action.flat)} className={this.props.className} actionFunc={actionF} key={this.props.name +"_comp"} actionchildren={children}>
           </ActionButton>
         )
       }
