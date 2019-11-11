@@ -19,11 +19,7 @@ func (proc *logErrorsProcessor) Initialize(ctx ctx.Context, conf config.Config) 
 	return nil
 }
 
-func (proc *logErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, input, output interface{}, err error) {
-	args := []interface{}{"error", err, "Input", input}
-	if output != nil {
-		args = append(args, "Output", output)
-	}
-	log.Error(ctx, "Error encountered in processing record", args...)
+func (proc *logErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, err *datapipeline.PipelineErrorRecord) {
+	log.Error(ctx, "Error encountered in processing record", "error", err)
 	return
 }

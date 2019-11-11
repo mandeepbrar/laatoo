@@ -1,21 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/modules/datapipeline"
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
-	"laatoo/sdk/server/log"
 )
 
 const (
-	CONF_OBJECT_TO_IMPORT = "object"
-	CONF_DATASOURCETYPE   = "datasourcetype"
-	CONF_DATADESTTYPE     = "datadestinationtype"
-	CONF_PROCTYPE         = "processortype"
-	CONF_ERRORPROCTYPE    = "errorprocessortype"
+	CONF_DATASOURCETYPE = "datasourcetype"
+	CONF_DATADESTTYPE   = "datadestinationtype"
+	CONF_PROCTYPE       = "processortype"
+	CONF_ERRORPROCTYPE  = "errorprocessortype"
+	CONF_DRIVERTYPE     = "drivertype"
 )
 
 func newPipelineService(ctx core.ServerContext, fac *dataPipelineFactory) (*pipelineService, error) {
@@ -34,6 +32,7 @@ type pipelineService struct {
 	exporter       datapipeline.Exporter
 	processor      datapipeline.Processor
 	errorProcessor datapipeline.ErrorProcessor
+	driver         datapipeline.Driver
 }
 
 func (svc *pipelineService) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -111,59 +110,33 @@ func (svc *pipelineService) Start(ctx core.ServerContext) error {
 		if !ok {
 			return errors.BadConf(ctx, CONF_ERRORPROCTYPE)
 		}
-		err = svc.errorProcessor.Initialize(ctx, svc.conf)
-		if err != nil {
-			return err
+	} else {
+		svc.errorProcessor = logErrorProcFactory(ctx)
+	}
+	err = svc.errorProcessor.Initialize(ctx, svc.conf)
+	if err != nil {
+		return err
+	}
+
+	driverType, ok := svc.GetStringConfiguration(ctx, CONF_DRIVERTYPE)
+	if ok {
+		svc.driver, ok = svc.pipelineFac.getDriver(ctx, driverType)
+		if !ok {
+			return errors.BadConf(ctx, CONF_DRIVERTYPE)
 		}
+	} else {
+		svc.driver = memoryDriverFactory(ctx)
+	}
+	err = svc.driver.Initialize(ctx, svc.conf)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (svc *pipelineService) Invoke(ctx core.RequestContext) error {
-	return nil
-}
-
-func (svc *pipelineService) runPipeline(ctx core.RequestContext) error {
-	inp := make(datapipeline.DataChan)
-
-	inpDoneChannel := make(chan bool)
-	go svc.importer.GetRecords(ctx, inp, inpDoneChannel)
-	for {
-		select {
-		case dataObj := <-inp:
-			{
-				fmt.Println("Received data", dataObj)
-				go func(reqCtx core.RequestContext, dataObj interface{}) {
-					var procOutput interface{}
-					var err error
-					if svc.processor != nil {
-						procOutput, err = svc.processor.Transform(reqCtx, dataObj)
-						if err != nil {
-							log.Warn(reqCtx, "Record could not be processed", "err", err)
-							svc.errorProcessor.ProcessErrorRecord(ctx, dataObj, nil, err)
-							return
-						}
-					} else {
-						procOutput = dataObj
-					}
-					err = svc.exporter.WriteRecord(reqCtx, procOutput)
-					if err != nil {
-						log.Warn(reqCtx, "Record could not be exported", "err", err)
-						svc.errorProcessor.ProcessErrorRecord(ctx, dataObj, procOutput, err)
-						return
-					}
-				}(ctx, dataObj)
-			}
-		case <-inpDoneChannel:
-			{
-				fmt.Println("Complete")
-				return nil
-			}
-		}
-	}
-
-	return nil
+	return svc.driver.Run(ctx, svc.importer, svc.exporter, svc.processor, svc.errorProcessor)
 }
 
 /*

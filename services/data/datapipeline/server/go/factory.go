@@ -12,6 +12,7 @@ type dataPipelineFactory struct {
 	exporters  map[string]func(ctx core.ServerContext) datapipeline.Exporter
 	processors map[string]func(ctx core.ServerContext) datapipeline.Processor
 	errorProcs map[string]func(ctx core.ServerContext) datapipeline.ErrorProcessor
+	drivers    map[string]func(ctx core.ServerContext) datapipeline.Driver
 }
 
 func (fac *dataPipelineFactory) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -19,8 +20,10 @@ func (fac *dataPipelineFactory) Initialize(ctx core.ServerContext, conf config.C
 	fac.exporters = make(map[string]func(ctx core.ServerContext) datapipeline.Exporter)
 	fac.processors = make(map[string]func(ctx core.ServerContext) datapipeline.Processor)
 	fac.errorProcs = make(map[string]func(ctx core.ServerContext) datapipeline.ErrorProcessor)
+	fac.drivers = make(map[string]func(ctx core.ServerContext) datapipeline.Driver)
 
 	fac.RegisterErrorProcessor(ctx, "logErrors", logErrorProcFactory)
+	fac.RegisterErrorProcessor(ctx, "memErrors", memoryErrorsProcessorFactory)
 	fac.RegisterExporter(ctx, "csvExporter", csvExporterFactory)
 	fac.RegisterExporter(ctx, "restExporter", restExporterFactory)
 	fac.RegisterExporter(ctx, "dataExporter", dataExporterFactory)
@@ -29,6 +32,7 @@ func (fac *dataPipelineFactory) Initialize(ctx core.ServerContext, conf config.C
 	fac.RegisterImporter(ctx, "restImporter", restImporterFactory)
 	fac.RegisterProcessor(ctx, "objectToMap", objecToMapFactory)
 	fac.RegisterProcessor(ctx, "mapToObject", mapToObjectFactory)
+	fac.RegisterDriver(ctx, "memoryDriver", memoryDriverFactory)
 
 	return nil
 }
@@ -61,7 +65,13 @@ func (fac *dataPipelineFactory) getProcessor(ctx core.ServerContext, name string
 	}
 	return procfac(ctx), ok
 }
-
+func (fac *dataPipelineFactory) getDriver(ctx core.ServerContext, name string) (datapipeline.Driver, bool) {
+	driverfac, ok := fac.drivers[name]
+	if !ok {
+		return nil, false
+	}
+	return driverfac(ctx), ok
+}
 func (fac *dataPipelineFactory) getErrorProcessor(ctx core.ServerContext, name string) (datapipeline.ErrorProcessor, bool) {
 	errprocfac, ok := fac.errorProcs[name]
 	if !ok {
@@ -83,4 +93,7 @@ func (fac *dataPipelineFactory) RegisterProcessor(ctx core.ServerContext, name s
 }
 func (fac *dataPipelineFactory) RegisterErrorProcessor(ctx core.ServerContext, name string, errprocfac func(ctx core.ServerContext) datapipeline.ErrorProcessor) {
 	fac.errorProcs[name] = errprocfac
+}
+func (fac *dataPipelineFactory) RegisterDriver(ctx core.ServerContext, name string, driverfac func(ctx core.ServerContext) datapipeline.Driver) {
+	fac.drivers[name] = driverfac
 }
