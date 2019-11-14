@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Security_Ref struct {
   Id    string
-}
+}*/
 
 type Security struct {
 	data.Storable 

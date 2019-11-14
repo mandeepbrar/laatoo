@@ -1,0 +1,31 @@
+version: 0.0.1
+description: 'Module provides csv processing services for data pipeline'
+dependencies: 
+  datapipeline: 0.0.1
+objects:
+  restimporter:
+    type: service
+    description: CSV importer service for use by data pipeline
+    configurations:
+      importobject:
+        type: string
+        description: Object to be imported in data pipeline from json rest endpoint
+        required: true
+      importrestendpoint:
+        type: string
+        description: REST endpoint to use for getting data
+        required: true
+      importlist:
+        type: string
+        description: Whethere data is a single item or a list of items
+      importmethod:
+        type: string
+        description: Method to use for hitting rest endpoint. GET/POST
+  restexporter:
+    type: service
+    description: CSV exporter service for use by data pipeline
+    configurations:
+      exportrestendpoint:
+        type: string
+        description: Endpoint to be hit by POST request with data
+        required: true

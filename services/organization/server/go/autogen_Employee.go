@@ -5,10 +5,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type Employee_Ref struct {
+/*type Employee_Ref struct {
   Id    string
   Title string
-}
+}*/
 
 type Employee struct {
 	data.Storable `laatoo:"auditable, softdelete"`
@@ -16,7 +16,7 @@ type Employee struct {
 	FirstName	string `json:"FirstName" bson:"FirstName" datastore:"FirstName"`
 	LastName	string `json:"LastName" bson:"LastName" datastore:"LastName"`
 	EmployeeID	[]string `json:"EmployeeID" bson:"EmployeeID" datastore:"EmployeeID"`
-	Job	Job_Ref `json:"Job" bson:"Job" datastore:"Job"`
+	Job	data.StorableRef `json:"Job" bson:"Job" datastore:"Job"`
 }
 
 func (ent *Employee) Config() *data.StorableConfig {

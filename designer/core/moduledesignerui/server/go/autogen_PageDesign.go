@@ -7,9 +7,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type PageDesign_Ref struct {
   Id    string
-}
+}*/
 
 type PageDesign struct {
 	data.Storable 

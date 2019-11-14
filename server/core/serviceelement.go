@@ -7,24 +7,24 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
-	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"reflect"
 )
 
 type serverService struct {
-	name             string
-	objectName       string
-	service          core.Service
-	conf             config.Config
-	factory          elements.Factory
-	owner            *serviceManager
-	middleware       []*serverService
-	paramValues      map[string]interface{}
-	impl             *serviceImpl
-	svrContext       *serverContext
-	serviceToForward string
-	forward          bool
+	name                 string
+	objectName           string
+	service              core.Service
+	userInvokableService core.UserInvokableService
+	conf                 config.Config
+	factory              elements.Factory
+	owner                *serviceManager
+	middleware           []*serverService
+	paramValues          map[string]interface{}
+	impl                 *serviceImpl
+	svrContext           *serverContext
+	serviceToForward     string
+	forward              bool
 }
 
 func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
@@ -56,6 +56,8 @@ func (svc *serverService) loadMetaData(ctx core.ServerContext) error {
 		return errors.WrapError(ctx, err)
 	}
 
+	svc.userInvokableService, _ = svc.service.(core.UserInvokableService)
+
 	//svc.info = svc.service.Info()
 	log.Trace(ctx, "Service info ", "Name", svc.name, "Info", svc.impl.serviceInfo)
 
@@ -72,11 +74,14 @@ func (svc *serverService) initialize(ctx core.ServerContext, conf config.Config)
 	//inject configurations
 	confsToInject := svc.impl.getConfigurationsToInject()
 	log.Error(ctx, "Setting configurations", "confs", confsToInject)
-	utils.SetObjectFields(svc.service, confsToInject)
+	err := utils.SetObjectFields(ctx, svc.service, confsToInject, nil, nil)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
 	svc.serviceToForward, svc.forward = conf.GetString(ctx, constants.CONF_SERVICE_FORWARD)
 
-	err := svc.service.Initialize(ctx, conf)
+	err = svc.service.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
@@ -149,8 +154,7 @@ func (svc *serverService) injectServices(ctx core.ServerContext, svcsToInject ma
 		svcs[fieldName] = svrsvc
 	}
 	log.Trace(ctx, "Injecting services", "svcs", svcs)
-	utils.SetObjectFields(svc.service, svcs)
-	return nil
+	return utils.SetObjectFields(ctx, svc.service, svcs, nil, nil)
 }
 
 func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]interface{}) (*core.Response, error) {
@@ -162,7 +166,7 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 	}
 	var codec core.Codec
 	if codecname != "" {
-		codec, ok = codecs.GetCodec(codecname)
+		codec, ok = ctx.GetCodec(codecname)
 		if !ok {
 			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
 		}
@@ -239,7 +243,7 @@ func (svc *serverService) invoke(ctx core.RequestContext) error {
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}*/
-		err := svc.service.Invoke(ctx)
+		err := svc.userInvokableService.Invoke(ctx)
 		if err != nil {
 			log.Trace(ctx, "got error ", "service name", svc.name)
 			return errors.WrapError(ctx, err)

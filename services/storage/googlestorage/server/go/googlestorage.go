@@ -104,6 +104,16 @@ func (svc *GoogleStorageSvc) Open(ctx core.RequestContext, bucket, fileName stri
 	return client.Bucket(svc.bucket(bucket)).Object(fileName).NewReader(appengineCtx)
 }
 
+func (svc *GoogleStorageSvc) OpenForWrite(ctx core.RequestContext, bucket, fileName string) (io.WriteCloser, error) {
+	appengineCtx := ctx.GetAppengineContext()
+	client, err := storage.NewClient(appengineCtx)
+	if err != nil {
+		log.Debug(ctx, "Error while opening", "err", err)
+		return nil, errors.WrapError(ctx, err)
+	}
+	return client.Bucket(svc.bucket(bucket)).Object(fileName).NewWriter(appengineCtx), nil
+}
+
 func (svc *GoogleStorageSvc) ServeFile(ctx core.RequestContext, bucket, fileName string) error {
 	ctx.SetResponse(core.NewServiceResponseWithInfo(core.StatusRedirect, svc.GetFullPath(ctx, svc.bucket(bucket), fileName), nil))
 	return nil

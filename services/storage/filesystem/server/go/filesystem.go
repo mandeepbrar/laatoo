@@ -67,6 +67,11 @@ func (svc *FileSystemSvc) Open(ctx core.RequestContext, bucket, fileName string)
 	return os.Open(fullpath)
 }
 
+func (svc *FileSystemSvc) OpenForWrite(ctx core.RequestContext, bucket, fileName string) (io.WriteCloser, error) {
+	fullpath := svc.GetFullPath(ctx, bucket, fileName)
+	return os.Open(fullpath)
+}
+
 func (svc *FileSystemSvc) ServeFile(ctx core.RequestContext, bucket, fileName string) error {
 	path := svc.GetFullPath(ctx, bucket, fileName)
 	log.Trace(ctx, "Serving file", "filename", path)

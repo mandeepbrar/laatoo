@@ -225,11 +225,7 @@ function getFieldType(field) {
       fieldType = "data.Storable"
       break;
     case "storableref":
-      if(field.entity) {
-        fieldType = field.entity +"_Ref"
-      } else {
-        fieldType = "data.StorableRef"
-      }
+      fieldType = "data.StorableRef"
       break;
     break;
     case "entity":

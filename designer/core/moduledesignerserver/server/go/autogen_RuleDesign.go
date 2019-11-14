@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type RuleDesign_Ref struct {
   Id    string
-}
+}*/
 
 type RuleDesign struct {
 	data.Storable 

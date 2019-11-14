@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Task_Ref struct {
   Id    string
-}
+}*/
 
 type Task struct {
 	data.Storable 

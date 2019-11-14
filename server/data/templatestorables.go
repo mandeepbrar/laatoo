@@ -58,7 +58,7 @@ func NewAbstractStorable() *AbstractStorable {
 }
 
 func (as *AbstractStorable) Constructor() {
-	if as.Id != "" {
+	if as.Id == "" {
 		as.Id = uuid.NewV4().String()
 	}
 }
@@ -94,14 +94,14 @@ func (as *AbstractStorable) PostSave(ctx core.RequestContext) error {
 func (as *AbstractStorable) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
-func (as *AbstractStorable) SetValues(obj interface{}, val map[string]interface{}) {
+func (as *AbstractStorable) SetValues(ctx core.RequestContext, obj interface{}, val map[string]interface{}) error {
 	delete(val, "Id")
 	delete(val, "IsNew")
 	delete(val, "CreatedBy")
 	delete(val, "UpdatedBy")
 	delete(val, "CreatedAt")
 	delete(val, "UpdatedAt")
-	utils.SetObjectFields(obj, val)
+	return utils.SetObjectFields(ctx, obj, val, nil, nil)
 }
 
 func (as *AbstractStorable) IsMultitenant() bool {

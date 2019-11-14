@@ -141,6 +141,10 @@ func (ctx *requestContext) PutInCache(bucket string, key string, item interface{
 	}
 }
 
+func (ctx *requestContext) GetCodec(encoding string) (core.Codec, bool) {
+	return ctx.serverContext.GetCodec(encoding)
+}
+
 func (ctx *requestContext) PutMultiInCache(bucket string, vals map[string]interface{}) error {
 	if ctx.cache != nil {
 		return ctx.cache.PutObjects(ctx, bucket, vals)

@@ -56,8 +56,8 @@ func (as *AbstractStorableMT) PostSave(ctx core.RequestContext) error {
 func (as *AbstractStorableMT) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
-func (as *AbstractStorableMT) SetValues(obj interface{}, val map[string]interface{}) {
-	utils.SetObjectFields(obj, val)
+func (as *AbstractStorableMT) SetValues(ctx core.RequestContext, obj interface{}, val map[string]interface{}) error {
+	return utils.SetObjectFields(ctx, obj, val, nil, nil)
 }
 func (as *AbstractStorableMT) IsDeleted() bool {
 	return false

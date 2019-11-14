@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type ParamDesign_Ref struct {
   Id    string
-}
+}*/
 
 type ParamDesign struct {
 	data.Storable 

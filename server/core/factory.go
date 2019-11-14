@@ -56,9 +56,12 @@ func (fac *serviceFactory) initialize(ctx core.ServerContext, conf config.Config
 
 	//inject configuration values
 	confsToInject := fac.impl.getConfigurationsToInject()
-	utils.SetObjectFields(fac.factory, confsToInject)
+	err := utils.SetObjectFields(ctx, fac.factory, confsToInject, nil, nil)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 
-	err := fac.factory.Initialize(ctx, conf)
+	err = fac.factory.Initialize(ctx, conf)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

@@ -127,6 +127,15 @@ func (svc *S3StorageSvc) Open(ctx core.RequestContext, bucket, fileName string) 
 	return object, nil
 }
 
+func (svc *S3StorageSvc) OpenForWrite(ctx core.RequestContext, bucket, fileName string) (io.WriteCloser, error) {
+	/*object, err := svc.minioClient.GetObjectWithContext(ctx, svc.bucket(bucket), fileName, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	return object, nil*/
+	return nil, errors.NotImplemented(ctx, "minio.OpenForWrite")
+}
+
 func (svc *S3StorageSvc) ServeFile(ctx core.RequestContext, bucket, fileName string) error {
 	str, err := svc.Open(ctx, bucket, fileName)
 	if err != nil {

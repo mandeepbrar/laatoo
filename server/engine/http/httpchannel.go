@@ -9,7 +9,6 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"laatoo/server/engine/http/common"
 	"laatoo/server/engine/http/net"
@@ -127,7 +126,7 @@ func (channel *httpChannel) initialize(ctx core.ServerContext) error {
 	if ok {
 		codecname = co.(string)
 	}*/
-	channel.codec, ok = codecs.GetCodec(codecname)
+	channel.codec, ok = ctx.GetCodec(codecname)
 	if !ok {
 		return errors.ThrowError(ctx, errors.CORE_ERROR_CODEC_NOT_FOUND)
 	}

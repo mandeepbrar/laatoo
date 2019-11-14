@@ -5,10 +5,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type Solution_Ref struct {
+/*type Solution_Ref struct {
   Id    string
   Name string
-}
+}*/
 
 type Solution struct {
 	data.Storable `laatoo:"auditable, softdelete, multitenant"`

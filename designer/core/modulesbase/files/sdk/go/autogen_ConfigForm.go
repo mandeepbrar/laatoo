@@ -5,10 +5,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type ConfigForm_Ref struct {
+/*type ConfigForm_Ref struct {
   Id    string
   Title string
-}
+}*/
 
 type ConfigForm struct {
 	data.Storable `laatoo:"auditable, softdelete"`

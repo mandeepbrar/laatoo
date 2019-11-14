@@ -10,9 +10,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type {{#type name}}{{/type}}_Ref struct {
   Id    string
-}
+}*/
 
 type {{#type name}}{{/type}} struct {
 	data.Storable 

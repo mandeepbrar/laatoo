@@ -88,7 +88,10 @@ func (gs *GoogleSearchService) UpdateIndex(ctx core.RequestContext, id string, s
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}
-	utils.SetObjectFields(bs, u)
+	err = utils.SetObjectFields(ctx, bs, u, nil, nil)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
 	log.Info(ctx, "Creating index ***********", "bs", bs, "u", u)
 	_, err = index.Put(appengineCtx, id, bs)
 	if err != nil {

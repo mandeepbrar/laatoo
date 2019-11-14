@@ -7,6 +7,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"strconv"
 	"time"
 )
 
@@ -170,6 +171,13 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 		if encoded {
 			var intVal int
 			err = codec.Unmarshal(ctx, reqBytes, &intVal)
+			if err != nil {
+				var strval string
+				err = codec.Unmarshal(ctx, reqBytes, &strval)
+				if err == nil {
+					intVal, err = strconv.Atoi(strval)
+				}
+			}
 			p.value = intVal
 		} else {
 			p.value, ok = val.(int)

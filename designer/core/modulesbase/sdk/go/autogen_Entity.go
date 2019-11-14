@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Entity_Ref struct {
   Id    string
-}
+}*/
 
 type Entity struct {
 	data.Storable 

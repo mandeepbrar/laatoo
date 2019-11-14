@@ -12,7 +12,6 @@ require (
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/google/btree v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/influxdata/go-syslog v1.0.1
 	github.com/labstack/echo v3.3.10+incompatible
@@ -30,6 +29,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/text v0.3.2
 	google.golang.org/appengine v1.6.2
+	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8
 	google.golang.org/grpc v1.24.0
 	gopkg.in/yaml.v2 v2.2.2
 	laatoo/sdk v0.0.0

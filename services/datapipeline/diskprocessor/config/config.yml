@@ -1,0 +1,40 @@
+version: 0.0.1
+description: 'Module provides csv processing services for data pipeline'
+dependencies: 
+  datapipeline: 0.0.1
+objects:
+  diskimporter:
+    type: service
+    description: Disk store importer service for use by data pipeline. Records are read from the disk
+    configurations:
+      importstorageservice:
+        type: string
+        description: Storage service containing the csv file
+        required: true
+      importstoragebucket:
+        type: string
+        description: Storage bucket containing csv file
+      csvinputfile:
+        type: string
+        description: Name of csv file to import
+      importcsvhasheaders:
+        type: string
+        description: CSV has header records. If CSV has header records, a map is sent into data pipeline
+  diskexporter:
+    type: service
+    description: Writes records to the disk using diskstorer
+    configurations:
+      exportstorageservice:
+        type: string
+        description: Object for which services are being created
+        required: true
+      exportstoragebucket:
+        type: string
+        description: Bucket where csv file has to be stored
+      csvoutputfile:
+        type: string
+        description: Output csv file to be generated
+        required: true
+      exportcsvhasheaders:
+        type: string
+        description: Whether csv file headers have to be generated

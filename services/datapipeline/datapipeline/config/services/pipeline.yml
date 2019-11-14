@@ -1,0 +1,8 @@
+servicemethod: datapipelineservice
+name: {{if exists "pipelinename"}} {{var "pipelinename"}} {{else}} pipeline {{end}}
+datasource: {{var "datasource"}}
+datadestination: {{var "datadestination"}}
+processor: {{if exists "processor"}} {{var "processor"}} {{end}} 
+driver: {{if exists "driver"}} {{var "driver"}} {{end}} 
+errorprocessor: {{if exists "errorprocessor"}} {{var "errorprocessor"}} {{end}} 
+retrysource: {{if exists "retrysource"}} {{var "retrysource"}} {{end}} 

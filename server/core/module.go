@@ -122,9 +122,12 @@ func (mod *serverModule) initWithConf(ctx core.ServerContext, conf config.Config
 
 		//inject configuration values
 		confsToInject := mod.impl.getConfigurationsToInject()
-		utils.SetObjectFields(mod.userModule, confsToInject)
+		err := utils.SetObjectFields(ctx, mod.userModule, confsToInject, nil, nil)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
 
-		err := mod.userModule.Initialize(ctx, conf)
+		err = mod.userModule.Initialize(ctx, conf)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}

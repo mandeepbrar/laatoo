@@ -6,16 +6,17 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type ModuleInstance_Ref struct {
   Id    string
-}
+}*/
 
 type ModuleInstance struct {
 	data.Storable 
   Id    string `json:"Id" bson:"Id" datastore:"Id"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Module	ModuleDefinition_Ref `json:"Module" bson:"Module" datastore:"Module"`
+	Module	data.StorableRef `json:"Module" bson:"Module" datastore:"Module"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
@@ -37,10 +38,10 @@ func (ent *ModuleInstance) GetName()string {
 func (ent *ModuleInstance) SetName(val string) {
 	ent.Name=val
 }
-func (ent *ModuleInstance) GetModule()ModuleDefinition_Ref {
+func (ent *ModuleInstance) GetModule()data.StorableRef {
 	return ent.Module
 }
-func (ent *ModuleInstance) SetModule(val ModuleDefinition_Ref) {
+func (ent *ModuleInstance) SetModule(val data.StorableRef) {
 	ent.Module=val
 }
 func (ent *ModuleInstance) GetLoggingLevel()string {

@@ -188,6 +188,11 @@ func (chanMgr *channelManager) startChannel(ctx core.ServerContext, chanName str
 			return err
 		}
 		proxy := svcProxy.(*serviceProxy)
+
+		if proxy.svc.userInvokableService == nil {
+			return errors.BadConf(ctx, "service", "Error", "Service is not user invokable")
+		}
+
 		svcServeCtx := proxy.svc.svrContext.newContext("Serve: " + proxy.svc.name)
 
 		respHandlerConf, rhpresent := channel.GetContext().Get(constants.CONF_SERVICE_RH)

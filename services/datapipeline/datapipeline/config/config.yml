@@ -1,0 +1,54 @@
+version: 0.0.1
+description: 'Module provides data pipeline factory and service'
+dependencies: {}
+objects:
+  datapipelineservice:
+    type: service
+    configurations:
+      datasource:
+        type: string
+        description: Data source(importer) type to be used for pipeline
+        required: true
+      datadestination:
+        type: string
+        description: Data destination(exporter) type to be used for pipeline
+        required: true
+      processor:
+        type: string
+        description: Processor type to be used for pipeline
+      errorprocessor:
+        type: string
+        description: Error processor type to be used for pipeline
+      retrysource:
+        type: string
+        description: Source from which any entries need to be retried in next passes. e.g. error processor
+    request:
+      params:        
+        Data:
+          type: stringmap        
+        retries:
+          type: int        
+params:
+  datasource: 
+    type: string
+    description: Service to be used as a pipeline data source
+    required: true
+  datadestination: 
+    type: string
+    description: Service to be used as a destination for records
+    required: true
+  processor: 
+    type: string
+    description: Service to be used for processing data pipeline
+  errorprocessor: 
+    type: string
+    description: Error processing service to be used for pipeline
+  retrysource: 
+    type: string
+    description: Source from which any entries need to be retried in next passes. e.g. error processor
+  driver: 
+    type: string
+    description: Driver to be used for data pipeline
+  pipelinename:
+    type: string
+    description: Data pipeline name to set up

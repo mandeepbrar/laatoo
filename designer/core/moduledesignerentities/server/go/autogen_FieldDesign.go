@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type FieldDesign_Ref struct {
   Id    string
-}
+}*/
 
 type FieldDesign struct {
 	data.Storable 

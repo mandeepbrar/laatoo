@@ -9,10 +9,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type {{#type name}}{{/type}}_Ref struct {
+/*type {{#type name}}{{/type}}_Ref struct {
   Id    string
   {{#titleField titleField}}{{/titleField}} string
-}
+}*/
 
 type {{#type name}}{{/type}} struct {
   {{#if multitenant}}

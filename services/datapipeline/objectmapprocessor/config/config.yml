@@ -1,0 +1,20 @@
+version: 0.0.1
+description: 'Module provides csv processing services for data pipeline'
+dependencies: 
+  datapipeline: 0.0.1
+objects:
+  maptoobjectprocessor:
+    type: service
+    description: Convert map to object
+    configurations:
+      object:
+        type: string
+        description: Object to be created after processing map
+        required: true
+      fieldmappings:
+        type: stringmap
+        description: Map containing field mappings from map to object
+        required: true
+  objecttomapprocessor:
+    type: service
+    description: Convert object to map

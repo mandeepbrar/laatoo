@@ -7,17 +7,17 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type Server_Ref struct {
+/*type Server_Ref struct {
   Id    string
   Title string
-}
+}*/
 
 type Server struct {
 	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
 	Description	string `json:"Description" bson:"Description" datastore:"Description"`
-	Solution	laatoositeui.Solution_Ref `json:"Solution" bson:"Solution" datastore:"Solution"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`
 	LoggingLevel	string `json:"LoggingLevel" bson:"LoggingLevel" datastore:"LoggingLevel"`
 	LoggingFormat	string `json:"LoggingFormat" bson:"LoggingFormat" datastore:"LoggingFormat"`
 	Objects	[]string `json:"Objects" bson:"Objects" datastore:"Objects"`

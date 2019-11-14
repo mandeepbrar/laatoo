@@ -7,18 +7,18 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type Entitlement_Ref struct {
+/*type Entitlement_Ref struct {
   Id    string
   Title string
-}
+}*/
 
 type Entitlement struct {
 	data.Storable `laatoo:"auditable, softdelete, multitenant"`
   
 	Name	string `json:"Name" bson:"Name" datastore:"Name"`
-	Solution	laatoositeui.Solution_Ref `json:"Solution" bson:"Solution" datastore:"Solution"`
+	Solution	data.StorableRef `json:"Solution" bson:"Solution" datastore:"Solution"`
 	Local	bool `json:"Local" bson:"Local" datastore:"Local"`
-	Module	modulesbase.ModuleDefinition_Ref `json:"Module" bson:"Module" datastore:"Module"`
+	Module	data.StorableRef `json:"Module" bson:"Module" datastore:"Module"`
 }
 
 func (ent *Entitlement) Config() *data.StorableConfig {

@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Dependency_Ref struct {
   Id    string
-}
+}*/
 
 type Dependency struct {
 	data.Storable 

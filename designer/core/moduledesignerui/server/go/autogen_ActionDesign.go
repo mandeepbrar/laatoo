@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type ActionDesign_Ref struct {
   Id    string
-}
+}*/
 
 type ActionDesign struct {
 	data.Storable 

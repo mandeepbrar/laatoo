@@ -68,8 +68,7 @@ func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 			entVal := reflect.ValueOf(obj).Elem()
 			f := entVal.FieldByName(fieldName)
 			fieldobj := fieldObjFac.CreateObject(ctx)
-			f.Set(reflect.ValueOf(fieldobj))
-			log.Debug(ctx, "setting field of object ", "Object", factory.objectName)
+			f.Set(reflect.ValueOf(fieldobj).Convert(f.Type()))
 		}
 	}
 	log.Debug(ctx, "fields to init of object ", "Object", factory.objectName, "fields", factory.fieldsToInit)

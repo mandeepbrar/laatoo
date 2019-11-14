@@ -8,6 +8,7 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
+	"laatoo/server/codecs"
 	"laatoo/server/common"
 	slog "laatoo/server/log"
 	deflog "log"
@@ -434,6 +435,10 @@ func (ctx *serverContext) setElementReferences(svrelements core.ContextMap, ref 
 
 func (ctx *serverContext) GetServerProperties() map[string]interface{} {
 	return ctx.svrElements.properties
+}
+
+func (ctx *serverContext) GetCodec(encoding string) (core.Codec, bool) {
+	return codecs.GetCodec(encoding)
 }
 
 func (ctx *serverContext) setServerProperties(props map[string]interface{}) {

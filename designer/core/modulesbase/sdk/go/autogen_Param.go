@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Param_Ref struct {
   Id    string
-}
+}*/
 
 type Param struct {
 	data.Storable 

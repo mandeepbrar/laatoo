@@ -7,9 +7,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type ObjectDefinitionDesign_Ref struct {
   Id    string
-}
+}*/
 
 type ObjectDefinitionDesign struct {
 	data.Storable 

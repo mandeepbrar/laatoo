@@ -5,10 +5,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
-type ModuleDesignServer_Ref struct {
+/*type ModuleDesignServer_Ref struct {
   Id    string
   Title string
-}
+}*/
 
 type ModuleDesignServer struct {
 	data.Storable `laatoo:"auditable, softdelete, multitenant"`

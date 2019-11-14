@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Channel_Ref struct {
   Id    string
-}
+}*/
 
 type Channel struct {
 	data.Storable 

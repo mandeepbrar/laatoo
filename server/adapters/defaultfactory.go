@@ -22,7 +22,7 @@ func (mi *DefaultFactory) CreateService(ctx core.ServerContext, name string, met
 	log.Error(ctx, "Created service object", "obj", obj)
 	svc, ok := obj.(core.Service)
 	if !ok {
-		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Conf", method, "obj", obj)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Message", "Configured object is not a service", "Conf", method, "obj", obj)
 	}
 	return svc, nil
 }

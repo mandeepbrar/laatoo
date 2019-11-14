@@ -6,9 +6,10 @@ import (
   "laatoo/sdk/server/components/data"
 )
 
+/*
 type Engine_Ref struct {
   Id    string
-}
+}*/
 
 type Engine struct {
 	data.Storable 
