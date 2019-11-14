@@ -19,7 +19,9 @@ func (proc *memoryErrorsProcessor) Initialize(ctx core.ServerContext, conf confi
 
 func (proc *memoryErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, rec *datapipeline.PipelineRecord) {
 	log.Error(ctx, "Received error record in memory", "rec", rec)
-	proc.records = append(proc.records, rec)
+	if rec.Err != nil {
+		proc.records = append(proc.records, rec)
+	}
 	return
 }
 

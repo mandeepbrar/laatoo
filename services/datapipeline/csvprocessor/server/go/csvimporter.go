@@ -90,6 +90,7 @@ func (imp *csvImporter) GetRecords(ctx core.RequestContext, initData map[string]
 				}
 				if !empty {
 					header = record
+					checkExcelBytes(header)
 				}
 			} else {
 				if len(record) < len(header) {
@@ -109,4 +110,13 @@ func (imp *csvImporter) GetRecords(ctx core.RequestContext, initData map[string]
 	}
 	log.Error(ctx, "Closing get records")
 	return nil
+}
+
+func checkExcelBytes(header []string) {
+	firstColumn := header[0]
+	if len(firstColumn) > 3 {
+		if firstColumn[0] == 239 {
+			header[0] = firstColumn[3:]
+		}
+	}
 }

@@ -73,14 +73,14 @@ func (as *AbstractStorable) GetId() string {
 func (as *AbstractStorable) SetId(val string) {
 	as.Id = val
 }
-func (as *AbstractStorable) GetLabel() string {
-	c := as.Config()
+
+func (as *AbstractStorable) GetLabel(ctx core.RequestContext, i interface{}) string {
+	stor := i.(data.Storable)
+	c := stor.Config()
 	if c != nil && c.LabelField != "" {
-		v := reflect.ValueOf(c)
+		v := reflect.ValueOf(stor).Elem()
 		f := v.FieldByName(c.LabelField)
-		if !f.IsNil() {
-			return f.String()
-		}
+		return f.String()
 	}
 	return ""
 }

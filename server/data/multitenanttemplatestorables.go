@@ -35,14 +35,14 @@ func (as *AbstractStorableMT) GetId() string {
 func (as *AbstractStorableMT) SetId(val string) {
 	as.Id = val
 }
-func (as *AbstractStorableMT) GetLabel() string {
-	c := as.Config()
+
+func (as *AbstractStorableMT) GetLabel(ctx core.RequestContext, i interface{}) string {
+	stor := i.(data.Storable)
+	c := stor.Config()
 	if c != nil && c.LabelField != "" {
-		v := reflect.ValueOf(c)
+		v := reflect.ValueOf(stor).Elem()
 		f := v.FieldByName(c.LabelField)
-		if !f.IsNil() {
-			return f.String()
-		}
+		return f.String()
 	}
 	return ""
 }

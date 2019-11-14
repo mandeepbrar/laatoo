@@ -9,7 +9,6 @@ import (
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
-	"laatoo/sdk/server/log"
 )
 
 type mapToObjectProcessor struct {
@@ -18,7 +17,7 @@ type mapToObjectProcessor struct {
 	mappings      config.Config
 	fieldmappings map[string]string
 	lookups       map[string]utils.LookupFunc
-	lookupfields map[string]
+	lookupfields  map[string]string
 }
 
 func (proc *mapToObjectProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
@@ -64,7 +63,7 @@ func (proc *mapToObjectProcessor) Initialize(ctx core.ServerContext, conf config
 						if !ok {
 							return errors.BadConf(ctx, "fieldmappings", "Message", "Lookup data service incorrect", "mapfield", mapfield, "detail", "wrong 'dataservice'")
 						}
-						proc.lookups[mapField] = proc.getLookup(ctx, dataComp)
+						proc.lookups[objField] = proc.getLookup(ctx, dataComp)
 					}
 				} else {
 					return errors.BadConf(ctx, "fieldmappings", "Message", "Lookup data service incorrect", "mapfield", mapfield, "detail", "missing 'field'")
@@ -102,14 +101,16 @@ func (proc *mapToObjectProcessor) getLookup(ctx core.ServerContext, dataComp dat
 		reqCtx := ctx.(core.RequestContext)
 		var stor data.Storable
 		var err error
-		lookupfield, ok := proc.lookupfields
+		lookupfield, ok := proc.lookupfields[name]
 		if ok {
-			cond := dataComp.CreateCondition(ctx, data.FIELDVALUE, lookupfield, strVal)
-			stors, _,_, recs, err := dataComp.Get(ctx, cond, -1, -1, ", nil")
+			cond, err := dataComp.CreateCondition(reqCtx, data.FIELDVALUE, map[string]interface{}{lookupfield: strVal})
 			if err == nil {
-				if recs > 0 {
-					stor = stors[0]
-				} 
+				stors, _, _, recs, err := dataComp.Get(reqCtx, cond, -1, -1, "", nil)
+				if err == nil {
+					if recs > 0 {
+						stor = stors[0]
+					}
+				}
 			}
 		} else {
 			stor, err = dataComp.GetById(reqCtx, strVal)
@@ -120,7 +121,6 @@ func (proc *mapToObjectProcessor) getLookup(ctx core.ServerContext, dataComp dat
 		if stor == nil {
 			return nil, fmt.Errorf("Lookup resource not found. Id : %s", strVal)
 		}
-		log.Error(reqCtx, "looked up object", "stor", stor, "err", err, "id", strVal)
-		return &data.StorableRef{Id: stor.GetId(), Type: dataComp.GetObject(), Name: stor.GetLabel()}, nil
+		return data.StorableRef{Id: stor.GetId(), Type: dataComp.GetObject(), Name: stor.GetLabel(reqCtx, stor)}, nil
 	}
 }
