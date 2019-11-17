@@ -91,6 +91,8 @@ require (
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8	// indirect
 	google.golang.org/grpc v1.24.0
 	github.com/gogo/protobuf v1.3.1
+	github.com/valyala/fastjson v1.4.1
+
 	go.mongodb.org/mongo-driver v1.1.3
 )
 

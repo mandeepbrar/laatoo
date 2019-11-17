@@ -45,9 +45,8 @@ func (eng *wsEngine) Initialize(ctx core.ServerContext, conf config.Config) erro
 
 	codec, ok := conf.GetString(ctx, constants.CONF_ENGINE_CODEC)
 
-	if codec == "fastjson" {
-		eng.codec = codecs.NewFastJsonCodec()
-	} else {
+	eng.codec, ok = ctx.GetCodec(codec)
+	if !ok {
 		eng.codec = codecs.NewJsonCodec()
 	}
 

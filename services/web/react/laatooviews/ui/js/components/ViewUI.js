@@ -57,7 +57,10 @@ getFilter(view, filterTitle, filterForm, filterGo, filter) {
     methods.loadMore();
   }
   getView(header, groups, pagination, filter) {
-
+    console.log("view ui getView", this.props)
+    if(this.props.contentsOnly) {
+      return groups
+    }
     if(this.props.getView) {
         return this.props.getView(this, header, groups, pagination, filter, this.props)
     }

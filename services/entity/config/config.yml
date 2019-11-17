@@ -131,6 +131,9 @@ params:
   list_view_mode:
     type: string
     description: List view mode 
+  list_view_header:
+    type: string
+    description: List view header 
   create_dataservice:
     type: bool
     description: Data service for object

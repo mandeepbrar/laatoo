@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import PropTypes from 'prop-types';
 import {Action, Menu} from 'reactwebcommon';
 
@@ -24,7 +24,7 @@ class Panel extends React.Component {
           desc = _reg('Forms', id)
           break;
         case "block":
-          desc = _reg('Blocks', id)
+          //desc = _reg('Blocks', id)          
           break;
         case "menu":
           desc = _reg('Menus', id)
@@ -34,7 +34,7 @@ class Panel extends React.Component {
         default:
           desc = _reg('Panels', id)
       }
-      console.log("desc before assig", desc, props, id, type, Application)
+      console.log("desc before assigne", props.description, props, id, type, Application)
       desc = Object.assign({type: type, id: id}, desc)
       console.log("desc after assign", desc, desc.info, panelInfo)
       desc.info = Object.assign({}, desc.info, panelInfo)
@@ -121,6 +121,7 @@ class Panel extends React.Component {
       }
     }
     console.log("class name", this.className, className, desc)
+    this.state = {expanded: false, overlayComponent:null}
     this.className = className
   }
 
@@ -212,14 +213,38 @@ class Panel extends React.Component {
 
   processBlock = (desc, props, ctx) => {
     var display = this.getDisplayFunc(desc, props)
+    var expansionDisplay = null
+    var expansionDesc = null
+    if(desc.expansionBlock){
+      expansionDesc = {id: desc.expansionBlock, type: "block"}
+      expansionDisplay = this.getDisplayFunc(expansionDesc)
+    }
     this.cfgPanel(desc.title, desc.overlay)
     console.log("processing block", desc, display, props)
+    //this.state = 
+    //const [expanded, expand] = useState(false);
     let panel=this
+    let expand=function(expand) {
+      console.log("expanding", panel.state)
+      panel.setState(Object.assign({}, panel.state, {expanded: !panel.state.expanded}))
+    }
     if(display) {
       this.getView = function(props, ctx, state, className) {
-        console.log("calling block func", props, ctx, className)
-        let retval = display({data: props.data, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage}, desc)
-        console.log("returning block retval", retval)
+        console.log("use stat", useState, state, expand);
+        console.log("calling block func", props, ctx, state, className, state.expanded)
+        let expandedComp = props.expanded
+        if ((expandedComp != null) && (expandedComp == false)) {
+          return null
+        }
+        let blockCtx = {data: props.data, expanded: state.expanded, expand: expand, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage, state: state}
+        console.log("block blockCtx", blockCtx, "desc", desc, "expansionDesc", expansionDesc)
+        let retval = display(blockCtx, desc)
+        if(state.expanded && expansionDisplay){
+          return [retval, expansionDisplay(blockCtx, expansionDesc)]
+        }
+        if(retval && props.contentOnly) {
+          return retval.children
+        }
         return retval
       }
     } else {
@@ -307,12 +332,13 @@ class Panel extends React.Component {
     if(!this.view) {
       this.view = _res("laatooviews", "View")
     }
+    let postArgs = _tn(props.postArgs, desc.postArgs)
     console.log("processing view", this.view)
 
     this.getView = function(props, context, state, className) {
-      console.log("rendering view", this.view, props, desc, className)
+      console.log("rendering view", this.view, props, desc, className, postArgs)      
       return <this.view params={props.params} description={desc} getItem={props.getItem} editable={props.editable} className={className} header={viewHeader}
-        viewRef={props.viewRef} postArgs={props.postArgs} urlParams={props.urlParams} id={desc.id}>
+        viewRef={props.viewRef} postArgs={postArgs} urlParams={props.urlParams} id={desc.id} instance={props.instance}>
         <Panel parent={props.parent} description={desc.item} />
       </this.view>
     }
@@ -364,7 +390,7 @@ class Panel extends React.Component {
   overlayComponent = (comp) => {
     console.log("overlaying component")
     if(this.overlay) {
-      this.setState(Object.assign({}, {overlayComponent: comp}))
+      this.setState(Object.assign({}, this.state, {overlayComponent: comp}))
     } else {
       if(this.context && this.context.overlayComponent) {
         this.context.overlayComponent(comp)
@@ -374,7 +400,7 @@ class Panel extends React.Component {
 
   closeOverlay = () => {
     if(this.overlay) {
-      this.setState({})
+      this.setState({}, this.state, {overlayComponent: null})
     } else {
       if(this.context && this.context.closeOverlay) {
         this.context.closeOverlay()

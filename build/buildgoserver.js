@@ -35,26 +35,60 @@ function buildGoObjects(nextTask) {
   
     fs.mkdirsSync(outputFolder)
 
-    let fileToBuild = sprintf('%s/%s.so', outputFolder, name)
-
-    let optionsArr = ["build", "-buildmode=plugin", "-o", fileToBuild]
     /*let srcfileslist = fs.readdirSync(serverGoSrcFolder)
     srcfileslist.forEach((file)=> {
       optionsArr.push(path.join(serverGoSrcFolder, file));
     })*/
     //optionsArr.push();
+
+    /*let optionsArr = ["-o", "autogen_serialization.generated.go", "-r", " autogen_*.go"]
+
+    log("running codecgen")    
+    
+    let res = spawnSync("codecgen", optionsArr, {cwd: serverGoSrcFolder})
+    if(res.status !== 0) {
+      shell.echo('codecgen unsuccessful');
+      if(res.stdout != null) {
+        shell.echo("Res", res.stdout.toString())
+      }
+      if(res.stderr != null) {
+        shell.echo("Err", res.stderr.toString())      
+      }
+      shell.exit(1);
+    } else {
+      log('codecgen successfull.');
+      if(res.stdout != null) {
+        shell.echo("Res", res.stdout.toString())
+      }
+      if(res.stderr != null) {
+        shell.echo("Err", res.stderr.toString())      
+      }
+    } */     
+
+    let fileToBuild = sprintf('%s/%s.so', outputFolder, name)
+
+    let optionsArr = ["build", "-buildmode=plugin", "-o", fileToBuild]
+
     log("running go compile command")
     let res = spawnSync("go", optionsArr, {cwd: serverGoSrcFolder})
     if(res.status !== 0) {
-      shell.echo('Golang build unsuccessful');
-      shell.echo("Res", res.stdout.toString())
-      shell.echo("Err", res.stderr.toString())      
+      shell.echo('Golang build unsuccessful', res.status);
+      if(res.stdout != null) {
+        shell.echo("Res", res.stdout.toString())
+      }
+      if(res.stderr != null) {
+        shell.echo("Err", res.stderr.toString())      
+      }
       shell.exit(1);
     } else {
       let fileBuilt = fs.pathExistsSync(fileToBuild)
       log('Golang compilation successfull. Output to', outputFolder, "File built", fileBuilt);
-      log(res.stdout.toString())
-      log(res.stderr.toString())
+      if(res.stdout != null) {
+        shell.echo("Res", res.stdout.toString())
+      }
+      if(res.stderr != null) {
+        shell.echo("Err", res.stderr.toString())      
+      }
       fs.pathExistsSync(fileToBuild)
       nextTask()
     }      

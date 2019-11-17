@@ -33,6 +33,7 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 				}
 			}
 			if resp.Data != nil {
+				log.Debug(ctx, "Returning request without content", "data", resp.Data)
 				return engineContext.JSON(http.StatusOK, resp.Data)
 			} else {
 				log.Debug(ctx, "Returning request without content")

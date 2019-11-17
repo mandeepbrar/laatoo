@@ -45,3 +45,4 @@ USER laatoo:laatoo
 WORKDIR /go
 
 ENTRYPOINT node /build/build.js --overwriteJSMods $overwriteJSMods --forceUIModules $forceUIModules --release $release --skipUI $skipUI --verbose $verbose --printUIConfig $printUIConfig --name $name --packageFolder $packageFolder --getBuildPackages $getBuildPackages --skipObjects $skipObjects --uionly $uionly --norust $norust --nobundle $nobundle 
+

@@ -50,7 +50,8 @@ func (m *SerializableBase) String() string { return proto.CompactTextString(m) }
 func (*SerializableBase) ProtoMessage() {}
 
 type AbstractStorable struct {
-	Id string `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Id    string        `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	P_ref proto.Message `json:"-" bson:"-" sql:"-"`
 }
 
 func NewAbstractStorable() *AbstractStorable {
@@ -120,17 +121,32 @@ func (as *AbstractStorable) GetTenant() string {
 func (as *AbstractStorable) SetTenant(tenant string) {
 }
 
-func (b *AbstractStorable) Reset() {
-	*b = reflect.New(reflect.TypeOf(b).Elem()).Elem().Interface().(AbstractStorable)
-	//	b.Id = uuid.NewV4().String()
+func (as *AbstractStorable) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	return rdr.ReadString(c, cdc, "Id", &as.Id)
 }
 
-func (m *AbstractStorable) String() string { return proto.CompactTextString(m) }
+func (as *AbstractStorable) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
+	_, ok := props["Id"]
+	if ok {
+		return rdr.ReadString(c, cdc, "Id", &as.Id)
+	}
+	return nil
+}
 
-func (*AbstractStorable) ProtoMessage() {}
+func (as *AbstractStorable) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	return wtr.WriteString(c, cdc, "Id", &as.Id)
+}
+
+func (as *AbstractStorable) WriteProps(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter, props map[string]interface{}) error {
+	_, ok := props["Id"]
+	if ok {
+		return wtr.WriteString(c, cdc, "Id", &as.Id)
+	}
+	return nil
+}
 
 type SoftDeleteStorable struct {
-	*AbstractStorable `json:",inline"  laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	Deleted           bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
@@ -144,8 +160,44 @@ func (sds *SoftDeleteStorable) SoftDeleteField() string {
 	return "Deleted"
 }
 
+func (sds *SoftDeleteStorable) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	if err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted); err != nil {
+		return err
+	}
+	return sds.AbstractStorable.ReadAll(c, cdc, rdr)
+}
+
+func (sds *SoftDeleteStorable) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
+	_, ok := props["Deleted"]
+	if ok {
+		err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted)
+		if err != nil {
+			return err
+		}
+	}
+	return sds.AbstractStorable.ReadProps(c, cdc, rdr, props)
+}
+
+func (sds *SoftDeleteStorable) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	if err := wtr.WriteBool(c, cdc, "Deleted", &sds.Deleted); err != nil {
+		return err
+	}
+	return sds.AbstractStorable.WriteAll(c, cdc, wtr)
+}
+
+func (sds *SoftDeleteStorable) WriteProps(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter, props map[string]interface{}) error {
+	_, ok := props["Id"]
+	if ok {
+		err := wtr.WriteBool(c, cdc, "Deleted", &sds.Deleted)
+		if err != nil {
+			return err
+		}
+	}
+	return sds.AbstractStorable.WriteProps(c, cdc, wtr, props)
+}
+
 type HardDeleteAuditable struct {
-	*AbstractStorable `json:",inline"  laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	New               bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy         string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy         string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -192,8 +244,128 @@ func (hda *HardDeleteAuditable) GetCreatedBy() string {
 	return hda.CreatedBy
 }
 
+func (hda *HardDeleteAuditable) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	var err error
+	if err = rdr.ReadBool(c, cdc, "IsNew", &hda.New); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy); err != nil {
+		return err
+	}
+	if err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt); err != nil {
+		return err
+	}
+	if err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt); err != nil {
+		return err
+	}
+	return hda.AbstractStorable.ReadAll(c, cdc, rdr)
+}
+
+func (hda *HardDeleteAuditable) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
+	var err error
+	_, ok := props["IsNew"]
+	if ok {
+		err = rdr.ReadBool(c, cdc, "IsNew", &hda.New)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedBy"]
+	if ok {
+		err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedBy"]
+	if ok {
+		err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedAt"]
+	if ok {
+		err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedAt"]
+	if ok {
+		err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	return hda.AbstractStorable.ReadProps(c, cdc, rdr, props)
+}
+
+func (hda *HardDeleteAuditable) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	var err error
+	if err = wtr.WriteBool(c, cdc, "IsNew", &hda.New); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "CreatedBy", &hda.CreatedBy); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "UpdatedBy", &hda.UpdatedBy); err != nil {
+		return err
+	}
+	if err = wtr.WriteTime(c, cdc, "CreatedAt", &hda.CreatedAt); err != nil {
+		return err
+	}
+	if err = wtr.WriteTime(c, cdc, "UpdatedAt", &hda.UpdatedAt); err != nil {
+		return err
+	}
+	return hda.AbstractStorable.WriteAll(c, cdc, wtr)
+}
+
+func (hda *HardDeleteAuditable) WriteProps(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter, props map[string]interface{}) error {
+	_, ok := props["IsNew"]
+	var err error
+	if ok {
+		err = wtr.WriteBool(c, cdc, "IsNew", &hda.New)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedBy"]
+	if ok {
+		err = wtr.WriteString(c, cdc, "CreatedBy", &hda.CreatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedBy"]
+	if ok {
+		err = wtr.WriteString(c, cdc, "UpdatedBy", &hda.UpdatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedAt"]
+	if ok {
+		err = wtr.WriteTime(c, cdc, "CreatedAt", &hda.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedAt"]
+	if ok {
+		err = wtr.WriteTime(c, cdc, "UpdatedAt", &hda.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	return hda.AbstractStorable.WriteProps(c, cdc, wtr, props)
+}
+
 type SoftDeleteAuditable struct {
-	*SoftDeleteStorable `json:",inline" laatoo:"initialize=SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
+	*SoftDeleteStorable `json:",inline"  bson:",inline" laatoo:"initialize=SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
 	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -238,4 +410,124 @@ func (sda *SoftDeleteAuditable) SetCreatedBy(val string) {
 }
 func (sda *SoftDeleteAuditable) GetCreatedBy() string {
 	return sda.CreatedBy
+}
+
+func (sda *SoftDeleteAuditable) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	var err error
+	if err = rdr.ReadBool(c, cdc, "IsNew", &sda.New); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy); err != nil {
+		return err
+	}
+	if err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy); err != nil {
+		return err
+	}
+	if err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt); err != nil {
+		return err
+	}
+	if err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt); err != nil {
+		return err
+	}
+	return sda.SoftDeleteStorable.ReadAll(c, cdc, rdr)
+}
+
+func (sda *SoftDeleteAuditable) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
+	var err error
+	_, ok := props["IsNew"]
+	if ok {
+		err = rdr.ReadBool(c, cdc, "IsNew", &sda.New)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedBy"]
+	if ok {
+		err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedBy"]
+	if ok {
+		err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedAt"]
+	if ok {
+		err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedAt"]
+	if ok {
+		err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	return sda.SoftDeleteStorable.ReadProps(c, cdc, rdr, props)
+}
+
+func (sda *SoftDeleteAuditable) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	var err error
+	if err = wtr.WriteBool(c, cdc, "IsNew", &sda.New); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "CreatedBy", &sda.CreatedBy); err != nil {
+		return err
+	}
+	if err = wtr.WriteString(c, cdc, "UpdatedBy", &sda.UpdatedBy); err != nil {
+		return err
+	}
+	if err = wtr.WriteTime(c, cdc, "CreatedAt", &sda.CreatedAt); err != nil {
+		return err
+	}
+	if err = wtr.WriteTime(c, cdc, "UpdatedAt", &sda.UpdatedAt); err != nil {
+		return err
+	}
+	return sda.SoftDeleteStorable.WriteAll(c, cdc, wtr)
+}
+
+func (sda *SoftDeleteAuditable) WriteProps(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter, props map[string]interface{}) error {
+	_, ok := props["IsNew"]
+	var err error
+	if ok {
+		err = wtr.WriteBool(c, cdc, "IsNew", &sda.New)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedBy"]
+	if ok {
+		err = wtr.WriteString(c, cdc, "CreatedBy", &sda.CreatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedBy"]
+	if ok {
+		err = wtr.WriteString(c, cdc, "UpdatedBy", &sda.UpdatedBy)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["CreatedAt"]
+	if ok {
+		err = wtr.WriteTime(c, cdc, "CreatedAt", &sda.CreatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	_, ok = props["UpdatedAt"]
+	if ok {
+		err = wtr.WriteTime(c, cdc, "UpdatedAt", &sda.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	return sda.SoftDeleteStorable.WriteProps(c, cdc, wtr, props)
 }

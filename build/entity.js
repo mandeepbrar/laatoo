@@ -87,7 +87,9 @@ function sdkFolder(name) {
   return sdkFolder
 }
 
-
+function goFolder() {
+  return path.join(pluginFolder, "server", "go")  
+}
 
 function createEntity(entityJson, filename) {
   let entityname = entityJson["name"];
@@ -100,6 +102,15 @@ function createEntity(entityJson, filename) {
   } else {
     createEntityImpl(entityJson, entityname, goFolder(name));
   }
+}
+
+function addImport(entityJson, importName) {
+  let imports = entityJson.imports
+  if (imports == null) {
+    let imports = []
+    entityJson.imports = imports
+  }
+  imports.push(importName)
 }
 
 function createEntityImpl(entityJson, entityname, folder) {
@@ -124,6 +135,15 @@ function createEntityImpl(entityJson, entityname, folder) {
   Handlebars.registerHelper('fields', fields);
   Handlebars.registerHelper('collection', collection);
   Handlebars.registerHelper('fieldFuncs', fieldFuncs);
+  Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
+  Handlebars.registerHelper('fieldReadProps', fieldReadProps);
+  Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
+  Handlebars.registerHelper('fieldWriteProps', fieldWriteProps);  
+  /*let requireBytes = bytesRequired(entityJson.fields) 
+  if(requireBytes) {
+    addImport(entityJson,"bytes")
+  }*/
+
   var template = Handlebars.compile(buf.toString());
   let gofile = template(entityJson)
   if (fs.pathExistsSync(filepath)) {
@@ -149,12 +169,30 @@ function createEntityInterface(entityJson, entityname, folder) {
   Handlebars.registerHelper('fields', fields);
   Handlebars.registerHelper('collection', collection);
   Handlebars.registerHelper('fieldFuncDefs', fieldFuncDefs);
+  Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
+  Handlebars.registerHelper('fieldReadProps', fieldReadProps);
+  Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
+  Handlebars.registerHelper('fieldWriteProps', fieldWriteProps);  
+  /*let requireBytes = bytesRequired(entityJson.fields) 
+  if(requireBytes) {
+    addImport(entityJson,"bytes")
+  }*/
+  
   var template = Handlebars.compile(buf.toString());
   let gofile = template(entityJson)
   if (fs.pathExistsSync(destFile)) {
     fs.removeSync(destFile)
   }
   fs.writeFileSync(destFile, gofile)
+}
+
+
+function genfiles(entities) {
+  let str = ""
+  Object.keys(entities).forEach(function(entity) {
+      str = sprintf("%s autogen_%s.go ", str, entity)
+  });
+  return str
 }
 
 
@@ -186,10 +224,282 @@ function createManifest(entities, name, pluginFolder) {
   }
   var buf = fs.readFileSync(path.join(buildFolder,'/tpl/objects.go.tpl'));
   Handlebars.registerHelper('plugins', plugins);
+  Handlebars.registerHelper('genfiles', genfiles);
+  Handlebars.registerHelper('goFolder', goFolder);
   var template = Handlebars.compile(buf.toString());
   let gofile = template({"entities": entities, "name": name, "hasSDK": hasSdk})
   fs.writeFileSync(objectspath, gofile)
   
+}
+
+/*
+function bytesRequired(fields) {
+  let requireBytes = false
+  Object.values(fields).forEach(function(field) {
+    let func = getFieldSerializationFunc(field)    
+    if(func == "Object") {
+      requireBytes = true
+    }
+  });
+  return requireBytes
+}*/
+
+
+function fieldReadAlls(fields) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let func = getFieldSerializationFunc(field)    
+    let fieldType = getFieldType(field)    
+    let entity = field.entity? field.entity: "";
+    let readAll = `
+    if err = rdr.Read%s(c, cdc, "%s", &ent.%s); err != nil {
+      return err
+    }
+    `  
+    if(func != "Object") {
+      fieldsStr = fieldsStr + sprintf(readAll, func, fieldName, fieldName)
+    } else {
+      readAll = `
+      {
+        objRdr, err := rdr.ReadObject(c, cdc, "%s", nil)
+        if err != nil {
+          return err
+        }
+        obj, err := c.(core.RequestContext).CreateObject("%s")
+        if err != nil {
+          return err
+        }
+        srl, ok := obj.(core.Serializable)
+        if ok {
+          err =srl.ReadAll(c, cdc, objRdr)
+          if err != nil {
+            return err
+          }
+        } else {
+          byts, err := objRdr.ReadBytes(c, cdc)
+          if err != nil {
+            return err
+          }
+          err = cdc.Unmarshal(c, byts, obj)
+          if err != nil {
+            return err
+          }
+        }
+        ent.%s = obj.(%s)
+      }
+      `  
+      fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldType)
+    }
+  });
+
+  return fieldsStr
+}
+
+function fieldReadProps(fields) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let func = getFieldSerializationFunc(field)    
+    let fieldType = getFieldType(field)    
+    let entity = field.entity? field.entity: "";
+    let readProps = `
+    _, ok = props["%s"]
+    if ok {
+      err = rdr.Read%s(c, cdc, "%s", &ent.%s)
+      if err != nil {
+        return err
+      }
+    }
+    `  
+    if(func != "Object") {
+      fieldsStr = fieldsStr + sprintf(readProps, fieldName, func, fieldName, fieldName)
+    } else {
+      readProps = `
+      _, ok = props["%s"]
+      if ok {
+          objRdr, err := rdr.ReadObject(c, cdc, "%s")
+          if err != nil {
+            return err
+          }
+          obj, err := c.(core.RequestContext).CreateObject("%s")
+          if err != nil {
+            return err
+          }
+          srl, ok := obj.(core.Serializable)
+          if ok {
+            err =srl.ReadProps(c, cdc, objRdr, props)
+            if err != nil {
+              return err
+            }
+          } else {
+            byts, err := objRdr.ReadBytes(c, cdc)
+            if err != nil {
+              return err
+            }
+            err = cdc.Unmarshal(c, byts, obj)
+            if err != nil {
+              return err
+            }
+          }
+          ent.%s = obj.(%s)
+        }  
+      `  
+      fieldsStr = fieldsStr + sprintf(readProps, fieldName, fieldName, entity, fieldName, fieldType)
+    }
+  });
+  return fieldsStr
+}
+
+function fieldWriteAlls(fields) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let func = getFieldSerializationFunc(field)    
+    let writeAll = `
+    if err = wtr.Write%s(c, cdc, "%s", &ent.%s); err != nil {
+      return err
+    }
+    `  
+    if(func != "Object") {
+      fieldsStr = fieldsStr + sprintf(writeAll, func, fieldName, fieldName)
+    } else {
+      writeAll = `
+        {
+          objWtr, _, err := wtr.WriteObject(c, cdc, "%s")
+          if err != nil {
+            return err
+          }
+          var objToWrite interface{}
+          objToWrite = ent.%s
+          srl, ok := objToWrite.(core.Serializable)
+          if ok {
+            err =srl.WriteAll(c, cdc, objWtr)
+            if err != nil {
+              return err
+            }
+          } else {
+            byts, err := cdc.Marshal(c, objToWrite)
+            if err != nil {
+              return err
+            }
+            err = objWtr.WriteBytes(c, cdc, &byts)
+            if err != nil {
+              return err
+            }
+          }
+        }
+  
+      `  
+      fieldsStr = fieldsStr + sprintf(writeAll, fieldName, fieldName)      
+    }
+  });
+  return fieldsStr
+}
+
+function fieldWriteProps(fields) {
+  var fieldsStr = ""
+  Object.keys(fields).forEach(function(fieldName) {
+    let field = fields[fieldName]
+    let func = getFieldSerializationFunc(field)    
+    let writeProps = `
+    _, ok = props["%s"]
+    if ok {
+      err = wtr.Write%s(c, cdc, "%s", &ent.%s)
+      if err != nil {
+        return err
+      }
+    }
+      `  
+    if(func != "Object") {
+      fieldsStr = fieldsStr + sprintf(writeProps, fieldName, func, fieldName, fieldName)
+    } else {
+      writeProps = `
+      _, ok = props["%s"]
+      if ok {
+          objWtr, err := wtr.WriteObject(c, cdc, "%s")
+          if err != nil {
+            return err
+          }
+          var objToWrite interface{}
+          objToWrite = ent.%s
+          srl, ok := objToWrite.(core.Serializable)
+          if ok {
+            err =srl.WriteProps(c, cdc, objWtr)
+            if err != nil {
+              return err
+            }
+          } else {
+            byts, err := cdc.Marshal(c, objToWrite)
+            if err != nil {
+              return err
+            }
+            err = objWtr.WriteBytes(c, cdc, &byts)
+            if err != nil {
+              return err
+            }
+          }
+        }
+  
+      `  
+      fieldsStr = fieldsStr + sprintf(fieldName, writeProps, fieldName, fieldName)      
+    }
+  });
+  return fieldsStr
+}
+
+
+function getFieldSerializationFunc(field) {
+  let fieldType = field.type
+  if(field.list) {
+    return "Array"
+  }
+  switch (fieldType) {
+    case "string":
+      fieldType = "String"
+      break;
+    case "bool":
+      fieldType = "Bool"
+      break;
+    case "time":
+      fieldType = "Time"
+      break;
+    case "int":
+      fieldType = "Int"
+      break;
+    case "int64":
+      fieldType = "Int64"
+      break;
+    case "float32":
+      fieldType = "Float32"
+      break;
+    case "float64":
+      fieldType = "Float64"
+      break;
+    case "any":
+      fieldType = "Object"
+      break;
+    case "storable":
+      fieldType = "Object"
+      break;
+    case "storableref":
+      fieldType = "Object"
+      break;
+    break;
+    case "entity":
+      fieldType = "Object"
+    break;
+    case "subentity":
+      fieldType = "Object"
+      break;
+    case "stringmap":
+      fieldType = "Map"
+      break;
+    case "stringsmap":
+      fieldType = "Map"
+    break;
+  }
+  return fieldType  
 }
 
 function fieldFuncDefs(fields) {

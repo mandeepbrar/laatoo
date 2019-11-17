@@ -299,7 +299,7 @@ func (svcMgr *serviceManager) initializeServices(ctx core.ServerContext, service
 	return nil
 }
 
-func (svcMgr *serviceManager) createModuleServices(ctx core.ServerContext, mod *serverModule) error {
+func (svcMgr *serviceManager) createModuleServices(ctx core.ServerContext, mod *serverModule) (map[string]*serviceProxy, error) {
 	ctx = ctx.SubContext("Start module services " + mod.name)
 	services := make(map[string]*serviceProxy)
 	if mod.services != nil {
@@ -308,16 +308,12 @@ func (svcMgr *serviceManager) createModuleServices(ctx core.ServerContext, mod *
 			log.Info(svcCtx, "Creating Service", "name", svcName)
 			svc, err := svcMgr.createService(svcCtx, svcConfig, svcName)
 			if err != nil {
-				return errors.WrapError(svcCtx, err)
+				return nil, errors.WrapError(svcCtx, err)
 			}
 			services[svcName] = svc
 		}
 	}
-	err := svcMgr.initializeServices(ctx, services)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	return nil
+	return services, nil
 }
 
 func (svcMgr *serviceManager) unloadModuleServices(ctx core.ServerContext, mod *serverModule) error {

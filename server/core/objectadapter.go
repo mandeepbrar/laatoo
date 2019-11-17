@@ -65,10 +65,15 @@ func (factory *objectFactory) CreateObject(ctx ctx.Context) interface{} {
 func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 	if factory.fieldsToInit != nil {
 		for fieldName, fieldObjFac := range factory.fieldsToInit {
-			entVal := reflect.ValueOf(obj).Elem()
-			f := entVal.FieldByName(fieldName)
+			entVal := reflect.ValueOf(obj)
+			f := entVal.Elem().FieldByName(fieldName)
 			fieldobj := fieldObjFac.CreateObject(ctx)
-			f.Set(reflect.ValueOf(fieldobj).Convert(f.Type()))
+			fobj := reflect.ValueOf(fieldobj)
+			pref := fobj.Elem().FieldByName("P_ref")
+			if pref.IsValid() {
+				pref.Set(entVal.Convert(pref.Type()))
+			}
+			f.Set(fobj.Convert(f.Type()))
 		}
 	}
 	log.Debug(ctx, "fields to init of object ", "Object", factory.objectName, "fields", factory.fieldsToInit)

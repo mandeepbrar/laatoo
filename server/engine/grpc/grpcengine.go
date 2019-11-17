@@ -42,9 +42,8 @@ func (eng *grpcEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	codec, ok := conf.GetString(ctx, constants.CONF_ENGINE_CODEC)
 
-	if codec == "fastjson" {
-		eng.codec = codecs.NewFastJsonCodec()
-	} else {
+	eng.codec, ok = ctx.GetCodec(codec)
+	if !ok {
 		eng.codec = codecs.NewProtobufCodec()
 	}
 

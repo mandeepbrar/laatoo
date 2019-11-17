@@ -23,6 +23,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/twinj/uuid v1.0.0
 	github.com/ugorji/go/codec v1.1.7
+	github.com/valyala/fastjson v1.4.1
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297

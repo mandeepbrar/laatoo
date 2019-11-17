@@ -4,11 +4,12 @@
   "imports":[],
   "form": {
     "tabs": {
-      "General": ["Title", "Description", "Parent"],
+      "General": ["Title", "Description", "Parent", "Code", "Level"],
+      "Node Attributes": ["Attr1", "Attr2", "Attr3"],
       "Node Data": ["Data1", "Data2", "Data3"]
     },
     "overlay": true,
-    "layout": ["General", "Node Data"]
+    "layout": ["General", "Node Attributes", "Node Data"]
   },
   "titleField": "Title",
   "fields":{
@@ -18,9 +19,24 @@
     "Description": {
         "type":"string"
     },
+    "Code": {
+      "type":"string"
+    },
     "Parent": {
       "type": "storableref",
       "entity": "OrgNode"
+    },
+    "Level": {
+      "type":"string"
+    },
+    "Attr1": {
+      "type":"string"
+    },
+    "Attr2": {
+      "type":"string"
+    },
+    "Attr3": {
+      "type":"string"
     },
     "Data1": {
       "type":"storableref"

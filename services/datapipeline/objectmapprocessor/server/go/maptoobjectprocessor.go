@@ -9,6 +9,7 @@ import (
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 )
 
 type mapToObjectProcessor struct {
@@ -121,6 +122,7 @@ func (proc *mapToObjectProcessor) getLookup(ctx core.ServerContext, dataComp dat
 		if stor == nil {
 			return nil, fmt.Errorf("Lookup resource not found. Id : %s", strVal)
 		}
+		log.Error(reqCtx, "Found storable for code", "code", strVal, "stor", stor)
 		return data.StorableRef{Id: stor.GetId(), Type: dataComp.GetObject(), Name: stor.GetLabel(reqCtx, stor)}, nil
 	}
 }

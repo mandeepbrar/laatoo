@@ -89,20 +89,27 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 				return nil, "", errors.BadConf(ctx, "Attribute name not provided ")
 			}
 			if node.HasChildren() {
+				childConf := ctx.CreateConfig()
 				for _, attrChild := range node.Nodes {
 					if attrChild.XMLName.Local == "Content" {
-						nodeConf.SetString(ctx, "body", string(node.Content))
+						childConf.SetString(ctx, "body", string(attrChild.Content))
 					} else {
 						aconf, _, err := svc.createConfFromXML(ctx, attrChild)
 						if err != nil {
 							return nil, "", errors.WrapError(ctx, err)
 						}
-						nodeConf.Set(ctx, name, aconf)
+						childConfNames := aconf.AllConfigurations(ctx)
+						for _, confName := range childConfNames {
+							c, _ := aconf.Get(ctx, confName)
+							childConf.Set(ctx, confName, c)
+						}
 					}
 				}
-			} else if node.HasContent() {
+				nodeConf.Set(ctx, name, childConf)
+			} else {
 				nodeConf.SetString(ctx, name, string(node.Content))
 			}
+			log.Error(ctx, "Processing heirarchical attrs", "node", node, "nodeConf", nodeConf)
 			return nodeConf, name, nil
 		}
 	default:
@@ -133,7 +140,7 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 					//nodeconf.Set(ctx, n.XMLName.Local, nconf)
 					//}
 					if isAttr {
-						aconf, _ := childConf.GetSubConfig(ctx, name)
+						aconf, _ := childConf.Get(ctx, name)
 						nodeConf.Set(ctx, name, aconf)
 					} else {
 						childrenConf = append(childrenConf, childConf)
@@ -284,7 +291,7 @@ func processHierarchicalAttr(ctx core.ServerContext, conf config.Config) string 
 				strToWrite = string(strval)
 			}
 		}
-		attrBuf.WriteString(fmt.Sprintf("%s:%s", attrName, strToWrite))
+		attrBuf.WriteString(fmt.Sprintf("\"%s\":%s", attrName, strToWrite))
 	}
 	return fmt.Sprintf("{%s}", attrBuf.String())
 }
@@ -378,7 +385,7 @@ func (svc *UI) processBlockConf(ctx core.ServerContext, conf config.Config, item
 					}
 				}
 
-				attrBuf.WriteString(fmt.Sprintf("%s:%s", key, attrStr))
+				attrBuf.WriteString(fmt.Sprintf("\"%s\":%s", key, attrStr))
 
 			}
 		}

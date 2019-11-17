@@ -155,7 +155,7 @@ func (facMgr *factoryManager) createServiceFactories(ctx core.ServerContext, con
 	return nil
 }
 
-func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod *serverModule) error {
+func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod *serverModule) (map[string]*serviceFactoryProxy, error) {
 	ctx = ctx.SubContext("Start module factories " + mod.name)
 	facs := make(map[string]*serviceFactoryProxy)
 	if mod.factories != nil {
@@ -163,12 +163,12 @@ func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod 
 			facCtx := ctx.SubContext("Create Factory:" + factoryName)
 			fac, err := facMgr.createServiceFactory(facCtx, factoryConfig, factoryName)
 			if err != nil {
-				return errors.WrapError(ctx, err)
+				return nil, errors.WrapError(ctx, err)
 			}
 			facs[factoryName] = fac
 		}
 	}
-	return facMgr.initializeFactories(ctx, facs)
+	return facs, nil
 
 }
 

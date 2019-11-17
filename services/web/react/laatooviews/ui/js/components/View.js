@@ -103,7 +103,7 @@ const View = (props) => {
     console.log("view.....", view)
     let args = props.postArgs? props.postArgs: view.postArgs;
     let params = props.urlparams? props.urlparams: view.urlparams;
-    let viewname = view.name? view.name : props.id;
+    let viewname = props.instance? props.instance: (view.name? view.name : props.id);
     let className = props.className+ " view_"+viewname + " ";
     let singleSelection = view.singleSelection? view.singleSelection: props.singleSelection
     if(view.className) {
@@ -112,7 +112,7 @@ const View = (props) => {
     let item = props.children;
     return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global} singleSelection={singleSelection}
       className={className} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
-       editable={props.editable} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
+       editable={props.editable} contentsOnly={props.contentsOnly} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
        {item}
        </ViewComponent>
   }

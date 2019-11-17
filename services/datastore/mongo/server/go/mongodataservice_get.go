@@ -184,7 +184,7 @@ func (ms *mongoDataService) Get(ctx core.RequestContext, queryCond interface{}, 
 			stor.PostLoad(ctx)
 		}
 	}
-	log.Trace(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.Object, "recsreturned", recsreturned)
+	log.Debug(ctx, "Returning multiple objects ", "conditions", queryCond, "objectType", ms.Object, "recsreturned", recsreturned, "results", results)
 	return results, ids, totalrecs, recsreturned, nil
 }
 

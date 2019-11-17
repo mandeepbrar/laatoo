@@ -338,15 +338,27 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 	chnManager := ctx.GetServerElement(core.ServerElementChannelManager).(*channelManagerProxy).manager
 	svcManager := ctx.GetServerElement(core.ServerElementServiceManager).(*serviceManagerProxy).manager
 	facManager := ctx.GetServerElement(core.ServerElementFactoryManager).(*factoryManagerProxy).manager
+	createdSvcs := make(map[string]*serviceProxy)
+	createdFacs := make(map[string]*serviceFactoryProxy)
 	for modName, modInstance := range createdInstances {
 		log.Info(ctx, "Creating factories of module ", "modName", modName, "modInstance", modInstance)
-		if err := facManager.createModuleFactories(ctx, modInstance); err != nil {
+		facs, err := facManager.createModuleFactories(ctx, modInstance)
+		if err != nil {
 			return nil, err
 		}
+		for k, v := range facs {
+			createdFacs[k] = v
+		}
+
 		log.Info(ctx, "Creating services of module ", "modName", modName, "modInstance", modInstance)
-		if err := svcManager.createModuleServices(ctx, modInstance); err != nil {
+		svcs, err := svcManager.createModuleServices(ctx, modInstance)
+		if err != nil {
 			return nil, err
 		}
+		for k, v := range svcs {
+			createdSvcs[k] = v
+		}
+
 		/*log.Info(ctx, "Creating tasks of module ", "modName", modName, "modInstance", modInstance)
 		if err := svcManager.createModuleTasks(ctx, modInstance); err != nil {
 			return nil, err
@@ -355,6 +367,15 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 		if err := chnManager.createModuleChannels(ctx, modInstance); err != nil {
 			return nil, err
 		}
+	}
+	err := facManager.initializeFactories(ctx, createdFacs)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+
+	err = svcManager.initializeServices(ctx, createdSvcs)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
 	}
 
 	return createdInstances, nil
