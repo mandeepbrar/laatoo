@@ -45,28 +45,10 @@ func (ent *{{#type name}}{{/type}}) ReadAll(c ctx.Context, cdc core.Codec, rdr c
 	return ent.Storable.ReadAll(c, cdc, rdr)
 }
 
-func (ent *{{#type name}}{{/type}}) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
-  var ok bool
-	var err error
-
-  {{#fieldReadProps fields}}{{/fieldReadProps}}
-  
-	return ent.Storable.ReadProps(c, cdc, rdr, props)
-}
-
 func (ent *{{#type name}}{{/type}}) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
 	var err error
 
   {{#fieldWriteAlls fields}}{{/fieldWriteAlls}}
 
 	return ent.Storable.WriteAll(c, cdc, wtr)
-}
-
-func (ent *{{#type name}}{{/type}}) WriteProps(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter, props map[string]interface{}) error {
-  var ok bool
-	var err error
-
-  {{#fieldWriteProps fields}}{{/fieldWriteProps}}
-
-	return ent.Storable.WriteProps(c, cdc, wtr, props)
 }

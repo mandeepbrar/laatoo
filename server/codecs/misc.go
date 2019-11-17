@@ -16,16 +16,16 @@ func GetCodec(encoding string) (core.Codec, bool) {
 	case "json":
 		return NewJsonCodec(), true
 	case "bin":
-		return NewBinaryCodec(), true
+		//return NewBinaryCodec(), true
 	case "protobuf":
-		return NewProtobufCodec(), true
+		//return NewProtobufCodec(), true
 	}
 	return nil, false
 }
 
 type objReaderFromBytes func(c ctx.Context, arr []byte) (core.SerializableReader, error)
 type objReaderInternal func(c ctx.Context, val core.SerializableReader) (core.SerializableReader, error)
-type writerFromBytesBuffer func(c ctx.Context) (core.SerializableWriter, error)
+type writerCreator func(c ctx.Context) (core.SerializableWriter, error)
 
 func UnmarshalSerializable(c ctx.Context, cdc core.Codec, rdrCreator objReaderFromBytes, arr []byte, obj core.Serializable) error {
 	rdr, err := rdrCreator(c, arr)
@@ -40,10 +40,10 @@ func UnmarshalSerializableProps(c ctx.Context, cdc core.Codec, rdrCreator objRea
 	if err != nil {
 		return err
 	}
-	return obj.ReadProps(c, cdc, rdr, props)
+	return obj.ReadAll(c, cdc, rdr)
 }
 
-func MarshalSerializable(c ctx.Context, cdc core.Codec, wtrCreator writerFromBytesBuffer, obj core.Serializable) ([]byte, error) {
+func MarshalSerializable(c ctx.Context, cdc core.Codec, wtrCreator writerCreator, obj core.Serializable) ([]byte, error) {
 	wtr, err := wtrCreator(c)
 	if err != nil {
 		return nil, err
@@ -55,12 +55,12 @@ func MarshalSerializable(c ctx.Context, cdc core.Codec, wtrCreator writerFromByt
 	return wtr.Bytes(), nil
 }
 
-func MarshalSerializableProps(c ctx.Context, cdc core.Codec, wtrCreator writerFromBytesBuffer, obj core.Serializable, props map[string]interface{}) ([]byte, error) {
-	wtr, err := wtrCreator(c)
+func MarshalSerializableProps(c ctx.Context, cdc core.Codec, creator writerCreator, obj core.Serializable, props map[string]interface{}) ([]byte, error) {
+	wtr, err := creator(c)
 	if err != nil {
 		return nil, err
 	}
-	err = obj.WriteProps(c, cdc, wtr, props)
+	err = obj.WriteAll(c, cdc, wtr)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,4 @@ func UnmarshalReader(c ctx.Context, cdc core.Codec, intl objReaderInternal, rdr 
 		return err
 	}
 	return obj.ReadAll(c, cdc, newrdr)
-}
-
-func MarshalWriter(c ctx.Context, wtr core.SerializableWriter) ([]byte, error) {
-	return nil, nil
 }

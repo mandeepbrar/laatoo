@@ -14,6 +14,7 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/websocket v1.4.1
 	github.com/influxdata/go-syslog v1.0.1
+	github.com/json-iterator/go v1.1.8
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible

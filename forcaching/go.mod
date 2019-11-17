@@ -92,6 +92,7 @@ require (
 	google.golang.org/grpc v1.24.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/valyala/fastjson v1.4.1
+	github.com/json-iterator/go v1.1.8
 
 	go.mongodb.org/mongo-driver v1.1.3
 )

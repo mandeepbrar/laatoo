@@ -11,55 +11,55 @@ import (
 
 func NewJsonReader(c ctx.Context, arr []byte) (core.SerializableReader, error) {
 	var p fastjson.Parser
-	v, err := p.Parse(arr)
+	v, err := p.ParseBytes(arr)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return &JsonReader{root: v, keys: []string{}}, nil
+	return &JsonReader{root: v}, nil
 }
 
 func internalJsonReader(c ctx.Context, val core.SerializableReader) (core.SerializableReader, error) {
-	jsonref := val.(*fastjson.Value)
-	return &JsonReader{root: *jsonref, keys: []string{}}, nil
+	jsonref := val.(*JsonReader)
+	return &JsonReader{root: jsonref.root}, nil
 }
 
 type JsonReader struct {
-	keys []string
-	root fastjson.Value
+	//	keys []string
+	root *fastjson.Value
+}
+
+func (rdr *JsonReader) Bytes() []byte {
+	return rdr.root.MarshalTo(nil)
+}
+
+func (rdr *JsonReader) ReadBytes(ctx ctx.Context, cdc core.Codec, prop string) ([]byte, error) {
+	v := rdr.root.Get(prop)
+	if v == nil {
+		return nil, errNoKey
+	}
+	return v.MarshalTo(nil), nil
 }
 
 func (rdr *JsonReader) Read(ctx ctx.Context, cdc core.Codec, prop string) (core.SerializableReader, error) {
-	keys := append(rdr.keys, prop)
-	v := rdr.root.Get(rdr.keys, prop)
-	return &JsonReader{root: v, keys: keys}, nil
-}
-
-func (rdr *JsonReader) ReadByte(ctx ctx.Context, cdc core.Codec, prop string, val *byte) error {
-	byts := rdr.root.GetByte(rdr.keys, prop)
-	if byts != nil {
-		*val = byts[0]
-	}
-	return nil
-}
-
-func (rdr *JsonReader) ReadBytes(ctx ctx.Context, cdc core.Codec) ([]byte, error) {
-	return rdr.root.MarshalTo(nil), nil
+	//keys := append(rdr.keys, prop)
+	v := rdr.root.Get(prop)
+	return &JsonReader{root: v}, nil
 }
 
 func (rdr *JsonReader) ReadInt(ctx ctx.Context, cdc core.Codec, prop string, val *int) error {
-	intV := rdr.root.GetInt(rdr.keys, prop)
+	intV := rdr.root.GetInt(prop)
 	*val = intV
 	return nil
 }
 
 func (rdr *JsonReader) ReadInt64(ctx ctx.Context, cdc core.Codec, prop string, val *int64) error {
-	intV := rdr.root.GetInt64(rdr.keys, prop)
+	intV := rdr.root.GetInt64(prop)
 	*val = intV
 	return nil
 }
 
 func (rdr *JsonReader) ReadString(ctx ctx.Context, cdc core.Codec, prop string, val *string) error {
-	byts := rdr.root.GetStringBytes(rdr.keys, prop)
+	byts := rdr.root.GetStringBytes(prop)
 	if byts != nil {
 		*val = string(byts)
 	}
@@ -67,31 +67,46 @@ func (rdr *JsonReader) ReadString(ctx ctx.Context, cdc core.Codec, prop string, 
 }
 
 func (rdr *JsonReader) ReadFloat32(ctx ctx.Context, cdc core.Codec, prop string, val *float32) error {
-	fltV := rdr.root.GetFloat64(rdr.keys, prop)
+	fltV := rdr.root.GetFloat64(prop)
 	*val = float32(fltV)
 	return nil
 }
 
 func (rdr *JsonReader) ReadFloat64(ctx ctx.Context, cdc core.Codec, prop string, val *float64) error {
-	fltV := rdr.root.GetFloat64(rdr.keys, prop)
+	fltV := rdr.root.GetFloat64(prop)
 	*val = fltV
 	return nil
 }
 
 func (rdr *JsonReader) ReadBool(ctx ctx.Context, cdc core.Codec, prop string, val *bool) error {
-	boolV := rdr.root.GetBool(rdr.keys, prop)
+	boolV := rdr.root.GetBool(prop)
 	*val = boolV
 	return nil
 }
 
-func (rdr *JsonReader) ReadObject(ctx ctx.Context, cdc core.Codec, prop, objtype string) (core.SerializableReader, error) {
+func (rdr *JsonReader) ReadObject(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) (err error) {
 	//ctx.(core.RequestContext).GetCodec("json", objtype)
 	//keys := append(rdr.keys, prop)
-	v := rdr.root.Get(rdr.keys, prop)
+
+	v := rdr.root.Get(prop)
 	if v == nil {
-		return nil, errNoKey
+		return errNoKey
 	}
-	return &JsonReader{root: v, keys: []string{}}, nil
+
+	srl, ok := val.(core.Serializable)
+	if ok {
+		err = cdc.UnmarshalReader(ctx, rdr, srl)
+		if err != nil {
+			return err
+		}
+	} else {
+		byts := v.MarshalTo(nil)
+		err = cdc.Unmarshal(ctx, byts, val)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val *map[string]interface{}) error {
@@ -106,7 +121,7 @@ func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val
 
 func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, objType string, val interface{}) error {
 	reqCtx := ctx.(core.RequestContext)
-	arrV := rdr.root.GetArray(rdr.keys, prop)
+	arrV := rdr.root.GetArray(prop)
 	if arrV != nil {
 		return errNoKey
 	}
@@ -118,7 +133,7 @@ func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, o
 	} else {
 		collVal := reflect.ValueOf(collection)
 		for i, v := range arrV {
-			rdr := &JsonReader{root: *v, keys: []string{}}
+			rdr := &JsonReader{root: v}
 			obj, err := reqCtx.CreateObject(objType)
 			if err != nil {
 				return err

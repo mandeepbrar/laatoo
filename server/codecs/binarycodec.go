@@ -1,5 +1,6 @@
 package codecs
 
+/*
 import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
@@ -65,3 +66,5 @@ func (codec *BinaryCodec) UnmarshalSerializableProps(c ctx.Context, arr []byte, 
 func (codec *BinaryCodec) MarshalSerializableProps(c ctx.Context, obj core.Serializable, props map[string]interface{}) ([]byte, error) {
 	return MarshalSerializableProps(c, codec, nil, obj, props)
 }
+
+*/

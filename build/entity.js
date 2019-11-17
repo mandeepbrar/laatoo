@@ -136,9 +136,7 @@ function createEntityImpl(entityJson, entityname, folder) {
   Handlebars.registerHelper('collection', collection);
   Handlebars.registerHelper('fieldFuncs', fieldFuncs);
   Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
-  Handlebars.registerHelper('fieldReadProps', fieldReadProps);
   Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
-  Handlebars.registerHelper('fieldWriteProps', fieldWriteProps);  
   /*let requireBytes = bytesRequired(entityJson.fields) 
   if(requireBytes) {
     addImport(entityJson,"bytes")
@@ -170,9 +168,7 @@ function createEntityInterface(entityJson, entityname, folder) {
   Handlebars.registerHelper('collection', collection);
   Handlebars.registerHelper('fieldFuncDefs', fieldFuncDefs);
   Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
-  Handlebars.registerHelper('fieldReadProps', fieldReadProps);
   Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
-  Handlebars.registerHelper('fieldWriteProps', fieldWriteProps);  
   /*let requireBytes = bytesRequired(entityJson.fields) 
   if(requireBytes) {
     addImport(entityJson,"bytes")
@@ -262,92 +258,16 @@ function fieldReadAlls(fields) {
     } else {
       readAll = `
       {
-        objRdr, err := rdr.ReadObject(c, cdc, "%s", nil)
-        if err != nil {
+        ent.%s := &%s{}
+        if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
           return err
         }
-        obj, err := c.(core.RequestContext).CreateObject("%s")
-        if err != nil {
-          return err
-        }
-        srl, ok := obj.(core.Serializable)
-        if ok {
-          err =srl.ReadAll(c, cdc, objRdr)
-          if err != nil {
-            return err
-          }
-        } else {
-          byts, err := objRdr.ReadBytes(c, cdc)
-          if err != nil {
-            return err
-          }
-          err = cdc.Unmarshal(c, byts, obj)
-          if err != nil {
-            return err
-          }
-        }
-        ent.%s = obj.(%s)
       }
       `  
-      fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldType)
+      fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldName)
     }
   });
 
-  return fieldsStr
-}
-
-function fieldReadProps(fields) {
-  var fieldsStr = ""
-  Object.keys(fields).forEach(function(fieldName) {
-    let field = fields[fieldName]
-    let func = getFieldSerializationFunc(field)    
-    let fieldType = getFieldType(field)    
-    let entity = field.entity? field.entity: "";
-    let readProps = `
-    _, ok = props["%s"]
-    if ok {
-      err = rdr.Read%s(c, cdc, "%s", &ent.%s)
-      if err != nil {
-        return err
-      }
-    }
-    `  
-    if(func != "Object") {
-      fieldsStr = fieldsStr + sprintf(readProps, fieldName, func, fieldName, fieldName)
-    } else {
-      readProps = `
-      _, ok = props["%s"]
-      if ok {
-          objRdr, err := rdr.ReadObject(c, cdc, "%s")
-          if err != nil {
-            return err
-          }
-          obj, err := c.(core.RequestContext).CreateObject("%s")
-          if err != nil {
-            return err
-          }
-          srl, ok := obj.(core.Serializable)
-          if ok {
-            err =srl.ReadProps(c, cdc, objRdr, props)
-            if err != nil {
-              return err
-            }
-          } else {
-            byts, err := objRdr.ReadBytes(c, cdc)
-            if err != nil {
-              return err
-            }
-            err = cdc.Unmarshal(c, byts, obj)
-            if err != nil {
-              return err
-            }
-          }
-          ent.%s = obj.(%s)
-        }  
-      `  
-      fieldsStr = fieldsStr + sprintf(readProps, fieldName, fieldName, entity, fieldName, fieldType)
-    }
-  });
   return fieldsStr
 }
 
@@ -361,89 +281,7 @@ function fieldWriteAlls(fields) {
       return err
     }
     `  
-    if(func != "Object") {
-      fieldsStr = fieldsStr + sprintf(writeAll, func, fieldName, fieldName)
-    } else {
-      writeAll = `
-        {
-          objWtr, _, err := wtr.WriteObject(c, cdc, "%s")
-          if err != nil {
-            return err
-          }
-          var objToWrite interface{}
-          objToWrite = ent.%s
-          srl, ok := objToWrite.(core.Serializable)
-          if ok {
-            err =srl.WriteAll(c, cdc, objWtr)
-            if err != nil {
-              return err
-            }
-          } else {
-            byts, err := cdc.Marshal(c, objToWrite)
-            if err != nil {
-              return err
-            }
-            err = objWtr.WriteBytes(c, cdc, &byts)
-            if err != nil {
-              return err
-            }
-          }
-        }
-  
-      `  
-      fieldsStr = fieldsStr + sprintf(writeAll, fieldName, fieldName)      
-    }
-  });
-  return fieldsStr
-}
-
-function fieldWriteProps(fields) {
-  var fieldsStr = ""
-  Object.keys(fields).forEach(function(fieldName) {
-    let field = fields[fieldName]
-    let func = getFieldSerializationFunc(field)    
-    let writeProps = `
-    _, ok = props["%s"]
-    if ok {
-      err = wtr.Write%s(c, cdc, "%s", &ent.%s)
-      if err != nil {
-        return err
-      }
-    }
-      `  
-    if(func != "Object") {
-      fieldsStr = fieldsStr + sprintf(writeProps, fieldName, func, fieldName, fieldName)
-    } else {
-      writeProps = `
-      _, ok = props["%s"]
-      if ok {
-          objWtr, err := wtr.WriteObject(c, cdc, "%s")
-          if err != nil {
-            return err
-          }
-          var objToWrite interface{}
-          objToWrite = ent.%s
-          srl, ok := objToWrite.(core.Serializable)
-          if ok {
-            err =srl.WriteProps(c, cdc, objWtr)
-            if err != nil {
-              return err
-            }
-          } else {
-            byts, err := cdc.Marshal(c, objToWrite)
-            if err != nil {
-              return err
-            }
-            err = objWtr.WriteBytes(c, cdc, &byts)
-            if err != nil {
-              return err
-            }
-          }
-        }
-  
-      `  
-      fieldsStr = fieldsStr + sprintf(fieldName, writeProps, fieldName, fieldName)      
-    }
+    fieldsStr = fieldsStr + sprintf(writeAll, func, fieldName, fieldName)
   });
   return fieldsStr
 }

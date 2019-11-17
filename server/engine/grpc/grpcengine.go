@@ -7,7 +7,6 @@ import (
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"laatoo/server/codecs"
 	"laatoo/server/constants"
 	"net"
 
@@ -44,7 +43,7 @@ func (eng *grpcEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	eng.codec, ok = ctx.GetCodec(codec)
 	if !ok {
-		eng.codec = codecs.NewProtobufCodec()
+		//eng.codec = codecs.NewProtobufCodec()
 	}
 
 	path, ok := conf.GetString(ctx, constants.CONF_GRPCENGINE_PATH)

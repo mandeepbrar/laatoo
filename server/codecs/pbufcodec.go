@@ -1,5 +1,6 @@
 package codecs
 
+/*
 import (
 	"fmt"
 	"laatoo/sdk/server/core"
@@ -28,10 +29,6 @@ func (cdc *ProtobufCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) 
 	if !ok {
 		return unmarshellingError
 	}
-	/*srl, ok := val.(core.Serializable)
-	if ok {
-		return cdc.UnmarshalSerializable(c, arr, srl)
-	}*/
 	return proto.Unmarshal(arr, msg)
 }
 
@@ -40,10 +37,6 @@ func (codec *ProtobufCodec) Marshal(c ctx.Context, obj interface{}) ([]byte, err
 	if !ok {
 		return nil, marshellingError
 	}
-	/*srl, ok := obj.(core.Serializable)
-	if ok {
-		return codec.MarshalSerializable(c, srl)
-	}*/
 	return proto.Marshal(msg)
 }
 
@@ -62,3 +55,4 @@ func (codec *ProtobufCodec) UnmarshalSerializableProps(c ctx.Context, arr []byte
 func (codec *ProtobufCodec) MarshalSerializableProps(c ctx.Context, obj core.Serializable, props map[string]interface{}) ([]byte, error) {
 	return MarshalSerializableProps(c, codec, nil, obj, props)
 }
+*/

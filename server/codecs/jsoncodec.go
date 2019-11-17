@@ -1,10 +1,13 @@
 package codecs
 
 import (
-	"encoding/json"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type JsonCodec struct {
 }
@@ -55,6 +58,8 @@ func (codec *JsonCodec) UnmarshalReader(c ctx.Context, rdr core.SerializableRead
 	return UnmarshalReader(c, codec, internalJsonReader, rdr, obj)
 }
 
-func (codec *JsonCodec) MarshalWriter(c ctx.Context, wtr core.SerializableWriter) ([]byte, error) {
-	return nil, nil
+func (codec *JsonCodec) MarshalWriter(c ctx.Context, wtr core.SerializableWriter, obj core.Serializable) ([]byte, error) {
+	obj.WriteAll(c, codec, wtr)
+	byts := wtr.Bytes()
+	return byts, nil
 }
