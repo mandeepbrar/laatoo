@@ -1,4 +1,4 @@
-package cadence
+package main
 
 import (
 	"context"

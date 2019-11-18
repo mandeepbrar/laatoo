@@ -1,1 +1,1 @@
-servicemethod: DB_LOGOUT
+servicemethod: dbloginservice.LogoutService

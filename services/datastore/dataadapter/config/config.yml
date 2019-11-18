@@ -1,5 +1,5 @@
 version: 0.0.1
-object: DataAdapterModule
+object: dataadapter.DataAdapterModule
 description: 'Module creating Data Adapter services. Factories provided by this module
   include ''dataadapter.factory[.instance]''. If instance is not provided, object
   is used as the instance. Services provided by this module include ''dataadapter.dataservice[.instance]''.
