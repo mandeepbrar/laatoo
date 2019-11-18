@@ -1,4 +1,4 @@
-module s3storageservice
+module s3storage
 
 go 1.13
 

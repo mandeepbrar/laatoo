@@ -1,2 +1,2 @@
-servicemethod: tunnytasks
+servicemethod: tunnymemtasks.MemTaskProcessor
 poolsize: {{if exists "poolsize"}} {{var "poolsize"}} {{else}} 10 {{end}}

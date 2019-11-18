@@ -119,7 +119,12 @@ func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val
 	return cdc.Unmarshal(ctx, bys, val)
 }
 
-func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, objType string, val interface{}) error {
+func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) error {
+	collVal := reflect.ValueOf(val)
+	if collVal.Kind() != reflect.Array {
+		return errWrongObject
+	}
+	objType := collVal.Elem().String()
 	reqCtx := ctx.(core.RequestContext)
 	arrV := rdr.root.GetArray(prop)
 	if arrV != nil {

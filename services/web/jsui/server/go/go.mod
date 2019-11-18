@@ -1,4 +1,4 @@
-module jsuiservice
+module jsui
 
 go 1.12
 

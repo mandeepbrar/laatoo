@@ -1,4 +1,4 @@
-module googlestorageservice
+module googlestorage
 
 go 1.12
 

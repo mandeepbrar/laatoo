@@ -10,10 +10,10 @@ description: 'Module creating Data Adapter services. Factories provided by this 
   /instance/:id serving datadapter.get[.instance] '
 dependencies: {}
 objects:
-  dataadapter:
+  dataadapter.DataAdapterFactory:
     type: factory
     description: Data adapter factory. Configurations include 'dataservice'
-  DataAdapterModule:
+  dataadapter.DataAdapterModule:
     type: module
     configurations:
       dataservicefactory:

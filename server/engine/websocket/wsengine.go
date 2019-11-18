@@ -103,7 +103,7 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 
 func (eng *wsEngine) setupNotifierService(svrctx core.ServerContext, objName string) error {
 	objLoader := svrctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
-	objLoader.RegisterObject(svrctx, objName, func(cx ctx.Context) interface{} {
+	objLoader.RegisterObject(svrctx, func(cx ctx.Context) interface{} {
 		return &NotifierService{engine: eng}
 	}, nil, nil)
 	return nil

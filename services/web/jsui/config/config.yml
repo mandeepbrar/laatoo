@@ -1,9 +1,9 @@
 version: "0.0.1"
-object: ui
+object: jsui.UI
 dependencies:
 description: "Module provides ui module aggregation services. "
 objects:
-  ui:
+  jsui.UI:
     type: module
     description: "This service is a plugin for module manager and provides aggregation services"
     configurations:

@@ -1,4 +1,4 @@
-module tunnytasks
+module tunnymemtasks
 
 go 1.12
 

@@ -1,4 +1,4 @@
-module defaultrole
+module role
 
 go 1.12
 

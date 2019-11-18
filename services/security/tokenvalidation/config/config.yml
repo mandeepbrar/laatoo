@@ -1,6 +1,6 @@
 version: 0.0.1
 description: 'Module provides token validation services. '
 objects:
-  TOKEN_VALIDATE:
+  tokenvalidation.TokenValidationService:
     type: service
     description: This service whether the token with the user is valid or not.

@@ -1,7 +1,7 @@
 version: 0.0.1
 description: 'Module provides sign up support for laatoo. Registration with and without workflow support is supported'
 objects:
-  REGISTRATION:
+  signup.RegistrationService:
     type: service
     description: This service allows registration of users in the database.
     request:
@@ -34,7 +34,7 @@ objects:
       workflowinitiator:
         type: string
         description: Verify email using provided workflow
-  SignupEmailTask:
+  signup.SignupEmailTask:
     type: service
     description: Task processor for signup email tasks.
     configurations:
@@ -63,7 +63,7 @@ objects:
         Task:
           type: bytes
           description: Bytes containing string map for signup task
-  VerifyEmailService:
+  signup.VerifyEmailService:
     type: service
     description: Service providing verification of email tokens.
     configurations:

@@ -76,10 +76,8 @@ func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 			f.Set(fobj.Convert(f.Type()))
 		}
 	}
-	log.Debug(ctx, "fields to init of object ", "Object", factory.objectName, "fields", factory.fieldsToInit)
 	if factory.constructor.IsValid() {
 		objVal := reflect.ValueOf(obj)
-		log.Debug(ctx, "calling constructor of object ", "Object", factory.objectName)
 		factory.constructor.Call([]reflect.Value{objVal})
 	}
 }
@@ -145,15 +143,15 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 				if initobj == "" {
 					if audit {
 						if softdelete {
-							initobj = "SoftDeleteAuditable" + suffix
+							initobj = "laatoo/server/data/SoftDeleteAuditable" + suffix
 						} else {
-							initobj = "HardDeleteAuditable" + suffix
+							initobj = "laatoo/server/data/HardDeleteAuditable" + suffix
 						}
 					} else {
 						if softdelete {
-							initobj = "SoftDeleteStorable" + suffix
+							initobj = "laatoo/server/data/SoftDeleteStorable" + suffix
 						} else {
-							initobj = "AbstractStorable" + suffix
+							initobj = "laatoo/server/data/AbstractStorable" + suffix
 						}
 					}
 				}
@@ -161,6 +159,7 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 
 			if initobj != "" {
 				objfac, ok := objLoader.objectsFactoryRegister[initobj]
+				log.Debug(ctx, "assigning initialize initialization to field ", "initobj", initobj, "ok", ok)
 				if ok {
 					if factory.fieldsToInit == nil {
 						factory.fieldsToInit = make(map[string]*objectFactory)

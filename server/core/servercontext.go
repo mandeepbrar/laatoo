@@ -512,6 +512,10 @@ func (ctx *serverContext) GetObjectFactory(name string) (core.ObjectFactory, boo
 	return ctx.svrElements.objectLoader.GetObjectFactory(ctx, name)
 }
 
+func (ctx *serverContext) GetRegName(object interface{}) string {
+	return ctx.svrElements.objectLoader.GetRegName(ctx, object)
+}
+
 func (ctx *serverContext) SubscribeTopic(topics []string, lstnr core.MessageListener, lsnrID string) error {
 	if ctx.svrElements.msgManager != nil {
 		return ctx.svrElements.msgManager.Subscribe(ctx, topics, lstnr, lsnrID)

@@ -1,0 +1,15 @@
+version: 0.0.1
+description: 'This module provides access to beanstalk task processing service. A
+  factory beanstalktasks is created by default. Consumer and publisher services can
+  be created by using ''publisher'' and ''consumer'' methods '
+objects:
+  beanstalktasks.BeanstalkConsumer:
+    description: Beanstalk consumer service. Worker
+    type: service
+  beanstalktasks.BeanstalkProducer:
+    description: Beanstalk task producer service.
+    type: service
+params:
+  beanstalkserver: 
+    type: string
+    description: Address of beanstalk server

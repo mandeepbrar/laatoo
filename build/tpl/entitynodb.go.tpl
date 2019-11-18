@@ -25,9 +25,7 @@ type {{#type name}}{{/type}} struct {
 
 func (ent *{{#type name}}{{/type}}) Config() *data.StorableConfig {
 	return &data.StorableConfig{
-		IdField:         "Id",
     LabelField:      "{{#titleField titleField}}{{/titleField}}",
-		Type:            "{{#type name}}{{/type}}",
 	}
 }
 

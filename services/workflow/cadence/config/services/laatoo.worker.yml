@@ -1,5 +1,5 @@
 name: {{if exists "workerservicename"}} {{var "workerservicename"}} {{else}} laatoo.worker {{end}}
-servicemethod: cadence_worker
+servicemethod: cadence.CadenceWorkerService
 TaskLists: {{var "workflowtasklists"}}
 Host: {{if exists "workflowhost"}} {{var "workflowhost"}} {{else}} cadence:7933 {{end}}
 Domain: {{if exists "workflowdomain"}} {{var "workflowdomain"}} {{else}} laatoo.defaultdomain {{end}}

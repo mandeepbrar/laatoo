@@ -1,7 +1,9 @@
 package core
 
 import (
+	"fmt"
 	"laatoo/sdk/common/config"
+	sdkdata "laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/errors"
@@ -13,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"plugin"
+	"reflect"
 )
 
 type objectLoader struct {
@@ -119,21 +122,17 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 			components := manifest(objLoader.provider)
 			if components != nil {
 				for _, comp := range components {
-					if comp.Name != "" {
-						if comp.ObjectFactory != nil {
-							err = objLoader.registerObjectFactory(ctx, comp.Name, comp.ObjectFactory)
-						} else if comp.ObjectCreator != nil {
-							err = objLoader.registerObject(ctx, comp.Name, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
-						} else if comp.Object != nil {
-							err = objLoader.register(ctx, comp.Name, comp.Object, comp.Metadata)
-						} else {
-							log.Info(ctx, "No component registered", "Component", comp.Name, "Path", path)
-						}
-						if err != nil {
-							return errors.WrapError(ctx, err)
-						}
+					if comp.ObjectFactory != nil {
+						err = objLoader.registerObjectFactory(ctx, comp.ObjectFactory)
+					} else if comp.ObjectCreator != nil {
+						err = objLoader.registerObject(ctx, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
+					} else if comp.Object != nil {
+						err = objLoader.register(ctx, comp.Object, comp.Metadata)
 					} else {
-						log.Info(ctx, "No component registered for empty name", "Path", path)
+						log.Info(ctx, "No component registered", "Path", path)
+					}
+					if err != nil {
+						return errors.WrapError(ctx, err)
 					}
 				}
 				log.Info(ctx, "Loaded plugin", "Path", path)
@@ -191,30 +190,48 @@ func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string,
 		factory.(*objectFactory).metadata = metadata
 	}
 }
+func (objLoader *objectLoader) getRegName(ctx ctx.Context, object interface{}) string {
+	typ := reflect.TypeOf(object)
+	for {
+		if typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Array {
+			typ = typ.Elem()
+			continue
+		}
+		break
+	}
+	return fmt.Sprintf("%s.%s", typ.PkgPath(), typ.Name())
+}
 
-func (objLoader *objectLoader) register(ctx ctx.Context, objectName string, object interface{}, metadata core.Info) error {
-	log.Info(ctx, "Registering object1 ", "Object Name", objectName)
+func (objLoader *objectLoader) register(ctx ctx.Context, object interface{}, metadata core.Info) error {
+	objectName := objLoader.getRegName(ctx, object)
+
 	objFac, err := newObjectType(ctx, objLoader, objectName, object, metadata)
 	if err != nil {
 		return err
 	}
-	log.Info(ctx, "Registering object2 ", "Object Name", objectName)
-	objLoader.registerObjectFactory(ctx, objectName, objFac)
+
+	objLoader.registerObjectFactory(ctx, objFac)
 	return nil
 }
-func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectName string, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
-	log.Info(ctx, "Registering object3 ", "Object Name", objectName)
+func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
+	object := objectCreator(ctx)
+	objectName := objLoader.getRegName(ctx, object)
+
 	objFac, err := newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata)
 	if err != nil {
 		return err
 	}
-	objLoader.registerObjectFactory(ctx, objectName, objFac)
+	objLoader.registerObjectFactory(ctx, objFac)
 	return nil
 }
-func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, objectName string, factory core.ObjectFactory) error {
+func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, factory core.ObjectFactory) error {
+	object := factory.CreateObject(ctx)
+	objectName := objLoader.getRegName(ctx, object)
+	log.Debug(ctx, "Registering object", "Object Name", objectName)
+
 	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
-		log.Info(ctx, "Registering object factory4 ", "Object Name", objectName)
+		log.Trace(ctx, "Registering non existent factory", "Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
 		mod, modok := ctx.GetString(constants.CONF_MODULE)
 		if modok {
@@ -291,13 +308,14 @@ func (objLoader *objectLoader) unloadModuleObjects(ctx ctx.Context, modName stri
 }
 
 func (objLoader *objectLoader) registerInternalObjects(ctx ctx.Context) {
-	objLoader.register(ctx, "SerializableBase", data.SerializableBase{}, nil)
-	objLoader.register(ctx, "AbstractStorable", data.AbstractStorable{}, nil)
-	objLoader.register(ctx, "AbstractStorableMT", data.AbstractStorableMT{}, nil)
-	objLoader.register(ctx, "SoftDeleteStorable", data.SoftDeleteStorable{}, nil)
-	objLoader.register(ctx, "SoftDeleteStorableMT", data.SoftDeleteStorableMT{}, nil)
-	objLoader.register(ctx, "SoftDeleteAuditable", data.SoftDeleteAuditable{}, nil)
-	objLoader.register(ctx, "SoftDeleteAuditableMT", data.SoftDeleteAuditableMT{}, nil)
-	objLoader.register(ctx, "HardDeleteAuditable", data.HardDeleteAuditable{}, nil)
-	objLoader.register(ctx, "HardDeleteAuditableMT", data.HardDeleteAuditableMT{}, nil)
+	objLoader.register(ctx, data.SerializableBase{}, nil)
+	objLoader.register(ctx, data.AbstractStorable{}, nil)
+	objLoader.register(ctx, data.AbstractStorableMT{}, nil)
+	objLoader.register(ctx, data.SoftDeleteStorable{}, nil)
+	objLoader.register(ctx, data.SoftDeleteStorableMT{}, nil)
+	objLoader.register(ctx, data.SoftDeleteAuditable{}, nil)
+	objLoader.register(ctx, data.SoftDeleteAuditableMT{}, nil)
+	objLoader.register(ctx, data.HardDeleteAuditable{}, nil)
+	objLoader.register(ctx, data.HardDeleteAuditableMT{}, nil)
+	objLoader.register(ctx, sdkdata.StorableRef{}, nil)
 }

@@ -1,2 +1,2 @@
-servicemethod: filesystem
+servicemethod: filesystemstorage.FileSystemSvc
 filestoragedir: {{var "basedir"}}/images

@@ -1,5 +1,5 @@
 name: uiapp.files{{var "uiapplication" "."}}
-servicemethod: named_files_service
+servicemethod: staticfileserver.NamedFileService
 files:
   modules.js:
     cache: {{var "cachefiles"}}

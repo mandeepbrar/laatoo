@@ -1,4 +1,4 @@
-servicemethod: cadence_simpleworkflow
+servicemethod: cadence.SimpleWorkflow
 skip: {{if exists "emailverification"}} {{var "emailverification" | not}} {{else}} true {{end}}
 workflowname: laatoo.signup
 workflow:

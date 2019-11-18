@@ -247,6 +247,10 @@ func (ctx *requestContext) GetObjectFactory(name string) (core.ObjectFactory, bo
 	return ctx.serverContext.GetObjectFactory(name)
 }
 
+func (ctx *requestContext) GetRegName(object interface{}) string {
+	return ctx.serverContext.GetRegName(object)
+}
+
 func (ctx *requestContext) GetRequest() core.Request {
 	return ctx.req
 }

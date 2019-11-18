@@ -16,9 +16,12 @@ import (
 )
 
 const (
-	CONF_DEFAULTFACTORY_NAME     = "__defaultfactory__"
-	CONF_SERVICEAGGREGATOR_NAME  = "__serviceaggregator__"
-	CONF_TRANSFORMERSERVICE_NAME = "__transformerservice__"
+	CONF_DEFAULTFACTORY_NAME = "laatoo/server/adapters.DefaultFactory"
+
+	DEFAULT_ROLE       = "role.DefaultRole"
+	DEFAULT_ADMIN      = "Admin"
+	DEFAULT_USER       = "user.DefaultUser"
+	DEFAULT_AUTHHEADER = "X-Auth-Token"
 )
 
 func ConfigFileAdapter(ctx core.ServerContext, conf config.Config, configName string) (config.Config, error, bool) {

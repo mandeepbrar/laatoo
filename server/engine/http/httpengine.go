@@ -76,8 +76,8 @@ func (eng *httpEngine) Initialize(ctx core.ServerContext, conf config.Config) er
 
 	loader := ctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
 
-	_ = loader.Register(ctx, "CookiesResponseHandler", cookiesResponseHandler{}, nil)
-	_ = loader.Register(ctx, "DefaultResponseHandler", defaultResponseHandler{}, nil)
+	_ = loader.Register(ctx, cookiesResponseHandler{}, nil)
+	_ = loader.Register(ctx, defaultResponseHandler{}, nil)
 
 	log.Trace(ctx, "Setting root channel", "root", eng.rootChannel)
 

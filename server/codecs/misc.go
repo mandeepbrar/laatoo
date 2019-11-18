@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	errNoKey   = errors.New("Key not present")
-	errNoCodec = errors.New("No codec found")
+	errNoKey       = errors.New("Key not present")
+	errNoCodec     = errors.New("No codec found")
+	errWrongObject = errors.New("Wrong Object Type")
 )
 
 func GetCodec(encoding string) (core.Codec, bool) {

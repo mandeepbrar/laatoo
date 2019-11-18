@@ -50,8 +50,8 @@ func (m *SerializableBase) String() string { return proto.CompactTextString(m) }
 func (*SerializableBase) ProtoMessage() {}
 
 type AbstractStorable struct {
-	Id    string        `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
-	P_ref proto.Message `json:"-" bson:"-" sql:"-"`
+	Id    string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	P_ref interface{} `json:"-" bson:"-" sql:"-"`
 }
 
 func NewAbstractStorable() *AbstractStorable {
@@ -146,7 +146,7 @@ func (as *AbstractStorable) WriteProps(c ctx.Context, cdc core.Codec, wtr core.S
 }
 
 type SoftDeleteStorable struct {
-	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=laatoo/server/data.AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	Deleted           bool `json:"Deleted" bson:"Deleted" protobuf:"bytes,52,opt,name=deleted,proto3"`
 }
 
@@ -197,7 +197,7 @@ func (sds *SoftDeleteStorable) WriteProps(c ctx.Context, cdc core.Codec, wtr cor
 }
 
 type HardDeleteAuditable struct {
-	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
+	*AbstractStorable `json:",inline"  bson:",inline" laatoo:"initialize=laatoo/server/data.AbstractStorable" protobuf:"group,62,opt,name=AbstractStorable,proto3"`
 	New               bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy         string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy         string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -365,7 +365,7 @@ func (hda *HardDeleteAuditable) WriteProps(c ctx.Context, cdc core.Codec, wtr co
 }
 
 type SoftDeleteAuditable struct {
-	*SoftDeleteStorable `json:",inline"  bson:",inline" laatoo:"initialize=SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
+	*SoftDeleteStorable `json:",inline"  bson:",inline" laatoo:"initialize=laatoo/server/data.SoftDeleteStorable" protobuf:"group,63,opt,name=SoftDeleteStorable,proto3"`
 	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`

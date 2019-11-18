@@ -198,7 +198,7 @@ function plugins(entities) {
       let entityJson = entities[entity]
       let entityDesc = JSON.stringify(entityJson).replace(/\"/g,'\\"')
       let objectName = entityJson.sdkinclude? name + "." + entity: entity
-      str = str + sprintf("core.PluginComponent{Name: \"%s\", Object: %s{}, Metadata: core.NewInfo(\"\",\"%s\", map[string]interface{}{\"descriptor\":\"%s\"})},", entity, objectName, entity, entityDesc)
+      str = str + sprintf("core.PluginComponent{Object: %s{}, Metadata: core.NewInfo(\"\",\"%s\", map[string]interface{}{\"descriptor\":\"%s\"})},", objectName, entity, entityDesc)
   });
   return str
 }

@@ -14,8 +14,6 @@ import (
 
 var (
 	uc = &data.StorableConfig{
-		IdField:    "Id",
-		Type:       config.DEFAULT_USER,
 		PreSave:    true,
 		PostSave:   true,
 		PostLoad:   true,

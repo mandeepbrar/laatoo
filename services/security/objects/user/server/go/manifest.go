@@ -1,12 +1,10 @@
 package main
 
 import (
-	"laatoo/sdk/common/config"
-	"laatoo/sdk/server/core"
 	"laatoo/sdk/modules/user"
+	"laatoo/sdk/server/core"
 )
 
-
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: config.DEFAULT_USER, Object: user.DefaultUser{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: user.DefaultUser{}}}
 }

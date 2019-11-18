@@ -1,5 +1,5 @@
 name: {{if exists "workflowservicename"}} {{var "workflowservicename"}} {{else}} laatoo.workflowinitiator {{end}}
-servicemethod: cadence_workflowinitiator
+servicemethod: cadence.WorkflowInitiator
 Host: {{if exists "workflowhost"}} {{var "workflowhost"}} {{else}} cadence:7933 {{end}}
 Domain: {{if exists "workflowdomain"}} {{var "workflowdomain"}} {{else}} laatoo.defaultdomain {{end}}
 ClientName: {{if exists "workflowclient"}} {{var "workflowclient"}} {{else}} laatoo-defaultclient {{end}}

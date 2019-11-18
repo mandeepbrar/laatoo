@@ -10,6 +10,7 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"laatoo/server/common"
 	"laatoo/server/constants"
 	"laatoo/server/security"
 
@@ -56,7 +57,7 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 
 	adminRole, ok := conf.GetString(ctx, config.ADMINROLE)
 	if !ok {
-		adminRole = config.DEFAULT_ADMIN
+		adminRole = common.DEFAULT_ADMIN
 	}
 	if realm != "" {
 		adminRole = fmt.Sprintf("%s_%s", adminRole, realm)
@@ -71,13 +72,13 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 
 	roleobject, ok := conf.GetString(ctx, config.ROLE)
 	if !ok {
-		roleobject = config.DEFAULT_ROLE
+		roleobject = common.DEFAULT_ROLE
 	}
 	sh.roleObject = roleobject
 
 	userObject, ok := conf.GetString(ctx, config.USER)
 	if !ok {
-		userObject = config.DEFAULT_USER
+		userObject = common.DEFAULT_USER
 	}
 	sh.userObject = userObject
 
@@ -97,7 +98,7 @@ func (sh *securityHandler) Initialize(ctx core.ServerContext, conf config.Config
 
 	authToken, ok := conf.GetString(ctx, config.AUTHHEADER)
 	if !ok {
-		authToken = config.DEFAULT_AUTHHEADER
+		authToken = common.DEFAULT_AUTHHEADER
 	}
 	sh.authHeader = authToken
 	mode, ok := conf.GetString(ctx, constants.CONF_SECURITY_MODE)

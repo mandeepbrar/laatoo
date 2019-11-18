@@ -1,7 +1,7 @@
 version: 0.0.1
 description: This module provides in memory task processing service
 objects: 
-  tunnytasks:
+  tunnymemtasks.MemTaskProcessor:
     description: Publisher as well as consumer object for tunny tasks
     type: service
     configurations:

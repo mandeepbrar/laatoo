@@ -1,4 +1,4 @@
-servicemethod: SignupEmailTask
+servicemethod: signup.SignupEmailTask
 skip: {{if exists "emailverification"}} {{var "emailverification" | not}} {{else}} true {{end}}
 SiteName: {{var "sitename"}}
 SiteLink: {{var "sitelink"}}/verifyemail

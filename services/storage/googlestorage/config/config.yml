@@ -2,7 +2,7 @@ version: 0.0.1
 description: This module provides access to google storage service. By default a service
   server.googlestorage is created.
 objects:
-  googlestorage:
+  googlestorage.GoogleStorageSvc:
     type: service
     description: Google storage service
     request:

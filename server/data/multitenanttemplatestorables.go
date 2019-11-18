@@ -9,14 +9,13 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/twinj/uuid"
 )
 
 type AbstractStorableMT struct {
-	Id     string        `json:"Id" protobuf:"bytes,51,opt,name=id,proto3" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
-	Tenant string        `json:"Tenant" protobuf:"bytes,61,opt,name=tenant,proto3" bson:"Tenant" sql:"type:varchar(100);"`
-	P_ref  proto.Message `json:"-" bson:"-" sql:"-"`
+	Id     string      `json:"Id" protobuf:"bytes,51,opt,name=id,proto3" bson:"Id" sql:"type:varchar(100); primary key; unique;index" gorm:"primary_key"`
+	Tenant string      `json:"Tenant" protobuf:"bytes,61,opt,name=tenant,proto3" bson:"Tenant" sql:"type:varchar(100);"`
+	P_ref  interface{} `json:"-" bson:"-" sql:"-"`
 }
 
 func NewAbstractStorableMT() *AbstractStorableMT {
@@ -107,7 +106,7 @@ func (as *AbstractStorableMT) WriteProps(c ctx.Context, cdc core.Codec, wtr core
 }
 
 type SoftDeleteStorableMT struct {
-	*AbstractStorableMT `json:",inline" bson:",inline" laatoo:"initialize=AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	*AbstractStorableMT `json:",inline" bson:",inline" laatoo:"initialize=laatoo/server/data.AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
 	Deleted             bool `json:"Deleted" bson:"Deleted"`
 }
 
@@ -158,7 +157,7 @@ func (sds *SoftDeleteStorableMT) WriteProps(c ctx.Context, cdc core.Codec, wtr c
 }
 
 type HardDeleteAuditableMT struct {
-	*AbstractStorableMT `json:",inline"  bson:",inline" laatoo:"initialize=AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
+	*AbstractStorableMT `json:",inline"  bson:",inline" laatoo:"initialize=laatoo/server/data.AbstractStorableMT" protobuf:"group,65,opt,name=AbstractStorableMT,proto3"`
 	New                 bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy           string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy           string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`
@@ -326,7 +325,7 @@ func (hda *HardDeleteAuditableMT) WriteProps(c ctx.Context, cdc core.Codec, wtr 
 }
 
 type SoftDeleteAuditableMT struct {
-	*SoftDeleteStorableMT `json:",inline" bson:",inline" laatoo:"initialize=SoftDeleteStorableMT" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
+	*SoftDeleteStorableMT `json:",inline" bson:",inline" laatoo:"initialize=laatoo/server/data.SoftDeleteStorableMT" protobuf:"group,66,opt,name=SoftDeleteStorableMT,proto3"`
 	New                   bool      `json:"IsNew" bson:"IsNew" protobuf:"bytes,53,opt,name=isnew,proto3"`
 	CreatedBy             string    `json:"CreatedBy" bson:"CreatedBy" protobuf:"bytes,54,opt,name=createdby,proto3" gorm:"column:CreatedBy"`
 	UpdatedBy             string    `json:"UpdatedBy" bson:"UpdatedBy" protobuf:"bytes,55,opt,name=updatedby,proto3" gorm:"column:UpdatedBy"`

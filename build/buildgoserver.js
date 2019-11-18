@@ -84,10 +84,10 @@ function buildGoObjects(nextTask) {
       let fileBuilt = fs.pathExistsSync(fileToBuild)
       log('Golang compilation successfull. Output to', outputFolder, "File built", fileBuilt);
       if(res.stdout != null) {
-        shell.echo("Res", res.stdout.toString())
+        log("Res", res.stdout.toString())
       }
       if(res.stderr != null) {
-        shell.echo("Err", res.stderr.toString())      
+        log("Err", res.stderr.toString())      
       }
       fs.pathExistsSync(fileToBuild)
       nextTask()

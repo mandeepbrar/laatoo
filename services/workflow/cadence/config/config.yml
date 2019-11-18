@@ -1,7 +1,7 @@
 version: 0.0.1
 description: 'Module provides email communication service'
 objects:
-  cadence_worker:
+  cadence.CadenceWorkerService:
     type: service
     description: Worker for cadence workflow software
     configurations:
@@ -30,7 +30,7 @@ objects:
         type: string
         required: true
         variable: CadenceService
-  cadence_simpleworkflow:
+  cadence.SimpleWorkflow:
     type: service
     description: Simple sequential workflow for cadence
     configurations:
@@ -48,7 +48,7 @@ objects:
         type: stringarray
         required: true
         variable: Tasks
-  cadence_dslworkflow:
+  cadence.DSLWorkflow:
     type: service
     description: DSL workflow for cadence. Refer cadence samples. Support parallelization
     configurations:
@@ -65,7 +65,7 @@ objects:
         description: Task structure for workflow
         type: config
         required: true
-  cadence_workflowinitiator:
+  cadence.WorkflowInitiator:
     type: service
     description: Service to initiate workflows
     configurations:

@@ -1,0 +1,22 @@
+version: 0.0.1
+description: 'Module provides keyauth services. '
+objects:
+  keyauthlogin.KeyAuthService:
+    type: service
+    description: 'This service authenticates a key based request for client. The client
+      sends private key bytes to the request, service compares it with the corresponding
+      public key and validates the request. Service picks up other data like realm,
+      authheader containing jwt token to be set in info as a result,  '
+    request:
+      type: bytes
+      params:
+        id:
+          description: Client id for which key based authentication is being done
+          type: string
+          required: true
+    configurations:
+      clients:
+        description: List of clients that can be served by this service. The config
+          should contain {clientname:{role:clientrole,publickey:keypath}}
+        type: config
+        required: true

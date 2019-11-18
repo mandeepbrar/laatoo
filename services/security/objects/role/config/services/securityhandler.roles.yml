@@ -1,3 +1,2 @@
-object: Role
-id: Role
+object: role.Role
 factory: {{var "roledatafactory"}}
