@@ -143,15 +143,15 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 				if initobj == "" {
 					if audit {
 						if softdelete {
-							initobj = "laatoo/server/data/SoftDeleteAuditable" + suffix
+							initobj = "laatoo/server/data.SoftDeleteAuditable" + suffix
 						} else {
-							initobj = "laatoo/server/data/HardDeleteAuditable" + suffix
+							initobj = "laatoo/server/data.HardDeleteAuditable" + suffix
 						}
 					} else {
 						if softdelete {
-							initobj = "laatoo/server/data/SoftDeleteStorable" + suffix
+							initobj = "laatoo/server/data.SoftDeleteStorable" + suffix
 						} else {
-							initobj = "laatoo/server/data/AbstractStorable" + suffix
+							initobj = "laatoo/server/data.AbstractStorable" + suffix
 						}
 					}
 				}

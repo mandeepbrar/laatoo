@@ -1,4 +1,4 @@
 name: server.publicfiles{{var "instance" "."}}
-servicemethod: named_files_service
+servicemethod: staticfileserver.NamedFileService
 files: {{var "files"}}
 storage: server.resourcedirectory{{var "instance" "."}}

@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	CONF_DATAADAPTER_FAC_NAME    = "dataadapter.DataAdapterFactory"
 	DATA_ADAPTER_MODULE          = "DataAdapterModule"
 	DATA_ADAPTER_INSTANCE        = "instance"
 	CONF_DATASERVICE_FACTORY     = "dataservicefactory"
@@ -106,7 +107,7 @@ func (adapter *DataAdapterModule) Factories(ctx core.ServerContext) map[string]c
 
 	if adapter.dataadapterfactory {
 		factory := ctx.CreateConfig()
-		factory.Set(ctx, CONF_SERVICEFACTORY, CONF_DATAADAPTER_SERVICES)
+		factory.Set(ctx, CONF_SERVICEFACTORY, CONF_DATAADAPTER_FAC_NAME)
 		factory.Set(ctx, CONF_DATAADAPTER_DATA_SVC, adapter.adapterdataSvcName)
 		factory.Set(ctx, MIDDLEWARE, adapter.middleware)
 		facs[adapter.adapterfacName] = factory

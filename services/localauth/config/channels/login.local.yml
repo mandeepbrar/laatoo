@@ -5,4 +5,4 @@ path: "/login"
 skipauth: true
 bodyparamname: credentials
 responsehandler:
-  name: {{if is "setcookies"}} CookiesResponseHandler {{else}} DefaultResponseHandler{{end}}
+  name: {{if is "setcookies"}} laatoo/server/engine/http.cookiesResponseHandler {{else}} laatoo/server/engine/http.defaultResponseHandler{{end}}

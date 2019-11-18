@@ -2,9 +2,9 @@ package main
 
 import (
 	"bytes"
+	common "cachecommon"
 	"encoding/gob"
 	"laatoo/sdk/server/core"
-	"cachecommon"
 
 	"google.golang.org/appengine/memcache"
 )
@@ -15,6 +15,10 @@ const (
 
 type AppengineCacheService struct {
 	core.Service
+}
+
+func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
+	return []core.PluginComponent{core.PluginComponent{Object: AppengineCacheService{}}}
 }
 
 func (svc *AppengineCacheService) Delete(ctx core.RequestContext, bucket string, key string) error {

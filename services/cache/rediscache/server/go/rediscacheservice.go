@@ -18,7 +18,7 @@ const (
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: REDISCACHE_SERVICE, Object: RedisCacheService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: RedisCacheService{}}}
 }
 
 type RedisCacheService struct {

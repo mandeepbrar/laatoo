@@ -1,7 +1,7 @@
 servicemethod: signup.RegistrationService
 #skip: {{if exists "signup_support"}} {{var "signup_support" | not}} {{else}} true {{end}}
 #dataobject: stringmap
-user_data_svc: dataadapter.dataservice.User
+user_data_svc: {{if exists "user_data_svc"}} {{var "user_data_svc"}} {{else}} dataadapter.dataservice.user.DefaultUser {{end}} 
 def_role: {{var "defaultrole"}}
 emailverification: {{if exists "emailverification"}} {{var "emailverification"}} {{else}} false {{end}}
 emailqueue: laatoo.signup.email

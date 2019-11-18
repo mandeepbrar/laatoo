@@ -8,7 +8,6 @@ import (
 )
 
 const (
-	CONF_DATAADAPTER_SERVICES      = "dataadapter"
 	CONF_DATAADAPTER_DATA_SVC      = "dataservice"
 	CONF_DATA_ID                   = "id"
 	CONF_DATA_IDS                  = "ids"

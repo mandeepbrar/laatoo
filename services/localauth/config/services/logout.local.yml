@@ -1,1 +1,1 @@
-servicemethod: dbloginservice.LogoutService
+servicemethod: dblogin.LogoutService

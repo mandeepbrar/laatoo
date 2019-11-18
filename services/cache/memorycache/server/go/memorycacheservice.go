@@ -12,7 +12,7 @@ const (
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_MEMORYCACHE_SVC, Object: MemoryCacheService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: MemoryCacheService{}}}
 }
 
 type MemoryCacheService struct {

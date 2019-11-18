@@ -11,7 +11,7 @@ modules:
   roles:
     module: dataadapter
     settings:
-      object: Role
+      object: role.Defaultrole
       dataservicefactory: {{var "dataservicefactory"}}
   users:
     module: dataadapter

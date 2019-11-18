@@ -1,5 +1,5 @@
 name: shell.index{{var "module" "."}}
-servicemethod: named_files_service
+servicemethod: staticfileserver.NamedFileService
 files:
   index.html:
     cache: 'true'

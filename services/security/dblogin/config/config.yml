@@ -1,7 +1,7 @@
 version: 0.0.1
 description: 'Module provides database login and registration services. '
 objects:
-  dbloginservice.LoginService:
+  dblogin.LoginService:
     type: service
     description: This service allows logins for users in the database.
     request:
@@ -11,6 +11,6 @@ objects:
         type: string
         required: true
         description: User data service for login service
-  dbloginservice.LogoutService:
+  dblogin.LogoutService:
     type: service
     description: This service allows logouts for users in the database.

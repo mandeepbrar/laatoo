@@ -173,7 +173,7 @@ func (facMgr *factoryManager) createModuleFactories(ctx core.ServerContext, mod 
 }
 
 func (facMgr *factoryManager) createServiceFactory(ctx core.ServerContext, factoryConfig config.Config, factoryAlias string) (*serviceFactoryProxy, error) {
-	ctx = ctx.SubContext("Create Service Factory")
+	ctx = ctx.SubContext("Create Service Factory: " + factoryAlias)
 	factoryName, ok := factoryConfig.GetString(ctx, constants.CONF_SERVICEFACTORY)
 	if !ok {
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_MISSING_CONF, "Wrong config for Factory Name", factoryAlias, "Missing Config", constants.CONF_SERVICEFACTORY)

@@ -1,1 +1,1 @@
-servicemethod: filesystem
+servicemethod: filesystemstorage.FileSystemSvc

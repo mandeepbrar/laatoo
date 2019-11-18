@@ -7,7 +7,7 @@ jsui laatoo/services/web/jsui
 dblogin laatoo/services/security/dblogin
 tokenvalidation laatoo/services/security/tokenvalidation
 datapipeline laatoo/services/datapipeline/datapipeline 
-memorycache laatoo/services/cache/memory
+memorycache laatoo/services/cache/memorycache
 shell laatoo/services/shell
 signup laatoo/services/security/signup
 email laatoo/services/communication/email
@@ -42,9 +42,9 @@ materialicons laatoo/services/materialicons
 itemdetailview laatoo/services/web/react/itemdetailview
 oauthui laatoo/services/web/react/oauthui
 platformdependencies laatoo/services/web/react/platformdependencies
-appenginecache laatoo/services/cache/appengine
+appenginecache laatoo/services/cache/appenginecache
 cadence laatoo/services/workflow/cadence
-rediscache laatoo/services/cache/redis
+rediscache laatoo/services/cache/rediscache
 blevesearch laatoo/services/search/blevesearch
 googlesearch laatoo/services/search/googlesearch
 beanstalktasks laatoo/services/tasks/beanstalktasks

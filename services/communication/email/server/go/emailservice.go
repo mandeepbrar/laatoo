@@ -17,7 +17,7 @@ const (
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: CONF_EMAIL_SVC, Object: EmailService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: EmailService{}}}
 }
 
 type EmailService struct {

@@ -112,3 +112,7 @@ params:
   emailverificationworkflow:
     type: string
     description: Workflow to be used for email verification
+  user_data_svc:
+    type: string
+    description: Data service to be used for registering users
+

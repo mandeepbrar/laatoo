@@ -4,4 +4,4 @@ method: GET
 path: /logout
 skipauth: true
 responsehandler:
-  name: CookiesResponseHandler
+  name: laatoo/server/engine/http.cookiesResponseHandler

@@ -3,7 +3,7 @@ description: 'Module provides memory cache service. Environment variables suppor
   by the module include ''encoding''. By default a service named ''laatoo.memorycache''
   is created. '
 objects:
-  memory_cache:
+  memorycache.MemoryCacheService:
     type: service
     component: true
     description: Memory cache component service

@@ -1,7 +1,7 @@
 version: 0.0.1
 description: 'Module provides email communication service'
 objects:
-  email_service:
+  email.EmailService:
     type: service
     component: true
     description: Email service

@@ -1,4 +1,4 @@
-servicemethod: email_service
+servicemethod: email.EmailService
 mailserver: {{var "mailserver"}}
 mailport: {{var "mailport"}}
 mailsender: {{var "mailsender"}}

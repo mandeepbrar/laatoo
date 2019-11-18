@@ -4,7 +4,7 @@ description: 'Module provides redis cache service. Environment variables support
   by the module include ''encoding''. By default service named ''laatoo.rediscache''
   is created. Encoding options include ''json'' and ''binary'' '
 objects:
-  redis_cache:
+  rediscache.RedisCacheService:
     type: service
     description: Redis cache factory
     component: true

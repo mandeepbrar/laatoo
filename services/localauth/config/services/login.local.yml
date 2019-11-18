@@ -1,2 +1,2 @@
-servicemethod: dbloginservice.LoginService
+servicemethod: dblogin.LoginService
 user_data_svc: login.user.internal
