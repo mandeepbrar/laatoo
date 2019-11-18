@@ -8,22 +8,22 @@ import (
 	"reflect"
 )
 
-type objectToMapProcessor struct {
+type ObjectToMapProcessor struct {
 	core.Service
 	//mappings      config.Config
 	//fieldmappings map[string]string
 }
 
-func (proc *objectToMapProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (proc *ObjectToMapProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
 	return nil
 }
 
-func (proc *objectToMapProcessor) Transform(ctx core.RequestContext, input interface{}) (interface{}, error) {
+func (proc *ObjectToMapProcessor) Transform(ctx core.RequestContext, input interface{}) (interface{}, error) {
 	res := proc.convertStructToMap(input) //for
 	return res, nil
 }
 
-func (proc *objectToMapProcessor) convertStructToMap(input interface{}) map[string]interface{} {
+func (proc *ObjectToMapProcessor) convertStructToMap(input interface{}) map[string]interface{} {
 	res := make(map[string]interface{})
 	rVal := reflect.ValueOf(input)
 	if rVal.Kind() == reflect.Struct {

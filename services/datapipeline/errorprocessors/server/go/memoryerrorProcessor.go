@@ -7,17 +7,17 @@ import (
 	"laatoo/sdk/server/log"
 )
 
-type memoryErrorsProcessor struct {
+type MemoryErrorsProcessor struct {
 	core.Service
 	records []*datapipeline.PipelineRecord
 }
 
-func (proc *memoryErrorsProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (proc *MemoryErrorsProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
 	proc.records = make([]*datapipeline.PipelineRecord, 0)
 	return nil
 }
 
-func (proc *memoryErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, rec *datapipeline.PipelineRecord) {
+func (proc *MemoryErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, rec *datapipeline.PipelineRecord) {
 	log.Error(ctx, "Received error record in memory", "rec", rec)
 	if rec.Err != nil {
 		proc.records = append(proc.records, rec)
@@ -25,11 +25,11 @@ func (proc *memoryErrorsProcessor) ProcessErrorRecord(ctx core.RequestContext, r
 	return
 }
 
-func (proc *memoryErrorsProcessor) GetErrorRecords(ctx core.RequestContext) []*datapipeline.PipelineRecord {
+func (proc *MemoryErrorsProcessor) GetErrorRecords(ctx core.RequestContext) []*datapipeline.PipelineRecord {
 	return proc.records
 }
 
-func (proc *memoryErrorsProcessor) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
+func (proc *MemoryErrorsProcessor) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
 	recordsToServe := proc.records
 	log.Error(ctx, "Count of records in memory", "recordsToServe", len(recordsToServe))
 	proc.records = make([]*datapipeline.PipelineRecord, 0)

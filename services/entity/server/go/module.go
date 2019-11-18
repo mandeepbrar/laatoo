@@ -23,10 +23,6 @@ const (
 	ENTITY_UPDATE_SUCCESS   = "update_success_route"
 )
 
-func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: ENTITY_MODULE, Object: EntityModule{}}}
-}
-
 type EntityModule struct {
 	core.Module
 	object             string

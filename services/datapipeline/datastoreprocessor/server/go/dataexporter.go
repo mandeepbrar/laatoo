@@ -9,12 +9,12 @@ import (
 	"laatoo/sdk/server/log"
 )
 
-type dataExporter struct {
+type DataExporter struct {
 	core.Service
 	dataStor data.DataComponent
 }
 
-func (exp *dataExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (exp *DataExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_EXP_DATASVC)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_EXP_DATASVC)
@@ -30,7 +30,7 @@ func (exp *dataExporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (exp *dataExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
+func (exp *DataExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
 
 	for {
 		select {

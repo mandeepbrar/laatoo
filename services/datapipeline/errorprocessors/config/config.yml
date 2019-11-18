@@ -3,6 +3,6 @@ description: 'Module provides error processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  memoryerrorprocessor:
+  errorprocessors.MemoryErrorsProcessor:
     type: service
     description: Stores all errors in memory

@@ -1,0 +1,26 @@
+version: 0.0.1
+description: " Provides access to google search service in gae environment. Complies
+  with search sdk. A default service laatoo.googlesearch is provided."
+objects:
+  googlesearch.GoogleSearchService:
+    type: service
+    description: Google search service
+    request:
+      description: Words to be searched
+      type: string
+    configurations:
+      searchindex:
+        description: Index to be used
+        type: string
+        default: ''
+      searchresults:
+        description: Number of results to be returned
+        type: string
+        default: 15
+params:
+  searchindex: 
+    type: string
+    description: Index to be used for search service
+  searchresults: 
+    type: string
+    description: Number of results to be returned by search

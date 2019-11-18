@@ -8,12 +8,12 @@ import (
 	"laatoo/sdk/server/errors"
 )
 
-type dataImporter struct {
+type DataImporter struct {
 	core.Service
 	dataStor data.DataComponent
 }
 
-func (imp *dataImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (imp *DataImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_INP_DATASVC)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_INP_DATASVC)
@@ -29,7 +29,7 @@ func (imp *dataImporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (imp *dataImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
+func (imp *DataImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
 	var queryCond interface{}
 	var err error
 	query, ok := initData["query"]

@@ -3,7 +3,7 @@ description: 'Module provides csv processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  diskimporter:
+  diskprocessor.DiskImporter:
     type: service
     description: Disk store importer service for use by data pipeline. Records are read from the disk
     configurations:
@@ -20,7 +20,7 @@ objects:
       importcsvhasheaders:
         type: string
         description: CSV has header records. If CSV has header records, a map is sent into data pipeline
-  diskexporter:
+  diskprocessor.DiskExporter:
     type: service
     description: Writes records to the disk using diskstorer
     configurations:

@@ -2,7 +2,7 @@ version: 0.0.1
 description: 'Module provides data pipeline factory and service'
 dependencies: {}
 objects:
-  datapipelineservice:
+  datapipeline.PipelineService:
     type: service
     configurations:
       datasource:

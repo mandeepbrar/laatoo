@@ -3,7 +3,7 @@ description: 'Module provides csv processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  maptoobjectprocessor:
+  objectmapprocessor.MapToObjectProcessor:
     type: service
     description: Convert map to object
     configurations:
@@ -15,6 +15,6 @@ objects:
         type: stringmap
         description: Map containing field mappings from map to object
         required: true
-  objecttomapprocessor:
+  objectmapprocessor.ObjectToMapProcessor:
     type: service
     description: Convert object to map

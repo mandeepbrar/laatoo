@@ -1,8 +1,10 @@
 package main
 
-import "laatoo/sdk/server/core"
+import (
+	"laatoo/sdk/server/core"
+)
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Name: "objecttomapprocessor", Object: objectToMapProcessor{}},
-		core.PluginComponent{Name: "maptoobjectprocessor", Object: mapToObjectProcessor{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: ObjectToMapProcessor{}},
+		core.PluginComponent{Object: MapToObjectProcessor{}}}
 }

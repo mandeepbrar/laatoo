@@ -3,7 +3,7 @@ description: 'Module provides csv processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  restimporter:
+  restprocessor.RestImporter:
     type: service
     description: CSV importer service for use by data pipeline
     configurations:
@@ -21,7 +21,7 @@ objects:
       importmethod:
         type: string
         description: Method to use for hitting rest endpoint. GET/POST
-  restexporter:
+  restprocessor.RestExporter:
     type: service
     description: CSV exporter service for use by data pipeline
     configurations:

@@ -18,7 +18,7 @@ const (
 	CONF_IMP_CSVHEADER = "importcsvhasheaders"
 )
 
-type csvImporter struct {
+type CsvImporter struct {
 	core.Service
 	stor       components.StorageComponent
 	storBucket string
@@ -26,7 +26,7 @@ type csvImporter struct {
 	headers    bool
 }
 
-func (imp *csvImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (imp *CsvImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_IMP_STORAGE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_IMP_STORAGE)
@@ -50,7 +50,7 @@ func (imp *csvImporter) Initialize(ctx core.ServerContext, conf config.Config) e
 	return nil
 }
 
-func (imp *csvImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
+func (imp *CsvImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
 	var file string
 	fileInt, ok := initData["inputfile"]
 	if !ok {

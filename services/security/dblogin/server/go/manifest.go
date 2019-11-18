@@ -1,7 +1,6 @@
 package main
 
 import (
-	"dblogin/dblogin"
 	"laatoo/sdk/server/core"
 )
 
@@ -12,6 +11,6 @@ const (
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Object: dblogin.LogoutService{}},
-		core.PluginComponent{Object: dblogin.LoginService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: LogoutService{}},
+		core.PluginComponent{Object: LoginService{}}}
 }

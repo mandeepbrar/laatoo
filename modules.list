@@ -45,11 +45,11 @@ platformdependencies laatoo/services/web/react/platformdependencies
 appenginecache laatoo/services/cache/appengine
 cadence laatoo/services/workflow/cadence
 rediscache laatoo/services/cache/redis
-blevesearch laatoo/services/search/bleve
-googlesearch laatoo/services/search/google
+blevesearch laatoo/services/search/blevesearch
+googlesearch laatoo/services/search/googlesearch
 beanstalktasks laatoo/services/tasks/beanstalktasks
 gaetasks laatoo/services/tasks/gaetasks
-redispubsub laatoo/services/pubsub/redis
+redispubsub laatoo/services/pubsub/redispubsub
 oauthlogin laatoo/services/security/oauthlogin
 keyauthlogin laatoo/services/security/keyauthlogin
 googlestorage laatoo/services/storage/googlestorage

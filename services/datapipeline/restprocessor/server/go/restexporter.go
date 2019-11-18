@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-type restExporter struct {
+type RestExporter struct {
 	core.Service
 	restEndpoint string
 	objFac       core.ObjectFactory
 }
 
-func (exp *restExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (exp *RestExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	resEndpoint, ok := conf.GetString(ctx, CONF_EXP_REST_ENDPOINT)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_EXP_REST_ENDPOINT)
@@ -47,7 +47,7 @@ func (exp *restExporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (exp *restExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
+func (exp *RestExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
 
 	var netClient = &http.Client{
 		Timeout: time.Second * 10,

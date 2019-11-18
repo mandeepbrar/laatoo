@@ -1,4 +1,4 @@
-servicemethod: datapipelineservice
+servicemethod: datapipeline.PipelineService
 name: {{if exists "pipelinename"}} {{var "pipelinename"}} {{else}} pipeline {{end}}
 datasource: {{var "datasource"}}
 datadestination: {{var "datadestination"}}

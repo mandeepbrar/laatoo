@@ -3,7 +3,7 @@ description: 'Module provides csv processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  csvimporter:
+  csvprocessor.CsvImporter:
     type: service
     description: CSV importer service for use by data pipeline
     configurations:
@@ -20,7 +20,7 @@ objects:
       importcsvhasheaders:
         type: string
         description: CSV has header records. If CSV has header records, a map is sent into data pipeline
-  csvexporter:
+  csvprocessor.CsvExporter:
     type: service
     description: CSV exporter service for use by data pipeline
     configurations:

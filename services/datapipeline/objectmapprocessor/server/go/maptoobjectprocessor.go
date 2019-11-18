@@ -12,7 +12,7 @@ import (
 	"laatoo/sdk/server/log"
 )
 
-type mapToObjectProcessor struct {
+type MapToObjectProcessor struct {
 	core.Service
 	objectFactory core.ObjectFactory
 	mappings      config.Config
@@ -21,7 +21,7 @@ type mapToObjectProcessor struct {
 	lookupfields  map[string]string
 }
 
-func (proc *mapToObjectProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (proc *MapToObjectProcessor) Initialize(ctx core.ServerContext, conf config.Config) error {
 	object, ok := proc.GetStringConfiguration(ctx, "object")
 	if !ok {
 		return errors.MissingConf(ctx, "object")
@@ -75,7 +75,7 @@ func (proc *mapToObjectProcessor) Initialize(ctx core.ServerContext, conf config
 	return nil
 }
 
-func (proc *mapToObjectProcessor) Transform(ctx core.RequestContext, input interface{}) (interface{}, error) {
+func (proc *MapToObjectProcessor) Transform(ctx core.RequestContext, input interface{}) (interface{}, error) {
 	inputMap := utils.CastToStringMap(input)
 
 	if inputMap != nil {
@@ -93,7 +93,7 @@ func (proc *mapToObjectProcessor) Transform(ctx core.RequestContext, input inter
 	return nil, nil
 }
 
-func (proc *mapToObjectProcessor) getLookup(ctx core.ServerContext, dataComp data.DataComponent) utils.LookupFunc {
+func (proc *MapToObjectProcessor) getLookup(ctx core.ServerContext, dataComp data.DataComponent) utils.LookupFunc {
 	return func(ctx interface{}, name string, val interface{}) (interface{}, error) {
 		strVal := val.(string)
 		if strVal == "" {

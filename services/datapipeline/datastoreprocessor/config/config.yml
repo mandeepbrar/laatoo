@@ -3,7 +3,7 @@ description: 'Module provides data store processing services for data pipeline'
 dependencies: 
   datapipeline: 0.0.1
 objects:
-  datastoreexporter:
+  datastoreprocessor.DataExporter:
     type: service
     description:  Data Importer service for use in data pipeleine. Save is done for all objects
     configurations:
@@ -11,7 +11,7 @@ objects:
         type: string
         description: Data service to which list of objects is to be saved
         required: true
-  datastoreimporter:
+  datastoreprocessor.DataImporter:
     type: service
     description: Data Importer service for use in data pipeleine. GetList is done to get a list of all objects
     configurations:

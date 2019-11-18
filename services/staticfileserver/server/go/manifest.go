@@ -2,12 +2,11 @@ package main
 
 import (
 	"laatoo/sdk/server/core"
-	"staticfileserver/staticfileserver"
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Object: staticfileserver.StaticFiles{}},
-		core.PluginComponent{Object: staticfileserver.NamedFileService{}},
-		core.PluginComponent{Object: staticfileserver.TemplateFileService{}},
-		core.PluginComponent{Object: staticfileserver.BundledFileService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: StaticFiles{}},
+		core.PluginComponent{Object: NamedFileService{}},
+		core.PluginComponent{Object: TemplateFileService{}},
+		core.PluginComponent{Object: BundledFileService{}}}
 }

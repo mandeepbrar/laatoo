@@ -18,7 +18,7 @@ const (
 	CONF_EXP_CSVHEADER = "exportcsvheaders"
 )
 
-type csvExporter struct {
+type CsvExporter struct {
 	core.Service
 	stor       components.StorageComponent
 	storBucket string
@@ -26,7 +26,7 @@ type csvExporter struct {
 	headers    []string
 }
 
-func (exp *csvExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (exp *CsvExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_EXP_STORAGE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_EXP_STORAGE)
@@ -51,7 +51,7 @@ func (exp *csvExporter) Initialize(ctx core.ServerContext, conf config.Config) e
 	return nil
 }
 
-func (exp *csvExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
+func (exp *CsvExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
 
 	//func (exp *csvExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan, pipelineErrorChan datapipeline.ErrorChan, done chan bool) error {
 

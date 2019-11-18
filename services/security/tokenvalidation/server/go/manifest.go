@@ -2,7 +2,6 @@ package main
 
 import (
 	"laatoo/sdk/server/core"
-	"tokenvalidation/tokenvalidation"
 )
 
 const (
@@ -10,5 +9,5 @@ const (
 )
 
 func Manifest(provider core.MetaDataProvider) []core.PluginComponent {
-	return []core.PluginComponent{core.PluginComponent{Object: tokenvalidation.TokenValidationService{}}}
+	return []core.PluginComponent{core.PluginComponent{Object: TokenValidationService{}}}
 }

@@ -1,4 +1,4 @@
-module entityservice
+module entity
 
 go 1.12
 

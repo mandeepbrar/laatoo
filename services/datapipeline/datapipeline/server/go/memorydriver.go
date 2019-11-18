@@ -8,10 +8,10 @@ import (
 	"sync"
 )
 
-type memoryDriver struct {
+type MemoryDriver struct {
 }
 
-func (proc *memoryDriver) processErrorRecord(ctx core.RequestContext, errorProcessor datapipeline.ErrorProcessor, rec *datapipeline.PipelineRecord) {
+func (proc *MemoryDriver) processErrorRecord(ctx core.RequestContext, errorProcessor datapipeline.ErrorProcessor, rec *datapipeline.PipelineRecord) {
 	wg := rec.PipelineData.(*sync.WaitGroup)
 	defer wg.Done()
 	if errorProcessor != nil {
@@ -25,7 +25,7 @@ func (proc *memoryDriver) processErrorRecord(ctx core.RequestContext, errorProce
 	}
 }
 
-func (proc *memoryDriver) Run(ctx core.RequestContext, importer datapipeline.Importer, exporter datapipeline.Exporter,
+func (proc *MemoryDriver) Run(ctx core.RequestContext, importer datapipeline.Importer, exporter datapipeline.Exporter,
 	processor datapipeline.Processor, errorProcessor datapipeline.ErrorProcessor, initData map[string]interface{}) error {
 
 	myctx, cancelFunc := ctx.WithCancel()
@@ -96,7 +96,7 @@ func (proc *memoryDriver) Run(ctx core.RequestContext, importer datapipeline.Imp
 	return nil
 }
 
-func (proc *memoryDriver) processLoop(ctx core.RequestContext, inp datapipeline.DataChan, exportInputChan datapipeline.DataChan,
+func (proc *MemoryDriver) processLoop(ctx core.RequestContext, inp datapipeline.DataChan, exportInputChan datapipeline.DataChan,
 	exportOutputChan datapipeline.DataChan, pipelineErrChan chan error, processor datapipeline.Processor,
 	errorProcessor datapipeline.ErrorProcessor, wg *sync.WaitGroup) error {
 

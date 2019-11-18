@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type restImporter struct {
+type RestImporter struct {
 	core.Service
 	restEndpoint string
 	method       string
@@ -21,7 +21,7 @@ type restImporter struct {
 	list         bool
 }
 
-func (imp *restImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (imp *RestImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcEndpoint, ok := conf.GetString(ctx, CONF_INP_REST_ENDPOINT)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_INP_REST_ENDPOINT)
@@ -50,7 +50,7 @@ func (imp *restImporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (imp *restImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
+func (imp *RestImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
 
 	var netClient = &http.Client{
 		Timeout: time.Second * 10,

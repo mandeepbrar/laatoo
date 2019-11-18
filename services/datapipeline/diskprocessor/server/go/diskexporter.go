@@ -16,7 +16,7 @@ const (
 	CONF_EXP_CSVHEADER = "exportcsvhasheaders"
 )
 
-type diskExporter struct {
+type DiskExporter struct {
 	core.Service
 	stor       components.StorageComponent
 	storBucket string
@@ -25,7 +25,7 @@ type diskExporter struct {
 	delim      byte
 }
 
-func (exp *diskExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (exp *DiskExporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_EXP_STORAGE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_EXP_STORAGE)
@@ -57,7 +57,7 @@ func (exp *diskExporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (exp *diskExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
+func (exp *DiskExporter) WriteRecord(ctx core.RequestContext, initData map[string]interface{}, inputDataChan datapipeline.DataChan, outputDataChan datapipeline.DataChan) error {
 
 	file, ok := initData["outputfile"]
 	if !ok {

@@ -19,7 +19,7 @@ const (
 	CONF_IMP_CODEC        = "importcodec"
 )
 
-type diskImporter struct {
+type DiskImporter struct {
 	core.Service
 	stor       components.StorageComponent
 	storBucket string
@@ -29,7 +29,7 @@ type diskImporter struct {
 	delim      byte
 }
 
-func (imp *diskImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (imp *DiskImporter) Initialize(ctx core.ServerContext, conf config.Config) error {
 	svcName, ok := conf.GetString(ctx, CONF_IMP_STORAGE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_IMP_STORAGE)
@@ -71,7 +71,7 @@ func (imp *diskImporter) Initialize(ctx core.ServerContext, conf config.Config) 
 	return nil
 }
 
-func (imp *diskImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
+func (imp *DiskImporter) GetRecords(ctx core.RequestContext, initData map[string]interface{}, dataChan datapipeline.DataChan) error {
 	var file string
 	fileInt, ok := initData["inputfile"]
 

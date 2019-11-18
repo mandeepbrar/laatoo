@@ -17,7 +17,7 @@ const (
 	CONF_RETRYSERVICE   = "retrysource"
 )
 
-type pipelineService struct {
+type PipelineService struct {
 	core.Service
 	importer       datapipeline.Importer
 	exporter       datapipeline.Exporter
@@ -27,7 +27,7 @@ type pipelineService struct {
 	retrySource    datapipeline.Importer
 }
 
-func (svc *pipelineService) Initialize(ctx core.ServerContext, conf config.Config) error {
+func (svc *PipelineService) Initialize(ctx core.ServerContext, conf config.Config) error {
 	dataSource, ok := svc.GetStringConfiguration(ctx, CONF_DATASOURCETYPE)
 	if !ok {
 		return errors.MissingConf(ctx, CONF_DATASOURCETYPE)
@@ -86,7 +86,7 @@ func (svc *pipelineService) Initialize(ctx core.ServerContext, conf config.Confi
 
 	driverName, ok := svc.GetStringConfiguration(ctx, CONF_DRIVERTYPE)
 	if !ok {
-		svc.driver = &memoryDriver{}
+		svc.driver = &MemoryDriver{}
 	} else {
 		driver, err := ctx.GetService(driverName)
 		if err != nil {
@@ -115,7 +115,7 @@ func (svc *pipelineService) Initialize(ctx core.ServerContext, conf config.Confi
 	return nil
 }
 
-func (svc *pipelineService) Invoke(ctx core.RequestContext) error {
+func (svc *PipelineService) Invoke(ctx core.RequestContext) error {
 	data, _ := ctx.GetStringMapParam("Data")
 	retries, _ := ctx.GetIntParam("retries")
 	go func() {
