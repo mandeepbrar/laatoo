@@ -1,6 +1,8 @@
 package codecs
 
 import (
+	"io"
+	"io/ioutil"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"reflect"
@@ -18,14 +20,33 @@ func NewJsonReader(c ctx.Context, arr []byte) (core.SerializableReader, error) {
 	return &JsonReader{root: v}, nil
 }
 
+//Not full support for reader
+func NewJsonStreamReader(c ctx.Context, rdr io.Reader) (core.SerializableReader, error) {
+	arr, err := ioutil.ReadAll(rdr)
+	if err != nil {
+		return nil, err
+	}
+	var p fastjson.Parser
+	v, err := p.ParseBytes(arr)
+	if err != nil {
+		return nil, err
+	}
+	return &JsonReader{root: v}, nil
+}
+
 func internalJsonReader(c ctx.Context, val core.SerializableReader) (core.SerializableReader, error) {
 	jsonref := val.(*JsonReader)
 	return &JsonReader{root: jsonref.root}, nil
 }
 
 type JsonReader struct {
+	io.Reader
 	//	keys []string
 	root *fastjson.Value
+}
+
+func (rdr *JsonReader) Start() error {
+	return nil
 }
 
 func (rdr *JsonReader) Bytes() []byte {
@@ -35,12 +56,12 @@ func (rdr *JsonReader) Bytes() []byte {
 func (rdr *JsonReader) ReadBytes(ctx ctx.Context, cdc core.Codec, prop string) ([]byte, error) {
 	v := rdr.root.Get(prop)
 	if v == nil {
-		return nil, errNoKey
+		return nil, nil
 	}
 	return v.MarshalTo(nil), nil
 }
 
-func (rdr *JsonReader) Read(ctx ctx.Context, cdc core.Codec, prop string) (core.SerializableReader, error) {
+func (rdr *JsonReader) ReadProp(ctx ctx.Context, cdc core.Codec, prop string) (core.SerializableReader, error) {
 	//keys := append(rdr.keys, prop)
 	v := rdr.root.Get(prop)
 	return &JsonReader{root: v}, nil
@@ -90,7 +111,7 @@ func (rdr *JsonReader) ReadObject(ctx ctx.Context, cdc core.Codec, prop string, 
 
 	v := rdr.root.Get(prop)
 	if v == nil {
-		return errNoKey
+		return nil
 	}
 
 	srl, ok := val.(core.Serializable)
@@ -112,8 +133,8 @@ func (rdr *JsonReader) ReadObject(ctx ctx.Context, cdc core.Codec, prop string, 
 func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val *map[string]interface{}) error {
 	//valMap := *val
 	v := rdr.root.Get(prop)
-	if v != nil {
-		return errNoKey
+	if v == nil {
+		return nil
 	}
 	bys := v.MarshalTo(nil)
 	return cdc.Unmarshal(ctx, bys, val)
@@ -127,8 +148,8 @@ func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, v
 	objType := collVal.Elem().String()
 	reqCtx := ctx.(core.RequestContext)
 	arrV := rdr.root.GetArray(prop)
-	if arrV != nil {
-		return errNoKey
+	if arrV == nil {
+		return nil
 	}
 	collection, err := reqCtx.CreateCollection(objType, len(arrV))
 	if err != nil {
@@ -160,8 +181,8 @@ func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, v
 
 func (rdr *JsonReader) ReadTime(ctx ctx.Context, cdc core.Codec, prop string, val *time.Time) error {
 	v := rdr.root.Get(prop)
-	if v != nil {
-		return errNoKey
+	if v == nil {
+		return nil
 	}
 	bys := v.MarshalTo(nil)
 	tim, err := time.Parse(time.RFC3339, string(bys))

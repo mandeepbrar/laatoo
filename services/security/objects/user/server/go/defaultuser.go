@@ -230,3 +230,100 @@ func (usr *DefaultUser) encryptPassword() error {
 	usr.setPassword(string(hash))
 	return nil
 }
+
+func (ent *DefaultUser) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	var err error
+
+	if err = rdr.ReadString(c, cdc, "Username", &ent.Username); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Password", &ent.Password); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadArray(c, cdc, "Roles", &ent.Roles); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Email", &ent.Email); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Name", &ent.Name); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadInt(c, cdc, "Status", &ent.Status); err != nil {
+		return err
+	}
+
+	ent.Account = data.StorableRef{}
+	if err = rdr.ReadObject(c, cdc, "Account", &ent.Account); err != nil {
+		return err
+	}
+
+	return ent.Storable.ReadAll(c, cdc, rdr)
+}
+
+func (ent *DefaultUser) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	var err error
+
+	if err = wtr.WriteString(c, cdc, "Username", &ent.Username); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteArray(c, cdc, "Roles", &ent.Roles); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Email", &ent.Email); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Name", &ent.Name); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Picture", &ent.Picture); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Picture", &ent.Picture); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Realm", &ent.Realm); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteInt(c, cdc, "Status", &ent.Status); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteObject(c, cdc, "Account", &ent.Account); err != nil {
+		return err
+	}
+
+	return ent.Storable.WriteAll(c, cdc, wtr)
+}

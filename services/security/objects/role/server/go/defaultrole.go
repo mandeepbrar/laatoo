@@ -2,6 +2,8 @@ package main
 
 import (
 	"laatoo/sdk/server/components/data"
+	"laatoo/sdk/server/core"
+	"laatoo/sdk/server/ctx"
 )
 
 var (
@@ -45,4 +47,40 @@ func (ent *Role) GetRealm() string {
 }
 func (ent *Role) SetRealm(val string) {
 	ent.Realm = val
+}
+
+func (ent *Role) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+	var err error
+
+	if err = rdr.ReadString(c, cdc, "Role", &ent.Role); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
+		return err
+	}
+
+	if err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+		return err
+	}
+
+	return ent.Storable.ReadAll(c, cdc, rdr)
+}
+
+func (ent *Role) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+	var err error
+
+	if err = wtr.WriteString(c, cdc, "Role", &ent.Role); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+		return err
+	}
+
+	if err = wtr.WriteString(c, cdc, "Realm", &ent.Realm); err != nil {
+		return err
+	}
+
+	return ent.Storable.WriteAll(c, cdc, wtr)
 }

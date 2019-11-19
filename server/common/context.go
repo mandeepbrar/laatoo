@@ -122,6 +122,10 @@ func (ctx *Context) NewCtx(name string) laatooContext.Context {
 		Parent: ctx, ParamsStore: duplicateMap, creationTime: time.Now(), gaeReq: ctx.gaeReq, appengineCtx: ctx.appengineCtx}
 }
 
+func (ctx *Context) CompleteContext() {
+	log.Println(fmt.Sprintf("Context complete %s\n Time elapsed %s\n", ctx.Path, ctx.GetElapsedTime()))
+}
+
 func (ctx *Context) Get(key string) (interface{}, bool) {
 	val, ok := ctx.ParamsStore[key]
 	return val, ok
@@ -207,20 +211,20 @@ func (ctx *Context) Dump() {
 	}
 }
 func (ctx *Context) LogTrace(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }
 func (ctx *Context) LogDebug(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }
 func (ctx *Context) LogInfo(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }
 func (ctx *Context) LogWarn(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }
 func (ctx *Context) LogError(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }
 func (ctx *Context) LogFatal(msg string, args ...interface{}) {
-	log.Println(msg)
+	log.Println(msg, fmt.Sprint(args))
 }

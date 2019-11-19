@@ -55,7 +55,7 @@ func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer b
 }
 
 func (enc *StorableSerializer) writeStorValues(ctx bsoncodec.EncodeContext, docWriter bsonrw.DocumentWriter, stor data.Storable) error {
-	vw, err := docWriter.WriteDocumentElement("ID")
+	vw, err := docWriter.WriteDocumentElement("Id")
 	if err != nil {
 		return err
 	}

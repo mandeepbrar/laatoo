@@ -215,10 +215,12 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 				return
 			}
 			log.Trace(reqCtx, "Invoking service ", "vals", vals)
-			resp, err := svc.HandleRequest(reqCtx, vals)
+			requestCtx := reqCtx.SubContext("Http request handler")
+			resp, err := svc.HandleRequest(requestCtx, vals)
 
 			log.Trace(reqCtx, "Completed request for service. Handling Response")
-			err = respHandler.HandleResponse(reqCtx, resp, err)
+			resCtx := reqCtx.SubContext("Response Handler")
+			err = respHandler.HandleResponse(resCtx, resp, err)
 
 			errChannel <- err
 		}(pathCtx)

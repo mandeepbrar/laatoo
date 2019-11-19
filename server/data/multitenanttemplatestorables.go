@@ -22,7 +22,7 @@ func NewAbstractStorableMT() *AbstractStorableMT {
 	return &AbstractStorableMT{Id: uuid.NewV4().String()}
 }
 func (as *AbstractStorableMT) Constructor() {
-	if as.Id != "" {
+	if as.Id == "" {
 		as.Id = uuid.NewV4().String()
 	}
 }

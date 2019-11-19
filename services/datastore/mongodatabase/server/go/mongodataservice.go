@@ -44,7 +44,7 @@ func (svc *mongoDataService) Describe(ctx core.ServerContext) error {
 }
 
 func (svc *mongoDataService) Initialize(ctx core.ServerContext, conf config.Config) error {
-	ctx = ctx.SubContext("Initialize Mongo Service")
+	ctx = ctx.SubContext("Initialize Mongo Service: " + svc.name)
 
 	err := svc.BaseComponent.Initialize(ctx, conf)
 	if err != nil {
@@ -98,7 +98,7 @@ func (ms *mongoDataService) Supports(feature data.Feature) bool {
 
 func (ms *mongoDataService) Save(ctx core.RequestContext, item data.Storable) error {
 	ctx = ctx.SubContext("Save")
-	log.Trace(ctx, "Saving object", "Object", ms.Object)
+	log.Trace(ctx, "Saving object", "Object", ms.Object, "item", item, "id", item.GetId())
 	conn := ms.factory.getConnection(ctx)
 	id := item.GetId()
 	if id == "" {

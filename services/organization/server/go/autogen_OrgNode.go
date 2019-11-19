@@ -30,9 +30,7 @@ type OrgNode struct {
 
 func (ent *OrgNode) Config() *data.StorableConfig {
 	return &data.StorableConfig{
-		IdField:         "Id",
     LabelField:      "Title",
-		Type:            "OrgNode",
 		PreSave:         false,
 		PostSave:        false,
 		PostLoad:        false,
@@ -61,13 +59,13 @@ func (ent *OrgNode) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializable
       return err
     }
     
-      {
-        ent.Parent := &OrgNode{}
-        if err = rdr.ReadObject(c, cdc, "Parent", &ent.Parent); err != nil {
-          return err
-        }
-      }
-      
+          {
+            ent.Parent = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "Parent", &ent.Parent); err != nil {
+              return err
+            }
+          }
+          
     if err = rdr.ReadString(c, cdc, "Level", &ent.Level); err != nil {
       return err
     }
@@ -84,27 +82,27 @@ func (ent *OrgNode) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializable
       return err
     }
     
-      {
-        ent.Data1 := &{}
-        if err = rdr.ReadObject(c, cdc, "Data1", &ent.Data1); err != nil {
-          return err
-        }
-      }
-      
-      {
-        ent.Data2 := &{}
-        if err = rdr.ReadObject(c, cdc, "Data2", &ent.Data2); err != nil {
-          return err
-        }
-      }
-      
-      {
-        ent.Data3 := &{}
-        if err = rdr.ReadObject(c, cdc, "Data3", &ent.Data3); err != nil {
-          return err
-        }
-      }
-      
+          {
+            ent.Data1 = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "Data1", &ent.Data1); err != nil {
+              return err
+            }
+          }
+          
+          {
+            ent.Data2 = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "Data2", &ent.Data2); err != nil {
+              return err
+            }
+          }
+          
+          {
+            ent.Data3 = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "Data3", &ent.Data3); err != nil {
+              return err
+            }
+          }
+          
 
 	return ent.Storable.ReadAll(c, cdc, rdr)
 }

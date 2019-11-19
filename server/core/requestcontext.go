@@ -319,6 +319,10 @@ func (ctx *requestContext) Forward(alias string, vals map[string]interface{}) er
 	return nil
 }
 
+func (ctx *requestContext) CompleteContext() {
+	log.Debug(ctx, "Context complete ", "Time elapsed ", ctx.GetElapsedTime())
+}
+
 func (ctx *requestContext) SendCommunication(communication interface{}) error {
 	comm, ok := communication.(*components.Communication)
 	if ok {

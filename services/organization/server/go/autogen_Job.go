@@ -23,9 +23,7 @@ type Job struct {
 
 func (ent *Job) Config() *data.StorableConfig {
 	return &data.StorableConfig{
-		IdField:         "Id",
     LabelField:      "Account",
-		Type:            "Job",
 		PreSave:         true,
 		PostSave:        false,
 		PostLoad:        false,
@@ -54,13 +52,13 @@ func (ent *Job) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableRead
       return err
     }
     
-      {
-        ent.OrgUnit := &OrgNode{}
-        if err = rdr.ReadObject(c, cdc, "OrgUnit", &ent.OrgUnit); err != nil {
-          return err
-        }
-      }
-      
+          {
+            ent.OrgUnit = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "OrgUnit", &ent.OrgUnit); err != nil {
+              return err
+            }
+          }
+          
 
 	return ent.Storable.ReadAll(c, cdc, rdr)
 }

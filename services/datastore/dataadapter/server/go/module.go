@@ -76,9 +76,10 @@ func (adapter *DataAdapterModule) MetaInfo(ctx core.ServerContext) map[string]in
 
 func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config.Config) error {
 	ctx = ctx.SubContext("Starting data adapter module")
+	var instanceok bool
 	adapter.factory, _ = adapter.GetStringConfiguration(ctx, CONF_DATASERVICE_FACTORY)
 	adapter.object, _ = adapter.GetStringConfiguration(ctx, data.CONF_DATA_OBJECT)
-	adapter.instance, _ = adapter.GetStringConfiguration(ctx, DATA_ADAPTER_INSTANCE)
+	adapter.instance, instanceok = adapter.GetStringConfiguration(ctx, DATA_ADAPTER_INSTANCE)
 	adapter.middleware, _ = adapter.GetStringConfiguration(ctx, MIDDLEWARE)
 	adapter.parentChannel, _ = adapter.GetStringConfiguration(ctx, CONF_PARENT_CHANNEL)
 	adapter.embeddedDocSearch, _ = adapter.GetBoolConfiguration(ctx, CONF_EMBEDDED_SEARCH)
@@ -93,11 +94,12 @@ func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config
 	adapter.adapterfacName = adapter.createName(ctx, "factory")
 	adapter.adapterdataSvcName = adapter.createName(ctx, "dataservice")
 
-	if adapter.instance == "" {
+	if !instanceok || adapter.instance == "" {
 		adapter.instance = adapter.object
 	}
 	log.Error(ctx, "Data adapter. Services to create", "data service", adapter.dataservice, " adapter factory", adapter.dataadapterfactory, "select service", adapter.selectservice,
-		"object channel", adapter.objectchannel, "get service", adapter.getservice, "save service ", adapter.saveservice, "update service", adapter.updateservice, "conf", conf)
+		"object channel", adapter.objectchannel, "get service", adapter.getservice, "save service ", adapter.saveservice, "update service", adapter.updateservice,
+		"instance", adapter.instance, "instanceok", instanceok, "object", adapter.object, "conf", conf)
 	return nil
 }
 

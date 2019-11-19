@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"io"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
@@ -10,7 +9,11 @@ import (
 	"net/http"
 )
 
-func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo func(core.RequestContext, net.WebContext, map[string]interface{}) error, handlingError error) error {
+const (
+	JSONMIME = "application/json"
+)
+
+func handleResponse(ctx core.RequestContext, resp *core.Response, cdc core.Codec, handleMetaInfo func(core.RequestContext, net.WebContext, map[string]interface{}) error, handlingError error) error {
 	if ctx == nil {
 		return errors.BadRequest(ctx)
 	}
@@ -18,6 +21,7 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 		resp = core.BadRequestResponse(handlingError.Error())
 	}
 	ctx = ctx.SubContext("Response Handler")
+	defer ctx.CompleteContext()
 	if resp == nil {
 		resp = core.StatusSuccessResponse
 	}
@@ -33,8 +37,33 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 				}
 			}
 			if resp.Data != nil {
-				log.Debug(ctx, "Returning request without content", "data", resp.Data)
-				return engineContext.JSON(http.StatusOK, resp.Data)
+				pr, pw := io.Pipe()
+				errChan := make(chan error)
+				defer close(errChan)
+				go func(rdr io.ReadCloser, wtr io.Writer, errChan chan error) {
+					err := cdc.Encode(ctx, wtr, resp.Data)
+					rdr.Close()
+					errChan <- err
+				}(pr, pw, errChan)
+
+				err := engineContext.CopyStream(JSONMIME, pr)
+				if err != nil {
+					return err
+				}
+				err = <-errChan
+				if err != nil {
+					return err
+				}
+				/*vals, err := cdc.Marshal(ctx, resp.Data)
+				if err != nil {
+					return err
+				}
+				_, err = engineContext.Write(vals)
+				if err != nil {
+					return err
+				}*/
+				//engineContext.JSON(http.StatusOK, resp.Data)
+				return nil
 			} else {
 				log.Debug(ctx, "Returning request without content")
 				return engineContext.NoContent(http.StatusOK)
@@ -48,19 +77,9 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 		case core.StatusServeStream:
 			var strType string
 			if resp.MetaInfo != nil {
-				log.Trace(ctx, " service returning stream")
-				val, ok := resp.MetaInfo[core.ContentType]
-				if ok {
-					strType = fmt.Sprint(val)
-					engineContext.SetHeader(core.ContentType, strType)
-				}
-				val, ok = resp.MetaInfo[core.ContentEncoding]
-				if ok {
-					engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
-				}
-				val, ok = resp.MetaInfo[core.LastModified]
-				if ok {
-					engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
+				err := handleMetaInfo(ctx, engineContext, resp.MetaInfo)
+				if err != nil {
+					return errors.WrapError(ctx, err)
 				}
 			}
 			if resp.Data != nil {
@@ -73,18 +92,9 @@ func handleResponse(ctx core.RequestContext, resp *core.Response, handleMetaInfo
 			return nil
 		case core.StatusServeBytes:
 			if resp.MetaInfo != nil {
-				log.Trace(ctx, " service returning bytes")
-				val, ok := resp.MetaInfo[core.ContentType]
-				if ok {
-					engineContext.SetHeader(core.ContentType, fmt.Sprint(val))
-				}
-				val, ok = resp.MetaInfo[core.ContentEncoding]
-				if ok {
-					engineContext.SetHeader(core.ContentEncoding, fmt.Sprint(val))
-				}
-				val, ok = resp.MetaInfo[core.LastModified]
-				if ok {
-					engineContext.SetHeader(core.LastModified, fmt.Sprint(val))
+				err := handleMetaInfo(ctx, engineContext, resp.MetaInfo)
+				if err != nil {
+					return errors.WrapError(ctx, err)
 				}
 			}
 			if resp.Data != nil {

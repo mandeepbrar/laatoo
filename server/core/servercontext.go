@@ -508,6 +508,10 @@ func (ctx *serverContext) CreateSystemRequest(name string) core.RequestContext {
 	return reqCtx
 }
 
+func (ctx *serverContext) CompleteContext() {
+	log.Debug(ctx, "Context complete ", "Time elapsed ", ctx.GetElapsedTime())
+}
+
 func (ctx *serverContext) GetObjectFactory(name string) (core.ObjectFactory, bool) {
 	return ctx.svrElements.objectLoader.GetObjectFactory(ctx, name)
 }

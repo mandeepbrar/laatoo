@@ -10,9 +10,9 @@ modules:
   orgnode:
     module: entity
     settings:
-      object: OrgNode
+      object: organization.OrgNode
       parent: root
-      instance: OrgNode
+      #instance: OrgNode
       dataservicefactory: mongodatabase
       create_dataservice: true
       create_dataadapterfactory: true
@@ -26,9 +26,9 @@ modules:
   job:
     module: entity
     settings:
-      object: Job
+      object: organization.Job
       parent: root
-      instance: Job
+      #instance: Job
       dataservicefactory: mongodatabase
       create_dataservice: true
       create_dataadapterfactory: true
@@ -42,9 +42,9 @@ modules:
   employee:
     module: entity
     settings:
-      object: Employee
+      object: organization.Employee
       parent: root
-      instance: Employee
+      #instance: Employee
       dataservicefactory: mongodatabase
       create_dataservice: true
       create_dataadapterfactory: true

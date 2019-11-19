@@ -51,7 +51,6 @@ type objectFactory struct {
 	objectCollectionCreator core.ObjectCollectionCreator
 	metadata                core.Info
 	fieldsToInit            map[string]*objectFactory
-	constructor             reflect.Value
 	objectName              string
 }
 
@@ -76,9 +75,9 @@ func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 			f.Set(fobj.Convert(f.Type()))
 		}
 	}
-	if factory.constructor.IsValid() {
-		objVal := reflect.ValueOf(obj)
-		factory.constructor.Call([]reflect.Value{objVal})
+	constructible, ok := obj.(constructible)
+	if ok {
+		constructible.Constructor()
 	}
 }
 
@@ -96,7 +95,6 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 
 	obj := factory.objectCreator(ctx)
 	objType := reflect.TypeOf(obj).Elem()
-	objPtrType := reflect.TypeOf(obj)
 	tagName := "laatoo"
 	//typeToAnalyze := factory.objType
 	for i := 0; i < objType.NumField(); i++ {
@@ -170,10 +168,9 @@ func (factory *objectFactory) analyzeObject(ctx ctx.Context, objLoader *objectLo
 			}
 		}
 	}
-	constructor, ok := objPtrType.MethodByName("Constructor")
-	if ok {
-		log.Trace(ctx, "assigning constructor to object ", "Object", factory.objectName)
-		factory.constructor = constructor.Func
-	}
 	return nil
+}
+
+type constructible interface {
+	Constructor()
 }

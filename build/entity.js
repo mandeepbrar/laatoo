@@ -256,15 +256,58 @@ function fieldReadAlls(fields) {
     if(func != "Object") {
       fieldsStr = fieldsStr + sprintf(readAll, func, fieldName, fieldName)
     } else {
-      readAll = `
-      {
-        ent.%s := &%s{}
-        if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
-          return err
+      switch(field.type) {
+        case "storableref": {
+          readAll = `
+          {
+            ent.%s = data.StorableRef{}
+            if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
+              return err
+            }
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)
+    
+          break;
+        }
+        case "stringmap": {
+          readAll = `
+          {
+            ent.%s = map[string]interface{}
+            if err = rdr.ReadMap(c, cdc, "%s", &ent.%s); err != nil {
+              return err
+            }
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)              
+          break;
+        }
+        case "stringsmap": { //casting work needs to be done
+          readAll = `
+          {
+            ent.%s = map[string]string
+            if err = rdr.ReadMap(c, cdc, "%s", &ent.%s); err != nil {
+              return err
+            }
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)              
+          break;
+        }
+        default: {
+          readAll = `
+          {
+            ent.%s = &%s{}
+            if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
+              return err
+            }
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldName)
+    
+          break;
         }
       }
-      `  
-      fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldName)
     }
   });
 

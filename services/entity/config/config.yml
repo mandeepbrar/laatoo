@@ -53,7 +53,7 @@ modules:
     settings:
       object: {{var "object"}}
       parent: {{var "parent"}}
-      instance: {{var "instance"}}
+      instance: '{{if exists "instance"}} {{var "instance"}} {{end}}'
       dataservicefactory: {{var "dataservicefactory"}}
       embedded_doc_search: {{var "embedded_doc_search"}}
       create_dataservice: {{var "create_dataservice"}}

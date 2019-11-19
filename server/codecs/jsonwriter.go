@@ -2,6 +2,7 @@ package codecs
 
 import (
 	"bytes"
+	"io"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"reflect"
@@ -12,43 +13,66 @@ import (
 
 func NewJsonWriter(c ctx.Context) (core.SerializableWriter, error) {
 	var buf bytes.Buffer
-	return &JsonWriter{&buf}, nil
+	return &JsonWriter{Writer: &buf, first: true}, nil
+}
+
+func NewJsonStreamWriter(c ctx.Context, writer io.Writer) (core.SerializableWriter, error) {
+	return &JsonWriter{Writer: writer, first: true}, nil
 }
 
 type JsonWriter struct {
-	buffer *bytes.Buffer
+	io.Writer
+	first bool
+}
+
+func (wtr *JsonWriter) Start() error {
+	_, err := wtr.Write(startObject)
+	return err
 }
 
 func (wtr *JsonWriter) Bytes() []byte {
-	wtr.buffer.Write(endObject)
-	bys := wtr.buffer.Bytes()
-	if len(bys) > 0 && bys[0] == byte(',') {
-		bys[0] = byte('{')
+	buf, ok := wtr.Writer.(*bytes.Buffer)
+	if !ok {
+		return nil
 	}
-	return bys
+	wtr.Close()
+	/*	bys := buf.Bytes()
+		if len(bys) > 0 && bys[0] == byte(',') {
+			bys[0] = byte('{')
+		}*/
+	return buf.Bytes()
+}
+
+func (wtr *JsonWriter) Close() error {
+	wtr.Write(endObject)
+	writeCloser, closer := wtr.Writer.(io.WriteCloser)
+	if closer {
+		return writeCloser.Close()
+	}
+	return nil
 }
 
 func (wtr *JsonWriter) WriteByte(ctx ctx.Context, cdc core.Codec, prop string, val *byte) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write([]byte{*val})
+	_, err := wtr.Write([]byte{*val})
 	return err
 }
 
 func (wtr *JsonWriter) WriteBytes(ctx ctx.Context, cdc core.Codec, prop string, val *[]byte) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write(*val)
+	_, err := wtr.Write(*val)
 	return err
 }
 
 func (wtr *JsonWriter) WriteInt(ctx ctx.Context, cdc core.Codec, prop string, val *int) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write([]byte(strconv.Itoa(*val)))
+	_, err := wtr.Write([]byte(strconv.Itoa(*val)))
 	return err
 }
 
 func (wtr *JsonWriter) WriteInt64(ctx ctx.Context, cdc core.Codec, prop string, val *int64) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write([]byte(strconv.FormatInt(*val, 10)))
+	_, err := wtr.Write([]byte(strconv.FormatInt(*val, 10)))
 	return err
 }
 
@@ -59,13 +83,13 @@ func (wtr *JsonWriter) WriteString(ctx ctx.Context, cdc core.Codec, prop string,
 
 func (wtr *JsonWriter) WriteFloat32(ctx ctx.Context, cdc core.Codec, prop string, val *float32) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write([]byte(strconv.FormatFloat(float64(*val), 'g', -1, 32)))
+	_, err := wtr.Write([]byte(strconv.FormatFloat(float64(*val), 'g', -1, 32)))
 	return err
 }
 
 func (wtr *JsonWriter) WriteFloat64(ctx ctx.Context, cdc core.Codec, prop string, val *float64) error {
 	wtr.key(ctx, prop)
-	_, err := wtr.buffer.Write([]byte(strconv.FormatFloat(*val, 'g', -1, 64)))
+	_, err := wtr.Write([]byte(strconv.FormatFloat(*val, 'g', -1, 64)))
 	return err
 }
 
@@ -73,9 +97,9 @@ func (wtr *JsonWriter) WriteBool(ctx ctx.Context, cdc core.Codec, prop string, v
 	wtr.key(ctx, prop)
 	var err error
 	if *val {
-		_, err = wtr.buffer.Write(_true)
+		_, err = wtr.Write(_true)
 	} else {
-		_, err = wtr.buffer.Write(_false)
+		_, err = wtr.Write(_false)
 	}
 	return err
 }
@@ -93,14 +117,14 @@ func (wtr *JsonWriter) WriteObject(ctx ctx.Context, cdc core.Codec, prop string,
 	if err != nil {
 		return err
 	}
-	_, err = wtr.buffer.Write(bys)
+	_, err = wtr.Write(bys)
 	return err
 }
 
 func (wtr *JsonWriter) WriteMap(ctx ctx.Context, cdc core.Codec, prop string, val *map[string]interface{}) error {
 	wtr.key(ctx, prop)
 	bys, err := cdc.Marshal(ctx, *val)
-	_, err = wtr.buffer.Write(bys)
+	_, err = wtr.Write(bys)
 	return err
 }
 
@@ -109,11 +133,11 @@ func (wtr *JsonWriter) WriteArray(ctx ctx.Context, cdc core.Codec, prop string, 
 	var err error
 	var obj interface{}
 	wtr.key(ctx, prop)
-	wtr.buffer.Write(startArray)
+	wtr.Write(startArray)
 	collVal := reflect.ValueOf(val).Elem()
 	for i := 0; i < collVal.Len(); i++ {
 		if i != 0 {
-			wtr.buffer.Write(comma)
+			wtr.Write(comma)
 		}
 		obj = collVal.Index(i).Interface()
 		srl, ok := obj.(core.Serializable)
@@ -125,32 +149,36 @@ func (wtr *JsonWriter) WriteArray(ctx ctx.Context, cdc core.Codec, prop string, 
 		if err != nil {
 			return err
 		}
-		_, err = wtr.buffer.Write(bys)
+		_, err = wtr.Write(bys)
 	}
-	_, err = wtr.buffer.Write(endArray)
+	_, err = wtr.Write(endArray)
 	return err
 }
 
 func (wtr *JsonWriter) WriteTime(ctx ctx.Context, cdc core.Codec, prop string, val *time.Time) error {
 	wtr.key(ctx, prop)
-	wtr.buffer.Write(quote)
-	wtr.buffer.Write([]byte(val.Format(time.RFC3339Nano)))
-	_, err := wtr.buffer.Write(quote)
+	wtr.Write(quote)
+	wtr.Write([]byte(val.Format(time.RFC3339Nano)))
+	_, err := wtr.Write(quote)
 	return err
 }
 
 func (wtr *JsonWriter) key(ctx ctx.Context, key string) error {
 	//wtr.buffer.Separator()
-	wtr.buffer.Write(comma)
-	wtr.buffer.Write(keyStart)
-	wtr.buffer.Write([]byte(key))
-	_, err := wtr.buffer.Write(keyEnd)
+	if !wtr.first {
+		wtr.Write(comma)
+	} else {
+		wtr.first = false
+	}
+	wtr.Write(keyStart)
+	wtr.Write([]byte(key))
+	_, err := wtr.Write(keyEnd)
 	return err
 }
 
 func (wtr *JsonWriter) escapedString(ctx ctx.Context, val string) error {
 	//wtr.buffer.Separator()
-	wtr.buffer.Write(quote)
+	wtr.Write(quote)
 	start, end := 0, 0
 	var special []byte
 L:
@@ -230,17 +258,17 @@ L:
 		}
 
 		if end > start {
-			wtr.buffer.Write([]byte(val[start:end]))
+			wtr.Write([]byte(val[start:end]))
 		}
-		wtr.buffer.Write(special)
+		wtr.Write(special)
 		start = i + 1
 		end = start
 	}
 	if end > start {
-		wtr.buffer.Write([]byte(val[start:end]))
+		wtr.Write([]byte(val[start:end]))
 	}
 
-	_, err := wtr.buffer.Write(quote)
+	_, err := wtr.Write(quote)
 	return err
 }
 

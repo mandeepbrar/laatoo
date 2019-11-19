@@ -88,7 +88,7 @@ func (ls *LoginService) Invoke(ctx core.RequestContext) error {
 
 	//compare the user requested with the user from database
 	existingUser := usrs[0].(auth.LocalAuthUser)
-	log.Trace(ctx, "got user********", "existingUser", existingUser, "tried password", usr.GetPassword())
+	log.Trace(ctx, "got user********", "existingUser", existingUser.GetId(), "tried password", usr.GetPassword())
 	err = bcrypt.CompareHashAndPassword([]byte(existingUser.GetPassword()), []byte(usr.GetPassword()))
 	log.Trace(ctx, "compared user********", "err", err)
 	existingUser.ClearPassword()

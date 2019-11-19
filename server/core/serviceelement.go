@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/elements"
@@ -179,25 +180,26 @@ func (svc *serverService) handleRequest(ctx *requestContext, vals map[string]int
 
 	ctx.req = req
 	log.Trace(ctx, "Invoking service", "Request", req)
-	err := svc.invoke(ctx)
+	invokectx := ctx.SubContext(fmt.Sprintf("Service %s", svc.name)).(*requestContext)
+	defer invokectx.CompleteContext()
+	err := svc.invoke(invokectx)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	resp := ctx.GetResponse()
+	resp := invokectx.GetResponse()
 	var data interface{}
 	var inf map[string]interface{}
 	if resp != nil {
 		data = resp.Data
 		inf = resp.MetaInfo
 	}
-	log.Error(ctx, "handle request", "vals", vals, " data", data)
 	if svc.forward {
+		log.Info(ctx, "Forwarding request")
 		if resp.Status == core.StatusSuccess {
 			params := utils.ShallowMergeMaps(vals, inf)
 			//dat := resp.Data
 			params["encoding"] = ""
 			params["Data"] = data
-			log.Error(ctx, "handle request", "params", params)
 
 			err := ctx.Forward(svc.serviceToForward, params)
 			if err != nil {
