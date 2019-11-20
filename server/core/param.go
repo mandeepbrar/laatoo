@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
@@ -143,6 +144,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 			return errors.BadArg(ctx, p.name)
 		}
 	}
+	log.Error(ctx, "Setting param value", "param name", p.name, "bytes", string(reqBytes), "value", fmt.Sprintf("%#v", val))
 	//resPtr := false
 	switch p.oDataType {
 	case __stringmap:
@@ -201,7 +203,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 		if encoded {
 			var strVal string
 			err = codec.Unmarshal(ctx, reqBytes, &strVal)
-			log.Error(ctx, "decoded string", "str", strVal, "reqbytes", reqBytes)
+			log.Error(ctx, "decoded string", "str", strVal, "reqbytes", string(reqBytes))
 			p.value = strVal
 		} else {
 			p.value = string(reqBytes)

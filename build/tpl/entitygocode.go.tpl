@@ -18,9 +18,9 @@ import (
 
 type {{#type name}}{{/type}} struct {
   {{#if multitenant}}
-	data.Storable `json:",inline" bson:",inline" laatoo:"auditable, softdelete, multitenant"`
+	data.Storable `laatoo:"auditable, softdelete, multitenant"`
 	{{else}}
-	data.Storable `json:",inline" bson:",inline" laatoo:"auditable, softdelete"`
+	data.Storable `laatoo:"auditable, softdelete"`
   {{/if}}
   {{#fields fields}}{{/fields}}
 }

@@ -18,8 +18,7 @@ type {{#type name}}{{/type}}_Ref struct {
 }*/
 
 type {{#type name}}{{/type}} struct {
-	data.Storable `json:",inline" bson:",inline" `
-  Id    string `json:"Id" bson:"Id" datastore:"Id"`
+	data.Storable ``
   {{#fields fields}}{{/fields}}
 }
 

@@ -23,11 +23,19 @@ func (cdc *JsonCodec) Marshal(c ctx.Context, val interface{}) ([]byte, error) {
 	if val == nil {
 		return nil, nil
 	}
-	srl, ok := val.(core.Serializable)
-	if ok {
-		return cdc.MarshalSerializable(c, srl)
+
+	wtr, err := NewJsonWriter(c)
+	if err != nil {
+		return nil, err
 	}
-	return json.Marshal(val)
+	jsonWtr := wtr.(*JsonWriter)
+	err = jsonWtr.writeObject(c, cdc, val)
+	if err != nil {
+		return nil, err
+	}
+	byts := jsonWtr.Bytes()
+	log.Error(c, "Marshalled object", "obj", fmt.Sprintf("%#v", val), "byts", string(byts))
+	return byts, nil
 }
 
 func (cdc *JsonCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) (err error) {
@@ -36,12 +44,26 @@ func (cdc *JsonCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) (err
 	if arr == nil {
 		return nil
 	}
+	rdr, err := NewJsonReader(c, arr)
 
-	srl, ok := val.(core.Serializable)
-	if ok {
-		err = cdc.UnmarshalSerializable(c, arr, srl)
+	if err != nil {
+		log.Error(c, "Could not unmarshal bytes", "arr", fmt.Sprintf("@@%s@@", string(arr)))
+		return err
 	}
-	err = json.Unmarshal(arr, val)
+
+	jrdr := rdr.(*JsonReader)
+
+	err = jrdr.readObject(c, cdc, jrdr.root, val)
+
+	/*	objVal := reflect.ValueOf(val)
+		if objVal.Kind() == reflect.Array {
+			return cdc.unmarshalArray(c, arr, val)
+		}
+		srl, ok := val.(core.Serializable)
+		if ok {
+			err = cdc.UnmarshalSerializable(c, arr, srl)
+		}
+		err = json.Unmarshal(arr, val)*/
 	log.Error(c, "Unmarshalling error values", "input", string(arr), "output", fmt.Sprint("%#v", val), "time taken", c.GetElapsedTime())
 	return
 }
@@ -50,29 +72,34 @@ func (cdc *JsonCodec) Encode(c ctx.Context, outStream io.Writer, val interface{}
 	if val == nil {
 		return nil
 	}
-	srl, ok := val.(core.Serializable)
-	if ok {
-		err := cdc.MarshalSerializableToStream(c, outStream, srl)
-		log.Error(c, "Encoding ends. Sending error", "err", err)
-		if err != nil {
-			return err
-		}
-		return nil
+
+	wtr, err := NewJsonStreamWriter(c, outStream)
+	if err != nil {
+		return err
 	}
-	enc := json.NewEncoder(outStream)
-	return enc.Encode(val)
+	jsonWtr := wtr.(*JsonWriter)
+	err = jsonWtr.writeObject(c, cdc, val)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cdc *JsonCodec) Decode(c ctx.Context, inpStream io.Reader, val interface{}) error {
 	if val == nil {
 		return nil
 	}
-	srl, ok := val.(core.Serializable)
-	if ok {
-		return cdc.UnmarshalSerializableFromStream(c, inpStream, srl)
+
+	rdr, err := NewJsonStreamReader(c, inpStream)
+	if err != nil {
+		return err
 	}
-	dec := json.NewDecoder(inpStream)
-	return dec.Decode(val)
+
+	jrdr := rdr.(*JsonReader)
+
+	return jrdr.readObject(c, cdc, jrdr.root, val)
+
+	//return dec.Decode(val)
 }
 
 func (codec *JsonCodec) UnmarshalSerializable(c ctx.Context, arr []byte, obj core.Serializable) error {
@@ -116,3 +143,41 @@ func (codec *JsonCodec) MarshalWriter(c ctx.Context, wtr core.SerializableWriter
 	byts := wtr.Bytes()
 	return byts, nil
 }
+
+/*
+func (codec *JsonCodec) marshalArray(c ctx.Context, val interface{}) ([]byte, error) {
+	wrt, err := NewJsonWriter(c)
+	jwrt := wrt.(*JsonWriter)
+	jwrt.arr = true
+	jwrt.Start()
+	if err == nil {
+		err = jwrt.writeArray(c, codec, val)
+		if err == nil {
+			return jwrt.Bytes(), nil
+		}
+	}
+	return nil, err
+}
+
+func (codec *JsonCodec) marshalArrayToStream(c ctx.Context, out io.Writer, val interface{}) (err error) {
+	wrt, err := NewJsonStreamWriter(c, out)
+	jwrt := wrt.(*JsonWriter)
+	jwrt.arr = true
+	jwrt.Start()
+	if err == nil {
+		err = jwrt.writeArray(c, codec, val)
+	}
+	return
+}*/
+
+/*
+
+func (codec *JsonCodec) unmarshalArray(c ctx.Context, arr []byte, val interface{}) (err error) {
+	rdr, err := NewJsonReader(c, arr)
+	jrdr := rdr.(*JsonReader)
+	if err == nil {
+		err = jrdr.readArray(c, codec, val)
+	}
+	return
+}
+*/

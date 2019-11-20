@@ -22,12 +22,15 @@ func NewJsonStreamWriter(c ctx.Context, writer io.Writer) (core.SerializableWrit
 
 type JsonWriter struct {
 	io.Writer
+	arr   bool
 	first bool
 }
 
-func (wtr *JsonWriter) Start() error {
-	_, err := wtr.Write(startObject)
-	return err
+func (wtr *JsonWriter) Start() (err error) {
+	if !wtr.arr {
+		_, err = wtr.Write(startObject)
+	}
+	return
 }
 
 func (wtr *JsonWriter) Bytes() []byte {
@@ -35,7 +38,7 @@ func (wtr *JsonWriter) Bytes() []byte {
 	if !ok {
 		return nil
 	}
-	wtr.Close()
+	//wtr.Close()
 	/*	bys := buf.Bytes()
 		if len(bys) > 0 && bys[0] == byte(',') {
 			bys[0] = byte('{')
@@ -44,7 +47,9 @@ func (wtr *JsonWriter) Bytes() []byte {
 }
 
 func (wtr *JsonWriter) Close() error {
-	wtr.Write(endObject)
+	if !wtr.arr {
+		wtr.Write(endObject)
+	}
 	writeCloser, closer := wtr.Writer.(io.WriteCloser)
 	if closer {
 		return writeCloser.Close()
@@ -106,19 +111,19 @@ func (wtr *JsonWriter) WriteBool(ctx ctx.Context, cdc core.Codec, prop string, v
 
 func (wtr *JsonWriter) WriteObject(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) error {
 	wtr.key(ctx, prop)
-	var bys []byte
-	var err error
-	srl, ok := val.(core.Serializable)
-	if ok {
-		bys, err = cdc.MarshalSerializable(ctx, srl)
-	} else {
-		bys, err = cdc.Marshal(ctx, val)
-	}
-	if err != nil {
-		return err
-	}
-	_, err = wtr.Write(bys)
-	return err
+	/*	var bys []byte
+		var err error
+		srl, ok := val.(core.Serializable)
+		if ok {
+			bys, err = cdc.MarshalSerializable(ctx, srl)
+		} else {
+			bys, err = cdc.Marshal(ctx, val)
+		}
+		if err != nil {
+			return err
+		}
+		_, err = wtr.Write(bys)*/
+	return wtr.writeObject(ctx, cdc, val)
 }
 
 func (wtr *JsonWriter) WriteMap(ctx ctx.Context, cdc core.Codec, prop string, val *map[string]interface{}) error {
@@ -129,32 +134,9 @@ func (wtr *JsonWriter) WriteMap(ctx ctx.Context, cdc core.Codec, prop string, va
 }
 
 func (wtr *JsonWriter) WriteArray(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) error {
-	var bys []byte
-	var err error
-	var obj interface{}
 	wtr.key(ctx, prop)
-	wtr.Write(startArray)
-	collVal := reflect.ValueOf(val).Elem()
-	for i := 0; i < collVal.Len(); i++ {
-		if i != 0 {
-			wtr.Write(comma)
-		}
-		obj = collVal.Index(i).Interface()
-		srl, ok := obj.(core.Serializable)
-		if ok {
-			bys, err = cdc.MarshalSerializable(ctx, srl)
-		} else {
-			bys, err = cdc.Marshal(ctx, obj)
-		}
-		if err != nil {
-			return err
-		}
-		_, err = wtr.Write(bys)
-	}
-	_, err = wtr.Write(endArray)
-	return err
+	return wtr.writeArray(ctx, cdc, val)
 }
-
 func (wtr *JsonWriter) WriteTime(ctx ctx.Context, cdc core.Codec, prop string, val *time.Time) error {
 	wtr.key(ctx, prop)
 	wtr.Write(quote)
@@ -319,3 +301,56 @@ var (
 	escapedRS    = []byte(`\u001e`)
 	escapedUS    = []byte(`\u001f`)
 )
+
+func (wtr *JsonWriter) writeObject(ctx ctx.Context, cdc core.Codec, val interface{}) (err error) {
+
+	objVal := reflect.ValueOf(val)
+	if objVal.Kind() == reflect.Array {
+		return wtr.writeArray(ctx, cdc, val)
+	}
+	srl, ok := val.(core.Serializable)
+	if ok {
+		newwtr, err := NewJsonStreamWriter(ctx, wtr.Writer)
+		if err != nil {
+			return err
+		}
+		err = newwtr.Start()
+		if err != nil {
+			return err
+		}
+		err = srl.WriteAll(ctx, cdc, newwtr)
+		if err != nil {
+			return err
+		}
+		err = newwtr.Close()
+		if err != nil {
+			return err
+		}
+	} else {
+		enc := json.NewEncoder(wtr.Writer)
+		return enc.Encode(val)
+	}
+	if err != nil {
+		return err
+	}
+	return
+}
+
+func (wtr *JsonWriter) writeArray(ctx ctx.Context, cdc core.Codec, val interface{}) error {
+	var err error
+	wtr.Write(startArray)
+	collVal := reflect.ValueOf(val).Elem()
+	for i := 0; i < collVal.Len(); i++ {
+		if i != 0 {
+			wtr.Write(comma)
+		}
+		obj := collVal.Index(i).Interface()
+
+		err = wtr.writeObject(ctx, cdc, obj)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = wtr.Write(endArray)
+	return err
+}

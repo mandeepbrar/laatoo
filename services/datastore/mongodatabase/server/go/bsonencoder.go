@@ -3,6 +3,7 @@ package main
 import (
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/ctx"
+	"log"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson/bsoncodec"
@@ -13,6 +14,7 @@ type StorableSerializer struct {
 	defaultReg  *bsoncodec.Registry
 	logCtx      ctx.Context
 	timeEncoder bsoncodec.ValueEncoder
+	timeDecoder bsoncodec.ValueDecoder
 }
 
 func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer bsonrw.ValueWriter, val reflect.Value) error {
@@ -62,7 +64,7 @@ func (enc *StorableSerializer) writeStorValues(ctx bsoncodec.EncodeContext, docW
 	err = vw.WriteString(stor.GetId())
 	if err != nil {
 		return err
-	}
+	} //deleted, is new???
 	auditable, ok := stor.(data.Auditable)
 	if ok {
 		vw, err = docWriter.WriteDocumentElement("CreatedBy")
@@ -81,15 +83,6 @@ func (enc *StorableSerializer) writeStorValues(ctx bsoncodec.EncodeContext, docW
 		if err != nil {
 			return err
 		}
-		vw, err = docWriter.WriteDocumentElement("CreatedBy")
-		if err != nil {
-			return err
-		}
-		err = vw.WriteString(auditable.GetCreatedBy())
-		if err != nil {
-			return err
-		}
-
 		vw, err = docWriter.WriteDocumentElement("CreatedAt")
 		if err != nil {
 			return err
@@ -135,5 +128,97 @@ func (enc *StorableSerializer) DecodeValue(ctx bsoncodec.DecodeContext, reader b
 	if err != nil {
 		return err
 	}
+
+	if val.Kind() == reflect.Struct {
+		storfld := val.FieldByName("Storable")
+		if storfld.IsValid() {
+			stor, ok := storfld.Interface().(data.Storable)
+			audit, aok := stor.(data.Auditable)
+			if ok {
+				dr, err := reader.ReadDocument()
+				if err != nil {
+					return err
+				}
+
+				for {
+					name, vr, err := dr.ReadElement()
+					if err == bsonrw.ErrEOD {
+						return nil
+					}
+					if err != nil {
+						return err
+					}
+
+					switch name {
+					case "Id":
+						{
+							strval, err := vr.ReadString()
+							if err != nil {
+								return err
+							}
+							log.Println("Id", strval)
+							stor.SetId(strval)
+						}
+					case "CreatedBy":
+						{
+							if aok {
+								strval, err := vr.ReadString()
+								if err != nil {
+									return err
+								}
+								audit.SetCreatedBy(strval)
+							}
+						}
+					case "UpdatedBy":
+						{
+							if aok {
+								strval, err := vr.ReadString()
+								if err != nil {
+									return err
+								}
+								audit.SetUpdatedBy(strval)
+							}
+						}
+					/*case "CreatedAt":
+						{
+							if aok {
+								t := time.Now()
+								err := enc.timeDecoder.DecodeValue(ctx, vr, reflect.ValueOf(t))
+								if err != nil {
+									return err
+								}
+								audit.SetCreatedAt(t)
+							}
+						}
+					case "UpdatedAt":
+						{
+							if aok {
+								t := time.Now()
+								err := enc.timeDecoder.DecodeValue(ctx, vr, reflect.ValueOf(t))
+								if err != nil {
+									return err
+								}
+								audit.SetCreatedAt(t)
+							}
+						}*/
+					default:
+						{
+							fldToSet := val.FieldByName(name)
+							if fldToSet.IsValid() {
+								err = enc.DecodeValue(ctx, vr, fldToSet)
+								if err != nil {
+									return err
+								}
+							} else {
+								err = vr.Skip()
+								log.Println("skipping field", name)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return decoder.DecodeValue(ctx, reader, val)
 }

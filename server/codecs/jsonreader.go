@@ -1,10 +1,12 @@
 package codecs
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/log"
 	"reflect"
 	"time"
 
@@ -106,28 +108,12 @@ func (rdr *JsonReader) ReadBool(ctx ctx.Context, cdc core.Codec, prop string, va
 }
 
 func (rdr *JsonReader) ReadObject(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) (err error) {
-	//ctx.(core.RequestContext).GetCodec("json", objtype)
-	//keys := append(rdr.keys, prop)
-
 	v := rdr.root.Get(prop)
 	if v == nil {
 		return nil
 	}
-
-	srl, ok := val.(core.Serializable)
-	if ok {
-		err = cdc.UnmarshalReader(ctx, rdr, srl)
-		if err != nil {
-			return err
-		}
-	} else {
-		byts := v.MarshalTo(nil)
-		err = cdc.Unmarshal(ctx, byts, val)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	err = rdr.readObject(ctx, cdc, v, val)
+	return
 }
 
 func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val *map[string]interface{}) error {
@@ -141,42 +127,12 @@ func (rdr *JsonReader) ReadMap(ctx ctx.Context, cdc core.Codec, prop string, val
 }
 
 func (rdr *JsonReader) ReadArray(ctx ctx.Context, cdc core.Codec, prop string, val interface{}) error {
-	collVal := reflect.ValueOf(val)
-	if collVal.Kind() != reflect.Array {
-		return errWrongObject
-	}
-	objType := collVal.Elem().String()
-	reqCtx := ctx.(core.RequestContext)
-	arrV := rdr.root.GetArray(prop)
+
+	arrV := rdr.root.Get(prop)
 	if arrV == nil {
 		return nil
 	}
-	collection, err := reqCtx.CreateCollection(objType, len(arrV))
-	if err != nil {
-		v := rdr.root.Get(prop)
-		bys := v.MarshalTo(nil)
-		return cdc.Unmarshal(ctx, bys, val)
-	} else {
-		collVal := reflect.ValueOf(collection)
-		for i, v := range arrV {
-			rdr := &JsonReader{root: v}
-			obj, err := reqCtx.CreateObject(objType)
-			if err != nil {
-				return err
-			}
-			srl, ok := obj.(core.Serializable)
-			if ok {
-				err = cdc.UnmarshalReader(ctx, rdr, srl)
-				if err != nil {
-					return err
-				}
-				iVal := collVal.Index(i)
-				iVal.Set(reflect.ValueOf(obj))
-			}
-		}
-		reflect.ValueOf(val).Set(collVal)
-	}
-	return nil
+	return rdr.readArray(ctx, cdc, arrV, val)
 }
 
 func (rdr *JsonReader) ReadTime(ctx ctx.Context, cdc core.Codec, prop string, val *time.Time) error {
@@ -190,5 +146,66 @@ func (rdr *JsonReader) ReadTime(ctx ctx.Context, cdc core.Codec, prop string, va
 		return err
 	}
 	*val = tim
+	return nil
+}
+
+func (rdr *JsonReader) readObject(ctx ctx.Context, cdc core.Codec, val *fastjson.Value, obj interface{}) (err error) {
+
+	objVal := reflect.ValueOf(obj)
+	if objVal.Kind() == reflect.Array {
+		return rdr.readArray(ctx, cdc, val, obj)
+	}
+
+	srl, ok := obj.(core.Serializable)
+	if ok {
+		newrdr := &JsonReader{root: val}
+		err = srl.ReadAll(ctx, cdc, newrdr)
+	} else {
+		byts := val.MarshalTo(nil)
+		log.Error(ctx, "json ignitor unmarshalling", "bys", string(byts))
+		err = json.Unmarshal(byts, obj)
+		log.Error(ctx, "json ignitor unmarshalling", "err", err, " obj", fmt.Sprint(obj))
+	}
+	return
+}
+
+func (rdr *JsonReader) createCollection(ctx ctx.Context, cdc core.Codec, val interface{}, len int) (objType string, err error) {
+	collVal := reflect.ValueOf(val)
+	if collVal.Kind() != reflect.Array {
+		return "", errWrongObject
+	}
+
+	reqCtx := ctx.(core.RequestContext)
+	objType = reqCtx.GetRegName(val)
+
+	collection, err := reqCtx.CreateCollection(objType, len)
+	if err == nil {
+		reflect.ValueOf(val).Set(reflect.ValueOf(collection))
+	}
+	return
+}
+
+func (rdr *JsonReader) readArray(ctx ctx.Context, cdc core.Codec, arrV *fastjson.Value, val interface{}) error {
+	vArr, err := arrV.Array()
+	if err != nil {
+		return err
+	}
+	objType, err := rdr.createCollection(ctx, cdc, val, len(vArr))
+	if err != nil {
+		return err
+	}
+	collVal := reflect.ValueOf(val)
+	for i, v := range vArr {
+		obj, err := ctx.(core.RequestContext).CreateObject(objType)
+		if err != nil {
+			return err
+		}
+		err = rdr.readObject(ctx, cdc, v, obj)
+		if err != nil {
+			return err
+		}
+		iVal := collVal.Index(i)
+		iVal.Set(reflect.ValueOf(obj))
+	}
 	return nil
 }
