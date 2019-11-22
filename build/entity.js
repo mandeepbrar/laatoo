@@ -137,9 +137,9 @@ function createEntityImpl(entityJson, entityname, folder) {
   Handlebars.registerHelper('fieldFuncs', fieldFuncs);
   Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
   Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
-  /*let requireBytes = bytesRequired(entityJson.fields) 
-  if(requireBytes) {
-    addImport(entityJson,"bytes")
+  /*let requireImport = packageImportRequired(name, entityJson.fields) 
+  if(requireImport) {
+    addImport(entityJson, name)
   }*/
 
   var template = Handlebars.compile(buf.toString());
@@ -169,9 +169,9 @@ function createEntityInterface(entityJson, entityname, folder) {
   Handlebars.registerHelper('fieldFuncDefs', fieldFuncDefs);
   Handlebars.registerHelper('fieldReadAlls', fieldReadAlls);
   Handlebars.registerHelper('fieldWriteAlls', fieldWriteAlls);
-  /*let requireBytes = bytesRequired(entityJson.fields) 
-  if(requireBytes) {
-    addImport(entityJson,"bytes")
+  /*let requireImport = packageImportRequired(name, entityJson.fields) 
+  if(requireImport) {
+    addImport(entityJson, name)
   }*/
   
   var template = Handlebars.compile(buf.toString());
@@ -228,17 +228,16 @@ function createManifest(entities, name, pluginFolder) {
   
 }
 
-/*
-function bytesRequired(fields) {
-  let requireBytes = false
+
+function packageImportRequired(mod, fields) {
+  let requireImport = false
   Object.values(fields).forEach(function(field) {
-    let func = getFieldSerializationFunc(field)    
-    if(func == "Object") {
-      requireBytes = true
+    if(field.entity && field.entity.startsWith(mod + ".")) {
+      requireImport = true
     }
   });
-  return requireBytes
-}*/
+  return requireImport
+}
 
 
 function fieldReadAlls(fields) {
@@ -249,7 +248,7 @@ function fieldReadAlls(fields) {
     let fieldType = getFieldType(field)    
     let entity = field.entity? field.entity: "";
     let readAll = `
-    if err = rdr.Read%s(c, cdc, "%s", &ent.%s); err != nil {
+    if _, err = rdr.Read%s(c, cdc, "%s", &ent.%s); err != nil {
       return err
     }
     `  
@@ -260,50 +259,38 @@ function fieldReadAlls(fields) {
         case "storableref": {
           readAll = `
           {
-            ent.%s = data.StorableRef{}
-            if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
+            _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+            if err != nil {
               return err
             }
           }
           `  
-          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName)
     
           break;
         }
-        case "stringmap": {
-          readAll = `
-          {
-            ent.%s = map[string]interface{}
-            if err = rdr.ReadMap(c, cdc, "%s", &ent.%s); err != nil {
-              return err
-            }
-          }
-          `  
-          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)              
-          break;
-        }
-        case "stringsmap": { //casting work needs to be done
-          readAll = `
-          {
-            ent.%s = map[string]string
-            if err = rdr.ReadMap(c, cdc, "%s", &ent.%s); err != nil {
-              return err
-            }
-          }
-          `  
-          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName, fieldName)              
-          break;
-        }
         default: {
-          readAll = `
-          {
-            ent.%s = &%s{}
-            if err = rdr.ReadObject(c, cdc, "%s", &ent.%s); err != nil {
-              return err
+          if(field.type == "subentity") {
+            readAll = `
+            {
+              _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+              if err != nil {
+                return err
+              }
             }
+            `    
+            fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName)
+          } else {
+            readAll = `
+            {
+              _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+              if err != nil {
+                return err
+              }
+            }
+            `    
+            fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName)
           }
-          `  
-          fieldsStr = fieldsStr + sprintf(readAll, fieldName, entity, fieldName, fieldName)
     
           break;
         }
@@ -313,6 +300,39 @@ function fieldReadAlls(fields) {
 
   return fieldsStr
 }
+
+
+/*
+        case "stringmap": {
+          readAll = `
+          {
+            mapToSet := map[string]interface{}{}
+            hasKey, err := rdr.ReadMap(c, cdc, "%s", &mapToSet); err != nil {
+            if err != nil || !hasKey {
+              return err
+            }
+            ent.%s = mapToSet
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName)              
+          break;
+        }
+        case "stringsmap": { //casting work needs to be done
+          readAll = `
+          {
+            mapToSet := map[string]string{}
+            hasKey, err := rdr.ReadMap(c, cdc, "%s", &mapToSet); err != nil {
+            if err != nil || !hasKey {
+              return err
+            }
+            ent.%s = mapToSet
+          }
+          `  
+          fieldsStr = fieldsStr + sprintf(readAll, fieldName, fieldName)              
+          break;
+        }
+
+*/
 
 function fieldWriteAlls(fields) {
   var fieldsStr = ""
@@ -420,10 +440,18 @@ function getFieldType(field) {
       break;
     break;
     case "entity":
-      fieldType = "*"+field.entity
+      let ent = field.entity
+      if(ent.startsWith(name+".")) {
+        ent = ent.replace(name + ".", "")
+      }
+      fieldType = "*"+ent
     break;
     case "subentity":
-      fieldType = field.entity
+      ent = field.entity
+      if(ent.startsWith(name+".")) {
+        ent = ent.replace(name + ".", "")
+      }
+      fieldType = ent
       break;
     case "stringmap":
       if(field.mappedElement) {

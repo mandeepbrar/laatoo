@@ -8,7 +8,6 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
-	"strings"
 )
 
 const (
@@ -173,14 +172,14 @@ func (svc *UI) buildEntitySchema(ctx core.ServerContext, entityName string, form
 func (svc *UI) createField(ctx core.ServerContext, fieldName string, fieldType string, required bool, widget, conf config.Config, fieldMap *bytes.Buffer) error {
 	ctx = ctx.SubContext("Create Field: " + fieldName)
 	fieldAttrs := conf.Clone()
-	ent, ok := fieldAttrs.GetString(ctx, "entity")
+	/*ent, ok := fieldAttrs.GetString(ctx, "entity")
 	if ok {
 		log.Error(ctx, "Entity of form", "entity", ent)
 		ind := strings.LastIndex(ent, ".")
 		if ind > 0 && (len(ent) > ind+1) {
 			fieldAttrs.SetString(ctx, "entity", ent[ind+1:])
 		}
-	}
+	}*/
 	fieldAttrs.Set(ctx, "name", fieldName)
 	if widget == nil {
 		widgetConf := ctx.CreateConfig()

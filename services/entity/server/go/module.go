@@ -147,6 +147,14 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 			//fieldToBeAdded := ctx.CreateConfig()
 			fieldConf, _ := fields.GetSubConfig(ctx, field)
 			fieldToBeAdded := fieldConf.Clone()
+			/*entityName, ok := fieldToBeAdded.GetString(ctx, "entity")
+			if ok {
+				if strings.Contains(entityName, ".") {
+					entityName = fmt.Sprintf("%s.%s", entity.GetName(), entityName)
+					log.Debug(ctx, "resetting entity form for fully qualitified name", "new name", entityName)
+					fieldToBeAdded.SetString(ctx, "entity", entityName)
+				}
+			}*/
 			widgetConf, ok := fieldToBeAdded.GetSubConfig(ctx, "widget")
 			if !ok {
 				widgetConf = ctx.CreateConfig()
@@ -182,7 +190,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 		forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
 	}
 
-	log.Error(ctx, "create entity form ", "forms", forms)
+	log.Error(ctx, "create entity form ", "forms", forms, "entityFormInfo", entityFormInfo)
 
 	return forms
 }

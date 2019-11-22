@@ -11,6 +11,7 @@ import (
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
 	"laatoo/sdk/utils"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -38,21 +39,51 @@ func (svc *UI) addRegItem(ctx core.ServerContext, itemType string, itemName stri
 }
 
 func (svc *UI) processItemDir(ctx core.ServerContext, modName string, dirPath string, itemType string, modDir string) error {
-	files, err := ioutil.ReadDir(dirPath)
-	if err != nil {
-		return errors.WrapError(ctx, err)
-	}
-	for _, info := range files {
+
+	return filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
-			continue
+			return nil
 		}
-		path := filepath.Join(dirPath, info.Name())
+
+		//path := filepath.Join(dirPath, info.Name())
 		err = svc.processRegItem(ctx, path, itemType, modDir)
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-	}
-	return nil
+		/*
+			if filepath.Ext(path) == ".yml" {
+				cont, err := ioutil.ReadFile(path)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				obj := make(map[string]interface{})
+				err = yaml.Unmarshal(cont, &obj)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				cleanMaps(ctx, obj)
+				fileName := info.Name()
+				locale := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+				properties[locale] = obj
+			}*/
+		return nil
+	})
+	/*
+		files, err := ioutil.ReadDir(dirPath)
+		if err != nil {
+			return errors.WrapError(ctx, err)
+		}
+		for _, info := range files {
+			if info.IsDir() {
+				continue
+			}
+			path := filepath.Join(dirPath, info.Name())
+			err = svc.processRegItem(ctx, path, itemType, modDir)
+			if err != nil {
+				return errors.WrapError(ctx, err)
+			}
+		}*/
+	//return nil
 }
 
 func (svc *UI) processRegItem(ctx core.ServerContext, path string, itemType string, modDir string) error {

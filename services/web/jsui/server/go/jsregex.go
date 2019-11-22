@@ -29,7 +29,7 @@ func processJS(ctx core.ServerContext, input string) string {
 
 func processJSRegex(ctx core.ServerContext, input string) (string, bool) {
 	if jsReplaceRegex == nil {
-		jsReplaceRegex, _ = regexp.Compile(`"javascript###replace@@@([a-zA-Z0-9\ _\,\(\)\'\.\(\)\[\]\{\}]+)###"`)
+		jsReplaceRegex, _ = regexp.Compile(`"javascript###replace@@@([a-zA-Z0-9\+\-\ _\,\(\)\'\.\(\)\[\]\{\}]+)###"`)
 	}
 	if jsFMTRegex == nil {
 		jsFMTRegex, _ = regexp.Compile(`"javascript###format@@@([^###]*)###"`)

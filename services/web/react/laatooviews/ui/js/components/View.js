@@ -112,7 +112,7 @@ const View = (props) => {
     let item = props.children;
     return <ViewComponent serviceObject={view.service} serviceName={view.serviceName} name={viewname} global={view.global} singleSelection={singleSelection}
       className={className} incrementalLoad={view.incrementalLoad} paginate={view.paginate} header={props.header} getHeader={props.getHeader}
-       editable={props.editable} contentsOnly={props.contentsOnly} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
+       editable={props.editable} contentOnly={props.contentOnly} getView={props.getView} getItem={props.getItem} urlparams={params} postArgs={args} viewRef={props.viewRef}>
        {item}
        </ViewComponent>
   }

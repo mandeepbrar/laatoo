@@ -144,7 +144,7 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 			return errors.BadArg(ctx, p.name)
 		}
 	}
-	log.Error(ctx, "Setting param value", "param name", p.name, "bytes", string(reqBytes), "value", fmt.Sprintf("%#v", val))
+	log.Error(ctx, "Setting param value", "param name", p.name, "bytes", string(reqBytes), "value", fmt.Sprintf("%v", val))
 	//resPtr := false
 	switch p.oDataType {
 	case __stringmap:
@@ -234,7 +234,9 @@ func (p *param) setValue(ctx ctx.Context, val interface{}, codec core.Codec, enc
 				p.value, err = p.objectLoader.CreateObject(ctx, p.ptype)
 			}
 			if err == nil {
+				log.Error(ctx, "setting param values11", "param", p.name, "value", p.value, "reqbyts", string(reqBytes), "collection", p.IsCollection())
 				err = codec.Unmarshal(ctx, reqBytes, p.value)
+				log.Error(ctx, "setting param values", "param", p.name, "value", p.value, "reqbyts", string(reqBytes), "collection", p.IsCollection())
 			}
 		} else {
 			p.value = val

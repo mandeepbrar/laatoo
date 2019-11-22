@@ -236,7 +236,7 @@ class Panel extends React.Component {
         if ((expandedComp != null) && (expandedComp == false)) {
           return null
         }
-        let blockCtx = {data: props.data, expanded: state.expanded, expand: expand, parent: props.parent, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage, state: state}
+        let blockCtx = {data: props.data, expanded: state.expanded, expand: expand, props: props, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage, state: state}
         console.log("block blockCtx", blockCtx, "desc", desc, "expansionDesc", expansionDesc)
         let retval = display(blockCtx, desc)
         if(state.expanded && expansionDisplay){
@@ -280,7 +280,7 @@ class Panel extends React.Component {
     let formName=desc.formName? desc.formName : desc.id
     console.log("processing form+++", desc, formName, props, desc.formName, desc.id)
 
-    var cfg = desc.info
+    var cfg = Object.assign({}, desc.info, props.info)
     if(!this.form) {
       console.log("getting form",  module)
       this.form = _res("reactforms", "Form")
@@ -338,8 +338,8 @@ class Panel extends React.Component {
     this.getView = function(props, context, state, className) {
       console.log("rendering view", this.view, props, desc, className, postArgs)      
       return <this.view params={props.params} description={desc} getItem={props.getItem} editable={props.editable} className={className} header={viewHeader}
-        viewRef={props.viewRef} postArgs={postArgs} urlParams={props.urlParams} id={desc.id} instance={props.instance}>
-        <Panel parent={props.parent} description={desc.item} />
+        viewRef={props.viewRef} postArgs={postArgs} urlParams={props.urlParams} contentOnly={props.contentOnly} id={desc.id} instance={props.instance}>
+        <Panel parent={props.parent} description={desc.item} viewdepth={props.viewdepth} />
       </this.view>
     }
   }
@@ -423,9 +423,9 @@ class Panel extends React.Component {
 
   render() {
     let showOverlay = this.overlay && this.state && this.state.overlayComponent // ? "block": "none"
-    let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <_uikit.Block/>
+    let comp = this.getView? this.getView(this.props, this.context, this.state, (this.title? "": this.className)): <_uikit.Block/>    
     console.log("Rendering panel***************", this.getView, this.props, comp, this.overlay, this.title, this.closePanel, this.className);
-    if(this.overlay || this.title || this.closePanel) {
+    if((!this.props.contentOnly) && (this.overlay || this.title || this.closePanel)) {
       return <_uikit.Block className="overlaywrapper" title={this.title} closeBlock={this.closePanel}>
         <_uikit.Block style={{display:( showOverlay?"none":"block")}}>
         {comp}

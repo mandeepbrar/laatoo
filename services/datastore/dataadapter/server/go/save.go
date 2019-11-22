@@ -4,6 +4,7 @@ import (
 	"laatoo/sdk/server/components/data"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
+	"laatoo/sdk/server/log"
 )
 
 type save struct {
@@ -26,6 +27,7 @@ func (svc *save) Start(ctx core.ServerContext) error {
 func (es *save) Invoke(ctx core.RequestContext) error {
 	ctx = ctx.SubContext("SAVE")
 	ent, _ := ctx.GetParamValue("object")
+	log.Error(ctx, "object value in save", "ent", ent)
 	stor := ent.(data.Storable)
 	err := es.DataStore.Save(ctx, stor)
 	if err == nil {

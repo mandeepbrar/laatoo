@@ -13,7 +13,7 @@ import (
 }*/
 
 type Employee struct {
-	data.Storable `json:",inline" bson:",inline" laatoo:"auditable, softdelete"`
+	data.Storable `laatoo:"auditable, softdelete"`
   
 	FirstName	string `json:"FirstName" bson:"FirstName" datastore:"FirstName"`
 	LastName	string `json:"LastName" bson:"LastName" datastore:"LastName"`
@@ -40,21 +40,21 @@ func (ent *Employee) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializabl
 	var err error
 
   
-    if err = rdr.ReadString(c, cdc, "FirstName", &ent.FirstName); err != nil {
+    if _, err = rdr.ReadString(c, cdc, "FirstName", &ent.FirstName); err != nil {
       return err
     }
     
-    if err = rdr.ReadString(c, cdc, "LastName", &ent.LastName); err != nil {
+    if _, err = rdr.ReadString(c, cdc, "LastName", &ent.LastName); err != nil {
       return err
     }
     
-    if err = rdr.ReadArray(c, cdc, "EmployeeID", &ent.EmployeeID); err != nil {
+    if _, err = rdr.ReadArray(c, cdc, "EmployeeID", &ent.EmployeeID); err != nil {
       return err
     }
     
           {
-            ent.Job = data.StorableRef{}
-            if err = rdr.ReadObject(c, cdc, "Job", &ent.Job); err != nil {
+            hasKey, err := rdr.ReadObject(c, cdc, "Job", &ent.Job)
+            if err != nil || !hasKey {
               return err
             }
           }

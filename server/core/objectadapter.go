@@ -76,7 +76,7 @@ func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 		}
 	}
 	constructible, ok := obj.(constructible)
-	if ok {
+	if (constructible != nil) && ok {
 		constructible.Constructor()
 	}
 }

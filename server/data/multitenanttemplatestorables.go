@@ -81,16 +81,17 @@ func (as *AbstractStorableMT) Config() *data.StorableConfig {
 	return nil
 }
 
-func (as *AbstractStorableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
-	return rdr.ReadString(c, cdc, "Id", &as.Id)
+func (as *AbstractStorableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) (err error) {
+	_, err = rdr.ReadString(c, cdc, "Id", &as.Id)
+	return
 }
 
-func (as *AbstractStorableMT) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
+func (as *AbstractStorableMT) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) (err error) {
 	_, ok := props["Id"]
 	if ok {
-		return rdr.ReadString(c, cdc, "Id", &as.Id)
+		_, err = rdr.ReadString(c, cdc, "Id", &as.Id)
 	}
-	return nil
+	return
 }
 
 func (as *AbstractStorableMT) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
@@ -121,7 +122,7 @@ func (sds *SoftDeleteStorableMT) SoftDeleteField() string {
 }
 
 func (sds *SoftDeleteStorableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
-	if err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted); err != nil {
+	if _, err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted); err != nil {
 		return err
 	}
 	return sds.AbstractStorableMT.ReadAll(c, cdc, rdr)
@@ -130,7 +131,7 @@ func (sds *SoftDeleteStorableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core
 func (sds *SoftDeleteStorableMT) ReadProps(c ctx.Context, cdc core.Codec, rdr core.SerializableReader, props map[string]interface{}) error {
 	_, ok := props["Deleted"]
 	if ok {
-		err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted)
+		_, err := rdr.ReadBool(c, cdc, "Deleted", &sds.Deleted)
 		if err != nil {
 			return err
 		}
@@ -206,19 +207,19 @@ func (hda *HardDeleteAuditableMT) GetCreatedBy() string {
 
 func (hda *HardDeleteAuditableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
 	var err error
-	if err = rdr.ReadBool(c, cdc, "IsNew", &hda.New); err != nil {
+	if _, err = rdr.ReadBool(c, cdc, "IsNew", &hda.New); err != nil {
 		return err
 	}
-	if err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy); err != nil {
 		return err
 	}
-	if err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy); err != nil {
 		return err
 	}
-	if err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt); err != nil {
+	if _, err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt); err != nil {
 		return err
 	}
-	if err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt); err != nil {
+	if _, err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt); err != nil {
 		return err
 	}
 	return hda.AbstractStorableMT.ReadAll(c, cdc, rdr)
@@ -228,35 +229,35 @@ func (hda *HardDeleteAuditableMT) ReadProps(c ctx.Context, cdc core.Codec, rdr c
 	var err error
 	_, ok := props["IsNew"]
 	if ok {
-		err = rdr.ReadBool(c, cdc, "IsNew", &hda.New)
+		_, err = rdr.ReadBool(c, cdc, "IsNew", &hda.New)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["CreatedBy"]
 	if ok {
-		err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy)
+		_, err = rdr.ReadString(c, cdc, "CreatedBy", &hda.CreatedBy)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["UpdatedBy"]
 	if ok {
-		err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy)
+		_, err = rdr.ReadString(c, cdc, "UpdatedBy", &hda.UpdatedBy)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["CreatedAt"]
 	if ok {
-		err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt)
+		_, err = rdr.ReadTime(c, cdc, "CreatedAt", &hda.CreatedAt)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["UpdatedAt"]
 	if ok {
-		err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt)
+		_, err = rdr.ReadTime(c, cdc, "UpdatedAt", &hda.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -373,19 +374,19 @@ func (sda *SoftDeleteAuditableMT) GetCreatedBy() string {
 
 func (sda *SoftDeleteAuditableMT) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
 	var err error
-	if err = rdr.ReadBool(c, cdc, "IsNew", &sda.New); err != nil {
+	if _, err = rdr.ReadBool(c, cdc, "IsNew", &sda.New); err != nil {
 		return err
 	}
-	if err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy); err != nil {
 		return err
 	}
-	if err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy); err != nil {
 		return err
 	}
-	if err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt); err != nil {
+	if _, err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt); err != nil {
 		return err
 	}
-	if err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt); err != nil {
+	if _, err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt); err != nil {
 		return err
 	}
 	return sda.SoftDeleteStorableMT.ReadAll(c, cdc, rdr)
@@ -395,35 +396,35 @@ func (sda *SoftDeleteAuditableMT) ReadProps(c ctx.Context, cdc core.Codec, rdr c
 	var err error
 	_, ok := props["IsNew"]
 	if ok {
-		err = rdr.ReadBool(c, cdc, "IsNew", &sda.New)
+		_, err = rdr.ReadBool(c, cdc, "IsNew", &sda.New)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["CreatedBy"]
 	if ok {
-		err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy)
+		_, err = rdr.ReadString(c, cdc, "CreatedBy", &sda.CreatedBy)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["UpdatedBy"]
 	if ok {
-		err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy)
+		_, err = rdr.ReadString(c, cdc, "UpdatedBy", &sda.UpdatedBy)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["CreatedAt"]
 	if ok {
-		err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt)
+		_, err = rdr.ReadTime(c, cdc, "CreatedAt", &sda.CreatedAt)
 		if err != nil {
 			return err
 		}
 	}
 	_, ok = props["UpdatedAt"]
 	if ok {
-		err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt)
+		_, err = rdr.ReadTime(c, cdc, "UpdatedAt", &sda.UpdatedAt)
 		if err != nil {
 			return err
 		}

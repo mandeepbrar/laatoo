@@ -234,48 +234,47 @@ func (usr *DefaultUser) encryptPassword() error {
 func (ent *DefaultUser) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
 	var err error
 
-	if err = rdr.ReadString(c, cdc, "Username", &ent.Username); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Username", &ent.Username); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Password", &ent.Password); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Password", &ent.Password); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadArray(c, cdc, "Roles", &ent.Roles); err != nil {
+	if _, err = rdr.ReadArray(c, cdc, "Roles", &ent.Roles); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+	if _, err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Email", &ent.Email); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Email", &ent.Email); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Name", &ent.Name); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Name", &ent.Name); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Picture", &ent.Picture); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
+	if _, err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
 		return err
 	}
 
-	if err = rdr.ReadInt(c, cdc, "Status", &ent.Status); err != nil {
+	if _, err = rdr.ReadInt(c, cdc, "Status", &ent.Status); err != nil {
 		return err
 	}
 
-	ent.Account = data.StorableRef{}
-	if err = rdr.ReadObject(c, cdc, "Account", &ent.Account); err != nil {
+	if _, err = rdr.ReadObject(c, cdc, "Account", &ent.Account); err != nil {
 		return err
 	}
 

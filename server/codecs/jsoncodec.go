@@ -39,8 +39,8 @@ func (cdc *JsonCodec) Marshal(c ctx.Context, val interface{}) ([]byte, error) {
 }
 
 func (cdc *JsonCodec) Unmarshal(c ctx.Context, arr []byte, val interface{}) (err error) {
-	c = c.SubCtx("unmarshalling")
-	defer c.CompleteContext()
+	//c = c.SubCtx("unmarshalling")
+	//defer c.CompleteContext()
 	if arr == nil {
 		return nil
 	}
