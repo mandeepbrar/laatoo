@@ -97,7 +97,7 @@ func (adapter *DataAdapterModule) Initialize(ctx core.ServerContext, conf config
 	if !instanceok || adapter.instance == "" {
 		adapter.instance = adapter.object
 	}
-	log.Error(ctx, "Data adapter. Services to create", "data service", adapter.dataservice, " adapter factory", adapter.dataadapterfactory, "select service", adapter.selectservice,
+	log.Info(ctx, "Data adapter. Services to create", "data service", adapter.dataservice, " adapter factory", adapter.dataadapterfactory, "select service", adapter.selectservice,
 		"object channel", adapter.objectchannel, "get service", adapter.getservice, "save service ", adapter.saveservice, "update service", adapter.updateservice,
 		"instance", adapter.instance, "instanceok", instanceok, "object", adapter.object, "conf", conf)
 	return nil

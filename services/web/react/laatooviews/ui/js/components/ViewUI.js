@@ -15,43 +15,6 @@ class ViewUI extends ViewData {
     this.onScrollEnd = this.onScrollEnd.bind(this);
   }
 
-  /*onItemSelectionChange(){
-    var view = this
-    console.log('view of item checkbox', view)
-    return (item)=> {
-      if (item.selected) {
-        view.setSelectedItem(item, true)
-      } else {
-        view.setSelectedItem(item, false)
-      }
-    }
-  }*/
-
-
-
-/*
-getFilter(view, filterTitle, filterForm, filterGo, filter) {
-  if(this.props.getFilter) {
-    return this.props.getFilter(filterTitle, filterForm, filterGo, filter)
-  }
-  if(!filterForm) {
-    return null
-  }
-  if(!filterTitle) {
-    filterTitle="Search"
-  }
-  if(!filterGo) {
-    filterGo = "Go"
-  }
-  return (
-    <ViewFilter title={filterTitle} schema={filterForm} defaultFilter={filter} setFilter={view.methods.setFilter} goBtn={filterGo} >
-      <div className="row m20">
-        <i className="fa fa-search pull-right"></i>
-      </div>
-    </ViewFilter>
-  )
-}
-*/
   onScrollEnd() {
     let methods = this.methods();
     methods.loadMore();

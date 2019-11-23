@@ -47,58 +47,58 @@ func (ent *OrgNode) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializable
 	var err error
 
   
-    if _, err = rdr.ReadString(c, cdc, "Title", &ent.Title); err != nil {
+    if err = rdr.ReadString(c, cdc, "Title", &ent.Title); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "Description", &ent.Description); err != nil {
+    if err = rdr.ReadString(c, cdc, "Description", &ent.Description); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "Code", &ent.Code); err != nil {
+    if err = rdr.ReadString(c, cdc, "Code", &ent.Code); err != nil {
       return err
     }
     
           {
-            hasKey, err := rdr.ReadObject(c, cdc, "Parent", &ent.Parent)
-            if err != nil || !hasKey {
+            err := rdr.ReadObject(c, cdc, "Parent", &ent.Parent)
+            if err != nil {
               return err
             }
           }
           
-    if _, err = rdr.ReadString(c, cdc, "Level", &ent.Level); err != nil {
+    if err = rdr.ReadString(c, cdc, "Level", &ent.Level); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "Attr1", &ent.Attr1); err != nil {
+    if err = rdr.ReadString(c, cdc, "Attr1", &ent.Attr1); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "Attr2", &ent.Attr2); err != nil {
+    if err = rdr.ReadString(c, cdc, "Attr2", &ent.Attr2); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "Attr3", &ent.Attr3); err != nil {
+    if err = rdr.ReadString(c, cdc, "Attr3", &ent.Attr3); err != nil {
       return err
     }
     
           {
-            hasKey, err := rdr.ReadObject(c, cdc, "Data1", &ent.Data1)
-            if err != nil || !hasKey {
-              return err
-            }
-          }
-          
-          {
-            hasKey, err := rdr.ReadObject(c, cdc, "Data2", &ent.Data2)
-            if err != nil || !hasKey {
+            err := rdr.ReadObject(c, cdc, "Data1", &ent.Data1)
+            if err != nil {
               return err
             }
           }
           
           {
-            hasKey, err := rdr.ReadObject(c, cdc, "Data3", &ent.Data3)
-            if err != nil || !hasKey {
+            err := rdr.ReadObject(c, cdc, "Data2", &ent.Data2)
+            if err != nil {
+              return err
+            }
+          }
+          
+          {
+            err := rdr.ReadObject(c, cdc, "Data3", &ent.Data3)
+            if err != nil {
               return err
             }
           }

@@ -1,4 +1,6 @@
 version: 0.0.1
+dependencies:
+  uicommon: ">=0.0.1"
 description: Module provides director router kit for laatoo react applications
 ui:
   js:

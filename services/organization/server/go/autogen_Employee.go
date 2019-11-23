@@ -40,21 +40,21 @@ func (ent *Employee) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializabl
 	var err error
 
   
-    if _, err = rdr.ReadString(c, cdc, "FirstName", &ent.FirstName); err != nil {
+    if err = rdr.ReadString(c, cdc, "FirstName", &ent.FirstName); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadString(c, cdc, "LastName", &ent.LastName); err != nil {
+    if err = rdr.ReadString(c, cdc, "LastName", &ent.LastName); err != nil {
       return err
     }
     
-    if _, err = rdr.ReadArray(c, cdc, "EmployeeID", &ent.EmployeeID); err != nil {
+    if err = rdr.ReadArray(c, cdc, "EmployeeID", &ent.EmployeeID); err != nil {
       return err
     }
     
           {
-            hasKey, err := rdr.ReadObject(c, cdc, "Job", &ent.Job)
-            if err != nil || !hasKey {
+            err := rdr.ReadObject(c, cdc, "Job", &ent.Job)
+            if err != nil {
               return err
             }
           }

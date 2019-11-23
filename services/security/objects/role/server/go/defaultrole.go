@@ -52,15 +52,15 @@ func (ent *Role) SetRealm(val string) {
 func (ent *Role) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
 	var err error
 
-	if _, err = rdr.ReadString(c, cdc, "Role", &ent.Role); err != nil {
+	if err = rdr.ReadString(c, cdc, "Role", &ent.Role); err != nil {
 		return err
 	}
 
-	if _, err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
+	if err = rdr.ReadString(c, cdc, "Realm", &ent.Realm); err != nil {
 		return err
 	}
 
-	if _, err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
+	if err = rdr.ReadArray(c, cdc, "Permissions", &ent.Permissions); err != nil {
 		return err
 	}
 

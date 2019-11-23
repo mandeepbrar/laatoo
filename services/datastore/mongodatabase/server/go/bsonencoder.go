@@ -2,7 +2,7 @@ package main
 
 import (
 	"laatoo/sdk/server/components/data"
-	"laatoo/sdk/server/ctx"
+	"laatoo/sdk/server/core"
 	"log"
 	"reflect"
 
@@ -12,7 +12,7 @@ import (
 
 type StorableSerializer struct {
 	defaultReg  *bsoncodec.Registry
-	logCtx      ctx.Context
+	serverCtx   core.ServerContext
 	timeEncoder bsoncodec.ValueEncoder
 	timeDecoder bsoncodec.ValueDecoder
 }
@@ -129,6 +129,15 @@ func (enc *StorableSerializer) DecodeValue(ctx bsoncodec.DecodeContext, reader b
 		return err
 	}
 
+	if val.Kind() == reflect.Ptr {
+		_, ok := val.Interface().(data.Storable)
+		if ok {
+			objType := enc.serverCtx.GetRegName(val.Interface())
+			obj, _ := enc.serverCtx.CreateObject(objType)
+			val.Set(reflect.ValueOf(obj))
+		}
+	}
+
 	if val.Kind() == reflect.Struct {
 		storfld := val.FieldByName("Storable")
 		if storfld.IsValid() {
@@ -203,6 +212,7 @@ func (enc *StorableSerializer) DecodeValue(ctx bsoncodec.DecodeContext, reader b
 						}*/
 					default:
 						{
+							log.Println("decoding field", name)
 							fldToSet := val.FieldByName(name)
 							if fldToSet.IsValid() {
 								err = enc.DecodeValue(ctx, vr, fldToSet)

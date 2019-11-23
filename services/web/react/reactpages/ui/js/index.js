@@ -11,16 +11,6 @@ function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins]
   module.settings = settings;
   module.req = req;
-  if(!Window.redirectPage) {
-    Window.redirectPage= (pageId, params) => {
-      let page = _reg('Pages', pageId)
-      console.log("redirect page", page)
-      if(page) {
-        let formattedUrl = formatUrl(page.url, params);
-        Window.redirect(formattedUrl);
-      }
-    }
-  }
   Panel.setModule(module)
 }
 

@@ -105,7 +105,7 @@ class BaseForm extends React.Component {
       Window.redirect(this.info.successRedirect);
     }
     if(this.info.successRedirectPage) {
-      Window.redirect(this.info.successRedirectPage);
+      Window.redirectPage(this.info.successRedirectPage);
     }
   }
 

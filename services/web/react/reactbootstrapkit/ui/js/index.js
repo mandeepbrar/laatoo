@@ -3,6 +3,7 @@ import Dialogs from './components/Dialogs'
 import Navbar from './components/Navbar'
 import React from 'react';
 import {TextField} from './components/TextField';
+import {Checkbox} from './components/Checkbox';
 import {FieldWidget} from './forms/FieldWidget';
 import {Icons} from './components/Icons';
 import {Block, ScrollListener, Action, Html, ActionBar, LoadableComponent, Image} from 'reactwebcommon';
@@ -48,6 +49,7 @@ export {
   Select,
   Block,
   TextField,
+  Checkbox,
   Form,
   ScrollListener as Scroll,
   Action, 

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import {Button} from '@material-ui/core';
 import {TextField} from './components/TextField';
+import {Checkbox} from './components/Checkbox';
 import {Select} from './components/Select';
 import './styles/app.scss';
 import {FieldWidget} from './forms/FieldWidget';
@@ -69,6 +70,7 @@ export {
   Select,
   Block,
   TextField,
+  Checkbox,
   Form,
   ScrollListener as Scroll,
   Action, 

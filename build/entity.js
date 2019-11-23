@@ -248,7 +248,7 @@ function fieldReadAlls(fields) {
     let fieldType = getFieldType(field)    
     let entity = field.entity? field.entity: "";
     let readAll = `
-    if _, err = rdr.Read%s(c, cdc, "%s", &ent.%s); err != nil {
+    if err = rdr.Read%s(c, cdc, "%s", &ent.%s); err != nil {
       return err
     }
     `  
@@ -259,7 +259,7 @@ function fieldReadAlls(fields) {
         case "storableref": {
           readAll = `
           {
-            _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+            err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
             if err != nil {
               return err
             }
@@ -273,7 +273,7 @@ function fieldReadAlls(fields) {
           if(field.type == "subentity") {
             readAll = `
             {
-              _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+              err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
               if err != nil {
                 return err
               }
@@ -283,7 +283,7 @@ function fieldReadAlls(fields) {
           } else {
             readAll = `
             {
-              _, err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
+              err := rdr.ReadObject(c, cdc, "%s", &ent.%s)
               if err != nil {
                 return err
               }

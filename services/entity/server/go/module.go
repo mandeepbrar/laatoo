@@ -133,7 +133,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 	entityFormInfo.Set(ctx, "successRedirectPage", entity.updateSuccessRoute)
 	formNewArgs, ok := ctx.Get("form_new_args")
 	if ok {
-		log.Error(ctx, " Setting pre assigned params for new form", "form_new_args", formNewArgs)
+		log.Debug(ctx, " Setting pre assigned params for new form", "form_new_args", formNewArgs)
 		entityFormInfo.Set(ctx, "preAssigned", formNewArgs)
 	}
 	newEntityForm.Set(ctx, "info", entityFormInfo)
@@ -190,7 +190,7 @@ func (entity *EntityModule) createForms(ctx core.ServerContext) config.Config {
 		forms.Set(ctx, "update_form_"+strings.ToLower(entity.instance), updateEntityForm)
 	}
 
-	log.Error(ctx, "create entity form ", "forms", forms, "entityFormInfo", entityFormInfo)
+	log.Info(ctx, "create entity form ", "forms", forms, "entityFormInfo", entityFormInfo)
 
 	return forms
 }
@@ -258,7 +258,6 @@ func (entity *EntityModule) createBlocks(ctx core.ServerContext) (config.Config,
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}
-	log.Error(ctx, " defaultEntityTemp ", "file", string(defaultEntityStr.Bytes()))
 
 	defEntity, err := ctx.ReadConfigData(defaultEntityStr.Bytes(), nil)
 	if err == nil {

@@ -6,6 +6,7 @@ import (
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/log"
+	"reflect"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -29,8 +30,10 @@ func (cdc *JsonCodec) Marshal(c ctx.Context, val interface{}) ([]byte, error) {
 		return nil, err
 	}
 	jsonWtr := wtr.(*JsonWriter)
-	err = jsonWtr.writeObject(c, cdc, val)
+	jsonWtr.topLevel = true
+	err = jsonWtr.writeObject(c, cdc, val, reflect.ValueOf(val))
 	if err != nil {
+		log.Error(c, "Marshalling err", "val", val, "err", err)
 		return nil, err
 	}
 	byts := jsonWtr.Bytes()
@@ -78,7 +81,8 @@ func (cdc *JsonCodec) Encode(c ctx.Context, outStream io.Writer, val interface{}
 		return err
 	}
 	jsonWtr := wtr.(*JsonWriter)
-	err = jsonWtr.writeObject(c, cdc, val)
+	jsonWtr.topLevel = true
+	err = jsonWtr.writeObject(c, cdc, val, reflect.ValueOf(val))
 	if err != nil {
 		return err
 	}

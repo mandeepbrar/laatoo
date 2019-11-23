@@ -49,16 +49,17 @@ func (rtr *router) notify(ctx core.ServerContext, identifier interface{}, msg in
 }
 
 func (rtr *router) broadcast(ctx core.ServerContext, msg interface{}, dataid string) error {
-	for _, conn := range rtr.connections {
-		not := &rpcNotification{"2.0", msg, dataid}
-		byts, err := rtr.engine.codec.Marshal(ctx, not)
-		if err != nil {
-			return err
-		}
-		err = conn.WriteMessage(websocket.TextMessage, byts)
-		if err != nil {
-			return err
-		}
-	}
+	/*
+		for _, conn := range rtr.connections {
+			not := &rpcNotification{"2.0", msg, dataid}
+			byts, err := rtr.engine.codec.Marshal(ctx, not)
+			if err != nil {
+				return err
+			}
+			err = conn.WriteMessage(websocket.TextMessage, byts)
+			if err != nil {
+				return err
+			}
+		}*/
 	return nil
 }

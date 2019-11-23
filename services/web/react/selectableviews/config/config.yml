@@ -1,0 +1,27 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  laatooviews: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: 'Module provides selectable view components. '
+ui:
+  js:
+    externals:
+      react: react
+      redux-actions: redux-actions
+      react-redux: react-redux
+      reactwebcommon: reactwebcommon
+      redux-saga: redux-saga
+      react-pagify: react-pagify
+      uicommon: uicommon
+      prop-types: prop-types
+      core-js: core-js
+    packages:
+      react: "^16.8.0"
+      react-pagify: "^2.3.0"
+      react-redux: "^5.0.6"
+      redux: "^3.7.2"
+      redux-saga: "^1.1.0"
+      prop-types: "^15.6.0"
+      core-js: "^2.5.7"
