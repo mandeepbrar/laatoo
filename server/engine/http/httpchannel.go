@@ -204,14 +204,14 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 			reqCtx, vals, err := reqBuilder(pathCtx)
 			if err != nil {
 				err = respHandler.HandleResponse(reqCtx, core.BadRequestResponse(err.Error()), err)
-				errChannel <- err
+				errChannel <- errors.WrapError(ctx, err)
 				return
 			}
 			defer reqCtx.CompleteRequest()
 			err = authRequest(reqCtx, vals)
 			if err != nil {
 				err = respHandler.HandleResponse(reqCtx, core.StatusUnauthorizedResponse, err)
-				errChannel <- err
+				errChannel <- errors.WrapError(reqCtx, err)
 				return
 			}
 			log.Trace(reqCtx, "Invoking service ", "vals", vals)
@@ -222,7 +222,7 @@ func (channel *httpChannel) httpAdapter(ctx core.ServerContext, serviceName stri
 			resCtx := reqCtx.SubContext("Response Handler")
 			err = respHandler.HandleResponse(resCtx, resp, err)
 
-			errChannel <- err
+			errChannel <- errors.WrapError(reqCtx, err)
 		}(pathCtx)
 		err := <-errChannel
 		if err != nil {

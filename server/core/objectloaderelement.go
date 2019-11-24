@@ -26,7 +26,7 @@ func (proxy *objectLoaderProxy) GetType() core.ServerElementType {
 func (proxy *objectLoaderProxy) GetContext() core.ServerContext {
 	return proxy.loader.svrContext
 }
-func (ldr *objectLoaderProxy) GetRegName(ctx ctx.Context, object interface{}) string {
+func (ldr *objectLoaderProxy) GetRegName(ctx ctx.Context, object interface{}) (string, bool, bool) {
 	return ldr.loader.getRegName(ctx, object)
 }
 
@@ -36,14 +36,20 @@ func (ldr *objectLoaderProxy) Register(ctx ctx.Context, object interface{}, meta
 func (ldr *objectLoaderProxy) RegisterObjectFactory(ctx ctx.Context, factory core.ObjectFactory) error {
 	return ldr.loader.registerObjectFactory(ctx, factory)
 }
+
+/*
 func (ldr *objectLoaderProxy) RegisterObject(ctx ctx.Context, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
 	return ldr.loader.registerObject(ctx, objectCreator, objectCollectionCreator, metadata)
-}
+}*/
 func (ldr *objectLoaderProxy) CreateCollection(ctx ctx.Context, objectName string, length int) (interface{}, error) {
 	return ldr.loader.createCollection(ctx, objectName, length)
 }
 func (ldr *objectLoaderProxy) CreateObject(ctx ctx.Context, objectName string) (interface{}, error) {
 	return ldr.loader.createObject(ctx, objectName)
+}
+
+func (ldr *objectLoaderProxy) CreateObjectPointersCollection(ctx ctx.Context, objectName string, length int) (interface{}, error) {
+	return ldr.loader.createObjectPointersCollection(ctx, objectName, length)
 }
 
 func (ldr *objectLoaderProxy) GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool) {

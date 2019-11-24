@@ -3,7 +3,6 @@ package websocket
 import (
 	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/ctx"
 	"laatoo/sdk/server/elements"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -102,9 +101,9 @@ func (eng *wsEngine) Start(ctx core.ServerContext) error {
 }
 
 func (eng *wsEngine) setupNotifierService(svrctx core.ServerContext, objName string) error {
-	objLoader := svrctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
-	objLoader.RegisterObject(svrctx, func(cx ctx.Context) interface{} {
+	//objLoader := svrctx.GetServerElement(core.ServerElementLoader).(elements.ObjectLoader)
+	/*objLoader.RegisterObject(svrctx, func(cx ctx.Context) interface{} {
 		return &NotifierService{engine: eng}
-	}, nil, nil)
+	}, nil, nil)*/
 	return nil
 }

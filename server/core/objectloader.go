@@ -124,8 +124,6 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 				for _, comp := range components {
 					if comp.ObjectFactory != nil {
 						err = objLoader.registerObjectFactory(ctx, comp.ObjectFactory)
-					} else if comp.ObjectCreator != nil {
-						err = objLoader.registerObject(ctx, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
 					} else if comp.Object != nil {
 						err = objLoader.register(ctx, comp.Object, comp.Metadata)
 					} else {
@@ -146,6 +144,10 @@ func (objLoader *objectLoader) loadObjectsFolder(ctx core.ServerContext, folder 
 	})
 	return err
 }
+
+/*else if comp.ObjectCreator != nil {
+	err = objLoader.registerObject(ctx, comp.ObjectCreator, comp.ObjectCollectionCreator, comp.Metadata)
+} */
 
 func (objLoader *objectLoader) loadObjectsFolderIfExists(ctx core.ServerContext, folder string) error {
 	exists, _, _ := utils.FileExists(folder)
@@ -190,46 +192,60 @@ func (objLoader *objectLoader) setObjectInfo(ctx ctx.Context, objectName string,
 		factory.(*objectFactory).metadata = metadata
 	}
 }
-func (objLoader *objectLoader) getRegName(ctx ctx.Context, object interface{}) string {
+func (objLoader *objectLoader) getRegName(ctx ctx.Context, object interface{}) (regName string, registered bool, isptr bool) {
 	typ := reflect.TypeOf(object)
 	for {
-		if typ.Kind() == reflect.Ptr || typ.Kind() == reflect.Array {
+		kind := typ.Kind()
+		if kind == reflect.Ptr {
 			typ = typ.Elem()
+			isptr = true
+			continue
+		}
+		if kind == reflect.Array || kind == reflect.Slice {
+			typ = typ.Elem()
+			isptr = false
 			continue
 		}
 		break
 	}
-	return fmt.Sprintf("%s.%s", typ.PkgPath(), typ.Name())
+	regName = fmt.Sprintf("%s.%s", typ.PkgPath(), typ.Name())
+	_, registered = objLoader.objectsFactoryRegister[regName]
+	return
 }
 
 func (objLoader *objectLoader) register(ctx ctx.Context, object interface{}, metadata core.Info) error {
-	objectName := objLoader.getRegName(ctx, object)
+	objectName, ok, _ := objLoader.getRegName(ctx, object)
+	if !ok {
+		objFac, err := newObjectType(ctx, objLoader, objectName, object, metadata)
+		if err != nil {
+			return err
+		}
 
-	objFac, err := newObjectType(ctx, objLoader, objectName, object, metadata)
-	if err != nil {
-		return err
+		objLoader.registerObjectFactory(ctx, objFac)
 	}
-
-	objLoader.registerObjectFactory(ctx, objFac)
 	return nil
 }
+
+/*
 func (objLoader *objectLoader) registerObject(ctx ctx.Context, objectCreator core.ObjectCreator, objectCollectionCreator core.ObjectCollectionCreator, metadata core.Info) error {
 	object := objectCreator(ctx)
-	objectName := objLoader.getRegName(ctx, object)
-
-	objFac, err := newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata)
-	if err != nil {
-		return err
+	objectName, ok, _ := objLoader.getRegName(ctx, object)
+	if !ok {
+		objFac, err := newObjectFactory(ctx, objLoader, objectName, objectCreator, objectCollectionCreator, metadata)
+		if err != nil {
+			return err
+		}
+		objLoader.registerObjectFactory(ctx, objFac)
 	}
-	objLoader.registerObjectFactory(ctx, objFac)
+
 	return nil
-}
+}*/
+
 func (objLoader *objectLoader) registerObjectFactory(ctx ctx.Context, factory core.ObjectFactory) error {
 	object := factory.CreateObject(ctx)
-	objectName := objLoader.getRegName(ctx, object)
+	objectName, ok, _ := objLoader.getRegName(ctx, object)
 	log.Debug(ctx, "Registering object", "Object Name", objectName)
 
-	_, ok := objLoader.objectsFactoryRegister[objectName]
 	if !ok {
 		log.Trace(ctx, "Registering non existent factory", "Name", objectName)
 		objLoader.objectsFactoryRegister[objectName] = factory
@@ -261,6 +277,17 @@ func (objLoader *objectLoader) createObject(ctx ctx.Context, objectName string) 
 		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
 	}
 	return factory.CreateObject(ctx), nil
+}
+
+//Provides an object with a given name
+func (objLoader *objectLoader) createObjectPointersCollection(ctx ctx.Context, objectName string, length int) (interface{}, error) {
+	//get the factory object from the register
+	factory, ok := objLoader.objectsFactoryRegister[objectName]
+	if !ok {
+		log.Trace(ctx, "Objects in the register", "Map", objLoader.objectsFactoryRegister)
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_PROVIDER_NOT_FOUND, "Object Name", objectName)
+	}
+	return factory.CreateObjectPointersCollection(ctx, length), nil
 }
 
 func (objLoader *objectLoader) getObjectCreator(ctx ctx.Context, objectName string) (core.ObjectCreator, error) {

@@ -494,6 +494,10 @@ func (ctx *serverContext) CreateObject(objectName string) (interface{}, error) {
 	return ctx.svrElements.objectLoader.CreateObject(ctx, objectName)
 }
 
+func (ctx *serverContext) CreateObjectPointersCollection(objectName string, length int) (interface{}, error) {
+	return ctx.svrElements.objectLoader.CreateObjectPointersCollection(ctx, objectName, length)
+}
+
 func (ctx *serverContext) GetObjectMetadata(objectName string) (core.Info, error) {
 	return ctx.svrElements.objectLoader.GetMetaData(ctx, objectName)
 }
@@ -516,7 +520,7 @@ func (ctx *serverContext) GetObjectFactory(name string) (core.ObjectFactory, boo
 	return ctx.svrElements.objectLoader.GetObjectFactory(ctx, name)
 }
 
-func (ctx *serverContext) GetRegName(object interface{}) string {
+func (ctx *serverContext) GetRegName(object interface{}) (string, bool, bool) {
 	return ctx.svrElements.objectLoader.GetRegName(ctx, object)
 }
 

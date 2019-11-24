@@ -243,11 +243,15 @@ func (ctx *requestContext) CreateObject(objectName string) (interface{}, error) 
 	return ctx.serverContext.CreateObject(objectName)
 }
 
+func (ctx *requestContext) CreateObjectPointersCollection(objectName string, length int) (interface{}, error) {
+	return ctx.serverContext.CreateObjectPointersCollection(objectName, length)
+}
+
 func (ctx *requestContext) GetObjectFactory(name string) (core.ObjectFactory, bool) {
 	return ctx.serverContext.GetObjectFactory(name)
 }
 
-func (ctx *requestContext) GetRegName(object interface{}) string {
+func (ctx *requestContext) GetRegName(object interface{}) (string, bool, bool) {
 	return ctx.serverContext.GetRegName(object)
 }
 

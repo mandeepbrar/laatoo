@@ -26,19 +26,27 @@ func newObjectFactory(ctx ctx.Context, objLoader *objectLoader, objectName strin
 
 func newObjectType(svrctx ctx.Context, objLoader *objectLoader, objectName string, obj interface{}, metadata core.Info) (*objectFactory, error) {
 	typ := reflect.TypeOf(obj)
-	slice := reflect.MakeSlice(reflect.SliceOf(typ), 0, 0)
-	slicTyp := slice.Type()
+	slicTyp := reflect.SliceOf(typ)
+	ptrTyp := reflect.PtrTo(typ)
+	slicePtrTyp := reflect.SliceOf(ptrTyp)
 	objectCreator := func(cx ctx.Context) interface{} {
 		return reflect.New(typ).Interface()
 	}
 	collectCreator := func(cx ctx.Context, length int) interface{} {
-		k := reflect.MakeSlice(reflect.SliceOf(typ), length, length)
+		k := reflect.MakeSlice(slicTyp, length, length)
 		// Create a pointer to a slice value and set it to the slice
 		x := reflect.New(slicTyp)
 		x.Elem().Set(k)
 		return x.Interface()
 	}
-	fac := &objectFactory{objectCreator: objectCreator, objectCollectionCreator: collectCreator, metadata: metadata, objectName: objectName}
+	pointersCollectCreator := func(cx ctx.Context, length int) interface{} {
+		k := reflect.MakeSlice(slicePtrTyp, length, length)
+		// Create a pointer to a slice value and set it to the slice
+		x := reflect.New(slicePtrTyp)
+		x.Elem().Set(k)
+		return x.Interface()
+	}
+	fac := &objectFactory{objectCreator: objectCreator, objectCollectionCreator: collectCreator, objectPointersCollectionCreator: pointersCollectCreator, metadata: metadata, objectName: objectName}
 	err := fac.analyzeObject(svrctx, objLoader)
 	if err != nil {
 		return nil, errors.WrapError(svrctx, err)
@@ -47,11 +55,12 @@ func newObjectType(svrctx ctx.Context, objLoader *objectLoader, objectName strin
 }
 
 type objectFactory struct {
-	objectCreator           core.ObjectCreator
-	objectCollectionCreator core.ObjectCollectionCreator
-	metadata                core.Info
-	fieldsToInit            map[string]*objectFactory
-	objectName              string
+	objectCreator                   core.ObjectCreator
+	objectCollectionCreator         core.ObjectCollectionCreator
+	objectPointersCollectionCreator core.ObjectCollectionCreator
+	metadata                        core.Info
+	fieldsToInit                    map[string]*objectFactory
+	objectName                      string
 }
 
 //Creates object
@@ -84,6 +93,10 @@ func (factory *objectFactory) initObject(ctx ctx.Context, obj interface{}) {
 //Creates collection
 func (factory *objectFactory) CreateObjectCollection(ctx ctx.Context, length int) interface{} {
 	return factory.objectCollectionCreator(ctx, length)
+}
+
+func (factory *objectFactory) CreateObjectPointersCollection(ctx ctx.Context, length int) interface{} {
+	return factory.objectPointersCollectionCreator(ctx, length)
 }
 
 func (factory *objectFactory) Info() core.Info {

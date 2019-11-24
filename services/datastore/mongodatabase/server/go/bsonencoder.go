@@ -21,6 +21,7 @@ func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer b
 	if val.Kind() == reflect.Struct {
 		storfld := val.FieldByName("Storable")
 		if storfld.IsValid() {
+			log.Println("encoding value ", " val", val)
 			stor, ok := storfld.Interface().(data.Storable)
 			if ok {
 				valType := val.Type()
@@ -30,6 +31,7 @@ func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer b
 				}
 				for i := 0; i < val.NumField(); i++ {
 					fieldName := valType.Field(i).Name
+					log.Println("encoding field ", " fieldName", fieldName)
 					field := val.Field(i)
 					if field == storfld {
 						err = enc.writeStorValues(ctx, docWriter, stor)
@@ -41,6 +43,7 @@ func (enc *StorableSerializer) EncodeValue(ctx bsoncodec.EncodeContext, writer b
 						if err != nil {
 							return err
 						}
+						log.Println("encoding field ", " fieldName", fieldName, "field", field)
 						enc.writeDefault(ctx, valWriter, field)
 					}
 				}
@@ -132,9 +135,16 @@ func (enc *StorableSerializer) DecodeValue(ctx bsoncodec.DecodeContext, reader b
 	if val.Kind() == reflect.Ptr {
 		_, ok := val.Interface().(data.Storable)
 		if ok {
-			objType := enc.serverCtx.GetRegName(val.Interface())
-			obj, _ := enc.serverCtx.CreateObject(objType)
-			val.Set(reflect.ValueOf(obj))
+			objType, reg, _ := enc.serverCtx.GetRegName(val.Interface())
+			if reg {
+				obj, err := enc.serverCtx.CreateObject(objType)
+				if err != nil {
+					return err
+				}
+				log.Println("decoding value ", objType, " obj", obj)
+
+				val.Set(reflect.ValueOf(obj))
+			}
 		}
 	}
 
