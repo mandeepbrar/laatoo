@@ -56,6 +56,7 @@ const mapStateToProps = (state, ownProps) => {
       props.load = true
     }
   }
+  console.log("view ui props", props)
   return props;
 }
 
@@ -99,6 +100,7 @@ const View = (props) => {
   if(!view && props.id) {
     view = _reg("Views", props.id)
   }
+  view = _tn(view, {})
   if(view) {
     console.log("view.....", view)
     let args = props.postArgs? props.postArgs: view.postArgs;

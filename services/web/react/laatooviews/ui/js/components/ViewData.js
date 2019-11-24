@@ -26,7 +26,7 @@ class ViewData extends React.Component {
   //  this.numItems = 0
     this.pushItem = this.pushItem.bind(this)
     this.viewitems = new Array()
-    console.log("this items", this.viewitems)
+    console.log("view items", this.viewitems, "view props", props)
   }
   componentWillMount() {
     this.filter = this.props.defaultFilter

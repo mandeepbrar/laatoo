@@ -237,11 +237,12 @@ class Panel extends React.Component {
           return null
         }
         let blockCtx = {data: props.data, expanded: state.expanded, expand: expand, props: props, panel: panel, className: className, routeParams: ctx.routeParams, storage: Storage, state: state}
-        console.log("block blockCtx", blockCtx, "desc", desc, "expansionDesc", expansionDesc)
+        console.log("block blockCtx", blockCtx, "desc", desc, "expansionDesc", expansionDesc, "display", display)
         let retval = display(blockCtx, desc)
         if(state.expanded && expansionDisplay){
           return [retval, expansionDisplay(blockCtx, expansionDesc)]
         }
+        console.log("retval from block", retval, "props", props, "contentonly", props.contentOnly)
         if(retval && props.contentOnly) {
           return retval.children
         }
@@ -433,7 +434,7 @@ class Panel extends React.Component {
         {showOverlay?this.state.overlayComponent:null}
       </_uikit.Block>
     } else {
-      return comp
+      return comp? comp : <_uikit.Block/>
     }
   }
 }
