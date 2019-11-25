@@ -3,7 +3,7 @@ const redux = require('redux');
 //import {Errors} from '../messages'
 import createSagaMiddleware from 'redux-saga';
 import {all, call, fork, spawn} from 'redux-saga/effects';
-import '../reducers/Dialogs'
+import '../reducers/Interactions'
 import '../reducers/Messages'
 
 function runSagas(sagaMiddleware, sagas) {

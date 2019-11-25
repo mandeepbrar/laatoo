@@ -1,5 +1,5 @@
 import {render } from 'react-dom'
-import Dialogs from './components/Dialogs'
+import Dialog from './components/Dialog'
 import Navbar from './components/Navbar'
 import React from 'react';
 import {TextField} from './components/TextField';
@@ -18,9 +18,9 @@ function Initialize(appName, ins, mod, settings, def, req) {
   //injectTapEventPlugin();
 }
 
-const UIWrapper=(props)=>(
-  props.children
-)
+const UIWrapper=(props)=>{
+  return props.children
+}
 
 const ActionButton=(props)=> (
   //props.flat?
@@ -45,7 +45,7 @@ export {
   ActionButton,
   Tabset,
   Tab,
-  Dialogs,
+  Dialog,
   Select,
   Block,
   TextField,

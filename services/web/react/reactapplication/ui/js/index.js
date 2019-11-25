@@ -1,5 +1,6 @@
 import { createAction} from 'uicommon'
 import Actions from './actions'
+import Interactions from './components/Interactions'
 import { Provider } from 'react-redux';
 import configureStore from './stores';
 import React from 'react';
@@ -38,14 +39,14 @@ function Initialize(app, ins, mod, s, def, req) {
 }
 
 function StartApplication() {
-  console.log("Starting application ", module.appname, module);
+  console.log("Starting application1 ", module.appname, module, this, this.req);
   let {router, uikit, theme} = module.settings;
   let Uikit = this.req(uikit)
   if(Uikit.default) {
     Uikit = Uikit.default
   }
   Application.setUikit(Uikit);
-  console.log("theme for application", theme);
+  console.log("theme for application", theme, this.req);
   let ThemeMod = this.req(theme)
   console.log("Theme mod", ThemeMod);
   if(ThemeMod.default) {
@@ -66,9 +67,15 @@ function StartApplication() {
   Application.store = configureStore();
   createMessageDialogs(Application.store)
   Router.connect(Application.store);
+  if(Application.Registry.Bootmethods) {
+    for (let [methodName, method] of Object.entries(Application.AllRegItems("Bootmethods"))) {
+      method(Application.store, Application, Uikit, Theme, Router)
+    }
+  }
   Uikit.render(
     <Provider store={Application.store}>
       <App router={Router} theme={Theme}/>
+      <Interactions/>
     </Provider>, document.getElementById('app')
   );
 }
@@ -92,11 +99,20 @@ function createMessageDialogs(store) {
   Window.handleError = function(errObj, resp) {
     Window.showError(errObj, resp)
   }
+
+  Window.showInteraction = function(interactionType, title, component, onClose, actions, contentStyle, titleStyle) {
+    store.dispatch(createAction(Actions.SHOW_INTERACTION_COMP, {Title: title, Component: component, OnClose: onClose, Actions: actions, ContentStyle: contentStyle, TitleStyle: titleStyle, Type: interactionType}, null))
+  }
+
+  Window.closeInteraction = function(interactionType) {
+    store.dispatch(createAction(Actions.CLOSE_INTERACTION_COMP, {Type: interactionType}, null))
+  }
+
   Window.showDialog = function(title, component, onClose, actions, contentStyle, titleStyle) {
-    store.dispatch(createAction(Actions.SHOW_DIALOG, {Title: title, Component: component, OnClose: onClose, Actions: actions, ContentStyle: contentStyle, TitleStyle: titleStyle}, null))
+    Window.showInteraction("Dialog", title, component, onClose, actions, contentStyle, titleStyle)
   }
   Window.closeDialog = function() {
-    store.dispatch(createAction(Actions.CLOSE_DIALOG, {}, null))
+    Window.closeInteraction("Dialog")
   }
 }
 

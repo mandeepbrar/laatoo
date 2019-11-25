@@ -1,6 +1,7 @@
 import React from 'react';
 import {render } from 'react-dom'
-import Dialogs from './components/Dialogs'
+//import Dialogs from './components/Dialogs'
+import {Dialog} from './components/Dialog'
 import Navbar from './components/Navbar'
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import {Button} from '@material-ui/core';
@@ -14,7 +15,6 @@ import {Icons} from './components/Icons';
 import Icon from '@material-ui/core/Icon';
 import {Block, ScrollListener, Action, Html, ActionBar, LoadableComponent, Image} from 'reactwebcommon';
 //import injectTapEventPlugin from "react-tap-event-plugin";
-
 
 function Initialize(appName, ins, mod, settings, def, req) {
   //injectTapEventPlugin();
@@ -39,10 +39,12 @@ class UIWrapper extends React.Component {
   }*/
   render() {
     return (
-      <MuiThemeProvider><Dialogs/>{this.props.children}</MuiThemeProvider>
+      <MuiThemeProvider>{this.props.children}</MuiThemeProvider>
     )
   }
 }
+//removed dialogs as its now being handled by interactions
+//<MuiThemeProvider><Dialogs/>{this.props.children}</MuiThemeProvider>
 
 class Form extends React.Component {
   constructor(props) {
@@ -66,7 +68,7 @@ export {
   ActionButton,
   Tabset,
   Tab,
-  Dialogs,
+  Dialog,
   Select,
   Block,
   TextField,

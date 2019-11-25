@@ -1,15 +1,18 @@
 uploadSolutionModule:
-  actiontype: showdialog
+  actiontype: interaction
+  interactiontype: Dialog
   title: Upload Module
-  id: uploadsolutionmodule
+  blockid: uploadsolutionmodule
 installModule:
-  actiontype: showdialog
+  actiontype: interaction
+  interactiontype: Dialog
   title: Install Module
-  id: installmodule
+  blockid: installmodule
 createModule:
-  actiontype: showdialog
+  actiontype: interaction
+  interactiontype: Dialog
   title: Create Module
-  id: createmodule
+  blockid: createmodule
 editModule:
   url: "/module/:moduleId"
   actiontype: newwindow

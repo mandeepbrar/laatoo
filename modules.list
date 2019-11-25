@@ -36,6 +36,7 @@ laatoositetheme laatoo/services/web/react/laatoositetheme
 laatooviews laatoo/services/web/react/laatooviews
 selectableviews laatoo/services/web/react/selectableviews
 treeviews laatoo/services/web/react/treeviews
+sidebar laatoo/services/web/react/sidebar
 reactpages laatoo/services/web/react/reactpages
 reactforms laatoo/services/web/react/reactforms
 reactfileupload laatoo/services/web/react/reactfileupload

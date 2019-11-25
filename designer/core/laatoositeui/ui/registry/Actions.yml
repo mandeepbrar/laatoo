@@ -4,9 +4,10 @@ signup:
   url: "/signup"
   widget: button
 uploadmodule:
-  actiontype: showdialog
+  actiontype: interaction
+  interactiontype: Dialog
   title: Upload Module
-  id: uploadblock
+  blockid: uploadblock
 selectSolution:
   actiontype: method
   method: selectSolution

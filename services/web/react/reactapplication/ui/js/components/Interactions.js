@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-class DialogHandler extends React.Component {
+class InteractionHandler extends React.Component {
   constructor(props) {
     super(props)
     this.state = {open: false, time: props.time}
@@ -18,15 +18,27 @@ class DialogHandler extends React.Component {
   render() {
     let widget = null
     if(!this.state.open) {
-      return <div></div>
+      return <_uikit.Block />
     }
-    console.log("opening dialog", this.props)
+    let interactionComp = _uikit[this.props.interactiontype]
+    console.log("opening interaction", this.props, interactionComp)
     let contentStyle = this.props.contentStyle
     if(!contentStyle) {
       contentStyle = {minWidth:400, maxWidth: 450}
     }
-    return (
-        <_uikit.Dialog actions={this.props.actions}
+    let propsForComp = {actions: this.props.actions, title: this.props.title, onClose: this.handleClose, modal: true,
+      contentStyle: contentStyle, open: this.state.open, component:this.props.component}
+    console.log("about to create element", interactionComp)
+    let comp = React.createElement(interactionComp, propsForComp)
+    console.log("comp to render", comp)
+    return comp
+  }
+}
+
+
+/*
+
+        <this.interactionComp actions={this.props.actions}
           title={<_uikit.Block className="primaryBGColor1 white row col-xs-between">
             <b className="col-xs-10">{this.props.title}</b>
             <_uikit.ActionButton className="white" style={{minWidth:25}} label="x" onClick={this.handleClose}/>
@@ -35,30 +47,27 @@ class DialogHandler extends React.Component {
           <_uikit.Block className="p10">
             {this.props.component}
           </_uikit.Block>
-        </_uikit.Dialog>
-    )
-  }
-
-}
-
+        </this.interactionComp>
+*/
 const mapStateToProps = (state, ownProps) => {
-  if(!state.Dialogs.Content) {
+  if(!state.Interactions.Content) {
     return {
-      time: state.Dialogs.Time
+      time: state.Interactions.Time
     }
   }
   return {
-    component: state.Dialogs.Content.Component,
-    actions: state.Dialogs.Content.Actions,
-    contentStyle: state.Dialogs.Content.ContentStyle,
-    title: state.Dialogs.Content.Title,
-    time: state.Dialogs.Time
+    component: state.Interactions.Content.Component,
+    interactiontype: state.Interactions.Content.Type,
+    actions: state.Interactions.Content.Actions,
+    contentStyle: state.Interactions.Content.ContentStyle,
+    title: state.Interactions.Content.Title,
+    time: state.Interactions.Time
   }
 }
 
-const Dialogs = connect(
+const Interactions = connect(
   mapStateToProps,
   null
-)(DialogHandler);
+)(InteractionHandler);
 
-export default Dialogs;
+export default Interactions;

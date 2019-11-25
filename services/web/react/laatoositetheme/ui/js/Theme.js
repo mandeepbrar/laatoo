@@ -40,9 +40,13 @@ class ThemeUI extends React.Component {
 
 
 const SiteTheme = (props, st, c) => {
+  console.log("props of theme", props)
     let vertical = module.settings.vertical?true:false
     return (
       <_uikit.UIWrapper>
+        <_uikit.Block className="interactions">
+        {props.interactionsComponent}
+        </_uikit.Block>
         <LoginValidator  validateService="validate">
           <ThemeUI />
         </LoginValidator>

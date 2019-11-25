@@ -3,20 +3,20 @@ import  Actions from '../actions';
 var initialState = {
 };
 
-const Dialogs = (state, action) => {
+const Interactions = (state, action) => {
   if (action.type) {
     switch (action.type) {
       case Actions.LOGOUT: {
         return initialState
       }
-      case Actions.SHOW_DIALOG:
-      console.log("show dialog ", action)
+      case Actions.SHOW_INTERACTION_COMP:
+      console.log("show interaction ", action)
         return {
           Content: action.payload,
-          Type: "Dialog",
+          Type: "Interaction",
           Time: (new Date()).getTime()
         };
-      case Actions.CLOSE_DIALOG:
+      case Actions.CLOSE_INTERACTION_COMP:
         return {
           Content: null,
           Type: "Close",
@@ -31,4 +31,4 @@ const Dialogs = (state, action) => {
   }
 }
 
-Application.Register('Reducers', "Dialogs", Dialogs)
+Application.Register('Reducers', "Interactions", Interactions)

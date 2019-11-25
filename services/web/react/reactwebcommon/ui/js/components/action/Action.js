@@ -62,12 +62,13 @@ class ActionComp extends React.Component {
         let params = this.props.params? this.props.params: this.action.params
         this.actionMethod(params);
       return false;
-      case "showdialog":
-        let comp = Window.resolvePanel("block", this.action.id)
-        console.log("show dialog", this.action, comp)
+      case "interaction":
+        if(!this.action.interactiontype) {
+          return false
+        }
+        let comp = Window.resolvePanel("block", this.action.blockid)
         let onClose = this.props.onClose? this.props.onClose: _reg("Methods", this.action.onClose)
-        // onClose, actions, contentStyle, titleStyle
-        Window.showDialog(this.action.title, comp, onClose, this.action.actions, this.action.contentStyle, this.action.titleStyle)
+        Window.showInteraction(this.action.interactiontype, this.action.title, comp, onClose, this.action.actions, this.action.contentStyle, this.action.titleStyle)
         return false;
       case "newwindow":
       if(this.action.url) {
