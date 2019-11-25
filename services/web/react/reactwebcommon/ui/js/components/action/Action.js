@@ -54,25 +54,26 @@ class ActionComp extends React.Component {
         return false
       }
     }
+    let params = _tn(this.props.params, this.action.params)
     switch(this.action.actiontype) {
       case "dispatchaction":
         this.dispatchAction();
       return false;
       case "method":
-        let params = this.props.params? this.props.params: this.action.params
         this.actionMethod(params);
       return false;
       case "interaction":
         if(!this.action.interactiontype) {
           return false
         }
-        let comp = Window.resolvePanel("block", this.action.blockid)
+        console.log("resolving panel", params, Window, "method", Window.resolvePanel)
+        let comp = Window.resolvePanel("block", this.action.blockid, params)
         let onClose = this.props.onClose? this.props.onClose: _reg("Methods", this.action.onClose)
         Window.showInteraction(this.action.interactiontype, this.action.title, comp, onClose, this.action.actions, this.action.contentStyle, this.action.titleStyle)
         return false;
       case "newwindow":
       if(this.action.url) {
-        let formattedUrl = formatUrl(this.action.url, this.props.params);
+        let formattedUrl = formatUrl(this.action.url, params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
         window.open(formattedUrl);
@@ -80,7 +81,7 @@ class ActionComp extends React.Component {
       }
       default:
       if(this.action.url) {
-        let formattedUrl = formatUrl(this.action.url, this.props.params);
+        let formattedUrl = formatUrl(this.action.url, params);
         console.log(formattedUrl);
         //browserHistory.push({pathname: formattedUrl});
         Window.redirect(formattedUrl, this.action.newpage); //Router.redirect(formattedUrl);

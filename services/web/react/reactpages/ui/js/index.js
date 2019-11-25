@@ -11,11 +11,13 @@ function Initialize(appName, ins, mod, settings, def, req) {
   module.properties = Application.Properties[ins]
   module.settings = settings;
   module.req = req;
+  console.log("initializing module reactpages")
   Panel.setModule(module)
 }
 
-Window.resolvePanel = (panelType, id) => {
-  return <Panel type={panelType} id={id}/>
+Window.resolvePanel = (panelType, id, data) => {
+  console.log("resolving panel", panelType, id, data)
+  return <Panel type={panelType} id={id} data={data}/>
 }
 
 function ProcessPages(theme) {

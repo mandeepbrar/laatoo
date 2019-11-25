@@ -80,16 +80,23 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 		{
 			nodeConf := ctx.CreateConfig()
 			name := ""
+			isArr := false
 			for _, attr := range node.Attrs {
 				if attr.Name.Local == "name" {
 					name = attr.Value
 				}
-			}
-			if name == "" {
-				return nil, "", errors.BadConf(ctx, "Attribute name not provided ")
+				if attr.Name.Local == "array" {
+					isArr = true
+				}
 			}
 			if node.HasChildren() {
-				childConf := ctx.CreateConfig()
+				var childConf config.Config
+				var childArr []config.Config
+				if isArr {
+					childArr = make([]config.Config, 0)
+				} else {
+					childConf = ctx.CreateConfig()
+				}
 				for _, attrChild := range node.Nodes {
 					if attrChild.XMLName.Local == "Content" {
 						childConf.SetString(ctx, "body", string(attrChild.Content))
@@ -98,15 +105,33 @@ func (svc *UI) createConfFromXML(ctx core.ServerContext, node Node) (config.Conf
 						if err != nil {
 							return nil, "", errors.WrapError(ctx, err)
 						}
-						childConfNames := aconf.AllConfigurations(ctx)
-						for _, confName := range childConfNames {
-							c, _ := aconf.Get(ctx, confName)
-							childConf.Set(ctx, confName, c)
+						if isArr {
+							childArr = append(childArr, aconf)
+						} else {
+							childConfNames := aconf.AllConfigurations(ctx)
+							for _, confName := range childConfNames {
+								c, _ := aconf.Get(ctx, confName)
+								childConf.Set(ctx, confName, c)
+							}
 						}
 					}
 				}
-				nodeConf.Set(ctx, name, childConf)
+				if isArr {
+					if name == "" {
+						return nil, "", errors.BadConf(ctx, "Attribute name not provided ")
+					}
+					nodeConf.Set(ctx, name, childArr)
+				} else {
+					if name == "" {
+						return childConf, "", nil
+					} else {
+						nodeConf.Set(ctx, name, childConf)
+					}
+				}
 			} else {
+				if name == "" {
+					return nil, "", errors.BadConf(ctx, "Attribute name not provided ")
+				}
 				nodeConf.SetString(ctx, name, string(node.Content))
 			}
 			log.Error(ctx, "Processing heirarchical attrs", "node", node, "nodeConf", nodeConf)

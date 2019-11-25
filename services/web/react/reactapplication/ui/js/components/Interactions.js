@@ -4,11 +4,13 @@ import { connect } from 'react-redux';
 class InteractionHandler extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {open: false, time: props.time}
+    this.state = {open: (props.component!=null), time: props.time}
     this.handleClose = this.handleClose.bind(this)
   }
   handleClose() {
+    console.log("closing interaction")
     this.setState({open:false})
+    Window.closeInteraction(this.props.interactiontype)
   }
   componentWillReceiveProps(nextprops) {
     if(nextprops.time != this.state.time) {

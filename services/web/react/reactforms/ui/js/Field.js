@@ -22,9 +22,9 @@ class FieldWidget extends React.Component {
     this.getWidget(cfg)
     if(cfg.visibility) {
       if(typeof(cfg.visibility) == "string") {
-        this.isVisible = _reg("Methods", cfg.visibility)
+        cfg.isVisible = _reg("Methods", cfg.visibility)
       } else {
-        this.isVisible = cfg.visibility
+        cfg.isVisible = cfg.visibility
       }  
     }
     this.cfg = cfg
@@ -84,6 +84,8 @@ class FieldWidget extends React.Component {
         case "bool":
           cfg.widgetName = "Checkbox"
         break;
+        case "hidden":
+          cfg.visible = false
         case "date":
           cfg.widgetName = "DatePicker"
         break;
@@ -133,11 +135,12 @@ class FieldWidget extends React.Component {
 
   processProps= (props, cfg) => {
     let fldProps = ["name", "label", "items", "textField", "valueField", "widgetName", "widgetModule", "selectItem", "itemClass", 
-      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode", "placeholder", "skipLabel" ]
+      "dataServiceParams", "loader", "loadData", "dataService", "type", "list", "mode", "placeholder", "skipLabel", "visibility", "visible" ]
     fldProps.map((item)=>{
       cfg[item] = _tn(props[item], cfg[item])
     })
     cfg.titleField = _tn(cfg.titleField, "Name")
+    cfg.visible = _tn(cfg.visible, true)
     cfg.className = _tn(props.className, "") + " " + cfg.name +" " + _tn(cfg.className, " ") 
     cfg.controlClassName= cfg.name + " " + _tn(cfg.controlClassName, "")
   }
@@ -192,7 +195,7 @@ class FieldWidget extends React.Component {
     let rfieldProps ={onChange: this.fieldChange(input.onChange), errorText: errorText, formValue: this.state.formValue, 
       onFocus: input.onFocus, onBlur: input.onBlur, value: value}            
 
-    let visible = this.cfg.isVisible? this.cfg.isVisible(this.state.formValue, this.cfg, visible): true
+    let visible = this.cfg.isVisible? this.cfg.isVisible(this.state.formValue, this.cfg, visible): this.cfg.visible
     if(!visible) {
       return null
     }
