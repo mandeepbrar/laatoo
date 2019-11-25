@@ -237,7 +237,7 @@ class FieldWidget extends React.Component {
   }
 
   render() {
-    return <RFField name={this.cfg.name} parse={this.parser} component={this.component}/>
+    return <RFField name={this.cfg.name} parse={this.parser} value={this.props.value} component={this.component}/>
   }
 }
 

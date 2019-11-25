@@ -101,11 +101,14 @@ class BaseForm extends React.Component {
   }
 
   submitSuccessCallback = (data) => {
-    if(this.info.successRedirect) {
-      Window.redirect(this.info.successRedirect);
+    let redirectURL = _tn(this.props.successRedirect, this.info.successRedirect)
+    if(redirectURL) {
+      Window.redirect(redirectURL);
+      return
     }
-    if(this.info.successRedirectPage) {
-      Window.redirectPage(this.info.successRedirectPage);
+    let redirectPage = _tn(this.props.successRedirectPage, this.info.successRedirectPage)
+    if(redirectPage) {
+      Window.redirectPage(redirectPage);
     }
   }
 
@@ -288,12 +291,14 @@ class CustomForm extends BaseForm {
     }
     if(!this.formSubmit) {
       this.formSubmit = (data, successCallback, failureCallback) => {
-        console.log("form submit custom form", data)
+        let submissionService = props.submissionService
+        console.log("form submit custom form", data, submissionService)
         if(form.info) {
+          submissionService = _tn(submissionService, form.info.submissionService)
           successCallback = form.info.submitSuccess? _reg('Methods', form.info.submitSuccess) : successCallback
           failureCallback = form.info.submitFailure? _reg('Methods', form.info.submitFailure) : failureCallback
         }
-        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: form.info.submissionService, successCallback: successCallback, failureCallback: failureCallback}));
+        dispatch(createAction(ActionNames.SUBMIT_FORM, data, {serviceName: submissionService, successCallback: successCallback, failureCallback: failureCallback}));
       }
     }
   }
