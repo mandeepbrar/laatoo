@@ -1,0 +1,5 @@
+<Block className=" orgnode tablerow  ">
+    <Block className=" tablecell field ">{{jsreplace "ctx.props.expansionComponent"}}</Block>
+    <Block className=" tablecell field ">{{jsreplace "ctx.data.Code"}}</Block>
+    <Block className=" tablecell field ">{{jsreplace "ctx.data.Title"}}</Block>
+</Block>

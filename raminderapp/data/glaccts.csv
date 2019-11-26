@@ -1,0 +1,379 @@
+ID,Title,Parent
+410000,Departmental Appropriations,ACC1
+410100,Administered Annual Appropriations,ACC1
+410300,Administered Special Appropriations,ACC1
+400000,Rendering of Services Revenue RE,ACC2
+400100,Rendering of Services Revenue EE,ACC2
+450100,Other Revenue - Returned to OPA,ACC3
+450110,Other Rev Returned to OPA MOP(S),ACC3
+450120,M&PS Only Other Rev Returned to OPA - PE,ACC3
+450121,Penalty-VoluntaryRepay-Parl-PE Act-RevRe,ACC3
+450000,Legal Settlements,ACC3
+450600,Post Tax Employee Contribution,ACC3
+459100,Minor Gains Account - Roundings,ACC3
+450200,Spec Acc Rev,ACC3
+459000,Adjustment to Expenses from Prior Years,ACC3
+420000,Insurance Preimums,ACC3
+460000,Resources received free of chg,ACC3
+404500,Service Income,ACC4
+450400,Commission Revenue,ACC4
+430000,Interest Received - State & Territory De,ACC5
+430300,Unwind Concessional Loan Discount - S &,ACC5
+430310,Unwind Concessional Loan Discount - Hous,ACC5
+430200,Interest Received - Admin Invest Funds,ACC5
+430400,Interest Received - Housing agreement,ACC5
+431000,Dividends - CCE,ACC5
+431010,Dividends - AIF,ACC5
+461950,Gain on Sale Investment,ACC6
+461960,Unrealised Gain on Financial Instruments,ACC6
+461970,Interest on FI - B Bills & Cert of Dep,ACC6
+461971,Interest on FI - Mort Backed Sec,ACC6
+461972,Interset on FI - Corp Debt Sec,ACC6
+461974,Interest on FI - Govt Debt Securities,ACC6
+461975,Interest on FI - Asset Backed Securities,ACC6
+461976,Interest on FI - Corporate Credit Loans,ACC6
+461977,Interest on FI - Swap Interest Income,ACC6
+461979,Interest on FI - Other Fixed Income,ACC6
+464600,Unrealised Exchange Gains,ACC6
+464500,Realised Exchange Gains,ACC6
+461001,Proceeds Land & Buildings - manual,ACC7
+462000,Revaluation Increment Suspense - L&B,ACC7
+462300,Revaluation Increment IPE,ACC7
+440000,Super Contributions Related Employer Age,ACC8
+440100,Super Contributions Unrelated Employer A,ACC8
+440200,Parliamentary Contri Super,ACC8
+404100,Rental Income,ACC9
+404200,Rental income - External Entity,ACC9
+404300,Rent Premium,ACC9
+421000,Claim Recoveries,ACC10
+451010,M&PS Only Insurance Recov MOP(S) Act,ACC10
+410500,Admin GST Approp,ACC1
+500000,Salary/ Wages,ACC11
+500010,Casual Wages,ACC11
+500015,DOF Employees Seconded Away,ACC11
+500020,Overtime,ACC11
+500030,Labour Recoveries,ACC11
+500120,TOIL Employee Employees,ACC11
+500050,Comcare Reimbursements Current Year,ACC11
+500100,Recreation Leave,ACC11
+500110,Long Service Leave,ACC11
+500150,Payroll On Cost Adjustment,ACC11
+500200,Employer Super Contributions,ACC11
+500300,Separation and Redundancy,ACC11
+500430,Other Allowances,ACC11
+500500,MV Fuel & Oil,ACC11
+500530,Other Vehicle Costs,ACC11
+500540,MV Hire,ACC11
+530000,Fringe Benefit Tax,ACC11
+502000,Domestic Travel - Fares,ACC12
+502010,Domestic Travel - Fares - FBT,ACC12
+502100,Domestic Travel - Allowances,ACC12
+502200,Dom Travel - Accommodation Meals & Incid,ACC12
+502500,Domestic Accom Meals & Incidental,ACC12
+503000,Overseas Travel - Fares,ACC12
+503100,Overseas Travel - Allowances,ACC12
+503200,OS Travel - Accom Meals & Incidental,ACC12
+504000,Consultants - Policy/ Technical advice,ACC13
+504010,Consultants - Outplacement Services,ACC13
+504040,Consultants - Legal Advice,ACC13
+504050,Consultants - HR,ACC13
+504060,Consultants - Accounting/ Finance,ACC13
+504080,Consultants - IT,ACC13
+504090,Consultants - Business Advice,ACC13
+504100,Consultants - Environmental Advice,ACC13
+504110,Consultants - Probity/ Contracting Adv,ACC13
+504200,Contractors - Service Fee,ACC13
+504210,Contract Staff - non SES,ACC13
+504225,Contractor Capital Recoveries,ACC13
+504230,Contract - Training,ACC13
+507000,IT Maintenance & Support,ACC13
+507050,Provision of Interagency ITC Serv - GNSB,ACC13
+540010,IT Software Maintenance & Support,ACC13
+540020,IT Hardware Maintenance & Support,ACC13
+540030,IT Facilities Maintenance & Support,ACC13
+540040,IT Operational Charges,ACC13
+540060,IT Communications,ACC13
+540070,IT Licences,ACC13
+540100,IT Gateway Services,ACC13
+540050,IT Lease Charges,ACC13
+507100,Office Services,ACC13
+507300,HR Services,ACC13
+507400,Recruitment,ACC13
+507600,Property Management,ACC13
+505000,Legal Fees,ACC14
+505050,Legal Settlement Payments,ACC14
+505150,Development of Contracts,ACC14
+505200,Litigation Services,ACC14
+505300,Non-consultancy legal expenses,ACC14
+505250,Drafting of Legislation,ACC14
+506000,Audit Fees - ANAO annual financial state,ACC14
+506100,Audit Fees - other audit,ACC14
+555500,Compensation,ACC14
+578500,Realised Exchange Losses,ACC15
+578600,Unrealised Exchange Losses,ACC15
+578700,Loss on Sale Investments,ACC15
+578710,Unrealised Loss on Financial Instruments,ACC15
+510000,Office Consumables & Stationery,ACC16
+510010,Publishing & Printing,ACC16
+510100,Uniforms,ACC16
+530320,Medical/ Dental Allowance,ACC16
+530330,OHS & Medical,ACC16
+530340,Health Checks,ACC16
+510500,Training - Core Skills,ACC16
+510510,Training - Core Skills - FBT,ACC16
+510520,Training - WOG,ACC16
+510540,Training - Technical/ Specialised,ACC16
+510550,Training - Technical/ Specialised - FBT,ACC16
+530200,Subscriptions and Non Prof Membership,ACC16
+530300,Professional Memberships,ACC16
+540730,COMCARE Premiums,ACC16
+520200,Advertising & Promotions,ACC16
+530100,Conferences,ACC16
+530105,Meetings,ACC16
+530110,Meetings - FBT,ACC16
+530120,Entertainment & other staff benefits,ACC16
+530130,Meal Entertainment & other staff benefit,ACC16
+530140,Office Hospitality,ACC16
+530145,Reward & Recognition,ACC16
+520000,Motor Vehicle Hire (Comcar),ACC16
+520010,MV Fuel & Oil (Comcar),ACC16
+520020,MV Repairs (Comcar),ACC16
+520030,Other Motor Vehicle Expenses,ACC16
+520040,Hire Vehicle Costs (Comcar),ACC16
+520050,Hire Car Contractors (Comcar),ACC16
+550000,Management Fees,ACC16
+550055,Other Administered Investment Fund Fees,ACC16
+550120,Cabcharge Charges,ACC16
+556000,Fees and Charges,ACC16
+510200,Communications - Phones and Fax,ACC16
+520300,Security,ACC16
+520310,Security Checks,ACC16
+555000,Non-recoverable disputed expenditure,ACC16
+555010,Expenses Paid in Absence,ACC16
+555100,Credit Card Clearing,ACC16
+578100,Bad/ Doubtful Debts,ACC16
+510300,Freight Cartage & Storage,ACC16
+510400,Minor Acquisitions ( < $5000),ACC16
+540700,Insurance Premium,ACC16
+520100,Repairs & Maintenance - non Property Ass,ACC16
+560000,Property Company Expense,ACC17
+560010,General POE - Rent,ACC17
+560020,General POE - Rent - Car Parking,ACC17
+560030,General POE - Energy,ACC17
+560040,General POE - Repairs & Maintenance,ACC17
+560050,General POE - Makegood/ Restoration,ACC17
+560060,General POE - Fitout,ACC17
+560070,General POE - Fire protection,ACC17
+560080,General POE - Fees and Rates,ACC17
+560090,General POE - Cleaning,ACC17
+560100,General POE - Security,ACC17
+560110,General POE Related Expenses,ACC17
+576200,Revaluation Decrement - Investment Prope,ACC18
+577950,WIP manual Write Offs - Land & Bldg,ACC18
+579000,NBV of Land & Buildings Sold,ACC18
+579010,NBV of Land & Buildings Sold - Ext,ACC18
+579300,NBV Infrastructure Plant & Equip Sold,ACC18
+580090,Divestment - Improvements/ Repairs,ACC18
+540800,Ins Advice & Mgmt Costs-Outsourced,ACC19
+540810,Ins Advice & Mgmt Costs-Contractors,ACC19
+540830,Ins Advice & Mgmt Costs-Consultants,ACC19
+583000,Expenses for Unsettled Claims,ACC19
+583500,Unsettled Claims,ACC19
+550100,Bank Charges,ACC20
+550300,Finance Charges - Makegood,ACC20
+550400,Late payment and other charges,ACC20
+582000,Interest Expense,ACC20
+530030,Competitive Neutrality & Sales Tax,ACC20
+530040,National Reinsurance Charge,ACC20
+584000,Act of Grace / Discretionary Payments,ACC20
+590000,Income Tax Expense,ACC20
+599400,Tfr NBF Portfolio Spec Acc & CAC,ACC20
+500160,Leave Liability Discount Adjustment,ACC20
+570000,Grants to Non Profit Institutions,ACC20
+565000,Super Member Accruals - Finance only,ACC20
+565100,Nominal Interest Super Liability,ACC20
+680000,Salary/ Wages - MOP(S) Act Employees,ACC11
+680005,Ministers of State Salaries,ACC11
+640700,COMCARE Premiums,ACC11
+680010,Recreation Leave - MOP(S) Act Employees,ACC11
+680015,LSL - MOP(S) Act Employees,ACC11
+680019,Super Cont-Def Ben Plan MOP(S) Act Empl,ACC11
+680020,Employer Super Contributions MOPS(S) Act,ACC11
+680023,Salaries - prior year adjustments,ACC11
+680025,Separation and Redundancy - MOP(S) Act,ACC11
+680030,MSA/ESA/PSA,ACC11
+680040,MVA - Employee Consultative Group-ETET52,ACC11
+680045,Other Allowances - MOP(S) Act Employees,ACC11
+680037,PVA - Parliamentarians-ATPV01,ACC11
+630000,Fringe Benefit Tax,ACC11
+630010,Fringe Benefit Tax - EMS,ACC11
+630011,Fringe Bneefit Tax - exPM,ACC11
+680050,PPV Costs - Senators/ Members,ACC11
+680051,PPV Costs - 4WD for certain Sen & Mem,ACC11
+680052,PPV Costs - ACT use-MP,ACC11
+680053,PPV Costs - excess W&T to vehicle,ACC11
+680055,Ex-PM PPV Costs,ACC11
+680063,PPV Costs - SES equivalent staff of Min/,ACC11
+601060,Adjustment to Post Employment Liabilities,ACC11
+630301,WHS - Former PM Equip & Services-AGWH02,ACC11
+630303,Work Health and Safety MOPS - Former PM,ACC11
+630304,WHS - Equipment and Services - Parliamen,ACC11
+630305,WHS - Equipment & Services - MOPS Employ,ACC11
+630307,WHS - Workplace Administration - MOPS Em,ACC11
+630320,Staff medical examination expenses Elec,ACC11
+630360,Staff medical examination expenses Pers,ACC11
+680071,"Otr Discretionary Pymts-lost,damaged/sto",ACC11
+680075,Paid Parental Leave Scheme,ACC11
+680049,Flexi-super/salary,ACC11
+624240,Property Management Services,ACC21
+624280,Fees - Monthly lease management,ACC21
+624281,Monthly Lease Management Fees - Former P,ACC21
+624290,Contract Services,ACC21
+624000,EO Consultancy Fees,ACC21
+620200,Advertise office relocations,ACC16
+620231,Flags (ABOR18),ACC16
+620260,National Symbols,ACC16
+620280,Signs Electorate Offices,ACC16
+620281,Signs for CPO,ACC16
+620283,Signage - Electorate Office - Mobile (AP,ACC16
+620290,Advertising of staff vacancies,ACC16
+640710,Comcover Insurance (Special Appn),ACC16
+640730,Comcover Insurance Excess (Special Appn),ACC16
+640740,Comcover Insurance Excess (Annual Appn),ACC16
+640802,Insurance-Public Liabilities - PE Act,ACC16
+640804,Insurance-Travel Insurance - PE Act,ACC16
+640803,Insurance-Management Liabilities - PE Ac,ACC16
+612010,EO Phone usage (Excluding mobiles faxes,ACC16
+612011,Ex-PM Phone (Ex mob),ACC16
+612021,Ex-PM Mobile Phones (Excl phone fax 0055,ACC16
+612030,EO Fax usage (Excluding phones  mobiles,ACC16
+612031,Ex-PM  Fax usage (Excluding phones  mobi,ACC16
+612160,Unlimit Postage Parl/Elect business OOH,ACC16
+612161,Ex-PM UnlimitPostage,ACC16
+612180,Post Office Box Rental Fees,ACC16
+612181,Ex-PM PO Box Rental,ACC16
+612210,PHEW - Communications - Running Costs,ACC16
+612250,Cost of all calls from home phone Parlia,ACC16
+612251,Ex-PM callshomephone,ACC16
+612280,Dedicated data line at residence Parliam,ACC16
+612170,Postage Allowance,ACC16
+610050,Newspapers and Periodicals,ACC16
+610051,Ex-PM Publications,ACC16
+610070,Office Equipment Hire,ACC16
+610090,MOPS Business Card (Excl Ministers ParlS,ACC16
+610101,Ex-PM Off requisites,ACC16
+610121,Ex-PM Printing,ACC16
+610132,MFD Usage - ex PM,ACC16
+610180,Printing of Reports/ Booklets etc,ACC16
+610190,Postage meter consumables,ACC16
+610210,Photographs of Senator Member,ACC16
+610330,Shredding & Recycling,ACC16
+610331,Ex-PM Shred & Recycl,ACC16
+614260,Fitout Fees < $4999,ACC16
+614000,Furniture & Fittings <$4999,ACC16
+614001,Ex-PM Furn&Fit <$4999,ACC16
+614050,Purchase of Postage Meter < $4999,ACC16
+614070,Purchase of TV & Video Equipment < $4999,ACC16
+614110,Purchase of Telephone Systems < $4999,ACC16
+614120,Purchase of Security Systems < $4999,ACC16
+614130,Purchase of Other Office Equipment < $49,ACC16
+614131,Ex-PM Purchase of Other Office Equipment,ACC16
+614136,Portable & Attractive Items-Pur < $4999,ACC16
+610100,Office requisites & stationery,ACC16
+610136,MFD Usage - PE Act,ACC16
+610191,Ex-PM Postmtr consum,ACC16
+610085,Printing & Comms,ACC16
+620003,MFD Repair & maintenance - PE Act,ACC16
+620010,Repairs and Maintenance  of Furniture &,ACC16
+620030,Repairs and Maintenance of Security Syst,ACC16
+620031,Ex-PM Repairs and Maintenance of Securit,ACC16
+620040,Repairs and Maintenance of Fax Machines,ACC16
+620050,Repairs and Maintenance of Postage Meter,ACC16
+620051,Ex-PM Repairs and Maintenance of Postage,ACC16
+620059,Repairs & Maintenance - Office Requisite,ACC16
+620060,Repairs and Maintenance to Other Office,ACC16
+620070,Repairs and Maintenance of Folding Machi,ACC16
+620075,Phone System (E&MS) Repair & Maintenance,ACC16
+620076,Phone System-Repair & Maintenance-Former,ACC16
+620120,PHEW - Furn & Fittings - R & M,ACC16
+614240,PHEW - Furn & Fit - Purchase < $4999,ACC16
+615030,Reimbursement of study fees MOPS Pers St,ACC16
+615040,Training course costs Pers Staff,ACC16
+615060,Reimbursement of Studybank Fees Elec Sta,ACC16
+615070,MVA-Training Costs & Trips-Elec Staff,ACC16
+615080,HELP Study Assistance,ACC16
+614170,Senators & Members Software Reimbursemen,ACC16
+620310,Static Guarding Costs,ACC16
+620320,Keys and Locks,ACC16
+620321,Ex-PM Keys & Locks,ACC16
+620330,Security Checks - APRC12,ACC16
+613030,Storage Fees,ACC16
+613040,Freight Costs,ACC16
+613050,Courier Costs,ACC16
+613070,PHEW - Freight Cartage & Storage,ACC16
+614220,Telephonic Services,ACC16
+625000,Legal Services - Adm Annual Approp,ACC14
+625030,legal Advice on HR/ IR Issues,ACC14
+625040,Ministerial Legal Expenses,ACC14
+660500,Fees - Valuation and Other Legal Expense,ACC14
+660501,Ex-PM Fees - Valuation and Other Legal E,ACC14
+620220,Office Relocations,ACC17
+660010,Statutory Outgoings,ACC17
+660011,Ex-PM StatOutgoings,ACC17
+660020,Restoration/ Makegood of Leased Property,ACC17
+660030,Sanitary Units Disposal,ACC17
+660040,Hire of Indoor Plants,ACC17
+660050,Power,ACC17
+660051,Ex-PM Power,ACC17
+660070,Cleaning of Electorate Offices,ACC17
+660071,Ex-PM Cleaning of Offices,ACC17
+660080,Pest Control,ACC17
+660090,Rental of Offices,ACC17
+660091,Ex-PM Rent  of Offices,ACC17
+660093,Rental of Offices - CPO - Melbourne (ZPR,ACC17
+660100,Property Repairs,ACC17
+660101,Ex-PM Property Repair,ACC17
+660120,Security Monitoring Costs,ACC17
+660121,Ex-PM Security Monitoring Costs,ACC17
+640600,Comsuper Administration Fee - M&PS,ACC20
+607020,Relocation costs Elec Staff,ACC20
+607030,Relocation costs Pers Staff,ACC20
+670000,Promoting Global Democracy,ACC20
+680007,Parliamentarians Salary and Allowances,ACC11
+575050,Depreciation - Buildings,ACC22
+575100,Depreciation - Leasehold Improvements,ACC22
+575300,Depreciation - Plant and Equipment,ACC22
+575350,Depreciation - Office Machines,ACC22
+575400,Depreciation - Furniture & Fittings,ACC22
+575500,Depreciation - IT Equipment,ACC22
+575600,Amortisation Make Good,ACC22
+575900,Amortisation - SW developed,ACC22
+575910,Amortisation - SW purchased,ACC22
+940000,Overhead Revenue,ACC23
+599300,Overhead Expense,ACC23
+951000,Overhead Employees,ACC23
+954000,Overhead Depn & Amm,ACC23
+990000,Project Settlement,ACC23
+ACC1,Appropriations Revenue,
+ACC2,Rendering of Services,
+ACC3,Other Revenue,
+ACC4,Goods and Services,
+ACC5,Interest and Dividend Revenue,
+ACC6,Gain on Financial Assets,
+ACC7,Net Gain/ Loss on Asset Disp or Reval,
+ACC8,Superannuation Revenue,
+ACC9,Rental Income,
+ACC10,Reinsurance and other,
+ACC11,Employees,
+ACC12,Travel,
+ACC13,Consultants/ Contractors/ Outsourcing,
+ACC14,Legal and Audit,
+ACC15,Loss on Financial Assets,
+ACC16,General Suppliers,
+ACC17,Property Operating Expenses,
+ACC18,Net Gain/Loss on Asset Disp/ Reval,
+ACC19,Insurance Expenses/ Claims,
+ACC20,Other Expenses,
+ACC21,Outsourcing Costs,
+ACC22,Depreciation and Amortisation,
+ACC23,Overhead Revenue/ Expense,

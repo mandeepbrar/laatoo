@@ -1,0 +1,163 @@
+modulesrepo: "/modules"
+logging:
+  level: trace
+  format: happymax
+modules:
+  filesystemstorage:
+  mongodatabase:
+  localauth:
+  role:
+  staticfileserver:
+  reactwebrouter:
+  reactfileupload:
+  reactmaterialkit:
+  reactbootstrapkit:
+  fontawesome:
+  uicommon:
+  reactpages:
+    hotmodule: true
+    hotmodulepath: laatoo/services/web/react/reactpages
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+  reactwebcommon:
+  laatooviews:
+  treeviews:
+  selectableviews:
+    hotmodule: true
+    hotmodulepath: laatoo/services/web/react/selectableviews
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+  authui:
+  reactforms:
+    hotmodule: true
+    hotmodulepath: laatoo/services/web/react/reactforms
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+  laatoositetheme:
+  platformdependencies:
+  sidebar:
+    hotmodule: true
+    hotmodulepath: laatoo/services/web/react/sidebar
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+  reactapplication:
+  shell:
+  publicdirserver:
+  errorprocessors:
+  publicfilesserver:
+  tokenvalidation:
+  cadence:
+  organization:
+  signup:
+  dataadapter:
+  datapipeline:
+  csvprocessor:
+  datastoreprocessor:
+  objectmapprocessor:
+  dblogin:
+  entity:
+  user:
+  jsui:
+    cachefiles: false
+  budgetsolnui:
+    hotmodule: true
+    hotmodulepath: raminderapp/core/budgetsolnui
+    hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
+moduleinstances:
+  filesystemstorage:
+    module: filesystemstorage
+  rapp.signup:
+    module: signup
+  objectmapprocessor:
+    module: objectmapprocessor
+  csvprocessor:
+    module: csvprocessor
+  errorprocessors:
+    module: errorprocessors
+  datastoreprocessor:
+    module: datastoreprocessor
+  sidebar:
+    module: sidebar
+  securityhandler.role:
+    module: role
+    settings:
+      roledatafactory: mongodatabase
+  mongodatabase:
+    module: mongodatabase
+    environment:
+      mongodatabase: raminderapp
+  localauth:
+    module: localauth
+    settings:
+      userobject: user.DefaultUser
+      dataservicefactory: mongodatabase
+      defaultrole: Admin
+      setcookies: true
+  staticfileserver:
+    module: staticfileserver
+  tokenvalidation:
+    module: tokenvalidation
+  router:
+    module: reactwebrouter
+#  reactbootstrapkit:
+#    module: reactbootstrapkit
+  reactmaterialkit:
+    module: reactmaterialkit
+  fontawesome:
+    module: fontawesome
+  uicommon:
+    module: uicommon
+  reactpages:
+    module: reactpages
+  organization:
+    module: organization
+  reactwebcommon:
+    module: reactwebcommon
+  laatooviews:
+    module: laatooviews
+  treeviews: 
+    module: treeviews
+  selectableviews: 
+    module: selectableviews
+  platformdependencies:
+    module: platformdependencies
+  authui:
+    module: authui
+    settings:
+      cookies: true
+  reactforms:
+    module: reactforms
+  reactfileupload:
+    module: reactfileupload
+  publicdirserver:
+    module: publicdirserver
+    settings:
+      publicfilesdir: "/bin/publicdir"
+      instance: publicdir          
+  websiteshell:
+    module: shell
+    settings:
+      uiapplication: budgetsolution
+      indexpath: /index
+      authenticateshell: false
+      uidependencies:
+        react: ''
+  budgetsolnui:
+    module: budgetsolnui
+    settings:
+      uiapplication: budgetsolution
+  budgetsolution:
+    module: reactapplication
+    settings:
+      uiapplication: budgetsolution
+      router: router
+      uikit: reactmaterialkit
+      theme: websitetheme
+  websitetheme:
+    module: laatoositetheme
+    settings:
+      authenticate: true
+      className: budgetingapp
+      infoBlock: 
+      menuEnd: logoutBlock
+      showMenu: true
+      vertical: false
+      menu: main
+    environment:
+      uiapplication: budgetsolution

@@ -1,0 +1,10 @@
+<Block className="customers centered">
+    <h3 module="html" className="m20">
+    Customers
+    </h3>
+    <ActionBar className=" w100 right tb10">
+        <Action module="reactwebcommon" name="newcustomer" widget="button" flat="true" className=""><Icon className="fa fa-plus"/></Action>
+    </ActionBar>
+    <Panel type="view" id="customers" module="reactpages" className=" m20 w100 tableview ">
+    </Panel>
+</Block>

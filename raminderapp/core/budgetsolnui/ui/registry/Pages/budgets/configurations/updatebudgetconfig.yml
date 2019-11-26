@@ -1,0 +1,12 @@
+route: "/budgets/configuration/update/:entityId"
+authenticate: true
+component:
+  type: layout
+  layout: 2col
+  leftcol:
+    type: menu
+    id: budgets
+    vertical: true
+  rightcol: 
+    type: block
+    id: updatebudgetconfig

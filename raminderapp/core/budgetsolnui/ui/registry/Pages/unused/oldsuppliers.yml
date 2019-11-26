@@ -1,0 +1,13 @@
+route: "/suppliers"
+authenticate: true
+component:
+  type: layout
+  layout: 2col
+  className: supplierspage
+  leftcol:
+    type: menu
+    id: suppliers
+    vertical: true
+  rightcol: 
+    type: view
+    id: budgetsforentries

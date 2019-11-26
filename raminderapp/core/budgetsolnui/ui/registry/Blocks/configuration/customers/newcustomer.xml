@@ -1,0 +1,8 @@
+<Block className="customers new ma10">
+    <h3 module="html">New Customer</h3>
+    <Panel type="form" id="new_form_budgetsolnui.customer" module="reactpages" className="m20">
+        <Attr name="info">
+            <Attr name="successRedirectPage">customers</Attr>
+        </Attr>
+    </Panel>
+</Block>

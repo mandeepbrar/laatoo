@@ -1,0 +1,11 @@
+<Block className="supplier wbs ma10">
+    <h3 module="html">Suppliers</h3>
+    <ActionBar className=" w100 right tb10">
+      <Action module="reactwebcommon" name="refreshemployeeclassification" widget="button" flat="true" className=""><Icon className="fa fa-refresh"/></Action>
+    </ActionBar>
+    <Panel type="view" id="list_supplier" module="reactpages" className="m20">
+        <Attr name="postArgs">
+            <Attr name="Budget">{{jsreplace "ctx.routeParams.budget"}}</Attr>
+        </Attr>
+    </Panel>
+</Block>

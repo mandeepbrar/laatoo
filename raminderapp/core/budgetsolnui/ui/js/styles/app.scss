@@ -1,0 +1,79 @@
+@import 'reactwebcommon/css/app';
+
+
+body {
+  margin: 0;
+}
+
+.budgetingapp .header {
+  @extend .p10, .fd, .fdrow, .fdbetween, .m0;
+  margin-left: 0 !important;
+  margin-right: 0  !important;
+  background-color: #283593;
+  .logo {
+    @extend .fd, .f24;
+    text-decoration: none !important;
+    a  {
+      color: white !important;
+      text-decoration: none !important;
+    }
+    .actionlink {
+      @extend .fd;
+      .title {
+        @extend .fdcol, .p10;
+        justify-content: flex-end;
+        color: white !important;
+      }
+      img {
+        max-height: 48px;
+      }  
+    }
+  }
+  .signin {
+    color: white !important;
+    a {
+      color: white !important;
+      text-decoration: none !important;
+    }
+  }
+}
+
+.titlecolor {
+  color: black !important;
+}
+
+.textcolor {
+  color: black !important;
+}
+
+.tableheading {
+  @extend .bg-grey;
+}
+
+.tablecell {
+  @extend .p10;
+}
+
+.expandercellwidth {
+  width: 70px;
+}
+
+.body {
+  margin-top: 10px;
+}
+.vertbody {
+  @extend .ps20;
+}
+
+.horizbody .twocol .leftcol {
+  @extend .col-xs-2, .bg-lgrey, .ptb20;
+}
+.horizbody .twocol .rightcol {
+  @extend .col-xs-10;
+}
+.horiznavbar button {
+  @extend .ps10;
+}
+.vertnavbar button {
+  @extend .m10;
+}

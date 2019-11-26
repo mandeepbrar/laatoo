@@ -1,0 +1,8 @@
+<Block className="supplier forecast ma10">
+    <h3 module="html">Supplier Cost Forecasts</h3>
+    <Panel type="view" id="glentries" module="reactpages" className="m20">
+        <Attr name="postArgs">
+            <Attr name="Budget">{{jsreplace "ctx.routeParams.budget"}}</Attr>
+        </Attr>
+    </Panel>
+</Block>

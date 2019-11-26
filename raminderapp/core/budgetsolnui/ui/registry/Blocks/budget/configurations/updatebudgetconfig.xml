@@ -1,0 +1,8 @@
+<Block className="budgets update ma10">
+    <h3 module="html">Update Budget Structure</h3>
+    <Panel type="form" id="update_form_budgetsolnui.budgetconfig" module="reactpages" className="m20">
+        <Attr name="info">
+            <Attr name="successRedirectPage">configurebudget</Attr>
+        </Attr>
+    </Panel>
+</Block>

@@ -1,0 +1,18 @@
+vertical: true
+items:
+  - homepage:
+    title: Budget
+    page: suppliersbudget
+    iconClass: fa fa-briefcase
+  - forecasts:
+    title: Forecast
+    page: supplierforecast    
+    iconClass: fa fa-line-chart
+  - GLAccounts:
+    title: GL Accounts
+    page: suppliergl
+    iconClass: fa fa-edit
+  - SupplierWBS:
+    title: Suppliers
+    page: supplierwbs
+    iconClass: fa fa-database

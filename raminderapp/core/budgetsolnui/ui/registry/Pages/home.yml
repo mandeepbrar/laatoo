@@ -1,0 +1,5 @@
+route: "/"
+component:
+  type: block
+  id: homepage
+

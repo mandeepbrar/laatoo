@@ -1,0 +1,17 @@
+Block:
+  className: empclassification tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Name"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Description"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - Action:
+          name: editclassification
+          params:
+            classId: {{jsreplace "ctx.data.Id"}}
+          body: Edit Classification

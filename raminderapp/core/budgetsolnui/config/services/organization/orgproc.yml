@@ -1,0 +1,11 @@
+servicemethod: objectmapprocessor.MapToObjectProcessor
+object: organization.OrgNode
+fieldmappings:
+  ID: Code
+  Node: Title
+  "Node Type": Level
+  Parent: 
+    field: Parent
+    lookupfield: Code
+    dataservice: dataadapter.dataservice.organization.OrgNode
+    

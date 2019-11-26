@@ -1,0 +1,8 @@
+<Block className="classifications new ma10">
+    <h3 module="html">New Employee Classification</h3>
+    <Panel type="form" id="new_form_budgetsolnui.empclassification" module="reactpages" className="m20">
+        <Attr name="info">
+            <Attr name="successRedirectPage">employeesclassification</Attr>
+        </Attr>
+    </Panel>
+</Block>

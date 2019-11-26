@@ -1,0 +1,17 @@
+Block:
+  className: supplier tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Name"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Description"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - Action:
+          name: editsupplier
+          params:
+            suppId: {{jsreplace "ctx.data.Id"}}
+          body: Edit Supplier

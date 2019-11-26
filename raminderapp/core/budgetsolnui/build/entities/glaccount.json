@@ -1,0 +1,59 @@
+{
+  "name":"GLAccount",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "layout":["Title", "Description", "Code", "Type", "Category"]
+  },
+  "titleField": "Title",
+  "fields":{
+    "Title": {
+      "type":"string",
+      "widget": {
+        "props": {
+          "label": "Account"
+        }
+      }
+    },
+    "Description": {
+      "type":"string",
+      "widget": {
+        "props": {
+          "label": "Description"
+        }
+      }
+    },
+    "Code": {
+      "type":"string",
+      "widget": {
+        "props": {
+          "label": "Code"
+        }
+      }
+    },
+    "Rollup": {
+      "type":"bool"
+    },
+    "Parent": {
+      "type": "storableref",
+      "entity": "budgetsolnui.GLAccount"
+    },    
+    "LinkedElement": {
+      "type": "storableref"
+    },    
+    "Type": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "Normal", "value":"Normal"},
+            {"text": "Customer", "value":"Customer"},
+            {"text": "Supplier", "value":"Supplier"},
+            {"text": "Employee", "value":"Employee"}
+          ]
+        }
+      }
+    }    
+  }
+}

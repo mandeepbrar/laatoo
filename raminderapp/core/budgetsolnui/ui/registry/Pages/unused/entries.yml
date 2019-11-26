@@ -1,0 +1,10 @@
+route: "/budgetentry"
+component:
+  type: layout
+  layout: 1col
+  items:
+  - type: html
+    html: <h3>Budget Cycles</h3>
+    className: centered
+  - type: view
+    id: budgetsforentries

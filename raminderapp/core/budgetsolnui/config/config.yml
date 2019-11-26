@@ -1,0 +1,206 @@
+version: 0.0.1
+dependencies:
+  reactwebcommon: ">=0.0.1"
+  entity: ">=0.0.1"
+  uicommon: ">=0.0.1"
+  reactpages: ">=0.0.1"
+description: Module provides budget solution components
+objects: 
+  budgetsolnui.SubAccountCreationService:          
+    type: service
+    description: Sub account creation service. Picks employees, suppliers and customers to be added to GL Accounts and creates their entries
+    configurations:
+      GlaccountSvc:
+        description: GL accounts service
+        type: string
+        default: dataadapter.dataservice.budgetsolnui.GLAccount
+        inject: GlaccountSvc
+    request:
+      params:        
+        Data:
+          type: stringmap
+  budgetsolnui.BudgetCreationService:          
+    type: service
+    description: Budget creation service. Picks budget configuration and other data to create budget
+    configurations:
+      GlAcctNormalItemSvc:
+        description: GL line item service
+        type: string
+        default: dataadapter.dataservice.budgetsolnui.GLNormalLineItem
+        inject: GlAcctNormalItemSvc
+      BudgetSvc:
+        description: Budget DB service
+        type: string
+        default: dataadapter.dataservice.budgetsolnui.Budget
+        inject: BudgetSvc        
+      BudgetConfigSvc:
+        description: Budget DB service
+        type: string
+        default: dataadapter.dataservice.budgetsolnui.BudgetConfig
+        inject: BudgetConfigSvc        
+    request:
+      params:        
+        Data:
+          type: stringsmap
+modules:
+  glaccountpipeline:
+    module: datapipeline
+    settings:
+      datasource: glaccountcsv
+      datadestination: glaccountssaver
+      processor: glaccountproc
+      pipelinename: glaccountpipeline
+      errorprocessor: glaccountimporterror
+      retrysource: glaccountimporterror
+  orgpipeline:
+    module: datapipeline
+    settings:
+      datasource: orgcsv
+      datadestination: orgsaver
+      processor: orgproc
+      pipelinename: orgimportpipeline
+      errorprocessor: orgimporterror
+      retrysource: orgimporterror
+  budget:
+    module: entity
+    settings:
+      object: budgetsolnui.Budget
+      parent: root
+      #instance: Budget
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      new_form: true
+      new_form_page: true
+      update_form: true
+      update_form_page: true
+      list_view: true
+  budgetconfig:
+    module: entity
+    settings:
+      object: budgetsolnui.BudgetConfig
+      parent: root
+      #instance: Budget
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      new_form: true
+      update_form: true
+  glaccountlineitems:
+    module: entity
+    settings:
+      object: budgetsolnui.GLAccountLineItem
+      #instance: GLAccountItems
+      skipData: true
+  glnormalineitem:
+    module: entity
+    settings:
+      object: budgetsolnui.GLNormalLineItem
+      parent: root
+      #instance: GLCustomerEntry
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      new_form: true
+      update_form: true
+  customer:
+    module: entity
+    settings:
+      object: budgetsolnui.Customer
+      parent: root
+      #instance: Customer
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      list_view: true
+      new_form: true
+      update_form: true      
+  supplier:
+    module: entity
+    settings:
+      object: budgetsolnui.Supplier
+      parent: root
+      #instance: Supplier
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      list_view: true
+      new_form: true
+      update_form: true      
+  glaccount:
+    module: entity
+    settings:
+      object: budgetsolnui.GLAccount
+      parent: root
+      #instance: GLAccount
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_view: true
+  classification:
+    module: entity
+    settings:
+      object: budgetsolnui.EmpClassification
+      parent: root
+      #instance: EmpClassification
+      dataservicefactory: mongodatabase
+      create_dataservice: true
+      create_dataadapterfactory: true
+      create_getservice: true
+      create_updateservice: true
+      create_selectservice: true
+      create_saveservice: true
+      create_objectchannel: true
+      list_page: true
+      list_view: true
+      new_form: true
+      update_form: true
+ui:
+  js:
+    externals:
+      react: react
+      uicommon: uicommon
+      redux-saga: redux-saga
+      redux: redux
+      react-redux: react-redux
+      reactpages: reactpages
+      reactwebcommon: reactwebcommon
+      sanitize-html: sanitize-html
+      prop-types: prop-types
+    packages:
+      react: "^16.8.0"
+      redux-saga: "^1.1.1"

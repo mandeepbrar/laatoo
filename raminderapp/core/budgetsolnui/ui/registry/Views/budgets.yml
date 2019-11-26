@@ -1,0 +1,8 @@
+postArgs: {}
+urlparams: {}
+serviceName: budgets
+overlay: true
+item:
+  type: entity
+  entityName: budgetsolnui.Budget
+  entityDisplay: summary

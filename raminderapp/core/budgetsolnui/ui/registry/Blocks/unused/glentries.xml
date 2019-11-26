@@ -1,0 +1,8 @@
+<Block>
+    <h3 module="html" className="centered">Budget Entry</h3>
+    <Panel type="view" id="glentries" module="reactpages" className="m20">
+        <Attr name="postArgs">
+            <Attr name="Budget">{{jsreplace "ctx.routeParams.budget"}}</Attr>
+        </Attr>
+    </Panel>
+</Block>

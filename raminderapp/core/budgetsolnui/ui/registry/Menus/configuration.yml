@@ -1,0 +1,22 @@
+vertical: true
+items:
+  - customers:
+    title: Customers
+    page: customers
+    iconClass: fa fa-building-o
+  - glaccounts:
+    title: GL Accounts
+    page: glaccounts
+    iconClass: fa fa-hashtag
+  - classifications:
+    title: Employee Classifications
+    page: employeesclassification
+    iconClass: fa fa-sort-numeric-asc
+  - organization:
+    title: Organization
+    page: organization
+    iconClass: fa fa-sitemap
+  - suppliers:
+    title: Suppliers
+    page: suppliers
+    iconClass: fa fa-truck

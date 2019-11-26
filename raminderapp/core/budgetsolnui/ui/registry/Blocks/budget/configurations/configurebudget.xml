@@ -1,0 +1,8 @@
+<Block className="budgets configure ma10">
+    <h3 module="html">Configure Budget Structures</h3>
+    <ActionBar className=" w100 right tb10">
+      <Action module="reactwebcommon" name="newbudgetconfig" widget="button" flat="true" className=""><Icon className="fa fa-plus"/></Action>
+    </ActionBar>
+    <Panel type="view" id="configurebudget" module="reactpages" className=" m20 w100 tableview ">
+    </Panel>
+</Block>

@@ -1,0 +1,37 @@
+version: '3'
+services:
+  raminderapp:
+    build:
+      context: .
+      dockerfile: Dockerfile.apptest
+    volumes:
+    - /home/mandeep/goprogs/src/raminderapp/dist/config/raminderapp:/config/environments/raminderapp
+    - /home/mandeep/goprogs/src/laatoo/dist/bin:/laatoobin
+    - /home/mandeep/goprogs/src/raminderapp/dist/appfiles:/bin/appfiles
+    - /home/mandeep/goprogs/src/raminderapp/dist/publicdir:/bin/publicdir
+    - /home/mandeep/goprogs/src/raminderapp/modules:/modules
+    - /home/mandeep/goprogs/src/raminderapp/modulesrepo:/modulesrepo
+    - /home/mandeep/goprogs/src:/devmodulesrepo
+    - /home/mandeep/goprogs/src/laatoo/ui/nodemodules:/nodemodules
+    - /home/mandeep/goprogs:/plugins
+    - /home/mandeep/goprogs/src/raminderapp/modules:/deploy
+    - /home/mandeep/goprogs/src/raminderapp/data:/data
+    ports:
+     - "6060:6060"
+     - "6061:6061"
+    depends_on:
+    - mongo
+    environment:
+     - LAATOO_mongoconnectionstring="mongodb://mongo:27017"
+    logging:
+      driver: syslog
+  mongo:
+    image: mongo
+    ports:
+     - "27017:27017"
+    volumes:
+    - /backups/raminderdb:/data/db
+volumes:
+  logvolume01: {}
+
+

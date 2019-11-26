@@ -1,0 +1,12 @@
+route: "/configuration/classification"
+authenticate: true
+component:
+  type: layout
+  layout: 2col
+  leftcol:
+    type: menu
+    id: configuration
+    vertical: true
+  rightcol: 
+    type: block
+    id: employeesclassification

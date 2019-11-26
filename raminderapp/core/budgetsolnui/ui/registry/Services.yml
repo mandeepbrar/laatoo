@@ -1,0 +1,6 @@
+#users:
+#  method: POST
+#  url: "/user/view"
+publishbudget:
+  method: GET
+  url: /budgetpublish/:budgetId

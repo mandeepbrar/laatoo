@@ -1,0 +1,8 @@
+<Block className="classifications update ma10">
+    <h3 module="html">Update Employee Classification</h3>
+    <Panel type="form" id="update_form_budgetsolnui.empclassification" module="reactpages" className="m20">
+        <Attr name="info">
+            <Attr name="successRedirectPage">employeesclassification</Attr>
+        </Attr>
+    </Panel>
+</Block>

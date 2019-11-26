@@ -1,0 +1,5 @@
+<TreeView module="treeviews" className=" w100 tableview " header="selectable_glaccount_header" row="selectable_glaccount_row" name="glaccounts" parentField="Parent.Id" serviceName="budgetsolnui.GLAccount_view_service">
+    <Attr name="postArgs">
+        <Attr name="Parent.Id"></Attr>
+    </Attr>
+</TreeView>

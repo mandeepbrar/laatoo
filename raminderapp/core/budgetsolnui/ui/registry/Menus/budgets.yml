@@ -1,0 +1,18 @@
+vertical: true
+items:
+  - active:
+    title: Active
+    page: activebudgets
+    iconClass: fa fa-check-square
+  - planned:
+    title: Under Approval
+    page: plannedbudgets    
+    iconClass: fa fa-tag
+  - archived:
+    title: Archived
+    page: archivedbudgets
+    iconClass: fa fa-archive
+  - budgetconfigure:
+    title: Configure
+    page: configurebudget
+    iconClass: fa fa-edit

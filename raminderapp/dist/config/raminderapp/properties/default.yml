@@ -1,0 +1,6 @@
+websitetheme:
+  header:
+    image: '/images/logo.png'
+    title: NUHBS Budgeting Solution
+  welcome:
+    text: NUHBS Budgeting Solution

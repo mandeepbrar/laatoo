@@ -1,0 +1,5 @@
+parent: budgetsolnui.GLAccount
+method: POST
+service: subaccountcreate
+path: /create
+body: stringmap

@@ -1,0 +1,12 @@
+<Block className="budget_entry ma10">
+  <Action name="openbudgetentry" className="nodecoration">
+    <Attr name="params">
+      <Attr name="budget">{{jsreplace "ctx.data.Id"}}</Attr>
+    </Attr>
+    <Block className="p20 shadowbox rounded nodecoration">
+      <Block className="title bold titlecolor f24 ptb10">{{jsreplace "ctx.data.Title"}}</Block>
+      <Block className="year ptb10 textcolor f18">{{jsreplace "ctx.data.Year"}}</Block>
+      <Block className="year textcolor f12">{{jsreplace "ctx.data.Description"}}</Block>
+    </Block>
+  </Action>
+</Block>

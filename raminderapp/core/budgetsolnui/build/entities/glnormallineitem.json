@@ -1,0 +1,110 @@
+{
+  "name":"GLNormalLineItem",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "overlay": true,
+    "submit": "Save",
+    "layout": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  },
+  "presave": true,
+  "titleField": "LineItem",
+  "fields":{
+    "Title": {
+      "type":"string"
+    },
+    "LineItem": {
+      "type":"string"
+    },
+    "Budget": {
+      "type":"string"
+    },
+    "Jan": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider",
+        "props": {
+          "min": 0,
+          "max": 100000000,
+          "step": 1000
+        }
+      }
+    },
+    "Feb": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider",
+        "props": {
+          "min": 0,
+          "max": 100000000,
+          "step": 1000
+        }
+      }
+    },
+    "Mar": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider",
+        "props": {
+          "min": 0,
+          "max": 100000000,
+          "step": 1000
+        }
+      }
+    },
+    "Apr": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "May": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Jun": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Jul": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Aug": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Sep": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Oct": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Nov": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    },
+    "Dec": {
+      "type":"int64",
+      "widget": {
+        "name": "Slider"
+      }
+    }
+  }
+}

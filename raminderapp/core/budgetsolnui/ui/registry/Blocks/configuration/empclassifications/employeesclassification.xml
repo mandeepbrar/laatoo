@@ -1,0 +1,10 @@
+<Block className="classifications centered">
+    <h3 module="html" className="m20">
+    Employee Classifications
+    </h3>
+    <ActionBar className=" w100 right tb10">
+        <Action module="reactwebcommon" name="newemployeeclassification" widget="button" flat="true" className=""><Icon className="fa fa-plus"/></Action>
+    </ActionBar>
+    <Panel type="view" id="employeeclassifications" module="reactpages" className=" m20 w100 tableview ">
+    </Panel>
+</Block>

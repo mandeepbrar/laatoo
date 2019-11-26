@@ -1,0 +1,6 @@
+serviceName: GLEntry_view_service
+overlay: true
+item:
+  type: entity
+  entityName: GLCustomerEntry
+  entityDisplay: summary

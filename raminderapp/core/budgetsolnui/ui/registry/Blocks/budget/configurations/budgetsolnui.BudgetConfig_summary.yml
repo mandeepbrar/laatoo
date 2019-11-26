@@ -1,0 +1,24 @@
+Block:
+  className: edit_budget tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Title"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Description"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - Action:
+          name: editbudgetconfig
+#          visibility: {{jsreplace "ctx.data.Local"}}
+          params:
+            budgetId: {{jsreplace "ctx.data.Id"}}
+          body: Edit Structure
+      - Action:
+          name: createbudget
+#          visibility: {{jsreplace "ctx.data.Local"}}
+          params:
+            budgetConfigId: {{jsreplace "ctx.data.Id"}}
+          body: Create Budget

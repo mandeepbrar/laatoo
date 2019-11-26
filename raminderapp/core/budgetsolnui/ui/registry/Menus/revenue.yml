@@ -1,0 +1,18 @@
+vertical: true
+items:
+  - homepage:
+    title: Budget
+    page: revenuebudget
+    iconClass: fa fa-briefcase
+  - forecasts:
+    title: Forecast
+    page: revenueforecast    
+    iconClass: fa fa-line-chart
+  - GLAccounts:
+    title: GL Accounts
+    page: revenuegl
+    iconClass: fa fa-edit
+  - customers:
+    title: Customers
+    page: customers
+    iconClass: fa fa-database

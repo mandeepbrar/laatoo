@@ -1,0 +1,8 @@
+<Block className="budgets planned ma10">
+    <h3 module="html">Planned Budgets</h3>
+    <Panel type="view" id="budgets" module="reactpages" className="m20">
+        <Attr name="postArgs">
+            <Attr name="Active">{{jsreplace "false"}}</Attr>
+        </Attr>
+    </Panel>
+</Block>

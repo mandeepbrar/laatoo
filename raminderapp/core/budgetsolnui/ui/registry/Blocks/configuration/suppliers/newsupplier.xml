@@ -1,0 +1,8 @@
+<Block className="suppliers new ma10">
+    <h3 module="html">New Supplier</h3>
+    <Panel type="form" id="new_form_budgetsolnui.supplier" module="reactpages" className="m20">
+        <Attr name="info">
+            <Attr name="successRedirectPage">suppliers</Attr>
+        </Attr>
+    </Panel>
+</Block>

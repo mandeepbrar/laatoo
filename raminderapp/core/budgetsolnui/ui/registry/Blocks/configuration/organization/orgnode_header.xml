@@ -1,0 +1,5 @@
+<Block className="glaccount tableheading w100 tb20 ">
+    <Block className=" tablecell field expandercellwidth "></Block>
+    <Block className=" tablecell field ">Code</Block>
+    <Block className=" tablecell field ">Title</Block>
+</Block>

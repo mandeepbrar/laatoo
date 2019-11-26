@@ -1,0 +1,5 @@
+parent: budgetsolnui.Budget
+method: POST
+service: budgetcreate
+path: /create
+body: stringsmap

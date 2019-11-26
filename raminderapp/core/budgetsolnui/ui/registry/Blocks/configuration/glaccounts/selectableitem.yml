@@ -1,0 +1,13 @@
+Block:
+  className: tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Name"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - SelectionCheckbox:
+          module: selectableviews
+          id: {{jsreplace "ctx.data.Id"}}
+          data: {{jsreplace "ctx.data"}}

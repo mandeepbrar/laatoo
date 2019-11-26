@@ -1,0 +1,6 @@
+parent: root
+method: POST
+service: glaccountpipeline
+path: /glimportcsv
+staticvalues:
+  retries: 1

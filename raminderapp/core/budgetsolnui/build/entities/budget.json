@@ -1,0 +1,55 @@
+{
+  "name":"Budget",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "tabs": {
+      "Basic Details": ["Year", "Title", "Description"],
+      "GL Accounts":["GLAccounts"]
+    },
+    "overlay": true,
+    "actions": "Budget_Actions",
+    "layout": ["Basic Details", "GL Account / Customer", "GL Accounts"]
+  },
+  "titleField": "Title",
+  "fields":{
+    "Year": {
+      "type":"string",
+      "widget": {
+        "name": "Select",
+        "props": {
+          "items": [
+            {"text": "2018", "value":"2018"},
+            {"text": "2019", "value":"2019"},
+            {"text": "2020", "value":"2020"}
+          ]
+        }
+      }
+    },
+    "Title": {
+      "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "Active": {
+      "type": "bool"
+    },
+    "Forecast": {
+      "type": "bool"
+    },
+    "GLAccounts": {
+      "type":"entity",
+      "entity": "budgetsolnui.GLAccountLineItem",
+      "list": true,
+      "widget": {
+        "name": "SelectableView",
+        "module": "selectableviews",
+        "props": {
+          "skipLabel": true,
+          "blockid": "selectableglaccounts"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+route: "/revenue"
+authenticate: true
+component:
+  type: layout
+  layout: 2col
+  className: revenuepage
+  leftcol:
+    type: menu
+    id: revenue
+    vertical: true
+  rightcol: 
+    type: view
+    id: budgetsforentries

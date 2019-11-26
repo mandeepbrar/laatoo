@@ -1,0 +1,11 @@
+<Block className="glcustomerentry summary ">
+  <Action name="openglcustomerentry" className="nodecoration">
+    <Attr name="params">
+      <Attr name="entry">{{jsreplace "ctx.data.Id"}}</Attr>
+    </Attr>
+    <Block className="p10 shadowbox rounded nodecoration fd fdrow fdbetween">
+      <Block className="account bold titlecolor f24 ptb10">{{jsreplace "ctx.data.Account"}}</Block>
+      <Block className="amount ptb10 textcolor f24">{{jsreplace "ctx.data.Amount"}}</Block>
+    </Block>
+  </Action>
+</Block>

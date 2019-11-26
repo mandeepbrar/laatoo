@@ -1,0 +1,13 @@
+<Block className="configuration centered">
+    <h3 module="html" className="m20">
+    Organization
+    </h3>
+    <ActionBar className=" w100 right tb10">
+        <Action module="reactwebcommon" name="refreshemployeeclassification" widget="button" flat="true" className=""><Icon className="fa fa-refresh"/></Action>
+    </ActionBar>
+    <TreeView module="treeviews" className=" w100 tableview " header="orgnode_header" row="orgnode_row" name="orgnodes" parentField="Parent.Id" serviceName="organization.OrgNode_view_service">
+      <Attr name="postArgs">
+        <Attr name="Parent.Id"></Attr>
+      </Attr>
+    </TreeView>
+</Block>

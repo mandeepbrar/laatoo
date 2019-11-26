@@ -1,0 +1,9 @@
+postArgs: {}
+urlparams: {}
+serviceName: suppliers
+overlay: true
+header: suppliersheader
+item:
+  type: entity
+  entityName: budgetsolnui.Supplier
+  entityDisplay: summary

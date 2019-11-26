@@ -1,0 +1,5 @@
+servicemethod: csvprocessor.CsvImporter
+importstorageservice: datadir
+importstoragebucket:
+csvinputfile: glaccts.csv
+importcsvhasheaders: true

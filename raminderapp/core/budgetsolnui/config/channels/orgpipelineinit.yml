@@ -1,0 +1,6 @@
+parent: root
+method: POST
+service: orgimportpipeline
+path: /orgimportcsv
+staticvalues:
+  retries: 4

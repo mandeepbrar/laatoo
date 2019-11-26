@@ -1,0 +1,21 @@
+Block:
+  className: glaccount tablerow 
+  children:
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.props.expansionComponent"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Title"}}
+  - Block:
+      className: field tablecell 
+      body: {{jsreplace "ctx.data.Code"}}
+  - Block:
+      className: field tablecell 
+      children:
+      - Action:
+          name: editglaccount
+          params:
+            acctId: {{jsreplace "ctx.data.Id"}}
+            acctName: {{jsreplace "ctx.data.Title"}}
+          body: Add subentries

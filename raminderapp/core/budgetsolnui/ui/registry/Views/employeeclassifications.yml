@@ -1,0 +1,9 @@
+postArgs: {}
+urlparams: {}
+serviceName: employeeclassifications
+overlay: true
+header: employeeclassificationheader
+item:
+  type: entity
+  entityName: budgetsolnui.EmpClassification
+  entityDisplay: summary

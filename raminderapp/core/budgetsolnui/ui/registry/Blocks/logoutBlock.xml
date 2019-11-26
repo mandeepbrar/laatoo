@@ -1,0 +1,1 @@
+<LogoutButton module="authui"><Block className="fd fdcol"><Icon className="fa fa-sign-out w100"/><Block>Logout</Block></Block></LogoutButton>

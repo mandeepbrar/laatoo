@@ -1,0 +1,8 @@
+postArgs: {}
+urlparams: {}
+serviceName: customers
+overlay: true
+header: selectableheader
+item:
+  type: block
+  id: selectableitem

@@ -1,0 +1,371 @@
+﻿Node,Parent,ID,Node Type
+Online Services,183B,104,Cost Center
+govCMS,183B,105,Cost Center
+CGS Executive,120B,107,Cost Center
+Commercial Executive,122B,110,Cost Center
+Discretionary Payments,238B,112,Cost Center
+Government Business Oversight Unit,151B,113,Cost Center
+AWD Reform and ASC Oversight,107B,123,Cost Center
+Defence Businesses,102B,124,Cost Center
+Procurement and Insurance Exec,209B,128,Cost Center
+Procurement Policy,196B,129,Cost Center
+Austender Administration,196B,130,Cost Center
+Communications Advice,123B,131,Cost Center
+PCD - Executive,186B,132,Cost Center
+PG - AEIFRS,186B,133,Cost Center
+WoAG Prop Perform (Analysis & Reporting),186B,135,Cost Center
+Contract Management (Owned Portfolio),191B,137,Cost Center
+Client Relationship Management Executive,200B,138,Cost Center
+PCD Governance & Stakeholder Comms,186B,139,Cost Center
+National Divestment Program,197B,141,Cost Center
+PWP Program Management,191B,146,Cost Center
+National Property Efficiency Program,198B,148,Cost Center
+WoAG Prop Policy,198B,149,Cost Center
+Project Delivery,191B,151,Cost Center
+Lands Acquisition Act Administration,198B,158,Cost Center
+Property Legislation & Advice Exec,199B,163,Cost Center
+PWC & Disposals Admin,200B,164,Cost Center
+Property Data Management,198B,165,Cost Center
+National Land Administration,197B,166,Cost Center
+Comcover SA Administration,162B,170,Cost Center
+Campaign Advertising,195B,171,Cost Center
+Fleet Motor Vehicles,195B,173,Cost Center
+Secretariat,232B,176,Cost Center
+Major Office Machines,195B,177,Cost Center
+WoAG Travel,195B,182,Cost Center
+Travel Phase2 - Tender,195B,185,Cost Center
+Stationery & Office Supplies,195B,187,Cost Center
+GovDesk - GovMail,230B,194,Cost Center
+BFR Executive,110B,195,Cost Center
+Budget Coordination,113B,198,Cost Center
+Budget Policy & Co-ord Exec,113B,199,Cost Center
+Budget Analysis,112B,200,Cost Center
+Central Agencies & Attorney Generals,116B,201,Cost Center
+Defence,129B,202,Cost Center
+Defence Capability Assessment,128B,203,Cost Center
+Govt & Defence Executive,149B,204,Cost Center
+Foreign Affairs,158B,205,Cost Center
+Education & Employment,133B,207,Cost Center
+Environment & Industry,138B,208,Cost Center
+Industry Edu & Infra Exe,160B,209,Cost Center
+Infrastructure Communica & Agriculture,161B,210,Cost Center
+Families & Working Age,140B,211,Cost Center
+Health,154B,212,Cost Center
+Indigenous & Services Delivery,155B,213,Cost Center
+Social Policy Executive,205B,214,Cost Center
+Long Term Budget Policy,168B,216,Cost Center
+Finance Executive,141B,218,Cost Center
+Corporate Services Executive,125B,220,Cost Center
+Coporate Engagement,126B,223,Cost Center
+Parliamentary and Coordination Exec,185B,230,Cost Center
+Parliamentary Liaison and Coordination,185B,231,Cost Center
+Human Resources,187B,242,Cost Center
+ICT Executive,166B,245,Cost Center
+Facilities Management Executive,165B,246,Cost Center
+Technical Services,164B,247,Cost Center
+BES Executive,109B,248,Cost Center
+Finance Transformation,210B,249,Cost Center
+Projects Deployment Team,137B,252,Cost Center
+M&PS  Executive,179B,253,Cost Center
+"Policy, People, and Programs",178B,256,Cost Center
+Australian Political Exchange Council,178B,257,Cost Center
+Advice and Support,177B,258,Cost Center
+M&PS - State Offices,177B,259,Cost Center
+MOPS Pay and Conditions,178B,267,Cost Center
+Client Services Executive,178B,270,Cost Center
+Legal Services,167B,271,Cost Center
+COMCAR National Office Exec,253B,287,Cost Center
+Drving Ops - Exec - Special,121B,305,Cost Center
+Drving Ops - Exec - Ann,121B,306,Cost Center
+Client Liaison - Ann,121B,310,Cost Center
+Drving Operations - ACT - Special,121B,312,Cost Center
+Drving Operations - ACT - Ann,121B,313,Cost Center
+Drving Operations - NSW - Ann,121B,317,Cost Center
+Drving Operations - VIC - Ann,121B,321,Cost Center
+Drving Operations - QLD - Ann,121B,325,Cost Center
+Drving Operations - SA - Ann,121B,330,Cost Center
+Drving Operations - WA - Ann,121B,334,Cost Center
+Reservations & Allocations - Ann,121B,340,Cost Center
+CFO,117B,342,Cost Center
+Secretary's Reserve,211B,352,Cost Center
+Maternity Leave,188B,355,Cost Center
+Finance Wide Area Network,146B,357,Cost Center
+MCN Support_ Staff Costs,146B,358,Cost Center
+Government Network Services,146B,359,Cost Center
+ICON (Intragov Comm Network),146B,360,Cost Center
+Ministerial Communication Netw,170B,363,Cost Center
+Telepresence,170B,364,Cost Center
+National Telepresence System 2,170B,365,Cost Center
+PGPA Projects,193B,368,Cost Center
+PGPA BAU Activities,193B,369,Cost Center
+Resource Management,201B,370,Cost Center
+Reporting and Resourcing,203B,371,Cost Center
+Indo Pacific Activities,207B,372,Cost Center
+Efficiency Improvement,252B,378,Cost Center
+Shared and Common Services,152B,379,Cost Center
+Assurance and ICT Budget Advice,152B,380,Cost Center
+G&T Executive,145B,382,Cost Center
+Financial Analysis Reporting & Mgt Exec,139B,384,Cost Center
+Budget Estimates and Accounting,111B,385,Cost Center
+Financial Management,142B,386,Cost Center
+CBMS Redevelopment Project,115B,387,Cost Center
+CBMS Support,115B,389,Cost Center
+Funds and Superannuation,147B,390,Cost Center
+Efficiency & Assurance Exec,134B,402,Cost Center
+Governance and Public Mgmt Exec,147B,403,Cost Center
+FER & Contestability Reviews PRGM Mgt,135B,438,Cost Center
+Streamlining Grants Administration PRGM,152B,439,Cost Center
+Digital Records Management Program,193B,440,Cost Center
+SDO Corporate,221B,457,Cost Center
+Payroll & HR Systems (SDO),235B,459,Cost Center
+Accounts Receivable (SDO),235B,461,Cost Center
+Accounts Payable (SDO),235B,462,Cost Center
+Travel and Credit Card (SDO),235B,463,Cost Center
+HUB Services (SDO),236B,469,Cost Center
+Parliamentary Workflow System,164B,470,Cost Center
+Business Information Transformation Prog,210B,473,Cost Center
+Property Efficiency Exec,198B,476,Cost Center
+ICMS Upgrade,165B,478,Cost Center
+GovLink,231B,480,Cost Center
+Prop Divestment Exec,197B,481,Cost Center
+Divestment Strategy,197B,482,Cost Center
+Tenant Services,191B,483,Cost Center
+Property Gov & Strategy,200B,484,Cost Center
+ICON Light Rail,146B,488,Cost Center
+Public Sector Reform,135B,494,Cost Center
+IT Environment,146B,504,Cost Center
+Security,165B,505,Cost Center
+Service Mgmt,246B,506,Cost Center
+Application Support,164B,508,Cost Center
+Information Management,165B,509,Cost Center
+Service Centre,164B,510,Cost Center
+Parliamentary Expenses Management System,179B,511,Cost Center
+Inland Rail Implementation,243B,512,Cost Center
+Western Sydney Airport,244B,513,Cost Center
+Snowy Hydro,245B,514,Cost Center
+Secure Information Sharing Capability,164B,515,Cost Center
+Process Automation & Tech Optimisation,247B,517,Cost Center
+SDO Client Onboarding,247B,519,Cost Center
+Shared Services Implementation Project,165B,524,Cost Center
+SDO Projects,221B,535,Cost Center
+Parliamentary Expenses Management System,164B,537,Cost Center
+Driving Ops - Exec - Special - PBR Act,121B,549,Cost Center
+Driving Operations - ACT - Special - PBR Act,121B,550,Cost Center
+Driving Operations - NSW - Special - PBR Act,121B,551,Cost Center
+Driving Operations - VIC - Special - PBR Act,121B,552,Cost Center
+Driving Operations - QLD - Special - PBR Act,121B,553,Cost Center
+Driving Operations - SA - Special - PBR Act,121B,554,Cost Center
+Driving Operations - WA - Special - PBR Act,121B,555,Cost Center
+Govt. Business Analytical unit,135B,558,Cost Center
+COMCAR MPS Bus Srvs,253B,560,Cost Center
+CBMS Operations/Support,250B,561,Cost Center
+Reservations & Allocations - Special,121B,563,Cost Center
+PBR Client Liaison - Special,121B,564,Cost Center
+Legal Service Panel,195B,569,Cost Center
+Investment Strategy,135B,570,Cost Center
+Drving Operations - TAS - Ann,121B,338,Cost Center
+Driving Operations - TAS - Special - PBR Act,121B,556,Cost Center
+Technology Services,222B,100,Cost Center
+Nat Disaster Relief & Recovery Arrange,202B,111,Cost Center
+National Broadband Network,181B,115,Cost Center
+MPO GBE Oversight,181B,116,Cost Center
+Moorebank Project Office,173B,117,Cost Center
+Moorebank Unit Relocation Project,180B,118,Cost Center
+Defence Housing Reform Project,130B,120,Cost Center
+Australian Hearing Project,106B,121,Cost Center
+ASIC Registry Project,103B,122,Cost Center
+Australian Rail Track Corp (ARTC),101B,125,Cost Center
+Moorebank Governance Review,223B,126,Cost Center
+NBN Review,182B,127,Cost Center
+Campaign Finance Commission,195B,172,Cost Center
+Volume Sourcing Administration,157B,174,Cost Center
+Volume Sourcing Operating,157B,175,Cost Center
+Office Machines - Tender,195B,179,Cost Center
+Desktop Computers,157B,180,Cost Center
+Government Cloud Panel,208B,181,Cost Center
+Travel Phase 1 - Tender,195B,183,Cost Center
+Travel and Related Services Phase 2,195B,184,Cost Center
+Telecommunications,157B,186,Cost Center
+Data Centres Admin,157B,188,Cost Center
+IBNCS Operating Account,157B,189,Cost Center
+IBNCS Savings,157B,190,Cost Center
+Whole of Government Reporting,195B,192,Cost Center
+Strategic Sourcing,208B,193,Cost Center
+Property Services,137B,238,Cost Center
+Business Assurance Coordination,175B,255,Cost Center
+State Office - QLD,177B,261,Cost Center
+State Office - SA,177B,262,Cost Center
+State Office - TAS,177B,263,Cost Center
+State Office - VIC,177B,264,Cost Center
+State Office - WA,177B,265,Cost Center
+ARTC Market Testing,223B,431,Cost Center
+Medibank Sale Taskforce (Dept),239B,444,Cost Center
+Canberra Office Accom Proj,216B,445,Cost Center
+Stationery & Office Supplies Re-tender,195B,446,Cost Center
+Telecommunications Services Panel,157B,471,Cost Center
+Commercial Advice Unit,229B,485,Cost Center
+Parliamentary Expenses Taskforce (M&PS),179B,486,Cost Center
+ICON Scoping Study,122B,493,Cost Center
+Advertising - Tender,195B,516,Cost Center
+Australian Naval Infrastructure,150B,520,Cost Center
+Australian Submarine Corp,150B,521,Cost Center
+Cloud Project,195B,523,Cost Center
+Medibank Scoping Study,248B,536,Cost Center
+WoG ERP Sys Panel,195B,559,Cost Center
+Central Employee Costs,188B,356,Cost Center
+Parl Super Act 2004 Other Departments,144B,410,Cost Center
+Learning & Development,188B,243,Cost Center
+MF-SMOS-Cormann,185B,225,Cost Center
+Department Social Club,131B,221,Cost Center
+Political Exchange Council,169B,277,Cost Center
+Finance Controlled Accounts,118B,343,Cost Center
+Electorate & Ministerial Support,169B,273,Cost Center
+Constitution - Section 66 - Salaries,169B,286,Cost Center
+PBR Act - The Senate,169B,539,Cost Center
+PBR Act – House of Representatives,169B,542,Cost Center
+Parl Entitlements Act 1990,169B,280,Cost Center
+Parl Business Resources Act 2017,169B,538,Cost Center
+Admin Ann Appropriat'n Former PM,169B,275,Cost Center
+PBR Act - former PM,169B,545,Cost Center
+Online Services,42D,183B,Branch
+CGS Executive,26D,120B,Branch
+Comm & Claims Exec,30D,122B,Branch
+Risk and Claims,54D,238B,Branch
+Govmt Bus Oversight,30D,151B,Branch
+AWD Reform,30D,107B,Branch
+ASC Reform,30D,102B,Branch
+Procurement & Insurance Executive,54D,209B,Branch
+Procurement Policy,54D,196B,Branch
+Communications Adv,39D,123B,Branch
+PCD Executive,24D,186B,Branch
+Property Capital Works & Asset Mgmt,24D,191B,Branch
+Client Relationship Management,24D,200B,Branch
+Property Divest,24D,197B,Branch
+Property Efficiency,24D,198B,Branch
+Property Leg & Adv,24D,199B,Branch
+Risk and Claims,23D,162B,Branch
+Procurement Management,25D,195B,Branch
+Secretariat,25D,232B,Branch
+GovDesk - GovMail,25D,230B,Branch
+BFR Executive,18D,110B,Branch
+Budget Coordination,19D,113B,Branch
+Budget Analysis,19D,112B,Branch
+Central A AA,38D,116B,Branch
+Defence,38D,129B,Branch
+Defence Cap Assmt,38D,128B,Branch
+Govmt & Defence,38D,149B,Branch
+Foreign Affairs,38D,158B,Branch
+EEWR,41D,133B,Branch
+Environment & Energy,41D,138B,Branch
+Indu Ed & Infra,41D,160B,Branch
+Infra & Comm,41D,161B,Branch
+FHCS & IA,52D,140B,Branch
+Health,52D,154B,Branch
+Human Services,52D,155B,Branch
+Social Policy Exec,52D,205B,Branch
+Long Term Budget,19D,168B,Branch
+Finance Executive,31D,141B,Branch
+Corporate - Exec,31D,125B,Branch
+Corporate Engagement,31D,126B,Branch
+Parl & Coordination,31D,185B,Branch
+Human Resources,31D,187B,Branch
+ICT Executive,42D,166B,Branch
+Facilities Management Branch,31D,165B,Branch
+Technical Services,42D,164B,Branch
+BES Executive,17D,109B,Branch
+Transformation,35D,210B,Branch
+CSD Central Costs,22D,137B,Branch
+MPS Executive,43D,179B,Branch
+"MPS Policy, People, and Programs",43D,178B,Branch
+MPS Advice and Support,43D,177B,Branch
+Legal Services,31D,167B,Branch
+COMCAR,43D,253B,Branch
+COMCAR Admin,28D,121B,Branch
+CFO,31D,117B,Branch
+Unallocated Budgets,55D,211B,Branch
+People Central Costs,22D,188B,Branch
+GNSB,42D,146B,Branch
+MCN - Ministered,53D,170B,Branch
+"Public Governance, Performance & Accountability (PGPA)",40D,193B,Branch
+Resource Management,39D,201B,Branch
+Rpt & Resource,34D,203B,Branch
+Strat & Intl Policy,39D,207B,Branch
+Efficiency Improvement,33D,252B,Branch
+Govmt Bus Transf,33D,152B,Branch
+G&T Executive,37D,145B,Branch
+FaRM Exec,34D,139B,Branch
+Budget Est & Accting,34D,111B,Branch
+Financial Management,34D,142B,Branch
+CBMSR,42D,115B,Branch
+Gov & Public Mgmt,39D,147B,Branch
+Eff & Assurance Exec,33D,134B,Branch
+Public Sector Reform,33D,135B,Branch
+SDO Executive,59D,221B,Branch
+Tran Operations Exec,59D,235B,Branch
+Commercial Services,59D,236B,Branch
+Gov Link,25D,231B,Branch
+Office of CIO,42D,246B,Branch
+Inland Rail Implementation,30D,243B,Branch
+Western Sydney Airport,30D,244B,Branch
+Snowy Hydro,30D,245B,Branch
+Modernisation Fund,59D,247B,Branch
+CBMS Operations,42D,250B,Branch
+ICT Procurement (Annual),54D,222B,Branch
+Nat Disaster Relief,30D,202B,Branch
+NBN,30D,181B,Branch
+Moorebank Prj Office,30D,173B,Branch
+MUR Project,30D,180B,Branch
+Defence Housing,30D,130B,Branch
+Aust Hear SS,30D,106B,Branch
+ASIC Project,30D,103B,Branch
+ARTC Scoping Study,30D,101B,Branch
+ARTC Scoping Study/Moorebank,30D,223B,Branch
+NBN Review,30D,182B,Branch
+ICT Procurement (SAO),25D,157B,Branch
+Strategic Sourcing,25D,208B,Branch
+MPS Bus Assrnc,43D,175B,Branch
+Medibank Sale T/F,30D,239B,Branch
+COA Progression,30D,216B,Branch
+Commercial Advice,30D,229B,Branch
+Govmt Bus Advice,29D,150B,Branch
+Medibank Scoping Study,30D,248B,Branch
+G&T Admin,36D,144B,Branch
+Dept Social Club,31D,131B,Branch
+M&PS Admin,44D,169B,Branch
+CFOB Central Costs,22D,118B,Branch
+ICT Division,S1,42D,Division
+CGS Executive,S2,26D,Division
+Commercial Division,S2,30D,Division
+Procurement and Insurance Division,S2,54D,Division
+Gov and Public Mgt,S3,39D,Division
+CGS - Property SA,S4,24D,Division
+CGS - Comcover SA,S5,23D,Division
+CGS Coord Pro Sp Acc,S6,25D,Division
+BFR Executive,S7,18D,Division
+Budget Policy Coord,S7,19D,Division
+Government and Defence,S7,38D,Division
+Industry Edu Infrast,S7,41D,Division
+Social Policy,S7,52D,Division
+Corporate Services,S1,31D,Division
+BES Executive,S1,17D,Division
+Finance Transform,S1,35D,Division
+Central Costs,S1,22D,Division
+MaPS,S1,43D,Division
+COMCAR Admin,S1,28D,Division
+Unallocated Budgets,S1,55D,Division
+ICT Administered,S1,53D,Division
+Public Governance Performance & Accountability,S3,40D,Division
+FaRM,S3,34D,Division
+Public Sector Transformation,S3,33D,Division
+G and T Executive,S3,37D,Division
+Srvce Delivery (SDO),S1,59D,Division
+Comm and Claims Admin,S2,29D,Division
+Financial Mgmt Admin,S3,36D,Division
+M&PS Admin,S1,44D,Division
+Bus Enab Serv (BES),,S1,Secretary
+Comm Govt Serv (CGS),,S2,Secretary
+Govern & Trans (G&T),,S3,Secretary
+Property Special Acc,,S4,Secretary
+Comcover Special Acc,,S5,Secretary
+Coord Proc Spec Acct,,S6,Secretary
+Budget Fin Rep (BFR),,S7,Secretary

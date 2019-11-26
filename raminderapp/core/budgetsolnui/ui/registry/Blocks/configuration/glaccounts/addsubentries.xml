@@ -1,0 +1,35 @@
+<Form form="form_addacct" module="reactforms" submissionService="subaccountcreate" successRedirectPage="glaccounts">
+    <Attr name="formData">
+        <Attr name="GLAcctId">{{jsreplace "ctx.data.acctId"}}</Attr>
+        <Attr name="GLAcctName">{{jsreplace "ctx.data.acctName"}}</Attr>        
+    </Attr>
+    <Tabset>
+        <Tab label="Customers" value="customers">
+          <Field key="customers" name="customers" module="reactforms">
+            <SelectableView module="selectableviews">
+              <Panel type="view" id="selectablecustomers" module="reactpages" className=" m20 w100 tableview ">
+              </Panel>
+            </SelectableView>
+          </Field>
+        </Tab>
+        <Tab label="Employees" value="employees">
+          <Field key="employees" name="employees" module="reactforms">
+            <SelectableView  module="selectableviews">
+              <Panel type="view" id="selectableemployees" module="reactpages" className=" m20 w100 tableview ">
+              </Panel>
+            </SelectableView>
+          </Field>
+        </Tab>
+        <Tab label="Suppliers" value="suppliers">
+          <Field key="suppliers" name="suppliers" module="reactforms">
+            <SelectableView module="selectableviews">
+              <Panel type="view" id="selectablesuppliers" module="reactpages" className=" m20 w100 tableview ">
+              </Panel>
+            </SelectableView>
+          </Field>
+        </Tab>
+    </Tabset>
+    <Field type="hidden" name="GLAcctId"  module="reactforms"/>
+    <Field type="hidden" name="GLAcctName"  module="reactforms"/>
+</Form>
+

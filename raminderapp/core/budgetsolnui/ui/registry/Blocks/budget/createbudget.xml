@@ -1,0 +1,20 @@
+<Form form="form_createbudget" module="reactforms" submissionService="createbudget" successRedirectPage="plannedbudgets">
+    <Attr name="formData">
+        <Attr name="ConfigId">{{jsreplace "ctx.data.budgetConfigId"}}</Attr>
+    </Attr>
+    <Field type="string" name="Year" className="w100" module="reactforms" widgetName="Select">
+        <Attr name="items" array="true">
+            <Attr>
+                <Attr name="text">2018</Attr>
+                <Attr name="value">2018</Attr>
+            </Attr>
+            <Attr>
+                <Attr name="text">2019</Attr>
+                <Attr name="value">2019</Attr>
+            </Attr>
+        </Attr>
+    </Field>
+    <Field type="string" name="Title"  className="w100" module="reactforms"/>
+    <Field type="hidden" name="ConfigId"  module="reactforms">
+    </Field>
+</Form>

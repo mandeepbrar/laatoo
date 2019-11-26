@@ -1,0 +1,19 @@
+{
+  "name":"Customer",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "overlay": true,
+    "layout": ["Name", "Description"]
+  },
+  "titleField": "Name",
+  "fields":{
+    "Name": {
+      "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    }
+  }
+}
+  

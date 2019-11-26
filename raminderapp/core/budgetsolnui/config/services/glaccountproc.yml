@@ -1,0 +1,10 @@
+servicemethod: objectmapprocessor.MapToObjectProcessor
+object: budgetsolnui.GLAccount
+fieldmappings:
+  ID: Code
+  Title: Title
+  Parent: 
+    field: Parent
+    lookupfield: Code
+    dataservice: dataadapter.dataservice.budgetsolnui.GLAccount
+    

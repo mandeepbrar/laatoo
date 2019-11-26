@@ -1,0 +1,9 @@
+postArgs: {}
+urlparams: {}
+serviceName: customers
+overlay: true
+header: customersheader
+item:
+  type: entity
+  entityName: budgetsolnui.Customer
+  entityDisplay: summary

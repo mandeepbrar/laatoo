@@ -1,0 +1,42 @@
+signin:
+  url: "/account"
+openbudgetentry:
+  url: /glentries/:budget
+refreshemployeeclassification:
+  url: "/employees/classification"
+refreshsuppliers:
+  url: "/suppliers/list"
+refreshcustomers:
+  url: "/revenue/customers"
+openglcustomerentry:
+  url: "/update_form_glcustomerentry/:entry"
+expandrow:
+  actiontype: method
+editbudget:
+  url: "/budgets/update/:budgetId"
+editbudgetconfig:
+  url: "/budgets/configuration/update/:budgetId"
+newbudgetconfig:
+  url: "/budgets/configuration/new"
+createbudget:
+  actiontype: interaction
+  interactiontype: Drawer
+  title: Create Budget
+  blockid: createbudget
+newemployeeclassification:
+  url: "/configuration/classification/new"
+editclassification:
+  url: "/configuration/classification/update/:classId"
+newcustomer:
+  url: "/configuration/customers/new"
+editcustomer:
+  url: "/configuration/customers/update/:custId"
+newsupplier:
+  url: "/configuration/suppliers/new"
+editsupplier:
+  url: "/configuration/suppliers/update/:suppId"
+editglaccount:
+  actiontype: interaction
+  interactiontype: Drawer
+  title: Add sub accounts
+  blockid: addsubentries

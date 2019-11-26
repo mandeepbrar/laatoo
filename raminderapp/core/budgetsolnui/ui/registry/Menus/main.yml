@@ -1,0 +1,21 @@
+items:
+  - homepage:
+    title: My Home
+    page: home
+    iconClass: fa fa-home
+  - Budget:
+    title: Budget
+    page: activebudgets
+    iconClass: fa fa-dollar
+  - Forecast:
+    title: Forecast
+    page: suppliersbudget
+    iconClass: fa fa-line-chart
+  - TopDown:
+    title: Top Down
+    page: entries
+    iconClass: fa fa-pie-chart
+  - Configuration:
+    title: Configuration
+    page: customers
+    iconClass: fa fa-cogs

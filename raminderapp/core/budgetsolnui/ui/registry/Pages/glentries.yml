@@ -1,0 +1,4 @@
+route: /glentries/:budget
+component:
+  type: block
+  id: glentries

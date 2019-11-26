@@ -1,0 +1,35 @@
+{
+  "name":"BudgetConfig",
+  "inherits":"",
+  "imports":[],
+  "form": {
+    "tabs": {
+      "Basic Details": ["Title", "Description"],
+      "GL Accounts":["GLAccounts"]
+    },
+    "overlay": true,
+    "layout": ["Basic Details", "GL Accounts"]
+  },
+  "titleField": "Title",
+  "fields":{
+    "Title": {
+      "type":"string"
+    },
+    "Description": {
+        "type":"string"
+    },
+    "GLAccounts": {
+      "type":"entity",
+      "entity": "budgetsolnui.GLAccount",
+      "list": true,
+      "widget": {
+        "name": "SelectableView",
+        "module": "selectableviews",
+        "props": {
+          "skipLabel": true,
+          "blockid": "selectableglaccounts"
+        }
+      }
+    }
+  }
+}
