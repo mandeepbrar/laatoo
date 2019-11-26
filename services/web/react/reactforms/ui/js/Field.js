@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 class FieldWidget extends React.Component {
   constructor(props) {
     super(props)
-    //injectTapEventPlugin()
     console.log("creating field widget", props)
     let cfg = null
     let field = props.field
@@ -28,9 +27,7 @@ class FieldWidget extends React.Component {
       }  
     }
     this.cfg = cfg
-    console.log("constructing material kit field", this.cfg, props)
-    /*if(field && field.widget) {
-    }*/
+    console.log("constructing material kit field", this.cfg, props)  
   }
 
   componentWillReceiveProps(nextProps, nextState) {
@@ -40,15 +37,11 @@ class FieldWidget extends React.Component {
 
 
   getWidget=(cfg)=> {
-    console.log("get widget for cfg", cfg.name, cfg)
     if(cfg.widgetModule) {
-      console.log("chosing custom component for ", cfg.name)
       this.widgetComp = _res(cfg.widgetModule, cfg.widgetName);
     } else if(cfg.list) {
-      console.log("chosing listfor ", cfg.name)
       this.widgetComp = List
     } else if(cfg.entity) {
-      console.log("chosing entityfor ", cfg.name)
       this.widgetComp = Entity
       cfg.subform = true
     } else {
@@ -65,6 +58,9 @@ class FieldWidget extends React.Component {
           cfg.widgetName = "TextField"
         break;
         case "int":
+        case "int64":
+        case "float32":
+        case "float64":
         case "float":
           this.parser = this.intParse
           cfg.widgetName = "NumberField"
@@ -107,17 +103,6 @@ class FieldWidget extends React.Component {
       cfg.label = _tn(cfg.label, fld.name)
       cfg.widgetName = fld.widget.name
       cfg.widgetModule = fld.widget.module
-/*      cfg.className = widgetProps.className
-      cfg.selectItem = widgetProps.selectItem
-      cfg.dataServiceParams = widgetProps.dataServiceParams
-      cfg.loader = widgetProps.loader
-      cfg.loadData = widgetProps.loadData
-      cfg.dataService = widgetProps.dataService
-      cfg.controlClassName = widgetProps.controlClassName
-      cfg.items = widgetProps.items
-      cfg.itemClass = widgetProps.itemClass
-      */
-
       //text and value used by select
       cfg.textField = _tn(cfg.textField, "text")
       cfg.valueField = _tn(cfg.valueField, "value")
@@ -175,7 +160,6 @@ class FieldWidget extends React.Component {
 
   component = (fieldProps) => {
     let {input, meta, className} = fieldProps
-    
     let errorText = meta.touched && meta.error
     let cfg = this.cfg
     let value = null
@@ -206,34 +190,14 @@ class FieldWidget extends React.Component {
         let transformerMethod = _reg("Methods", cfg.transformer)
         newProps = transformerMethod(newProps, cfg, this.props)
     }
-    console.log("creating widget for field:", this.cfg.name, " newProps:", newProps, " widget:", this.widgetComp)
-    return React.createElement(this.widgetComp, newProps, null)
-/*
-    if(field) {
-        let widget = this.fieldWidgets[fieldName]
-        let fprops = this.fieldProps[fieldName]
-        let fieldChange= this.fieldChange(input.onChange)
-        let errorText = meta.touched && meta.error
-        let cl = className + (fprops.className? fprops.className: "")
-        
-        let newProps = Object.assign({}, fprops, {onChange: fieldChange, errorText: errorText, formValue: this.state.formValue, className: cl,
-            onFocus: input.onFocus, onBlur: input.onBlur, value: input.value})            
-        if(field.transformer) {
-            let transformerMethod = _reg("Methods", field.transformer)
-            newProps = transformerMethod(newProps, this.props.formValue, field, this.fields, this.props, this.state,  this)
-        }
-        if(field.type == "storableref") {
-            let isRef = true
-            let ref = input.value[fieldName]
-            if(ref) {
-              newprops.value = input.value = ref.Id
-            }
-            console.log("ref props", newProps)
-        }
-        console.log("creating widget, state:", this.state, " props:", newProps, " widget:", widget)
-        return React.createElement(widget, newProps, null)
+    console.log("creating widget for field:", this.cfg.name, " newProps:", newProps, " widget:", this.widgetComp, "props", this.props.children)
+    if (this.props.children) {
+      let retval = React.cloneElement(this.props.children[0], newProps)
+      console.log("returned form field element after cloning children", retval)
+      return retval
+    } else {
+      return React.createElement(this.widgetComp, newProps, null)
     }
-    return null*/
   }
 
   render() {

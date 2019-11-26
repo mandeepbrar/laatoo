@@ -69,8 +69,8 @@ class FieldWidget extends React.Component {
   renderCheckbox = (props) =>  {
     return (
 
-      <Form.Group controlId={this.name} className={this.className + " checkbox "} >
-        <Form.Check type="checkbox" label={props.label}  onCheck={this.change} className={this.controlClassName} />
+      <Form.Group controlId={props.name} className={this.className + " checkbox "} >
+        <Form.Check type="checkbox" label={props.label}  value={this.state.value} onCheck={this.change} className={this.controlClassName} />
       </Form.Group>
     )
   }

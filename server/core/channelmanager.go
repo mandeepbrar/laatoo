@@ -51,8 +51,13 @@ func (chanMgr *channelManager) Initialize(ctx core.ServerContext, conf config.Co
 		return errors.WrapError(ctx, err)
 	}
 
-	if _, err := chanMgr.createChannels(ctx, chanMgr.channelConfs); err != nil {
+	_, pendingConfs, err := chanMgr.createChannels(ctx, chanMgr.channelConfs)
+	if err != nil {
 		return errors.WrapError(ctx, err)
+	}
+
+	if len(pendingConfs) != 0 {
+		return errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Missing Parents for Channels", pendingConfs)
 	}
 
 	return nil
@@ -116,32 +121,52 @@ func (chanMgr *channelManager) storeConf(ctx core.ServerContext, channelConf con
 	return nil
 }
 
-func (chanMgr *channelManager) createChannels(ctx core.ServerContext, channelConfs map[string]config.Config) (map[string]elements.Channel, error) {
-	pendingConfs := make(map[string]config.Config)
+func (chanMgr *channelManager) createChannels(ctx core.ServerContext, channelConfs map[string]config.Config) (map[string]elements.Channel, map[string]config.Config, error) {
+
 	channelsReturned := make(map[string]elements.Channel)
-	for channelName, channelConf := range channelConfs {
-		channel, err := chanMgr.createChannel(ctx, channelConf, channelName)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
+
+	for {
+		pendingConfs := make(map[string]config.Config)
+		for channelName, channelConf := range channelConfs {
+			channel, err := chanMgr.createChannel(ctx, channelConf, channelName)
+			if err != nil {
+				return nil, nil, errors.WrapError(ctx, err)
+			}
+
+			if channel == nil {
+				pendingConfs[channelName] = channelConf
+			} else {
+				//this is the case of unloaded channels being reloaded
+				_, ok := chanMgr.channelConfs[channelName]
+				if !ok {
+					chanMgr.channelConfs[channelName] = channelConf
+				}
+			}
+			channelsReturned[channelName] = channel
 		}
-		if channel == nil {
-			pendingConfs[channelName] = channelConf
+		if len(pendingConfs) != 0 {
+			if len(pendingConfs) == len(channelConfs) {
+				return channelsReturned, pendingConfs, nil
+			}
+			channelConfs = pendingConfs
+		} else {
+			return channelsReturned, pendingConfs, nil
 		}
-		channelsReturned[channelName] = channel
 	}
-	if len(pendingConfs) != 0 {
-		if len(pendingConfs) == len(channelConfs) {
-			return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Missing Parents for Channels", pendingConfs)
+	/*
+		if len(pendingConfs) != 0 {
+			if len(pendingConfs) == len(channelConfs) {
+				return channelsReturned, pendingConfs, nil //errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Missing Parents for Channels", pendingConfs)
+			}
+			channelsCreated, pendingConfigs, err := chanMgr.createChannels(ctx, pendingConfs)
+			if err != nil {
+				return nil, nil, errors.WrapError(ctx, err)
+			}
+			for k, v := range channelsCreated {
+				channelsReturned[k] = v
+			}
 		}
-		channelsCreated, err := chanMgr.createChannels(ctx, pendingConfs)
-		if err != nil {
-			return nil, errors.WrapError(ctx, err)
-		}
-		for k, v := range channelsCreated {
-			channelsReturned[k] = v
-		}
-	}
-	return channelsReturned, nil
+		return channelsReturned, pendingConfs, nil*/
 }
 
 func (chanMgr *channelManager) Start(ctx core.ServerContext) error {
@@ -408,6 +433,7 @@ func (chanMgr *channelManager) startModuleInstanceChannels(ctx core.ServerContex
 	return nil
 }
 
+/*
 func (chanMgr *channelManager) createModuleChannels(ctx core.ServerContext, mod *serverModule) error {
 	//channels := make(map[string]elements.Channel)
 	if mod.channels != nil {
@@ -415,15 +441,6 @@ func (chanMgr *channelManager) createModuleChannels(ctx core.ServerContext, mod 
 		if err != nil {
 			return errors.WrapError(ctx, err)
 		}
-		/*for chanName, chanConf := range mod.channels {
-		chnCtx := ctx.SubContext("Create channel:" + chanName)
-		log.Info(chnCtx, "Creating channel ", "mod name", mod.name, "channel", chanName)
-		channel, err := chanMgr.createChannel(chnCtx, chanConf, chanName)
-		if err != nil {
-			return errors.WrapError(chnCtx, err)
-		}
-		channels[chanName] = channel
-		*/
 		for k, v := range mod.channels {
 			chanMgr.channelConfs[k] = v
 		}
@@ -431,3 +448,4 @@ func (chanMgr *channelManager) createModuleChannels(ctx core.ServerContext, mod 
 	//channels do not require initialization... so leaving the stored channels here
 	return nil
 }
+*/

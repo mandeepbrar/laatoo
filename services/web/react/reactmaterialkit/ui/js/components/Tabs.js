@@ -50,7 +50,7 @@ class Tabset extends React.Component {
         </_uikit.Block>
         :
         <_uikit.Block className={this.props.className}>
-          <Tabs value={this.state.value} scrollable onChange={this.handleChange}>
+          <Tabs value={this.state.value} scrollable onChange={this.handleChange} variant="fullWidth">
           {this.props.children}
           </Tabs>
           {this.state.selectedTab}

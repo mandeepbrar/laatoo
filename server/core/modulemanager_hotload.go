@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"laatoo/sdk/common/config"
 	"laatoo/sdk/server/core"
 	"laatoo/sdk/server/errors"
 	"laatoo/sdk/server/log"
@@ -92,7 +93,9 @@ func (modMgr *moduleManager) watchNonCompileFileChanges(ctx core.ServerContext, 
 				closeWatchers()
 				err := modMgr.ReloadModule(reloadCtx, modName, modDir)
 				if err != nil {
-					log.Error(reloadCtx, "Error while reloading module", "Error", err)
+					log.Error(reloadCtx, "**********Hotload unsuccessful ***********", "Error", err)
+				} else {
+					log.Error(ctx, "*************Hotload success ***********", "modName", modName)
 				}
 				log.Error(ctx, "Readding a watcher", "modName", modName)
 				go modMgr.addWatch(ctx, modName, modDir)
@@ -154,13 +157,14 @@ func (modMgr *moduleManager) watchFilesToCompile(ctx core.ServerContext, modName
 		//cmd.Env = env
 		stdoutStderr, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Error(compileCtx, "Error executing command ***********", "err", err, "stdoutStderr", string(stdoutStderr))
+			log.Error(compileCtx, "**********Hotload unsuccessful ***********", "err", err, "stdoutStderr", string(stdoutStderr))
 		} else {
-			log.Error(compileCtx, "Compile success ***********", "stdoutStderr", string(stdoutStderr))
 			reloadCtx := compileCtx.SubContext("Reload module " + modName)
 			err = modMgr.ReloadModule(reloadCtx, modname, modDir)
 			if err != nil {
-				log.Error(reloadCtx, "Error while reloading module", "err", err)
+				log.Error(reloadCtx, "**********Hotload unsuccessful ***********", "Error", err)
+			} else {
+				log.Error(reloadCtx, "*************Hotload success ***********", "modName", modName)
 			}
 		}
 		log.Error(ctx, "Readding a watcher", "modName", modname)
@@ -340,6 +344,9 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 	facManager := ctx.GetServerElement(core.ServerElementFactoryManager).(*factoryManagerProxy).manager
 	createdSvcs := make(map[string]*serviceProxy)
 	createdFacs := make(map[string]*serviceFactoryProxy)
+
+	channelsToCreate := make(map[string]config.Config)
+
 	for modName, modInstance := range createdInstances {
 		log.Info(ctx, "Creating factories of module ", "modName", modName, "modInstance", modInstance)
 		facs, err := facManager.createModuleFactories(ctx, modInstance)
@@ -363,12 +370,39 @@ func (modMgr *moduleManager) loadInstances(ctx core.ServerContext, moduleName, m
 		if err := svcManager.createModuleTasks(ctx, modInstance); err != nil {
 			return nil, err
 		}*/
-		log.Info(ctx, "Creating channels of module ", "modName", modName, "modInstance", modInstance)
-		if err := chnManager.createModuleChannels(ctx, modInstance); err != nil {
-			return nil, err
+
+		if modInstance.channels != nil {
+			for k, v := range modInstance.channels {
+				channelsToCreate[k] = v
+			}
 		}
 	}
-	err := facManager.initializeFactories(ctx, createdFacs)
+
+	_, pendingConfs, err := chnManager.createChannels(ctx, channelsToCreate)
+	if err != nil {
+		return nil, errors.WrapError(ctx, err)
+	}
+	if len(pendingConfs) != 0 {
+		return nil, errors.ThrowError(ctx, errors.CORE_ERROR_BAD_CONF, "Missing Parents for Channels", pendingConfs)
+	}
+
+	/*	log.Info(ctx, "Creating channels ")
+			if err := chnManager.createModuleChannels(ctx, modInstance); err != nil {
+				return nil, err
+			}
+
+		if mod.channels != nil {
+				_, err := chanMgr.createChannels(ctx, mod.channels)
+				if err != nil {
+					return errors.WrapError(ctx, err)
+				}
+				for k, v := range mod.channels {
+					chanMgr.channelConfs[k] = v
+				}
+			}
+	*/
+
+	err = facManager.initializeFactories(ctx, createdFacs)
 	if err != nil {
 		return nil, errors.WrapError(ctx, err)
 	}

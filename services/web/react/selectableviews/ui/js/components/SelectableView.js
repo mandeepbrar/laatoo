@@ -38,7 +38,9 @@ class SelectableView extends React.Component {
             delete this.selectedItems[id]
         }
         console.log("items selected", this.selectedItems)
-        this.props.onChange(Object.values(this.selectedItems), this.props.name)
+        if(this.props.onChange) {
+            this.props.onChange(Object.values(this.selectedItems), this.props.name)
+        }
     }
 
     change = (value, name, evt) => {
@@ -51,7 +53,10 @@ class SelectableView extends React.Component {
         console.log("selectable views", this.props, "context", this.childcontext)
         return (
             <SelectableViewContext.Provider value={this.childcontext}>
-                <Panel type="block" id={this.props.blockid} className=" m20 tableview "/>
+                {
+                    this.props.children? this.props.children:
+                    <Panel type="block" id={this.props.blockid} className=" m20 tableview "/>
+                }
             </SelectableViewContext.Provider>
         )
     }

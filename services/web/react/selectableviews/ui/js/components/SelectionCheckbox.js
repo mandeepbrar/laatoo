@@ -19,7 +19,7 @@ class SelectionCheckbox extends React.Component {
 
     render() {
         return (
-            <_uikit.Checkbox checked={this.state.checked} onChange={this.onChange} {...this.props}/>
+            <_uikit.Checkbox value={this.state.checked} onChange={this.onChange} {...this.props}/>
         )
     }
 }

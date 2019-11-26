@@ -7,3 +7,23 @@
 .horiznavbar {
     @extend .fd, .fdrow;
 }
+
+.vertnavbutton, .horiznavbutton {
+    @extend .centered;
+}
+
+.block {
+    .titlebar {
+      @extend  .w100, .row, .ma0, .between-xs, .middle-xs, .bg-lgrey;
+      .title {
+        @extend  h3, .p10, .middle-xs;
+      }
+      .close {
+        @extend .middle-xs, .nodecoration, .f1, .p10;
+      }
+    }
+    .blockcontent {
+      @extend .p10;
+    }
+  }
+  

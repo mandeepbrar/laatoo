@@ -4,7 +4,7 @@ import React from 'react';
 const CheckboxComp = (props)=> {
   console.log("props of checkbox", props)
   return(
-    <Checkbox  {...props} hintText={props.placeholder} />
+    <Checkbox  {...props} checked={props.value} hintText={props.placeholder} />
   )
 }
 
