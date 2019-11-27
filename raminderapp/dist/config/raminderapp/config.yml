@@ -57,7 +57,7 @@ modules:
     cachefiles: false
   budgetsolnui:
     hotmodule: true
-    hotmodulepath: raminderapp/core/budgetsolnui
+    hotmodulepath: laatoo/raminderapp/core/budgetsolnui
     hotmodcompiler: "/usr/local/bin/node /build/build.js --uionly  --verbose --nobundle"
 moduleinstances:
   filesystemstorage:

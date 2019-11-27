@@ -6,6 +6,7 @@ var initialState = {
 const Interactions = (state, action) => {
   if (action.type) {
     switch (action.type) {
+      case Actions.PAGE_CHANGE: 
       case Actions.LOGOUT: {
         return initialState
       }

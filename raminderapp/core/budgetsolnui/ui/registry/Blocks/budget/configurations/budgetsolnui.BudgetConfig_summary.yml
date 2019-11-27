@@ -8,17 +8,23 @@ Block:
       className: field tablecell 
       body: {{jsreplace "ctx.data.Description"}}
   - Block:
-      className: field tablecell 
-      children:
-      - Action:
-          name: editbudgetconfig
-#          visibility: {{jsreplace "ctx.data.Local"}}
-          params:
-            budgetId: {{jsreplace "ctx.data.Id"}}
-          body: Edit Structure
-      - Action:
-          name: createbudget
-#          visibility: {{jsreplace "ctx.data.Local"}}
-          params:
-            budgetConfigId: {{jsreplace "ctx.data.Id"}}
-          body: Create Budget
+        className: field tablecell right
+        children:
+        - Action:
+            name: editbudgetconfig
+            className: s10
+    #          visibility: {{jsreplace "ctx.data.Local"}}
+            params:
+                budgetId: {{jsreplace "ctx.data.Id"}}
+            children:  
+            - Icon:
+                className: fa fa-pencil f18 black
+        - Action:
+            className: s10
+            name: createbudget
+    #          visibility: {{jsreplace "ctx.data.Local"}}
+            params:
+                budgetConfigId: {{jsreplace "ctx.data.Id"}}
+            children:  
+            - Icon:
+                className: fa fa-briefcase f18 black

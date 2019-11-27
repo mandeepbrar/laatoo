@@ -15,17 +15,17 @@ type BudgetCreationService struct {
 }
 
 func (svc *BudgetCreationService) Invoke(ctx core.RequestContext) error {
-	data, _ := ctx.GetStringsMapParam("Data")
-	log.Info(ctx, "Created budget", "data", data)
-	budgetConf, ok := data["ConfigId"]
+	formdata, _ := ctx.GetStringsMapParam("Data")
+	log.Info(ctx, "Created budget", "data", formdata)
+	budgetConf, ok := formdata["ConfigId"]
 	if !ok {
 		return errors.MissingArg(ctx, "ConfigId")
 	}
-	title, ok := data["Title"]
+	title, ok := formdata["Title"]
 	if !ok {
 		return errors.MissingArg(ctx, "Title")
 	}
-	year, ok := data["Year"]
+	year, ok := formdata["Year"]
 	if !ok {
 		return errors.MissingArg(ctx, "Year")
 	}
@@ -45,6 +45,9 @@ func (svc *BudgetCreationService) Invoke(ctx core.RequestContext) error {
 	budget.Year = year
 	budget.Title = title
 	budget.GLAccounts = make([]*GLAccountLineItem, len(budgetConfig.GLAccounts))
+
+	normalLineItems := make([]data.Storable, 0)
+
 	log.Error(ctx, "adding gl accounts", "accts", budgetConfig.GLAccounts)
 	for i, glacct := range budgetConfig.GLAccounts {
 		log.Error(ctx, "adding gl account", "acct", glacct)
@@ -61,9 +64,38 @@ func (svc *BudgetCreationService) Invoke(ctx core.RequestContext) error {
 		glAcctItem.Code = glacct.Code
 		glAcctItem.Parent = glacct.Parent
 		glAcctItem.Parent.Type = "budgetsolnui.GLAccountLineItem"
+		switch glacct.Type {
+			case "Employee": 
+			{
+
+			}
+			case "Supplier": 
+			{
+				
+			}
+			case "Customer": 
+			{
+				
+			}
+			default: 
+			{
+				normalLiteItemInt, _ := ctx.CreateObject("budgetsolnui.GLNormalLineItem")
+				normalLineItem := normalLiteItemInt.(*GLNormalLineItem)
+				normalLineItem.Title = glacct.Title
+				normalLineItem.Budget = budget.GetId()
+				normalLineItem.LineItem = glAcctItem.GetId()
+				normalLineItems = append(normalLineItems, normalLineItem)
+			}
+		}
 		budget.GLAccounts[i] = glAcctItem
 	}
 	err = svc.BudgetSvc.Save(ctx, budget)
+	if err != nil {
+		return errors.WrapError(ctx, err)
+	}
+
+
+	err = svc.GlAcctNormalItemSvc.CreateMulti(ctx, normalLineItems)
 	if err != nil {
 		return errors.WrapError(ctx, err)
 	}

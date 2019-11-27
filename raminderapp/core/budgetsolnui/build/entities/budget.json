@@ -43,11 +43,10 @@
       "entity": "budgetsolnui.GLAccountLineItem",
       "list": true,
       "widget": {
-        "name": "SelectableView",
-        "module": "selectableviews",
+        "name": "TreeView",
+        "module": "treeviews",
         "props": {
-          "skipLabel": true,
-          "blockid": "selectableglaccounts"
+          "skipLabel": true
         }
       }
     }

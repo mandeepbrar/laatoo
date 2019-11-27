@@ -1,6 +1,8 @@
 import { createAction} from 'uicommon'
 import Actions from './actions'
 import Interactions from './components/Interactions'
+import './reducers/Interactions'
+import './sagas/LaatooActions'
 import { Provider } from 'react-redux';
 import configureStore from './stores';
 import React from 'react';
@@ -99,13 +101,16 @@ function createMessageDialogs(store) {
   Window.handleError = function(errObj, resp) {
     Window.showError(errObj, resp)
   }
-
-  Window.showInteraction = function(interactionType, title, component, onClose, actions, contentStyle, titleStyle) {
-    store.dispatch(createAction(Actions.SHOW_INTERACTION_COMP, {Title: title, Component: component, OnClose: onClose, Actions: actions, ContentStyle: contentStyle, TitleStyle: titleStyle, Type: interactionType}, null))
+  Window.showInteraction = function(interactiontype, title, component, onClose, actions, contentStyle, titleStyle) {
+    store.dispatch(createAction(Actions.SHOW_INTERACTION_COMP, {title, component, onClose, actions, contentStyle, titleStyle, interactiontype}, null))
   }
 
-  Window.closeInteraction = function(interactionType) {
-    store.dispatch(createAction(Actions.CLOSE_INTERACTION_COMP, {Type: interactionType}, null))
+  Window.closeInteraction = function(interactiontype) {
+    store.dispatch(createAction(Actions.CLOSE_INTERACTION_COMP, {interactiontype: interactiontype}, null))
+  }
+
+  Window.executeAction = function(action, params) {
+    store.dispatch(createAction(Actions.LAATOO_ACTION, params, action))    
   }
 
   Window.showDialog = function(title, component, onClose, actions, contentStyle, titleStyle) {

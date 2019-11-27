@@ -29,7 +29,7 @@ class InteractionHandler extends React.Component {
       contentStyle = {minWidth:400, maxWidth: 450}
     }
     let propsForComp = {actions: this.props.actions, title: this.props.title, onClose: this.handleClose, modal: true,
-      contentStyle: contentStyle, open: this.state.open, component:this.props.component}
+      contentStyle: contentStyle, titleStyle: this.props.titleStyle, open: this.state.open, component:this.props.component}
     console.log("about to create element", interactionComp)
     let comp = React.createElement(interactionComp, propsForComp)
     console.log("comp to render", comp)
@@ -58,11 +58,12 @@ const mapStateToProps = (state, ownProps) => {
     }
   }
   return {
-    component: state.Interactions.Content.Component,
-    interactiontype: state.Interactions.Content.Type,
-    actions: state.Interactions.Content.Actions,
-    contentStyle: state.Interactions.Content.ContentStyle,
-    title: state.Interactions.Content.Title,
+    component: state.Interactions.Content.component,
+    interactiontype: state.Interactions.Content.interactiontype,
+    actions: state.Interactions.Content.actions,
+    contentStyle: state.Interactions.Content.contentStyle,
+    titleStyle: state.Interactions.Content.titleStyle,
+    title: state.Interactions.Content.title,
     time: state.Interactions.Time
   }
 }

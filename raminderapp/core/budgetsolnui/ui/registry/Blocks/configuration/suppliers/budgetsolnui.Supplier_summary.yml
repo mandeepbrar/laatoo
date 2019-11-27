@@ -14,4 +14,6 @@ Block:
           name: editsupplier
           params:
             suppId: {{jsreplace "ctx.data.Id"}}
-          body: Edit Supplier
+          children: 
+          - Icon:
+              className: fa fa-pencil f18 black

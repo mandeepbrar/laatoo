@@ -1,7 +1,7 @@
 signin:
   url: "/account"
 openbudgetentry:
-  url: /glentries/:budget
+  url: /budgets/view/:budgetId
 refreshemployeeclassification:
   url: "/employees/classification"
 refreshsuppliers:
@@ -19,7 +19,7 @@ editbudgetconfig:
 newbudgetconfig:
   url: "/budgets/configuration/new"
 createbudget:
-  actiontype: interaction
+  actiontype: openinteraction
   interactiontype: Drawer
   title: Create Budget
   blockid: createbudget
@@ -36,7 +36,7 @@ newsupplier:
 editsupplier:
   url: "/configuration/suppliers/update/:suppId"
 editglaccount:
-  actiontype: interaction
+  actiontype: openinteraction
   interactiontype: Drawer
   title: Add sub accounts
   blockid: addsubentries

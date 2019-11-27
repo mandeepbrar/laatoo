@@ -75,11 +75,7 @@ modules:
       create_selectservice: true
       create_saveservice: true
       create_objectchannel: true
-      list_page: true
-      new_form: true
-      new_form_page: true
       update_form: true
-      update_form_page: true
       list_view: true
   budgetconfig:
     module: entity
