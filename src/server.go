@@ -1,0 +1,37 @@
+package sdk
+
+import (
+	_ "laatoo/sdk/config"
+	_ "laatoo/sdk/server/auth"
+	_ "laatoo/sdk/server/components"
+	_ "laatoo/sdk/server/components/data"
+	_ "laatoo/sdk/server/components/rules"
+	_ "laatoo/sdk/server/components/search"
+	_ "laatoo/sdk/server/core"
+	_ "laatoo/sdk/server/elements"
+	_ "laatoo/sdk/server/errors"
+	_ "laatoo/sdk/server/log"
+	_ "laatoo/sdk/server/registry"
+	_ "laatoo/sdk/utils"
+
+	_ "github.com/blang/semver"
+	_ "github.com/dgrijalva/jwt-go"
+	_ "github.com/fatih/color"
+	_ "github.com/gin-gonic/gin"
+	_ "github.com/gorilla/websocket"
+	_ "github.com/influxdata/go-syslog/rfc5424"
+	_ "github.com/json-iterator/go"
+	_ "github.com/labstack/echo"
+	_ "github.com/mandeepbrar/go-discover"
+	_ "github.com/mholt/archiver"
+	_ "github.com/radovskyb/watcher"
+	_ "github.com/rs/cors"
+	_ "github.com/twinj/uuid"
+	_ "github.com/valyala/fastjson"
+	_ "goji.io"
+
+	_ "golang.org/x/oauth2"
+	_ "google.golang.org/appengine"
+	_ "google.golang.org/grpc"
+	_ "gopkg.in/yaml.v2"
+)
