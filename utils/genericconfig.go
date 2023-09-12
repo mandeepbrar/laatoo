@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/ctx"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/ctx"
 )
 
 type GenericConfig map[string]interface{}

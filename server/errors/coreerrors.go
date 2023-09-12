@@ -2,7 +2,8 @@ package errors
 
 import (
 	"fmt"
-	"laatoo/sdk/ctx"
+
+	"laatoo.io/sdk/ctx"
 )
 
 const (

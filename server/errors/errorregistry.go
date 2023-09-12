@@ -2,14 +2,15 @@ package errors
 
 import (
 	"fmt"
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/log"
 	"runtime/debug"
+
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/log"
 )
 
 type ErrorLevel int
 
-//levels at which error messages can be logged
+// levels at which error messages can be logged
 const (
 	FATAL ErrorLevel = iota
 	ERROR
@@ -18,7 +19,7 @@ const (
 	DEBUG
 )
 
-//error that is registered for an error code
+// error that is registered for an error code
 type Error struct {
 	error
 	InternalErrorCode string
@@ -27,8 +28,8 @@ type Error struct {
 
 var ShowStack = true
 
-//Error handler for interrupting the error process
-//Returns true if the error has been handled
+// Error handler for interrupting the error process
+// Returns true if the error has been handled
 type ErrorHandler func(ctx ctx.Context, err *Error, info ...interface{}) bool
 
 var (
@@ -38,7 +39,7 @@ var (
 	ErrorsHandlersRegister = make(map[string][]ErrorHandler, 20)
 )
 
-//register error code
+// register error code
 func RegisterCode(internalErrorCode string, loglevel ErrorLevel, err error) {
 	ErrorsRegister[internalErrorCode] = &Error{err, internalErrorCode, loglevel}
 }
@@ -47,9 +48,9 @@ func (err *Error) UnderlyingError() error {
 	return err.error
 }
 
-//register error handler for an internal error code
-//handler will be called before throwing an error
-//nil will be retured if an error is handled
+// register error handler for an internal error code
+// handler will be called before throwing an error
+// nil will be retured if an error is handled
 func RegisterErrorHandler(internalErrorCode string, eh ErrorHandler) {
 	val := ErrorsHandlersRegister[internalErrorCode]
 	//add a new array of handlers if it doesnt exist already
@@ -73,8 +74,8 @@ func RethrowError(ctx ctx.Context, internalErrorCode string, err error, info ...
 	return throwError(ctx, registeredErr, err, info...)
 }
 
-//throw a registered error code
-//rethrow an error with an internal error code
+// throw a registered error code
+// rethrow an error with an internal error code
 func throwError(ctx ctx.Context, registeredError *Error, rethrownError error, info ...interface{}) error {
 	var errDetails []interface{}
 	if rethrownError == nil {

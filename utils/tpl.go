@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/log"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/log"
 	"strings"
 	"text/template"
 )

@@ -1,8 +1,8 @@
 package elements
 
 import (
-	"laatoo/sdk/server/components/rules"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/server/components/rules"
+	"laatoo.io/sdk/server/core"
 )
 
 type RulesManager interface {

@@ -1,10 +1,10 @@
 package data
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/constants"
-	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/errors"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/constants"
+	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/errors"
 )
 
 /*

@@ -1,12 +1,12 @@
 package core
 
 import (
-	"laatoo/sdk/config"
+	"laatoo.io/sdk/config"
 )
 
 type ServiceFactoryProvider func(ctx ServerContext, config config.Config) (ServiceFactory, error)
 
-//Service interface that needs to be implemented by any service of a system
+// Service interface that needs to be implemented by any service of a system
 type ServiceFactory interface {
 	ConfigurableObject
 	Describe(ServerContext) error

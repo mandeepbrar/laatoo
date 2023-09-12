@@ -1,6 +1,6 @@
 package core
 
-import "laatoo/sdk/server/auth"
+import "laatoo.io/sdk/server/auth"
 
 type MessageListener func(ctx RequestContext, message *Message, info map[string]interface{}) error
 

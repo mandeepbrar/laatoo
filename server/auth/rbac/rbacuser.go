@@ -1,8 +1,8 @@
 package rbac
 
 import (
-	"laatoo/sdk/server/auth"
-	"laatoo/sdk/server/components/data"
+	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/server/components/data"
 )
 
 type RbacUser interface {

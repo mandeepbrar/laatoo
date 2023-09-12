@@ -1,6 +1,6 @@
 package config
 
-import "laatoo/sdk/ctx"
+import "laatoo.io/sdk/ctx"
 
 //Config Interface used by Laatoo
 type Config interface {

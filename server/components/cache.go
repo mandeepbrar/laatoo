@@ -1,8 +1,9 @@
 package components
 
 import (
-	"laatoo/sdk/server/core"
 	"time"
+
+	"laatoo.io/sdk/server/core"
 )
 
 type CacheComponent interface {

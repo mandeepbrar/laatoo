@@ -1,13 +1,14 @@
 package data
 
 import (
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/log"
 	"time"
+
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/log"
 )
 
-///auditable entities must have UpdatedBy and UpdatedOn fields to support auditing through update queries
+// /auditable entities must have UpdatedBy and UpdatedOn fields to support auditing through update queries
 type Trackable interface {
 	IsNew() bool
 	SetCreatedAt(time.Time)

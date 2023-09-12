@@ -1,8 +1,8 @@
 package core
 
 import (
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/auth"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/auth"
 )
 
 type RequestContext interface {

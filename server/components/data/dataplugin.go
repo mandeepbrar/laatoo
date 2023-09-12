@@ -1,9 +1,9 @@
 package data
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/errors"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/errors"
 )
 
 /*
@@ -90,7 +90,7 @@ func (svc *DataPlugin) Put(ctx core.RequestContext, id string, item Storable) er
 	return svc.PluginDataComponent.Put(ctx, id, item)
 }
 
-//upsert an object ...insert if not there... update if there
+// upsert an object ...insert if not there... update if there
 func (svc *DataPlugin) UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error {
 	return svc.PluginDataComponent.UpsertId(ctx, id, newVals)
 }
@@ -107,22 +107,22 @@ func (svc *DataPlugin) UpdateAll(ctx core.RequestContext, queryCond interface{},
 	return svc.PluginDataComponent.UpdateAll(ctx, queryCond, newVals, getids)
 }
 
-//update objects by ids, fields to be updated should be provided as key value pairs
+// update objects by ids, fields to be updated should be provided as key value pairs
 func (svc *DataPlugin) UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error {
 	return svc.PluginDataComponent.UpdateMulti(ctx, ids, newVals)
 }
 
-//item must support Deleted field for soft deletes
+// item must support Deleted field for soft deletes
 func (svc *DataPlugin) Delete(ctx core.RequestContext, id string) error {
 	return svc.PluginDataComponent.Delete(ctx, id)
 }
 
-//Delete object by ids
+// Delete object by ids
 func (svc *DataPlugin) DeleteMulti(ctx core.RequestContext, ids []string) error {
 	return svc.PluginDataComponent.DeleteMulti(ctx, ids)
 }
 
-//Delete object by condition
+// Delete object by condition
 func (svc *DataPlugin) DeleteAll(ctx core.RequestContext, queryCond interface{}, getids bool) ([]string, error) {
 	return svc.PluginDataComponent.DeleteAll(ctx, queryCond, getids)
 }
@@ -131,22 +131,22 @@ func (svc *DataPlugin) GetById(ctx core.RequestContext, id string) (Storable, er
 	return svc.PluginDataComponent.GetById(ctx, id)
 }
 
-//Get multiple objects by id
+// Get multiple objects by id
 func (svc *DataPlugin) GetMulti(ctx core.RequestContext, ids []string, orderBy interface{}) ([]Storable, error) {
 	return svc.PluginDataComponent.GetMulti(ctx, ids, orderBy)
 }
 
-//Gets the value of a key
+// Gets the value of a key
 func (svc *DataPlugin) GetValue(ctx core.RequestContext, key string) (interface{}, error) {
 	return svc.PluginDataComponent.GetValue(ctx, key)
 }
 
-//Puts the value of a key
+// Puts the value of a key
 func (svc *DataPlugin) PutValue(ctx core.RequestContext, key string, value interface{}) error {
 	return svc.PluginDataComponent.PutValue(ctx, key, value)
 }
 
-//Deletes the key
+// Deletes the key
 func (svc *DataPlugin) DeleteValue(ctx core.RequestContext, key string) error {
 	return svc.PluginDataComponent.DeleteValue(ctx, key)
 }
@@ -175,7 +175,7 @@ func (svc *DataPlugin) GetOne(ctx core.RequestContext, queryCond interface{}) (d
 	return svc.PluginDataComponent.GetOne(ctx, queryCond)
 }
 
-//create condition for passing to data service
+// create condition for passing to data service
 func (svc *DataPlugin) CreateCondition(ctx core.RequestContext, operation ConditionType, args ...interface{}) (interface{}, error) {
 	return svc.PluginDataComponent.CreateCondition(ctx, operation, args...)
 }

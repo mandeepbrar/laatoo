@@ -2,10 +2,11 @@ package utils
 
 import (
 	"io"
-	"laatoo/sdk/constants"
-	"laatoo/sdk/ctx"
 	"path"
 	"path/filepath"
+
+	"laatoo.io/sdk/constants"
+	"laatoo.io/sdk/ctx"
 )
 
 type FileTransform func(io.Reader, io.Writer) error

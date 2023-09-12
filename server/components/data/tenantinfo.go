@@ -1,9 +1,9 @@
 package data
 
 import (
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/auth"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/server/core"
 )
 
 type TenantInfo struct {

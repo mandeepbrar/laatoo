@@ -1,11 +1,11 @@
 package data
 
 import (
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/core"
 )
 
-//Object stored by data service
+// Object stored by data service
 type SoftDeletable interface {
 	IsDeleted() bool
 	SetDeleted(deleted bool)

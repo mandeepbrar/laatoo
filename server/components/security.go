@@ -1,8 +1,8 @@
 package components
 
 import (
-	"laatoo/sdk/server/auth"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/server/core"
 )
 
 type AuthorizationPlugin interface {

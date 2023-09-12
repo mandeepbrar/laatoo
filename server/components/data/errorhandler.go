@@ -2,7 +2,8 @@ package data
 
 import (
 	"fmt"
-	"laatoo/sdk/server/errors"
+
+	"laatoo.io/sdk/server/errors"
 )
 
 const (

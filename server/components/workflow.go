@@ -2,7 +2,8 @@ package components
 
 import (
 	"context"
-	"laatoo/sdk/server/core"
+
+	"laatoo.io/sdk/server/core"
 )
 
 type Workflow func(ctx context.Context, input interface{}) error

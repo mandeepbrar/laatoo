@@ -1,6 +1,6 @@
 package components
 
-import "laatoo/sdk/server/core"
+import "laatoo.io/sdk/server/core"
 
 type Communication struct {
 	Subject     string

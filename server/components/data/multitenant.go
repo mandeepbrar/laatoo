@@ -1,7 +1,7 @@
 package data
 
 import (
-	"laatoo/sdk/server/auth"
+	"laatoo.io/sdk/server/auth"
 )
 
 // Object stored by data service

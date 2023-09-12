@@ -3,7 +3,7 @@ package registry
 /*
 import (
 	"laatoo/framework/core/objects"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/server/core"
 )
 
 func Register(objectName string, obj interface{}) {

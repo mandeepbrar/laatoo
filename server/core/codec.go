@@ -2,7 +2,8 @@ package core
 
 import (
 	"io"
-	"laatoo/sdk/ctx"
+
+	"laatoo.io/sdk/ctx"
 )
 
 type Codec interface {

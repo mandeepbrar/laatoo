@@ -1,6 +1,6 @@
 package search
 
-import "laatoo/sdk/server/core"
+import "laatoo.io/sdk/server/core"
 
 const (
 	CONF_INDEX        = "searchindex"

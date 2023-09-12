@@ -1,6 +1,6 @@
 package core
 
-import "laatoo/sdk/config"
+import "laatoo.io/sdk/config"
 
 type Module interface {
 	ConfigurableObject

@@ -1,8 +1,8 @@
 package components
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/server/core"
 )
 
 type ModInfo struct {

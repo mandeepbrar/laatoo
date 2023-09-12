@@ -1,6 +1,6 @@
 package data
 
-import "laatoo/sdk/server/core"
+import "laatoo.io/sdk/server/core"
 
 type Feature int
 
@@ -32,8 +32,8 @@ const (
 	DATA_TOTALRECS         = "totalrecords"
 )
 
-//Service that provides data from various data sources
-//Service interface that needs to be implemented by any data service
+// Service that provides data from various data sources
+// Service interface that needs to be implemented by any data service
 type DataComponent interface {
 	core.Service
 

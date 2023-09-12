@@ -1,6 +1,6 @@
 package log
 
-import "laatoo/sdk/ctx"
+import "laatoo.io/sdk/ctx"
 
 func Trace(reqContext ctx.Context, msg string, args ...interface{}) {
 	reqContext.LogTrace(msg, args...)

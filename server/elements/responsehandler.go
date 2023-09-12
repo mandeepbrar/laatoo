@@ -1,8 +1,8 @@
 package elements
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/server/core"
 )
 
 type ServiceResponseHandler interface {

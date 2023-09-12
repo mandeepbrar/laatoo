@@ -1,9 +1,9 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/auth"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/auth"
 )
 
 /*application and engine types*/

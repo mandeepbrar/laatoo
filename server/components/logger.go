@@ -1,6 +1,6 @@
 package components
 
-import "laatoo/sdk/ctx"
+import "laatoo.io/sdk/ctx"
 
 type Logger interface {
 	Trace(reqContext ctx.Context, msg string, args ...interface{})

@@ -1,8 +1,9 @@
 package core
 
 import (
-	"laatoo/sdk/utils"
 	"time"
+
+	"laatoo.io/sdk/utils"
 )
 
 type Session interface {

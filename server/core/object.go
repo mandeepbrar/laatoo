@@ -1,17 +1,17 @@
 package core
 
 import (
-	"laatoo/sdk/config"
-	"laatoo/sdk/ctx"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/ctx"
 )
 
-//Creates object
+// Creates object
 type ObjectCreator func(ctx.Context) interface{}
 
-//Creates collection
+// Creates collection
 type ObjectCollectionCreator func(cx ctx.Context, length int) interface{}
 
-//interface that needs to be implemented by any object provider in a system
+// interface that needs to be implemented by any object provider in a system
 type ObjectFactory interface {
 	//Creates object
 	CreateObject(ctx.Context) interface{}

@@ -1,6 +1,6 @@
 package data
 
-import "laatoo/sdk/server/core"
+import "laatoo.io/sdk/server/core"
 
 const (
 	CONF_DATA_SVCS                = "dataservices"

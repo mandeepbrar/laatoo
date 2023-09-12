@@ -1,6 +1,6 @@
 package elements
 
-import "laatoo/sdk/server/core"
+import "laatoo.io/sdk/server/core"
 
 type Module interface {
 	core.ServerElement

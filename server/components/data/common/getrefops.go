@@ -2,11 +2,11 @@ package common
 
 /*
 import (
-	"laatoo/sdk/server/components/data"
-	"laatoo/sdk/config"
-	"laatoo/sdk/server/core"
-	"laatoo/sdk/server/errors"
-	"laatoo/sdk/server/log"
+	"laatoo.io/sdk/server/components/data"
+	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/errors"
+	"laatoo.io/sdk/server/log"
 )
 
 type getRefOperation struct {

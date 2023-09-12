@@ -1,7 +1,7 @@
 package core
 
 import (
-	"laatoo/sdk/config"
+	"laatoo.io/sdk/config"
 )
 
 type Service interface {

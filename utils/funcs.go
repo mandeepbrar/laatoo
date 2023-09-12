@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
-	"laatoo/sdk/config"
 	"math/rand"
 	"reflect"
+
+	"laatoo.io/sdk/config"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -196,10 +197,10 @@ func EncryptPassword(pass string) (string, error) {
 	return string(hash), nil
 }
 
-//object: object for which fields are to be set
-//newvals: values to be set on the object
-//mappings: if fields from the map need to be set to specific fields of the object
-//field processor: if values need to be transformed from the map before being set on the object
+// object: object for which fields are to be set
+// newvals: values to be set on the object
+// mappings: if fields from the map need to be set to specific fields of the object
+// field processor: if values need to be transformed from the map before being set on the object
 func SetObjectFields(ctx interface{}, object interface{}, newVals map[string]interface{},
 	mappings map[string]string, fieldProcessor map[string]LookupFunc) error {
 	entVal := reflect.ValueOf(object).Elem()

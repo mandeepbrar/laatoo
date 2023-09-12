@@ -2,7 +2,8 @@ package components
 
 import (
 	"io"
-	"laatoo/sdk/server/core"
+
+	"laatoo.io/sdk/server/core"
 )
 
 type StorageComponent interface {

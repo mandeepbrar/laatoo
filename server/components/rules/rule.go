@@ -1,7 +1,7 @@
 package rules
 
 import (
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/server/core"
 )
 
 type TriggerType int

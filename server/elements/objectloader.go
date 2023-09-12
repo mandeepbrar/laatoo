@@ -1,8 +1,8 @@
 package elements
 
 import (
-	"laatoo/sdk/ctx"
-	"laatoo/sdk/server/core"
+	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/server/core"
 )
 
 type ObjectLoader interface {
