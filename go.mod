@@ -1,12 +1,12 @@
 module laatoo.io/sdk
 
 require (
+	dario.cat/mergo v1.0.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.15.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gorilla/websocket v1.5.0
-	github.com/imdario/mergo v0.3.6
 	github.com/influxdata/go-syslog v1.0.1
 	github.com/json-iterator/go v1.1.12
 	github.com/labstack/echo v3.3.10+incompatible

@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 )
 
 type StringMap map[string]interface{}
 type StringsMap map[string]string
 
-//Get string configuration value
+// Get string configuration value
 func (smap StringMap) GetString(key string) (string, bool) {
 	val, found := smap[key]
 	if found {
@@ -32,7 +32,7 @@ func (smap StringMap) Clone() StringMap {
 	return res
 }
 
-//Get string configuration value
+// Get string configuration value
 func (smap StringMap) GetBool(key string) (bool, bool) {
 	val, found := smap[key]
 	if found {
