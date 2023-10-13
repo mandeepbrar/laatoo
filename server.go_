@@ -33,5 +33,5 @@ import (
 	_ "golang.org/x/oauth2"
 	_ "google.golang.org/appengine"
 	_ "google.golang.org/grpc"
-	_ "gopkg.in/yaml.v2"
+	_ "gopkg.in/yaml.v3"
 )
