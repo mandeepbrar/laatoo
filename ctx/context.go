@@ -4,6 +4,32 @@ import (
 	"context"
 	"net/http"
 	"time"
+
+	_ "github.com/blang/semver"
+	_ "github.com/dgrijalva/jwt-go"
+	_ "github.com/fatih/color"
+	_ "github.com/gin-gonic/gin"
+	_ "github.com/gorilla/websocket"
+	_ "github.com/influxdata/go-syslog/rfc5424"
+	_ "github.com/json-iterator/go"
+	_ "github.com/labstack/echo"
+	_ "github.com/mandeepbrar/go-discover"
+	_ "github.com/mholt/archiver"
+	_ "github.com/radovskyb/watcher"
+	_ "github.com/rs/cors"
+	_ "github.com/twinj/uuid"
+	_ "github.com/valyala/fastjson"
+	_ "goji.io"
+
+	_ "github.com/buraksezer/olric"
+	_ "github.com/hashicorp/mdns"
+	_ "github.com/json-iterator/go"
+	_ "github.com/lesismal/arpc"
+	_ "github.com/ugorji/go/codec"
+	_ "golang.org/x/oauth2"
+	_ "google.golang.org/appengine"
+	_ "google.golang.org/grpc"
+	_ "gopkg.in/yaml.v3"
 )
 
 type Context interface {
