@@ -30,6 +30,11 @@ import (
 	_ "github.com/valyala/fastjson"
 	_ "goji.io"
 
+	_ "github.com/buraksezer/olric"
+	_ "github.com/hashicorp/mdns"
+	_ "github.com/json-iterator/go"
+	_ "github.com/lesismal/arpc"
+	_ "github.com/ugorji/go/codec"
 	_ "golang.org/x/oauth2"
 	_ "google.golang.org/appengine"
 	_ "google.golang.org/grpc"
