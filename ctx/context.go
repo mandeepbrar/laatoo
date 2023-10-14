@@ -2,7 +2,6 @@ package ctx
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	_ "github.com/blang/semver"
@@ -41,7 +40,6 @@ type Context interface {
 	Get(key string) (interface{}, bool)
 	GetCreationTime() time.Time
 	GetElapsedTime() time.Duration
-	SetGaeReq(req *http.Request)
 	Set(key string, value interface{})
 	SetVals(vals map[string]interface{})
 	GetString(key string) (string, bool)
@@ -51,7 +49,6 @@ type Context interface {
 	SubCtx(name string) Context
 	NewCtx(name string, newpath bool) Context
 	GetAppengineContext() context.Context
-	HttpClient() *http.Client
 	GetOAuthContext() context.Context
 	WithCancel() (Context, context.CancelFunc)
 	WithDeadline(timeout time.Time) (Context, context.CancelFunc)
