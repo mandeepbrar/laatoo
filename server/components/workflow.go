@@ -34,6 +34,7 @@ type WorkflowActivity interface {
 
 type WorkflowManager interface {
 	StartWorkflow(ctx core.RequestContext, workflowName string, initVal config.Config) (WorkflowInstance, error)
+	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
 	RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Workflow) error
 	SendSignal(ctx core.RequestContext, workflowref WorkflowInstance, signal string, signalVal config.Config) error
 	CompleteActivity(ctx core.RequestContext, workflowRef WorkflowInstance, act WorkflowActivity, data config.Config, err error) error
