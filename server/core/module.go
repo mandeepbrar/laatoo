@@ -14,5 +14,6 @@ type Module interface {
 	Permissions(ctx ServerContext) []string
 	Channels(ctx ServerContext) map[string]config.Config
 	Tasks(ctx ServerContext) map[string]config.Config
+	Workflows(ctx ServerContext) map[string]config.Config
 	GetContext(ctx ServerContext, variable string) (interface{}, bool)
 }
