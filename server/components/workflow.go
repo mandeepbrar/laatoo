@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/server/core"
 )
 
 type Workflow interface {
@@ -29,4 +30,11 @@ type WorkflowActivity interface {
 	GetName() string
 	GetActivityType() WorkflowActivityType
 	GetWorkflowInstance() WorkflowInstance
+}
+
+type WorkflowManager interface {
+	StartWorkflow(ctx core.RequestContext, workflowName string, initVal config.Config) (WorkflowInstance, error)
+	RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Workflow) error
+	SendSignal(ctx core.RequestContext, workflowref WorkflowInstance, signal string, signalVal config.Config) error
+	CompleteActivity(ctx core.RequestContext, workflowRef WorkflowInstance, act WorkflowActivity, data config.Config, err error) error
 }
