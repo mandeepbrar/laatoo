@@ -1,6 +1,7 @@
 package core
 
 import (
+	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/auth"
 )
@@ -46,7 +47,7 @@ type RequestContext interface {
 	DecrementInCache(bucket string, key string) error
 	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}
 	PushTask(queue string, task interface{}) error
-	StartWorkflow(workflowName string, initData interface{}) (interface{}, error)
+	StartWorkflow(workflowName string, initData config.Config) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
