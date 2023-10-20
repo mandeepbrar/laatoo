@@ -3,14 +3,30 @@ package components
 import (
 	"context"
 
-	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/config"
 )
 
-type Workflow func(ctx context.Context, input interface{}) error
+type Workflow interface {
+	Spec(ctx context.Context) interface{}
+	GetName() string
+}
 
-type WorkflowService interface {
-	RegisterWorkflow(ctx core.ServerContext, name string, workflowToRegister Workflow) error
-	StartWorkflow(ctx core.RequestContext, workflowName string, initVal interface{}) (interface{}, error)
-	SendSignal(ctx core.RequestContext, workflowref interface{}, signal string, signalVal interface{}) error
-	CompleteActivity(ctx core.RequestContext, workflowRef interface{}, data interface{}, err error) error
+type WorkflowInstance interface {
+	InstanceDetails() config.Config
+	GetWorkflow() string
+	GetStatus() map[string]interface{}
+}
+
+type WorkflowActivityType int
+
+const (
+	MANUAL WorkflowActivityType = iota
+	AUTOMATIC
+)
+
+type WorkflowActivity interface {
+	GetId() string
+	GetName() string
+	GetActivityType() WorkflowActivityType
+	GetWorkflowInstance() WorkflowInstance
 }

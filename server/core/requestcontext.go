@@ -46,6 +46,7 @@ type RequestContext interface {
 	DecrementInCache(bucket string, key string) error
 	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}
 	PushTask(queue string, task interface{}) error
+	StartWorkflow(workflowName string, initData interface{}) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
