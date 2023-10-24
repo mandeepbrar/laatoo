@@ -9,6 +9,7 @@ import (
 
 type Workflow interface {
 	Spec(ctx context.Context) interface{}
+	Type() string
 	GetName() string
 }
 
