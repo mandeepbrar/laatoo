@@ -8,12 +8,14 @@ import (
 )
 
 type Workflow interface {
+	GetId() string
 	Spec(ctx context.Context) interface{}
 	Type() string
 	GetName() string
 }
 
 type WorkflowInstance interface {
+	GetId() string
 	InstanceDetails() config.Config
 	GetWorkflow() string
 	GetStatus() map[string]interface{}
