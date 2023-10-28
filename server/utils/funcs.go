@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"laatoo.io/sdk/config"
-	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/utils"
 )
 
@@ -21,7 +21,7 @@ type LookupFunc func(interface{}, string, interface{}) (interface{}, error)
 // newvals: values to be set on the object
 // mappings: if fields from the map need to be set to specific fields of the object
 // field processor: if values need to be transformed from the map before being set on the object
-func SetObjectFields(ctx core.ServerContext, object interface{}, newVals map[string]interface{},
+func SetObjectFields(ctx ctx.Context, object interface{}, newVals map[string]interface{},
 	mappings map[string]string, fieldProcessor map[string]LookupFunc) error {
 	var err error
 	entVal := reflect.ValueOf(object).Elem()
