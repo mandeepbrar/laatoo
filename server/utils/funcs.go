@@ -15,14 +15,15 @@ type ObjectCreator interface {
 	CreateObject(objectName string) (interface{}, error)
 }*/
 
-//type LookupFunc func(interface{}, string, interface{}) (interface{}, error)
+type LookupFunc func(interface{}, string, interface{}) (interface{}, error)
 
 // object: object for which fields are to be set
 // newvals: values to be set on the object
 // mappings: if fields from the map need to be set to specific fields of the object
 // field processor: if values need to be transformed from the map before being set on the object
 func SetObjectFields(ctx core.ServerContext, object interface{}, newVals map[string]interface{},
-	mappings map[string]string) error { //}, fieldProcessor map[string]LookupFunc) error {
+	mappings map[string]string, fieldProcessor map[string]LookupFunc) error {
+	var err error
 	entVal := reflect.ValueOf(object).Elem()
 	for k, v := range newVals {
 		objField := k
@@ -33,7 +34,7 @@ func SetObjectFields(ctx core.ServerContext, object interface{}, newVals map[str
 				objField = newfld
 			}
 		}
-		/*if fieldProcessor != nil {
+		if fieldProcessor != nil {
 			tfunc, ok := fieldProcessor[objField]
 			if ok {
 				objVal, err = tfunc(ctx, objField, objVal)
@@ -41,7 +42,7 @@ func SetObjectFields(ctx core.ServerContext, object interface{}, newVals map[str
 					return err
 				}
 			}
-		}*/
+		}
 		if objVal == nil {
 			continue
 		}
@@ -75,7 +76,7 @@ func SetObjectFields(ctx core.ServerContext, object interface{}, newVals map[str
 						}
 						structVals, ok := objVal.(map[string]interface{})
 						if ok {
-							err = SetObjectFields(ctx, structobj, structVals, mappings)
+							err = SetObjectFields(ctx, structobj, structVals, mappings, fieldProcessor)
 							if err != nil {
 								return err
 							}

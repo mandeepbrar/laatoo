@@ -115,7 +115,7 @@ func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val c
 	delete(val, "UpdatedBy")
 	delete(val, "CreatedAt")
 	delete(val, "UpdatedAt")
-	return serverutils.SetObjectFields(ctx.ServerContext(), obj, val, nil)
+	return serverutils.SetObjectFields(ctx.ServerContext(), obj, val, nil, nil)
 }
 
 func (si *StorageInfo) IsMultitenant() bool {
