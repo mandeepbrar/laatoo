@@ -15,5 +15,5 @@ type ObjectLoader interface {
 	CreateObjectPointersCollection(ctx ctx.Context, objectName string, length int) (interface{}, error)
 	GetMetaData(ctx ctx.Context, objectName string) (core.Info, error)
 	GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool)
-	List(ctx core.ServerContext) map[string]string
+	List(ctx core.ServerContext) core.StringsMap
 }
