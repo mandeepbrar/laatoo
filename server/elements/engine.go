@@ -8,6 +8,6 @@ import (
 type Engine interface {
 	core.ServerElement
 	GetRootChannel(ctx core.ServerContext) Channel
-	GetRequestParams(ctx core.RequestContext) map[string]interface{}
+	GetRequestParams(ctx core.RequestContext) core.StringMap
 	GetDefaultResponseHandler(ctx core.ServerContext) ServiceResponseHandler
 }

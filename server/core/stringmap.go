@@ -1,8 +1,4 @@
-package utils
-
-import (
-	"dario.cat/mergo"
-)
+package core
 
 type StringMap map[string]interface{}
 type StringsMap map[string]string
@@ -81,7 +77,17 @@ func (smap StringMap) GetStringArray(key string) ([]string, bool) {
 }
 
 func (smap StringMap) AllKeys() []string {
-	return MapKeys(smap)
+	maplen := len(smap)
+	if maplen < 1 {
+		return []string{}
+	}
+	retVal := make([]string, maplen)
+	i := 0
+	for k, _ := range smap {
+		retVal[i] = k
+		i++
+	}
+	return retVal
 }
 
 func (smap StringMap) GetStringMap(key string) (StringMap, bool) {
@@ -130,6 +136,31 @@ func (smap StringMap) GetStringsMap(key string) (StringsMap, bool) {
 	return nil, false
 }
 
+func (smap StringMap) GetMapArray(key string) ([]StringMap, bool) {
+	val, found := smap[key]
+	if found {
+		retVal, cok := val.([]StringMap)
+		if cok {
+			return retVal, true
+		}
+		cArr, cok := val.([]interface{})
+		if !cok {
+			return nil, false
+		}
+		retVal = make([]StringMap, len(cArr))
+		for index, val := range cArr {
+			var gc StringMap
+			gc, ok := val.(StringMap)
+			if !ok {
+				return nil, false
+			}
+			retVal[index] = gc
+		}
+		return retVal, true
+	}
+	return nil, false
+}
+
 func (smap StringMap) Set(key string, val interface{}) {
 	smap[key] = val
 }
@@ -140,34 +171,4 @@ func (smap StringMap) SetVals(vals StringMap) {
 			smap.Set(k, v)
 		}
 	}
-}
-
-func MergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
-	if obj1 == nil {
-		return obj2
-	}
-	if obj2 == nil {
-		return obj1
-	}
-	res := make(map[string]interface{})
-	mergo.Merge(&res, obj1)
-	mergo.Merge(&res, obj2)
-	return res
-}
-
-func ShallowMergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
-	if obj1 == nil {
-		return obj2
-	}
-	if obj2 == nil {
-		return obj1
-	}
-	res := make(map[string]interface{}, len(obj1))
-	for k, v := range obj1 {
-		res[k] = v
-	}
-	for k, v := range obj2 {
-		res[k] = v
-	}
-	return res
 }

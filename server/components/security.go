@@ -6,7 +6,7 @@ import (
 )
 
 type AuthorizationPlugin interface {
-	InitializeProps(ctx core.ServerContext, props map[string]interface{}) error
+	InitializeProps(ctx core.ServerContext, props core.StringMap) error
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 	ListServices(ctx core.ServerContext) []string
 	AuthorizeService(ctx core.RequestContext, module string, service string, permission string) (bool, error)

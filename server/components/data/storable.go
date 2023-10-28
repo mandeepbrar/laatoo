@@ -7,7 +7,7 @@ import (
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/log"
-	"laatoo.io/sdk/utils"
+	serverutils "laatoo.io/sdk/server/utils"
 
 	"github.com/twinj/uuid"
 )
@@ -61,7 +61,7 @@ type Storable interface {
 	GetId() string
 	SetId(string)
 	GetLabel(core.RequestContext, interface{}) string
-	SetValues(core.RequestContext, interface{}, map[string]interface{}) error
+	SetValues(core.RequestContext, interface{}, core.StringMap) error
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
@@ -108,14 +108,14 @@ func (si *StorageInfo) PostSave(ctx core.RequestContext) error {
 func (si *StorageInfo) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
-func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val map[string]interface{}) error {
+func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val core.StringMap) error {
 	delete(val, "Id")
 	delete(val, "IsNew")
 	delete(val, "CreatedBy")
 	delete(val, "UpdatedBy")
 	delete(val, "CreatedAt")
 	delete(val, "UpdatedAt")
-	return utils.SetObjectFields(ctx, obj, val, nil, nil)
+	return serverutils.SetObjectFields(ctx.ServerContext(), obj, val, nil)
 }
 
 func (si *StorageInfo) IsMultitenant() bool {

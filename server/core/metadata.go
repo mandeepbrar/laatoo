@@ -47,10 +47,10 @@ type ServiceFactoryInfo interface {
 type defaultInfo struct {
 	description string
 	objtype     string
-	properties  map[string]interface{}
+	properties  StringMap
 }
 
-func NewInfo(description, objtype string, props map[string]interface{}) Info {
+func NewInfo(description, objtype string, props StringMap) Info {
 	return &defaultInfo{description, objtype, props}
 }
 

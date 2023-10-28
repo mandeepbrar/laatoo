@@ -2,7 +2,7 @@ package config
 
 import "laatoo.io/sdk/ctx"
 
-//Config Interface used by Laatoo
+// Config Interface used by Laatoo
 type Config interface {
 	GetString(ctx ctx.Context, configurationName string) (string, bool)
 	GetBool(ctx ctx.Context, configurationName string) (bool, bool)

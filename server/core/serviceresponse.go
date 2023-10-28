@@ -1,6 +1,8 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	StatusSuccess         = 200
@@ -27,11 +29,11 @@ const (
 func NewServiceResponse(status int, data interface{}) *Response {
 	return newServiceResponse(status, data, nil, nil, true)
 }
-func NewServiceResponseWithInfo(status int, data interface{}, info map[string]interface{}) *Response {
+func NewServiceResponseWithInfo(status int, data interface{}, info StringMap) *Response {
 	return newServiceResponse(status, data, info, nil, false)
 }
 
-func newServiceResponse(status int, data interface{}, info map[string]interface{}, err error, ReturnVal bool) *Response {
+func newServiceResponse(status int, data interface{}, info StringMap, err error, ReturnVal bool) *Response {
 	return &Response{status, data, info, err, ReturnVal}
 }
 
@@ -54,7 +56,7 @@ func FunctionalErrorResponse(err error) *Response {
 	return newServiceResponse(StatusFunctionalError, nil, nil, err, true)
 }
 
-func SuccessResponseWithInfo(data interface{}, info map[string]interface{}) *Response {
+func SuccessResponseWithInfo(data interface{}, info StringMap) *Response {
 	return NewServiceResponseWithInfo(StatusSuccess, data, info)
 }
 func SuccessServeBytes(data []byte) *Response {

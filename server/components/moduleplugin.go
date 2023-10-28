@@ -16,7 +16,7 @@ type ModInfo struct {
 	ModConf            config.Config
 	ModSettings        config.Config
 	Configurations     map[string]core.Configuration
-	ModProps           map[string]interface{}
+	ModProps           core.StringMap
 	IsExtended         bool
 	ExtendedPluginName string
 	ExtendedPluginConf config.Config

@@ -1,6 +1,8 @@
 package core
 
-import "laatoo.io/sdk/config"
+import (
+	"laatoo.io/sdk/config"
+)
 
 type Configuration interface {
 	GetName() string
@@ -16,7 +18,7 @@ type ConfigurableObject interface {
 	AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
 	AddStringConfiguration(ctx ServerContext, name string)
 	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string)
-	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string, defaultValueMap map[string]interface{})
+	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string, defaultValueMap StringMap)
 	GetConfiguration(ctx ServerContext, name string) (interface{}, bool)
 	GetStringConfiguration(ctx ServerContext, name string) (string, bool)
 	GetSecretConfiguration(ctx ServerContext, name string) ([]byte, bool, error)

@@ -8,6 +8,7 @@ import (
 type TaskManager interface {
 	core.ServerElement
 	PushTask(ctx core.RequestContext, queue string, task interface{}) error
+	SubscribeTaskCompletion(queue string, callback func(ctx core.RequestContext, invocationId string, result interface{})) error
 	ProcessTask(ctx core.ServerContext, task *components.Task) (interface{}, error)
 	List(ctx core.ServerContext) map[string]string
 }

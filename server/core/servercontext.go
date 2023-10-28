@@ -63,7 +63,7 @@ type ServerContext interface {
 	GetServiceContext(alias string) (ServerContext, error)
 	//NewContext(name string) ServerContext
 	SubContext(name string) ServerContext
-	GetServerProperties() map[string]interface{}
+	GetServerProperties() StringMap
 	CreateNewRequest(name string, tenant auth.TenantInfo, engine interface{}, engineCtx EngineContext, sessionId string) (RequestContext, error)
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)

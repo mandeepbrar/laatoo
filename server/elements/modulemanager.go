@@ -6,7 +6,7 @@ import (
 
 type ModuleManager interface {
 	core.ServerElement
-	List(ctx core.ServerContext) map[string]string
-	Describe(ctx core.ServerContext, mod string) (map[string]interface{}, error)
+	List(ctx core.ServerContext) core.StringsMap
+	Describe(ctx core.ServerContext, mod string) (core.StringMap, error)
 	ChangeLogger(ctx core.ServerContext, mod string, logLevel string, logFormat string) error
 }

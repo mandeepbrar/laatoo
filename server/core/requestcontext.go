@@ -1,7 +1,6 @@
 package core
 
 import (
-	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/auth"
 )
@@ -10,7 +9,7 @@ type RequestContext interface {
 	ctx.Context
 	ServerContext() ServerContext
 	EngineRequestContext() EngineContext
-	EngineRequestParams() map[string]interface{}
+	EngineRequestParams() StringMap
 	SubContext(name string) RequestContext
 	GetServerElement(elemType ServerElementType) ServerElement
 	//NewContext(name string) RequestContext
@@ -24,11 +23,11 @@ type RequestContext interface {
 	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
-	GetStringMapParam(string) (map[string]interface{}, bool)
-	GetStringsMapParam(string) (map[string]string, bool)
-	Invoke(alias string, params map[string]interface{}) (*Response, error)
-	Forward(string, map[string]interface{}) error
-	ForwardToService(Service, map[string]interface{}) error
+	GetStringMapParam(string) (StringMap, bool)
+	GetStringsMapParam(string) (StringsMap, bool)
+	Invoke(alias string, params StringMap) (*Response, error)
+	Forward(string, StringMap) error
+	ForwardToService(Service, StringMap) error
 	GetUser() auth.User
 	GetTenant() auth.TenantInfo
 	HasPermission(perm string) bool
@@ -39,15 +38,16 @@ type RequestContext interface {
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(bucket string, key string, item interface{}) error
-	PutMultiInCache(bucket string, vals map[string]interface{}) error
+	PutMultiInCache(bucket string, vals StringMap) error
 	GetFromCache(bucket string, key string) (interface{}, bool)
-	GetMultiFromCache(bucket string, keys []string) map[string]interface{}
+	GetMultiFromCache(bucket string, keys []string) StringMap
 	GetObjectFromCache(bucket string, key string, objectType string) (interface{}, bool)
 	IncrementInCache(bucket string, key string) error
 	DecrementInCache(bucket string, key string) error
-	GetObjectsFromCache(bucket string, keys []string, objectType string) map[string]interface{}
-	PushTask(queue string, task interface{}) error
-	StartWorkflow(workflowName string, initData config.Config) (interface{}, error)
+	GetObjectsFromCache(bucket string, keys []string, objectType string) StringMap
+	PushTask(queue string, taskdata interface{}) error
+	SubscribeTaskCompletion(queue string, callback func(ctx RequestContext, invocationId string, result interface{})) error
+	StartWorkflow(workflowName string, initData StringMap) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error

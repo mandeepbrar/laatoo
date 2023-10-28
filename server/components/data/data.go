@@ -1,6 +1,8 @@
 package data
 
-import "laatoo.io/sdk/server/core"
+import (
+	"laatoo.io/sdk/server/core"
+)
 
 type Feature int
 
@@ -65,7 +67,7 @@ type DataComponent interface {
 	//adds an item to an array field
 	AddToArray(ctx core.RequestContext, id string, fieldName string, item interface{}) error
 	//execute function
-	Execute(ctx core.RequestContext, name string, data interface{}, params map[string]interface{}) (interface{}, error)
+	Execute(ctx core.RequestContext, name string, data interface{}, params core.StringMap) (interface{}, error)
 	//Store an object against an id
 	Put(ctx core.RequestContext, id string, item Storable) error
 	//Store multiple objects
@@ -73,15 +75,15 @@ type DataComponent interface {
 	//Store multiple objects
 	PutMulti(ctx core.RequestContext, items []Storable) error
 	//upsert an object by id, fields to be updated should be provided as key value pairs
-	UpsertId(ctx core.RequestContext, id string, newVals map[string]interface{}) error
+	UpsertId(ctx core.RequestContext, id string, newVals core.StringMap) error
 	//upsert by condition
-	Upsert(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error)
+	Upsert(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error)
 	//update objects by ids, fields to be updated should be provided as key value pairs
-	UpdateMulti(ctx core.RequestContext, ids []string, newVals map[string]interface{}) error
+	UpdateMulti(ctx core.RequestContext, ids []string, newVals core.StringMap) error
 	//update an object by ids, fields to be updated should be provided as key value pairs
-	Update(ctx core.RequestContext, id string, newVals map[string]interface{}) error
+	Update(ctx core.RequestContext, id string, newVals core.StringMap) error
 	//update with condition
-	UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals map[string]interface{}, getids bool) ([]string, error)
+	UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error)
 	//Delete an object by id
 	Delete(ctx core.RequestContext, id string) error
 	//Delete object by ids
@@ -103,7 +105,7 @@ type DataComponent interface {
 
 	//Count all object with given condition
 	Count(ctx core.RequestContext, queryCond interface{}) (count int, err error)
-	CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res map[string]interface{}, err error)
+	CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res core.StringMap, err error)
 
 	Transaction(ctx core.RequestContext, callback func(ctx core.RequestContext) error) error
 

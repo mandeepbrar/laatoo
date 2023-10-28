@@ -8,12 +8,13 @@ import (
 type Task struct {
 	Queue  string
 	Data   []byte
+	Id     string
 	User   auth.User
 	Tenant auth.TenantInfo
 }
 
 type TaskQueue interface {
-	PushTask(ctx core.RequestContext, queue string, task *Task) error
+	PushTask(ctx core.RequestContext, task *Task) error
 }
 
 type TaskServer interface {

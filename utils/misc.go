@@ -12,11 +12,6 @@ import (
 	"path/filepath"
 )
 
-type ObjectCreator interface {
-	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)
-	CreateObject(objectName string) (interface{}, error)
-}
-
 func FileExists(file string) (bool, os.FileInfo, error) {
 	inf, err := os.Stat(file)
 	return err == nil, inf, err
