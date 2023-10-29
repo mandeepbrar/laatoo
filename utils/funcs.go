@@ -4,7 +4,6 @@ import (
 	"math/rand"
 	"reflect"
 
-	"dario.cat/mergo"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -168,34 +167,4 @@ func EncryptPassword(pass string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
-}
-
-func MergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
-	if obj1 == nil {
-		return obj2
-	}
-	if obj2 == nil {
-		return obj1
-	}
-	res := make(map[string]interface{})
-	mergo.Merge(&res, obj1)
-	mergo.Merge(&res, obj2)
-	return res
-}
-
-func ShallowMergeMaps(obj1, obj2 map[string]interface{}) map[string]interface{} {
-	if obj1 == nil {
-		return obj2
-	}
-	if obj2 == nil {
-		return obj1
-	}
-	res := make(map[string]interface{}, len(obj1))
-	for k, v := range obj1 {
-		res[k] = v
-	}
-	for k, v := range obj2 {
-		res[k] = v
-	}
-	return res
 }
