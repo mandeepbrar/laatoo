@@ -182,10 +182,10 @@ func MergeMaps(obj1, obj2 StringMap) StringMap {
 	if obj2 == nil {
 		return obj1
 	}
-	res := make(StringMap)
-	mergo.Merge(&res, obj1)
-	mergo.Merge(&res, obj2)
-	return res
+	res := make(map[string]interface{})
+	mergo.Merge(&res, map[string]interface{}(obj1))
+	mergo.Merge(&res, map[string]interface{}(obj2))
+	return StringMap(res)
 }
 
 func ShallowMergeMaps(obj1, obj2 StringMap) StringMap {
