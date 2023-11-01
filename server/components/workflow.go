@@ -3,7 +3,6 @@ package components
 import (
 	"context"
 
-	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/server/core"
 )
 
@@ -33,5 +32,5 @@ type WorkflowManager interface {
 	StartWorkflow(ctx core.RequestContext, workflowName string, initVal core.StringMap) (WorkflowInstance, error)
 	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
 	SendSignal(ctx core.RequestContext, workflowref WorkflowInstance, signal string, signalVal core.StringMap) error
-	CompleteActivity(ctx core.RequestContext, workflowRef WorkflowInstance, actId string,, data core.StringMap, err error) error
+	CompleteActivity(ctx core.RequestContext, workflowRef WorkflowInstance, actId string, data core.StringMap, err error) error
 }
