@@ -7,6 +7,7 @@ const (
 	CONF_BASE_SVC                 = "baseservice"
 	CONF_DATA_OBJECT              = "object"
 	CONF_DATA_POSTSAVE            = "postsave"
+	CONF_DATA_WORKFLOW_ENABLED    = "workflow"
 	CONF_DATA_POSTLOAD            = "postload"
 	CONF_DATA_MULTITENANT         = "multitenant"
 	CONF_DATA_POSTUPDATE          = "postupdate"

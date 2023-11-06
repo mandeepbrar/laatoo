@@ -51,6 +51,7 @@ type StorableConfig struct {
 	Collection        string
 	Cacheable         bool
 	RefOps            bool
+	Workflow          bool
 	Multitenant       bool
 }
 

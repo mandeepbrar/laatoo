@@ -1,9 +1,13 @@
 package data
 
 import (
+	"fmt"
+
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/constants"
+	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/elements"
 	"laatoo.io/sdk/server/errors"
 )
 
@@ -23,6 +27,7 @@ type BaseComponent struct {
 	PostSave        bool
 	PostLoad        bool
 	PostUpdate      bool
+	Workflow        bool
 	Multitenant     bool
 	SoftDeleteField string
 	EmbeddedSearch  bool
@@ -37,7 +42,8 @@ func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
 	bc.AddOptionalConfigurations(ctx, map[string]string{CONF_DATA_AUDITABLE: constants.OBJECTTYPE_BOOL, CONF_DATA_POSTUPDATE: constants.OBJECTTYPE_BOOL,
 		CONF_DATA_EMBEDDED_DOC_SEARCH: constants.OBJECTTYPE_BOOL, CONF_DATA_POSTSAVE: constants.OBJECTTYPE_BOOL, CONF_DATA_PRESAVE: constants.OBJECTTYPE_BOOL,
-		CONF_DATA_POSTLOAD: constants.OBJECTTYPE_BOOL, CONF_DATA_MULTITENANT: constants.OBJECTTYPE_BOOL}, nil)
+		CONF_DATA_POSTLOAD: constants.OBJECTTYPE_BOOL, CONF_DATA_MULTITENANT: constants.OBJECTTYPE_BOOL,
+		CONF_DATA_WORKFLOW_ENABLED: constants.OBJECTTYPE_BOOL}, nil)
 	return nil
 }
 
@@ -97,6 +103,13 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 		bc.Multitenant = multitenant
 	} else {
 		bc.Multitenant = bc.ObjectConfig.Multitenant
+	}
+
+	workflow, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_WORKFLOW_ENABLED)
+	if ok {
+		bc.Workflow = workflow
+	} else {
+		bc.Workflow = bc.ObjectConfig.Workflow
 	}
 
 	return nil
@@ -341,6 +354,24 @@ func (bc *BaseComponent) ValidateTenant(ctx core.RequestContext, stor Storable) 
 		}
 	}
 	return false
+}
+
+// supported features
+func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable) (components.WorkflowInstance, error) {
+	if !bc.Workflow {
+		return nil, nil
+	}
+	workflowManager := ctx.GetServerElement(core.ServerElementWorkflowManager).(elements.WorkflowManager)
+	workflowName := fmt.Sprintf("%s_workflow", bc.Object)
+	if workflowManager.IsWorkflowRegistered(ctx.ServerContext(), workflowName) {
+		ins, err := ctx.StartWorkflow(workflowName, core.StringMap{"data": stor})
+		if err != nil {
+			return nil, errors.WrapError(ctx, err)
+		}
+		return ins.(components.WorkflowInstance), nil
+
+	}
+	return nil, nil
 }
 
 /*
