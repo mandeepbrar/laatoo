@@ -13,11 +13,8 @@ type Task struct {
 	Tenant auth.TenantInfo
 }
 
-type TaskQueue interface {
+type TaskManager interface {
 	PushTask(ctx core.RequestContext, task *Task) error
-}
-
-type TaskServer interface {
 	SubsribeQueue(ctx core.ServerContext, queue string) error
 	UnsubsribeQueue(ctx core.ServerContext, queue string) error
 }
