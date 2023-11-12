@@ -41,6 +41,7 @@ const (
 	ServerElementCommunicator
 	ServerElementSecretsManager
 	ServerElementWorkflowManager
+	ServerElementActivityManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
