@@ -47,7 +47,7 @@ type RequestContext interface {
 	GetObjectsFromCache(bucket string, keys []string, objectType string) StringMap
 	PushTask(queue string, taskdata interface{}) error
 	SubscribeTaskCompletion(queue string, callback func(ctx RequestContext, invocationId string, result interface{})) error
-	StartWorkflow(workflowName string, initData StringMap) (interface{}, error)
+	StartWorkflow(workflowName string, initData StringMap, insconf StringMap) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
