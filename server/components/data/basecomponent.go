@@ -357,14 +357,14 @@ func (bc *BaseComponent) ValidateTenant(ctx core.RequestContext, stor Storable) 
 }
 
 // supported features
-func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable) (components.WorkflowInstance, error) {
+func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, insConf core.StringMap) (components.WorkflowInstance, error) {
 	if !bc.Workflow {
 		return nil, nil
 	}
 	workflowManager := ctx.GetServerElement(core.ServerElementWorkflowManager).(elements.WorkflowManager)
 	workflowName := fmt.Sprintf("%s_workflow", bc.Object)
 	if workflowManager.IsWorkflowRegistered(ctx.ServerContext(), workflowName) {
-		ins, err := ctx.StartWorkflow(workflowName, core.StringMap{"data": stor})
+		ins, err := ctx.StartWorkflow(workflowName, core.StringMap{"data": stor}, insConf)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}
