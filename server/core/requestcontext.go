@@ -1,6 +1,7 @@
 package core
 
 import (
+	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/auth"
 )
@@ -23,6 +24,8 @@ type RequestContext interface {
 	GetParamValue(string) (interface{}, bool)
 	GetIntParam(string) (int, bool)
 	GetStringParam(string) (string, bool)
+	GetConfigParam(string) (config.Config, bool)
+	GetConfigArrParam(string) ([]config.Config, bool)
 	GetStringMapParam(string) (StringMap, bool)
 	GetStringsMapParam(string) (StringsMap, bool)
 	Invoke(alias string, params StringMap) (*Response, error)
