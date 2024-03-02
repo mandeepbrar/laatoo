@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
@@ -113,9 +114,10 @@ func GetRegisteredName(typ reflect.Type) (regName string, isptr bool) {
 		}
 		break
 	}
+
 	pkg := typ.PkgPath()
 	if pkg != "" {
-		regName = fmt.Sprintf("%s.%s", typ.PkgPath(), typ.Name())
+		regName = fmt.Sprintf("%s.%s", strings.ReplaceAll(typ.PkgPath(), "/", "."), typ.Name())
 	} else {
 		regName = typ.Name()
 	}
