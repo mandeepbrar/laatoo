@@ -20,11 +20,12 @@ type WorkflowInstance interface {
 	InitData() core.StringMap
 }
 
-type WorkflowActivityType int
+type WorkflowActivityType string
 
 const (
-	MANUAL WorkflowActivityType = iota
-	AUTOMATIC
+	MANUAL    WorkflowActivityType = "manual"
+	AUTOMATIC WorkflowActivityType = "automatic"
+	DECISION  WorkflowActivityType = "decision"
 )
 
 type WorkflowManager interface {
