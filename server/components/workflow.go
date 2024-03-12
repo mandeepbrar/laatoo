@@ -32,6 +32,6 @@ type WorkflowManager interface {
 	LoadWorkflows(ctx core.ServerContext, dir string) (map[string]Workflow, error)
 	StartWorkflow(ctx core.RequestContext, workflowName string, initVal core.StringMap, insconf core.StringMap) (WorkflowInstance, error)
 	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
-	SendSignal(ctx core.RequestContext, workflowref WorkflowInstance, signal string, signalVal core.StringMap) error
-	CompleteActivity(ctx core.RequestContext, workflowRef WorkflowInstance, actId string, data core.StringMap, err error) error
+	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal core.StringMap) error
+	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data core.StringMap, err error) error
 }
