@@ -11,13 +11,14 @@ type Service interface {
 	Start(ctx ServerContext) error
 	Stop(ctx ServerContext) error
 	Unload(ctx ServerContext) error
-	AddParams(ServerContext, map[string]string, bool) error
+	AddParams(ServerContext, map[string]DataType, bool) error
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
 	AddStringParam(ctx ServerContext, name string)
-	AddParam(ctx ServerContext, name string, datatype string, collection, required, stream bool) error
-	AddParamWithType(ctx ServerContext, name string, datatype string) error
-	AddOptionalParamWithType(ctx ServerContext, name string, datatype string) error
-	AddCollectionParams(ctx ServerContext, params map[string]string) error
+	AddCustomObjectParam(ctx ServerContext, name string, customObjectType string, collection, required, stream bool) error
+	AddParam(ctx ServerContext, name string, datatype DataType, collection, required, stream bool) error
+	AddParamWithType(ctx ServerContext, name string, datatype DataType) error
+	AddOptionalParamWithType(ctx ServerContext, name string, datatype DataType) error
+	AddCollectionParams(ctx ServerContext, params map[string]DataType) error
 	//	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
 	//	SetResponseType(ctx ServerContext, stream bool)
 	SetDescription(ServerContext, string)
@@ -36,7 +37,7 @@ type Param interface {
 	IsCollection() bool
 	IsStream() bool
 	IsRequired() bool
-	GetDataType() string
+	GetDataType() DataType
 	GetValue() interface{}
 }
 

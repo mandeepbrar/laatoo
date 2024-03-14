@@ -6,8 +6,8 @@ type MetaDataProvider interface {
 	CreateModuleInfo(name, description string, configurations []Configuration) ModuleInfo
 	CreateRequestInfo(params map[string]Param) RequestInfo
 	CreateResponseInfo(params map[string]Param) ResponseInfo
-	CreateConfiguration(name, conftype string, required bool, defaultValue interface{}, varToSet string) Configuration
-	CreateParam(ctx ServerContext, name, paramtype string, collectio, isStream bool, required bool) (Param, error)
+	CreateConfiguration(name string, conftype DataType, required bool, defaultValue interface{}, varToSet string) Configuration
+	CreateParam(ctx ServerContext, name string, paramtype DataType, customObjectType string, collectio, isStream bool, required bool) (Param, error)
 }
 
 type Info interface {

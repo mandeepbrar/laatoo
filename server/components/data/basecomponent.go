@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"laatoo.io/sdk/config"
-	"laatoo.io/sdk/constants"
 	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/elements"
@@ -40,10 +39,10 @@ func (bc *BaseComponent) SetImpl(impl DataComponent) {
 func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.SetComponent(ctx, true)
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
-	bc.AddOptionalConfigurations(ctx, map[string]string{CONF_DATA_AUDITABLE: constants.OBJECTTYPE_BOOL, CONF_DATA_POSTUPDATE: constants.OBJECTTYPE_BOOL,
-		CONF_DATA_EMBEDDED_DOC_SEARCH: constants.OBJECTTYPE_BOOL, CONF_DATA_POSTSAVE: constants.OBJECTTYPE_BOOL, CONF_DATA_PRESAVE: constants.OBJECTTYPE_BOOL,
-		CONF_DATA_POSTLOAD: constants.OBJECTTYPE_BOOL, CONF_DATA_MULTITENANT: constants.OBJECTTYPE_BOOL,
-		CONF_DATA_WORKFLOW_ENABLED: constants.OBJECTTYPE_BOOL}, nil)
+	bc.AddOptionalConfigurations(ctx, map[string]core.DataType{CONF_DATA_AUDITABLE: core.Bool, CONF_DATA_POSTUPDATE: core.Bool,
+		CONF_DATA_EMBEDDED_DOC_SEARCH: core.Bool, CONF_DATA_POSTSAVE: core.Bool, CONF_DATA_PRESAVE: core.Bool,
+		CONF_DATA_POSTLOAD: core.Bool, CONF_DATA_MULTITENANT: core.Bool,
+		CONF_DATA_WORKFLOW_ENABLED: core.Bool}, nil)
 	return nil
 }
 

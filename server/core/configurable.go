@@ -9,7 +9,7 @@ type Configuration interface {
 	IsRequired() bool
 	GetDefaultValue() interface{}
 	GetValue() interface{}
-	GetType() string
+	GetType() DataType
 }
 
 type ConfigurableObject interface {
@@ -17,8 +17,8 @@ type ConfigurableObject interface {
 	GetConfigurations() map[string]Configuration
 	AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
 	AddStringConfiguration(ctx ServerContext, name string)
-	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string)
-	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]string, defaultValueMap StringMap)
+	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]DataType)
+	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]DataType, defaultValueMap StringMap)
 	GetConfiguration(ctx ServerContext, name string) (interface{}, bool)
 	GetStringConfiguration(ctx ServerContext, name string) (string, bool)
 	GetSecretConfiguration(ctx ServerContext, name string) ([]byte, bool, error)
