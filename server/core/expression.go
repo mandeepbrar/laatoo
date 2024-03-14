@@ -9,6 +9,7 @@ type Expression interface {
 	SetManagerData(mgrData interface{})
 	GetManagerData() interface{}
 	GetDataType() datatypes.DataType
+	SetDataType(datatypes.DataType)
 	GetValue(ctx RequestContext, vars StringMap) (interface{}, error)
 }
 
@@ -34,6 +35,10 @@ func (expr *GenericExpression) GetExpression() string {
 func (expr *GenericExpression) GetDataType() datatypes.DataType {
 	return expr.DType
 }
+func (expr *GenericExpression) SetDataType(dt datatypes.DataType) {
+	expr.DType = dt
+}
+
 func (expr *GenericExpression) SetManagerData(mgrData interface{}) {
 	expr.mgrData = mgrData
 }
