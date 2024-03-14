@@ -2,9 +2,45 @@ package core
 
 import "laatoo.io/sdk/datatypes"
 
-type Expression struct {
+type Expression interface {
+	IsStaticValue() bool
+	IsExpression() bool
+	GetExpression() string
+	SetManagerData(mgrData interface{})
+	GetManagerData() interface{}
+	GetDataType() datatypes.DataType
+	GetValue(ctx RequestContext, vars StringMap) (interface{}, error)
+}
+
+type GenericExpression struct {
 	Value      interface{}
 	Expression string
-	Type       string
+	mgrData    interface{}
 	DType      datatypes.DataType
+}
+
+func (expr *GenericExpression) IsStaticValue() bool {
+	return expr.Expression == ""
+}
+
+func (expr *GenericExpression) IsExpression() bool {
+	return expr.Expression != ""
+}
+
+func (expr *GenericExpression) GetExpression() string {
+	return expr.Expression
+}
+
+func (expr *GenericExpression) GetDataType() datatypes.DataType {
+	return expr.DType
+}
+func (expr *GenericExpression) SetManagerData(mgrData interface{}) {
+	expr.mgrData = mgrData
+}
+func (expr *GenericExpression) GetManagerData() interface{} {
+	return expr.mgrData
+}
+
+func (expr *GenericExpression) GetValue(ctx RequestContext, vars StringMap) (interface{}, error) {
+	return ctx.GetExpressionValue(expr, vars)
 }

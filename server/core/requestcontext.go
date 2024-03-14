@@ -55,5 +55,6 @@ type RequestContext interface {
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
 	GetRegName(object interface{}) (string, bool, bool)
+	GetExpressionValue(expression Expression, vars StringMap) (interface{}, error)
 	CompleteRequest()
 }
