@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/auth"
 )
 
@@ -76,7 +77,7 @@ type ServerContext interface {
 	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error
 	CreateConfig() config.Config
 	GetCodec(encoding string) (Codec, bool)
-	RegisterExpression(expression Expression) error
+	RegisterExpression(expression Expression, dtype datatypes.DataType) error
 	ReadConfigMap(cfg map[string]interface{}) (config.Config, error)
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
