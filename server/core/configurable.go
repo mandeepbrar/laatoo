@@ -2,6 +2,7 @@ package core
 
 import (
 	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/datatypes"
 )
 
 type Configuration interface {
@@ -9,7 +10,7 @@ type Configuration interface {
 	IsRequired() bool
 	GetDefaultValue() interface{}
 	GetValue() interface{}
-	GetType() DataType
+	GetType() datatypes.DataType
 }
 
 type ConfigurableObject interface {
@@ -17,8 +18,8 @@ type ConfigurableObject interface {
 	GetConfigurations() map[string]Configuration
 	AddStringConfigurations(ctx ServerContext, names []string, defaultValues []string)
 	AddStringConfiguration(ctx ServerContext, name string)
-	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]DataType)
-	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]DataType, defaultValueMap StringMap)
+	AddConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]datatypes.DataType)
+	AddOptionalConfigurations(ctx ServerContext, requiredConfigTypeMap map[string]datatypes.DataType, defaultValueMap StringMap)
 	GetConfiguration(ctx ServerContext, name string) (interface{}, bool)
 	GetStringConfiguration(ctx ServerContext, name string) (string, bool)
 	GetSecretConfiguration(ctx ServerContext, name string) ([]byte, bool, error)

@@ -2,6 +2,7 @@ package core
 
 import (
 	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/datatypes"
 )
 
 type Service interface {
@@ -11,14 +12,14 @@ type Service interface {
 	Start(ctx ServerContext) error
 	Stop(ctx ServerContext) error
 	Unload(ctx ServerContext) error
-	AddParams(ServerContext, map[string]DataType, bool) error
+	AddParams(ServerContext, map[string]datatypes.DataType, bool) error
 	AddStringParams(ctx ServerContext, names []string, defaultValues []string)
 	AddStringParam(ctx ServerContext, name string)
 	AddCustomObjectParam(ctx ServerContext, name string, customObjectType string, collection, required, stream bool) error
-	AddParam(ctx ServerContext, name string, datatype DataType, collection, required, stream bool) error
-	AddParamWithType(ctx ServerContext, name string, datatype DataType) error
-	AddOptionalParamWithType(ctx ServerContext, name string, datatype DataType) error
-	AddCollectionParams(ctx ServerContext, params map[string]DataType) error
+	AddParam(ctx ServerContext, name string, datatype datatypes.DataType, collection, required, stream bool) error
+	AddParamWithType(ctx ServerContext, name string, datatype datatypes.DataType) error
+	AddOptionalParamWithType(ctx ServerContext, name string, datatype datatypes.DataType) error
+	AddCollectionParams(ctx ServerContext, params map[string]datatypes.DataType) error
 	//	SetRequestType(ctx ServerContext, datatype string, collection bool, stream bool)
 	//	SetResponseType(ctx ServerContext, stream bool)
 	SetDescription(ServerContext, string)
@@ -37,7 +38,7 @@ type Param interface {
 	IsCollection() bool
 	IsStream() bool
 	IsRequired() bool
-	GetDataType() DataType
+	GetDataType() datatypes.DataType
 	GetValue() interface{}
 }
 

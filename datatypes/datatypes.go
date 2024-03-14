@@ -1,4 +1,4 @@
-package core
+package datatypes
 
 import (
 	"laatoo.io/sdk/constants"
