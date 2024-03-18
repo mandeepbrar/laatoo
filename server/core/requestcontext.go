@@ -56,5 +56,6 @@ type RequestContext interface {
 	SendCommunication(communication interface{}) error
 	GetRegName(object interface{}) (string, bool, bool)
 	GetExpressionValue(expression Expression, vars StringMap) (interface{}, error)
+	InvokeActivity(activity string, params StringMap) (interface{}, error)
 	CompleteRequest()
 }
