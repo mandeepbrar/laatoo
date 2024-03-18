@@ -7,5 +7,6 @@ import (
 
 type ActivityManager interface {
 	core.ServerElement
-	components.ActivityManager
+	GetActivity(ctx core.ServerContext, alias string) (components.Activity, error)
+	InvokeActivity(ctx core.RequestContext, activity string, params core.StringMap) (interface{}, error)
 }
