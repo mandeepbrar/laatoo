@@ -10,7 +10,8 @@ type Activity interface {
 }
 
 type ActivityManager interface {
-	LoadActivities(ctx core.ServerContext, dir string) (map[string]Activity, error)
+	Load(ctx core.ServerContext, dir string) error
 	GetActivity(ctx core.ServerContext, alias string) (Activity, error)
+	RegisterActivity(ctx core.ServerContext, alias string, act Activity) error
 	InvokeActivity(ctx core.RequestContext, act Activity, args ...interface{}) (interface{}, error)
 }
