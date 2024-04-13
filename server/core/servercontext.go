@@ -43,6 +43,7 @@ const (
 	ServerElementSecretsManager
 	ServerElementWorkflowManager
 	ServerElementActivityManager
+	ServerElementScriptManager
 	ServerElementExpressionManager
 	ServerElementOpen1
 	ServerElementOpen2

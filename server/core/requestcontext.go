@@ -57,5 +57,6 @@ type RequestContext interface {
 	GetRegName(object interface{}) (string, bool, bool)
 	GetExpressionValue(expression Expression, vars StringMap) (interface{}, error)
 	InvokeActivity(activity string, params ...interface{}) (interface{}, error)
+	InvokeScript(script string, params ...interface{}) (interface{}, error)
 	CompleteRequest()
 }
