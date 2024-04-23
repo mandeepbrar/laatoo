@@ -13,11 +13,12 @@ const (
 	UpdateDataset                = "UpdateDataset"
 	InvokeScript                 = "InvokeScript"
 	InvokeActivity               = "InvokeActivity"
+	InvokeService                = "InvokeService"
 	ValidateArguments            = "ValidateArguments"
 )
 
 type Action struct {
-	StepType   ActionType
-	Condition  *GenericExpression
-	StepConfig *config.GenericConfig
+	Type      ActionType
+	Condition *GenericExpression
+	Config    *config.GenericConfig
 }
