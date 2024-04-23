@@ -16,8 +16,8 @@ const (
 	ValidateArguments            = "ValidateArguments"
 )
 
-type Action interface {
-	GetActionType() ActionType
-	GetConfig() config.Config
-	GetCondtion() string
+type Action struct {
+	StepType   ActionType
+	Condition  *GenericExpression
+	StepConfig *config.GenericConfig
 }

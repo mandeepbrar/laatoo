@@ -58,6 +58,6 @@ type RequestContext interface {
 	GetExpressionValue(expression Expression, vars StringMap) (interface{}, error)
 	InvokeActivity(activity string, params StringMap) (interface{}, error)
 	InvokeScript(script string, params StringMap) (interface{}, error)
-	ExectueAction(action Action, params StringMap) (interface{}, error)
+	ExectueAction(action *Action, params StringMap) (interface{}, error)
 	CompleteRequest()
 }
