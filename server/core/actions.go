@@ -1,21 +1,12 @@
 package core
 
-import "laatoo.io/sdk/config"
+import (
+	"laatoo.io/sdk/config"
+)
 
 type ActionType string
 
-const (
-	Transform         ActionType = "Transform"
-	Notify                       = "Notify"
-	SaveData                     = "SaveData"
-	StartWorkflow                = "StartWorkflow"
-	DeleteData                   = "DeleteData"
-	UpdateDataset                = "UpdateDataset"
-	InvokeScript                 = "InvokeScript"
-	InvokeActivity               = "InvokeActivity"
-	InvokeService                = "InvokeService"
-	ValidateArguments            = "ValidateArguments"
-)
+type ActionExecutor func(ctx RequestContext, action *Action, params StringMap)
 
 type Action struct {
 	Type      ActionType
