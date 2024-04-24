@@ -6,7 +6,7 @@ import (
 
 type ActionType string
 
-type ActionExecutor func(ctx RequestContext, action *Action, params StringMap)
+type ActionExecutor func(ctx RequestContext, action *Action, params StringMap) (interface{}, error)
 
 type Action struct {
 	Type      ActionType
