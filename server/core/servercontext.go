@@ -45,6 +45,7 @@ const (
 	ServerElementActivityManager
 	ServerElementScriptManager
 	ServerElementExpressionManager
+	ServerElementActionsManager
 	ServerElementOpen1
 	ServerElementOpen2
 	ServerElementOpen3
@@ -83,7 +84,6 @@ type ServerContext interface {
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)
 	ReadConfig(file string, funcs map[string]interface{}) (config.Config, error)
 	GetRegName(object interface{}) (string, bool, bool)
-	RegisterAction(actionType ActionType, executor ActionExecutor)
 	GetLogLevel() int
 	GetLogFormat() string
 	GetTenant() auth.TenantInfo
