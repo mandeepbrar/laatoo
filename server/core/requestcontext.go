@@ -4,13 +4,14 @@ import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/utils"
 )
 
 type RequestContext interface {
 	ctx.Context
 	ServerContext() ServerContext
 	EngineRequestContext() EngineContext
-	EngineRequestParams() StringMap
+	EngineRequestParams() utils.StringMap
 	SubContext(name string) RequestContext
 	GetServerElement(elemType ServerElementType) ServerElement
 	//NewContext(name string) RequestContext
@@ -26,11 +27,11 @@ type RequestContext interface {
 	GetStringParam(string) (string, bool)
 	GetConfigParam(string) (config.Config, bool)
 	GetConfigArrParam(string) ([]config.Config, bool)
-	GetStringMapParam(string) (StringMap, bool)
-	GetStringsMapParam(string) (StringsMap, bool)
-	Invoke(alias string, params StringMap) (*Response, error)
-	Forward(string, StringMap) error
-	ForwardToService(Service, StringMap) error
+	GetStringMapParam(string) (utils.StringMap, bool)
+	GetStringsMapParam(string) (utils.StringsMap, bool)
+	Invoke(alias string, params utils.StringMap) (*Response, error)
+	Forward(string, utils.StringMap) error
+	ForwardToService(Service, utils.StringMap) error
 	GetUser() auth.User
 	GetTenant() auth.TenantInfo
 	HasPermission(perm string) bool
@@ -41,23 +42,23 @@ type RequestContext interface {
 	PublishMessage(topic string, message interface{})
 	SendSynchronousMessage(msgType string, data interface{}) error
 	PutInCache(bucket string, key string, item interface{}) error
-	PutMultiInCache(bucket string, vals StringMap) error
+	PutMultiInCache(bucket string, vals utils.StringMap) error
 	GetFromCache(bucket string, key string) (interface{}, bool)
-	GetMultiFromCache(bucket string, keys []string) StringMap
+	GetMultiFromCache(bucket string, keys []string) utils.StringMap
 	GetObjectFromCache(bucket string, key string, objectType string) (interface{}, bool)
 	IncrementInCache(bucket string, key string) error
 	DecrementInCache(bucket string, key string) error
-	GetObjectsFromCache(bucket string, keys []string, objectType string) StringMap
+	GetObjectsFromCache(bucket string, keys []string, objectType string) utils.StringMap
 	PushTask(queue string, taskdata interface{}) error
 	SubscribeTaskCompletion(queue string, callback func(ctx RequestContext, invocationId string, result interface{})) error
-	StartWorkflow(workflowName string, initData StringMap, insconf StringMap) (interface{}, error)
+	StartWorkflow(workflowName string, initData utils.StringMap, insconf utils.StringMap) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
 	SendCommunication(communication interface{}) error
 	GetRegName(object interface{}) (string, bool, bool)
-	GetExpressionValue(expression Expression, vars StringMap) (interface{}, error)
-	InvokeActivity(activity string, params StringMap) (interface{}, error)
-	InvokeScript(script string, params StringMap) (interface{}, error)
-	ExecuteAction(action *Action, params StringMap) (interface{}, error)
+	GetExpressionValue(expression Expression, vars utils.StringMap) (interface{}, error)
+	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
+	InvokeScript(script string, params utils.StringMap) (interface{}, error)
+	ExecuteAction(action *Action, params utils.StringMap) (interface{}, error)
 	CompleteRequest()
 }

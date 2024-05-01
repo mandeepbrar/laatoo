@@ -3,10 +3,11 @@ package components
 import (
 	"laatoo.io/sdk/server/auth"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type AuthorizationPlugin interface {
-	InitializeProps(ctx core.ServerContext, props core.StringMap) error
+	InitializeProps(ctx core.ServerContext, props utils.StringMap) error
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 	ListServices(ctx core.ServerContext) []string
 	AuthorizeService(ctx core.RequestContext, module string, service string, permission string) (bool, error)

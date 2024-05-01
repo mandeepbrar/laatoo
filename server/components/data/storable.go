@@ -8,6 +8,7 @@ import (
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/log"
 	serverutils "laatoo.io/sdk/server/utils"
+	"laatoo.io/sdk/utils"
 
 	"github.com/twinj/uuid"
 )
@@ -62,7 +63,7 @@ type Storable interface {
 	GetId() string
 	SetId(string)
 	GetLabel(core.RequestContext, interface{}) string
-	SetValues(core.RequestContext, interface{}, core.StringMap) error
+	SetValues(core.RequestContext, interface{}, utils.StringMap) error
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
@@ -109,7 +110,7 @@ func (si *StorageInfo) PostSave(ctx core.RequestContext) error {
 func (si *StorageInfo) PostLoad(ctx core.RequestContext) error {
 	return nil
 }
-func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val core.StringMap) error {
+func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val utils.StringMap) error {
 	delete(val, "Id")
 	delete(val, "IsNew")
 	delete(val, "CreatedBy")

@@ -4,6 +4,7 @@ import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/errors"
+	"laatoo.io/sdk/utils"
 )
 
 /*
@@ -91,24 +92,24 @@ func (svc *DataPlugin) Put(ctx core.RequestContext, id string, item Storable) er
 }
 
 // upsert an object ...insert if not there... update if there
-func (svc *DataPlugin) UpsertId(ctx core.RequestContext, id string, newVals core.StringMap) error {
+func (svc *DataPlugin) UpsertId(ctx core.RequestContext, id string, newVals utils.StringMap) error {
 	return svc.PluginDataComponent.UpsertId(ctx, id, newVals)
 }
 
-func (svc *DataPlugin) Update(ctx core.RequestContext, id string, newVals core.StringMap) error {
+func (svc *DataPlugin) Update(ctx core.RequestContext, id string, newVals utils.StringMap) error {
 	return svc.PluginDataComponent.Update(ctx, id, newVals)
 }
 
-func (svc *DataPlugin) Upsert(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error) {
+func (svc *DataPlugin) Upsert(ctx core.RequestContext, queryCond interface{}, newVals utils.StringMap, getids bool) ([]string, error) {
 	return svc.PluginDataComponent.Upsert(ctx, queryCond, newVals, getids)
 }
 
-func (svc *DataPlugin) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error) {
+func (svc *DataPlugin) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals utils.StringMap, getids bool) ([]string, error) {
 	return svc.PluginDataComponent.UpdateAll(ctx, queryCond, newVals, getids)
 }
 
 // update objects by ids, fields to be updated should be provided as key value pairs
-func (svc *DataPlugin) UpdateMulti(ctx core.RequestContext, ids []string, newVals core.StringMap) error {
+func (svc *DataPlugin) UpdateMulti(ctx core.RequestContext, ids []string, newVals utils.StringMap) error {
 	return svc.PluginDataComponent.UpdateMulti(ctx, ids, newVals)
 }
 
@@ -159,7 +160,7 @@ func (svc *DataPlugin) Count(ctx core.RequestContext, queryCond interface{}) (co
 	return svc.PluginDataComponent.Count(ctx, queryCond)
 }
 
-func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res core.StringMap, err error) {
+func (svc *DataPlugin) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res utils.StringMap, err error) {
 	return svc.PluginDataComponent.CountGroups(ctx, queryCond, groupids, group)
 }
 
@@ -184,6 +185,6 @@ func (svc *DataPlugin) AddToArray(ctx core.RequestContext, id string, fieldName 
 	return svc.PluginDataComponent.AddToArray(ctx, id, fieldName, item)
 }
 
-func (svc *DataPlugin) Execute(ctx core.RequestContext, name string, data interface{}, params core.StringMap) (interface{}, error) {
+func (svc *DataPlugin) Execute(ctx core.RequestContext, name string, data interface{}, params utils.StringMap) (interface{}, error) {
 	return svc.PluginDataComponent.Execute(ctx, name, data, params)
 }

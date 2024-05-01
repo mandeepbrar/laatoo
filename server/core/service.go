@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/datatypes"
+	"laatoo.io/sdk/utils"
 )
 
 type Service interface {
@@ -51,8 +52,8 @@ type Request interface {
 	GetParamValue(RequestContext, string) (interface{}, bool)
 	GetIntParam(RequestContext, string) (int, bool)
 	GetStringParam(RequestContext, string) (string, bool)
-	GetStringMapParam(RequestContext, string) (map[string]interface{}, bool)
-	GetStringsMapParam(RequestContext, string) (map[string]string, bool)
+	GetStringMapParam(RequestContext, string) (utils.StringMap, bool)
+	GetStringsMapParam(RequestContext, string) (utils.StringsMap, bool)
 }
 
 type Response struct {

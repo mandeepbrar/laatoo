@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"laatoo.io/sdk/utils"
 )
 
 type Session interface {
@@ -13,9 +15,9 @@ type Session interface {
 	GetInt(key string) (int, bool)
 	GetStringArray(key string) ([]string, bool)
 	AllKeys() []string
-	GetStringMap(key string) (StringMap, bool)
-	GetStringsMap(key string) (StringsMap, bool)
+	GetStringMap(key string) (utils.StringMap, bool)
+	GetStringsMap(key string) (utils.StringsMap, bool)
 	Set(key string, val interface{})
-	SetVals(vals StringMap)
+	SetVals(vals utils.StringMap)
 	Save(RequestContext) error
 }

@@ -2,11 +2,12 @@ package core
 
 import (
 	"laatoo.io/sdk/config"
+	"laatoo.io/sdk/utils"
 )
 
 type Module interface {
 	ConfigurableObject
-	MetaInfo(ctx ServerContext) StringMap
+	MetaInfo(ctx ServerContext) utils.StringMap
 	Describe(ServerContext) error
 	Initialize(ctx ServerContext, conf config.Config) error
 	Start(ctx ServerContext) error

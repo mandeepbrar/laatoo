@@ -3,6 +3,7 @@ package elements
 import (
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type ObjectLoader interface {
@@ -15,5 +16,5 @@ type ObjectLoader interface {
 	CreateObjectPointersCollection(ctx ctx.Context, objectName string, length int) (interface{}, error)
 	GetMetaData(ctx ctx.Context, objectName string) (core.Info, error)
 	GetObjectFactory(ctx ctx.Context, name string) (core.ObjectFactory, bool)
-	List(ctx core.ServerContext) core.StringsMap
+	List(ctx core.ServerContext) utils.StringsMap
 }

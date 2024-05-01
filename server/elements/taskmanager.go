@@ -3,6 +3,7 @@ package elements
 import (
 	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type TaskManager interface {
@@ -10,5 +11,5 @@ type TaskManager interface {
 	PushTask(ctx core.RequestContext, queue string, task interface{}) error
 	SubscribeTaskCompletion(queue string, callback func(ctx core.RequestContext, invocationId string, result interface{})) error
 	ProcessTask(ctx core.ServerContext, task *components.Task) (interface{}, error)
-	List(ctx core.ServerContext) core.StringsMap
+	List(ctx core.ServerContext) utils.StringsMap
 }

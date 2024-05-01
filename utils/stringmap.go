@@ -1,4 +1,4 @@
-package core
+package utils
 
 import "dario.cat/mergo"
 
@@ -95,6 +95,10 @@ func (smap StringMap) AllKeys() []string {
 func (smap StringMap) GetStringMap(key string) (StringMap, bool) {
 	val, found := smap[key]
 	if found {
+		pval, ok := val.(StringMap)
+		if ok {
+			return pval, ok
+		}
 		cf, ok := val.(map[string]interface{})
 		if ok {
 			return cf, ok
@@ -119,6 +123,10 @@ func (smap StringMap) GetStringsMap(key string) (StringsMap, bool) {
 	if found {
 		cf, ok := val.(map[string]interface{})
 		if ok {
+			pval, ok := val.(StringsMap)
+			if ok {
+				return pval, ok
+			}
 			sm := make(map[string]string)
 			for key, val := range cf {
 				strval, ok := val.(string)

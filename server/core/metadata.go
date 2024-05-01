@@ -2,6 +2,7 @@ package core
 
 import (
 	"laatoo.io/sdk/datatypes"
+	"laatoo.io/sdk/utils"
 )
 
 type MetaDataProvider interface {
@@ -51,10 +52,10 @@ type ServiceFactoryInfo interface {
 type defaultInfo struct {
 	description string
 	objtype     string
-	properties  StringMap
+	properties  utils.StringMap
 }
 
-func NewInfo(description, objtype string, props StringMap) Info {
+func NewInfo(description, objtype string, props utils.StringMap) Info {
 	return &defaultInfo{description, objtype, props}
 }
 

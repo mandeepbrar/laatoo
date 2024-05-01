@@ -184,9 +184,13 @@ func (conf GenericConfig) GetSubConfig(ctx ctx.Context, configurationName string
 	return nil, false
 }
 
-func (conf GenericConfig) GetStringMap(ctx ctx.Context, configurationName string) (map[string]interface{}, bool) {
+func (conf GenericConfig) GetStringMap(ctx ctx.Context, configurationName string) (utils.StringMap, bool) {
 	val, found := conf[configurationName]
 	if found {
+		pval, ok := val.(utils.StringMap)
+		if ok {
+			return pval, ok
+		}
 		cf, ok := val.(map[string]interface{})
 		if ok {
 			return cf, ok
@@ -195,11 +199,15 @@ func (conf GenericConfig) GetStringMap(ctx ctx.Context, configurationName string
 	return nil, false
 }
 
-func (conf GenericConfig) GetStringsMap(ctx ctx.Context, configurationName string) (map[string]string, bool) {
+func (conf GenericConfig) GetStringsMap(ctx ctx.Context, configurationName string) (utils.StringsMap, bool) {
 	val, found := conf[configurationName]
 	if found {
 		cf, ok := val.(map[string]interface{})
 		if ok {
+			pval, ok := val.(utils.StringsMap)
+			if ok {
+				return pval, ok
+			}
 			sm := make(map[string]string)
 			for key, val := range cf {
 				strval, ok := val.(string)
@@ -228,7 +236,7 @@ func (conf GenericConfig) Set(ctx ctx.Context, configurationName string, configu
 	conf[configurationName] = configurationValue
 }
 
-func (conf GenericConfig) SetVals(ctx ctx.Context, vals map[string]interface{}) {
+func (conf GenericConfig) SetVals(ctx ctx.Context, vals utils.StringMap) {
 	if vals != nil {
 		for k, v := range vals {
 			conf.Set(ctx, k, v)

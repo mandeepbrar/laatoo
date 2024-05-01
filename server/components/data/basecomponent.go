@@ -9,6 +9,7 @@ import (
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/elements"
 	"laatoo.io/sdk/server/errors"
+	"laatoo.io/sdk/utils"
 )
 
 /*
@@ -170,7 +171,7 @@ func (bc *BaseComponent) Supports(Feature) bool {
 	return false
 }
 
-func (bc *BaseComponent) PreProcessConditionMap(ctx core.RequestContext, operation ConditionType, args core.StringMap) core.StringMap {
+func (bc *BaseComponent) PreProcessConditionMap(ctx core.RequestContext, operation ConditionType, args utils.StringMap) utils.StringMap {
 	if bc.Multitenant {
 		if ctx.GetUser() != nil && ctx.GetUser().GetTenant() != nil {
 			args["TenantId"] = ctx.GetUser().GetTenant().GetTenantId()
@@ -203,7 +204,7 @@ func (bc *BaseComponent) AddToArray(ctx core.RequestContext, id string, fieldNam
 }
 
 // execute function
-func (bc *BaseComponent) Execute(ctx core.RequestContext, name string, data interface{}, params core.StringMap) (interface{}, error) {
+func (bc *BaseComponent) Execute(ctx core.RequestContext, name string, data interface{}, params utils.StringMap) (interface{}, error) {
 	return nil, errors.NotImplemented(ctx, "Execute")
 }
 
@@ -222,27 +223,27 @@ func (bc *BaseComponent) CreateMulti(ctx core.RequestContext, items []Storable) 
 }
 
 // upsert an object ...insert if not there... update if there
-func (bc *BaseComponent) UpsertId(ctx core.RequestContext, id string, newVals core.StringMap) error {
+func (bc *BaseComponent) UpsertId(ctx core.RequestContext, id string, newVals utils.StringMap) error {
 	return errors.NotImplemented(ctx, "UpsertId")
 }
 
 // upsert an object ...insert if not there... update if there
-func (bc *BaseComponent) Upsert(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error) {
+func (bc *BaseComponent) Upsert(ctx core.RequestContext, queryCond interface{}, newVals utils.StringMap, getids bool) ([]string, error) {
 	return nil, errors.NotImplemented(ctx, "Upsert")
 }
 
 // update objects by ids, fields to be updated should be provided as key value pairs
-func (bc *BaseComponent) UpdateMulti(ctx core.RequestContext, ids []string, newVals core.StringMap) error {
+func (bc *BaseComponent) UpdateMulti(ctx core.RequestContext, ids []string, newVals utils.StringMap) error {
 	return errors.NotImplemented(ctx, "UpdateMulti")
 }
 
 // update an object by ids, fields to be updated should be provided as key value pairs
-func (bc *BaseComponent) Update(ctx core.RequestContext, id string, newVals core.StringMap) error {
+func (bc *BaseComponent) Update(ctx core.RequestContext, id string, newVals utils.StringMap) error {
 	return errors.NotImplemented(ctx, "Update")
 }
 
 // update with condition
-func (bc *BaseComponent) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals core.StringMap, getids bool) ([]string, error) {
+func (bc *BaseComponent) UpdateAll(ctx core.RequestContext, queryCond interface{}, newVals utils.StringMap, getids bool) ([]string, error) {
 	return nil, errors.NotImplemented(ctx, "UpdateAll")
 }
 
@@ -306,7 +307,7 @@ func (bc *BaseComponent) Count(ctx core.RequestContext, queryCond interface{}) (
 	return -1, errors.NotImplemented(ctx, "Count")
 }
 
-func (bc *BaseComponent) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res core.StringMap, err error) {
+func (bc *BaseComponent) CountGroups(ctx core.RequestContext, queryCond interface{}, groupids []string, group string) (res utils.StringMap, err error) {
 	return nil, errors.NotImplemented(ctx, "CountGroups")
 }
 
@@ -357,14 +358,14 @@ func (bc *BaseComponent) ValidateTenant(ctx core.RequestContext, stor Storable) 
 }
 
 // supported features
-func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, insConf core.StringMap) (components.WorkflowInstance, error) {
+func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, insConf utils.StringMap) (components.WorkflowInstance, error) {
 	if !bc.Workflow {
 		return nil, nil
 	}
 	workflowManager := ctx.GetServerElement(core.ServerElementWorkflowManager).(elements.WorkflowManager)
 	workflowName := fmt.Sprintf("%s_workflow", bc.Object)
 	if workflowManager.IsWorkflowRegistered(ctx.ServerContext(), workflowName) {
-		ins, err := ctx.StartWorkflow(workflowName, core.StringMap{"data": stor}, insConf)
+		ins, err := ctx.StartWorkflow(workflowName, utils.StringMap{"data": stor}, insConf)
 		if err != nil {
 			return nil, errors.WrapError(ctx, err)
 		}

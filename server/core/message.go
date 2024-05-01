@@ -1,8 +1,11 @@
 package core
 
-import "laatoo.io/sdk/server/auth"
+import (
+	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/utils"
+)
 
-type MessageListener func(ctx RequestContext, message *Message, info map[string]interface{}) error
+type MessageListener func(ctx RequestContext, message *Message, info utils.StringMap) error
 
 type Message struct {
 	Data   interface{}

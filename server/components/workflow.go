@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type Workflow interface {
@@ -14,10 +15,10 @@ type Workflow interface {
 
 type WorkflowInstance interface {
 	GetId() string
-	InstanceDetails() core.StringMap
+	InstanceDetails() utils.StringMap
 	GetWorkflow() string
-	GetStatus() core.StringMap
-	InitData() core.StringMap
+	GetStatus() utils.StringMap
+	InitData() utils.StringMap
 }
 
 type WorkflowActivityType string
@@ -30,8 +31,8 @@ const (
 
 type WorkflowManager interface {
 	LoadWorkflows(ctx core.ServerContext, dir string) (map[string]Workflow, error)
-	StartWorkflow(ctx core.RequestContext, workflowName string, initVal core.StringMap, insconf core.StringMap) (WorkflowInstance, error)
+	StartWorkflow(ctx core.RequestContext, workflowName string, initVal utils.StringMap, insconf utils.StringMap) (WorkflowInstance, error)
 	IsWorkflowRegistered(ctx core.ServerContext, name string) bool
-	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal core.StringMap) error
-	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data core.StringMap, err error) error
+	SendSignal(ctx core.RequestContext, workflowId string, workflowIns string, actId string, signal string, signalVal utils.StringMap) error
+	CompleteActivity(ctx core.RequestContext, workflowId string, workflowIns string, actId string, data utils.StringMap, err error) error
 }

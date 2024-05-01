@@ -5,6 +5,7 @@ import (
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/auth"
+	"laatoo.io/sdk/utils"
 )
 
 /*application and engine types*/
@@ -68,7 +69,7 @@ type ServerContext interface {
 	GetServiceContext(alias string) (ServerContext, error)
 	//NewContext(name string) ServerContext
 	SubContext(name string) ServerContext
-	GetServerProperties() StringMap
+	GetServerProperties() utils.StringMap
 	CreateNewRequest(name string, tenant auth.TenantInfo, engine interface{}, engineCtx EngineContext, sessionId string) (RequestContext, error)
 	CreateCollection(objectName string, length int) (interface{}, error)
 	CreateObjectPointersCollection(objectName string, length int) (interface{}, error)

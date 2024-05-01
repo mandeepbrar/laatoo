@@ -3,6 +3,7 @@ package components
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type ModInfo struct {
@@ -16,7 +17,7 @@ type ModInfo struct {
 	ModConf            config.Config
 	ModSettings        config.Config
 	Configurations     map[string]core.Configuration
-	ModProps           core.StringMap
+	ModProps           utils.StringMap
 	IsExtended         bool
 	ExtendedPluginName string
 	ExtendedPluginConf config.Config

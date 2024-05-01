@@ -2,6 +2,7 @@ package components
 
 import (
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/utils"
 )
 
 type Activity interface {
@@ -13,5 +14,5 @@ type ActivityManager interface {
 	Load(ctx core.ServerContext, dir string) error
 	GetActivity(ctx core.ServerContext, alias string) (Activity, error)
 	RegisterActivity(ctx core.ServerContext, alias string, act Activity) error
-	InvokeActivity(ctx core.RequestContext, act Activity, args core.StringMap) (interface{}, error)
+	InvokeActivity(ctx core.RequestContext, act Activity, args utils.StringMap) (interface{}, error)
 }
