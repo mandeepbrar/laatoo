@@ -1,13 +1,9 @@
 package data
 
 import (
-	"fmt"
-
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/datatypes"
-	"laatoo.io/sdk/server/components"
 	"laatoo.io/sdk/server/core"
-	"laatoo.io/sdk/server/elements"
 	"laatoo.io/sdk/server/errors"
 	"laatoo.io/sdk/utils"
 )
@@ -358,7 +354,7 @@ func (bc *BaseComponent) ValidateTenant(ctx core.RequestContext, stor Storable) 
 }
 
 // supported features
-func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, insConf utils.StringMap) (components.WorkflowInstance, error) {
+/*func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, insConf utils.StringMap) (components.WorkflowInstance, error) {
 	if !bc.Workflow {
 		return nil, nil
 	}
@@ -373,7 +369,7 @@ func (bc *BaseComponent) StartWorkflow(ctx core.RequestContext, stor Storable, i
 
 	}
 	return nil, nil
-}
+}*/
 
 /*
 //start a transaction.

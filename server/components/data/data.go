@@ -116,6 +116,4 @@ type DataComponent interface {
 	GetOne(ctx core.RequestContext, queryCond interface{}) (dataToReturn Storable, err error)
 	//Get a list of all items
 	GetList(ctx core.RequestContext, pageSize int, pageNum int, mode string, orderBy interface{}) (dataToReturn []Storable, ids []string, totalrecs int, recsreturned int, err error)
-
-	//StartWorkflow(ctx core.RequestContext, stor Storable, insConf utils.StringMap) (components.WorkflowInstance, error)
 }
