@@ -24,7 +24,6 @@ type BaseComponent struct {
 	PostSave        bool
 	PostLoad        bool
 	PostUpdate      bool
-	Workflow        bool
 	Multitenant     bool
 	SoftDeleteField string
 	EmbeddedSearch  bool
@@ -39,8 +38,7 @@ func (bc *BaseComponent) Describe(ctx core.ServerContext) error {
 	bc.AddStringConfigurations(ctx, []string{CONF_DATA_OBJECT}, nil)
 	bc.AddOptionalConfigurations(ctx, map[string]datatypes.DataType{CONF_DATA_AUDITABLE: datatypes.Bool, CONF_DATA_POSTUPDATE: datatypes.Bool,
 		CONF_DATA_EMBEDDED_DOC_SEARCH: datatypes.Bool, CONF_DATA_POSTSAVE: datatypes.Bool, CONF_DATA_PRESAVE: datatypes.Bool,
-		CONF_DATA_POSTLOAD: datatypes.Bool, CONF_DATA_MULTITENANT: datatypes.Bool,
-		CONF_DATA_WORKFLOW_ENABLED: datatypes.Bool}, nil)
+		CONF_DATA_POSTLOAD: datatypes.Bool, CONF_DATA_MULTITENANT: datatypes.Bool}, nil)
 	return nil
 }
 
@@ -100,13 +98,6 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 		bc.Multitenant = multitenant
 	} else {
 		bc.Multitenant = bc.ObjectConfig.Multitenant
-	}
-
-	workflow, ok := bc.GetBoolConfiguration(ctx, CONF_DATA_WORKFLOW_ENABLED)
-	if ok {
-		bc.Workflow = workflow
-	} else {
-		bc.Workflow = bc.ObjectConfig.Workflow
 	}
 
 	return nil
