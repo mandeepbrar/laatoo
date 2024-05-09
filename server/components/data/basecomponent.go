@@ -4,6 +4,7 @@ import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/server/elements"
 	"laatoo.io/sdk/server/errors"
 	"laatoo.io/sdk/utils"
 )
@@ -98,6 +99,12 @@ func (bc *BaseComponent) Initialize(ctx core.ServerContext, conf config.Config) 
 		bc.Multitenant = multitenant
 	} else {
 		bc.Multitenant = bc.ObjectConfig.Multitenant
+	}
+
+	dm := ctx.GetServerElement(core.ServerElementDataManager).(elements.DataManager)
+	err = dm.RegisterDataComponent(ctx, bc.Object, bc)
+	if err != nil {
+		return errors.WrapError(ctx, err)
 	}
 
 	return nil
