@@ -11,6 +11,6 @@ type ActionExecutor func(ctx RequestContext, action *Action, params utils.String
 
 type Action struct {
 	Type      ActionType
-	Condition *GenericExpression
+	Condition string
 	Config    config.GenericConfig
 }
