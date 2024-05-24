@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strconv"
+
 	"laatoo.io/sdk/ctx"
 	"laatoo.io/sdk/utils"
 )
@@ -72,6 +74,14 @@ func (conf GenericConfig) GetBool(ctx ctx.Context, configurationName string) (bo
 		val = fillVariables(ctx, val)
 		b, ok = val.(bool)
 		if ok {
+			return b, true
+		}
+		s, ok := val.(string)
+		if ok {
+			b, err := strconv.ParseBool(s)
+			if err != nil {
+				return false, false
+			}
 			return b, true
 		}
 	}
