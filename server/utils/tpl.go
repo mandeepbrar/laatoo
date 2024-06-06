@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -111,7 +112,12 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	if err != nil {
 		return nil, err
 	}
-	return result.Bytes(), nil
+
+	c := result.String()
+	re1 := regexp.MustCompile(`\[\[(.*)\]\]`)
+	c = re1.ReplaceAllString(c, "<![CDATA[$1]]>")
+
+	return []byte(c), nil
 }
 
 func GetTemplateFileContent(ctx ctx.Context, name string, funcs map[string]interface{}) ([]byte, error) {
