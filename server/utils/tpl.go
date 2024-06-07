@@ -115,7 +115,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 
 	c := result.String()
 	re1 := regexp.MustCompile(`\[\[(.*)\]\]`)
-	c = re1.ReplaceAllString(c, "<![CDATA[$1]]>")
+	c = re1.ReplaceAllString(c, "`$1`")
 
 	return []byte(c), nil
 }
