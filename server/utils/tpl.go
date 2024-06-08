@@ -3,7 +3,9 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"regexp"
 	"strings"
@@ -113,11 +115,28 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 		return nil, err
 	}
 
+	var b bytes.Buffer
+	wr := io.Writer(&b)
+
 	c := result.String()
 	re1 := regexp.MustCompile(`\[\[(.*)\]\]`)
-	c = re1.ReplaceAllString(c, "`$1`")
+	c = re1.ReplaceAllStringFunc(c, func(inp string) string {
+		b.Reset()
+		mval := inp[2 : len(inp)-2]
+		xml.EscapeText(wr, []byte(mval))
+		return b.String()
+	})
 
 	return []byte(c), nil
+}
+
+func main() {
+	input := `bla bla b:foo="hop" blablabla b:bar="hu?"`
+	r := regexp.MustCompile(`\bb:\w+="([^"]+)"`)
+	r2 := regexp.MustCompile(`"([^"]+)"`)
+	fmt.Println(r.ReplaceAllStringFunc(input, func(m string) string {
+		return r2.ReplaceAllString(m, `"${2}whatever"`)
+	}))
 }
 
 func GetTemplateFileContent(ctx ctx.Context, name string, funcs map[string]interface{}) ([]byte, error) {
