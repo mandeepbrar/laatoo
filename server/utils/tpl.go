@@ -123,20 +123,11 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	c = re1.ReplaceAllStringFunc(c, func(inp string) string {
 		b.Reset()
 		mval := inp[2 : len(inp)-2]
-		xml.EscapeText(wr, []byte(mval))
+		xml.EscapeText(wr, []byte(fmt.Sprintf("\"javascript###replace@@@%s###\"", mval)))
 		return b.String()
 	})
 
 	return []byte(c), nil
-}
-
-func main() {
-	input := `bla bla b:foo="hop" blablabla b:bar="hu?"`
-	r := regexp.MustCompile(`\bb:\w+="([^"]+)"`)
-	r2 := regexp.MustCompile(`"([^"]+)"`)
-	fmt.Println(r.ReplaceAllStringFunc(input, func(m string) string {
-		return r2.ReplaceAllString(m, `"${2}whatever"`)
-	}))
 }
 
 func GetTemplateFileContent(ctx ctx.Context, name string, funcs map[string]interface{}) ([]byte, error) {
