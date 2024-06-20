@@ -123,8 +123,8 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	c = re1.ReplaceAllStringFunc(c, func(inp string) string {
 		b.Reset()
 		mval := inp[2 : len(inp)-2]
-		xml.EscapeText(wr, []byte(fmt.Sprintf("\"javascript###replace@@@%s###\"", mval)))
-		return b.String()
+		xml.EscapeText(wr, []byte(mval))
+		return fmt.Sprintf("\"javascript###replace@@@%s###\"", b.String())
 	})
 
 	return []byte(c), nil
