@@ -1,9 +1,9 @@
 package auth
 
-type UserProfile interface {
+type UserAccount interface {
 	GetId() string
 	GetEmail() string
-	GetName() string
+	GetFullName() string
 	GetPicture() string
 	GetGender() string
 	GetUsernameField() string

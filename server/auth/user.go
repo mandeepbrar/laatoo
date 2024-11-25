@@ -15,4 +15,5 @@ type User interface {
 	GetEmail() string
 	GetRealm() string
 	GetTenant() TenantInfo
+	GetUserAccount() UserAccount
 }

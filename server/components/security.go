@@ -6,7 +6,7 @@ import (
 	"laatoo.io/sdk/utils"
 )
 
-type AuthorizationPlugin interface {
+type SecurityHandler interface {
 	InitializeProps(ctx core.ServerContext, props utils.StringMap) error
 	ServicesAccessibleByRole(ctx core.RequestContext, role string) ([]string, error)
 	ListServices(ctx core.ServerContext) []string
