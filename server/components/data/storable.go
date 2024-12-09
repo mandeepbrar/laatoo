@@ -41,6 +41,7 @@ tenantname=73
 */
 
 type StorableConfig struct {
+	ObjectType        string
 	LabelField        string
 	PartialLoadFields []string
 	FullLoadFields    []string
@@ -62,25 +63,28 @@ type Storable interface {
 	Config() *StorableConfig
 	GetId() string
 	SetId(string)
-	GetLabel(core.RequestContext, interface{}) string
+	GetLabel() string
 	SetValues(core.RequestContext, interface{}, utils.StringMap) error
 	PreSave(ctx core.RequestContext) error
 	PostSave(ctx core.RequestContext) error
 	PostLoad(ctx core.RequestContext) error
 	IsMultitenant() bool
 	Join(item Storable)
-	GetObjectRef() interface{}
+	GetObjectRef() *StorableRef
 }
 
 type StorageInfo struct {
-	Id    string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key;" gorm:"primary_key"`
-	P_ref interface{} `json:"-" datastore:"-" bson:"-" sql:"-"`
+	Id      string      `json:"Id" bson:"Id" protobuf:"bytes,51,opt,name=id,proto3" sql:"type:varchar(100); primary key;" gorm:"primary_key"`
+	selfRef interface{} `json:"-" datastore:"-" bson:"-" sql:"-"`
 }
 
 func (si *StorageInfo) Constructor() {
 	if si.Id == "" {
 		si.Id = uuid.NewV4().String()
 	}
+}
+func (si *StorageInfo) SetSelfReference(ref interface{}) {
+	si.selfRef = ref
 }
 
 func (si *StorageInfo) GetId() string {
@@ -90,8 +94,8 @@ func (si *StorageInfo) SetId(val string) {
 	si.Id = val
 }
 
-func (si *StorageInfo) GetLabel(ctx core.RequestContext, i interface{}) string {
-	stor := i.(Storable)
+func (si *StorageInfo) GetLabel() string {
+	stor := si.selfRef.(Storable)
 	c := stor.Config()
 	if c != nil && c.LabelField != "" {
 		v := reflect.ValueOf(stor).Elem()
@@ -130,8 +134,10 @@ func (si *StorageInfo) Config() *StorableConfig {
 	return nil
 }
 
-func (si *StorageInfo) GetObjectRef() interface{} {
-	return si.P_ref
+func (si *StorageInfo) GetObjectRef() *StorableRef {
+	stor := si.selfRef.(Storable)
+	c := stor.Config()
+	return &StorableRef{Id: si.Id, Type: c.ObjectType, Name: stor.GetLabel()}
 }
 
 func (si *StorageInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
