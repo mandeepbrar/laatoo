@@ -70,21 +70,31 @@ func SetObjectFields(ctx ctx.Context, object interface{}, newVals map[string]int
 					{
 						objCreator := ctx.(ObjectCreator)
 						objType, isPtr := GetRegisteredName(f.Type())
-
-						structobj, err := objCreator.CreateObject(objType)
-						if err != nil {
-							return err
-						}
-						structVals, ok := objVal.(map[string]interface{})
-						if ok {
-							err = SetObjectFields(ctx, structobj, structVals, mappings, fieldProcessor)
-							if err != nil {
-								return err
-							}
-							if isPtr {
-								f.Set(reflect.ValueOf(structobj).Convert(f.Type()))
+						vtype, visPtr := GetRegisteredName(reflect.ValueOf(v).Type())
+						if objType == vtype {
+							if (isPtr && visPtr) || (!isPtr && !visPtr) {
+								f.Set(reflect.ValueOf(v))
 							} else {
-								f.Set(reflect.ValueOf(structobj).Elem().Convert(f.Type()))
+								if visPtr {
+									f.Set(reflect.ValueOf(v).Elem())
+								}
+							}
+						} else {
+							structVals, ok := objVal.(map[string]interface{})
+							if ok {
+								structobj, err := objCreator.CreateObject(objType)
+								if err != nil {
+									return err
+								}
+								err = SetObjectFields(ctx, structobj, structVals, mappings, fieldProcessor)
+								if err != nil {
+									return err
+								}
+								if isPtr {
+									f.Set(reflect.ValueOf(structobj).Convert(f.Type()))
+								} else {
+									f.Set(reflect.ValueOf(structobj).Elem().Convert(f.Type()))
+								}
 							}
 						}
 					}
