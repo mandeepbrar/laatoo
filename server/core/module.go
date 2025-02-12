@@ -13,6 +13,7 @@ type Module interface {
 	Start(ctx ServerContext) error
 	Factories(ctx ServerContext) map[string]config.Config
 	Services(ctx ServerContext) map[string]config.Config
+	Agents(ctx ServerContext) map[string]config.Config
 	Rules(ctx ServerContext) map[string]config.Config
 	Permissions(ctx ServerContext) []string
 	Channels(ctx ServerContext) map[string]config.Config
