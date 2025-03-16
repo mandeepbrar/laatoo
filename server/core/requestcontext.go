@@ -17,6 +17,7 @@ type RequestContext interface {
 	//NewContext(name string) RequestContext
 	GetRequest() Request
 	SetResponse(*Response)
+	AddResponseInfo(utils.StringMap)
 	GetSession() Session
 	GetResponse() *Response
 	//GetBody() interface{}
