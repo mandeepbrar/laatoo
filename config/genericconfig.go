@@ -144,9 +144,12 @@ func (conf GenericConfig) GetConfigArray(ctx ctx.Context, configurationName stri
 		retVal = make([]Config, len(cArr))
 		for index, val := range cArr {
 			var gc GenericConfig
-			gc, ok := val.(map[string]interface{})
+			gc, ok := val.(GenericConfig)
 			if !ok {
-				return nil, false
+				gc, ok = val.(map[string]interface{})
+				if !ok {
+					return nil, false
+				}
 			}
 			retVal[index] = gc
 		}
