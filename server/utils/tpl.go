@@ -70,7 +70,7 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	equals := func(variable string, val string) bool {
 		valToCompare, ok := ctx.Get(variable)
 		if ok {
-			return fmt.Sprint("%v", valToCompare) == val
+			return fmt.Sprintf("%v", valToCompare) == val
 		}
 		return false
 	}
