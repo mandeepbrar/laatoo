@@ -99,10 +99,8 @@ func ProcessTemplate(ctx ctx.Context, cont []byte, funcs map[string]interface{})
 	}
 
 	funcMap := template.FuncMap{"var": contextVar, "is": is, "jsreplace": jsReplace, "jsformat": jsFormat, "default": defaultVar, "equals": equals, "upper": strings.ToUpper, "lower": strings.ToLower, "title": strings.Title, "exists": exists, "contains": contains, "json": json}
-	if funcs != nil {
-		for k, v := range funcs {
-			funcMap[k] = v.(func(variable string) string)
-		}
+	for k, v := range funcs {
+		funcMap[k] = v
 	}
 	temp, err := template.New("temp").Funcs(funcMap).Parse(string(cont))
 	if err != nil {
