@@ -64,10 +64,10 @@ type Storable interface {
 	GetId() string
 	SetId(string)
 	GetLabel() string
-	SetValues(core.RequestContext, interface{}, utils.StringMap) error
-	PreSave(ctx core.RequestContext) error
-	PostSave(ctx core.RequestContext) error
-	PostLoad(ctx core.RequestContext) error
+	SetValues(ctx.Context, interface{}, utils.StringMap) error
+	PreSave(ctx ctx.Context) error
+	PostSave(ctx ctx.Context) error
+	PostLoad(ctx ctx.Context) error
 	IsMultitenant() bool
 	Join(item Storable)
 	GetObjectRef() *StorableRef
@@ -105,23 +105,23 @@ func (si *StorageInfo) GetLabel() string {
 	return ""
 }
 
-func (si *StorageInfo) PreSave(ctx core.RequestContext) error {
+func (si *StorageInfo) PreSave(ctx ctx.Context) error {
 	return nil
 }
-func (si *StorageInfo) PostSave(ctx core.RequestContext) error {
+func (si *StorageInfo) PostSave(ctx ctx.Context) error {
 	return nil
 }
-func (si *StorageInfo) PostLoad(ctx core.RequestContext) error {
+func (si *StorageInfo) PostLoad(ctx ctx.Context) error {
 	return nil
 }
-func (si *StorageInfo) SetValues(ctx core.RequestContext, obj interface{}, val utils.StringMap) error {
+func (si *StorageInfo) SetValues(ctx ctx.Context, obj interface{}, val utils.StringMap) error {
 	delete(val, "Id")
 	delete(val, "IsNew")
 	delete(val, "CreatedBy")
 	delete(val, "UpdatedBy")
 	delete(val, "CreatedAt")
 	delete(val, "UpdatedAt")
-	return serverutils.SetObjectFields(ctx.ServerContext(), obj, val, nil, nil)
+	return serverutils.SetObjectFields(ctx, obj, val, nil, nil)
 }
 
 func (si *StorageInfo) IsMultitenant() bool {
