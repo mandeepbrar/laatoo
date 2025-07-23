@@ -55,7 +55,7 @@ type RequestContext interface {
 	StartWorkflow(workflowName string, initData utils.StringMap, insconf utils.StringMap) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
 	GetCodec(encoding string) (Codec, bool)
-	SendNotification(notification interface{}) error
+	SendNotification(notification Notification) error
 	GetRegName(object interface{}) (string, bool, bool)
 	GetExpressionValue(expression Expression, vars utils.StringMap) (interface{}, error)
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
