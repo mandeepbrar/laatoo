@@ -40,7 +40,7 @@ const (
 	ServerElementCacheManager
 	ServerElementModule
 	ServerElementLogger
-	ServerElementCommunicator
+	ServerElementNotificationManager
 	ServerElementSecretsManager
 	ServerElementWorkflowManager
 	ServerElementActivityManager

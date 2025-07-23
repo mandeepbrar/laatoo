@@ -5,7 +5,7 @@ import (
 	"laatoo.io/sdk/server/core"
 )
 
-type Communicator interface {
+type NotificationManager interface {
 	core.ServerElement
-	components.Communicator
+	components.NotificationManager
 }
