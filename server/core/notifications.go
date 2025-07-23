@@ -20,3 +20,21 @@ type Notification struct {
 	Message          []byte
 	Info             interface{}
 }
+
+func ParseNotificationType(str string) (NotificationType, bool) {
+	switch str {
+	case "INAPP":
+		return INAPP, true
+	case "EMAIL":
+		return EMAIL, true
+	case "SMS":
+		return SMS, true
+	case "PUSH":
+		return PUSH, true
+	case "WHATSAPP":
+		return WHATSAPP, true
+	case "WEBHOOK":
+		return WEBHOOK, true
+	}
+	return "", false
+}
