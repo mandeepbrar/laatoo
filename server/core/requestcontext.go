@@ -19,6 +19,8 @@ type RequestContext interface {
 	SetResponse(*Response)
 	AddResponseInfo(utils.StringMap)
 	GetSession() Session
+	GetFromSession(key string) (interface{}, bool)
+	SetInSession(key string, val interface{})
 	GetResponse() *Response
 	//GetBody() interface{}
 	GetParam(string) (Param, bool)
