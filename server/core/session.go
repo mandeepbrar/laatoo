@@ -17,6 +17,7 @@ type Session interface {
 	AllKeys() []string
 	GetStringMap(key string) (utils.StringMap, bool)
 	GetStringsMap(key string) (utils.StringsMap, bool)
+	Get(key string) (interface{}, bool)
 	Set(key string, val interface{})
 	SetVals(vals utils.StringMap)
 	Save(RequestContext) error
