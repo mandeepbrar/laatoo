@@ -62,5 +62,6 @@ type RequestContext interface {
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
 	InvokeScript(script string, params utils.StringMap) (interface{}, error)
 	ExecuteAction(action *Action, params utils.StringMap) (interface{}, error)
+	SendNotification(notification *Notification) error
 	CompleteRequest()
 }

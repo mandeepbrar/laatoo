@@ -9,5 +9,4 @@ type NotificationManager interface {
 	core.ServerElement
 	components.NotificationManager
 	RegisterUserNotifier(ctx core.ServerContext, userId string, notifier components.Notifier)
-	Broadcast(ctx core.ServerContext, notif *core.Notification) error
 }

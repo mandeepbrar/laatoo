@@ -78,7 +78,6 @@ type ServerContext interface {
 	GetObjectFactory(name string) (ObjectFactory, bool)
 	GetObjectMetadata(objectName string) (Info, error)
 	CreateSystemRequest(name string, tenant auth.TenantInfo, behalfOf interface{}) RequestContext
-	SendNotification(notification *Notification) error
 	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error
 	CreateConfig() config.Config
 	GetCodec(encoding string) (Codec, bool)
