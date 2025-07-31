@@ -7,3 +7,7 @@ type Notifier interface {
 	GetUserId() string
 	Notify(ctx core.RequestContext, notificaiton *core.Notification) error
 }
+
+type NotifiersRegistry interface {
+	RegisterUserNotifier(ctx core.ServerContext, userId string, notifier Notifier)
+}
