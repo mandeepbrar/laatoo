@@ -1,5 +1,7 @@
 package core
 
+import "laatoo.io/sdk/utils"
+
 type NotificationType string
 
 const (
@@ -18,7 +20,7 @@ type Notification struct {
 	Attachments      []string
 	Recipients       map[string]string
 	Message          []byte
-	Info             interface{}
+	Info             utils.StringMap
 }
 
 func ParseNotificationType(str string) (NotificationType, bool) {
