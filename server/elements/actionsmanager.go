@@ -8,5 +8,5 @@ import (
 type ActionsManager interface {
 	core.ServerElement
 	RegisterAction(ctx core.ServerContext, actionType core.ActionType, executor core.ActionExecutor) error
-	ExecuteAction(ctx core.RequestContext, action *core.Action, params utils.StringMap) (interface{}, error)
+	ExecuteAction(ctx core.RequestContext, action core.ActionType, params utils.StringMap) (interface{}, error)
 }
