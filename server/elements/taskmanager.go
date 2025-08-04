@@ -12,4 +12,5 @@ type TaskManager interface {
 	SubscribeTaskCompletion(queue string, callback func(ctx core.RequestContext, invocationId string, result interface{})) error
 	ProcessTask(ctx core.ServerContext, task *components.Task) (interface{}, error)
 	List(ctx core.ServerContext) utils.StringsMap
+	CreateEmptyTaskObj(ctx core.ServerContext) *components.Task
 }
