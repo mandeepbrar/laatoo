@@ -29,7 +29,7 @@ func (ti *TenantInfo) SetTenant(tenantid, tenantname string) {
 	ti.Tenant = tenantid
 	ti.TenantName = tenantname
 }
-func (ti *TenantInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+func (ti *TenantInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 	if err = rdr.ReadString(c, cdc, "Tenant", &ti.Tenant); err != nil {
 		return err
@@ -37,7 +37,7 @@ func (ti *TenantInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializab
 	return nil
 }
 
-func (ti *TenantInfo) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+func (ti *TenantInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	/*var err error
 	if err = wtr.WriteString(c, cdc, "Tenant", &ti.Tenant); err != nil {
 		return err

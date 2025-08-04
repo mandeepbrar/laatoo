@@ -1,11 +1,15 @@
 package auth
 
+import "laatoo.io/sdk/datatypes"
+
 type TenantInfo interface {
+	datatypes.Serializable
 	GetTenantId() string
 	GetTenantName() string
 }
 
 type User interface {
+	datatypes.Serializable
 	GetId() string
 	SetId(string)
 	GetUsernameField() string

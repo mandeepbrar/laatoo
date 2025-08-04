@@ -2,8 +2,8 @@ package data
 
 import (
 	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/auth"
-	"laatoo.io/sdk/server/core"
 )
 
 type TenantInfo struct {
@@ -29,7 +29,7 @@ func (ti *TenantInfo) SetTenantInfo(inf auth.TenantInfo) {
 	}
 }
 
-func (ti *TenantInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+func (ti *TenantInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 	if err = rdr.ReadString(c, cdc, "TenantId", &ti.TenantId); err != nil {
 		return err
@@ -40,7 +40,7 @@ func (ti *TenantInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializab
 	return nil
 }
 
-func (ti *TenantInfo) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+func (ti *TenantInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteString(c, cdc, "TenantId", &ti.TenantId); err != nil {
 		return err

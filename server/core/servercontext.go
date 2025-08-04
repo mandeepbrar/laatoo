@@ -80,7 +80,7 @@ type ServerContext interface {
 	CreateSystemRequest(name string, tenant auth.TenantInfo, behalfOf interface{}) RequestContext
 	SubscribeTopic(topics []string, lstnr MessageListener, lsnrID string) error
 	CreateConfig() config.Config
-	GetCodec(encoding string) (Codec, bool)
+	GetCodec(encoding string) (datatypes.Codec, bool)
 	RegisterExpression(expression Expression, dtype datatypes.DataType) error
 	ReadConfigMap(cfg map[string]interface{}) (config.Config, error)
 	ReadConfigData(data []byte, funcs map[string]interface{}) (config.Config, error)

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/core"
 	"laatoo.io/sdk/server/log"
 )
@@ -92,7 +93,7 @@ func Track(ctx core.RequestContext, item interface{}) {
 	}
 }
 
-func (ti *TrackingInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+func (ti *TrackingInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 	if err = rdr.ReadString(c, cdc, "CreatedBy", &ti.CreatedBy); err != nil {
 		return err
@@ -109,7 +110,7 @@ func (ti *TrackingInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializ
 	return nil
 }
 
-func (ti *TrackingInfo) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+func (ti *TrackingInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteString(c, cdc, "CreatedBy", &ti.CreatedBy); err != nil {
 		return err

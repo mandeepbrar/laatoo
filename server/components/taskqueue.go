@@ -1,16 +1,18 @@
 package components
 
 import (
-	"laatoo.io/sdk/server/components/data"
+	"laatoo.io/sdk/datatypes"
+	"laatoo.io/sdk/server/auth"
 	"laatoo.io/sdk/server/core"
 )
 
 type Task struct {
+	datatypes.Serializable
 	Queue  string
 	Data   []byte
 	Id     string
-	User   core.Serializable
-	Tenant data.TenantInfo
+	User   auth.User
+	Tenant auth.TenantInfo
 }
 
 type TaskManager interface {

@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"laatoo.io/sdk/ctx"
-	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/log"
 	serverutils "laatoo.io/sdk/server/utils"
 	"laatoo.io/sdk/utils"
@@ -140,7 +140,7 @@ func (si *StorageInfo) GetObjectRef() *StorableRef {
 	return &StorableRef{Id: si.Id, Type: c.ObjectType, Name: stor.GetLabel()}
 }
 
-func (si *StorageInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+func (si *StorageInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 	if err = rdr.ReadString(c, cdc, "Id", &si.Id); err != nil {
 		return err
@@ -148,7 +148,7 @@ func (si *StorageInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializa
 	return nil
 }
 
-func (si *StorageInfo) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+func (si *StorageInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteString(c, cdc, "Id", &si.Id); err != nil {
 		return err

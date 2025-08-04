@@ -2,7 +2,7 @@ package data
 
 import (
 	"laatoo.io/sdk/ctx"
-	"laatoo.io/sdk/server/core"
+	"laatoo.io/sdk/datatypes"
 )
 
 // Object stored by data service
@@ -22,7 +22,7 @@ func (di *DeletionInfo) IsDeleted() bool {
 func (di *DeletionInfo) SetDeleted(deleted bool) {
 	di.Deleted = deleted
 }
-func (di *DeletionInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.SerializableReader) error {
+func (di *DeletionInfo) ReadAll(c ctx.Context, cdc datatypes.Codec, rdr datatypes.SerializableReader) error {
 	var err error
 	if err = rdr.ReadBool(c, cdc, "Deleted", &di.Deleted); err != nil {
 		return err
@@ -30,7 +30,7 @@ func (di *DeletionInfo) ReadAll(c ctx.Context, cdc core.Codec, rdr core.Serializ
 	return nil
 }
 
-func (di *DeletionInfo) WriteAll(c ctx.Context, cdc core.Codec, wtr core.SerializableWriter) error {
+func (di *DeletionInfo) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.SerializableWriter) error {
 	var err error
 	if err = wtr.WriteBool(c, cdc, "Deleted", &di.Deleted); err != nil {
 		return err

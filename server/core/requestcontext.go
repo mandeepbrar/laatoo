@@ -3,6 +3,7 @@ package core
 import (
 	"laatoo.io/sdk/config"
 	"laatoo.io/sdk/ctx"
+	"laatoo.io/sdk/datatypes"
 	"laatoo.io/sdk/server/auth"
 	"laatoo.io/sdk/utils"
 )
@@ -56,7 +57,7 @@ type RequestContext interface {
 	SubscribeTaskCompletion(queue string, callback func(ctx RequestContext, invocationId string, result interface{})) error
 	StartWorkflow(workflowName string, initData utils.StringMap, insconf utils.StringMap) (interface{}, error)
 	InvalidateCache(bucket string, key string) error
-	GetCodec(encoding string) (Codec, bool)
+	GetCodec(encoding string) (datatypes.Codec, bool)
 	GetRegName(object interface{}) (string, bool, bool)
 	GetExpressionValue(expression Expression, vars utils.StringMap) (interface{}, error)
 	InvokeActivity(activity string, params utils.StringMap) (interface{}, error)
