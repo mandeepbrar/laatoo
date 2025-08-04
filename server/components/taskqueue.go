@@ -72,13 +72,18 @@ func (ent *Task) WriteAll(c ctx.Context, cdc datatypes.Codec, wtr datatypes.Seri
 		return err
 	}
 
-	err = ent.User.WriteAll(c, cdc, wtr)
-	if err != nil {
-		return err
+	if ent.User != nil {
+		err = ent.User.WriteAll(c, cdc, wtr)
+		if err != nil {
+			return err
+		}
+
 	}
-	err = ent.Tenant.WriteAll(c, cdc, wtr)
-	if err != nil {
-		return err
+	if ent.Tenant != nil {
+		err = ent.Tenant.WriteAll(c, cdc, wtr)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
