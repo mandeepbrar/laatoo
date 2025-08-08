@@ -15,7 +15,8 @@ type Module interface {
 	Services(ctx ServerContext) map[string]config.Config
 	Agents(ctx ServerContext) map[string]config.Config
 	Rules(ctx ServerContext) map[string]config.Config
-	Permissions(ctx ServerContext) []string
+	Datasets(ctx ServerContext) map[string]config.Config
+	Permissions(ctx ServerContext) utils.StringsMap
 	Channels(ctx ServerContext) map[string]config.Config
 	Tasks(ctx ServerContext) map[string]config.Config
 	Workflows(ctx ServerContext) map[string]config.Config

@@ -35,6 +35,35 @@ const (
 	DATA_TOTALRECS         = "totalrecords"
 )
 
+type OperandType string
+
+const (
+	Property    OperandType = "Property"
+	StaticValue OperandType = "Value"
+	Expression  OperandType = "Expression"
+	Param       OperandType = "Param"
+)
+
+type FilterCondition struct {
+	Type    ConditionType
+	Lhs     string
+	LhsType OperandType
+	Op      string
+	Rhs     string
+	RhsType OperandType
+}
+
+type Dataset struct {
+	Name       string
+	Entity     string
+	Properties utils.StringsMap
+	Params     utils.StringsMap
+	Filters    []FilterCondition
+	Sort       string
+	Cache      bool
+	Permission string
+}
+
 // Service that provides data from various data sources
 // Service interface that needs to be implemented by any data service
 type DataComponent interface {

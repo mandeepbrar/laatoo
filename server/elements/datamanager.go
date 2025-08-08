@@ -52,6 +52,8 @@ type DataManager interface {
 	//Deletes the key
 	DeleteValue(ctx core.RequestContext, obj string, key string) error
 
+	FetchDataset(ctx core.RequestContext, dsname string, params utils.StringsMap, pageSize int, pageNum int) (dataToReturn []data.Storable, ids []string, totalrecs int, recsreturned int, err error)
+
 	//Count all object with given condition
 	Count(ctx core.RequestContext, obj string, queryCond interface{}) (count int, err error)
 	CountGroups(ctx core.RequestContext, obj string, queryCond interface{}, groupids []string, group string) (res utils.StringMap, err error)
